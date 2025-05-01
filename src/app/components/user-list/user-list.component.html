@@ -1,0 +1,51 @@
+<div class="pb-2">
+  <div class="card card-hover mb-1 rounded shadow" *ngFor="let user of users">
+    <div
+      class="d-flex flex-wrap mx-3 p-1 rounded-top align-items-center justify-content-between justify-content-sm-between gap-2"
+    >
+      <div class="col-12 col-sm-auto d-flex align-items-center">
+        <img class="profile-picture" [src]="user.profilePicture ? user.profilePicture : 'assets/images/default-user-profile-pic.png'" alt="Profile Picture" />
+
+        <div
+          class="d-flex flex-column align-items-center align-items-sm-start mx-sm-0 mx-auto"
+        >
+          <a
+            [routerLink]="role === '3' ? getRouterLink(links[0], user) : null"
+            (click)="role === '3' ? setReportInfo(user) : selectUser(user)"
+            class="text-decoration-none mb-0 links d-flex align-items-center"
+          >
+            <span class="fs-4 fw-bolder"
+              >{{ user.name }} {{ user.last_name }}</span
+            >
+            <mat-icon color="warn" title="Entries for review" *ngIf="user.review && role == '1'">error_outline</mat-icon>
+          </a>
+          <div class="d-flex gap-2">
+            <a
+              *ngFor="let link of links"
+              class="fs-5 fw-bolder links"
+              [routerLink]="getRouterLink(link, user)"
+              (click)="setReportInfo(user)"
+              >{{ link.title }}</a
+            >
+          </div>
+        </div>
+      </div>
+      <div
+        class="mx-auto mx-sm-0 rounded-circle p-2 btn"
+        title="{{ user.active ? 'Deactivate' : 'Activate' }}"
+        *ngIf="!timer"
+        [ngClass]="{ 'bg-primary': user.active, 'bg-danger': !user.active }"
+        (click)="toggleUserStatus(user)"
+      ></div>
+      <app-timer
+        *ngIf="timer"
+        [user]="user"
+        [timeZone]="timeZone"
+        class="mx-auto mx-sm-0"
+      ></app-timer>
+    </div>
+  </div>
+  <div *ngIf="!loaded" class="d-flex justify-content-center">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>

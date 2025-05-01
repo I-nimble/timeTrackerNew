@@ -1,0 +1,19 @@
+<main class="side-panel">
+  <div
+    class="side-panel-overlay"
+    (click)="close()"
+    [ngClass]="{ 'fade-out': !show }"
+  ></div>
+  <div
+    class="bg-white h-100 side-panel-body"
+    [style.width]="'70%'"
+    [ngClass]="{ 'slide-out': !show, 'slide-in': show }"
+  >
+    <div class="panel-header p-2">
+      <h3 class="mb-0 text-capitalize text-white">{{title}}</h3>
+    </div>
+    <div class="body p-2">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</main>

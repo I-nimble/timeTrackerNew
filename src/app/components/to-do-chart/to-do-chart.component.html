@@ -1,0 +1,51 @@
+<div class="d-flex align-items-center flex-column" id="range-selection">
+    <div class="month-picker d-flex justify-content-center align-items-center" (click)="toggleCalendar()">
+        <p class="m-0">{{ selectedDate | date: 'MMMM yyyy' }}</p>
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    <div class="calendar" *ngIf="isCalendarOpen">
+        <app-calendar
+              (rangeSelection)="setDatesGroup($event)"
+              (getEntries)="getEntries()"
+              [datesRange]="datesRange"
+              [calendar]="calendarHead"
+        ></app-calendar>
+    </div>
+</div>
+
+<table class="table calendar-table">
+    <thead>
+        <tr>
+            <th>
+                <div class="d-flex flex-column justify-content-center align-items-center">
+                    <button (click)="moveHoursUp()" [disabled]="hoursIndex === 0" class="nav-button">
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                    <button (click)="moveHoursDown()" [disabled]="hoursIndex + 7 >= hours.length" class="nav-button">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                </div>
+            </th>
+            <th *ngFor="let day of datesSelection" class="text-center">
+                {{ day | date: 'EEEE dd' }}
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let hour of visibleHours">
+            <td class="text-center">{{ hour }}</td>
+            <td 
+                *ngFor="let day of datesSelection" 
+                (click)="getTasksForDayAndHour(day, hour).completed ? null : openFormModal(day, hour)"
+                [ngClass]="{ 
+                    'completed-task': getTasksForDayAndHour(day, hour).completed, 
+                    'pending-task': !getTasksForDayAndHour(day, hour).completed && getTasksForDayAndHour(day, hour).tasks !== '' 
+                }"
+                        [matTooltip]="getTasksForDayAndHour(day, hour).completed ? ('Details: ' + getTasksForDayAndHour(day, hour).details || '') : ''"
+                        matTooltipClass="custom-tooltip"
+            >
+                {{ getTasksForDayAndHour(day, hour).tasks }}
+            </td>
+        </tr>
+    </tbody>
+</table>

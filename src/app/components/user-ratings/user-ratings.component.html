@@ -1,0 +1,74 @@
+<div class="card rounded shadow mb-2">
+  <div class="card-header py-1">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1 class="mb-0 text-dark fs-3">{{ userData?.name }} {{ userData?.last_name }}'s Goals</h1>
+
+      <div class="d-flex justify-content-end flex-wrap">
+        <button
+          mat-raised-button
+          class="m-1 btn-hover transition"
+          color="primary"
+          id="content"
+          (click)="toggleCalendar()"
+        >
+          <i class="fa-regular fa-calendar"></i>
+          <span class="ms-2">Calendar</span>
+        </button>
+        <a
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="text-decoration-none m-1 btn-hover transition"
+          (click)="downloadToDoReport()"
+          ><span><i class="fa-solid fa-download"></i></span
+        ></a>
+      </div>
+    </div>
+    <div class="calendar" id="content" *ngIf="isActive == true">
+      <app-calendar
+        (rangeSelection)="setDatesGroup($event)"
+        (getEntries)="getEntries()"
+        [datesRange]="datesRange"
+        [calendar]="calendarHead"
+      ></app-calendar>
+    </div>
+  </div>
+  <div class="py-2 px-3 card-body">
+    <div class="d-flex justify-content-between">
+      <div class="d-flex flex-row align-items-center mt-4 w-75">
+        <mat-form-field class="w-75">
+          <mat-label>Select Goal</mat-label>
+          <mat-select [(ngModel)]="selectedGoal" (ngModelChange)="getEntries()">
+            @for (rating of this.ratingsData; track rating) {
+            <mat-option [value]="rating.id"
+              >{{ rating.goal }}</mat-option
+            >
+            }</mat-select
+          >
+        </mat-form-field>
+      </div>
+
+      <app-star-rate 
+        [selectedGoal]="selectedGoal"
+        [selectedStarIndex]="selectedStarIndex"
+        (hoverStar)="hoverStar($event)"
+        (rateToDO)="rateToDo($event)"
+      >
+      </app-star-rate>
+
+    </div>
+   </div>
+</div>
+<div class="card rounded shadow">
+  <div class="card-header">
+    <div class="row">
+      <p class="mb-0">{{ calendarHead }}</p>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="chart">
+      <canvas id="myChart"></canvas>
+    </div>
+  </div>
+</div>
+
