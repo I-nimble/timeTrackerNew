@@ -21,7 +21,7 @@ export const NotificationStore = signalStore(
   withEntities(),
   withState(initialState),
   withMethods(
-    (store) => ({
+    (store: any) => ({
       async addNotifications(message: string, type: string = 'normal') {
         const newNotification: Notification = {
           message,
@@ -29,7 +29,7 @@ export const NotificationStore = signalStore(
           show: true,
           id: Date.now(),
         };
-        patchState(store, (state) => ({
+        patchState(store, (state: any) => ({
           notifications: [...state.notifications, newNotification],
         }));
         setTimeout(() => {
@@ -37,29 +37,29 @@ export const NotificationStore = signalStore(
         }, 25000);
       },
       removeNotification(id: number) {
-        patchState(store, (state) => ({
-          notifications: state.notifications.map((notification) =>
+        patchState(store, (state: any) => ({
+          notifications: state.notifications.map((notification: any) =>
             notification.id == id
               ? { ...notification, show: false }
               : notification
           ),
         }));
         setTimeout(() => {
-          patchState(store, (state) => ({
+          patchState(store, (state: any) => ({
             notifications: state.notifications.filter(
-              (notification) => notification.id !== id
+              (notification: any) => notification.id !== id
             ),
           }));
         }, 300);
       },
       removeAll() {
-        patchState(store, (state) => ({
-          notifications: state.notifications.map((notification) => {
+        patchState(store, (state: any) => ({
+          notifications: state.notifications.map((notification: any) => {
             return { ...notification, show: false }
           }),
         }));
         setTimeout(() => {
-          patchState(store, (state) => ({
+          patchState(store, (state: any) => ({
             notifications: [],
           }));
         }, 300);

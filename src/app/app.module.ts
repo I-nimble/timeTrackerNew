@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JwtInterceptor } from './services/jwt.interceptor';
 import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
@@ -19,11 +19,13 @@ import { SharedModule } from './components/shared.module';
 // import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 // import { getAuth, provideAuth } from '@angular/fire/auth';
 
-const jwtOptions = {
-  tokenGetter: () => localStorage.getItem('access_token'),
-  allowedDomains: ['home.inimbleapp.com'],
-  disallowedRoutes: ['http://example.com/api/login'],
-};
+export function jwtOptionsFactory() {
+  return {
+    tokenGetter: () => localStorage.getItem('jwt'),
+    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
+    disallowedRoutes: ['/auth/signin', '/auth/signup'],
+  };
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -33,10 +35,14 @@ const jwtOptions = {
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule,
     SharedModule,
     FormsModule,
-    JwtModule,
+    JwtModule.forRoot({
+      jwtOptionsProvider: {
+        provide: JWT_OPTIONS,
+        useFactory: jwtOptionsFactory
+      }
+    }),
     SocketIoModule,
     // CustomDatePipe,
     BrowserAnimationsModule,
@@ -49,8 +55,9 @@ const jwtOptions = {
     JwtHelperService,
     WebSocketService,
     ReportsService,
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
-    { provide: JWT_OPTIONS, useValue: jwtOptions },
+    provideHttpClient(
+      withInterceptors([JwtInterceptor])
+    ),
     // provideFirebaseApp(() => initializeApp({"projectId":"inimbleapp","appId":"1:562152489018:web:10df1fd86381626629f503","storageBucket":"inimbleapp.firebasestorage.app","apiKey":"AIzaSyDi2g2jOi9coqrHgjF8Ojg_5mPKC1FNs1k","authDomain":"inimbleapp.firebaseapp.com","messagingSenderId":"562152489018"})),
     // provideAuth(() => getAuth()),
   ],

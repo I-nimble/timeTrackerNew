@@ -23,7 +23,6 @@ import { LoaderComponent } from './loader/loader.component';
 import { PaymentHistoryComponent } from './payment-history/payment-history.component';
 import { BalanceComponent } from './balance/balance.component';
 import { CompaniesService } from '../services/companies.service';
-// import { UserFormComponent } from './user-form/user-form.component';
 import { GoBackComponent } from './go-back/go-back.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -44,7 +43,6 @@ import { ToDoFormComponent } from './to-do-form/to-do-form.component';
     MatInputModule,
     MatFormFieldModule,
     MatAutocompleteModule,
-    AsyncPipe,
     NgxMaterialTimepickerModule,
     ToDoFormComponent,
     NavigationComponent,
@@ -61,13 +59,8 @@ import { ToDoFormComponent } from './to-do-form/to-do-form.component';
     PaymentHistoryComponent,
     BalanceComponent,
     GoBackComponent,
-    // NotificationsComponent,
-    // UserListComponent,
   ],
   exports: [
-    EntriesPanelComponent,
-    NavigationComponent,
-    ClientSidebarComponent,
     CalendarComponent,
     FormsModule,
     CustomDatePipe,
@@ -83,19 +76,18 @@ import { ToDoFormComponent } from './to-do-form/to-do-form.component';
     MatCardModule,
     BillsComponent,
     PaymentHistoryComponent,
-    LoaderComponent,
     BalanceComponent,
     GoBackComponent,
     CommonModule,
-    // UserComponent,
-    // NotificationsComponent,
     RouterModule,
     MatDialogModule,
     MatAutocompleteModule,
-    AsyncPipe,
     NgxMaterialTimepickerModule,
     MatGridListModule,
     ToDoFormComponent,
+    NavigationComponent,
+    ClientSidebarComponent,
+    LoaderComponent,
   ],
   providers: [CustomDatePipe, CalendarComponent, CompaniesService],
 })

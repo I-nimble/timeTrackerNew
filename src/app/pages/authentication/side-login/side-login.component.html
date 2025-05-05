@@ -78,14 +78,14 @@
                         class="w-100"
                         color="primary"
                       >
-                        <input matInput formControlName="uname" />
-                        @if(f['uname'].touched && f['uname'].invalid) {
+                        <input matInput formControlName="email" />
+                        @if(f['email'].touched && f['email'].invalid) {
                         <mat-hint class="m-b-16 error-msg">
-                          @if(f['uname'].errors &&
-                          f['uname'].errors['required']) {
+                          @if(f['email'].errors &&
+                          f['email'].errors['required']) {
                           <div class="text-error">Email is required.</div>
-                          } @if( f['uname'].errors &&
-                          f['uname'].errors['minlength']) {
+                          } @if( f['email'].errors &&
+                          f['email'].errors['minlength']) {
                           <div class="text-error">
                             Name should be 6 character.
                           </div>
@@ -114,6 +114,12 @@
                           f['password'].errors['required']) {
                           <div class="text-error">Password is required.</div>
                           }
+                          @if(f['password'].errors &&
+                          f['password'].errors['minlength']) {
+                          <div class="text-error">
+                            Password should be 8 character.
+                          </div>
+                          }
                         </mat-hint>
                         }
                       </mat-form-field>
@@ -133,6 +139,7 @@
                         color="primary"
                         class="w-100"
                         [disabled]="!form.valid"
+                        type="submit"
                       >
                         Sign In
                       </button>
