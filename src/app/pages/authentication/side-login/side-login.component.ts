@@ -23,13 +23,31 @@ import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
+import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 
-
+export function jwtOptionsFactory() {
+  return {
+    tokenGetter: () => localStorage.getItem('jwt'),
+    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
+    disallowedRoutes: ['/auth/signin', '/auth/signup'],
+  };
+}
 
 @Component({
   selector: 'app-side-login',
   standalone: true,
   imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
+  providers: [
+    JwtHelperService,
+    { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
+    AuthService,
+    WebSocketService,
+    NotificationsService,
+    EntriesService,
+    SignupDataService,
+    UsersService,
+    CompaniesService
+  ],
   templateUrl: './side-login.component.html',
 })
 export class AppSideLoginComponent {
@@ -37,10 +55,10 @@ export class AppSideLoginComponent {
   notificationStore = inject(NotificationStore);
   //@HostBinding('class') classes = 'row';
   // isSignUp: boolean = false;
-  login: Login = {
-    email: '',
-    password: '',
-  };
+  // login: Login = {
+  //  email: '',
+  //  password: '',
+  // };
   // signUp: SignUp = {
   //   email: '',
   //   password: '',
@@ -71,8 +89,8 @@ export class AppSideLoginComponent {
   ) {}
 
   form = new FormGroup({
-    uname: new FormControl('', [Validators.required, Validators.minLength(6)]),
-    password: new FormControl('', [Validators.required]),
+    email: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(8)]),
   });
 
   get f() {
@@ -80,13 +98,8 @@ export class AppSideLoginComponent {
   }
 
   authLogin() {
-    if (this.login.email == '' || this.login.password == '') {
-      this.passerror = true;
-      this.message = 'Fields can\'t be empty';
-      this.notificationStore.addNotifications(this.message);
-      this.authError();
-    } else {
-      this.authService.login(this.login.email, this.login.password).subscribe({
+    if (this.form.value.email && this.form.value.password) {
+      this.authService.login(this.form.value.email, this.form.value.password).subscribe({
         next: (v) => {
           const jwt = v.token;
           const name = v.username;
@@ -138,6 +151,13 @@ export class AppSideLoginComponent {
           this.notificationStore.addNotifications(error.message);
         },
       });
+    }
+    else {
+      this.passerror = true;
+      this.message = 'Fields can\'t be empty';
+      this.notificationStore.addNotifications(this.message);
+      this.authError();
+      console.log('Fields can\'t be empty');
     }
   }
 

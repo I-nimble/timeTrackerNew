@@ -1,54 +1,45 @@
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { Observable, catchError, switchMap, throwError } from 'rxjs';
-import { AuthService } from './auth.service';
+import { HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class JwtInterceptor implements HttpInterceptor {
+// Routes that don't require authentication
+const PUBLIC_ROUTES = [
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/forgot-password'
+];
 
-  constructor(private jwtHelper: JwtHelperService, private authService: AuthService) { }
+export const JwtInterceptor: HttpInterceptorFn = (
+  request: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>>{
-    // if(!this.jwtHelper.isTokenExpired()){
-      // Skip adding Authorization header for S3 pre-signed URLs
-      if (request.url.includes('amazonaws.com')) {
-        return next.handle(request);
-      }
-
-      const jwt = localStorage.getItem('jwt');
-      if(jwt){
-        request = request.clone({
-          setHeaders: {
-            Authorization: `bearer ${jwt}`
-          }
-        })
-    //   }else{
-    //     console.log('token expired')
-    //     return this.authService.refreshToken().pipe(
-    //       switchMap((response: any)=>{
-    //         const newToken = response.access_token
-
-    //         this.authService.setAccessToken(newToken)
-    //         request = request.clone({
-    //           setHeaders: {
-    //             Authorization: `bearer ${newToken}`
-    //           }
-    //         })
-    //         return next.handle(request)
-    //       }),
-    //       catchError((error: any)=>{
-    //         return throwError(error)
-    //       })
-    //     )
-    //   }
-    }
-    return next.handle(request);
+  // Skip adding Authorization header for S3 pre-signed URLs
+  if (request.url.includes('amazonaws.com')) {
+    return next(request);
   }
 
+  // Check if the request is for a public route
+  const isPublicRoute = PUBLIC_ROUTES.some(route => request.url.includes(route));
+  if (isPublicRoute) {
+    return next(request);
+  }
 
-}
+  // Only intercept requests to our API
+  if (request.url.startsWith(environment.apiUrl)) {
+    const jwt = localStorage.getItem('jwt');
+
+    if (jwt) {
+      const modifiedRequest = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${jwt}`
+        }
+      });
+      return next(modifiedRequest);
+    }
+  }
+
+  return next(request);
+};
 
 
