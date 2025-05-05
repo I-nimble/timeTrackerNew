@@ -25,6 +25,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
 
 
+
 @Component({
   selector: 'app-side-login',
   standalone: true,
@@ -34,40 +35,39 @@ import { Loader } from 'src/app/app.models';
 export class AppSideLoginComponent {
   
   notificationStore = inject(NotificationStore);
-  @HostBinding('class') classes = 'row';
-  isSignUp: boolean = false;
+  //@HostBinding('class') classes = 'row';
+  // isSignUp: boolean = false;
   login: Login = {
     email: '',
     password: '',
   };
-  signUp: SignUp = {
-    email: '',
-    password: '',
-    confirmPass: '',
-    name: '',
-    last_name: '',
-  };
+  // signUp: SignUp = {
+  //   email: '',
+  //   password: '',
+  //   confirmPass: '',
+  //   name: '',
+  //   last_name: '',
+  // };
   message: any;
   passerror: boolean = false;
   emailerror: boolean = false;
-  includeLiveChat: boolean = false
-  liveChatScript?: any
-  liveChatBubble?: any
+  // includeLiveChat: boolean = false
+  // liveChatScript?: any
+  // liveChatBubble?: any
   assetPath = environment.assets + '/resources/empleadossection.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
 
   constructor(
-    private socketService: WebSocketService,
-    //private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private notificationsService:NotificationsService,
-    private entriesService:EntriesService,
-    private signupDataService: SignupDataService,
-    private employeeService: UsersService,
-    private companieService: CompaniesService,
     private settings: CoreService,
+     private router: Router,
+     private socketService: WebSocketService,
+     private notificationsService:NotificationsService,
+     private entriesService:EntriesService,
+     private signupDataService: SignupDataService,
+     private employeeService: UsersService,
+     private companieService: CompaniesService,
+     private authService: AuthService,
   ) {}
 
   form = new FormGroup({
@@ -80,7 +80,77 @@ export class AppSideLoginComponent {
   }
 
   authLogin() {
-    // console.log(this.form.value);
-    this.router.navigate(['/dashboards/dashboard1']);
+    if (this.login.email == '' || this.login.password == '') {
+      this.passerror = true;
+      this.message = 'Fields can\'t be empty';
+      this.notificationStore.addNotifications(this.message);
+      this.authError();
+    } else {
+      this.authService.login(this.login.email, this.login.password).subscribe({
+        next: (v) => {
+          const jwt = v.token;
+          const name = v.username;
+          const last_name = v.last_name;
+          const role = v.role_id;
+          const email = v.email;
+          localStorage.setItem('role', role);
+          localStorage.setItem('username', name + ' ' + last_name);
+          localStorage.setItem('jwt', jwt);
+          localStorage.setItem('email', email);
+          this.socketService.socket.emit('client:joinRoom', jwt);
+          this.authService.setUserType(role);
+          this.authService.userTypeRouting(role);
+          this.authService.checkTokenExpiration();
+          this.notificationsService.loadNotifications();
+          this.entriesService.loadEntries();
+          // this.authService.updateLiveChatBubbleVisibility(role);
+          // this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
+
+          let visibleChatCollection: HTMLCollectionOf<Element>;
+          let hiddenChatCollection: HTMLCollectionOf<Element>;
+          const interval = setInterval(() => {
+            visibleChatCollection = document.getElementsByClassName('widget-visible');
+            hiddenChatCollection = document.getElementsByClassName('widget-hidden');
+            // if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
+            //   if (visibleChatCollection.length > 0) {
+            //     this.liveChatBubble = visibleChatCollection[0];
+            //   }
+            //   else if (hiddenChatCollection.length > 0) {
+            //     this.liveChatBubble = hiddenChatCollection[0];
+            //   }
+            //   if(role == '3') {
+            //     if (this.liveChatBubble.classList.contains('widget-hidden')) {
+            //       this.liveChatBubble.classList.remove('widget-hidden');
+            //       this.liveChatBubble.classList.add('widget-visible');
+            //     }
+            //   } else {
+            //     if (this.liveChatBubble.classList.contains('widget-visible')) {
+            //       this.liveChatBubble.classList.remove('widget-visible');
+            //       this.liveChatBubble.classList.add('widget-hidden');
+            //     }
+            //   }
+            // }
+            clearInterval(interval);
+          }, 100);
+        },
+        error: (err: HttpErrorResponse) => {
+          const { error } = err;
+          this.notificationStore.addNotifications(error.message);
+        },
+      });
+    }
+  }
+
+  authError() {
+    setTimeout(() => {
+      this.emailerror = false;
+      this.message = null;
+      this.passerror = false;
+    }, 3000);
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
   }
 }

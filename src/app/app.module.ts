@@ -11,7 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 // import { CustomDatePipe } from "./services/custom-date.pipe";
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { PagesComponent } from './pages/pages.component';
+//import { PagesComponent } from './pages/pages.component';
 import { WebSocketService } from './services/socket/web-socket.service';
 import { SocketIoModule } from 'ngx-socket-io';
 
@@ -21,7 +21,7 @@ import { SharedModule } from './components/shared.module';
 
 const jwtOptions = {
   tokenGetter: () => localStorage.getItem('access_token'),
-  allowedDomains: ['i-nimble.com'],
+  allowedDomains: ['home.inimbleapp.com'],
   disallowedRoutes: ['http://example.com/api/login'],
 };
 

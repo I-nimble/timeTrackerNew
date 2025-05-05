@@ -6,7 +6,7 @@ import {
   Input,
   SimpleChanges,
 } from '@angular/core';
-import * as moment from 'moment';
+import moment from 'moment';
 import { ReportsService } from 'src/app/services/reports.service';
 
 @Component({

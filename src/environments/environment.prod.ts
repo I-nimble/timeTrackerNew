@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://inimbleapp.com/api',
-  socket: 'https://inimbleapp.com',
-  url: 'https://inimbleapp.com/',
+  apiUrl: 'https://new.inimbleapp.com/api',
+  socket: 'https://new.inimbleapp.com',
+  url: 'https://home.inimbleapp.com/',
   baseWP: 'https://i-nimble.com',
   form:'https://forms.office.com/r',
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',

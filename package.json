@@ -47,7 +47,20 @@
     "rxjs": "~7.5.0",
     "sass": "^1.57.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.15.0",
+    "chart.js": "^4.4.1",
+    "d3": "^7.9.0",
+    "d3-org-chart": "^3.1.1",
+    "file-saver": "^2.0.5",
+    "js-cookie": "^3.0.5",
+    "jspdf": "^2.5.1",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.46",
+    "ng2-pdf-viewer": "^10.4.0",
+    "socket.io-client": "^4.6.2",
+    "sweetalert2": "^11.10.5",
+    "swiper": "^11.2.5",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.0.5",
