@@ -1,222 +1,238 @@
 <div class="row">
   <div class="col-12">
-    <mat-card
-      class="mat-card-top cardWithShadow position-relative overflow-hidden"
-    >
-      <mat-sidenav-container
-        [ngClass]="{
+    <app-fullcalendar></app-fullcalendar>
+
+
+    <!-- ----------------------------------------------- -->
+    <!-- Filters Section -->
+    <!-- ----------------------------------------------- -->
+    <mat-card class="cardWithShadow">
+      <mat-card-content>
+        <div class="d-flex row align-items-center justify-content-between">
+          <mat-card-title class="m-b-0">Todo App</mat-card-title>
+
+          <div class="m-l-auto">
+            <mat-form-field appearance="outline" *ngIf="userRole !== '2'">
+              <mat-label class="f-s-14 m-b-8 d-block">Select a Team Member</mat-label>
+              <select matNativeControl required name="status" (change)="handleTMSelection($event)">
+                <option *ngFor="let tm of teamMembers" [value]="tm">{{ tm.name }} {{ tm.last_name }}</option>
+              </select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" style="margin-left: 1rem;">
+              <input matInput placeholder="Date" name="date" [matDatepicker]="datePicker" [value]="selectedDateStr"
+                [max]="todayStr()" (change)="onDateChange($event)" />
+              <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+              <mat-datepicker #datePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden">
+      <mat-sidenav-container [ngClass]="{
           'side-panel-opened': sidePanelOpened(),
           'side-panel-closed': !sidePanelOpened()
-        }"
-        style="min-height: 80vh"
-        class="bg-white"
-      >
+        }" style="min-height: 80vh" class="bg-white">
         <!-- --------------------------------------------------------------------------- -->
         <!-- Sidebar -->
         <!-- --------------------------------------------------------------------------- -->
-        <mat-sidenav
-          #chatnav
-          mode="side"
-          class="app-left-sidebar"
-          [mode]="isOver() ? 'over' : 'side'"
-          [opened]="!isOver()"
-          (open)="sidePanelOpened.set(true)"
-          (close)="sidePanelOpened.set(false)"
-          position="start"
-          class="bg-white"
-        >
-          <mat-toolbar class="bg-white">
-            <h4 class="f-w-500 f-s-18 m-0">Todo App</h4>
-          </mat-toolbar>
+        <mat-sidenav #chatnav mode="side" class="app-left-sidebar" [mode]="isOver() ? 'over' : 'side'"
+          [opened]="!isOver()" (open)="sidePanelOpened.set(true)" (close)="sidePanelOpened.set(false)" position="start"
+          class="bg-white">
           <div class="m-x-12">
+            <!-- --------------------------------------------------------------------------- -->
+            <!-- Categories -->
+            <!-- --------------------------------------------------------------------------- -->
             <mat-nav-list>
-              <mat-list-item
-                (click)="selectionlblClick('all')"
-                class="all m-b-2"
-                [class.bg-light-primary]="selectedCategory() === 'all'"
-              >
+              <mat-list-item (click)="selectionlblClick('all')" class="all m-b-2"
+                [class.bg-light-primary]="selectedCategory() === 'all'">
                 <div class="d-flex align-items-center">
                   <span class="f-s-14">All</span>
                   <div class="m-l-auto">
                     <span
-                      class="icon-27 bg-primary text-white rounded d-flex align-items-center justify-content-center"
-                      >{{ totalTodos() }}</span
-                    >
+                      class="icon-27 bg-primary text-white rounded d-flex align-items-center justify-content-center">{{
+                      totalTodos() }}</span>
                   </div>
                 </div>
               </mat-list-item>
-              <mat-list-item
-                [class.bg-light-primary]="selectedCategory() === 'uncomplete'"
-                class="incomplete m-b-2"
-                (click)="selectionlblClick('uncomplete')"
-              >
+              <mat-list-item [class.bg-light-primary]="selectedCategory() === 'uncomplete'" class="incomplete m-b-2"
+                (click)="selectionlblClick('uncomplete')">
                 <div class="d-flex align-items-center">
                   <span class="f-s-14">Incompleted</span>
                   <div class="m-l-auto">
                     <span
-                      class="icon-27 bg-error text-white rounded d-flex align-items-center justify-content-center"
-                      >{{ totalIncomplete() }}</span
-                    >
+                      class="icon-27 bg-error text-white rounded d-flex align-items-center justify-content-center">{{
+                      totalIncomplete() }}</span>
                   </div>
                 </div>
               </mat-list-item>
-              <mat-list-item
-                [class.bg-light-primary]="selectedCategory() === 'complete'"
-                class="complete m-b-2"
-                (click)="selectionlblClick('complete')"
-              >
+              <mat-list-item [class.bg-light-primary]="selectedCategory() === 'complete'" class="complete m-b-2"
+                (click)="selectionlblClick('complete')">
                 <div class="d-flex align-items-center">
                   <span class="f-s-14">Completed</span>
                   <div class="m-l-auto">
                     <span
-                      class="icon-27 bg-success text-white rounded d-flex align-items-center justify-content-center"
-                      >{{ totalCompleted() }}</span
-                    >
+                      class="icon-27 bg-success text-white rounded d-flex align-items-center justify-content-center">{{
+                      totalCompleted() }}</span>
                   </div>
                 </div>
               </mat-list-item>
             </mat-nav-list>
+
+            <!-- --------------------------------------------------------------------------- -->
+            <!-- Create/Edit task Form -->
+            <!-- --------------------------------------------------------------------------- -->
+            <div>
+              <mat-toolbar class="bg-white mt-4">
+                @if(toDoToEdit) {
+                <h4 class="f-w-500 f-s-18 m-0">Edit Task</h4>
+                }
+                @else {
+                <h4 class="f-w-500 f-s-18 m-0">New Task</h4>
+                }
+              </mat-toolbar>
+              <form (ngSubmit)="addTodo()" [formGroup]="newTaskForm">
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 hide-hint">
+                    <input matInput #inputData placeholder="Add todo" formControlName="goal" />
+                  </mat-form-field>
+
+                  <mat-checkbox matInput #repeat class="mt-2" formControlName="recurrent">
+                    Repeat task?
+                  </mat-checkbox>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <input matInput placeholder="Due Date" formControlName="due_date" [matDatepicker]="startDateDP" />
+                    <mat-datepicker-toggle matSuffix [for]="startDateDP"></mat-datepicker-toggle>
+                    <mat-datepicker #startDateDP></mat-datepicker>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label class="f-s-14 m-b-8 d-block">Priority</mat-label>
+                    <select matNativeControl required formControlName="priority">
+                      <option *ngFor="let priority of priorities" [value]="priority.id">
+                        {{ priority.name }}
+                      </option>
+                    </select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label class="f-s-14 m-b-8 d-block">Recommendations</mat-label>
+                    <textarea matInput rows="5" formControlName="recommendations"></textarea>
+                  </mat-form-field>
+
+                  <button mat-flat-button class="w-100 mt-2" id="btnAddTodo" type="submit"
+                    [disabled]="!newTaskForm.valid">
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </mat-sidenav>
         <mat-sidenav-content>
           <!-- --------------------------------------------------------------------------- -->
-          <!-- Detail View -->
+          <!-- To-Do List -->
           <!-- --------------------------------------------------------------------------- -->
           <mat-toolbar class="bg-white">
-            <div
-              class="d-flex align-items-center justify-content-between w-100"
-            >
+            <div class="d-flex align-items-center justify-content-between w-100">
               <div class="d-flex align-items-center">
                 <button mat-icon-button (click)="chatnav.toggle()">
                   <i-tabler name="align-left" class="icon-20"></i-tabler>
                 </button>
-                <mat-checkbox (change)="allTodos()" color="primary"
-                  >Mark All
+                <mat-checkbox (change)="allTodos()" color="primary" *ngIf="userRole === '2'"
+                  [checked]="allCheckedFlag">Mark All
                 </mat-checkbox>
               </div>
 
-              <span class="bg-primary text-white p-8 p-y-2 rounded f-s-14"
-                >{{ remainingList() }} Tasks left</span
-              >
+              <div>
+                <span class="bg-primary text-white rounded p-8 p-y-2 f-s-14 mr-2">{{ totalIncomplete() }} Tasks
+                  left</span>
+                <button mat-flat-button id="btnNewTask" (click)="resetForm()">
+                  New Task
+                </button>
+              </div>
             </div>
           </mat-toolbar>
           <mat-divider></mat-divider>
-          <div class="p-16">
-            <form [formGroup]="inputFg" (ngSubmit)="addTodo()">
-              <div class="row justify-content-between align-items-center">
-                <div class="col-sm-6 col-lg-5">
-                  <mat-form-field appearance="outline" class="w-100 hide-hint">
-                    <input
-                      matInput
-                      #inputData
-                      formControlName="mess"
-                      placeholder="Add todo"
-                    />
-                  </mat-form-field>
-                </div>
-                <div class="col-sm-3 col-lg-2">
-                  <button
-                    mat-flat-button
-                    [disabled]="!inputFg.get('mess')?.value"
-                    class="w-100"
-                    id="btnAddTodo"
-                    type="submit"
-                  >
-                    Add Todo
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-          <mat-divider></mat-divider>
           <mat-card-content>
-            @for(todo of todos(); track todo.message; let i = $index) {
-            <div class="todo-item p-y-12 p-x-8 b-b-1">
-              <div class="d-flex align-items-center w-100">
-                <div class="flex-shrink-0">
-                  <mat-checkbox
-                    [checked]="todo.completionStatus"
-                    (change)="toggleTodoCompletion(todo)"
-                    color="primary"
-                  >
-                    <span
-                      class="f-s-16 f-w-500"
-                      [ngClass]="{ completed: todo.completionStatus }"
-                      >{{ todo.message }}</span
-                    >
-                  </mat-checkbox>
-                  <p class="m-t-0 f-s-14 m-l-24 p-l-20">
-                    {{ todo.date | date }}
-                  </p>
-                </div>
-                <div class="w-100">
-                  @if(!todo.edit) {
-                  <div class="d-flex align-items-start">
-                    <div class="m-l-auto d-flex">
-                      <button
-                        mat-icon-button
-                        class="d-flex justify-content-center"
-                        href="javascript: void(0);"
-                        (click)="editTodo(todo)"
-                      >
-                        <i-tabler
-                          name="pencil"
-                          class="icon-18 d-flex"
-                        ></i-tabler>
-                      </button>
-                      <button
-                        mat-icon-button
-                        class="d-flex justify-content-center"
-                        href="javascript: void(0);"
-                        (click)="deleteTodo(todo.id)"
-                      >
-                        <i-tabler
-                          name="trash"
-                          class="icon-18 d-flex"
-                        ></i-tabler>
-                      </button>
+            <form *ngIf="!isDateFuture && userRole === '2' && toDoFormArray.length > 0" id="to-do-form"
+              [formGroup]="toDoForm" (ngSubmit)="handleSubmit()">
+              <div formArrayName="toDo">
+                <div *ngFor="let goal of toDoFormArray.controls; let i = index" [formGroupName]="i"
+                  class="todo-item p-y-12 p-x-8 b-b-1">
+                  <div class="d-flex align-items-start w-100">
+                    <div class="flex-shrink-0">
+
+                      <mat-checkbox color="primary" [disabled]="userRole !== '2'" formControlName="achieved"
+                        (change)="onAchievedChange(i)">
+                        <span class="f-s-16 f-w-500" [ngClass]="{ completed: toDoArray[i].achieved }">{{
+                          toDoArray[i].goal }}</span>
+                      </mat-checkbox>
+
+                      <mat-form-field appearance="outline" class="w-100" *ngIf="goal.get('achieved')?.value">
+                        <mat-label>Description</mat-label>
+                        <textarea placeholder="Describe the activity performed and the achievements obtained" matInput
+                          rows="2" formControlName="details">
+                        </textarea>
+                      </mat-form-field>
+
+                      <p class="m-t-10 f-s-14">
+                        @switch(goal.value.priority) {
+                          @case('Low Priority') {
+                          <span class="bg-primary text-white rounded p-8 p-y-2 f-s-14 mr-2">
+                            {{ goal.value.priority }}
+                          </span>
+                          }
+                          @case('Normal') {
+                          <span class="bg-secondary text-white rounded p-8 p-y-2 f-s-14 mr-2">
+                            {{ goal.value.priority }}
+                          </span>
+                          }
+                          @case('Important') {
+                          <span class="bg-warning text-white rounded p-8 p-y-2 f-s-14 mr-2">
+                            {{ goal.value.priority }}
+                          </span>
+                          }
+                          @case('Urgent') {
+                          <span class="bg-error text-white rounded p-8 p-y-2 f-s-14 mr-2">
+                            {{ goal.value.priority }}
+                          </span>
+                          }
+                        }
+
+                        <span *ngIf="goal.value.due_date">
+                          Due date: {{ goal.value.due_date | date:'dd/MM/yyyy':'UTC' }}
+                        </span>
+                      </p>
+                    </div>
+                    <div class="w-100">
+                      <div class="d-flex align-items-start">
+                        <div class="m-l-auto d-flex">
+                          <button mat-icon-button class="d-flex justify-content-center" href="javascript: void(0);"
+                            (click)="editTodo(goal.value.rating_id)">
+                            <i-tabler name="pencil" class="icon-18 d-flex"></i-tabler>
+                          </button>
+                          <button mat-icon-button class="d-flex justify-content-center" href="javascript: void(0);"
+                            (click)="deleteTodo(goal.value.rating_id)">
+                            <i-tabler name="trash" class="icon-18 d-flex"></i-tabler>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  }
-
-                  <!-- Edit View -->
-                  @if(todo.edit) {
-                  <div class="d-flex align-items-center edit-view">
-                    <mat-form-field appearance="outline" class="hide-hint">
-                      <input matInput [(ngModel)]="todo.message" />
-                    </mat-form-field>
-
-                    <div class="m-l-auto d-flex align-items-center">
-                      <a
-                        mat-icon-button
-                        class="d-flex justify-content-center"
-                        href="javascript: void(0);"
-                        (click)="editTodo(todo)"
-                      >
-                        <i-tabler
-                          name="checks"
-                          class="icon-18 d-flex"
-                        ></i-tabler>
-                      </a>
-                      <a
-                        mat-icon-button
-                        class="d-flex justify-content-center"
-                        href="javascript: void(0);"
-                        (click)="deleteTodo(i)"
-                      >
-                        <i-tabler
-                          name="trash"
-                          class="icon-18 d-flex"
-                        ></i-tabler>
-                      </a>
-                    </div>
-                  </div>
-                  }
                 </div>
               </div>
-            </div>
 
-            }
+              <button *ngIf="userRole === '2'" mat-flat-button class="w-100 mt-2" id="btnSend" type="submit"
+                value="Send" [disabled]="!toDoFormArray.valid">
+                Send
+              </button>
+            </form>
+            <p *ngIf="toDoFormArray.length === 0" class="mb-3 mt-4 text-center">No tasks found for this
+              date.</p>
           </mat-card-content>
         </mat-sidenav-content>
       </mat-sidenav-container>

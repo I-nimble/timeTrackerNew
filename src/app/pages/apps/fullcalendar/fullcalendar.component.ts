@@ -65,6 +65,7 @@ const colors: any = {
 @Component({
     selector: 'app-calendar-dialog',
     templateUrl: './dialog.component.html',
+    standalone: true,
     imports: [
         MaterialModule,
         FormsModule,
@@ -90,6 +91,7 @@ export class CalendarDialogComponent {
     selector: 'app-fullcalendar',
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './fullcalendar.component.html',
+    standalone: true,
     imports: [
         MaterialModule,
         FormsModule,
