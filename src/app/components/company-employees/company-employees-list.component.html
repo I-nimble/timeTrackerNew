@@ -1,0 +1,32 @@
+<main class="h-100 d-flex flex-column justify-content-center">
+  <div class="rounded shadow text-center card max-h-75 mt-5" id="employees-list">
+    <div
+      class="card-header d-flex justify-content-between justify-content-sm-between align-items-center"
+    >
+      <h1 class="mb-0 text-dark fs-3">{{ selectedCompany.name }}</h1>
+    </div>
+    <div class="card-body position-relative i-flow">
+      <div class="position-cont" *ngIf="employeesByPosition.length > 0; else emptyMessage">
+        <div *ngFor="let position of employeesByPosition">
+          <mat-card class="d-flex flex-row justify-content-between mb-4 p-4" *ngFor="let employee of position.employees">
+            <div class="employee-info">
+              <div>
+                <i class="fa-solid fa-user"></i>
+                <p>{{employee.user.name}} {{employee.user.last_name}}</p>
+              </div>
+              <p><b>Position:</b> {{position.position_title}}</p>
+            </div>
+            <div>
+              <a class="rate-link px-2" routerLink="/admin/ratings/entries/{{employee.user.id}}/">Check To Do</a>
+              <a class="rate-link" routerLink="/admin/ratings/{{employee.user.id}}/">Rate To Do</a>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+
+      <ng-template #emptyMessage>
+        <p>No employees found for {{selectedCompany.name}}.</p>
+      </ng-template>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,20 @@
+.scheduleOptions {
+  animation: slideIn 0.2s;
+  z-index: 100;
+  transform-origin: bottom;
+  div {
+    transition: all 0.2s ease-out;
+    &:hover {
+      background-color: #cecece;
+      color: white;
+    }
+  }
+}
+@keyframes slideIn {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}

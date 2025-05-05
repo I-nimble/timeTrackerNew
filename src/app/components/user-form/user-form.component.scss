@@ -1,0 +1,49 @@
+.max-h-75 {
+  max-height: 75%;
+}
+
+.profile-img {
+  width: 150px; /* alto y ancho específico para que el círculo sea redondo */
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden; /* oculta todo el contenido fuera de la caja */
+  position: relative;
+  background-color: white;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+}
+
+.profile-img img {
+  position: relative;
+  width: 100%;
+  object-fit: cover;
+  height: 100%;
+}
+.profile-img i {
+  font-size: 100px;
+  padding: 20px;
+}
+
+.profile-img .file {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  font-size: 12px;
+  background: #212529b8;
+  color: #fff;
+  text-align: center;
+  padding: 7px 0 20px;
+  border: none;
+}
+
+.profile-img .file input {
+  position: absolute;
+  display: block;
+  width: 100%;
+  opacity: 0;
+  top: 0;
+  padding-top: 50px;
+  left: 0;
+  bottom: 0;
+  cursor: pointer; /* manita de selección al hacer hover */
+}

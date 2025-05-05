@@ -1,0 +1,24 @@
+<div class="d-flex flex-row justify-content-between align-items-center">
+    <mat-dialog-actions class="d-flex flex-end">
+        <div class="w-100 d-flex justify-content-center">
+            <button
+                mat-button
+                class="ms-2 rounded shadow px-4 py-1 btn btn-danger"
+                [mat-dialog-close]="true"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+      </div>
+    </mat-dialog-actions>
+</div>
+<mat-dialog-content>
+    <h2 mat-dialog-title class="text-center mt-2 mb-4">Welcome to Inimble!</h2>
+    <div class="d-flex flex-row justify-content-center" style="width: 75%; margin: 0 auto;">
+        <button 
+            class="btn btn-primary mt-4"
+            [mat-dialog-close]="'accept'"
+        >
+            Let's Start!
+        </button>
+    </div>
+</mat-dialog-content>

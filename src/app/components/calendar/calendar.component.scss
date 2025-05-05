@@ -1,0 +1,74 @@
+@import "../../../styles.scss";
+.calendar-container {
+  min-width: 340px;
+  animation: slideIn 0.2s ease-out;
+  transform-origin: top;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.grid {
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(7, 1fr);
+}
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid;
+}
+.date {
+  width: 60%;
+  margin-left: 8px;
+  margin-right: 8px;
+  text-align: center;
+}
+
+.isToday {
+  background-color: #92b46c4b;
+  border-radius: 25px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+.date-select {
+  background-color: #92b46cbe;
+  // border-radius: 15px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+.range-select {
+  background-color: #92b46c59;
+  // border-radius: 25px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.range-select:first-child {
+  border-radius: 15px;
+}
+.relative {
+  position: relative;
+  z-index: 3;
+}
+.relative p {
+  text-align: center;
+}

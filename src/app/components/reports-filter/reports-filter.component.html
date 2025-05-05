@@ -1,0 +1,55 @@
+<div
+  class="d-flex align-items-center flex-wrap gap-2 pt-2"
+  [formGroup]="filterForm"
+>
+  @if(role != '2'){ @if(!filterForm.get('byClient')?.value){
+  <mat-form-field>
+    <mat-label>Select User</mat-label>
+    <mat-select formControlName="user">
+      <mat-option value="all">All</mat-option>
+      @for (user of users; track user) {
+      <mat-option [value]="user"
+        >{{ user.name }} {{ user.last_name }}</mat-option
+      >
+      }</mat-select
+    >
+  </mat-form-field>
+  } @if(filterForm.get('byClient')?.value){
+  <mat-form-field>
+    <mat-label>Select Company</mat-label>
+    <mat-select formControlName="company">
+      <mat-option value="all">All </mat-option>
+      @for (company of companies; track company) {
+      <mat-option [value]="company">{{ company.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  } }
+
+  <mat-form-field>
+    <mat-label>Select Project</mat-label>
+    <mat-select formControlName="project">
+      <mat-option value="all"
+        >All @if(projects.length == 0) {(no projects)}</mat-option
+      >
+      @for (project of projects; track project) {
+      <mat-option [value]="project">{{ project.name }}</mat-option>
+      }</mat-select
+    >
+  </mat-form-field>
+
+  @if(role == '1'){
+  <mat-form-field>
+    <mat-label>Filter By</mat-label>
+    <mat-select multiple>
+      @for (filter of filters; track filter) {
+      <mat-option
+        [value]="filter.value"
+        (click)="setFilterBy(filter)"
+        >{{ filter.display }}</mat-option
+      >
+      }
+    </mat-select>
+  </mat-form-field>
+  }
+</div>
