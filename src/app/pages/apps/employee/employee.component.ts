@@ -21,6 +21,7 @@ import { Employee } from 'src/app/pages/apps/employee/employee';
 import { EmployeeService } from 'src/app/services/apps/employee/employee.service';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 @Component({
   templateUrl: './employee.component.html',
   imports: [
@@ -29,6 +30,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ReactiveFormsModule,
     TablerIconsModule,
     CommonModule,
+    RouterModule,
   ],
 })
 export class AppEmployeeComponent implements AfterViewInit {

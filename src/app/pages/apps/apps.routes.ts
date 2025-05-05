@@ -20,7 +20,7 @@ import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.compon
 import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
 import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
 import { AppContactListComponent } from './contact-list/contact-list.component';
-
+import {EmployeeDetailsComponent} from './employee/employee-details/employee-details.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -204,6 +204,11 @@ export const AppsRoutes: Routes = [
             { title: 'Employee' },
           ],
         },
+      },
+      {
+        path: 'employee/:id',
+        component: EmployeeDetailsComponent,
+        data: { title: 'Employee Details' },
       },
       {
         path: 'invoice',
