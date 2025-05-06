@@ -76,10 +76,10 @@ export class RatingsService {
     );
   }
 
-  public getToDo(selectedDate: any): Observable<any[]> {
+  public getToDo(selectedDate: any, userId: number | null = null): Observable<any[]> {
     return forkJoin({
       schedules: this.schedulesService.get(),
-      toDo: this.get(),
+      toDo: userId ? this.getByUser(userId) : this.get(),
     }).pipe(
       map(({ schedules, toDo }) => {
         let toDoArray: any = [];
