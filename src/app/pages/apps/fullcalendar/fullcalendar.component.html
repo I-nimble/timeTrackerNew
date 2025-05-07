@@ -1,4 +1,4 @@
-<mat-card class="cardWithShadow">
+<!-- <mat-card class="cardWithShadow">
   <mat-card-content>
     <div class="d-flex align-items-center">
       <mat-card-title class="m-b-0">Angular Calendar</mat-card-title>
@@ -9,7 +9,7 @@
       </div>
     </div>
   </mat-card-content>
-</mat-card>
+</mat-card> -->
 
 <mat-card class="cardWithShadow overflow-hidden">
   <mat-toolbar class="bg-primary text-white no-shadow">
@@ -90,7 +90,6 @@
         [activeDayIsOpen]="activeDayIsOpen()"
         (dayClicked)="dayClicked($event.day)"
         (eventClicked)="handleEvent('Clicked', $event.event)"
-        (eventTimesChanged)="eventTimesChanged($event)"
       >
       </mwl-calendar-month-view>
 
@@ -101,7 +100,6 @@
         [events]="events()"
         [refresh]="refresh"
         (eventClicked)="handleEvent('Clicked', $event.event)"
-        (eventTimesChanged)="eventTimesChanged($event)"
       >
       </mwl-calendar-week-view>
 
@@ -112,7 +110,6 @@
         [events]="events()"
         [refresh]="refresh"
         (eventClicked)="handleEvent('Clicked', $event.event)"
-        (eventTimesChanged)="eventTimesChanged($event)"
       >
       </mwl-calendar-day-view>
     </div>
