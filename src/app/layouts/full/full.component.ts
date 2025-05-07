@@ -174,7 +174,7 @@ export class FullComponent implements OnInit {
     },
     {
       id: 6,
-      title: 'Employee App',
+      title: 'Time tracker',
       link: '/apps/employee',
     },
     {

@@ -22,6 +22,7 @@ import { EmployeeService } from 'src/app/services/apps/employee/employee.service
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
+
 @Component({
   templateUrl: './employee.component.html',
   imports: [
@@ -43,7 +44,6 @@ export class AppEmployeeComponent implements AfterViewInit {
     '#',
     'name',
     'email',
-    'mobile',
     'date of joining',
     'salary',
     'projects',
