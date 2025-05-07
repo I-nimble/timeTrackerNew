@@ -50,7 +50,7 @@
           <div class="m-l-auto">
             <a
               mat-icon-button
-              [routerLink]="['/authentication/login']"
+              (click)="logOut()"
               class="d-flex justify-content-center"
             >
               <i-tabler

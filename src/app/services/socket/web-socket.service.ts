@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { local } from 'd3';
 import { Socket, io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 
@@ -11,8 +10,32 @@ export class WebSocketService {
   API_URI = environment.socket;
 
   constructor() {
-    this.socket = io(this.API_URI, { query: {userId: localStorage.getItem('email'), jwt: localStorage.getItem('jwt')} });
-
+    this.initializeSocket();
   }
 
+  private initializeSocket() {
+
+    this.socket = io(this.API_URI, {
+      withCredentials: true,  
+      transports: ['websocket', 'polling'],  
+      auth: {  
+        jwt: localStorage.getItem('jwt'),
+        userId: localStorage.getItem('email')
+      },
+      extraHeaders: { 
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners() {
+    this.socket.on('connect', () => {
+    });
+
+    this.socket.on('connect_error', (err) => {
+      console.error('Error de conexión:', err.message);
+    });
+  }
 }

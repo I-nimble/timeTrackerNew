@@ -46,7 +46,7 @@ export class AuthService {
     this.notificationsService.clearNotifications();
     // this.updateLiveChatBubbleVisibility('0')
     // this.updateTawkVisitorAttributes('Guest', '')
-    this.routes.navigate(['/login']);
+    this.routes.navigate(['/authentication/login']);
   }
 
  checkTokenExpiration(): void {
