@@ -3,6 +3,10 @@ import {
   ChangeDetectionStrategy,
   Inject,
   signal,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { CommonModule, DOCUMENT, NgSwitch } from '@angular/common';
 import {
@@ -13,19 +17,17 @@ import {
   MatDialogModule,
 } from '@angular/material/dialog';
 import {
+  FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  UntypedFormBuilder,
   UntypedFormGroup,
+  Validators,
 } from '@angular/forms';
 import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
 import {
-  startOfDay,
-  subDays,
-  addDays,
-  endOfMonth,
   isSameDay,
   isSameMonth,
-  addHours,
   subMonths,
   addMonths,
 } from 'date-fns';
@@ -46,19 +48,24 @@ import {
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { RatingsService } from 'src/app/services/ratings.service';
 
 const colors: any = {
   red: {
     primary: '#fa896b',
     secondary: '#fdede8',
   },
-  blue: {
-    primary: '#5d87ff',
-    secondary: '#ecf2ff',
+  green: {
+    primary: '#92b46c',
+    secondary: '#92b46c',
   },
   yellow: {
     primary: '#ffae1f',
     secondary: '#fef5e5',
+  },
+  blue: {
+    primary: '#5d87ff',
+    secondary: '#ecf2ff',
   },
 };
 
@@ -78,13 +85,95 @@ const colors: any = {
     providers: [provideNativeDateAdapter()],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CalendarDialogComponent {
+export class CalendarDialogComponent implements OnInit {
   options!: UntypedFormGroup;
+  editToDoForm: FormGroup = this.fb.group({
+    goal: ['', [Validators.required]],
+    recommendations: [''],
+    due_date: [null],
+    priority: [null],
+    recurrent: [false],
+    is_numeric: [false],
+    company_id: [null, [Validators.required]],
+    employee_id: [null, [Validators.required]],
+    updatedAt: [new Date(), []],
+  }, { validators: this.recurrentDueDateValidator });
 
   constructor(
     public dialogRef: MatDialogRef<CalendarDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+    public fb: UntypedFormBuilder,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private ratingsService: RatingsService
+  ) { }
+
+  ngOnInit(): void {
+    if (this.data.action === 'Edit') {
+      this.editToDoForm.get('recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
+        const dueDateControl = this.editToDoForm.get('due_date');
+        if (recurrent) {
+          dueDateControl?.setValue(null);
+          dueDateControl?.disable();
+        } else {
+          dueDateControl?.enable();
+        }
+      });
+
+      this.editToDoForm.patchValue({
+        goal: this.data.event.title,
+        recommendations: this.data.event.recommendations,
+        due_date: this.data.event.start,
+        priority: this.data.event.priority,
+        recurrent: this.data.event.recurrent,
+        company_id: this.data.event.company_id,
+        employee_id: this.data.event.employee_id,
+      });
+    }
+  }
+
+  recurrentDueDateValidator(group: FormGroup) {
+    const recurrent = group.get('recurrent')?.value;
+    const dueDateControl = group.get('due_date');
+    if (recurrent && dueDateControl?.value) {
+      return { recurrentDueDateError: true };
+    }
+    return null;
+  }
+
+  onSubmit() {
+    if (this.data.action === 'Edit' && this.editToDoForm.valid) {
+      const formData = this.editToDoForm.value;
+      this.ratingsService.submit(formData, this.data.event.id).subscribe({
+        next: (response: any) => {
+          const updatedEvent = {
+            ...this.data.event,
+            title: formData.goal,
+            start: formData.due_date,
+            recommendations: formData.recommendations,
+            priority: formData.priority,
+            recurrent: formData.recurrent,
+            company_id: formData.company_id,
+            employee_id: formData.employee_id,
+          };
+          this.dialogRef.close(updatedEvent);
+        },
+        error: (error) => {
+          console.error('Error submitting task:', error);
+          this.dialogRef.close();
+        }
+      });
+    }
+    else if (this.data.action === 'Deleted') {
+      this.ratingsService.delete(this.data.event.id).subscribe({
+        next: (response: any) => {
+          this.dialogRef.close();
+        },
+        error: (error) => {
+          console.error('Error deleting task:', error);
+          this.dialogRef.close();
+        }
+      });
+    }
+  }
 }
 
 @Component({
@@ -105,7 +194,9 @@ export class CalendarDialogComponent {
     ],
     providers: [provideNativeDateAdapter(), CalendarDateFormatter]
 })
-export class AppFullcalendarComponent {
+export class AppFullcalendarComponent implements OnInit {
+  @Input() priorities: any[] = [];
+  @Output() calendarEventChange = new EventEmitter<void>();
   dialogRef = signal<MatDialogRef<CalendarDialogComponent> | any>(null);
   dialogRef2 = signal<MatDialogRef<CalendarFormDialogComponent> | any>(null);
   lastCloseResult = signal<string>('');
@@ -137,55 +228,72 @@ export class AppFullcalendarComponent {
       onClick: ({ event }: { event: CalendarEvent }): void => {
         this.handleEvent('Edit', event);
       },
-    },
-    {
-      label: '<span class="text-danger m-l-5">Delete</span>',
-      onClick: ({ event }: { event: CalendarEvent }): void => {
-        this.events.set(
-          this.events().filter((iEvent: CalendarEvent<any>) => iEvent !== event)
-        );
-        this.handleEvent('Deleted', event);
-      },
-    },
+    }
   ];
 
   refresh: Subject<any> = new Subject();
+  
+  events = signal<CalendarEvent[] | any>([]);
 
-  events = signal<CalendarEvent[] | any>([
-    {
-      start: subDays(startOfDay(new Date()), 1),
-      end: addDays(new Date(), 1),
-      title: 'A 3 day event',
-      color: colors.red,
-      actions: this.actions,
-    },
-    {
-      start: startOfDay(new Date()),
-      title: 'An event with no end date',
-      color: colors.blue,
-      actions: this.actions,
-    },
-    {
-      start: subDays(endOfMonth(new Date()), 3),
-      end: addDays(endOfMonth(new Date()), 3),
-      title: 'A long event that spans 2 months',
-      color: colors.blue,
-    },
-    {
-      start: addHours(startOfDay(new Date()), 2),
-      end: new Date(),
-      title: 'A draggable and resizable event',
-      color: colors.yellow,
-      actions: this.actions,
-      resizable: {
-        beforeStart: true,
-        afterEnd: true,
-      },
-      draggable: true,
-    },
-  ]);
+  constructor(public dialog: MatDialog, @Inject(DOCUMENT) doc: any, private ratingsService: RatingsService) {}
 
-  constructor(public dialog: MatDialog, @Inject(DOCUMENT) doc: any) {}
+  ngOnInit(): void {
+    const userRole = localStorage.getItem('role');
+    if (userRole !== '2') {
+      this.actions.push({
+        label: '<span class="text-danger m-l-5">Delete</span>',
+        onClick: ({ event }: { event: CalendarEvent }): void => {
+          this.events.set(
+            this.events().filter((iEvent: CalendarEvent<any>) => iEvent !== event)
+          );
+          this.handleEvent('Deleted', event);
+        },
+      });
+    }
+    this.getToDos();
+  }
+
+  getToDos() {
+    this.ratingsService.get().subscribe({
+      next: (toDos: any) => {
+        this.events
+          .set(toDos
+          .filter((toDo: any) => toDo.due_date)
+          .map((toDo: any) => {
+            const priority = toDo.priority;
+            let color;
+            switch(priority) {
+              case 1:
+                color = colors.red;
+                break;
+              case 2:
+                color = colors.yellow;
+                break;
+              case 4:
+                color = colors.green;
+                break;
+              default:
+                color = colors.blue;
+                break;
+            }
+            return {
+              title: toDo.goal,
+              color,
+              start: new Date(toDo.due_date),
+              actions: this.actions,
+              allDay: true,
+              recurrent: toDo.recurrent,
+              recommendations: toDo.recommendations,
+              priority: toDo.priority,
+              company_id: toDo.company_id,
+              employee_id: toDo.employee_id,
+              id: toDo.id,
+            };
+          }));
+      }
+    });
+  }
+
 
   dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
     if (isSameMonth(date, this.viewDate())) {
@@ -201,72 +309,29 @@ export class AppFullcalendarComponent {
     }
   }
 
-  eventTimesChanged({
-    event,
-    newStart,
-    newEnd,
-  }: CalendarEventTimesChangedEvent): void {
-    this.events.set(
-      this.events().map((iEvent: CalendarEvent<any>) => {
-        if (iEvent === event) {
-          return {
-            ...event,
-            start: newStart,
-            end: newEnd,
-          };
-        }
-        return iEvent;
-      })
-    );
-
-    this.handleEvent('Dropped or resized', event);
-  }
-
   handleEvent(action: string, event: CalendarEvent): void {
-    this.config.data = { event, action };
+    this.config.data = { event, action, priorities: this.priorities };
     this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
 
     this.dialogRef()
       .afterClosed()
-      .subscribe((result: string) => {
-        this.lastCloseResult.set(result);
+      .subscribe((result: any) => {
+        if (result) {
+          // Update the event in the events array
+          this.events.set(
+            this.events().map((iEvent: CalendarEvent<any>) => {
+              if (iEvent === event) {
+                return result;
+              }
+              return iEvent;
+            })
+          );
+        }
+        this.calendarEventChange.emit();
+        this.lastCloseResult.set(result ? 'Event updated' : 'Dialog closed');
         this.dialogRef.set(null);
         this.refresh.next(result);
       });
-  }
-
-  addEvent(): void {
-    this.dialogRef2.set(
-      this.dialog.open(CalendarFormDialogComponent, {
-        panelClass: 'calendar-form-dialog',
-        autoFocus: false, 
-        data: {
-          action: 'add',
-          date: new Date(),
-        },
-      })
-    );
-    this.dialogRef2()
-      .afterClosed()
-      .subscribe((res: { action: any; event: any }) => {
-        if (!res) {
-          return;
-        }
-        const dialogAction = res.action;
-        const responseEvent = res.event;
-        responseEvent.actions = this.actions;
-        this.events.set([...this.events(), responseEvent]);
-        this.dialogRef2.set(null);
-        this.refresh.next(res);
-      });
-  }
-
-  deleteEvent(eventToDelete: CalendarEvent): void {
-    this.events.set(
-      this.events().filter(
-        (event: CalendarEvent<any>) => event !== eventToDelete
-      )
-    );
   }
 
   setView(view: CalendarView | any): void {

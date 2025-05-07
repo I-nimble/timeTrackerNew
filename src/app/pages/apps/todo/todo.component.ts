@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
 import {
   UntypedFormBuilder,
   FormsModule,
@@ -69,20 +69,20 @@ export class AppTodoComponent implements OnInit {
   isDateFuture: boolean = false
   toDoData: any = [];
   goalsStatus: boolean = false;
-  userRole = '2';
-  // userRole = localStorage.getItem('role');
+  userRole = localStorage.getItem('role');
   teamMemberId: number | null = null;
   companyId: number | null = null;
   toDoToEdit!: any;
   teamMembers: any[] = [];
   priorities: any[] = [];
+  @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
 
   newTaskForm: FormGroup = this.fb.group({
     goal: ['', [Validators.required]],
     frequency_id: [null],
     recommendations: [''],
     due_date: [null],
-    priority: [null],
+    priority: [3], // 3 = Normal
     recurrent: [false],
     is_numeric: [false],
     numeric_goal: [null],
@@ -115,9 +115,6 @@ export class AppTodoComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // if (this.userRole === '2') {
-    this.buildToDoForm();
-    // }
     this.initilizeTaskForm();
   }
 
@@ -126,7 +123,7 @@ export class AppTodoComponent implements OnInit {
       this.selectedDate = new Date(changes['selectedDateFromChart'].currentValue);
       this.selectedDateStr = this.formatDate(this.selectedDate);
       this.toDoFormArray.clear();
-      this.filterToDo();
+      this.buildToDoForm();
     }
     this.selectedDateChange.emit(this.selectedDate);
   }
@@ -144,8 +141,24 @@ export class AppTodoComponent implements OnInit {
         dueDateControl?.enable();
       }
     });
+  }
 
-    if (this.userRole == '2') { // Get current employee
+  recurrentDueDateValidator(group: FormGroup) {
+    const recurrent = group.get('recurrent')?.value;
+    const dueDateControl = group.get('due_date');
+    if (recurrent && dueDateControl?.value) {
+      return { recurrentDueDateError: true };
+    }
+    return null;
+  }
+
+  getTeamMembers() {
+    if (this.userRole === '1') { // Get all employees
+      this.employeesService.get().subscribe((employees: any) => {
+        this.teamMembers = employees;
+      });
+    }
+    else if (this.userRole == '2') { // Get current employee
       this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
         next: (res: any) => {
           const userId = res[0].id;
@@ -159,32 +172,15 @@ export class AppTodoComponent implements OnInit {
             }
           });
           this.teamMemberId = userId;
-          this.filterToDo();
+          this.buildToDoForm();
         },
         error: () => {
           this.openSnackBar('Error fetching user', 'Close');
         }
       });
     }
-  }
-
-  recurrentDueDateValidator(group: FormGroup) {
-    const recurrent = group.get('recurrent')?.value;
-    const dueDateControl = group.get('due_date');
-    if (recurrent && dueDateControl?.value) {
-      return { recurrentDueDateError: true };
-    }
-    return null;
-  }
-
-  getTeamMembers() {
-    if (this.userRole === '1') {
-      this.employeesService.get().subscribe((employees: any) => { // Get all employees
-        this.teamMembers = employees;
-      });
-    }
-    if (this.userRole === '3') {
-      this.userService.getEmployees().subscribe({ // Get company employees
+    if (this.userRole === '3') { // Get client company employees
+      this.userService.getEmployees().subscribe({
         next: (employees: any) => {
           this.teamMembers = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
         },
@@ -199,12 +195,13 @@ export class AppTodoComponent implements OnInit {
   }
 
   handleTMSelection(event: any) {
-    this.teamMemberId = event.value.id;
+    const selectedTeamMember = this.teamMembers.find(tm => tm.id === event.value);
+    this.teamMemberId = selectedTeamMember.user.id;
     this.newTaskForm.patchValue({
-      company_id: event.value.company_id,
-      employee_id: event.value.id
+      company_id: selectedTeamMember.company_id,
+      employee_id: selectedTeamMember.user.id
     });
-    this.filterToDo();
+    this.buildToDoForm();
   }
 
   public onDateChange(event: any) {
@@ -213,45 +210,7 @@ export class AppTodoComponent implements OnInit {
     this.selectedDateStr = this.formatDate(this.selectedDate);
     (this.selectedDate.getTime() > today.getTime()) ? this.isDateFuture = true : this.isDateFuture = false
     this.toDoFormArray.clear();
-    // if (this.userRole === '2') {
     this.buildToDoForm();
-    // }
-    this.filterToDo();
-  }
-
-  public filterToDo() {
-    if (this.userRole === '3') {
-      this.ratingsService.getByUser(this.teamMemberId!).subscribe(toDoData => {
-        this.ratingsService.getToDo(this.selectedDate).subscribe({
-          next: (toDo: any) => {
-            if (!toDo || !Array.isArray(toDo)) {
-              this.openSnackBar('No to do data found or data is not an array.', 'Close');
-              return;
-            }
-            this.toDoFormArray.clear();
-
-            toDo.forEach(todoItem => {
-              let matchingItem = toDoData.find((item: any) => item.id === todoItem.id);
-
-              if (matchingItem) {
-                let toDoField = this.fb.group({
-                  rating_id: [todoItem.id],
-                  date: [this.selectedDateStr],
-                  achieved: [false, Validators.required],
-                  amount_achieved: [null],
-                  justification: [null],
-                  goal: [matchingItem.goal]
-                });
-                this.toDoFormArray.push(toDoField);
-              }
-            });
-          },
-          error: () => {
-            this.openSnackBar('Error loading To Do', 'Close');
-          }
-        });
-      });
-    }
   }
 
   private formatDate(date: Date): string {
@@ -263,7 +222,8 @@ export class AppTodoComponent implements OnInit {
 
   async buildToDoForm() {
     this.toDoFormArray.clear();
-    this.ratingsService.getToDo(this.selectedDate).subscribe({
+
+    this.ratingsService.getToDo(this.selectedDate, this.teamMemberId).subscribe({
       next: (array: any) => {
         if (!array || !Array.isArray(array)) {
           this.openSnackBar('No To Do data found or data is not an array.', 'Close');
@@ -276,16 +236,15 @@ export class AppTodoComponent implements OnInit {
           if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
           return true;
         });
-
         for (let toDo of filteredArray) {
           let toDoField = this.fb.group({
             rating_id: [toDo.id],
+            goal: [toDo.goal],
             date: [this.selectedDateStr],
             achieved: [false, Validators.required],
             is_numeric: [false],
-            justification: [null],
             due_date: [toDo.due_date || null],
-            priority: [toDo.priorityAssociation?.name || 'Normal'],
+            priority: [toDo.priority || 3], // 3 = Normal
             details: [null, this.detailsRequiredValidator()]
           });
           this.toDoFormArray.push(toDoField);
@@ -341,6 +300,7 @@ export class AppTodoComponent implements OnInit {
       next: () => {
         this.selectedCategory.set('uncomplete');
         this.buildToDoForm();
+        this.calendar.getToDos();
       },
       error: (res: any) => {
         this.openSnackBar('There was an error submitting the goal', 'Close');
@@ -379,7 +339,7 @@ export class AppTodoComponent implements OnInit {
     this.ratingsService
       .submit(
         this.newTaskForm.value,
-        this.toDoToEdit.id || null
+        this.toDoToEdit?.id || null
       )
       .subscribe({
         next: (response: any) => {
@@ -391,8 +351,9 @@ export class AppTodoComponent implements OnInit {
               (task: any) => task.id == this.toDoToEdit.id
             );
             this.toDoArray[taskIndex] = response;
-            this.buildToDoForm();
           }
+          this.buildToDoForm();
+          this.calendar.getToDos();
         },
         error: () => {
           this.openSnackBar('Error submitting form', 'Close');
@@ -445,6 +406,7 @@ export class AppTodoComponent implements OnInit {
               (task: any) => task.id != id
             );
             this.buildToDoForm();
+            this.calendar.getToDos();
             this.openSnackBar('Todo successfully deleted!', 'Close');
           },
           error: (error: ErrorEvent) => {
