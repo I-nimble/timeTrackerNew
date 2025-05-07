@@ -1,0 +1,63 @@
+@import "/src/theme/variables.scss";
+
+$from: 100%;
+$to: 0;
+.side-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1031;
+  &-body {
+    position: absolute;
+    right: 0;
+    top: 0;
+    overflow: clip;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  &-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+
+    height: 100vh;
+    width: 100vw;
+  }
+}
+
+.panel-header {
+  background-color: $primary-color;
+}
+
+.slide-in {
+  animation: slideIn 0.5s;
+}
+
+.slide-out {
+  animation: slideOut 0.5s;
+}
+.fade-out {
+  animation: fadeOut 0.5s;
+}
+@keyframes slideIn {
+  from {
+    transform: translateX($from);
+  }
+  to {
+    transform: translateX($to);
+  }
+}
+@keyframes slideOut {
+  from {
+    transform: translateX($to);
+  }
+  to {
+    transform: translateX($from);
+  }
+}
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

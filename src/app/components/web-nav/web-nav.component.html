@@ -1,0 +1,35 @@
+<nav
+  class="navbar navbar-expand-lg p-1 px-2 border shadow rounded-bottom-4 bg-light fixed-top bg-body-tertiary"
+>
+  <div class="container-fluid px-3">
+    <a class="navbar-brand" [href]="pageWP">
+      <img [src]="assetsPath" width="150" alt="" />
+    </a>
+    <button
+      class="navbar-toggler rounded"
+      type="button"
+      data-bs-toggle="collapse"
+      (click)="toggleMenu()"
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div
+      class="collapse navbar-collapse justify-content-end"
+      [ngClass]="{ show: isActive }"
+      id="navbarNavAltMarkup"
+    >
+      <div class="navbar-nav align-items-center">
+        <a
+          class="nav-link"
+          *ngFor="let link of links"
+          [href]="pageWP + link.href"
+          >{{ link.title }}</a
+        >
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,38 @@
+b {
+    font-weight: bold;
+}
+.row {
+    justify-content: space-between;
+    flex-direction: row;
+}
+.rating-card {
+    display: flex;
+    flex-direction: row;
+}
+.rating-card .rating-body {
+    text-align: left;
+    flex-grow: 1;
+}
+.rating-card .rating-date {
+    color: gray;
+    font-size: small;
+    width: max-content;
+    text-wrap: nowrap;
+    justify-self: flex-end;
+}
+
+.text-primary {
+    color: #92b46c;
+}
+
+.calendar{
+    position: absolute;
+    z-index: 2;
+    right: 0;
+}
+.chart{
+    height: 300px !important;
+}
+.section {
+    background-color: #fff;
+}
