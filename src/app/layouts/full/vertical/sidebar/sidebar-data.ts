@@ -4,18 +4,18 @@ export const navItems: NavItem[] = [
   {
     navCap: 'Home',
   },
+  // {
+  //   displayName: 'Dashboard 1',
+  //   iconName: 'chart-bar',
+  //   bgcolor: 'primary',
+  //   route: '/dashboards/dashboard1',
+  // },
   {
-    displayName: 'Dashboard 1',
+    displayName: 'Dashboard',
     iconName: 'layout-dashboard',
     bgcolor: 'primary',
-    route: '/dashboards/dashboard1',
+    route: '/dashboards/dashboard2',
   },
-  // {
-  //   displayName: 'Dashboard 2',
-  //   iconName: 'chart-bar',
-  //   bgcolor: 'secondary',
-  //   route: '/dashboards/dashboard2',
-  // },
   {
     navCap: 'Apps',
   },
