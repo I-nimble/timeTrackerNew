@@ -1,0 +1,23 @@
+@import '../../../styles.scss';
+.status-icon {
+  height: 100% !important;
+  width: 100%;
+}
+.check-icon {
+  color: $primary-color;
+}
+.fade-out {
+  animation: statusIcon 3s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+@keyframes statusIcon {
+  0%,
+  60% {
+    opacity: 1;
+    visibility: visible;
+  }
+  80% {
+    opacity: 0;
+  }
+}

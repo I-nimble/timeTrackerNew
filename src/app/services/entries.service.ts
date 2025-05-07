@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
 import { MatDialog } from '@angular/material/dialog';
-//import { NotificationsPopupComponent } from '../components/notifications-popup/notifications-popup.component';
+import { NotificationsPopupComponent } from '../components/notifications-popup/notifications-popup.component';
 
 @Injectable({
   providedIn: 'root',
@@ -78,9 +78,9 @@ export class EntriesService {
               const existingDialog = this.dialog.getDialogById(dialogId);
   
               if (!existingDialog) {
-                //const dialogRef = this.dialog.open(NotificationsPopupComponent, {
-                //    id: dialogId,
-                //});
+                const dialogRef = this.dialog.open(NotificationsPopupComponent, {
+                    id: dialogId,
+                });
               }
             }
           }

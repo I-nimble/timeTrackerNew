@@ -1,0 +1,10 @@
+/*.bg-container {
+  background-image: url("/assets/images/resources/empleadossection.png");
+}*/
+.max-height {
+  max-height: 180px;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

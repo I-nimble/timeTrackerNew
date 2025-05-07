@@ -1,0 +1,61 @@
+<div class="">
+  <div class="text-sm-end text-center">
+    <div *ngIf="hasLeaveRequest; else showTimer">
+      <p class="text-muted mb-0 fs-6 mb-1" *ngIf="leaveRequest.has_substitute">
+        Substitute: {{ leaveRequest.substitute ? leaveRequest.substitute.name + ' ' + leaveRequest.substitute.last_name : leaveRequest.substitute_name }}
+      </p>
+      <span class="badge badge-pill badge-warning">
+        On {{leaveRequest.leave_type.name.toLowerCase()}}
+
+        @if (leaveRequest.start_date != leaveRequest.end_date) {
+          from {{ leaveRequest.start_date | date : 'MMM d' }} to {{ leaveRequest.end_date | date : 'MMM d' }}
+        }
+        @else {
+          today
+        }
+      </span>
+    </div>
+    <ng-template #showTimer>
+      @if(entry.status == null) {
+        <p class="text-muted mb-0">
+          off
+        </p>
+      }
+      @else {
+        <p class="mb-0 fs-4" *ngIf="!(startedEarly() && localTime < validStartTime)">
+          {{ entry.started }} {{ entry.timeRef }}
+        </p>
+      }
+      
+      <span *ngIf="startedEarly() && localTime < validStartTime" class="badge badge-pill badge-warning">
+        Starting at {{ localValidStartTime | date : "hh:mm a" }}
+      </span>
+      <span *ngIf="entry.status == null && initializing" class="badge badge-pill badge-success">
+        Initializing...
+      </span>
+      <!-- <span *ngIf="(localTime > validStartTime) && !(startedEarly() || justInTime)" class="badge badge-pill badge-danger">
+        Please talk to HR
+      </span> -->
+  
+      @if(entry.status == null) {
+        <p class="text-muted mb-0 fs-6" *ngIf="!startedEarly() && localTime < validStartTime">
+          Shift begins at {{ localValidStartTime | date : "hh:mm a" }}
+        </p>
+      }
+      @else {
+        <p class="text-muted fs-6 mb-0">
+          Clock-in: 
+          @if(startedEarly() || justInTime) {
+            {{localValidStartTime.toISOString() | date : "hh:mm a"}}
+          }
+          @else {
+            {{localEntryStartTime | date : "hh:mm a"}}
+          }
+        </p>
+      }
+    </ng-template>
+  </div>
+  <!-- <div class="ms-0 ms-md-3 text-center">
+    <p class="fs-3 mb-0">{{ entry.totalHours }}</p>
+  </div> -->
+</div>

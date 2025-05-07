@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { Component, Injectable, ViewChild } from '@angular/core';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { merge, Observable, of as observableOf } from 'rxjs';
@@ -38,6 +38,10 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
   ],
   templateUrl: './http-table.component.html',
   styleUrls: ['./http-table.component.scss'],
+})
+
+@Injectable({
+  providedIn: 'root',
 })
 export class AppHttpTableComponent {
   // 1 [Http Row with Table]

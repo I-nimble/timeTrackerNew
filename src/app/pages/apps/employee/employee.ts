@@ -3,7 +3,6 @@ export interface Employee {
   Name: string;
   Position: string;
   Email: string;
-  Mobile: number;
   DateOfJoining: Date;
   Salary: number;
   Projects: number;

@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
   selector: 'app-branding',
   imports: [RouterModule],
   template: `
-    <a [routerLink]="['/dashboards/dashboard1']" class="logodark">
+    <a [routerLink]="['/dashboards/dashboard2']" class="logodark">
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         class="logo-img align-middle m-2"
@@ -14,7 +14,7 @@ import { RouterModule } from '@angular/router';
       />
     </a> 
 
-    <a [routerLink]="['/dashboards/dashboard1']" class="logolight">
+    <a [routerLink]="['/dashboards/dashboard2']" class="logolight">
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         class="logo-img align-middle m-2"

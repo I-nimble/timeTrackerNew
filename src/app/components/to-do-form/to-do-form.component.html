@@ -1,0 +1,101 @@
+<div class="col-md-12 col-12 d-flex justify-content-center align-items-start">
+    <div class="rounded-1 col-12 p-3 card">
+         <div class="d-flex flex-row justify-content-between align-items-center pb-3">
+            <h4 class="text-center mb-3" *ngIf="userRole === '2'">Log your achieved goals</h4>
+            <h4 class="text-center mb-3" *ngIf="userRole === '3'">Achieved goals</h4>
+            <div class="d-flex align-items-center gap-3">
+                <div class="date-wrapper">
+                    <input 
+                      type="date" 
+                      name="end_date" 
+                      id="end_date" 
+                      class="form-control text-center p-1 border rounded-2" 
+                      [value]="selectedDateStr"
+                      [max]="todayStr()"
+                      (change)="onDateChange($event)"
+                    />
+                    <i class="fa-regular fa-calendar"></i>
+                </div> 
+            </div>
+        </div>
+        <form *ngIf="showForm && !isDateFuture && userRole === '2' && toDoFormArray.length > 0; else showMessage" id="to-do-form" class="d-flex flex-column justify-content-center" [formGroup]="toDoForm" (ngSubmit)="handleSubmit()">
+            <ul id="to-do-list" formArrayName="toDo">
+                <li *ngFor="let goal of toDoFormArray.controls; let i = index" [formGroupName]="i" class="to-do-goal rounded-1 mb-3">
+                    <div class="card-header rounded-top-1 p-2 d-flex flex-row justify-content-start">
+                        <div class="priority" style="margin-right: 1rem;">
+                            @switch(goal.value.priority) {
+                                @case('Low Priority') {
+                                    <span class="badge text-bg-secondary">{{ goal.value.priority }}</span>
+                                }
+                                @case('Normal') {
+                                    <span class="badge text-bg-success">{{ goal.value.priority }}</span>
+                                }
+                                @case('Important') {
+                                    <span class="badge text-bg-warning">{{ goal.value.priority }}</span>
+                                }
+                                @case('Urgent') {
+                                    <span class="badge text-bg-danger">{{ goal.value.priority }}</span>
+                                }
+                            }
+                        </div>
+                        <div class="due-date">
+                            @if(goal.value.due_date) {
+                                Due date: {{ goal.value.due_date | date:'dd/MM/yyyy HH:mm':'UTC' }}
+                            }
+                            @else {
+                                Due date: Not set
+                            }
+                        </div>
+                    </div>
+                    <div class="p-2 card-body">
+                        <div class="d-flex flex-row justify-content-between align-items-center justify-content-center">
+                            <p class="goal-title">{{ toDoArray[i].goal }}</p>
+                            <input type="checkbox" formControlName="achieved" class="check-achieved">
+                        </div>
+                        <textarea
+                        *ngIf="goal.get('achieved')?.value"
+                        formControlName="details"
+                        class="form-control mt-2"
+                        placeholder="Describe the activity performed and the achievements obtained"
+                        rows="3"
+                      ></textarea>
+                        <!-- If the goal is not achieved and is touched -->
+                        <!-- <input *ngIf="toDoArray[i].goal.touched && !toDoArray[i].goal.value.achieved" style="display: block; width: 100%" type="text" formControlName="justification" class="mt-2 mb-2 p-1" placeholder="Explain why you couldn't achieve this goal today"> -->
+                        <i *ngIf="toDoArray[i].recommendations" class="recommendations">Recommendation: {{ toDoArray[i].recommendations }}</i>
+                    </div>
+                </li>
+            </ul>
+            <input *ngIf="userRole === '2'" type="submit" value="Send" class="btn btn-primary" [disabled]="!validForm">
+        </form>
+        <div *ngIf="this.teamMemberId && userRole === '3';" id="to-do-form" class="d-flex flex-column justify-content-center" [formGroup]="toDoForm" (ngSubmit)="handleSubmit()">
+            <p *ngIf="!goalsStatus" class="mb-3 mt-4 text-center">The team member has not completed their goals for the selected date.</p>
+            <table class="table" *ngIf="goalsStatus">
+                <thead>
+                    <tr>
+                        <th style="width: 60%;">Goal</th>
+                        <th style="width: 10%;">Completed</th>
+                        <th style="width: 30%;">Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let goal of toDoData">
+                        <td>{{ goal.rating.goal }}</td>
+                        <td>{{ goal.achieved ? 'Yes' : 'No' }}</td>
+                        <td>{{ goal.justification }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <ng-template #showMessage>
+           <div *ngIf="userRole === '2'">
+            @if(isDateFuture) {
+                <p class="mb-3 mt-4 text-center">You can't log future goals.</p>
+            }
+            @else {
+                <p *ngIf="emptyToDo" class="mb-3 mt-4 text-center">You don't have pending goals for this date.</p>
+                <p *ngIf="!emptyToDo" class="mb-3 mt-4 text-center">You've already logged your achieved goals for {{ selectedDate | date }}.</p>
+            }
+           </div>
+        </ng-template>
+    </div>
+</div>

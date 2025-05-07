@@ -1,0 +1,48 @@
+
+<mat-card class="cardWithShadow">
+    <mat-card-header>
+      <mat-card-title>Employee Details</mat-card-title>
+      <mat-card-subtitle>ID: {{ employeeId }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="row">
+        <div class="col-lg-6">
+          <mat-card class="cardWithShadow">
+            <mat-card-header>
+              <mat-card-title>Weekly Hours</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <apx-chart
+                [series]="mostvisitChart.series"
+                [dataLabels]="mostvisitChart.dataLabels"
+                [chart]="mostvisitChart.chart"
+                [legend]="mostvisitChart.legend"
+                [colors]="mostvisitChart.colors"
+                [stroke]="mostvisitChart.stroke"
+                [tooltip]="mostvisitChart.tooltip"
+                [grid]="mostvisitChart.grid"
+                [plotOptions]="mostvisitChart.plotOptions"
+                [responsive]="mostvisitChart.responsive"
+              ></apx-chart>
+            </mat-card-content>
+          </mat-card>
+        </div>
+  
+        <div class="col-lg-6">
+          <mat-card class="cardWithShadow">
+            <mat-card-header>
+              <mat-card-title>Daily Hours</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <apx-chart
+                [series]="salesOverviewChart.series"
+                [chart]="salesOverviewChart.chart"
+                [labels]="salesOverviewChart.labels"
+                [colors]="salesOverviewChart.colors"
+              ></apx-chart>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>

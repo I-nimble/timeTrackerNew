@@ -1,0 +1,33 @@
+@import '../../../styles.scss';
+
+.nav-link:hover{
+    color: $primary-color
+}
+
+.nav-link{
+    position: relative;
+}
+@media screen and (min-width: 991px){
+    .nav-link:hover::after{
+        height: 2px;
+        background-color: $primary-color;
+        position: absolute;
+        bottom: -8px;
+        left: 15px;
+        content: '';
+        width: calc(100% - 30px);
+        opacity: 1;
+        transition: all 0.2s ease-in;
+    }
+    .nav-link:after{
+        width: 30%;
+        height: 2px;
+        background-color: $primary-color;
+        position: absolute;
+        bottom: -15px;
+        left: 30%;
+        content: '';
+        opacity: 0;
+        transition: all 0.3s ease-out;
+    }
+}

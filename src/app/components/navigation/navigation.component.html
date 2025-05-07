@@ -1,0 +1,271 @@
+<nav
+  class="navbar navbar-expand-lg p-1 px-2 border shadow glass fixed-top bg-body-tertiary"
+>
+  <div class="container-fluid w-100 h-100">
+    <a class="navbar-brand" href="/">
+      <img [src]="assetsPath" width="150" alt="" />
+    </a>
+    <button
+      class="navbar-toggler rounded"
+      type="button"
+      data-bs-toggle="collapse"
+      (click)="toggleMenu()"
+      data-bs-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div
+      class="collapse navbar-collapse justify-content-end glass-sm pt-2"
+      [ngClass]="{ show: isActive }"
+      id="navbarNavAltMarkup"
+    >
+    <div class="navbar-nav align-items-center">
+        <a 
+          *ngIf="authenticated == true && userType == '3'"
+          routerLink="/client/talent-marketplace" 
+          class="btn btn-sm rounded-pill shadow" 
+          id="talent-pool"
+        >
+          Talent Match
+        </a>
+        <!-- admin dashboard -->
+        <a
+          class="nav-link"
+          routerLink="admin/"
+          *ngIf="authenticated == true && userType == '1'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+          >Dashboard</a
+        >
+        <a
+          class="nav-link"
+          routerLink="admin/users"
+          *ngIf="authenticated == true && userType == '1'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+          >Users</a
+        >
+        <a
+          class="nav-link"
+          routerLink="admin/teams"
+          *ngIf="authenticated == true && userType == '1'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+          >Tracker</a
+        >
+        <!-- user dashboard -->
+        <a
+          class="nav-link"
+          routerLink="dashboard"
+          *ngIf="authenticated == true && userType == '2'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+          >Dashboard</a
+        >
+        <a
+          class="nav-link"
+          routerLink="entries"
+          *ngIf="authenticated == true && userType == '2'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+          >Entries</a
+        >
+        <!-- client dashboard -->
+        <a
+          class="nav-link nav-icons p-0 d-none d-lg-block"
+          routerLink="client"
+          *ngIf="authenticated == true && userType == '3'"
+          (click)="isActive = false"
+          routerLinkActive="active"
+        >
+          <img src="assets/images/homepage-icon.png" alt="Homepage Icon" id="homepage-icon" />
+        </a>
+        <a *ngIf="authenticated == true && userType == '3'" class="nav-link d-lg-none ml-2" style="text-decoration: none!important;" routerLink="/" (click)="isActive = false" routerLinkActive="active">
+          Dashboard
+        </a>
+
+        <!-- notifications -->
+        <div class="dropdown" *ngIf="authenticated == true">
+          <a class="nav-link dropdown-toggle d-none d-lg-block nav-icons" style="text-decoration: none!important;" role="button" data-bs-toggle="dropdown" [(attr.aria-expanded)]="notificationsExpanded" (click)="userType !== 1 && toggleNotifications()">
+            <i class="fa-solid fa-bell"></i>
+            <span 
+              *ngIf="notificationsService.recentNotifications.length > 0" 
+            >
+              <i class="fa-solid fa-circle pending-notification"></i>
+            </span>
+            <span 
+              *ngIf="userType === '1' && entriesService.reviewEntries.concat(notificationsService.recentNotifications).length > 0" 
+            >
+              <i class="fa-solid fa-circle pending-notification"></i>
+            </span>
+          </a>
+          <a *ngIf="userType === '1'" class="nav-link d-lg-none ml-2" style="text-decoration: none!important;" routerLink="/admin/notifications" (click)="isActive = false" routerLinkActive="active">
+            Notifications
+          </a>
+          <a *ngIf="userType !== '1'" class="nav-link d-lg-none ml-2" style="text-decoration: none!important;" routerLink="/notifications" (click)="isActive = false" routerLinkActive="active">
+            Notifications
+          </a>
+          <ul class="dropdown-menu glass notifications shadow py-0">
+            @if (userType == '1') {
+              <li *ngFor="let recentNotification of notificationsService.recentNotifications.concat(entriesService.reviewEntries).slice(0, 4); let i = index">
+                <div class="dropdown-item d-flex gap-3">
+                  <span *ngIf="notificationsService.recentNotifications.includes(recentNotification)">
+                    <i class="fa-regular fa-envelope"></i>
+                  </span> 
+                  <span>
+                    {{ recentNotification.message }}
+                  </span>
+                </div>
+              </li>
+            }
+            @else {
+              <li *ngFor="let notification of notificationsService.recentNotifications.concat(notificationsService.earlierNotifications).splice(0,4)">
+                <div class="dropdown-item d-flex gap-3">
+                  <span *ngIf="notificationsService.recentNotifications.includes(notification)">
+                      <i class="fa-regular fa-envelope"></i>
+                  </span> 
+                  <span>
+                      {{ notification.message }}
+                  </span>
+                </div>
+              </li>
+            }
+            <li class="dropdown-item fw-bold" *ngIf="userType != '1'" routerLink="/notifications">
+              See All Notifications
+            </li>
+            <li class="dropdown-item fw-bold" style="color: #000;" *ngIf="userType == '1'" routerLink="/admin/notifications">
+              See All Notifications
+            </li>
+          </ul>
+        </div>
+
+        <li class="nav-item dropdown text-center p-0 mx-0" *ngIf="authenticated" id="optionsDropdown">
+          <a class="nav-link dropdown-toggle nav-icons d-none d-lg-block" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-gear"></i>
+          </a>
+          <a class="nav-link d-lg-none ml-2" style="text-decoration: none!important;" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Options
+          </a>
+          <ul class="dropdown-menu glass no-border" aria-labelledby="navbarDropdown">
+            <li *ngIf="authenticated == true && userType == '3' && plan">
+              <a
+              class="nav-link nav-link-dropdown d-none d-lg-block"
+              routerLink="client/balance"
+              (click)="isActive = false"
+              routerLinkActive="active"
+              >Payments</a>
+              <a
+              class="nav-link ml-2 d-lg-none"
+              routerLink="client/balance"
+              (click)="isActive = false"
+              routerLinkActive="active"
+              >Payments</a>
+            </li>
+            <li *ngIf="authenticated == true && userType == '3'">
+              <a type="button" class="nav-link nav-link-dropdown d-none d-lg-block" (click)="newPassword()" >
+                New Password
+              </a>
+              <a type="button" class="nav-link ml-2 d-lg-none" (click)="newPassword()">
+                New Password
+              </a>
+            </li>
+            <li *ngIf="authenticated == true && userType !== '3'">
+              <a
+              class="nav-link nav-link-dropdown d-none d-lg-block"
+              routerLink="logout"
+              (click)="isActive = false; closeSession()"
+              routerLinkActive="active"
+              >Log Out</a>
+              <a
+              class="nav-link ml-2 d-lg-none"
+              routerLink="logout"
+              (click)="isActive = false; closeSession()"
+              routerLinkActive="active"
+              >Log Out</a>
+          </li>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown" *ngIf="authenticated && userType === '3'">
+          <a class="nav-link dropdown-toggle d-none d-lg-block" href="#" id="companyLogoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <img [src]="companyLogo ? companyLogo : 'assets/images/default-logo.jpg'" alt="Company Logo" class="shadow" id="company-logo" />
+          </a>
+          <a class="nav-link d-lg-none ml-2 dropdown-toggle" style="text-decoration: none!important;text-transform:uppercase;" id="companyLogoDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Profile
+          </a>
+          <ul class="dropdown-menu dropdown-menu glass main-menu" aria-labelledby="companyLogoDropdown">
+            <li class="d-none d-lg-block">
+              <h2>Profile</h2>
+              <ul>
+                <li><a class="nav-link nav-link-dropdown" routerLink="/profile">{{ company?.name }}</a></li>
+              </ul>
+            </li>
+            <li class="d-lg-none">
+              <a class="nav-link ml-2" style="text-decoration: none!important;" routerLink="/" (click)="isActive = false" routerLinkActive="active">
+                {{ company?.name }}
+              </a>
+            </li>
+            <li class="d-none d-lg-block">
+              <h2>Inimble</h2>
+              <ul>
+                <li><a class="nav-link nav-link-dropdown" routerLink="client/projects">Projects</a></li>
+                <li><a class="nav-link nav-link-dropdown" routerLink="client/plans">Plans</a></li>
+                <li><a class="nav-link nav-link-dropdown" routerLink="client/customer-service">Help</a></li>
+                <li><a class="nav-link nav-link-dropdown" routerLink="ratings/client">Org chart</a></li>
+              </ul>
+            </li>
+            <ul class="d-lg-none p-0">
+              <li>
+                <a class="nav-link ml-2" style="text-decoration: none!important;" routerLink="client/projects" (click)="isActive = false" routerLinkActive="active">
+                  Projects
+                </a>
+              </li>
+              <li>
+                <a class="nav-link ml-2" style="text-decoration: none!important;" routerLink="client/plans" (click)="isActive = false" routerLinkActive="active">
+                  Plans
+                </a>
+              </li>
+              <li>
+                <a class="nav-link ml-2" style="text-decoration: none!important;" routerLink="client/customer-service" (click)="isActive = false" routerLinkActive="active">
+                  Help
+                </a>
+              </li>
+              <li>
+                <a class="nav-link ml-2" style="text-decoration: none!important;" routerLink="ratings/client" (click)="isActive = false" routerLinkActive="active">
+                  Org chart
+                </a>
+              </li>
+            </ul>
+            <li class="d-none d-lg-block">
+              <a
+                class="btn btn-danger rounded-pill"
+                routerLink="logout"
+                *ngIf="authenticated"
+                (click)="isActive = false; closeSession()"
+                routerLinkActive="active"
+                id="logout-btn"
+              >
+                Log Out
+              </a>
+            </li>
+          </ul>
+        </li>
+        <a
+          class="btn btn-danger rounded-pill d-lg-none mobile-logout"
+          routerLink="logout"
+          *ngIf="authenticated"
+          (click)="isActive = false; closeSession()"
+          routerLinkActive="active"
+          id="logout-btn"
+        >
+          Log Out
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<app-client-sidebar *ngIf="authenticated && userType === '3'"></app-client-sidebar>

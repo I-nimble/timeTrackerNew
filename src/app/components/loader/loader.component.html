@@ -1,0 +1,23 @@
+<div
+  class="d-flex align-items-center"
+  [ngClass]="{ 'fade-out': loader.complete || loader.error }"
+  *ngIf="loader.started"
+>
+  <span *ngIf="message !== null">{{ message }}</span>
+  <ng-container *ngIf="!loader.error">
+    <mat-spinner *ngIf="!loader.complete" [diameter]="diameter"
+      ></mat-spinner
+    >
+    <mat-icon
+      [style.font-size.px]="diameter"
+      *ngIf="loader.complete == true"
+      class="status-icon check-icon"
+      >check_circle_outline</mat-icon
+    >
+  </ng-container>
+  <ng-container *ngIf="loader.error">
+    <mat-icon [style.font-size.px]="diameter" color="warn" class="status-icon"
+      >cancel</mat-icon
+    >
+  </ng-container>
+</div>

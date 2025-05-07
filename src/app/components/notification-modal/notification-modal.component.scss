@@ -1,0 +1,79 @@
+.notificationContainer {
+  position: fixed;
+  right: 0;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 100000;
+}
+
+.notificationContainer i {
+  color: rgba(255,255,255,.8);;
+  font-size: large;
+  cursor: pointer;
+  background: rgba(255,255,255,.1);
+  padding: .5rem;
+  border-radius: 5px;
+  line-height: 1;
+  margin: 0;
+  margin-left: 1rem;
+}
+.notificationContainer i:hover {
+  background: rgba(255,255,255,.25);
+  color: white;
+}
+
+.notificationModal {
+  transition: all 0.3s ease-out;
+}
+
+.slideIn {
+  animation: slideIn 0.5s;
+}
+.slideOut {
+  opacity: 0;
+  animation: slideOut 0.4s;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.clear-all-cont {
+  width: 100%;
+}
+.clear-btn {
+  padding: .5rem 3rem!important;
+  cursor: pointer;
+  margin-top: .75rem;
+  color: #353535;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  background: linear-gradient(to left, rgba(127, 127, 127, 0.15), rgba(185, 185, 185, 0.6));
+  box-shadow: 5px 3px 10px rgba(150, 150, 150, 0.8);
+  border: 1px solid rgba(219, 219, 219, 0.8) !important;
+  transition: all 0.3s ease;
+  border-radius: 25px;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+}
+.clear-btn:hover {
+  background: linear-gradient(to right, rgba(127, 127, 127, 0.15), rgba(185, 185, 185, 0.6));
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  box-shadow: -5px -3px 10px rgba(150, 150, 150, 0.6) !important;
+}
