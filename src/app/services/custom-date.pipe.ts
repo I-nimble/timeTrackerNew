@@ -1,7 +1,7 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, Injectable } from '@angular/core';
 import moment from 'moment';
-// import { ClientDashboardComponent } from "../components/dashboard/dashboard.component";
 
+@Injectable({ providedIn: 'root' })
 @Pipe({
   name: 'customDate',
 })
