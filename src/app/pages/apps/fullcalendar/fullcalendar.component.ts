@@ -4,7 +4,9 @@ import {
   Inject,
   signal,
   OnInit,
-  Input
+  Input,
+  Output,
+  EventEmitter
 } from '@angular/core';
 import { CommonModule, DOCUMENT, NgSwitch } from '@angular/common';
 import {
@@ -194,6 +196,7 @@ export class CalendarDialogComponent implements OnInit {
 })
 export class AppFullcalendarComponent implements OnInit {
   @Input() priorities: any[] = [];
+  @Output() calendarEventChange = new EventEmitter<void>();
   dialogRef = signal<MatDialogRef<CalendarDialogComponent> | any>(null);
   dialogRef2 = signal<MatDialogRef<CalendarFormDialogComponent> | any>(null);
   lastCloseResult = signal<string>('');
@@ -260,13 +263,13 @@ export class AppFullcalendarComponent implements OnInit {
             const priority = toDo.priority;
             let color;
             switch(priority) {
-              case 'Urgent':
+              case 1:
                 color = colors.red;
                 break;
-              case 'Important':
+              case 2:
                 color = colors.yellow;
                 break;
-              case 'Low Priority':
+              case 4:
                 color = colors.green;
                 break;
               default:
@@ -306,29 +309,6 @@ export class AppFullcalendarComponent implements OnInit {
     }
   }
 
-  eventTimesChanged({
-    event,
-    newStart,
-    newEnd,
-  }: CalendarEventTimesChangedEvent): void {
-    this.events.set(
-      this.events().map((iEvent: CalendarEvent<any>) => {
-        if (iEvent === event) {
-          return {
-            ...event,
-            start: newStart,
-            end: newEnd,
-          };
-        }
-        return iEvent;
-      })
-    );
-
-    this.handleEvent('Dropped or resized', event);
-  }
-
-  // TODO: Update form to make it similar to the todo form
-  // Emit event to update todo list and vice versa
   handleEvent(action: string, event: CalendarEvent): void {
     this.config.data = { event, action, priorities: this.priorities };
     this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
@@ -347,44 +327,11 @@ export class AppFullcalendarComponent implements OnInit {
             })
           );
         }
+        this.calendarEventChange.emit();
         this.lastCloseResult.set(result ? 'Event updated' : 'Dialog closed');
         this.dialogRef.set(null);
         this.refresh.next(result);
       });
-  }
-
-  addEvent(): void {
-    this.dialogRef2.set(
-      this.dialog.open(CalendarFormDialogComponent, {
-        panelClass: 'calendar-form-dialog',
-        autoFocus: false, 
-        data: {
-          action: 'add',
-          date: new Date(),
-        },
-      })
-    );
-    this.dialogRef2()
-      .afterClosed()
-      .subscribe((res: { action: any; event: any }) => {
-        if (!res) {
-          return;
-        }
-        const dialogAction = res.action;
-        const responseEvent = res.event;
-        responseEvent.actions = this.actions;
-        this.events.set([...this.events(), responseEvent]);
-        this.dialogRef2.set(null);
-        this.refresh.next(res);
-      });
-  }
-
-  deleteEvent(eventToDelete: CalendarEvent): void {
-    this.events.set(
-      this.events().filter(
-        (event: CalendarEvent<any>) => event !== eventToDelete
-      )
-    );
   }
 
   setView(view: CalendarView | any): void {

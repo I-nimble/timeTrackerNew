@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal, ViewChild } from '@angular/core';
 import {
   UntypedFormBuilder,
   FormsModule,
@@ -75,6 +75,7 @@ export class AppTodoComponent implements OnInit {
   toDoToEdit!: any;
   teamMembers: any[] = [];
   priorities: any[] = [];
+  @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
 
   newTaskForm: FormGroup = this.fb.group({
     goal: ['', [Validators.required]],
@@ -299,6 +300,7 @@ export class AppTodoComponent implements OnInit {
       next: () => {
         this.selectedCategory.set('uncomplete');
         this.buildToDoForm();
+        this.calendar.getToDos();
       },
       error: (res: any) => {
         this.openSnackBar('There was an error submitting the goal', 'Close');
@@ -337,7 +339,7 @@ export class AppTodoComponent implements OnInit {
     this.ratingsService
       .submit(
         this.newTaskForm.value,
-        this.toDoToEdit.id || null
+        this.toDoToEdit?.id || null
       )
       .subscribe({
         next: (response: any) => {
@@ -349,8 +351,9 @@ export class AppTodoComponent implements OnInit {
               (task: any) => task.id == this.toDoToEdit.id
             );
             this.toDoArray[taskIndex] = response;
-            this.buildToDoForm();
           }
+          this.buildToDoForm();
+          this.calendar.getToDos();
         },
         error: () => {
           this.openSnackBar('Error submitting form', 'Close');
@@ -403,6 +406,7 @@ export class AppTodoComponent implements OnInit {
               (task: any) => task.id != id
             );
             this.buildToDoForm();
+            this.calendar.getToDos();
             this.openSnackBar('Todo successfully deleted!', 'Close');
           },
           error: (error: ErrorEvent) => {
