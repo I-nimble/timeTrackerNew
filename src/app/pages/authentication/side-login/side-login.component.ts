@@ -116,35 +116,36 @@ export class AppSideLoginComponent {
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
+          this.router.navigate(['/dashboards/dashboard2']);
           // this.authService.updateLiveChatBubbleVisibility(role);
           // this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
 
-          let visibleChatCollection: HTMLCollectionOf<Element>;
-          let hiddenChatCollection: HTMLCollectionOf<Element>;
-          const interval = setInterval(() => {
-            visibleChatCollection = document.getElementsByClassName('widget-visible');
-            hiddenChatCollection = document.getElementsByClassName('widget-hidden');
-            // if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
-            //   if (visibleChatCollection.length > 0) {
-            //     this.liveChatBubble = visibleChatCollection[0];
-            //   }
-            //   else if (hiddenChatCollection.length > 0) {
-            //     this.liveChatBubble = hiddenChatCollection[0];
-            //   }
-            //   if(role == '3') {
-            //     if (this.liveChatBubble.classList.contains('widget-hidden')) {
-            //       this.liveChatBubble.classList.remove('widget-hidden');
-            //       this.liveChatBubble.classList.add('widget-visible');
-            //     }
-            //   } else {
-            //     if (this.liveChatBubble.classList.contains('widget-visible')) {
-            //       this.liveChatBubble.classList.remove('widget-visible');
-            //       this.liveChatBubble.classList.add('widget-hidden');
-            //     }
-            //   }
-            // }
-            clearInterval(interval);
-          }, 100);
+          // let visibleChatCollection: HTMLCollectionOf<Element>;
+          // let hiddenChatCollection: HTMLCollectionOf<Element>;
+          // const interval = setInterval(() => {
+          //   visibleChatCollection = document.getElementsByClassName('widget-visible');
+          //   hiddenChatCollection = document.getElementsByClassName('widget-hidden');
+          //   // if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
+          //   //   if (visibleChatCollection.length > 0) {
+          //   //     this.liveChatBubble = visibleChatCollection[0];
+          //   //   }
+          //   //   else if (hiddenChatCollection.length > 0) {
+          //   //     this.liveChatBubble = hiddenChatCollection[0];
+          //   //   }
+          //   //   if(role == '3') {
+          //   //     if (this.liveChatBubble.classList.contains('widget-hidden')) {
+          //   //       this.liveChatBubble.classList.remove('widget-hidden');
+          //   //       this.liveChatBubble.classList.add('widget-visible');
+          //   //     }
+          //   //   } else {
+          //   //     if (this.liveChatBubble.classList.contains('widget-visible')) {
+          //   //       this.liveChatBubble.classList.remove('widget-visible');
+          //   //       this.liveChatBubble.classList.add('widget-hidden');
+          //   //     }
+          //   //   }
+          //   // }
+          //   clearInterval(interval);
+          // }, 100);
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;

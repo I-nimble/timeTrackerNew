@@ -32,7 +32,6 @@ export class WebSocketService {
 
   private setupEventListeners() {
     this.socket.on('connect', () => {
-      console.log('Conexión establecida:', this.socket.id);
     });
 
     this.socket.on('connect_error', (err) => {

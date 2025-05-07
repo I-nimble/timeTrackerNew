@@ -21,6 +21,17 @@ import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.comp
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
+import { AuthService } from 'src/app/services/auth.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
+
+export function jwtOptionsFactory() {
+  return {
+    tokenGetter: () => localStorage.getItem('jwt'),
+    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
+    disallowedRoutes: ['/auth/signin', '/auth/signup'],
+  };
+}
 
 const MOBILE_VIEW = 'screen and (max-width: 768px)';
 const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
@@ -59,6 +70,10 @@ interface quicklinks {
     CustomizerComponent,
     BrandingComponent
   ],
+  providers: [AuthService,WebSocketService,
+        JwtHelperService,
+      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },],
+  standalone: true,
   templateUrl: './full.component.html',
   styleUrls: [],
   encapsulation: ViewEncapsulation.None,
@@ -174,7 +189,7 @@ export class FullComponent implements OnInit {
     },
     {
       id: 6,
-      title: 'Employee App',
+      title: 'Time tracker',
       link: '/apps/employee',
     },
     {
@@ -194,7 +209,8 @@ export class FullComponent implements OnInit {
     private mediaMatcher: MediaMatcher,
     private router: Router,
     private breakpointObserver: BreakpointObserver,
-    private navService: NavService
+    private navService: NavService,
+    private authService: AuthService,
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -274,5 +290,9 @@ export class FullComponent implements OnInit {
 
     // Add the selected theme class
     this.htmlElement.classList.add(options.activeTheme);
+  }
+
+  logOut(){
+    this.authService.logout();
   }
 }
