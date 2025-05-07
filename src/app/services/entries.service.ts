@@ -30,7 +30,7 @@ export class EntriesService {
   }
 
   getUsersEntries(user_id: any) {
-    return this.http.post<any>(`${this.API_URI}/entries/user`, user_id);
+    return this.http.get<any>(`${this.API_URI}/entries/user/${user_id}`);
   }
 
   createEntry(entry: any) {

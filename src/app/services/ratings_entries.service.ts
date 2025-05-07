@@ -45,7 +45,7 @@ export class RatingsEntriesService {
     return this.http.post(`${this.API_URI}/user-goals`, body);
   }
 
-  public getRange(datesRange: any, userId: any): Observable<any[]> {
+  public getRange(datesRange: any, userId?: any): Observable<any[]> {
     const body = { 
       dateRange: [datesRange.firstSelect, datesRange.lastSelect], 
       userId 
