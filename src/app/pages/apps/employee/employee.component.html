@@ -42,8 +42,9 @@
               />
               <div>
                 <a
-                class="text-decoration-none"
-                [routerLink]="['/apps/employee', element.id]"
+                  class="text-decoration-none"
+                  (click)="setUser(element)"
+                  [routerLink]="['/apps/employee', element.id]"
                 >
                   <h6 class="f-w-600 f-s-16 m-t-0">
                     {{ element.Name }}
@@ -63,7 +64,7 @@
             {{ element.schedule }}
           </td>
         </ng-container>
-<!-- 
+        <!-- 
         <ng-container matColumnDef="mobile">
           <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
             Mobile
@@ -86,9 +87,7 @@
           <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
             Status
           </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-           Off
-          </td>
+          <td mat-cell *matCellDef="let element" class="f-s-14">Off</td>
         </ng-container>
 
         <ng-container matColumnDef="projects">
@@ -96,8 +95,14 @@
             Reports
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
-            <i-tabler name="download" class="icon-18"></i-tabler
-              >
+            <button
+              mat-icon-button
+              (click)="downloadReport(element)"
+              title="Download Report"
+            >
+              <i-tabler name="download" class="icon-18"></i-tabler>
+            </button>
+            
           </td>
         </ng-container>
 
@@ -111,10 +116,7 @@
               class="m-r-10 cursor-pointer"
               ><i-tabler name="edit" class="icon-18"></i-tabler
             ></a>
-            <a
-              (click)="openDialog('Delete', element)"
-              class="cursor-pointer"
-            >
+            <a (click)="openDialog('Delete', element)" class="cursor-pointer">
               <i-tabler name="trash" class="icon-18"></i-tabler>
             </a>
           </td>

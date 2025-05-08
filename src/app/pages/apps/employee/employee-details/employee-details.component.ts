@@ -23,6 +23,7 @@ import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import moment from 'moment-timezone';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { UsersService } from 'src/app/services/users.service';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -56,6 +57,7 @@ export class EmployeeDetailsComponent implements OnInit {
   hoursRemaining: number = 0;
   companyTimezone: string = 'UTC';
   entries: any = [];
+  user: any;
 
   public mostvisitChart: Partial<ChartOptions> | any;
   public salesOverviewChart: Partial<ChartOptions> | any;
@@ -71,6 +73,7 @@ export class EmployeeDetailsComponent implements OnInit {
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private companieService: CompaniesService,
+    private userService: UsersService,
      
   ) {
     this.mostvisitChart = {
@@ -142,6 +145,7 @@ export class EmployeeDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.user = this.userService.getSelectedUser();
     this.employeeId = this.route.snapshot.paramMap.get('id');
     this.loadCompanyData();
     //this.defaultWeek();
@@ -157,7 +161,6 @@ export class EmployeeDetailsComponent implements OnInit {
     this.companieService.getByOwner().subscribe((company: any) => {
       this.filters.company = company.company;
       company.company.timezone != null ? this.companyTimezone = company.company.timezone : this.companyTimezone = 'UTC';
-      console.log(this.companyTimezone);
       // this.loadEntries();
       this.getSchedules();
     });
@@ -201,7 +204,6 @@ export class EmployeeDetailsComponent implements OnInit {
     this.schedulesService.get().subscribe({
       next: (schedules: any) => {
          schedules = schedules.schedules;
-         console.log('Schedules: ',schedules);
         const dayOfWeek = new Date().getUTCDay() || 7; 
         const todaySchedule = schedules.find(
           (schedule: any) =>
@@ -209,13 +211,11 @@ export class EmployeeDetailsComponent implements OnInit {
             schedule.days.some((day: any) => day.id === dayOfWeek)
         );
 
-        console.log(todaySchedule);
         if (todaySchedule) {
           const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
           const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
           const now = moment.tz(this.companyTimezone);
           const currentTime = moment.tz();
-          console.log(this.companyTimezone)
 
           start.set({
               year: currentTime.year(),
@@ -236,7 +236,6 @@ export class EmployeeDetailsComponent implements OnInit {
           this.hoursElapsed = Math.min(Math.max(this.hoursElapsed, 0), totalWorkHours);
 
           this.hoursRemaining = totalWorkHours - this.hoursElapsed;
-          console.log(this.hoursElapsed, this.hoursRemaining);
 
           // Actualizar gráfico
           this.salesOverviewChart.series = [
