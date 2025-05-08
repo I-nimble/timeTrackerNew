@@ -20,8 +20,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { Location } from '@angular/common';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { SchedulesService } from 'src/app/services/schedules.service';
-//import { ReportsService } from 'src/app/services/reports.service';
-import moment from 'moment';
+import { ReportsService } from 'src/app/services/reports.service';
+import moment from 'moment-timezone';
 import { CompaniesService } from 'src/app/services/companies.service';
 
 export type ChartOptions = {
@@ -67,10 +67,10 @@ export class EmployeeDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private location: Location,
-    // private ratingsEntriesService: RatingsEntriesService,
-    // private schedulesService: SchedulesService,
-    // private reportsService: ReportsService,
-    // private companieService: CompaniesService,
+    private ratingsEntriesService: RatingsEntriesService,
+    private schedulesService: SchedulesService,
+    private reportsService: ReportsService,
+    private companieService: CompaniesService,
      
   ) {
     this.mostvisitChart = {
@@ -143,6 +143,7 @@ export class EmployeeDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.employeeId = this.route.snapshot.paramMap.get('id');
+    this.loadCompanyData();
     //this.defaultWeek();
   }
 
@@ -152,14 +153,15 @@ export class EmployeeDetailsComponent implements OnInit {
   //   this.datesRange = { firstSelect: firstday, lastSelect: lastday };
   // }
 
-  // private loadCompanyData(): void {
-  //   this.companieService.getByOwner().subscribe((company: any) => {
-  //     this.filters.company = company.company;
-  //     this.companyTimezone = company.company.timezone;
-  //     this.loadEntries();
-  //     this.getSchedules();
-  //   });
-  // }
+  private loadCompanyData(): void {
+    this.companieService.getByOwner().subscribe((company: any) => {
+      this.filters.company = company.company;
+      company.company.timezone != null ? this.companyTimezone = company.company.timezone : this.companyTimezone = 'UTC';
+      console.log(this.companyTimezone);
+      // this.loadEntries();
+      this.getSchedules();
+    });
+  }
 
   // private loadEntries(): void {
   //   const userParams = { id: this.employeeId }; 
@@ -195,35 +197,57 @@ export class EmployeeDetailsComponent implements OnInit {
   //   // this.salesOverviewChart.series = [totalDailyHours, 24 - totalDailyHours];
   // }
 
-  // private getSchedules(): void {
-  //   this.schedulesService.get().subscribe({
-  //     next: (schedules: any) => {
-  //       const todaySchedule = schedules.find((s: any) => 
-  //         s.employee_id === this.employeeId && 
-  //         s.days.some((day: any) => day.id === moment().tz(this.companyTimezone).isoWeekday())
-  //       );
+  private getSchedules(): void {
+    this.schedulesService.get().subscribe({
+      next: (schedules: any) => {
+         schedules = schedules.schedules;
+         console.log('Schedules: ',schedules);
+        const dayOfWeek = new Date().getUTCDay() || 7; 
+        const todaySchedule = schedules.find(
+          (schedule: any) =>
+            schedule.employee_id == this.employeeId &&
+            schedule.days.some((day: any) => day.id === dayOfWeek)
+        );
 
-  //       if (todaySchedule) {
-  //         const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
-  //         const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
-  //         const now = moment.tz(this.companyTimezone);
+        console.log(todaySchedule);
+        if (todaySchedule) {
+          const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
+          const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
+          const now = moment.tz(this.companyTimezone);
+          const currentTime = moment.tz();
+          console.log(this.companyTimezone)
 
-  //         // Ajustar para horarios nocturnos
-  //         if (end.isBefore(start)) end.add(1, 'day');
+          start.set({
+              year: currentTime.year(),
+              month: currentTime.month(),
+              date: currentTime.date(),
+            });
+            end.set({
+              year: currentTime.year(),
+              month: currentTime.month(),
+              date: currentTime.date(),
+            });
           
-  //         this.hoursElapsed = Math.max(now.diff(start, 'hours', true), 0);
-  //         this.hoursRemaining = Math.max(end.diff(now, 'hours', true), 0);
+          if (end.isBefore(start)) end.add(1, 'day');
 
-  //         // Actualizar gráfico de donut en tiempo real
-  //         this.salesOverviewChart.series = [
-  //           this.hoursElapsed.toFixed(2), 
-  //           this.hoursRemaining.toFixed(2)
-  //         ];
-  //       }
-  //     },
-  //     error: (err) => console.error('Error fetching schedules:', err)
-  //   });
-  // }
+          const totalWorkHours = end.diff(start, 'hours', true);
+          
+          this.hoursElapsed = currentTime.diff(start, 'hours', true);
+          this.hoursElapsed = Math.min(Math.max(this.hoursElapsed, 0), totalWorkHours);
+
+          this.hoursRemaining = totalWorkHours - this.hoursElapsed;
+          console.log(this.hoursElapsed, this.hoursRemaining);
+
+          // Actualizar gráfico
+          this.salesOverviewChart.series = [
+            this.hoursElapsed, 
+            this.hoursRemaining
+          ];
+        }
+      },
+      error: (err) => console.error('Error fetching schedules:', err)
+    });
+  }
 
   goBack(): void {
     this.location.back(); 

@@ -26,6 +26,8 @@ import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import {environment} from 'src/environments/environment';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import moment from 'moment-timezone';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -45,6 +47,7 @@ export class AppEmployeeComponent implements AfterViewInit {
     employees: any[] = [];
     loaded: boolean = false;
     company: any;
+    companyTimezone: string = 'UTC';
     timeZone: string = 'America/Caracas';
     assetsPath: string = environment.assets;
 
@@ -53,7 +56,7 @@ export class AppEmployeeComponent implements AfterViewInit {
   displayedColumns: string[] = [
     '#',
     'name',
-    'email',
+    'schedule',
     'date of joining',
     'salary',
     'projects',
@@ -71,18 +74,21 @@ export class AppEmployeeComponent implements AfterViewInit {
     private userService: UsersService,
     private companieService: CompaniesService,
     private positionsService: PositionsService,
+    private schedulesService: SchedulesService,
 
   ) {}
 
   ngOnInit(): void {
-    this.loadEmployees();
+    this.loadCompany();
     this.getEmployees();
   }
 
-  loadEmployees(): void {
-    const employee = this.employeeService.getEmployees();
-    this.dataSource.data = employee;
-    this.dataSource = new MatTableDataSource(employee);
+  loadCompany(): void {
+    this.companieService.getByOwner().subscribe((company: any) => {
+      this.company = company.company.name;
+      this.companyTimezone = company.company.timezone || 'UTC';
+      console.log(this.company);
+    });
   }
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
@@ -98,46 +104,82 @@ export class AppEmployeeComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.dataSource.data = this.employeeService.getEmployees();
-      if (result && result.event === 'Refresh') {
-        this.loadEmployees(); // Refresh the employee list if necessary
-      }
+      this.dataSource.data = this.users;
     });
   }
 
   getEmployees() {
+
     this.userService.getEmployees().subscribe({
       next: (employees: any) => {
         this.employees = employees;
         console.log(this.employees);
         console.log(this.userService.getPosition(8)) 
         this.users = employees.map((user: any) => user.user).filter((user: any) => user.active == 1);
+        
+        this.schedulesService.get().subscribe({
+          next: (schedules: any) => {
+            schedules = schedules.schedules;
+            console.log(schedules)
+            this.users = this.users.map((user: any) => {
+              // Filtrar horarios del usuario actual
+            const userSchedules = schedules.find(
+              (schedule: any) => schedule.employee_id === user.id
+            );
+            console.log('primero: ',userSchedules)
+                        if (!userSchedules) {
+              console.warn(`No schedules found for user ID: ${user.id}`);
+              return {
+                id: user.id,
+                Name: `${user.name} ${user.last_name}`,
+                Position: 'Default Position',
+                schedule: 'No registered hours',
+                WorkingDays: 'N/A',
+                Salary: 12000,
+                Projects: 0,
+                imagePath: this.assetsPath + '/default-profile-pic.png',
+              };
+            }
+            // Determinar días laborales
+            const workingDays = userSchedules.days
+              .map((day: any) => day.name.charAt(0).toUpperCase()) // Obtener la primera letra de cada día
+              .join(', ');
+
+              console.log('segundo: ',workingDays)
+            // Determinar horas por día
+            const start = moment.tz(userSchedules.start_time, 'HH:mm', this.companyTimezone);
+            const end = moment.tz(userSchedules.end_time, 'HH:mm', this.companyTimezone);
+            if (end.isBefore(start)) end.add(1, 'day');
+            const totalWorkHours = end.diff(start, 'hours', true);
+
+            return {
+              id: user.id,
+              Name: `${user.name} ${user.last_name}`,
+              Position: 'Default Position', // Puedes reemplazarlo con datos reales si están disponibles
+              schedule: `${totalWorkHours.toFixed()} hours per day`, // Horas por día
+              WorkingDays: workingDays, // Fecha predeterminada
+              Salary: 12000, // Valor predeterminado
+              Projects: 0, // Valor predeterminado
+              imagePath: this.assetsPath + '/default-profile-pic.png', // Imagen predeterminada
+            };
+            });
+            console.log(this.users); 
+            this.dataSource.data = this.users;
+            this.loaded = true;
+          },
+          error: (err) => {
+            console.error('Error fetching schedules:', err);
+          },
+        });
+
   
 
-        this.users = this.users.map((user: any) => ({
-          id: user.id,
-          Name: `${user.name} ${user.last_name}`,
-          Position: 'Default Position', 
-          Email: '8 hours per day',
-          DateOfJoining: new Date('01-2-2024'),
-          Salary: 12000, 
-          Projects: 0, 
-          imagePath: this.assetsPath + '/default-profile-pic.png', 
-        }));
-  
-        console.log(this.users); 
-        this.dataSource.data = this.users;
-        this.loaded = true;
       },
       error: (err) => {
         console.error('Error fetching employees:', err);
       },
     });
   
-    this.companieService.getByOwner().subscribe((company: any) => {
-      this.company = company.company.name;
-      console.log(this.company);
-    });
   }
 }
 

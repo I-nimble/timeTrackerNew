@@ -40,36 +40,36 @@ export class StripeComponent implements AfterViewInit {
     }
   }
   async loadStripe() {
-    this.stripeService.charge(this.data).subscribe((next) => {
-      const { clientSecret } = next;
-      const appearance = {
-        theme: 'night',
-      };
-      // this.data = {
-      //   amount: 1000,
-      //   description: 'payment',
-      // };
-      elements = stripe.elements({ clientSecret, appearance });
+    // this.stripeService.charge(this.data).subscribe((next) => {
+    //   const { clientSecret } = next;
+    //   const appearance = {
+    //     theme: 'night',
+    //   };
+    //   // this.data = {
+    //   //   amount: 1000,
+    //   //   description: 'payment',
+    //   // };
+    //   elements = stripe.elements({ clientSecret, appearance });
 
-      this.card = elements.create('card');
+    //   this.card = elements.create('card');
 
-      this.card.mount(this.cardInfo?.nativeElement);
-      const emailAddress = '';
-      const linkAuthenticationElement = elements.create('linkAuthentication');
-      linkAuthenticationElement.mount('#link-authentication-element');
-      // const userIdElement = elements.create('#userRef');
+    //   this.card.mount(this.cardInfo?.nativeElement);
+    //   const emailAddress = '';
+    //   const linkAuthenticationElement = elements.create('linkAuthentication');
+    //   linkAuthenticationElement.mount('#link-authentication-element');
+    //   // const userIdElement = elements.create('#userRef');
       
-      // linkAuthenticationElement.attr('placeholder', 'Email address')
+    //   // linkAuthenticationElement.attr('placeholder', 'Email address')
 
-      linkAuthenticationElement.on('change', this.change.bind(this));
+    //   linkAuthenticationElement.on('change', this.change.bind(this));
 
-      const paymentElementOptions = {
-        layout: 'tabs',
-      };
+    //   const paymentElementOptions = {
+    //     layout: 'tabs',
+    //   };
 
-      const paymentElement = elements.create('payment', paymentElementOptions);
-      paymentElement.mount('#payment-element');
-    });
+    //   const paymentElement = elements.create('payment', paymentElementOptions);
+    //   paymentElement.mount('#payment-element');
+    // });
     // }else{
     //   this.cardError = null
     // }
@@ -99,29 +99,29 @@ export class StripeComponent implements AfterViewInit {
     }
   }
   async handleSubmit(e: Event) {
-    e.preventDefault();
-    this.setLoading(true);
+    // e.preventDefault();
+    // this.setLoading(true);
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        // Make sure to change this to your payment completion page
-        return_url: environment.url + '/client',
-        receipt_email: 'crivas@i-nimble.com',
-      },
-    });
-    // This point will only be reached if there is an immediate error when
-    // confirming the payment. Otherwise, your customer will be redirected to
-    // your `return_url`. For some payment methods like iDEAL, your customer will
-    // be redirected to an intermediate site first to authorize the payment, then
-    // redirected to the `return_url`.
-    if (error.type === 'card_error' || error.type === 'validation_error') {
-      this.showMessage(error.message);
-    } else {
-      this.showMessage('An unexpected error occurred.');
-    }
+    // const { error } = await stripe.confirmPayment({
+    //   elements,
+    //   confirmParams: {
+    //     // Make sure to change this to your payment completion page
+    //     return_url: environment.url + '/client',
+    //     receipt_email: 'crivas@i-nimble.com',
+    //   },
+    // });
+    // // This point will only be reached if there is an immediate error when
+    // // confirming the payment. Otherwise, your customer will be redirected to
+    // // your `return_url`. For some payment methods like iDEAL, your customer will
+    // // be redirected to an intermediate site first to authorize the payment, then
+    // // redirected to the `return_url`.
+    // if (error.type === 'card_error' || error.type === 'validation_error') {
+    //   this.showMessage(error.message);
+    // } else {
+    //   this.showMessage('An unexpected error occurred.');
+    // }
     
-    this.setLoading(false);
+    // this.setLoading(false);
   }
   // // Fetches the payment intent status after payment submission
   showMessage(messageText: string) {
