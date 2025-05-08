@@ -16,7 +16,7 @@ import { Company } from 'src/app/models/Company.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import { UsersService } from 'src/app/services/users.service';
-import { SharedModule } from '../shared.module';
+//import { SharedModule } from '../shared.module';
 
 export interface ReportFilter {
   user: User | string;
