@@ -96,6 +96,26 @@
   }
 }
 
+.btn-custom:hover {
+  background-color: #C4E57F !important; 
+  color: #fff !important; 
+}
+
+.btn-custom2.mdc-button {
+  height: 56px !important;
+  padding: 0 52px !important;
+  font-size: 16px;
+  border-radius: 30px !important;
+
+  &.sm {
+    padding: 0 34px !important;
+  }
+}
+
+.btn-custom2:hover {
+  opacity:60%;
+}
+
 @media (max-width: 767px) {
   .btn-custom.mdc-button {
     padding: 0 36px !important;
@@ -171,6 +191,10 @@
 
 .bg-dark {
   background-color: #111c2d;
+}
+
+.bg-green {
+  background-color: #80974F;
 }
 
 .lh-base {

@@ -16,9 +16,9 @@
           <!-- --------------------------------------------------------------- -->
           <!--  Links -->
           <!-- --------------------------------------------------------------- -->
-          <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
+          <!-- <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
             Demos
-          </button>
+          </button> -->
 
           <!-- --------------------------------------------------------------- -->
           <!--  Links -->
@@ -29,8 +29,8 @@
             [matMenuTriggerFor]="appsmenu"
             aria-label="Notifications"
           >
-            <div class="d-flex align-items-center">
-              Pages
+            <div class="d-flex align-items-center" style="color: #818181;">
+              Products
               <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
             </div>
           </button>
@@ -88,15 +88,24 @@
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            href="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
-            >Documentation</a
+            hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+            style="color: #818181;"
+            >Industry</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
             href="https://support.wrappixel.com/"
-            >Support</a
+            style="color: #818181;"
+            >Pricing</a
           >
+          <a
+          mat-button
+          class="m-x-8 f-s-16 f-w-500"
+          hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+          style="color: #818181;"
+          >Why us</a
+        >
         </div>
 
         <div class="d-flex align-items-center gap-10">
@@ -104,8 +113,8 @@
             mat-flat-button
             color="primary"
             class="m-l-10"
-            href="https://discord.com/invite/eMzE8F6Wqs"
-            >Live Help</a
+            [routerLink]="['/authentication/side-login']"
+            >Login</a
           >
 
           <!-- Mobile Menu -->
@@ -133,11 +142,11 @@
           <div class="col-lg-11">
             <div class="text-center">
               <h1 class="banner-title m-0 f-w-700">
-                Revolutionize your development with Powerful Material Angular
+                Build Your Remote Team. Save Money. Stay in Control.
               </h1>
               <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
-                Spike comes with light & dark color skins, well designed
-                dashboards, applications and pages
+                Inimble is the all-in-one platform to hire, train, and manage top talent from Latin America.
+                We handle the hard stuff — recruiting, onboarding, payroll, compliance, and IT — so you don’t have to.
               </p>
               <div class="m-t-24 hstack justify-content-center">
                 <a
@@ -145,15 +154,15 @@
                   color="primary"
                   (click)="gotoDemos()"
                   class="btn-custom"
-                  >Live Preview</a
+                  >Use Inimble for free</a
                 >
                 <a
                   mat-stroked-button
                   color="primary"
                   target="_blank"
                   href="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
-                  class="btn-custom border-primary"
-                  >Documentation</a
+                  class="btn-custom2 border-primary"
+                  >Call us now</a
                 >
               </div>
             </div>
@@ -437,14 +446,14 @@
     ------------------------------------------------------------------ -->
     <div class="bg-white">
       <div class="container">
-        <div class="bg-dark rounded p-32 position-relative">
+        <div class="bg-green rounded p-32 position-relative">
           <div class="row justify-content-between">
             <div class="col-lg-6">
               <h3 class="m-t-0 section-title2 text-white m-b-8">
                 Haven't found an answer to your question?
               </h3>
               <span class="f-s-16 m-b-30 p-b-10 m-t-8 d-block text-white"
-                >Connect with us either on discord or email us</span
+                >Connect with us</span
               >
               <div class="hstack">
                 <a
@@ -452,24 +461,25 @@
                   href="https://discord.com/invite/eMzE8F6Wqs"
                   color="primary"
                   class="btn-custom sm"
-                  >Ask on Discord</a
+                  style="background-color: #C4E57F; font-weight:800; "
+                  >The #1 AI remote talent tool</a
                 >
                 <a
                   mat-stroked-button
                   href="https://support.wrappixel.com/"
                   color="primary"
                   class="btn-custom sm border-accent"
-                  >Submit Ticket</a
+                  >Remote talent match</a
                 >
               </div>
             </div>
             <div class="col-lg-5 text-right">
-              <img
+              <!-- <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              />
+              /> -->
             </div>
           </div>
         </div>
