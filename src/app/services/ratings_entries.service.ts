@@ -16,6 +16,13 @@ export class RatingsEntriesService {
   public get(): Observable<RatingsEntries[]> {
     return this.http.get<RatingsEntries[]>(`${this.API_URI}`);
   }
+
+  public getTeamReport(datesRange: any): Observable<any> {
+    const body = { 
+      dateRange: [datesRange.firstSelect, datesRange.lastSelect]
+    };
+    return this.http.post(`${this.API_URI}/team-report`, body);
+  }
   
   public checkPending(data: any): Observable<any> {
     return this.http.post(`${this.API_URI}/pending`, data);
