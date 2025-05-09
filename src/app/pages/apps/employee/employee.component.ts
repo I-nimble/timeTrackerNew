@@ -25,7 +25,15 @@ import { RouterModule } from '@angular/router';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PositionsService } from 'src/app/services/positions.service';
-import {environment} from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import { ReportsService } from 'src/app/services/reports.service';
+import {
+  ReportFilter,
+  ReportsFilterComponent,
+} from 'src/app/components/reports-filter/reports-filter.component';
+import moment from 'moment-timezone';
+import * as filesaver from 'file-saver';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -41,19 +49,27 @@ import {environment} from 'src/environments/environment';
 export class AppEmployeeComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
-    users: any[] = [];
-    employees: any[] = [];
-    loaded: boolean = false;
-    company: any;
-    timeZone: string = 'America/Caracas';
-    assetsPath: string = environment.assets;
+  users: any[] = [];
+  employees: any[] = [];
+  loaded: boolean = false;
+  company: any;
+  companyTimezone: string = 'UTC';
+  timeZone: string = 'America/Caracas';
+  assetsPath: string = environment.assets;
+  filters: ReportFilter = {
+    user: 'all',
+    company: 'all',
+    project: 'all',
+    byClient: false,
+    useTimezone: false,
+  };
 
   searchText: any;
 
   displayedColumns: string[] = [
     '#',
     'name',
-    'email',
+    'schedule',
     'date of joining',
     'salary',
     'projects',
@@ -71,18 +87,20 @@ export class AppEmployeeComponent implements AfterViewInit {
     private userService: UsersService,
     private companieService: CompaniesService,
     private positionsService: PositionsService,
-
+    private schedulesService: SchedulesService,
+    private reportsService: ReportsService
   ) {}
 
   ngOnInit(): void {
-    this.loadEmployees();
+    this.loadCompany();
     this.getEmployees();
   }
 
-  loadEmployees(): void {
-    const employee = this.employeeService.getEmployees();
-    this.dataSource.data = employee;
-    this.dataSource = new MatTableDataSource(employee);
+  loadCompany(): void {
+    this.companieService.getByOwner().subscribe((company: any) => {
+      this.company = company.company.name;
+      this.companyTimezone = company.company.timezone || 'UTC';
+    });
   }
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
@@ -94,14 +112,12 @@ export class AppEmployeeComponent implements AfterViewInit {
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
-      data: { action, employee }, autoFocus: false
+      data: { action, employee },
+      autoFocus: false,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.dataSource.data = this.employeeService.getEmployees();
-      if (result && result.event === 'Refresh') {
-        this.loadEmployees(); // Refresh the employee list if necessary
-      }
+      this.dataSource.data = this.users;
     });
   }
 
@@ -109,35 +125,118 @@ export class AppEmployeeComponent implements AfterViewInit {
     this.userService.getEmployees().subscribe({
       next: (employees: any) => {
         this.employees = employees;
-        console.log(this.employees);
-        console.log(this.userService.getPosition(8)) 
-        this.users = employees.map((user: any) => user.user).filter((user: any) => user.active == 1);
-  
+        this.users = employees
+          .map((user: any) => user.user)
+          .filter((user: any) => user.active == 1);
 
-        this.users = this.users.map((user: any) => ({
-          id: user.id,
-          Name: `${user.name} ${user.last_name}`,
-          Position: 'Default Position', 
-          Email: '8 hours per day',
-          DateOfJoining: new Date('01-2-2024'),
-          Salary: 12000, 
-          Projects: 0, 
-          imagePath: this.assetsPath + '/default-profile-pic.png', 
-        }));
-  
-        console.log(this.users); 
-        this.dataSource.data = this.users;
-        this.loaded = true;
+        this.schedulesService.get().subscribe({
+          next: (schedules: any) => {
+            schedules = schedules.schedules;
+            this.users = this.users.map((user: any) => {
+              
+              const userSchedules = schedules.find(
+                (schedule: any) => schedule.employee_id === user.id
+              );
+              if (!userSchedules) {
+                return {
+                  id: user.id,
+                  Name: `${user.name} ${user.last_name}`,
+                  Position: 'Default Position',
+                  schedule: 'No registered hours',
+                  WorkingDays: 'N/A',
+                  Salary: 12000,
+                  Projects: 0,
+                  imagePath: this.assetsPath + '/default-profile-pic.png',
+                };
+              }
+              
+              const workingDays = userSchedules.days
+                .map((day: any) => day.name.charAt(0).toUpperCase()) 
+                .join(', ');
+
+              const start = moment.tz(
+                userSchedules.start_time,
+                'HH:mm',
+                this.companyTimezone
+              );
+              const end = moment.tz(
+                userSchedules.end_time,
+                'HH:mm',
+                this.companyTimezone
+              );
+              if (end.isBefore(start)) end.add(1, 'day');
+              const totalWorkHours = end.diff(start, 'hours', true);
+
+              return {
+                id: user.id,
+                Name: `${user.name} ${user.last_name}`,
+                Position: 'Default Position', 
+                schedule: `${totalWorkHours.toFixed()} hours per day`,
+                WorkingDays: workingDays,
+                Salary: 12000, 
+                Projects: 0, 
+                imagePath: this.assetsPath + '/default-profile-pic.png',
+              };
+            });
+            this.dataSource.data = this.users;
+            this.loaded = true;
+          },
+          error: (err) => {
+            console.error('Error fetching schedules:', err);
+          },
+        });
       },
       error: (err) => {
         console.error('Error fetching employees:', err);
       },
     });
-  
-    this.companieService.getByOwner().subscribe((company: any) => {
-      this.company = company.company.name;
-      console.log(this.company);
+  }
+
+  setUser(user: any): void {
+
+        this.employees.map((employee: any) => {
+      user.id == employee.user.id ? user = employee.user : null;
     });
+
+    this.userService.setUserInformation(user);
+  }
+
+  downloadReport(user: any): void {
+    this.filters = {
+      user: user.id,
+      company: 'all',
+      project: 'all',
+      byClient: false,
+      useTimezone: false,
+    };
+
+    const datesRange = {
+      firstSelect: moment().startOf('week').toDate(),
+      lastSelect: moment().endOf('week').toDate(),
+    };
+
+    this.employees.map((employee: any) => {
+      user.id == employee.user.id ? user = employee.user : null;
+    });
+    this.reportsService
+      .getReport(datesRange, user, this.filters)
+      .subscribe((v) => {
+        let filename;
+        let display_name;
+        if (user.last_name) {
+          display_name = `${user.name}_${user.last_name}`;
+        } else {
+          display_name = user.name;
+        }
+
+        filename = `I-nimble_Report_${display_name}_${moment(
+          new Date(datesRange.firstSelect)
+        ).format('DD-MM-YYYY')}_${moment(
+          new Date(datesRange.lastSelect)
+        ).format('DD-MM-YYYY')}.xlsx`;
+
+        filesaver.saveAs(v, filename);
+      });
   }
 }
 
