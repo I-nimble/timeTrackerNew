@@ -205,7 +205,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
       color: 'primary',
       title: 'My Profile',
       subtitle: 'Account Settings',
-      link: '/',
+      link: 'apps/account-setting',
     },
     {
       id: 2,
