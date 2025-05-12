@@ -31,12 +31,12 @@ export interface trafficChart {
   stroke: ApexStroke;
 }
 @Component({
-  selector: 'app-traffic-distribution',
+  selector: 'app-activity-report',
   standalone: true,
   imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe],
-  templateUrl: './traffic-distribution.component.html',
+  templateUrl: './activity-report.component.html',
 })
-export class AppTrafficDistributionComponent implements OnInit {
+export class AppActivityReportComponent implements OnInit {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public trafficChart!: Partial<trafficChart> | any;
   dateRange: any = this.getCurrentWeekDates();
@@ -53,7 +53,7 @@ export class AppTrafficDistributionComponent implements OnInit {
     private schedulesService: SchedulesService
   ) {
     this.trafficChart = {
-      series: [0, 100],
+      series: [0, 0],
 
       chart: {
         type: 'donut',

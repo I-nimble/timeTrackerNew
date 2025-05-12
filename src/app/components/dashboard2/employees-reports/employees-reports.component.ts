@@ -43,7 +43,6 @@ export class AppEmployeesReportsComponent {
   }
   
   getDataSource() {
-    console.log(this.dateRange)
     this.ratingsEntriesService.getTeamReport(this.dateRange).pipe(
       switchMap((data) => {
         // First set basic user data without profile pictures
