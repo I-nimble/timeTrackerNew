@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,44 +9,111 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatDividerModule } from '@angular/material/divider';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NotificationStore } from 'src/app/stores/notification.store';
+import { UsersService } from 'src/app/services/users.service';
+import { MatDialog } from '@angular/material/dialog';
+import { NgIf } from '@angular/common';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
+
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [
-    MatCardModule, 
-    MatIconModule, 
-    TablerIconsModule, 
-    MatTabsModule, 
-    MatFormFieldModule, 
-    MatSlideToggleModule, 
-    MatSelectModule, 
-    MatInputModule, 
-    MatButtonModule, 
-    MatDividerModule
-  ],
-  templateUrl: './account-setting.component.html',
-  styleUrl: './account-setting.component.scss'
+  imports: [MatCardModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf],
+  templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
-  userRole = localStorage.getItem('role');
-  currentPlan!: { id:number, name:string };
-
-  constructor(private companiesService: CompaniesService, private plansService: PlansService) {}
+  notificationStore = inject(NotificationStore);
+  user: any = {
+    name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    employee: {
+        company: '',
+        position_name: '',
+        emergency_contact: {
+            name: '',
+            relationship: '',
+            phone: ''
+        },
+        medical_conditions: '',
+        social_media: {
+            facebook: '',
+            instagram: '',
+            twitter: '',
+            linkedin: ''
+        },
+        start_date: '',
+        insurance_data: {
+            provider: '',
+            policy_number: '',
+            coverage_details: '',
+            createdAt: ''
+        }
+    }
+  };
+  picture: string = 'assets/images/default-profile-pic.png';
+  profileForm!: FormGroup;
+  showInsuranceDetails: boolean = false;
+  selectedTag: string = 'general';
+  role: string;
+  currentPlan: any = {
+    id: '',
+    name: ''
+  };
+  
+  constructor(public companiesService: CompaniesService,  
+            private usersService: UsersService, 
+            private fb: FormBuilder,
+            private dialog: MatDialog,
+            private plansService: PlansService) {}
 
   ngOnInit(): void {
-    console.log('userRole:', this.userRole, 'Type:', typeof this.userRole); // Add this line
+    this.getTM();
 
-    if(this.userRole == '3'){
-      this.companiesService.getByOwner().subscribe((company: any) => {
-        this.plansService.getCurrentPlan(company.company_id).subscribe((plan: any) => {
-          console.log(plan);
-          this.currentPlan.id = plan.plan.id
-          this.currentPlan.name = plan.plan.name;
-        });
-      });
+    if(this.role == '3'){
+      this.getCurrentPlan();
     }
   }
+
+  getCurrentPlan() {
+    this.companiesService.getByOwner().subscribe((company: any) => {
+      this.plansService.getCurrentPlan(company.company_id).subscribe((plan: any) => {
+        this.currentPlan.id = plan.plan.id
+        this.currentPlan.name = plan.plan.name;
+      });
+    });
+  }
+
+  getTM() {
+    const userEmail = localStorage.getItem('email') || '';
+    this.role = localStorage.getItem('role') || '';
+    const userFilter = {
+        searchField: '',
+        filter: {
+            currentUser: this.role == '2' ? true : false,
+            email: userEmail
+        }
+    };
+    this.usersService.getUsers(userFilter).subscribe({
+        next: (users: any) => {
+            this.user = users[0];
+            console.log(this.user, 'user')
+            
+            this.usersService.getProfilePic(this.user.id).subscribe({
+                next: (url: any) => {
+                    if (url) {
+                        this.picture = url;
+                    }
+                }
+            });
+        },
+    });
+}
 } 

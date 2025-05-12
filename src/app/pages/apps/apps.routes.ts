@@ -20,7 +20,7 @@ import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.compon
 import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
 import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
 import { AppContactListComponent } from './contact-list/contact-list.component';
-import {EmployeeDetailsComponent} from './employee/employee-details/employee-details.component';
+import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 
 export const AppsRoutes: Routes = [
@@ -256,13 +256,13 @@ export const AppsRoutes: Routes = [
         },
       },
       {
-        path: 'account-setting',
+        path: 'account-settings',
         component: AppAccountSettingComponent,
         data: {
-          title: 'Account Setting',
+          title: 'Account Settings',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Account Setting' },
+            { title: 'Account Settings' },
           ],
         },
       },

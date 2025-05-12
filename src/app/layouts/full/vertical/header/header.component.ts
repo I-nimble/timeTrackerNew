@@ -214,7 +214,7 @@ export class HeaderComponent implements OnInit {
       color: 'primary',
       title: 'My Profile',
       subtitle: 'Account Settings',
-      link: 'apps/account-setting',
+      link: 'apps/account-settings',
     },
     {
       id: 2,

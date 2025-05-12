@@ -12,6 +12,400 @@
         </ng-template>
         <mat-card-content class="p-y-24">
           <div class="row">
+            <div class="col-sm-6" *ngIf="role === '3'">
+              <mat-card class="cardWithShadow">
+                <mat-card-content class="p-y-24">
+                  <mat-card-title
+                    >Current Plan : <span class="text-success">{{ currentPlan?.name }}</span>
+                  </mat-card-title>
+                  <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
+                    >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
+
+                  <div class="m-t-24">
+                    <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
+                      <span>
+                        Go Premium
+                      </span>
+                      <i-tabler name="diamond" class="icon-20 f-w-600 f-s-5 m-l-8"></i-tabler>
+                    </button>
+                    <button mat-stroked-button class="m-l-8" color="warn" *ngIf="currentPlan?.id !== 1">
+                      Reset Plan
+                    </button>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-sm-6" *ngIf="role !== '3'">
+              <mat-card class="cardWithShadow">
+                <mat-card-content class="p-y-24">
+                  <mat-card-title>Change Profile</mat-card-title>
+                  <mat-card-subtitle class="f-s-14"
+                    >Change your profile picture from here</mat-card-subtitle
+                  >
+                  <div class="text-center m-t-24">
+                    <img
+                      src="/assets/images/profile/user-1.jpg"
+                      class="rounded-circle"
+                      width="120"
+                    />
+                    <div class="m-t-24">
+                      <button mat-flat-button color="primary" class="m-r-8">
+                        Upload
+                      </button>
+                      <button mat-stroked-button color="warn">Reset</button>
+                    </div>
+                    <span class="f-s-14 m-t-24 d-block"
+                      >Allowed JPG, GIF or PNG. Max size of 800K</span
+                    >
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-sm-6">
+              <mat-card class="cardWithShadow">
+                <mat-card-content class="p-y-24">
+                  <mat-card-title>Change Password</mat-card-title>
+                  <mat-card-subtitle class="f-s-14"
+                    >To change your password please confirm
+                    here</mat-card-subtitle
+                  >
+                  <form class="m-t-24">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Current Password</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input matInput type="password" value="password" />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >New Password</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input matInput type="password" value="password" />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Confirm Password</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100 hide-hint"
+                      color="primary"
+                    >
+                      <input matInput type="password" value="password" />
+                    </mat-form-field>
+                  </form>
+                </mat-card-content>
+              </mat-card>
+            </div>
+            <div class="col-12">
+              <mat-card class="cardWithShadow">
+                <mat-card-content>
+                  <mat-card-title>Personal Details</mat-card-title>
+                  <mat-card-subtitle class="f-s-14"
+                    >To change your personal detail , edit and save from
+                    here</mat-card-subtitle
+                  >
+
+                  <div class="row m-t-24">
+                    <div class="col-12 col-sm-6">
+                      <!-- input -->
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                        >Name</mat-label
+                      >
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" value="{{user.name}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                          <!-- input -->
+                          <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                          >Last name</mat-label
+                        >
+                        <mat-form-field
+                          appearance="outline"
+                          class="w-100"
+                          color="primary"
+                        >
+                          <input matInput type="text" value="{{user.last_name}}" />
+                        </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                         <!-- input -->
+                         <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                         >Email</mat-label
+                       >
+                       <mat-form-field
+                         appearance="outline"
+                         class="w-100"
+                         color="primary"
+                       >
+                         <input
+                           matInput
+                           type="email"
+                           value="{{user.email}}"
+                         />
+                       </mat-form-field>
+                      <!-- input -->
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                        >Phone</mat-label
+                      >
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="+1 (123) 456-7890" value="{{user.phone}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <!-- input -->
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                        >Address</mat-label
+                      >
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input
+                          matInput
+                          type="text"
+                          placeholder="Address"
+                          value="{{user.address}}"
+                        />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-tab>
+      <mat-tab *ngIf="role === '2'">
+        <ng-template mat-tab-label>
+          <div class="d-flex align-items-center">
+            <mat-icon class="d-flex align-items-center">
+              <i-tabler name="user-circle" class="icon-20 m-r-8 d-flex"></i-tabler>
+            </mat-icon>
+          </div>
+          Medical
+        </ng-template>
+        <mat-card-content class="p-y-24">
+          <div class="row">
+            <div class="col-12">
+              <mat-card class="cardWithShadow">
+                <mat-card-content>
+                  <mat-card-title>Medical Details</mat-card-title>
+                  <mat-card-subtitle class="f-s-14"
+                    > To update your medical details, make your changes and click save.
+                  </mat-card-subtitle
+                  >
+
+                  <div class="row m-t-24">
+                    <div class="col-12">
+                       <!-- input -->
+                       <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                       >Medical Conditions</mat-label
+                     >
+                     <mat-form-field
+                       appearance="outline"
+                       class="w-100"
+                       color="primary"
+                     >
+                       <input matInput placeholder="Medical Conditions" type="text" value="{{user.employee.medical_conditions}}" />
+                     </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Emergency Contact</mat-label
+                      >
+                    </div>
+                    <div class="col-sm-6">
+                      <!-- input -->
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="Name" value="{{user.employee.emergency_contact?.name}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-sm-6">
+                      <!-- input -->
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="Relationship" value="{{user.employee.emergency_contact?.relationship}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <!-- input -->
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="Phone Number" value="{{user.employee.emergency_contact?.phone}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Insurance Data</mat-label
+                      >
+                    </div>
+                    <div class="col-sm-6">
+                      <!-- input -->
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="Insurance Provider" value="{{user.employee.insurance_data?.provider}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-sm-6">
+                      <!-- input -->
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input matInput type="text" placeholder="Policy NUmber" value="{{user.employee.insurance_data?.policy_number}}" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-form-field appearance="outline" class="w-100" color="primary">
+                        <textarea
+                          matInput
+                          placeholder="Coverage Details"
+                          value="{{user.employee.insurance_data?.coverage_details}}"
+                          rows="4"
+                        ></textarea>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Insurance Start Date</mat-label>
+                      <mat-form-field appearance="outline" class="w-100" color="primary">
+                        <input
+                          matInput
+                          [matDatepicker]="startPicker"
+                          placeholder="Select a date"
+                          value="{{user.employee.insurance_data?.createdAt}}"
+                          name="insuranceStartDate"
+                        />
+                        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                        <mat-datepicker #startPicker></mat-datepicker>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-tab>
+      <mat-tab *ngIf="role === '2'">
+        <ng-template mat-tab-label>
+          <div class="d-flex align-items-center">
+            <mat-icon class="d-flex align-items-center">
+              <i-tabler name="user-circle" class="icon-20 m-r-8 d-flex"></i-tabler>
+            </mat-icon>
+          </div>
+          Social Media
+        </ng-template>
+        <mat-card-content class="p-y-24">
+          <div class="row">
+            <div class="col-12">
+              <mat-card class="cardWithShadow">
+                <mat-card-content>
+                  <div class="row m-t-24">
+                    <div class="col-12">
+                       <!-- input -->
+                       <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                       >Facebook Profile</mat-label
+                     >
+                     <mat-form-field
+                       appearance="outline"
+                       class="w-100"
+                       color="primary"
+                     >
+                       <input matInput placeholder="https://www.facebook.com/username/" type="text" value="{{user.employee.social_media?.facebook}}" />
+                     </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <!-- input -->
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Instagram Profile</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input matInput placeholder="https://www.instagram.com/username/" type="text" value="{{user.employee.social_media?.instagram}}" />
+                    </mat-form-field>
+                   </div>
+                   <div class="col-12">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                    >X Profile</mat-label
+                  >
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-100"
+                    color="primary"
+                  >
+                    <input matInput placeholder="https://www.x.com/username/" type="text" value="{{user.employee.social_media?.twitter}}" />
+                  </mat-form-field>
+                 </div>
+                 <div class="col-12">
+                  <!-- input -->
+                  <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                  >LinkedIn Profile</mat-label
+                >
+                <mat-form-field
+                  appearance="outline"
+                  class="w-100"
+                  color="primary"
+                >
+                  <input matInput placeholder="https://www.linkedin.com/username/" type="text" value="{{user.employee.social_media?.linkedin}}" />
+                </mat-form-field>
+               </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-tab>
+      <mat-tab *ngIf="role === '3'">
+        <ng-template mat-tab-label>
+          <div class="d-flex align-items-center">
+            <mat-icon class="d-flex align-items-center">
+              <i-tabler name="user-circle" class="icon-20 m-r-8 d-flex"></i-tabler>
+            </mat-icon>
+          </div>
+          Account
+        </ng-template>
+        <mat-card-content class="p-y-24">
+          <div class="row">
             <div class="col-sm-6">
               <mat-card class="cardWithShadow">
                 <mat-card-content class="p-y-24">
@@ -253,7 +647,7 @@
           </div>
         </mat-card-content>
       </mat-tab>
-      <mat-tab>
+      <mat-tab *ngIf="role === '3'">
         <ng-template mat-tab-label>
           <div class="d-flex align-items-center">
             <mat-icon class="d-flex align-items-center">
