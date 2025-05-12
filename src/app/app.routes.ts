@@ -91,6 +91,13 @@ export const routes: Routes = [
             (m) => m.LandingPageRoutes
           ),
       },
+      {
+        path: 'industry',
+        loadChildren: () =>
+          import('./pages/theme-pages/front.routes').then(
+            (m) => m.HomePageRoutes
+          ),
+      },
     ],
   },
   {
