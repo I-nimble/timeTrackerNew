@@ -19,7 +19,7 @@
     <div class="d-flex align-items-center m-b-16">
       <img
         class="mat-card-avatar"
-        [src]="local_data.imagePath"
+        [src]="local_data.image"
         class="rounded-circle"
         width="50"
         height="50"
@@ -44,16 +44,30 @@
         </mat-form-field>
       </div>
       <div class="col-lg-6">
-        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Position</mat-label>
+        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Last Name</mat-label>
         <mat-form-field appearance="outline" class="w-100">
           <input
             type="text"
             matInput
             required
-            id="position"
-            name="position"
-            [(ngModel)]="local_data.Position"
-            placeholder="Position"
+            id="lastName"
+            name="last_name"
+            [(ngModel)]="local_data.LastName"
+            placeholder="Last Name"
+          />
+        </mat-form-field>
+      </div>
+      <div class="col-lg-6">
+        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Password</mat-label>
+        <mat-form-field appearance="outline" class="w-100">
+          <input
+            type="password"
+            matInput
+            required
+            id="password"
+            name="password"
+            [(ngModel)]="local_data.Password"
+            placeholder="Employees password"
           />
         </mat-form-field>
       </div>
@@ -71,67 +85,26 @@
           />
         </mat-form-field>
       </div>
-      <!-- <div class="col-lg-6">
-        <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-          >Mobile Number</mat-label
-        >
-        <mat-form-field appearance="outline" class="w-100">
-          <input
-            type="text"
-            matInput
-            required
-            id="mobile"
-            name="mobile"
-            [(ngModel)]="local_data.Mobile"
-            placeholder="Mobile"
-          />
-        </mat-form-field>
-      </div> -->
-      @if(action === 'Update') {
-      <div class="col-lg-6">
-        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Joining Date</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <input
-            matInput
-            [matDatepicker]="picker"
-            [formControl]="joiningDate"
-            placeholder="Choose a date"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
-      }
 
       <div class="col-lg-6">
-        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Salary</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <input
-            type="text"
-            matInput
-            required
-            id="salary"
-            name="salary"
-            [(ngModel)]="local_data.Salary"
-            placeholder="Salary"
-          />
+        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Position</mat-label>
+        <mat-form-field appearance="outline" class="w-100">          
+          <mat-select [(ngModel)]="local_data.Position" name="position" required>
+            <mat-option *ngFor="let position of positions" [value]="position.id">
+              {{ position.title }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
+      
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Projects</mat-label>
         <mat-form-field appearance="outline" class="w-100">
-          <input
-            type="text"
-            matInput
-            required
-            id="projects"
-            name="projects"
-            [(ngModel)]="local_data.Projects"
-            placeholder="Projects"
-          />
+          <mat-select [(ngModel)]="local_data.Projects" multiple name="projects">
+            <mat-option *ngFor="let project of projects" [value]="project.id">
+              {{ project.name }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
     </div>

@@ -1,11 +1,11 @@
 export interface Employee {
   id: number;
   Name: string;
-  Position: string;
+  LastName: string;
+  Position: number;
   Email: string;
-  DateOfJoining: Date;
-  Salary: number;
-  Projects: number;
-  imagePath: string;
+  Password: string;
+  Projects: number[];
+  image: any;
   action?: string;
 }
