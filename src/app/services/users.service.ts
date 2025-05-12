@@ -157,4 +157,8 @@ export class UsersService {
   getCurrentTeamMember(): number | null {
     return this.teamMemberSource.getValue();
   }
+
+  updateEmployeeMedical(userId: string, medicalData: any) {
+    return this.http.put(`${this.API_URI}/users/${userId}/medical`, medicalData);
+  }
 }
