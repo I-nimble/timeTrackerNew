@@ -3,18 +3,9 @@
     align-items: center;
 }
 
-.logo-upload .file {
-  position: relative;
-  font-size: 12px;
-  text-align: center;
-  border: none;
-  font-family: 'Montserrat', sans-serif;
-  font-size: .75rem;
-  color: #808080;
-  border: 1px solid #808080;
-  padding: .5rem 1rem;
-  text-transform: unset;
-  letter-spacing: normal;
-  height: max-content;
-  margin: 0 1rem;
+.rounded-circle {
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
