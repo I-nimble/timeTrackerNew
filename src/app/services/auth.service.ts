@@ -44,8 +44,8 @@ export class AuthService {
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
-    // this.updateLiveChatBubbleVisibility('0')
-    // this.updateTawkVisitorAttributes('Guest', '')
+    this.updateLiveChatBubbleVisibility('0')
+    this.updateTawkVisitorAttributes('Guest', '')
     this.routes.navigate(['/authentication/login']);
   }
 
@@ -144,32 +144,32 @@ export class AuthService {
     return this.http.get(`${this.API_URI}/auth/loggedIn`)
   }
 
-  // updateLiveChatBubbleVisibility(role: string) {
-  //   if (window.Tawk_API) {
-  //     if (role == '3') {
-  //       window.Tawk_API.showWidget();
-  //     } else {
-  //       window.Tawk_API.hideWidget();
-  //     }
-  //   }
-  // }
+  updateLiveChatBubbleVisibility(role: string) {
+    if ((window as any).Tawk_API) {
+      if (role == '3') {
+        (window as any).Tawk_API.showWidget();
+      } else {
+        (window as any).Tawk_API.hideWidget();
+      }
+    }
+  }
 
-  // updateTawkVisitorAttributes(name: string, email: string) {
-  //   window.Tawk_API.setAttributes({
-  //     'name': localStorage.getItem('name') || name,
-  //     'email': localStorage.getItem('email') || email,
-  //   }, function(error:any) {
-  //     console.error(error);
-  //   });
-  // }
+  updateTawkVisitorAttributes(name: string, email: string) {
+    (window as any).Tawk_API.setAttributes({
+      'name': localStorage.getItem('name') || name,
+      'email': localStorage.getItem('email') || email,
+    }, function(error:any) {
+      console.error(error);
+    });
+  }
 
-  // signInWithGoogle(): Promise<{ name: string; email: string }> {
-  //   const provider = new GoogleAuthProvider();
-  //   return signInWithPopup(this.auth, provider).then((result) => {
-  //     const user = result.user;
-  //     const name = user.displayName || '';
-  //     const email = user.email || '';
-  //     return { name, email }; 
-  //   });
-  // }
+  //signInWithGoogle(): Promise<{ name: string; email: string }> {
+  //  const provider = new GoogleAuthProvider();
+  //  return signInWithPopup(this.auth, provider).then((result) => {
+  //    const user = result.user;
+  //    const name = user.displayName || '';
+  //    const email = user.email || '';
+  //    return { name, email }; 
+  //  });
+  //}
 }

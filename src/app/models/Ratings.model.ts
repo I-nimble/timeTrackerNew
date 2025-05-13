@@ -3,9 +3,9 @@ export class Ratings {
   company_id?: number; 
   employee_id?: number;
   frequency_id?: number; 
+  recommendations?: string; 
   goal?: string; 
   rating?: number; 
-  recommendations?: string; 
   is_numeric?: boolean; 
   numeric_goal?: number; 
 }

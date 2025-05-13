@@ -21,6 +21,12 @@ import { Employee } from 'src/app/pages/apps/employee/employee';
 import { EmployeeService } from 'src/app/services/apps/employee/employee.service';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
+import { UsersService } from 'src/app/services/users.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import {environment} from 'src/environments/environment';
+
 @Component({
   templateUrl: './employee.component.html',
   imports: [
@@ -29,11 +35,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ReactiveFormsModule,
     TablerIconsModule,
     CommonModule,
+    RouterModule,
   ],
 })
 export class AppEmployeeComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
+    users: any[] = [];
+    employees: any[] = [];
+    loaded: boolean = false;
+    company: any;
+    timeZone: string = 'America/Caracas';
+    assetsPath: string = environment.assets;
 
   searchText: any;
 
@@ -41,7 +54,6 @@ export class AppEmployeeComponent implements AfterViewInit {
     '#',
     'name',
     'email',
-    'mobile',
     'date of joining',
     'salary',
     'projects',
@@ -55,11 +67,16 @@ export class AppEmployeeComponent implements AfterViewInit {
 
   constructor(
     public dialog: MatDialog,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private userService: UsersService,
+    private companieService: CompaniesService,
+    private positionsService: PositionsService,
+
   ) {}
 
   ngOnInit(): void {
     this.loadEmployees();
+    this.getEmployees();
   }
 
   loadEmployees(): void {
@@ -85,6 +102,41 @@ export class AppEmployeeComponent implements AfterViewInit {
       if (result && result.event === 'Refresh') {
         this.loadEmployees(); // Refresh the employee list if necessary
       }
+    });
+  }
+
+  getEmployees() {
+    this.userService.getEmployees().subscribe({
+      next: (employees: any) => {
+        this.employees = employees;
+        console.log(this.employees);
+        console.log(this.userService.getPosition(8)) 
+        this.users = employees.map((user: any) => user.user).filter((user: any) => user.active == 1);
+  
+
+        this.users = this.users.map((user: any) => ({
+          id: user.id,
+          Name: `${user.name} ${user.last_name}`,
+          Position: 'Default Position', 
+          Email: '8 hours per day',
+          DateOfJoining: new Date('01-2-2024'),
+          Salary: 12000, 
+          Projects: 0, 
+          imagePath: this.assetsPath + '/default-profile-pic.png', 
+        }));
+  
+        console.log(this.users); 
+        this.dataSource.data = this.users;
+        this.loaded = true;
+      },
+      error: (err) => {
+        console.error('Error fetching employees:', err);
+      },
+    });
+  
+    this.companieService.getByOwner().subscribe((company: any) => {
+      this.company = company.company.name;
+      console.log(this.company);
     });
   }
 }
@@ -119,7 +171,6 @@ export class AppEmployeeDialogContentComponent {
     public dialogRef: MatDialogRef<AppEmployeeDialogContentComponent>,
     private employeeService: EmployeeService,
     private snackBar: MatSnackBar,
-
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {

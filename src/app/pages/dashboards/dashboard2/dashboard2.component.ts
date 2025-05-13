@@ -11,6 +11,8 @@ import { AppProfileCardComponent } from '../../../components/dashboard2/profile-
 import { AppBlogCardComponent } from '../../../components/dashboard2/blog-card/blog-card.component';
 import { AppTopEmployeesComponent } from '../../../components/dashboard2/top-employees/top-employees.component';
 import { AppUpcomingSchedulesComponent } from '../../../components/dashboard2/upcoming-schedules/upcoming-schedules.component';
+import { AppVisitUsaComponent } from '../../../components/dashboard1/visit-usa/visit-usa.component';
+import { AppPaymentsComponent } from '../../../components/dashboard1/payments/payments.component';
 
 @Component({
   selector: 'app-dashboard2',
@@ -26,6 +28,8 @@ import { AppUpcomingSchedulesComponent } from '../../../components/dashboard2/up
     AppBlogCardComponent,
     AppTopEmployeesComponent,
     AppUpcomingSchedulesComponent,
+    AppVisitUsaComponent,
+    AppPaymentsComponent
   ],
   templateUrl: './dashboard2.component.html',
 })

@@ -3,25 +3,25 @@ import { Injectable, inject } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Ratings } from '../models/Ratings.model';
 import { forkJoin, Observable } from 'rxjs';
-import { Frequency } from '../models/Frequency.model';
-import { NotificationStore } from 'src/app/stores/notification.store';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { CustomDatePipe } from './custom-date.pipe';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RatingsService {
-  store = inject(NotificationStore);
+  // store = inject(NotificationStore);
 
   constructor(
     private http: HttpClient,
     public schedulesService: SchedulesService,
     private ratingsEntriesService: RatingsEntriesService,
-    private customDate: CustomDatePipe
+    private customDate: CustomDatePipe,
+    public snackBar: MatSnackBar,
   ) {}
   private API_URI = environment.apiUrl + '/ratings';
 
@@ -58,10 +58,6 @@ export class RatingsService {
     return this.http.delete(`${this.API_URI}/${id}`);
   }
 
-  public getFrequencies(): Observable<Frequency[]> {
-    return this.http.get<Frequency[]>(`${environment.apiUrl}/frequencies`);
-  }
-
   public checkToDoLogged(date: Date): Observable<any> {
     return this.getToDo(date).pipe(
       switchMap((toDo) => {
@@ -80,10 +76,10 @@ export class RatingsService {
     );
   }
 
-  public getToDo(selectedDate: any): Observable<any[]> {
+  public getToDo(selectedDate: any, userId: number | null = null): Observable<any[]> {
     return forkJoin({
       schedules: this.schedulesService.get(),
-      toDo: this.get(),
+      toDo: userId ? this.getByUser(userId) : this.get(),
     }).pipe(
       map(({ schedules, toDo }) => {
         let toDoArray: any = [];
@@ -94,7 +90,7 @@ export class RatingsService {
         ) {
           const schedulesArray = schedules.schedules;
           if (Array.isArray(schedulesArray) && schedulesArray.length <= 0) {
-            this.store.addNotifications("You don't have a defined schedule.");
+            this.openSnackBar('You don\'t have a defined schedule.', 'Close');
           } else if (Array.isArray(schedulesArray)) {
             toDoArray = toDo;
             const dayOfWeek = selectedDate.getDay();
@@ -117,133 +113,6 @@ export class RatingsService {
     );
   }
 
-  isLastWorkingDayOfWeek(schedule: any, today: any) {
-    const lastWorkingDay = schedule.reduce(
-      (max: any, current: any) => (current.id > max.id ? current : max),
-      schedule[0]
-    );
-    return today.id == lastWorkingDay.id;
-  }
-
-  isHalfwayThroughWorkingWeek(schedule: any, dayOfWeek: any) {
-    const workingDays = schedule.map((day: any) => day.id);
-    const halfwayPoint = Math.ceil(workingDays.length / 2);
-    return dayOfWeek === halfwayPoint;
-  }
-
-  isLastWorkingDayOfMonth(schedule: any, selectedDate: any) {
-    const today = selectedDate;
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-    const workingDays = schedule.map((day: any) => day.id);
-    for (let day = lastDayOfMonth; day >= 1; day--) {
-      const currentDate = new Date(
-        `${year}-${this.customDate.padzero(month)}-${this.customDate.padzero(
-          day
-        )}T00:00:00`
-      );
-      let dayOfWeek = currentDate.getDay();
-      if (dayOfWeek == 0) dayOfWeek = 7;
-      if (workingDays.includes(dayOfWeek)) {
-        return today.getDate() === day;
-      }
-    }
-    return false;
-  }
-
-  isHalfwayThroughWorkingMonth(schedule: any, selectedDate: any) {
-    const today = selectedDate;
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const halfway = 15;
-    const workingDays = schedule.map((day: any) => day.id);
-    for (let day = halfway; day >= 1; day--) {
-      const currentDate = new Date(
-        `${year}-${this.customDate.padzero(month)}-${this.customDate.padzero(
-          day
-        )}T00:00:00`
-      );
-      let dayOfWeek = currentDate.getDay();
-      if (dayOfWeek == 0) dayOfWeek = 7;
-      if (workingDays.includes(dayOfWeek)) {
-        return today.getDate() === day;
-      }
-    }
-    return false;
-  }
-
-  isEndOfQuarter(schedule: any, selectedDate: any) {
-    const quarterMonths = [3, 6, 9, 12];
-    const month = selectedDate.getMonth() + 1;
-    const year = selectedDate.getFullYear();
-
-    if (quarterMonths.includes(month)) {
-      const lastDayOfMonth = new Date(year, month, 0).getDate();
-      const workingDays = schedule.map((day: any) => day.id);
-      for (let day = lastDayOfMonth; day >= 1; day--) {
-        const currentDate = new Date(
-          `${year}-${this.customDate.padzero(month)}-${this.customDate.padzero(
-            day
-          )}T00:00:00`
-        );
-        let dayOfWeek = currentDate.getDay();
-        if (dayOfWeek == 0) dayOfWeek = 7;
-        if (workingDays.includes(dayOfWeek)) {
-          return selectedDate.getDate() === day;
-        }
-      }
-    }
-    return false;
-  }
-
-  isHalfwayOfYear(schedule: any, selectedDate: any) {
-    const halfMonths = [6, 12];
-    const month = selectedDate.getMonth() + 1;
-    const year = selectedDate.getFullYear();
-
-    if (halfMonths.includes(month)) {
-      const lastDayOfMonth = new Date(year, month, 0).getDate();
-      const workingDays = schedule.map((day: any) => day.id);
-      for (let day = lastDayOfMonth; day >= 1; day--) {
-        const currentDate = new Date(
-          `${year}-${this.customDate.padzero(month)}-${this.customDate.padzero(
-            day
-          )}T00:00:00`
-        );
-        let dayOfWeek = currentDate.getDay();
-        if (dayOfWeek == 0) dayOfWeek = 7;
-        if (workingDays.includes(dayOfWeek)) {
-          return selectedDate.getDate() === day;
-        }
-      }
-    }
-    return false;
-  }
-
-  isLastWorkingDayOfYear(schedule: any, selectedDate: any) {
-    const month = selectedDate.getMonth() + 1;
-    const year = selectedDate.getFullYear();
-
-    if (month == 12) {
-      const lastDayOfMonth = new Date(year, month, 0).getDate();
-      const workingDays = schedule.map((day: any) => day.id);
-      for (let day = lastDayOfMonth; day >= 1; day--) {
-        const currentDate = new Date(
-          `${year}-${this.customDate.padzero(month)}-${this.customDate.padzero(
-            day
-          )}T00:00:00`
-        );
-        let dayOfWeek = currentDate.getDay();
-        if (dayOfWeek == 0) dayOfWeek = 7;
-        if (workingDays.includes(dayOfWeek)) {
-          return selectedDate.getDate() === day;
-        }
-      }
-    }
-    return false;
-  }
-
   dateStr(date: Date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -253,5 +122,13 @@ export class RatingsService {
 
   getPriorities() {
     return this.http.get<any[]>(`${this.API_URI}/priorities`);
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }
