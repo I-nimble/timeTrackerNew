@@ -15,6 +15,9 @@ export class UsersService {
   teamMember$ = this.teamMemberSource.asObservable();
   private API_URI = environment.apiUrl;
 
+  public updatePassword(passwordData: any) {
+    return this.http.put(`${this.API_URI}/users/password`, passwordData);
+  }
 
   public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
@@ -96,9 +99,11 @@ export class UsersService {
   public update(user: any) {
     return this.http.put(`${this.API_URI}/users/${user.id}`, user);
   }
+
   public delete(id: string) {
     return this.http.delete(`${this.API_URI}/users/${id}`);
   }
+
   public verifyUsername(email: any, userId: string) {
     const body = {
       email,
