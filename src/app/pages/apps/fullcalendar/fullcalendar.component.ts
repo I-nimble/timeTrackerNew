@@ -98,6 +98,7 @@ export class CalendarDialogComponent implements OnInit {
     employee_id: [null, [Validators.required]],
     updatedAt: [new Date(), []],
   }, { validators: this.recurrentDueDateValidator });
+  priorities: any[];
 
   constructor(
     public dialogRef: MatDialogRef<CalendarDialogComponent>,
@@ -107,6 +108,8 @@ export class CalendarDialogComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.getPriorities();
+
     if (this.data.action === 'Edit') {
       this.editToDoForm.get('recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
         const dueDateControl = this.editToDoForm.get('due_date');
@@ -128,6 +131,12 @@ export class CalendarDialogComponent implements OnInit {
         employee_id: this.data.event.employee_id,
       });
     }
+  }
+
+  getPriorities() {
+    this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
+      this.priorities = priorities;
+    });
   }
 
   recurrentDueDateValidator(group: FormGroup) {
