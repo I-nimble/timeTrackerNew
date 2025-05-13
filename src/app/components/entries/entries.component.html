@@ -1,0 +1,52 @@
+<div class="my-1" *ngIf="reviewEntries.length != 0" && admin>
+  <p class="text-muted text-center mb-0">Entries for review</p>
+</div>
+<div *ngIf="admin">
+<div class="my-2" *ngFor="let entry of reviewEntries">
+  @if(admin) {
+    <app-entry
+      [entry]="entry"
+      [suspicious]="true"
+      (onAuthorizeEntry)="authorizeEntry($event)"
+      (onUpdateTask)="updateTask($event)"
+      (onUpdateStartTime)="updateStart_time($event)"
+      (onUpdateEndTime)="updateEnd_time($event)"
+      (onUpdateStartDate)="updateStart_date($event)"
+      (onUpdateEndDate)="updateEnd_date($event)"
+      (onDeleteEntry)="deleteEntry($event)"
+    ></app-entry>
+  }
+  @else {
+    <app-entry
+      [entry]="entry"
+      [suspicious]="true"
+      [admin]="false"
+    ></app-entry>
+  }
+</div>
+</div>
+<div class="mb-1">
+  <p class="text-center text-muted mb-0">Entries</p>
+</div>
+<div class="col-md-12 mb-2" *ngFor="let entry of entries; let i = index">
+  @if(admin) {
+    <app-entry
+      [entry]="entry"
+      (onUpdateTask)="updateTask($event)"
+      (onUpdateStartTime)="updateStart_time($event)"
+      (onUpdateEndTime)="updateEnd_time($event)"
+      (onUpdateStartDate)="updateStart_date($event)"
+      (onUpdateEndDate)="updateEnd_date($event)"
+      (onDeleteEntry)="deleteEntry($event)"
+    ></app-entry>
+  }
+  @else {
+    <app-entry
+      [entry]="entry"
+      [admin]="false"
+    ></app-entry>
+  }
+</div>
+<div *ngIf="!loaded" class="d-flex justify-content-center">
+  <mat-spinner></mat-spinner>
+</div>

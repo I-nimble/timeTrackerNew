@@ -1,0 +1,20 @@
+<div class="d-flex flex-row justify-content-end align-items-center mt-4" *ngIf="selectedGoal">
+  <p style="font-size: 1.1rem;">
+    @if(userRole == '3') {
+      Rate this To Do: 
+    }
+    @else {
+      Client rating:
+    }
+  </p>
+  <div class="star-rating">
+    <ul style="padding: 0; margin-left: .5rem">
+      <li class="star" *ngFor="let star of array(5); let i = index" (mouseenter)="handleHoverStar(i)" (click)="handleRateToDo(i)">
+        <i *ngIf="selectedStarIndex > i; else emptyStar" class="fa-solid fa-star"></i>
+        <ng-template #emptyStar>
+          <i class="fa-regular fa-star"></i>
+        </ng-template>
+      </li>
+    </ul>
+  </div>
+</div>

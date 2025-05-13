@@ -1,0 +1,39 @@
+<div class="card rounded shadow h-100">
+  <div class="card-body position-relative">
+    <div class="position-absolute start-0 end-0 bottom-0 top-0 z-0">
+      <div class="d-flex h-100 justify-content-center align-items-end">
+        <div class="p-2">
+          <div class="p-5 bg-container" [ngStyle]="{'background-image': 'url(' + assetsPath + '/resources/empleadossection.png)'}"></div>
+        </div>
+      </div>
+    </div>
+    <div class="position-relative z-1">
+      <h3>Team Members</h3>
+      <div class="max-height scrollbar-hidden py-2">
+        <div
+          *ngFor="let employee of employees"
+          class="d-flex flex-wrap justify-content-between p-3 rounded border-1 border mb-2 align-items-center"
+        >
+          <h5 class="mb-0">
+            {{ employee.user.name }} {{ employee.user.last_name }}
+          </h5>
+          <p class="mb-0">
+            <a (click)="onSelectUser(employee.user)" routerLink="/reports"
+              >See more</a
+            >
+          </p>
+        </div>
+      </div>
+      <p class="mt-2" *ngIf="employees.length === 0">
+        No team members associated yet...
+      </p>
+    </div>
+  </div>
+  <div class="card-header text-center bg-primary rounded-bottom">
+    <a
+      class="text-white text-decoration-none"
+      routerLink="/employees"
+      >See your team Members</a
+    >
+  </div>
+</div>

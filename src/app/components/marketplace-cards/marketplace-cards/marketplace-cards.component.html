@@ -1,0 +1,69 @@
+<div class="marketplace">
+    <div id="swiper-container" class="d-flex justify-content-center align-items-center">
+      <div #magnifier class="magnifier" *ngIf="isHovering">
+        <canvas #magnifierCanvas></canvas>
+      </div>
+
+      <swiper-container 
+        class="card-container" 
+        pagination="false" 
+        effect="coverflow" 
+        grab-cursor="true" 
+        centered-slides="true"
+        allow-touch-move="true"
+        [breakpoints]="{
+          '0': {
+            slidesPerView: 1
+          },
+          '745': {
+            slidesPerView: 'auto'
+          }
+        }"
+        space-between="55px"
+        update-on-window-resize="true"
+        coverflow-effect-rotate="0" 
+        coverflow-effect-depth="100"
+        coverflow-effect-modifier="1"
+        coverflow-effect-scale="0.90"
+        coverflow-effect-slide-shadows="false"
+        (swipertouchstart)="onTouchStart($event)"
+        (swipertouchend)="onTouchEnd($event)"
+      >
+          <swiper-slide class="card" *ngFor="let card of cards; let i = index" data-id="{{card.id}}">
+            <pdf-viewer 
+              class="pdf-viewer"
+              [src]="resumesUrl + '/' + card.file_name"
+              [render-text]="true"
+              [original-size]="false"
+              [fit-to-page]="false"
+              [autoresize]="true" 
+              [zoom-scale]="'page-fit'"
+              [show-all]="true"
+              (page-rendered)="onPageRendered()"
+              (mouseenter)="i == 0 ? onMouseEnter() : null"
+              (mouseleave)="i == 0 ? onMouseLeave() : null"
+              (mousemove)="i == 0 ? handleMouseMove($event) : null"
+              style="min-width: 650px!important; min-height: 900px!important;visibility:hidden;"
+            >
+            </pdf-viewer>
+          </swiper-slide>
+      </swiper-container>
+      
+      <div class="buttons" *ngIf="cards.length > 0">
+        <button class="btn-accept" (click)="onSwipeLeft()"><i class="fa fa-check"></i></button>
+        <button class="btn-reject" (click)="onSwipeRight()"><i class="fa fa-times"></i></button>
+      </div>
+    </div>
+
+    <div class="candidates-button-container" *ngIf="cards.length > 0">
+      <a routerLink="/client/roster-team" class="btn btn-roster">
+        Candidates
+      </a>
+    </div>
+
+    <div *ngIf="cards.length === 0" class="all-set-popup">
+      <i class="fa-regular fa-circle-check"></i>
+      <p>You're all set</p>
+      <button class="btn-review" (click)="reviewCandidates()">Review this candidates</button>
+    </div>
+  </div>

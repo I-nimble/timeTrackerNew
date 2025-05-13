@@ -1,0 +1,62 @@
+@import "/src/theme/variables.scss";
+.position-modal {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0 !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.card-hover:hover > i {
+  transition: all 0.2s ease-in;
+  transform: translateX(5px);
+}
+.card-hover.active {
+  background-color: $primary-color;
+  & > i {
+    transform: rotate(90deg);
+  }
+  & p,
+  span,
+  h2,
+  i {
+    color: white;
+  }
+}
+.max-height {
+  max-height: 250px;
+}
+.dropdown {
+  height: 100%;
+  &.active {
+    animation: dropdown 0.2s linear;
+  }
+  &:not(.active) {
+    // animation: dropdown 0.2s reverse;
+    display: none;
+  }
+}
+
+@keyframes dropdown {
+  from {
+    height: 0;
+  }
+  to {
+    height: 30px;
+  }
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.card-header {
+  border: none!important;
+  background-color: #fff;
+}
