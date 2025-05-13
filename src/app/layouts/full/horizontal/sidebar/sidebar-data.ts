@@ -292,91 +292,91 @@ export const navItems: NavItem[] = [
           },
         ],
       },
-      {
-        displayName: 'Auth',
-        iconName: 'point',
-        route: '/',
-        children: [
-          {
-            displayName: 'Login',
-            iconName: 'point',
-            route: '/authentication',
-            children: [
-              {
-                displayName: 'Login',
-                iconName: 'point',
-                route: '/authentication/side-login',
-              },
-              {
-                displayName: 'Boxed Login',
-                iconName: 'point',
-                route: '/authentication/boxed-login',
-              },
-            ],
-          },
-          {
-            displayName: 'Register',
-            iconName: 'point',
-            route: '/authentication',
-            children: [
-              {
-                displayName: 'Register',
-                iconName: 'point',
-                route: '/authentication/side-register',
-              },
-              {
-                displayName: 'Boxed Register',
-                iconName: 'point',
-                route: '/authentication/boxed-register',
-              },
-            ],
-          },
-          {
-            displayName: 'Forgot Password',
-            iconName: 'point',
-            route: '/authentication',
-            children: [
-              {
-                displayName: 'Side Forgot Password',
-                iconName: 'point',
-                route: '/authentication/side-forgot-pwd',
-              },
-              {
-                displayName: 'Boxed Forgot Password',
-                iconName: 'point',
-                route: '/authentication/boxed-forgot-pwd',
-              },
-            ],
-          },
-          {
-            displayName: 'Two Steps',
-            iconName: 'point',
-            route: '/authentication',
-            children: [
-              {
-                displayName: 'Side Two Steps',
-                iconName: 'point',
-                route: '/authentication/side-two-steps',
-              },
-              {
-                displayName: 'Boxed Two Steps',
-                iconName: 'point',
-                route: '/authentication/boxed-two-steps',
-              },
-            ],
-          },
-          {
-            displayName: 'Error',
-            iconName: 'point',
-            route: '/authentication/error',
-          },
-          {
-            displayName: 'Maintenance',
-            iconName: 'point',
-            route: '/authentication/maintenance',
-          },
-        ],
-      },
+      // {
+      //   displayName: 'Auth',
+      //   iconName: 'point',
+      //   route: '/',
+      //   children: [
+      //     {
+      //       displayName: 'Login',
+      //       iconName: 'point',
+      //       route: '/authentication',
+      //       children: [
+      //         {
+      //           displayName: 'Login',
+      //           iconName: 'point',
+      //           route: '/authentication/side-login',
+      //         },
+      //         {
+      //           displayName: 'Boxed Login',
+      //           iconName: 'point',
+      //           route: '/authentication/boxed-login',
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       displayName: 'Register',
+      //       iconName: 'point',
+      //       route: '/authentication',
+      //       children: [
+      //         {
+      //           displayName: 'Register',
+      //           iconName: 'point',
+      //           route: '/authentication/side-register',
+      //         },
+      //         {
+      //           displayName: 'Boxed Register',
+      //           iconName: 'point',
+      //           route: '/authentication/boxed-register',
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       displayName: 'Forgot Password',
+      //       iconName: 'point',
+      //       route: '/authentication',
+      //       children: [
+      //         {
+      //           displayName: 'Side Forgot Password',
+      //           iconName: 'point',
+      //           route: '/authentication/side-forgot-pwd',
+      //         },
+      //         {
+      //           displayName: 'Boxed Forgot Password',
+      //           iconName: 'point',
+      //           route: '/authentication/boxed-forgot-pwd',
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       displayName: 'Two Steps',
+      //       iconName: 'point',
+      //       route: '/authentication',
+      //       children: [
+      //         {
+      //           displayName: 'Side Two Steps',
+      //           iconName: 'point',
+      //           route: '/authentication/side-two-steps',
+      //         },
+      //         {
+      //           displayName: 'Boxed Two Steps',
+      //           iconName: 'point',
+      //           route: '/authentication/boxed-two-steps',
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       displayName: 'Error',
+      //       iconName: 'point',
+      //       route: '/authentication/error',
+      //     },
+      //     {
+      //       displayName: 'Maintenance',
+      //       iconName: 'point',
+      //       route: '/authentication/maintenance',
+      //     },
+      //   ],
+      // },
     ],
   },
   {
