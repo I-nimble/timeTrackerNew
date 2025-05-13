@@ -19,7 +19,7 @@ export const navItems: NavItem[] = [
   {
     displayName: 'Reports',
     iconName: 'chart-bar',
-    bgcolor: 'success',
+    bgcolor: 'primary',
     route: '/dashboards/reports',
   },
   {
@@ -37,18 +37,18 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     route: 'apps/calendar',
   },
-  {
-    displayName: 'Email',
-    iconName: 'mail',
-    bgcolor: 'primary',
-    route: 'apps/email/inbox',
-  },
   // {
-  //   displayName: 'Kanban',
-  //   iconName: 'checklist',
-  //   bgcolor: 'warning',
-  //   route: 'apps/kanban',
+  //   displayName: 'Email',
+  //   iconName: 'mail',
+  //   bgcolor: 'error',
+  //   route: 'apps/email/inbox',
   // },
+  {
+    displayName: 'Kanban',
+    iconName: 'checklist',
+    bgcolor: 'primary',
+    route: 'apps/kanban',
+  },
   // {
   //   displayName: 'Contacts',
   //   iconName: 'phone',
@@ -76,50 +76,50 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     route: 'apps/employee',
   },
-  // {
-  //   displayName: 'Notes',
-  //   iconName: 'note',
-  //   bgcolor: 'success',
-  //   route: 'apps/notes',
-  // },
+  {
+    displayName: 'Notes',
+    iconName: 'note',
+    bgcolor: 'primary',
+    route: 'apps/notes',
+  },
   // {
   //   displayName: 'Tickets',
   //   iconName: 'ticket',
   //   bgcolor: 'error',
   //   route: 'apps/tickets',
   // },
-  {
-    displayName: 'Invoice',
-    iconName: 'file-invoice',
-    bgcolor: 'primary',
-    route: '',
-    children: [
-      {
-        displayName: 'List',
-        iconName: 'point',
-        bgcolor: 'primary',
-        route: '/apps/invoice',
-      },
-      {
-        displayName: 'Detail',
-        iconName: 'point',
-        bgcolor: 'primary',
-        route: '/apps/viewInvoice/101',
-      },
-      {
-        displayName: 'Create',
-        iconName: 'point',
-        bgcolor: 'primary',
-        route: '/apps/addInvoice',
-      },
-      {
-        displayName: 'Edit',
-        iconName: 'point',
-        bgcolor: 'primary',
-        route: '/apps/editinvoice/101',
-      },
-    ],
-  },
+  // {
+  //   displayName: 'Invoice',
+  //   iconName: 'file-invoice',
+  //   bgcolor: 'primary',
+  //   route: '',
+  //   children: [
+  //     {
+  //       displayName: 'List',
+  //       iconName: 'point',
+  //       bgcolor: 'tranparent',
+  //       route: '/apps/invoice',
+  //     },
+  //     {
+  //       displayName: 'Detail',
+  //       iconName: 'point',
+  //       bgcolor: 'tranparent',
+  //       route: '/apps/viewInvoice/101',
+  //     },
+  //     {
+  //       displayName: 'Create',
+  //       iconName: 'point',
+  //       bgcolor: 'tranparent',
+  //       route: '/apps/addInvoice',
+  //     },
+  //     {
+  //       displayName: 'Edit',
+  //       iconName: 'point',
+  //       bgcolor: 'tranparent',
+  //       route: '/apps/editinvoice/101',
+  //     },
+  //   ],
+  // },
   {
     displayName: 'ToDo',
     iconName: 'edit',
