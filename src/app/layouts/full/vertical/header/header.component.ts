@@ -5,6 +5,7 @@ import {
   Input,
   signal,
   ViewEncapsulation,
+  OnInit,
 } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -17,6 +18,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
+import {CompaniesService} from 'src/app/services/companies.service';
+import {environment} from 'src/environments/environment';
 
 interface notifications {
   id: number;
@@ -60,7 +63,7 @@ interface quicklinks {
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None,
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   @Input() showToggle = true;
   @Input() toggleChecked = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
@@ -68,6 +71,11 @@ export class HeaderComponent {
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   isCollapse: boolean = false; // Initially hidden
+  company: any;
+  userName:any;
+  companyLogo:any = null;
+  userEmail: any;
+  assetsPath: string = environment.assets;
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -112,12 +120,37 @@ export class HeaderComponent {
     private settings: CoreService,
     private vsidenav: CoreService,
     public dialog: MatDialog,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private companieService: CompaniesService,
   ) {
     translate.setDefaultLang('en');
   }
 
   options = this.settings.getOptions();
+
+  ngOnInit(): void {
+    this.userData();
+  }
+  userData(){
+    this.userName = localStorage.getItem('username');
+    this.userEmail = localStorage.getItem('email');
+    const role = localStorage.getItem('role');
+    if(role == '3'){
+      this.loadCompanyLogo();
+      this.companieService.getByOwner().subscribe((company: any) => {
+        this.company = company.company.name;
+      });
+    }
+    
+  }
+
+  loadCompanyLogo() {
+    this.companieService.getByOwner().subscribe((company) => {
+      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
+        this.companyLogo = logo;
+      });
+    });
+  }
 
   openDialog() {
     const dialogRef = this.dialog.open(AppSearchDialogComponent);
