@@ -16,7 +16,7 @@ import { AppStickyColumnTableComponent } from './sticky-column-table/sticky-colu
 import { AppStickyHeaderFooterTableComponent } from './sticky-header-footer-table/sticky-header-footer-table.component';
 import { AppFilterableTableComponent } from './filterable-table/filterable-table.component';
 
-export const TablesRoutes: Routes = [
+export const DatatablesRoutes: Routes = [
   {
     path: '',
     children: [

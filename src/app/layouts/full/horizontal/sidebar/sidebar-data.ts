@@ -80,6 +80,11 @@ export const navItems: NavItem[] = [
         route: 'apps/todo',
       },
       {
+        displayName: 'Storage',
+        iconName: 'packages',
+        route: 'apps/storage',
+      },
+      {
         displayName: 'Kanban',
         iconName: 'point',
         route: 'apps/taskboard',
@@ -444,17 +449,17 @@ export const navItems: NavItem[] = [
       },
     ],
   },
-  {
-    displayName: 'Storage',
-    iconName: 'packages',
-    route: 'storage',
-    bgcolor: 'primary',
-    children: [
-      {
-        displayName: 'Basic storage',
-        iconName: 'point',
-        route: 'storage/dynamic-storage',
-      },
+  // {
+  //   displayName: 'Storage',
+  //   iconName: 'packages',
+  //   route: 'storage',
+  //   bgcolor: 'primary',
+  //   children: [
+  //     {
+  //       displayName: 'Basic storage',
+  //       iconName: 'point',
+  //       route: 'storage/dynamic-storage',
+  //     },
       // {
       //   displayName: 'Dynamic Table',
       //   iconName: 'point',
@@ -525,6 +530,6 @@ export const navItems: NavItem[] = [
       //   iconName: 'point',
       //   route: '/datatable/kichen-sink',
       // },
-    ],
-  },
+  //   ],
+  // },
 ];

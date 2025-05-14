@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/material.module';
 
 // snippets
 import { DYNAMIC_TABLE_HTML_SNIPPET } from './code/dynamic-table-html-snippet';
@@ -34,13 +35,19 @@ const ELEMENT_DATA: any[] = [
 ];
 
 @Component({
+  standalone: true,
     selector: 'app-dynamic-table',
-    imports: [MatTableModule, MatCardModule, CommonModule, MatButtonModule,
+    imports: [
+      MatTableModule, 
+      MatCardModule, 
+      CommonModule, 
+      MatButtonModule,
       Highlight,
       HighlightAuto,
       HighlightLineNumbers,
       AppCodeViewComponent,
-      TablerIconsModule
+      TablerIconsModule,
+      MaterialModule
     ],
     templateUrl: './dynamic-table.component.html'
 })

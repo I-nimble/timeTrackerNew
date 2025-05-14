@@ -126,6 +126,12 @@ export const navItems: NavItem[] = [
     bgcolor: 'primary',
     route: 'apps/todo',
   },
+  {
+    displayName: 'Storage',
+    iconName: 'packages',
+    bgcolor: 'primary',
+    route: 'apps/storage',
+  },
   // {
   //   displayName: 'Blog',
   //   iconName: 'chart-donut-3',
@@ -286,21 +292,21 @@ export const navItems: NavItem[] = [
   //   chipClass: 'bg-error text-white',
   //   chipContent: 'New',
   // },
-  {
-    navCap: 'Storage',
-  },
-  {
-    displayName: 'Storage',
-    iconName: 'packages',
-    bgcolor: 'secondary',
-    route: 'storage',
-    children: [
-      {
-        displayName: 'Basic Storage',
-        iconName: 'point',
-        bgcolor: 'tranparent',
-        route: 'storage/dynamic-storage',
-      },
+  // {
+  //   navCap: 'Storage',
+  // },
+  // {
+  //   displayName: 'Storage',
+  //   iconName: 'packages',
+  //   bgcolor: 'secondary',
+  //   route: 'storage',
+  //   children: [
+  //     {
+  //       displayName: 'Basic Storage',
+  //       iconName: 'point',
+  //       bgcolor: 'tranparent',
+  //       route: 'storage/dynamic-storage',
+  //     },
       // {
       //   displayName: 'Dynamic Table',
       //   iconName: 'point',
@@ -379,8 +385,8 @@ export const navItems: NavItem[] = [
       //   bgcolor: 'tranparent',
       //   route: 'tables/sticky-header-footer-table',
       // },
-    ],
-  },
+  //   ],
+  // },
   // {
   //   displayName: 'Data table',
   //   iconName: 'border-outer',

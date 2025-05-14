@@ -21,6 +21,7 @@ import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.com
 import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
 import { AppContactListComponent } from './contact-list/contact-list.component';
 import {EmployeeDetailsComponent} from './employee/employee-details/employee-details.component';
+import { AppDynamicTableComponent } from './storage/dynamic-table/dynamic-table.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -103,6 +104,17 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Todo App' },
+          ],
+        },
+      },
+      {
+        path: 'storage',
+        component: AppDynamicTableComponent,
+        data: {
+          title: 'Storage',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Storage' },
           ],
         },
       },
