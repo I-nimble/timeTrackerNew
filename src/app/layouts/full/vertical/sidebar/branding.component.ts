@@ -1,36 +1,80 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { RouterModule } from '@angular/router';
 
 @Component({
+  standalone: true,
   selector: 'app-branding',
   imports: [RouterModule],
   template: `
     <a [routerLink]="['/dashboards/dashboard2']" class="logodark">
+      <!-- Iso Logo -->
       <img
-        src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
-        class="logo-img align-middle m-2"
+        src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
+        [class]="
+          this.collapsed
+            ? 'logo-img align-middle m-2 iso-logo visible'
+            : 'logo-img align-middle m-2 iso-logo hidden'
+        "
         alt="logo"
       />
-    </a> 
-
-    <a [routerLink]="['/dashboards/dashboard2']" class="logolight">
+      <!-- Full logo -->
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
-        class="logo-img align-middle m-2"
+        [class]="
+          this.collapsed
+            ? 'logo-img align-middle m-2 full-logo hidden'
+            : 'logo-img align-middle m-2 full-logo visible'
+        "
+        alt="logo"
+      />
+    </a>
+    <a [routerLink]="['/dashboards/dashboard2']" class="logolight">
+      <!-- Iso Logo -->
+      <img
+        src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
+        [class]="
+          this.collapsed
+            ? 'logo-img align-middle m-2 iso-logo visible'
+            : 'logo-img align-middle m-2 iso-logo hidden'
+        "
+        alt="logo"
+      />
+      <!-- Full logo -->
+      <img
+        src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
+        [class]="
+          this.collapsed
+            ? 'logo-img align-middle m-2 full-logo hidden'
+            : 'logo-img align-middle m-2 full-logo visible'
+        "
         alt="logo"
       />
     </a>
   `,
-    styles: [`
-      .logo-img {
-        max-width: 100px; /* Ajusta el tamaño máximo */
-        height: auto; /* Mantiene la proporción */
-        object-fit: contain; /* Asegura que la imagen se ajuste sin deformarse */
+  styles: [
+    `
+      .logo-img.full-logo {
+        max-width: 70%;
+        height: auto;
+        object-fit: contain;
       }
-    `],
+      .logo-img.iso-logo {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+      }
+      .hidden {
+        display: none;
+      }
+      .visible {
+        display: block;
+      }
+    `,
+  ],
 })
 export class BrandingComponent {
+  @Input() collapsed = true;
   options = this.settings.getOptions();
   constructor(private settings: CoreService) {}
 }
