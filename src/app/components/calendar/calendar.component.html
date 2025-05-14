@@ -1,0 +1,73 @@
+<div class="card rounded calendar-container shadow">
+  <div class="calendar-header p-2 mb-4">
+    <div class="mx-auto">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="changeMonth(-1)"
+        class="p-2 shadow"
+      >
+        Prev
+      </button>
+    </div>
+    <div class="date">
+      <h1 class="mb-0 fs-5">{{ dateSelect | date : "MMMM, yyyy" }}</h1>
+    </div>
+    <div class="mx-auto">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="changeMonth(1)"
+        class="shadow"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+  <div class="grid p-2 justify-content-between">
+    <div *ngFor="let day of week">
+      <h5 class="fs-6">{{ day | slice : 0 : 3 }}</h5>
+    </div>
+  </div>
+  <div class="grid p-2 justify-content-between">
+    <div
+      [style.gridColumnStart]="first ? days?.indexWeek : 'auto'"
+      class="col-12"
+      *ngFor="let days of monthSelect; let first = first"
+    >
+      <div class="relative">
+        <p
+          class="mb-0 fs-5 p-2 relative"
+          [class]="days.className"
+          (click)="selectRange(days.fullDate)"
+          [ngClass]="{
+            'text-white':
+              datesRange.firstSelect == days.fullDate ||
+              datesRange.lastSelect == days.fullDate
+          }"
+        >
+          {{ days.value }}
+        </p>
+        <!-- <div class="isToday" *ngIf="days.fullDate == today"></div> -->
+        <div
+          class="date-select"
+          [ngClass]="{
+            'rounded-start': days.fullDate == datesRange.firstSelect,
+            'rounded-end': days.fullDate == datesRange.lastSelect
+          }"
+          *ngIf="
+            days.fullDate == datesRange.firstSelect ||
+            days.fullDate == datesRange.lastSelect
+          "
+        ></div>
+        <div
+          class="range-select"
+          *ngIf="
+            days.fullDate > datesRange.firstSelect &&
+            days.fullDate < datesRange.lastSelect
+          "
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>

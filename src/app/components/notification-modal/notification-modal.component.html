@@ -1,0 +1,26 @@
+<div class="notificationContainer">
+  <ng-container *ngFor="let notification of notificationStore.notifications()">
+    <div
+      class="p-3 rounded-start border notificationModal d-flex flex-row justify-content-between"
+      [ngClass]="{
+        slideOut: notification.show == false,
+        slideIn: notification.show,
+        'bg-success': notification.type == 'success',
+        'bg-accent': notification.type == 'normal',
+        'bg-danger': notification.type == 'error'
+      }"
+    >
+      <p class="mb-0 text-white">{{ notification.message }}</p>
+      <i class="fa-solid fa-xmark" (click)="deleteNotification(notification.id)"></i>
+    </div>
+  </ng-container>
+  <div 
+    *ngIf="notificationStore.notifications().length > 1" 
+    class="clear-all-cont d-flex justify-content-center align-items-center"
+  >
+    <div class="text-center clear-btn" (click)="deleteAll()">
+      <p class="mb-0">Clear all notifications</p>
+    </div>
+  </div>
+  
+</div>

@@ -1,0 +1,65 @@
+<app-go-back></app-go-back>
+<main class="container position-absolute full-height row align-items-center">
+  <div class="col-12 col-md-6">
+    <h4 class="text-center mt-4 mb-2" id="manual-heading">User Manual</h4>
+    <div class="mb-2 row justify-content-center">
+      <select
+        class="px-3 py-2 form-select"
+        style="width: 66.66%"
+        (change)="handleLangChange($event)"
+      >
+        <option value="english" selected>English</option>
+        <option value="spanish">Spanish</option>
+      </select>
+    </div>
+    <div class="mb-4 row justify-content-center">
+      <a
+        mat-raised-button
+        color="primary"
+        class="customer-section-btn text-decoration-none col-8"
+        target="_blank"
+        [href]="'assets/manuals/' + lang + '/' + roleName + '.pdf'"
+        >Check user manual</a
+      >
+      <a
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="text-decoration-none m-1 btn-hover transition col-8"
+        [href]="'assets/manuals/' + lang + '/' + roleName + '.pdf'"
+        download
+        ><span>
+          <i class="fa-solid fa-download"></i>
+          Download PDF
+        </span
+      ></a>
+    </div>
+    <div class="mb-2 row justify-content-center">
+      <a
+        mat-raised-button
+        color="primary"
+        class="customer-section-btn text-decoration-none col-8"
+        href="https://tawk.to/inimble"
+        target="_blank"
+        >Chat with an agent</a
+      >
+    </div>
+    <div class="mb-2 row justify-content-center">
+      <a
+        mat-raised-button
+        color="primary"
+        class="customer-section-btn text-decoration-none col-8"
+        target="_blank"
+        [href]="url"
+        >Submit a Service Ticket</a
+      >
+    </div>
+  </div>
+  <div class="col-6 d-none d-md-block">
+    <img
+      class="customer-section-img p-4"
+      [src]="assetsPath"
+      alt=""
+    />
+  </div>
+</main>

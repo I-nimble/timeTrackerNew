@@ -1,0 +1,83 @@
+<!-- -------------------------------------------------------------- -->
+<!-- Add/Edit Event on calendar -->
+<!-- -------------------------------------------------------------- -->
+
+<div mat-dialog-content>
+  <div class="d-flex align-items-center justify-content-between m-b-16">
+    <h4 class="f-s-16 f-w-600 m-b-16">{{ data?.action }}</h4>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="d-flex justify-content-center"
+    >
+      <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
+    </button>
+  </div>
+
+  @if(data?.action === 'Edit') {
+  <div class="basic-form">
+    <form [formGroup]="editToDoForm">
+      <div class="row">
+        <!-- col -->
+        <div class="col-12 m-b-12">
+          <mat-form-field appearance="outline" class="w-100">
+            <input
+              matInput
+              placeholder="Edit Title"
+              formControlName="goal"
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="col-12 m-b-12">
+          <mat-checkbox matInput formControlName="recurrent">
+            Repeat task?
+          </mat-checkbox>
+        </div>
+        
+        <div class="col-12 m-b-12">
+          <mat-form-field appearance="outline" class="w-100">
+            <input
+              matInput
+              [matDatepicker]="dueDateDP"
+              placeholder="Due Date"
+              formControlName="due_date"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="dueDateDP"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #dueDateDP></mat-datepicker>
+          </mat-form-field>
+        </div>
+        
+        <div class="col-12 m-b-12">
+          <mat-form-field appearance="outline" class="w-100 mt-2">
+            <mat-label class="f-s-14 m-b-8 d-block">Priority</mat-label>
+            <select matNativeControl required formControlName="priority">
+              <option *ngFor="let priority of data.priorities" [value]="priority.id">
+                {{ priority.name }}
+              </option>
+            </select>
+          </mat-form-field>
+        </div>
+
+        <div class="col-12 m-b-12">
+          <mat-form-field appearance="outline" class="w-100 mt-2">
+            <mat-label class="f-s-14 m-b-8 d-block">Recommendations</mat-label>
+            <textarea matInput rows="5" formControlName="recommendations"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+    </form>
+  </div>
+  }
+  <div class="d-flex align-items-center gap-12">
+    <button mat-flat-button color="primary" (click)="onSubmit()">
+      Okay
+    </button>
+    <button mat-button mat-dialog-close class="bg-error text-white">
+      Cancel
+    </button>
+  </div>
+</div>

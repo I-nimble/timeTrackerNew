@@ -1,0 +1,43 @@
+@import "../../pages/pages.component.scss";
+
+.mat-primary {
+  color: white !important;
+}
+
+.form-group .mat-mdc-raised-button {
+  height: 40px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+.spinner ::ng-deep .mat-mdc-progress-spinner mdc-circle,
+.mat-spinner circle {
+  stroke: #92b46c !important;
+}
+
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: #92b46c;
+}
+
+.links:hover {
+  color: #92b46c;
+  transition: all 0.2s ease-in-out;
+}
+
+#alert {
+  display: none;
+  opacity: 0;
+  position: fixed;
+  right: 10px;
+  bottom: 0;
+}
+
+.alert-active {
+  transition: all 0.5s ease-in-out;
+}
+
+.alert-success {
+  background-color: #777;
+} /*# sourceMappingURL=entries.component.css.map */

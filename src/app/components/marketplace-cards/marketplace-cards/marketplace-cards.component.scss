@@ -1,0 +1,173 @@
+.marketplace {
+  position: relative;
+}
+
+#swiper-container {
+  width: 1025px;
+  height: 80vh;
+  margin: 0 auto;
+  position: relative;
+}
+
+.magnifier {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  overflow: hidden;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.magnifier.visible {
+  display: block;
+}
+
+.magnifier canvas {
+  width: 150% !important;
+  height: 100%;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.card-container {
+  width: 100%;
+  height: 100%;
+}
+
+.card {
+  max-width: 325px;
+  height: 447px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+#swiper-container .card {
+  overflow: hidden;
+}
+
+.swiper-slide-next, swiper-slide:not(.swiper-slide-active) {
+  rotate: 10deg!important;
+  filter: blur(3px);
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  position: absolute;
+  z-index: 1;
+}
+
+.btn-accept,
+.btn-reject {
+  font-size: 20px;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.btn-accept {
+  color: #ffffff;
+  background-color: #92b46c; 
+  margin-right: 1rem;
+}
+
+.btn-reject {
+  background-color: #f44336;
+}
+
+.all-set-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 2rem;
+  border: 3px solid #9CB764;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+  width: 60%;
+  max-width: 450px;
+}
+
+.all-set-popup i {
+  font-size: 4rem;
+  color: #9CB764;
+}
+
+.all-set-popup p {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: #808080;
+  margin: 1rem 0;
+}
+
+.btn-review {
+  background-color: #9CB764;
+  color: white;
+  border: none;
+  padding: 5px 20px;
+  cursor: pointer;
+  border-radius: 20px;
+  font-size: 1rem;
+}
+
+.candidates-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.btn-roster {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  color: #92b46c !important;
+  background-color: transparent !important;
+  border: 2px solid #92b46c !important;
+  padding: 0.5rem 1.5rem !important;
+  transition: all 0.3s ease;
+  width: max-content;
+  border-radius: 50px;
+
+  &:hover {
+    color: white !important;
+    background-color: #92b46c !important;
+  }
+}
+
+@media screen and (max-width: 745px) {
+  .right-instruction {
+    display: none;
+  }
+  .left-instruction {
+    display: none;
+  }
+  #swiper-container {
+    width: 350px;
+  }
+}

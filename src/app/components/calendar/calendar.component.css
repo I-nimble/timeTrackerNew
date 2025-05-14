@@ -1,0 +1,75 @@
+.mat-primary {
+  color: white !important;
+}
+
+.form-group .mat-mdc-raised-button {
+  height: 40px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+.grid {
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid;
+}
+
+.date {
+  width: 60%;
+  margin-left: 8px;
+  margin-right: 8px;
+  text-align: center;
+}
+
+.isToday {
+  background-color: rgba(146, 180, 108, 0.2941176471);
+  border-radius: 25px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.date-select {
+  background-color: rgba(146, 180, 108, 0.7450980392);
+  border-radius: 15px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.range-select {
+  background-color: rgba(146, 180, 108, 0.3490196078);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.range-select:first-child {
+  border-radius: 15px;
+}
+
+.relative {
+  position: relative;
+  z-index: 3;
+}
+
+.relative p {
+  text-align: center;
+}/*# sourceMappingURL=calendar.component.css.map */

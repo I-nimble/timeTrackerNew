@@ -1,0 +1,529 @@
+<mat-sidenav-container class="mainWrapper">
+  <mat-sidenav-content>
+    <!-- ------------------------------------------------------------------
+    Header
+    ------------------------------------------------------------------ -->
+    <mat-toolbar class="topbar topbar-xl m-auto">
+      <div class="container full-width p-xs-6 justify-content-between">
+        <!-- --------------------------------------------------------------- -->
+        <div class="branding p-x-0">
+          <app-branding></app-branding>
+        </div>
+
+        <!-- --------------------------------------------------------------- -->
+
+        <div class="d-none d-lg-flex">
+          <!-- --------------------------------------------------------------- -->
+          <!--  Links -->
+          <!-- --------------------------------------------------------------- -->
+          <!-- <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
+            Demos
+          </button> -->
+
+          <!-- --------------------------------------------------------------- -->
+          <!--  Links -->
+          <!-- --------------------------------------------------------------- -->
+          <button
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            [matMenuTriggerFor]="appsmenu"
+            aria-label="Notifications"
+          >
+            <div class="d-flex align-items-center" style="color: #818181">
+              Products
+              <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
+            </div>
+          </button>
+          <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
+            <div class="row">
+              <div class="col-sm-8 b-r-1 p-r-0">
+                <div class="p-32 p-b-0">
+                  <div class="row">
+                    @for(appdd of apps; track appdd.link) {
+                    <div class="col-sm-6 text-hover-primary">
+                      <a
+                        [routerLink]="[appdd.link]"
+                        class="d-flex align-items-center text-decoration-none m-b-24"
+                      >
+                        <button
+                          mat-mini-fab
+                          class="text-primary bg-light-primary shadow-none rounded"
+                        >
+                          <img [src]="appdd.img" width="20" />
+                        </button>
+
+                        <div class="m-l-16">
+                          <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
+                            {{ appdd.title }}
+                          </h5>
+                          <span class="text-body f-s-12">{{
+                            appdd.subtitle
+                          }}</span>
+                        </div>
+                      </a>
+                    </div>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-4">
+                <div class="p-x-16 p-y-32">
+                  <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">
+                    Quick Links
+                  </h4>
+                  @for(quicklink of quicklinks; track quicklink.title) {
+                  <div class="text-hover-primary">
+                    <a
+                      [routerLink]="[quicklink.link]"
+                      class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
+                      >{{ quicklink.title }}</a
+                    >
+                  </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </mat-menu>
+
+          <a
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            [routerLink]="['/industry']"
+            style="color: #818181"
+            >Industry</a
+          >
+          <a
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            href="https://support.wrappixel.com/"
+            style="color: #818181"
+            >Pricing</a
+          >
+          <a
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+            style="color: #818181"
+            >Why us</a
+          >
+        </div>
+
+        <div class="d-flex align-items-center gap-10">
+          <a
+            mat-flat-button
+            color="primary"
+            class="m-l-10"
+            [routerLink]="['/authentication/side-login']"
+            >Login</a
+          >
+
+          <!-- Mobile Menu -->
+          <button
+            mat-icon-button
+            (click)="filterNavRight.toggle()"
+            class="d-flex d-lg-none"
+          >
+            <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
+          </button>
+        </div>
+      </div>
+    </mat-toolbar>
+
+    <!-- ------------------------------------------------------------------
+   End Header
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    Banner
+    ------------------------------------------------------------------ -->
+    <div class="industry-banner-section overflow-hidden">
+      <div class="container">
+        <div class="row align-items-center">
+          <!-- Columna izquierda: Título y botones -->
+          <div class="col-lg-6 text-left">
+            <h1 class="industry-banner-title">
+              Build Your Remote Team. Save mon. Stay in Control.
+            </h1>
+            <div class="industry-banner-buttons m-t-24">
+              <a mat-flat-button color="primary" class="btn-custom"
+                >Use Inimble for free</a
+              >
+              <a
+                mat-stroked-button
+                color="primary"
+                class="btn-custom2 border-primary"
+                >Call us now</a
+              >
+            </div>
+          </div>
+          <!-- Columna derecha: Subtítulo -->
+          <div class="col-lg-6 text-right">
+            <p class="industry-banner-subtitle">
+              Inimble is the all-in-one platform to hire, train, and manage top
+              talent from Latin America. We handle the hard stuff — recruiting,
+              onboarding, payroll, compliance, and IT — so you don’t have to.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ------------------------------------------------------------------
+    End Banner
+    ------------------------------------------------------------------ -->
+    <!-- ------------------------------------------------------------------
+    Carousel
+    ------------------------------------------------------------------ -->
+    <!-- <div class="spacer bg-white">
+      <div class="container text-center">
+        <h2 class="section-title">Your work, elevated</h2>
+        <p class="section-subtitle">
+          One platform built for every team—what will you run?
+        </p>
+        <div
+          id="carouselExampleAutoplaying"
+          class="carousel slide"
+          data-bs-ride="carousel"
+        >
+          <div class="carousel-inner">
+            <div
+              class="carousel-item"
+              *ngFor="let card of cards; let i = index"
+              [ngClass]="{ active: i === 0 }"
+            >
+              <div class="card-carousel">
+                <h3 class="card-title">{{ card.title }}</h3>
+                <p class="card-subtitle">{{ card.subtitle }}</p>
+                <div class="card-footer">
+                  <span>{{ card.footer }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#carouselExampleAutoplaying"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#carouselExampleAutoplaying"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div> -->
+    <!-- ------------------------------------------------------------------
+    End Carousel
+    ------------------------------------------------------------------ -->
+    <!-- ------------------------------------------------------------------
+    other banner
+    ------------------------------------------------------------------ -->
+    <div class="banner-section bg-green text-white">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-12 text-center">
+            <h1 class="banner-title">
+              Focus on what truly matters—creating stunning, functional designs.
+            </h1>
+            <p class="banner-subtitle">
+              Designed for ease of use and customization, this template helps
+              you build professional dashboards faster.
+            </p>
+            <div class="banner-buttons m-t-24">
+              <a mat-flat-button color="primary" class="btn-custom border-white"
+                >Register</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ------------------------------------------------------------------
+    End other banner
+    ------------------------------------------------------------------ -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-6 col-sm-8">
+            <h2 class="section-title text-center m-t-16 f-w-700">
+              Our Services are designed to be simple and effective
+            </h2>
+          </div>
+        </div>
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <mat-accordion>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16 text-primary">
+                    Specialized services
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <p class="f-s-14 text-left">
+                  Legal staf, positions we offer to law firms in a variety of
+                  functions
+                </p>
+              </mat-expansion-panel>
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title class="f-w-600 f-s-16 text-primary">
+                    Dedicated industry
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <p class="f-s-14 text-left">
+                  HR management, Web development, Social media growth, IT
+                  management & support
+                </p>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+
+          <!-- Columna derecha: Imagen -->
+          <div class="col-lg-6 text-center">
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------
+    Template
+    ------------------------------------------------------------------ -->
+    <!-- ------------------------------------------------------------------
+    End Template
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    buy section
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    buy section
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    Features
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    End Features
+    ------------------------------------------------------------------ -->
+
+    <!-- ------------------------------------------------------------------
+    Testimonial
+    ------------------------------------------------------------------ -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-24">
+          <div class="col-12">
+            <div class="p-24">
+              <div class="d-flex align-items-center justify-content-center">
+                <i-tabler
+                  name="star-filled"
+                  class="fill-warning icon-26"
+                ></i-tabler>
+                <i-tabler
+                  name="star-filled"
+                  class="fill-warning icon-26 m-l-4"
+                ></i-tabler>
+                <i-tabler
+                  name="star-filled"
+                  class="fill-warning icon-26 m-l-4"
+                ></i-tabler>
+                <i-tabler
+                  name="star-filled"
+                  class="fill-warning icon-26 m-l-4"
+                ></i-tabler>
+                <i-tabler
+                  name="star-filled"
+                  class="fill-warning icon-26 m-l-4"
+                ></i-tabler>
+              </div>
+              <p class="m-t-24 review-subtext text-center f-w-500">
+                This template is great, UI-rich and up-to-date. Although it is
+                pretty much complete, I suggest to improve a bit of
+                documentation. Thanks & Highly recomended!
+              </p>
+              <div
+                class="d-flex align-items-center justify-content-center m-t-24"
+              >
+                <img
+                  src="assets/images/profile/user-1.jpg"
+                  alt="profile"
+                  class="rounded-circle"
+                  width="64"
+                />
+                <div class="m-l-12">
+                  <h6 class="mat-subtitle-1 f-s-16 f-w-600">Eminson Mendoza</h6>
+                  <span class="f-s-14">Features avaibility</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ------------------------------------------------------------------
+    End Testimonial
+    ------------------------------------------------------------------ -->
+
+    <!-- -->
+
+    <!-- ------------------------------------------------------------------
+    footer
+    ------------------------------------------------------------------ -->
+
+    <app-footer></app-footer>
+
+    <!-- ------------------------------------------------------------------
+    end footer
+    ------------------------------------------------------------------ -->
+  </mat-sidenav-content>
+
+  <!-- ------------------------------------------------------------------
+    Mobile Sidebar
+    ------------------------------------------------------------------ -->
+  <mat-sidenav
+    #filterNavRight
+    mode="over"
+    position="end"
+    class="filter-sidebar"
+  >
+    <div>
+      <div class="branding">
+        <app-branding></app-branding>
+      </div>
+
+      <mat-accordion>
+        <mat-expansion-panel class="shadow-none">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="f-s-16 f-w-500"> Demos </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <h5 class="f-s-18 mat-subtitle-1 f-w-600">Different Demos</h5>
+            <span>Included with the package</span>
+            <div class="row m-t-24">
+              @for(demo of demos; track demo.url) {
+              <div class="col-lg-3 m-b-16">
+                <div>
+                  <div class="img-overlay rounded">
+                    <img
+                      [src]="demo.imgSrc"
+                      alt="demos"
+                      class="rounded w-100"
+                    />
+                    <div class="overlay-content">
+                      <a href="{{ demo.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="f-s-14 d-block text-center m-t-8">{{
+                    demo.name
+                  }}</span>
+                </div>
+              </div>
+              }
+            </div>
+            <!-- apps -->
+            <h5 class="f-s-18 mat-subtitle-1 f-w-600 m-t-24">Different Apps</h5>
+            <div class="row m-t-24">
+              @for(app of appdemos; track app.name) {
+              <div class="col-lg-3 m-t-16">
+                <div>
+                  <div class="img-overlay rounded">
+                    <img [src]="app.imgSrc" alt="apps" class="rounded w-100" />
+                    <div class="overlay-content">
+                      <a href="{{ app.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="f-s-14 d-block text-center m-t-8">{{
+                    app.name
+                  }}</span>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        </mat-expansion-panel>
+        <mat-expansion-panel class="shadow-none">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="f-s-16 f-w-500"> Pages </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <div class="row">
+              @for(appdd of apps; track appdd.title) {
+              <div class="col-12 text-hover-primary">
+                <a
+                  [routerLink]="[appdd.link]"
+                  class="d-flex align-items-center text-decoration-none m-b-24"
+                >
+                  <button
+                    mat-mini-fab
+                    class="text-primary bg-light-primary shadow-none rounded"
+                  >
+                    <img [src]="appdd.img" width="20" />
+                  </button>
+
+                  <div class="m-l-16">
+                    <h5
+                      class="f-s-14 f-w-600 m-0 textprimary mat-body-1 hover-text"
+                    >
+                      {{ appdd.title }}
+                    </h5>
+                    <span class="mat-body-1 f-s-12">{{ appdd.subtitle }}</span>
+                  </div>
+                </a>
+              </div>
+              }
+            </div>
+            <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">Quick Links</h4>
+            @for(quicklink of quicklinks; track quicklink.title) {
+            <div class="text-hover-primary">
+              <a
+                [routerLink]="['quicklink.link']"
+                class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
+                >{{ quicklink.title }}</a
+              >
+            </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div class="p-x-16">
+        <a
+          href="
+            https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html
+          "
+          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
+        >
+          <span class="f-s-15 f-w-500 m-l-8">Documentation</span>
+        </a>
+        <a
+          [routerLink]="['https://support.wrappixel.com/']"
+          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
+        >
+          <span class="f-s-15 f-w-500 m-l-8">Support</span>
+        </a>
+        <a mat-flat-button color="primary" class="w-100" [routerLink]="['/']"
+          >Buy Now</a
+        >
+      </div>
+    </div>
+  </mat-sidenav>
+</mat-sidenav-container>

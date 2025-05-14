@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>Confirmation</h2>
+<mat-dialog-content>
+  Are you sure you want to {{data.action ? data.action : 'Delete'}} this {{data.subject}}?
+  <mat-error>{{ data.message ? data.message : '' }}</mat-error>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex flex-end">
+  <button
+    mat-button
+    class="ms-2 rounded shadow px-4 py-1 btn btn-primary"
+    [mat-dialog-close]="true"
+  >
+    Yes
+  </button>
+  <button
+    mat-button
+    class="ms-2 rounded shadow px-4 py-1 btn btn-danger"
+    [mat-dialog-close]="false"
+  >
+    No
+  </button>
+</mat-dialog-actions>

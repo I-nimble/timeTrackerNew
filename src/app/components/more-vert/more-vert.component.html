@@ -1,0 +1,22 @@
+<div class="position-relative" #moreOptionContainer>
+  <div
+    class="overflow-hidden scheduleOptions cursor-pointer border position-absolute bottom-0 end-0 z-2 bg-white rounded shadow"
+    *ngIf="show"
+  >
+    <ng-container *ngFor="let option of options">
+      <div
+        class="border-bottom p-2 d-flex align-items-center gap-2"
+        (click)="
+          show = !show;
+          onSelectedItem.emit({ id: itemId, action: option.action })
+        "
+      >
+        <i [className]="option.icon"></i>
+        <p class="mb-0">{{ option.name }}</p>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<a class="d-flex align-items-center" (click)="show = !show"
+  ><mat-icon>more_vert</mat-icon></a
+>

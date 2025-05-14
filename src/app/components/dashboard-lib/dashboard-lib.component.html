@@ -1,0 +1,210 @@
+<div class="d-flex flex-wrap justify-content-between">
+  <div
+     class="card-item"
+    *ngFor="let component of components"
+    [ngClass]="{'double-width': component.title === 'Premium Remote Management Tools', 'text-right': component.title === 'Premium Remote Management Tools'}"
+  >
+    <div class="min-height card radius-20 glass-effect h-100 overflow-hidden position-relative mx-auto">
+      <div class="card-body position-relative d-flex flex-column p-4 justify-content-between" [ngStyle]="{ 'background-image': 'url(' + component.background + ')' }" [ngClass]="{'card-body-hire': component.title === 'Premium Remote Management Tools'}">
+        <div *ngIf="component.title === 'Premium Remote Management Tools'" class="notifications-wrapper">
+          <div class="notification-header">
+            <i class="fa-solid fa-bell"></i>
+            <h4>Notifications</h4>
+          </div>
+
+          <div class="notification-list">
+            <div
+              *ngFor="let notification of notificationsService.recentNotifications.slice(0, 4)"
+              class="notification-item"
+            >
+              <div class="notification-content">
+                <i class="fa-regular fa-envelope"></i>
+                <span>{{ notification.message }}</span>
+              </div>
+            </div>
+
+            <div *ngIf="notificationsService.recentNotifications.length === 0" class="empty-notifications">
+              No new notifications
+            </div>
+          </div>
+
+          <a routerLink="/notifications" class="btn-glass-effect see-all-btn">
+            See All Notifications
+          </a>
+        </div>
+        <div class="card-content">
+          <div class="card-alert">
+            <div class="z-3">
+              <p class="text-danger" *ngIf="component.alert">
+                {{ component.alert }}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <div
+              *ngIf="component.options && component.options.length > 0"
+              class="z-3 my-auto"
+            >
+              <div
+                class="d-flex flex-column align.items-start gap-2 btn-sm"
+              >
+                <a
+                  color="primary"
+                  class="fs-5 px-3 btn-home fg-1"
+                  *ngFor="let option of component.options"
+                  [ngClass]="{
+                    'btn-glass-effect': !isDisabledOption(option.title),
+                    'btn-glass-effect-disabled': isDisabledOption(option.title)
+                  }"
+                  [routerLink]="isDisabledOption(option.title) ? null : option.path"
+                  (click)="handleOptionClick($event, option.title)"
+                  [title]="option.label ? option.label : ''"
+                  >
+                  <span class="ms-2 text-white" >{{ option.title }}</span></a
+                >
+              </div>
+            </div>
+            
+            <!-- Blog Section -->
+            <div
+              *ngIf="component.title == 'Blog section'"
+              class=""
+              style="position: absolute!important; top: 0!important; left: 0!important; width: 100%!important; height: 100%!important;"
+            >
+              <div id="carouselExampleAutoplaying" class="carousel slide h-100" data-bs-ride="carousel">
+                <div class="carousel-inner w-100 h-100">
+                  <div class="carousel-item active h-100">
+                    <div class="title-container">
+                      <p class="blog-title">
+                        <i class="fa-solid fa-thumbtack"></i>
+                        <strong>Hiring is an art, and</strong> we are going to show you <strong>how to master it</strong></p>
+                    </div>
+                    <img src="assets/images/resources/bgblog1.png" class="d-block w-100 h-100" alt="...">
+                    <a
+                      class="btn-carousel text-white text-decoration-none btn-home btn-glass-effect"
+                      *ngIf="component.href"
+                      href="https://i-nimble.com/2023/12/05/hiring-is-an-art-and-im-going-to-show-how-to-master-it/"
+                      target="_blank"
+                      >{{ component.header }}
+                    </a>
+                  </div>
+                  <div class="carousel-item h-100">
+                    <div class="title-container">
+                      <p class="blog-title">
+                        <i class="fa-solid fa-thumbtack"></i>
+                        Why is talent optimization <strong>the secret to making your business finally liftoff</strong></p>
+                    </div>
+                    <img src="assets/images/resources/bgblog2.png" class="d-block w-100 h-100" alt="...">
+                    <a
+                      class="btn-carousel text-white text-decoration-none btn-home btn-glass-effect"
+                      *ngIf="component.href"
+                      href="https://i-nimble.com/2023/11/27/why-is-talent-optimization-the-secret-to-making-your-business-finally-liftoff/"
+                      target="_blank"
+                      >{{ component.header }}
+                    </a>
+                  </div>
+                  <div class="carousel-item h-100">
+                    <div class="title-container">
+                      <p class="blog-title">
+                        <i class="fa-solid fa-thumbtack"></i>
+                        Virtual assistants are having a <strong>Massive impact on law firms.</strong> But how?</p>
+                    </div>
+                    <img src="assets/images/resources/bgblog3.png" class="d-block w-100 h-100" alt="...">
+                    <a
+                      class="btn-carousel text-white text-decoration-none btn-home btn-glass-effect"
+                      *ngIf="component.href"
+                      href="https://i-nimble.com/2024/09/10/template-copy/"
+                      target="_blank"
+                      >{{ component.header }}
+                    </a>
+                  </div>
+                  <div *ngIf="component.addons && component.addons.length > 0" class="carousel-item h-100">
+                    <div *ngFor="let addon of component.addons" class="mx-auto p-5 addons-cont">
+                      <h4 class="services-heading text-white pt-2">
+                        <i class="fa-solid fa-play"></i>
+                        {{addon.addOnTitle}}
+                      </h4>
+                      <div
+                        class="d-flex align-items-stretch justify-content-evenly flex-wrap gap-2 px-3"
+                      >
+                        <a
+                          color="primary"
+                          class="shadow transition fs-5 btn py-2 px-3 btn-home btn-glass-effect addon fg-1 text-white small"
+                          *ngFor="let addonElement of addon.data"
+                          href="{{ addonElement.path }}"
+                          target="_blank"
+                          [title]="addonElement.title ? addonElement.title : ''"
+                        >
+                          <i class="{{ addonElement.icon }} text-white" *ngIf="addonElement.icon"></i>
+                          <span class="ms-2">{{ addonElement.title }}</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+                  <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+                  <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span class="visually-hidden">Next</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Titles and Descriptions -->
+      <div *ngIf="!component.available; else availableTemplate">
+          <div class="title-left title-description">
+            {{ component.title }}
+            <p class="description">{{ component.description }}</p>
+          </div>
+          <a 
+          class="text-white text-decoration-none btn-home btn-glass-effect-disabled small-link text-right fs-5 px-3 fg-1"
+          *ngIf="component.path && component.title != 'Blog section' && !component.options"
+          routerLink="{{ component.path }}"
+          >{{ component.header }}</a
+        >
+        <a
+          class="text-white text-decoration-none btn-home btn-glass-effect-disabled small-link text-right fs-5 px-3 fg-1"
+          *ngIf="component.href && component.title != 'Blog section' && !component.options"
+          href="{{ component.href }}"
+          >{{ component.header }}</a
+        >
+      </div>
+      <ng-template #availableTemplate>
+        <div>
+          <div class="title-left" [class]="component.title === 'Premium Remote Management Tools' ? 'hire-remote-talent' : ''">
+            <span class="title-text">{{ component.title }}</span>
+          <p class="description">{{ component.description }}</p>
+        </div>
+        <a 
+          class="text-white text-decoration-none btn-home btn-glass-effect small-link fs-5 px-3 fg-1"
+          *ngIf="component.path && component.title != 'Blog section' && !component.options"
+          routerLink="{{ component.path }}"
+          >{{ component.header }}</a
+        >
+        <a
+          class="text-white text-decoration-none btn-home btn-glass-effect small-link fs-5 px-3 fg-1"
+          *ngIf="component.href && component.title != 'Blog section' && !component.options"
+          href="{{ component.href }}"
+          >{{ component.header }}</a
+        >
+      </div>
+      </ng-template>
+      <div *ngIf="!component.available && component.title === 'Communication'" class="unavailable-overlay">
+        <p>To unlock this feature, you can upgrade to our PRO package</p>
+      </div>
+      <div *ngIf="!component.available && component.title === 'Professional'" class="unavailable-overlay">
+        <p>To unlock this option, you need to upgrade to our PRO package  </p>
+      </div>
+      <div *ngIf="!component.available && component.title === 'Premium Remote Management Tools'" class="unavailable-overlay">
+        <p>To unlock this service, you need to upgrade to our PREMIUM package</p>
+      </div>
+    </div>
+  </div>
+</div>

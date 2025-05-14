@@ -1,0 +1,44 @@
+name: Deployment Pipeline
+
+on:
+  push:
+    branches: [ "main" ]  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 
+
+      # Dependencies
+      - name: Install dependencies
+        run: npm install 
+
+      # Build
+      - name: Build project
+        run: npm run build
+
+      # Setup SSH key
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      # Deploy
+      - name: Copy files to server
+        run: |
+          scp -i ~/.ssh/deploy_key.pem -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/dist/
+      
+      - name: Update files and restart Nginx
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP}} "
+            sudo rm -rf /var/www/htmlOLD/* &&
+            sudo mv /var/www/html/* /var/www/htmlOLD/ &&
+            sudo mv /home/ubuntu/dist/* /var/www/html/ &&
+            sudo systemctl restart nginx &&
+            sudo chown -R www-data:www-data /var/www/
+          "

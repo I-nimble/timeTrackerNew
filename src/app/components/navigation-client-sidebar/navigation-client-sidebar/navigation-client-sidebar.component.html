@@ -1,0 +1,60 @@
+<div class="client-sidebar" [ngClass]="{ closed: !sidebarOpen, open: sidebarOpen }">
+  <div class="sidebar-toggle-cont" [style.visibility]="(isSidebarItemHovered || (isMobile && sidebarOpen)) ? 'hidden' : 'visible'" (click)="toggleSidebar()">
+    <div class="sidebar-toggle d-flex justify-content-center align-items-center">
+      <i class="fa-solid fa-chevron-right" *ngIf="!sidebarOpen && !isMobile"></i>
+      <i class="fa-solid fa-chevron-left" *ngIf="sidebarOpen && !isMobile"></i>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-item" 
+      (mouseenter)="onSidebarItemHover(true)" 
+      (mouseleave)="onSidebarItemHover(false)" 
+      (click)="toggleDropdown()">
+      <i class="fa-solid fa-chart-simple"></i>
+
+      <div class="dropdown-menu">
+        <a routerLink="client/to-do" class="dropdown-item">TO DO</a>
+        <a routerLink="client/score-card" class="dropdown-item">KANBAN BOARD</a>
+        <a routerLink="client/score-card" class="dropdown-item">MATRIX BOARD</a>
+      </div>
+    </div>
+    <div class="separator"></div>
+    <a routerLink="/employees" class="sidebar-item">
+      <i class="fa-solid fa-clock"></i>
+    </a>
+    <div class="separator"></div>
+    <a class="sidebar-item" [ngClass]="{ 'disabled-chat': isFreePlan() }" (click)="handlePlanNavigation()">
+      <i class="fa-solid fa-comment"></i>
+      <i class="fa-regular fa-gem diamond-icon" *ngIf="isFreePlan()"></i>
+      <div class="dropdown-menu message-menu">
+        <a>Unlock the chat by upgrading to our PRO service</a>
+      </div>
+    </a>
+    <div class="separator"></div>
+    <a class="sidebar-item" [ngClass]="{ 'disabled-chat': isFreePlan() }" (click)="handlePlanNavigation()">
+      <img src="assets/images/resources/engranaje.png" alt="Settings" class="gear-icon" />
+      <i class="fa-regular fa-gem diamond-icon" *ngIf="isFreePlan()"></i>
+      <div class="dropdown-menu message-menu">
+        <a>Unlock your customized workflow by upgrading to our PRO service</a>
+      </div>
+    </a>
+    <div class="separator"></div>
+    <a class="sidebar-item" [ngClass]="{ 'disabled-chat': isFreePlan() }" (click)="handlePlanNavigation()">
+      <i class="fa-solid fa-folder"></i>
+      <i class="fa-regular fa-gem diamond-icon" *ngIf="isFreePlan()"></i>
+      <div class="dropdown-menu message-menu">
+        <a>Unlock elite talent for your business by upgrading to our PREMIUM service</a>
+      </div>
+    </a>
+    <div class="separator"></div>
+    <a class="sidebar-item" [ngClass]="{ 'disabled-chat': isFreePlan() }" (click)="handlePlanNavigation()">
+      <img src="assets/images/resources/6thicon.webp" alt="Settings" class="last-icon" />
+      <!-- <i class="fa-solid fa-users-rays"></i> -->
+      <!-- <i class="fa-solid fa-diagram-project"></i> -->
+      <i class="fa-regular fa-gem diamond-icon" *ngIf="isFreePlan()"></i>
+      <div class="dropdown-menu message-menu">
+        <a>Unlock elite talent for your business by upgrading to our PREMIUM service</a>
+      </div>
+    </a>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<div *ngFor="let option of options; let i = index" class="transition">
+  <mat-form-field *ngIf="role === '3' || role === '1'" class="w-100" id="selectTM">
+    <mat-label>Select a Team Member</mat-label>
+    <mat-select [(value)]="defaultTeamMember" (selectionChange)="selectedTeamMember($event.value)">
+      <mat-option [ariaSelected]="true" disabled>Select a team member</mat-option>
+      <mat-option *ngFor="let item of usersList" [value]="item">{{ item.user.name }} {{ item.user.last_name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="border shadow rounded overflow-hidden cursor-pointer">
+    <div
+      (click)="handleSelection(i, option)"
+      [ngClass]="{ active: option.active }"
+      class="d-flex align-items-center card-hover justify-content-between gap-2 p-3 border-top border-bottom">
+      <div class="d-flex align-items-center justify-content-between">
+        <h2 [title]="option.label" class="mb-0 fs-5">
+          {{ option.title }}
+        </h2>
+        <button
+          mat-button
+          class="ms-2"
+          (click)="openFormModal()"
+          [title]="'New ' + option.formGroup">
+          <i class="fa-solid fa-plus cursor-pointer"></i>
+          <span class="ms-1">New</span>
+        </button>
+      </div>
+      <i class="fa-solid fa-angle-right transition"></i>
+    </div>
+    <div class="max-height i-flow" [ngClass]="{ 'scrollbar-thin': firefox }">
+      <div
+        class="border-bottom transition dropdown overflow-hidden"
+        [ngClass]="{ active: option.active }">
+        <ng-container *ngFor="let field of option.elements">
+          <div
+            class="px-3 py-2 card-hover d-flex gap-2"
+            [ngClass]="{ active: selectedForm == field }"
+            (click)="handleSelection(i, option, field)">
+            <input type="checkbox" class="form-check-input" [checked]="selectedForm == field" />
+            <p class="mb-0 col-9 col-sm-10">
+              {{ field.title || field.name || field.goal }}
+            </p>
+          </div>
+        </ng-container>
+      </div>
+      <div
+        *ngIf="(option.elements ?? []).length === 0"
+        class="border-bottom transition dropdown overflow-hidden"
+        [ngClass]="{ active: option.active }">
+        <div class="px-3 py-2 card-hover d-flex gap-2">
+          <p class="mb-0 col">No elements</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
