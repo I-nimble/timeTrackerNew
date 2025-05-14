@@ -94,41 +94,75 @@ export class AppNotesComponent implements OnInit {
     this.selectedColor.set(colorName);
     const currentNote = this.selectedNote();
     if (currentNote) {
-      currentNote.color = this.clrName();
-      this.noteService.updateNote(currentNote);
+      this.notesService
+        .updateNote(currentNote.id, {
+          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          content: currentNote.content,
+          color: colorName,
+        })
+        .subscribe({
+          next: () => {
+            this.loadNotes(this.userInfo.id);
+          },
+          error: () => {
+            this.openSnackBar('Error updating note color', 'Close', 'delete');
+          },
+        });
     }
     this.active.set(!this.active());
   }
 
   removenote(note: Note): void {
-    this.noteService.removeNote(note);
-    this.notes.set(this.noteService.getNotes());
-
-    if (this.selectedNote() === note) {
-      this.selectedNote.set(null);
-      this.currentNoteTitle.set('');
-    }
-    this.openSnackBar('Note deleted successfully!');
+    this.notesService.deleteNote(note.id).subscribe({
+      next: () => {
+        this.loadNotes(this.userInfo.id);
+        if (this.selectedNote() && this.selectedNote()!.id === note.id) {
+          this.selectedNote.set(null);
+          this.currentNoteTitle.set('');
+        }
+        this.openSnackBar('Note deleted successfully!');
+      },
+      error: () => {
+        this.openSnackBar('Error deleting note', 'Close', 'delete');
+      },
+    });
   }
 
   addNoteClick(): void {
-    const newNote: Note = {
-      color: this.clrName(),
+    const newNote = {
+      user_id: this.userInfo.id,
+      date_time: new Date().toISOString(),
       content: 'This is a new note',
-      date_time: new Date(),
+      color: this.clrName(),
     };
-    this.noteService.addNote(newNote);
-    this.notes.set(this.noteService.getNotes());
-
-    this.openSnackBar('Note added successfully!');
+    this.notesService.createNote(newNote).subscribe({
+      next: () => {
+        this.loadNotes(this.userInfo.id);
+        this.openSnackBar('Note added successfully!');
+      },
+      error: () => {
+        this.openSnackBar('Error adding note', 'Close', 'delete');
+      },
+    });
   }
 
   updateNoteTitle(newTitle: string): void {
     const currentNote = this.selectedNote();
     if (currentNote) {
-      currentNote.content = newTitle;
-      this.noteService.updateNote(currentNote);
-      this.notes.set(this.noteService.getNotes());
+      this.notesService
+        .updateNote(currentNote.id, {
+          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          content: newTitle,
+          color: currentNote.color,
+        })
+        .subscribe({
+          next: () => {
+            this.loadNotes(this.userInfo.id);
+          },
+          error: () => {
+            this.openSnackBar('Error updating note', 'Close', 'delete');
+          },
+        });
     }
   }
 
@@ -144,6 +178,7 @@ export class AppNotesComponent implements OnInit {
   this.notesService.getNotesByUserId(userId).subscribe({
     next: (notes: Note[]) => {
       this.notes.set(notes);
+      console.log(this.notes());
       this.selectedNote.set(this.notes()[0]);
       const currentNote = this.selectedNote();
       if (currentNote) {
