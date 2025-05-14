@@ -34,7 +34,7 @@
         <h4 class=" f-s-16 f-w-600 p-x-16 m-t-16">All Notes</h4>
 
         <mat-nav-list class="p-x-16">
-          @if(notes().length > 0) { @for(note of notes(); track note.datef) {
+          @if(notes().length > 0) { @for(note of notes(); track note.date_time) {
           <mat-list-item
             class="notes-item rounded m-b-8 bg-light-{{ note.color }}"
             (click)="onSelect(note)"
@@ -43,11 +43,11 @@
             <span
               class="note-title  f-w-500 text-{{ note.color }}"
               matListItemTitle
-              >{{ note.title }}</span
+              >{{ note.content }}</span
             >
             <div class="d-flex justify-content-between">
               <span class="note-time f-s-12 f-w-500">{{
-                note.datef | date
+                note.date_time | date
               }}</span>
               <span
                 (click)="removenote(note); $event.stopPropagation()"
@@ -84,7 +84,7 @@
           <mat-form-field appearance="outline" class="w-100">
             <textarea
               matInput
-              [ngModel]="selectedNote()?.title"
+              [ngModel]="selectedNote()?.content"
               rows="5"
               class="note-content p-8"
               (ngModelChange)="updateNoteTitle($event)"

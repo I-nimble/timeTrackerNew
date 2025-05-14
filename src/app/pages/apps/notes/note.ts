@@ -1,5 +1,5 @@
 export interface Note {
   color: string;
-  title: string;
-  datef: Date;
+  content: string;
+  date_time: Date;
 }
