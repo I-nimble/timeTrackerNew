@@ -21,159 +21,159 @@ export const TablesRoutes: Routes = [
     path: '',
     children: [
       {
-        path: 'basic-table',
-        component: AppBasicTableComponent,
-        data: {
-          title: 'Basic Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Basic Table' },
-          ],
-        },
-      },
-      {
-        path: 'dynamic-table',
+        path: 'dynamic-storage',
         component: AppDynamicTableComponent,
         data: {
-          title: 'Dynamic Table',
+          title: 'Storage',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Dynamic Table' },
+            { title: 'Dynamic Storage' },
           ],
         },
       },
-      {
-        path: 'expand-table',
-        component: AppExpandTableComponent,
-        data: {
-          title: 'Expand Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Expand Table' },
-          ],
-        },
-      },
-      {
-        path: 'filterable-table',
-        component: AppFilterableTableComponent,
-        data: {
-          title: 'Filterable Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Filterable Table' },
-          ],
-        },
-      },
-      {
-        path: 'footer-row-table',
-        component: AppFooterRowTableComponent,
-        data: {
-          title: 'Footer Row Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Footer Row Table' },
-          ],
-        },
-      },
-      {
-        path: 'http-table',
-        component: AppHttpTableComponent,
-        data: {
-          title: 'HTTP Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'HTTP Table' },
-          ],
-        },
-      },
-      {
-        path: 'mix-table',
-        component: AppMixTableComponent,
-        data: {
-          title: 'Mix Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Mix Table' },
-          ],
-        },
-      },
-      {
-        path: 'multi-header-footer-table',
-        component: AppMultiHeaderFooterTableComponent,
-        data: {
-          title: 'Multi Header Footer Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Multi Header Footer Table' },
-          ],
-        },
-      },
-      {
-        path: 'pagination-table',
-        component: AppPaginationTableComponent,
-        data: {
-          title: 'Pagination Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Pagination Table' },
-          ],
-        },
-      },
-      {
-        path: 'row-context-table',
-        component: AppRowContextTableComponent,
-        data: {
-          title: 'Row Context Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Row Context Table' },
-          ],
-        },
-      },
-      {
-        path: 'selection-table',
-        component: AppSelectionTableComponent,
-        data: {
-          title: 'Selection Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Selection Table' },
-          ],
-        },
-      },
-      {
-        path: 'sortable-table',
-        component: AppSortableTableComponent,
-        data: {
-          title: 'Sortable Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Sortable Table' },
-          ],
-        },
-      },
-      {
-        path: 'sticky-column-table',
-        component: AppStickyColumnTableComponent,
-        data: {
-          title: 'Sticky Column Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Sticky Column Table' },
-          ],
-        },
-      },
-      {
-        path: 'sticky-header-footer-table',
-        component: AppStickyHeaderFooterTableComponent,
-        data: {
-          title: 'Sticky Header Footer Table',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Sticky Header Footer Table' },
-          ],
-        },
-      },
+      // {
+      //   path: 'dynamic-table',
+      //   component: AppDynamicTableComponent,
+      //   data: {
+      //     title: 'Dynamic Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Dynamic Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'expand-table',
+      //   component: AppExpandTableComponent,
+      //   data: {
+      //     title: 'Expand Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Expand Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'filterable-table',
+      //   component: AppFilterableTableComponent,
+      //   data: {
+      //     title: 'Filterable Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Filterable Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'footer-row-table',
+      //   component: AppFooterRowTableComponent,
+      //   data: {
+      //     title: 'Footer Row Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Footer Row Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'http-table',
+      //   component: AppHttpTableComponent,
+      //   data: {
+      //     title: 'HTTP Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'HTTP Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'mix-table',
+      //   component: AppMixTableComponent,
+      //   data: {
+      //     title: 'Mix Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Mix Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'multi-header-footer-table',
+      //   component: AppMultiHeaderFooterTableComponent,
+      //   data: {
+      //     title: 'Multi Header Footer Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Multi Header Footer Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'pagination-table',
+      //   component: AppPaginationTableComponent,
+      //   data: {
+      //     title: 'Pagination Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Pagination Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'row-context-table',
+      //   component: AppRowContextTableComponent,
+      //   data: {
+      //     title: 'Row Context Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Row Context Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'selection-table',
+      //   component: AppSelectionTableComponent,
+      //   data: {
+      //     title: 'Selection Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Selection Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'sortable-table',
+      //   component: AppSortableTableComponent,
+      //   data: {
+      //     title: 'Sortable Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Sortable Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'sticky-column-table',
+      //   component: AppStickyColumnTableComponent,
+      //   data: {
+      //     title: 'Sticky Column Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Sticky Column Table' },
+      //     ],
+      //   },
+      // },
+      // {
+      //   path: 'sticky-header-footer-table',
+      //   component: AppStickyHeaderFooterTableComponent,
+      //   data: {
+      //     title: 'Sticky Header Footer Table',
+      //     urls: [
+      //       { title: 'Dashboard', url: '/dashboards/dashboard1' },
+      //       { title: 'Sticky Header Footer Table' },
+      //     ],
+      //   },
+      // },
     ],
   },
 ];

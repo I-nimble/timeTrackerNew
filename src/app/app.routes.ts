@@ -46,7 +46,7 @@ export const routes: Routes = [
           import('./pages/widgets/widgets.routes').then((m) => m.WidgetsRoutes),
       },
       {
-        path: 'tables',
+        path: 'storage',
         loadChildren: () =>
           import('./pages/tables/tables.routes').then((m) => m.TablesRoutes),
       },

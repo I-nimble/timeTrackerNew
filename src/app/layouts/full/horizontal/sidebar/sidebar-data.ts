@@ -445,86 +445,86 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    displayName: 'Tables',
-    iconName: 'layout',
-    route: 'tables',
+    displayName: 'Storage',
+    iconName: 'packages',
+    route: 'storage',
     bgcolor: 'primary',
     children: [
       {
-        displayName: 'Basic Table',
+        displayName: 'Basic storage',
         iconName: 'point',
-        route: 'tables/basic-table',
+        route: 'storage/dynamic-storage',
       },
-      {
-        displayName: 'Dynamic Table',
-        iconName: 'point',
-        route: 'tables/dynamic-table',
-      },
-      {
-        displayName: 'Expand Table',
-        iconName: 'point',
-        route: 'tables/expand-table',
-      },
-      {
-        displayName: 'Filterable Table',
-        iconName: 'point',
-        route: 'tables/filterable-table',
-      },
-      {
-        displayName: 'Footer Row Table',
-        iconName: 'point',
-        route: 'tables/footer-row-table',
-      },
-      {
-        displayName: 'HTTP Table',
-        iconName: 'point',
-        route: 'tables/http-table',
-      },
-      {
-        displayName: 'Mix Table',
-        iconName: 'point',
-        route: 'tables/mix-table',
-      },
-      {
-        displayName: 'Multi Header Footer',
-        iconName: 'point',
-        route: 'tables/multi-header-footer-table',
-      },
-      {
-        displayName: 'Pagination Table',
-        iconName: 'point',
-        route: 'tables/pagination-table',
-      },
-      {
-        displayName: 'Row Context Table',
-        iconName: 'point',
-        route: 'tables/row-context-table',
-      },
-      {
-        displayName: 'Selection Table',
-        iconName: 'point',
-        route: 'tables/selection-table',
-      },
-      {
-        displayName: 'Sortable Table',
-        iconName: 'point',
-        route: 'tables/sortable-table',
-      },
-      {
-        displayName: 'Sticky Column',
-        iconName: 'point',
-        route: 'tables/sticky-column-table',
-      },
-      {
-        displayName: 'Sticky Header Footer',
-        iconName: 'point',
-        route: 'tables/sticky-header-footer-table',
-      },
-      {
-        displayName: 'Data table',
-        iconName: 'point',
-        route: '/datatable/kichen-sink',
-      },
+      // {
+      //   displayName: 'Dynamic Table',
+      //   iconName: 'point',
+      //   route: 'tables/dynamic-table',
+      // },
+      // {
+      //   displayName: 'Expand Table',
+      //   iconName: 'point',
+      //   route: 'tables/expand-table',
+      // },
+      // {
+      //   displayName: 'Filterable Table',
+      //   iconName: 'point',
+      //   route: 'tables/filterable-table',
+      // },
+      // {
+      //   displayName: 'Footer Row Table',
+      //   iconName: 'point',
+      //   route: 'tables/footer-row-table',
+      // },
+      // {
+      //   displayName: 'HTTP Table',
+      //   iconName: 'point',
+      //   route: 'tables/http-table',
+      // },
+      // {
+      //   displayName: 'Mix Table',
+      //   iconName: 'point',
+      //   route: 'tables/mix-table',
+      // },
+      // {
+      //   displayName: 'Multi Header Footer',
+      //   iconName: 'point',
+      //   route: 'tables/multi-header-footer-table',
+      // },
+      // {
+      //   displayName: 'Pagination Table',
+      //   iconName: 'point',
+      //   route: 'tables/pagination-table',
+      // },
+      // {
+      //   displayName: 'Row Context Table',
+      //   iconName: 'point',
+      //   route: 'tables/row-context-table',
+      // },
+      // {
+      //   displayName: 'Selection Table',
+      //   iconName: 'point',
+      //   route: 'tables/selection-table',
+      // },
+      // {
+      //   displayName: 'Sortable Table',
+      //   iconName: 'point',
+      //   route: 'tables/sortable-table',
+      // },
+      // {
+      //   displayName: 'Sticky Column',
+      //   iconName: 'point',
+      //   route: 'tables/sticky-column-table',
+      // },
+      // {
+      //   displayName: 'Sticky Header Footer',
+      //   iconName: 'point',
+      //   route: 'tables/sticky-header-footer-table',
+      // },
+      // {
+      //   displayName: 'Data table',
+      //   iconName: 'point',
+      //   route: '/datatable/kichen-sink',
+      // },
     ],
   },
 ];
