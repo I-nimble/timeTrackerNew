@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: true,
   selector: 'app-branding',
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   template: `
     <a [routerLink]="['/dashboards/dashboard2']" class="logodark">
       <!-- Iso Logo -->
@@ -16,6 +17,7 @@ import { RouterModule } from '@angular/router';
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
+        [ngStyle]="fullLogoMaxWidth ? { 'max-width': fullLogoMaxWidth } : {}"
         alt="logo"
       />
       <!-- Full logo -->
@@ -26,6 +28,7 @@ import { RouterModule } from '@angular/router';
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "
+        [ngStyle]="fullLogoMaxWidth ? { 'max-width': fullLogoMaxWidth } : {}"
         alt="logo"
       />
     </a>
@@ -38,6 +41,7 @@ import { RouterModule } from '@angular/router';
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
+        [ngStyle]="fullLogoMaxWidth ? { 'max-width': fullLogoMaxWidth } : {}"
         alt="logo"
       />
       <!-- Full logo -->
@@ -48,6 +52,7 @@ import { RouterModule } from '@angular/router';
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "
+        [ngStyle]="fullLogoMaxWidth ? { 'max-width': fullLogoMaxWidth } : {}"
         alt="logo"
       />
     </a>
@@ -74,7 +79,8 @@ import { RouterModule } from '@angular/router';
   ],
 })
 export class BrandingComponent {
-  @Input() collapsed = true;
+  @Input() collapsed = false;
+  @Input() fullLogoMaxWidth: string | null = null;
   options = this.settings.getOptions();
   constructor(private settings: CoreService) {}
 }
