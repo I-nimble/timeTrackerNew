@@ -111,7 +111,9 @@
           <span class="point bg-primary"></span>
         </div>
       </button>
-    <a mat-button [routerLink]="['/apps/talent-match']">Talent Match</a>
+    <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
+    Talent Match
+  </span></a>
     <mat-menu #invoiceMenu="matMenu">
     <button mat-menu-item [routerLink]="['']">
       Invoice
