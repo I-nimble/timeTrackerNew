@@ -94,12 +94,15 @@ export class AppNotesComponent implements OnInit {
   onSelectColor(colorName: string): void {
     this.clrName.set(colorName);
     this.selectedColor.set(colorName);
+    if (this.selectedNote()) {
+      this.selectedNote()!.color = colorName;
+    }
     const currentNote = this.selectedNote();
     if (currentNote) {
       this.notesService
         .updateNote(currentNote.id, {
           date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
-          content: this.changedTitle != currentNote.content ? this.changedTitle : currentNote.content,
+          content: this.changedTitle,
           color: colorName,
         })
         .subscribe({
@@ -175,7 +178,6 @@ export class AppNotesComponent implements OnInit {
   getUserInfo(){
     this.usersService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe((user) => {
       this.userInfo = user[0];
-      console.log(this.userInfo.id);
       this.loadNotes(this.userInfo.id);
     });
   }
@@ -186,14 +188,15 @@ export class AppNotesComponent implements OnInit {
       this.notes.set(notes);
       if (!this.selectedNote()) {
         this.selectedNote.set(this.notes()[0]);
-      }
-      const currentNote = this.selectedNote();
+        const currentNote = this.selectedNote();
       if (currentNote) {
         this.selectedColor.set(currentNote.color);
         this.clrName.set(currentNote.color);
         this.currentNoteTitle.set(currentNote.content);
-        this.changedTitle = currentNote.content;
+        if (this.changedTitle == ''){this.changedTitle = currentNote.content;} 
       }
+      }
+      
     },
     error: (error) => {
       console.error('Error fetching notes:', error);
