@@ -16,6 +16,7 @@ export class IntakeService {
       email: data.email,
       phone: data.countryCode + ' ' + data.phone,
       job_name_description: data.jobNameAndDescription,
+      required_skills_category: data.requiredSkillsCategory + (data.otherSkillsCategory ? ` (${data.otherSkillsCategory})` : ''),
       required_skills: data.requiredSkills.join(', '),
       routine_oriented: data.routineOriented,
       social_oriented: data.socialOriented,

@@ -26,3 +26,27 @@ h2 {
         width: 80%;
     }
 }
+
+#introduction-video {
+    height: 500px;
+    width: 100%;
+    margin-bottom: 2rem;
+    border-radius: 20px;
+}
+
+.button-toggle-group {
+    border: none;
+
+    mat-button-toggle {
+        background: white;
+        color: #333;
+        border: 1px solid #ccc;
+        margin-right: 1rem;
+        border-radius: 50px;
+
+        &.mat-button-toggle-checked {
+            background-color: #9cb764;
+            color: white;
+        }
+    }
+}

@@ -86,42 +86,42 @@ export const allSkills = [
   // Real Estate Skills
   {
     name: 'Open houses',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Digital & Social Media Marketing',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Visual Marketing (Drone Photography, 3D Tours)',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Virtual Tours & Staging',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Prospecting & Hyperlocal Networking',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Real Estate Law & Contracts',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Property Valuation & Market Analysis',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Negotiation & Sales Techniques',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Diversified Licensure (Mortgage, Inspection)',
-    category: 'real-estate'
+    category: 'real estate'
   },
   {
     name: 'Tech Adoption (AI, Blockchain, CRM Tools)',
-    category: 'real-estate'
+    category: 'real estate'
   }
 ];

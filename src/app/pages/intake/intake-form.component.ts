@@ -34,12 +34,13 @@ export class AppIntakeFormComponent implements OnInit {
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.required, Validators.pattern(/^\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)]
+    phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]
     ],
   });
   roleInfo = this.fb.group({
     jobNameAndDescription: ['', Validators.required],
     requiredSkillsCategory: ['', Validators.required],
+    otherSkillsCategory: [''],
     requiredSkills: [[], Validators.required],
     routineOriented: ['', Validators.required],
     socialOriented: ['', Validators.required],
@@ -56,6 +57,7 @@ export class AppIntakeFormComponent implements OnInit {
   });
   skills: any[] = [];
   formSubmitted = false;
+  otherSkillset = false;
 
   constructor(
     private fb: FormBuilder,
@@ -66,13 +68,26 @@ export class AppIntakeFormComponent implements OnInit {
   ngOnInit(): void {
     this.roleInfo.get('requiredSkillsCategory')?.valueChanges.subscribe((value) => {
       this.roleInfo.get('requiredSkills')?.enable();
-      this.filterSkillsByCategory(value as string)
-      this.roleInfo.get('requiredSkills')?.patchValue(null);
+      this.roleInfo.get('requiredSkills')?.reset();
+      if(value === 'other') {
+        this.otherSkillset = true;
+        this.filterSkillsByCategory()
+      }
+      else {
+        this.otherSkillset = false;
+        this.roleInfo.get('otherSkillsCategory')?.reset();
+        this.filterSkillsByCategory(value as string)
+      }
     });
   }
 
-  filterSkillsByCategory(category: string) {
-    this.skills = allSkills.filter((skill) => skill.category === category);
+  filterSkillsByCategory(category?: string) {
+    if(category) {
+      this.skills = allSkills.filter((skill) => skill.category === category);
+    }
+    else {
+      this.skills = allSkills;
+    }
   }
 
   sendForm() {
@@ -109,7 +124,6 @@ export class AppIntakeFormComponent implements OnInit {
     this.intakeService.submit(data).subscribe({
       next: () => {
         this.openSnackBar('Form submitted successfully', 'Close');
-        // hide form and show  thank you message
         this.formSubmitted = true;
         this.contactInfo.reset();
         this.roleInfo.reset();
