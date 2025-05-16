@@ -1,12 +1,13 @@
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller } from '@angular/common';
+import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
+import { AppFaqComponent } from '../faq/faq.component';
 
 interface apps {
   id: number;
@@ -46,18 +47,19 @@ interface features {
 }
 
 @Component({
-  selector: 'app-landingpage',
+  selector: 'app-industry',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent],
-  templateUrl: './landingpage.component.html',
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent],
+  templateUrl: './industry.component.html',
 })
-export class AppLandingpageComponent {
+export class AppIndustryComponent {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   options = this.settings.getOptions();
+  panelOpenState = false;
 
   constructor(
     private settings: CoreService,
@@ -68,6 +70,39 @@ export class AppLandingpageComponent {
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
+
+  cards = [
+    {
+      title: 'Marketing & Brand',
+      subtitle: 'Boost your brand with premium strategies.',
+      footer: 'Monday.com',
+    },
+    {
+      title: 'Projects & Tasks',
+      subtitle: 'Deliver on time, every time.',
+      footer: 'Monday.com',
+    },
+    {
+      title: 'CRM & Sales',
+      subtitle: 'Manage clients, prioritize deals.',
+      footer: 'Monday.com',
+    },
+    {
+      title: 'IT & Support',
+      subtitle: 'Resolve tickets 5x faster.',
+      footer: 'Monday.com',
+    },
+    {
+      title: 'Operations & Finance',
+      subtitle: 'Scale operations seamlessly.',
+      footer: 'Monday.com',
+    },
+    {
+      title: 'Creative & Design',
+      subtitle: 'Collaborate and create with ease.',
+      footer: 'Monday.com',
+    },
+  ];
 
   apps: apps[] = [
     {

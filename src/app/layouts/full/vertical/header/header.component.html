@@ -28,7 +28,7 @@
     <!-- --------------------------------------------------------------- -->
     <!--  Links -->
     <!-- --------------------------------------------------------------- -->
-    <button
+    <!-- <button
       mat-button
       [matMenuTriggerFor]="appsmenu"
       aria-label="Notifications"
@@ -95,7 +95,7 @@
           </div>
         </div>
       </div>
-    </mat-menu>
+    </mat-menu> -->
     <a mat-button [routerLink]="['/apps/chat']">Chat</a>
     <a mat-button [routerLink]="['/apps/calendar']">Calendar</a>
     <a mat-button [routerLink]="['/apps/email/inbox']">Email</a>
@@ -129,7 +129,7 @@
   <!-- --------------------------------------------------------------- -->
   <!-- langugage Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
+  <!-- <button
     [matMenuTriggerFor]="flags"
     mat-icon-button
     class="m-l-10 d-none d-lg-flex align-items-center justify-content-center"
@@ -151,7 +151,7 @@
       </div>
     </button>
     }
-  </mat-menu>
+  </mat-menu> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- light / dark icon -->
@@ -192,12 +192,12 @@
       <!-- --------------------------------------------------------------- -->
       <!-- langugage Dropdown -->
       <!-- --------------------------------------------------------------- -->
-      <button [matMenuTriggerFor]="flags" mat-icon-button>
+      <!-- <button [matMenuTriggerFor]="flags" mat-icon-button>
         <img
           [src]="selectedLanguage.icon"
           class="rounded-circle object-cover icon-20"
         />
-      </button>
+      </button> -->
 
       <!-- --------------------------------------------------------------- -->
       <!-- shortcut Dropdown -->
@@ -247,8 +247,8 @@
             width="40"
           />
           <div class="d-none d-lg-flex text-left flex-col">
-            <h5 class="f-s-16 f-w-600">Mike Nielsen</h5>
-            <span class="f-s-14">Admin</span>
+            <h5 class="f-s-16 f-w-600">{{userName}} </h5>
+            <span class="f-s-14">{{company}}</span>
           </div>
         </div>
       </button>
@@ -433,13 +433,12 @@
   >
     <div class="d-flex align-items-center gap-12">
       <img
-        src="/assets/images/profile/user5.jpg"
-        class="rounded-circle object-cover"
-        width="40"
+      [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+        class="shadow rounded-circle logo"
       />
       <div class="d-none d-lg-flex text-left flex-col">
-        <h5 class="f-s-16 f-w-600">Mike Nielsen</h5>
-        <span class="f-s-14">Admin</span>
+        <h5 class="f-s-16 f-w-600">{{userName}}</h5>
+        <span class="f-s-14">{{company}}</span>
       </div>
     </div>
   </button>
@@ -454,16 +453,16 @@
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
           <img
-            src="/assets/images/profile/user5.jpg"
-            class="rounded-circle"
-            width="95"
+          [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+            class="shadow rounded-circle logo"
+            style="width:95px; height:95px;"
           />
           <div class="m-l-16">
-            <h6 class="f-s-16 f-w-600 m-0">Mike Nielsen</h6>
-            <span class="f-s-14 text-body d-block m-b-4">Admin</span>
+            <h6 class="f-s-16 f-w-600 m-0">{{userName}}</h6>
+            <span class="f-s-14 text-body d-block m-b-4">{{company}}</span>
             <span class="d-flex align-items-center">
               <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
-              info&#64;spike.com
+              {{userEmail}}
             </span>
           </div>
         </div>

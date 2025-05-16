@@ -16,7 +16,7 @@ export class AppWelcomeCardComponent {
   ngOnInit(): void {
     this.usersService.getUsername().subscribe({
       next: (userName) => {
-        this.userName = userName || '';
+        this.userName = userName ? userName.split(' ')[0] : '';
       },
       error: (error) => {
         console.error('Error fetching username:', error);

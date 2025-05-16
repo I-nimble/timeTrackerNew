@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
 import { navItems } from '../../vertical/sidebar/sidebar-data';
@@ -10,6 +10,8 @@ import { BrandingComponent } from '../../vertical/sidebar/branding.component';
 import { AppSettings } from 'src/app/config';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import {CompaniesService} from 'src/app/services/companies.service';
+import {environment} from 'src/environments/environment';
 
 interface notifications {
   id: number;
@@ -52,7 +54,7 @@ interface quicklinks {
   ],
   templateUrl: './header.component.html',
 })
-export class AppHorizontalHeaderComponent {
+export class AppHorizontalHeaderComponent implements OnInit {
   @Input() showToggle = true;
   @Input() toggleChecked = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
@@ -60,6 +62,10 @@ export class AppHorizontalHeaderComponent {
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   isCollapse: boolean = false; // Initially hidden
+    company: any;
+    userName:any;
+    companyLogo:any = null;
+    assetsPath: string = environment.assets;
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -104,9 +110,33 @@ export class AppHorizontalHeaderComponent {
     private settings: CoreService,
     private vsidenav: CoreService,
     public dialog: MatDialog,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private companieService: CompaniesService,
   ) {
     translate.setDefaultLang('en');
+  }
+
+  ngOnInit(): void {
+    this.userData();
+  }
+  userData(){
+    this.userName = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
+    if(role == '3'){
+      this.loadCompanyLogo();
+      this.companieService.getByOwner().subscribe((company: any) => {
+        this.company = company.company.name;
+      });
+    }
+    
+  }
+
+  loadCompanyLogo() {
+    this.companieService.getByOwner().subscribe((company) => {
+      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
+        this.companyLogo = logo;
+      });
+    });
   }
 
   openDialog() {
@@ -132,6 +162,8 @@ export class AppHorizontalHeaderComponent {
     this.options.theme = theme;
     this.emitOptions();
   }
+
+
 
   notifications: notifications[] = [
     {

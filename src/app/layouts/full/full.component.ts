@@ -24,6 +24,8 @@ import { BrandingComponent } from './vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
+import {CompaniesService} from 'src/app/services/companies.service';
+import {environment} from 'src/environments/environment';
 
 export function jwtOptionsFactory() {
   return {
@@ -80,6 +82,10 @@ interface quicklinks {
 })
 export class FullComponent implements OnInit {
   navItems = navItems;
+  company: any;
+  userName:any;
+  companyLogo:any = null;
+  assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -211,6 +217,7 @@ export class FullComponent implements OnInit {
     private breakpointObserver: BreakpointObserver,
     private navService: NavService,
     private authService: AuthService,
+    private companieService: CompaniesService,
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -237,7 +244,9 @@ export class FullComponent implements OnInit {
       });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.userData();
+  }
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
@@ -294,5 +303,34 @@ export class FullComponent implements OnInit {
 
   logOut(){
     this.authService.logout();
+  }
+
+  userData(){
+    this.userName = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
+    if(role == '3'){
+      this.loadCompanyLogo();
+      this.companieService.getByOwner().subscribe((company: any) => {
+        this.company = company.company.name;
+      });
+    }
+    
+  }
+
+  loadCompanyLogo() {
+    this.companieService.getByOwner().subscribe((company) => {
+      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
+        this.companyLogo = logo;
+      });
+      // this.plansService.getCurrentPlan(company.company_id).subscribe({
+      //   next: (userPlan: any) => {
+      //     let plan = userPlan?.plan;
+      //     this.plan = (plan?.name === 'Basic') ? false : true;  
+      //   },
+      //   error: (error: any) => {
+      //     this.store.addNotifications('Error loading plan data', 'error');
+      //   },
+      // });
+    });
   }
 }
