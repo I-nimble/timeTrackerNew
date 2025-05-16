@@ -101,6 +101,16 @@
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="w-100 mt-2">
+                  <mat-label class="f-s-14 m-b-8 d-block">Select a board</mat-label>
+                  <select matNativeControl formControlName="board_id">
+                    <option [value]="null">None</option>
+                    <option *ngFor="let board of boards" [value]="board.id">
+                      {{ board.name }}
+                    </option>
+                  </select>
+                </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
                     <mat-label class="f-s-14 m-b-8 d-block">Priority</mat-label>
                     <select matNativeControl required formControlName="priority">
                       <option *ngFor="let priority of priorities" [value]="priority.id">
