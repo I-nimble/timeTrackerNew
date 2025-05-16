@@ -112,12 +112,7 @@
         </div>
       </button>
     <a mat-button [routerLink]="['/apps/email/inbox']">Talent Match</a>
-    <mat-menu #invoiceMenu="matMenu">
-    <button mat-menu-item [routerLink]="['']">
-      Invoice
-    </button>
-    </mat-menu>
-    <a mat-button [matMenuTriggerFor]="invoiceMenu">Payroll</a>
+    <a mat-button [routerLink]="['/apps/invoice']">Payroll</a>
   </div>
 
   <span class="flex-1-auto"></span>
