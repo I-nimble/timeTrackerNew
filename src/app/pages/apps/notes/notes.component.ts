@@ -48,6 +48,7 @@ export class AppNotesComponent implements OnInit {
   selectedColor = signal<string | null>(null);
 
   userInfo: any;
+  changedTitle: string = '';
 
   constructor(public noteService: NoteService, private snackBar: MatSnackBar, private usersService: UsersService, private notesService: NotesService) {}
 
@@ -87,6 +88,7 @@ export class AppNotesComponent implements OnInit {
     this.clrName.set(note.color);
     this.currentNoteTitle.set(note.content);
     this.selectedColor.set(note.color);
+    this.changedTitle = note.content;
   }
 
   onSelectColor(colorName: string): void {
@@ -97,7 +99,7 @@ export class AppNotesComponent implements OnInit {
       this.notesService
         .updateNote(currentNote.id, {
           date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
-          content: currentNote.content,
+          content: this.changedTitle != currentNote.content ? this.changedTitle : currentNote.content,
           color: colorName,
         })
         .subscribe({
@@ -166,6 +168,10 @@ export class AppNotesComponent implements OnInit {
     }
   }
 
+  changeNoteTitle(newTitle: string): void {
+    this.changedTitle = newTitle;
+  }
+
   getUserInfo(){
     this.usersService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe((user) => {
       this.userInfo = user[0];
@@ -178,13 +184,15 @@ export class AppNotesComponent implements OnInit {
   this.notesService.getNotesByUserId(userId).subscribe({
     next: (notes: Note[]) => {
       this.notes.set(notes);
-      console.log(this.notes());
-      this.selectedNote.set(this.notes()[0]);
+      if (!this.selectedNote()) {
+        this.selectedNote.set(this.notes()[0]);
+      }
       const currentNote = this.selectedNote();
       if (currentNote) {
         this.selectedColor.set(currentNote.color);
         this.clrName.set(currentNote.color);
         this.currentNoteTitle.set(currentNote.content);
+        this.changedTitle = currentNote.content;
       }
     },
     error: (error) => {
