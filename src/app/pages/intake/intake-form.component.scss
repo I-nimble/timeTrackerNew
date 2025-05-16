@@ -1,0 +1,28 @@
+#logo {
+    width: 40%;
+    max-width: 750px;
+    margin-bottom: 2rem;
+}
+.flex-column {
+    flex-direction: column;
+}
+h1 {
+    font-size: 32px;
+    color: #818181;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+}
+h2 {
+    color: #818181;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+}
+.highlight-green {
+    color: #9cb764;
+}
+
+@media screen and (max-width: 768px) {
+    #logo {
+        width: 80%;
+    }
+}
