@@ -22,6 +22,7 @@ import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.com
 import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
+import { AppStorageComponent } from './storage/storage.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -109,7 +110,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'storage',
-        component: AppDynamicTableComponent,
+        component: AppStorageComponent,
         data: {
           title: 'Storage',
           urls: [
