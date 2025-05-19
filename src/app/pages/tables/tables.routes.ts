@@ -26,7 +26,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Basic Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Basic Table' },
           ],
         },
@@ -37,7 +37,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Dynamic Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Dynamic Table' },
           ],
         },
@@ -48,7 +48,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Expand Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Expand Table' },
           ],
         },
@@ -59,7 +59,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Filterable Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Filterable Table' },
           ],
         },
@@ -70,7 +70,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Footer Row Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Footer Row Table' },
           ],
         },
@@ -81,7 +81,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'HTTP Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'HTTP Table' },
           ],
         },
@@ -92,7 +92,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Mix Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Mix Table' },
           ],
         },
@@ -103,7 +103,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Multi Header Footer Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Multi Header Footer Table' },
           ],
         },
@@ -114,7 +114,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Pagination Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Pagination Table' },
           ],
         },
@@ -125,7 +125,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Row Context Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Row Context Table' },
           ],
         },
@@ -136,7 +136,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Selection Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Selection Table' },
           ],
         },
@@ -147,7 +147,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Sortable Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Sortable Table' },
           ],
         },
@@ -158,7 +158,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Sticky Column Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Sticky Column Table' },
           ],
         },
@@ -169,7 +169,7 @@ export const TablesRoutes: Routes = [
         data: {
           title: 'Sticky Header Footer Table',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Sticky Header Footer Table' },
           ],
         },

@@ -32,7 +32,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Chat',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Chat' },
           ],
         },
@@ -43,7 +43,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Calendar',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Calendar' },
           ],
         },
@@ -54,7 +54,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Notes',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Notes' },
           ],
         },
@@ -66,7 +66,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Email',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Email' },
           ],
         },
@@ -77,7 +77,7 @@ export const AppsRoutes: Routes = [
             data: {
               title: 'Email Detail',
               urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Dashboard', url: '/dashboards/dashboard2' },
                 { title: 'Email Detail' },
               ],
             },
@@ -90,7 +90,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Roll Base Access',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Roll Base Access' },
           ],
         },
@@ -101,7 +101,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Todo App',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Todo App' },
           ],
         },
@@ -112,7 +112,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Kanban',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Kanban' },
           ],
         },
@@ -123,7 +123,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Tickets',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Tickets' },
           ],
         },
@@ -134,7 +134,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Contacts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Contacts' },
           ],
         },
@@ -145,7 +145,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Courses',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Courses' },
           ],
         },
@@ -156,7 +156,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Contact List',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Contact List' },
           ],
         },
@@ -167,7 +167,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Course Detail',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Course Detail' },
           ],
         },
@@ -178,7 +178,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Posts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Posts' },
           ],
         },
@@ -189,7 +189,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Blog Detail',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Blog Detail' },
           ],
         },
@@ -200,7 +200,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Employee',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee' },
           ],
         },
@@ -216,7 +216,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Invoice' },
           ],
         },
@@ -227,7 +227,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Add Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Add Invoice' },
           ],
         },
@@ -238,7 +238,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'View Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'View Invoice' },
           ],
         },
@@ -249,7 +249,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Edit Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Edit Invoice' },
           ],
         },

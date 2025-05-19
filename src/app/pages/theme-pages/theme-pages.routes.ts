@@ -16,7 +16,7 @@ export const ThemePagesRoutes: Routes = [
         data: {
           title: 'Account Setting',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Account Setting' },
           ],
         },
@@ -27,7 +27,7 @@ export const ThemePagesRoutes: Routes = [
         data: {
           title: 'FAQ',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'FAQ' },
           ],
         },
@@ -38,7 +38,7 @@ export const ThemePagesRoutes: Routes = [
         data: {
           title: 'Pricing',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Pricing' },
           ],
         },
@@ -49,7 +49,7 @@ export const ThemePagesRoutes: Routes = [
         data: {
           title: 'Treeview',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Treeview' },
           ],
         },
