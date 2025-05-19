@@ -150,7 +150,6 @@ export class AppTodoComponent implements OnInit {
   loadBoards(): void {
     this.kanbanService.getBoards().subscribe((boards) => {
       this.boards = boards;
-      console.log(boards)
     });
   }
 

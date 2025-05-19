@@ -69,8 +69,6 @@ export class AppKanbanComponent {
       this.selectedBoardColumns.forEach(column => {
         column.tasks = tasks.filter((task: any) => task.column_id === column.id);
       });
-
-      console.log(this.selectedBoardColumns);
     });
   }
 
