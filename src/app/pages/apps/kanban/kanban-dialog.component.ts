@@ -51,7 +51,6 @@ export class AppKanbanDialogComponent {
   getPriorities() {
     this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
       this.priorities = priorities;
-      console.log(this.priorities)
     });
   }
 

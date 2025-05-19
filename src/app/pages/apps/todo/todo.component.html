@@ -8,6 +8,9 @@
         <mat-form-field appearance="outline" *ngIf="userRole !== '2'">
           <mat-label class="f-s-14 m-b-8 d-block">Select a Team Member</mat-label>
           <mat-select *ngIf="userRole !== '2'" [(ngModel)]="teamMemberId" (selectionChange)="handleTMSelection($event)">
+            <mat-option [value]="loggedInUser?.id">
+              {{ loggedInUser?.name }} {{ loggedInUser?.last_name }}
+            </mat-option>
             <mat-option *ngFor="let tm of teamMembers" [value]="tm.id">
               {{ tm.user.name }} {{ tm.user.last_name }}
             </mat-option>
