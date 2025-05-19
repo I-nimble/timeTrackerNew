@@ -55,9 +55,9 @@ export const navItems: NavItem[] = [
         route: 'apps/courses',
       },
       {
-        displayName: 'Employee',
+        displayName: 'Time tracker',
         iconName: 'point',
-        route: 'apps/employee',
+        route: 'apps/time-tracker',
       },
       {
         displayName: 'Notes',

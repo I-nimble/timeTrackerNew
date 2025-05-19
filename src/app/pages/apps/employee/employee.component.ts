@@ -46,6 +46,7 @@ import * as filesaver from 'file-saver';
     CommonModule,
     RouterModule,
   ],
+  standalone: true,
 })
 export class AppEmployeeComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
@@ -118,7 +119,7 @@ export class AppEmployeeComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.dataSource.data = this.users;
+      this.getEmployees();
     });
   }
 
@@ -273,6 +274,7 @@ export class AppEmployeeDialogContentComponent {
     public dialog: MatDialog,
     public dialogRef: MatDialogRef<AppEmployeeDialogContentComponent>,
     private employeesService: EmployeesService,
+    private usersService: UsersService,
     private snackBar: MatSnackBar,
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
@@ -313,16 +315,16 @@ export class AppEmployeeDialogContentComponent {
       // this.dialogRef.close({ event: 'Update' });
       // this.openSnackBar('Employee Updated successfully!', 'Close');
     } else if (this.action === 'Delete') {
-      // this.employeesService.deleteEmployee(this.local_data.id).subscribe({
-      //   next: (data) => {
-      //     this.dialogRef.close({ event: 'Delete' });
-      //     this.openSnackBar('Employee Deleted successfully!', 'Close');
-      //   },
-      //   error: (err) => {
-      //     console.error('Error deleting employee:', err);
-      //     this.openSnackBar('Error deleting employee', 'Close');
-      //   },
-      // });
+      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Delete' });
+          this.openSnackBar('Employee Deleted successfully!', 'Close');
+        },
+        error: (err) => {
+          console.error('Error deleting employee:', err);
+          this.openSnackBar('Error deleting employee', 'Close');
+        },
+      });
     }
   }
 

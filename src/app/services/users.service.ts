@@ -96,7 +96,7 @@ export class UsersService {
   public update(user: any) {
     return this.http.put(`${this.API_URI}/users/${user.id}`, user);
   }
-  public delete(id: string) {
+  public delete(id: string | number) {
     return this.http.delete(`${this.API_URI}/users/${id}`);
   }
   public verifyUsername(email: any, userId: string) {

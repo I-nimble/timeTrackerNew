@@ -36,4 +36,8 @@ export class EmployeesService {
 
     return this.http.post<any>(`${this.API_URI}/add`, formData);
   }
+
+  public deleteEmployee(id: number) {
+    return this.http.delete(`${this.API_URI}/${id}`);
+  }
 }
