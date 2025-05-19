@@ -77,7 +77,7 @@ interface quicklinks {
       { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },],
   standalone: true,
   templateUrl: './full.component.html',
-  styleUrls: [],
+  styleUrl: 'full.component.scss',
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {

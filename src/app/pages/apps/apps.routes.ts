@@ -20,8 +20,8 @@ import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.compon
 import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
 import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
 import { AppContactListComponent } from './contact-list/contact-list.component';
-import {EmployeeDetailsComponent} from './employee/employee-details/employee-details.component';
-import { AppDynamicTableComponent } from './storage/dynamic-table/dynamic-table.component';
+import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
+import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -263,6 +263,17 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Edit Invoice' },
+          ],
+        },
+      },
+      {
+        path: 'account-settings',
+        component: AppAccountSettingComponent,
+        data: {
+          title: 'Account Settings',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Account Settings' },
           ],
         },
       },
