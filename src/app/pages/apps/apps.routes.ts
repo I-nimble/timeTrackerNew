@@ -119,6 +119,17 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
+            {
+        path: 'talent-match',
+        component: AppTalentMatchComponent,
+        data: {
+          title: 'Talent match',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'talent match' },
+          ],
+        },
+      },
       {
         path: 'kanban',
         component: AppKanbanComponent,
