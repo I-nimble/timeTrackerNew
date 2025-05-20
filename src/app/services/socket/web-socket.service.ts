@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 import { Socket, io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
 
@@ -7,6 +8,7 @@ import { environment } from 'src/environments/environment';
 })
 export class WebSocketService {
   socket: Socket;
+  private notificationsSubject = new Subject<any>();
   API_URI = environment.socket;
 
   constructor() {
@@ -37,5 +39,13 @@ export class WebSocketService {
     this.socket.on('connect_error', (err) => {
       console.error('Error de conexión:', err.message);
     });
+
+    this.socket.on('server:notificationsUpdated', () => {
+      this.notificationsSubject.next('update');
+    });
+  }
+
+  getNotifications() {
+    return this.notificationsSubject.asObservable();
   }
 }
