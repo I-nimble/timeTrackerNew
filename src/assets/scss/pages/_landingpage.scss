@@ -98,7 +98,7 @@
 
 .btn-custom:hover {
   background-color: #C4E57F !important; 
-  color: #fff !important; 
+  //color: #fff !important; 
 }
 
 .btn-custom2.mdc-button {
@@ -262,20 +262,45 @@
 .social-icons {
   gap: 20px;
 
-  a {
-    text-decoration: none;
+  a.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;   
+    height: 40px; 
+    background-color: $primary;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    padding: 8px;   
+    
 
     i-tabler {
-      transition: transform 0.3s ease, color 0.3s ease;
-      background-color: $primary;
+      width: 24px;   
+      height: 24px;
       color: white;
-      border-radius: 50%;
+      stroke-width: 3.5;
+      
 
       &:hover {
         transform: scale(1.2);
         color: #C4E57F;
       }
     }
+  }
+}
+
+.btn-hired {
+  background: #c4e57f;
+  color: #111c2d !important;
+  font-weight: 700;
+  border-radius: 30px;
+  padding: 10px 36px;
+  transition: background 0.2s;
+  border: none;
+
+  &:hover {
+    background: #b0d86e;
+    color: #111c2d !important;
   }
 }
 
