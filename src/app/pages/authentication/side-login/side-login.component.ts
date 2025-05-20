@@ -23,23 +23,12 @@ import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
-import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
-
-export function jwtOptionsFactory() {
-  return {
-    tokenGetter: () => localStorage.getItem('jwt'),
-    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
-    disallowedRoutes: ['/auth/signin', '/auth/signup'],
-  };
-}
 
 @Component({
   selector: 'app-side-login',
   standalone: true,
   imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
   providers: [
-    JwtHelperService,
-    { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
     AuthService,
     WebSocketService,
     NotificationsService,

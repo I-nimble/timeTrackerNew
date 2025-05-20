@@ -52,6 +52,7 @@ export function jwtOptionsFactory() {
   providers: [
     // CustomDatePipe,
     // EntriesService,
+    // { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
     JwtHelperService,
     WebSocketService,
     ReportsService,

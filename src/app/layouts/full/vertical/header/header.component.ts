@@ -20,6 +20,7 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface notifications {
   id: number;
@@ -73,7 +74,7 @@ export class HeaderComponent implements OnInit {
   isCollapse: boolean = false; // Initially hidden
   company: any;
   userName:any;
-  companyLogo:any = null;
+  companyLogo:any = "assets/images/default-logo.jpg";
   userEmail: any;
   assetsPath: string = environment.assets;
 
@@ -122,6 +123,7 @@ export class HeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
+    private authService: AuthService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -129,26 +131,30 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
-    this.userData();
+    this.getUserData();
   }
-  userData(){
+
+  getUserData(){
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
+    
     if(role == '3'){
-      this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
+        this.loadCompanyLogo(company.company.id);
       });
     }
     
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
-        this.companyLogo = logo;
-      });
+  loadCompanyLogo(companyId: number) {
+    this.companieService.getCompanyLogo(companyId).subscribe({
+      next: (logoUrl) => {
+        if(logoUrl) {
+          this.companyLogo = logoUrl;
+        }
+      }
     });
   }
 
@@ -172,6 +178,10 @@ export class HeaderComponent implements OnInit {
 
   private emitOptions() {
     this.optionsChange.emit(this.options);
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
   notifications: notifications[] = [

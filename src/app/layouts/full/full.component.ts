@@ -84,8 +84,7 @@ export class FullComponent implements OnInit {
   navItems = navItems;
   company: any;
   userName:any;
-  companyLogo:any = null;
-  assetsPath: string = environment.assets;
+  companyLogo:any = 'assets/images/default-logo.jpg';
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -309,28 +308,28 @@ export class FullComponent implements OnInit {
     this.userName = localStorage.getItem('username');
     const role = localStorage.getItem('role');
     if(role == '3'){
-      this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
+        this.loadCompanyLogo(company.company_id);
       });
     }
     
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
+  loadCompanyLogo(companyId: number) {
+    this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
+      if(logo) {
         this.companyLogo = logo;
-      });
-      // this.plansService.getCurrentPlan(company.company_id).subscribe({
-      //   next: (userPlan: any) => {
-      //     let plan = userPlan?.plan;
-      //     this.plan = (plan?.name === 'Basic') ? false : true;  
-      //   },
-      //   error: (error: any) => {
-      //     this.store.addNotifications('Error loading plan data', 'error');
-      //   },
-      // });
+      }
     });
+    // this.plansService.getCurrentPlan(company.company_id).subscribe({
+    //   next: (userPlan: any) => {
+    //     let plan = userPlan?.plan;
+    //     this.plan = (plan?.name === 'Basic') ? false : true;  
+    //   },
+    //   error: (error: any) => {
+    //     this.store.addNotifications('Error loading plan data', 'error');
+    //   },
+    // });
   }
 }
