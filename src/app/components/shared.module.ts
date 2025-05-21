@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatButtonModule } from '@angular/material/button';
-import { EntriesPanelComponent } from './entries-panel/entries-panel.component';
+// import { EntriesPanelComponent } from './entries-panel/entries-panel.component';
 import { BillsComponent } from './bills/bills.component';
 import { StripeComponent } from './stripe/stripe.component';
 import { EmployeesComponent } from './employees/employees.component';
@@ -52,7 +52,7 @@ import { ToDoFormComponent } from './to-do-form/to-do-form.component';
   declarations: [
     CalendarComponent,
     CustomDatePipe,
-    EntriesPanelComponent,
+    // EntriesPanelComponent,
     BillsComponent,
     StripeComponent,
     EmployeesComponent,

@@ -1,6 +1,6 @@
 <div class="col-md-12 col-12">
   <div class="card mb-3 shadow rounded-1">
-    <div
+    <!-- <div
       class="card-header d-flex flex-wrap align-items-center justify-content-between"
     >
       <div class="col-12 col-sm-auto d-flex align-items-center">
@@ -29,26 +29,26 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <div
       class="card-body mx-1 p-2 d-flex flex-wrap justify-content-center justify-content-sm-between gap-2"
     >
-      <div class="form-group col-sm col-12 p-1 d-flex align-items-center">
+      <!-- <div class="form-group col-sm col-12 p-1 d-flex align-items-center">
         <input
           type="text"
           class="form-control rounded-1 py-2"
           [(ngModel)]="entry.description"
           placeholder="Write a comment (optional)"
         />
-      </div>
+      </div> -->
       <div 
         *ngIf="loading"
-        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3"
+        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3 timer"
       >
         Loading...
       </div>
       <div
-        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3"
+        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3 timer"
         *ngIf="!loading"
       >
         <div class="text-end" *ngIf="currentTime != null && entryCheck && UTCStartTime && currentDateTime">
@@ -58,19 +58,17 @@
         <div class="col-sm-auto col">
           @if ((validStartTime && currentDateTime) || !loading) {
             <button
-              mat-raised-button
-              color="accent"
+              mat-flat-button
               *ngIf="!entryCheck"
               (click)="addEntry()"
-              class="col-12 shadow rounded"
+              class="col-12 shadow rounded start"
             >
               START
             </button>
             <button
-              mat-raised-button
-              color="warn"
+              mat-flat-button
               *ngIf="currentTime != null && entryCheck"
-              class="col-12 shadow rounded"
+              class="col-12 shadow rounded stop"
               (click)="checkToDoLogged()"
             >
               STOP
@@ -78,7 +76,7 @@
           }
         </div>
 
-        <div class="">
+        <!-- <div class="">
           <button id="more-btn" class="p-2 options-btn icon-btn btn fs-4">
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
@@ -91,7 +89,7 @@
               <li class="p-2">Log Off Hours (soon..)</li>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>

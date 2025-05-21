@@ -4,6 +4,7 @@ import { Routes } from '@angular/router';
 import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ReportsComponent } from './reports/reports.component';
+import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 
 export const DashboardsRoutes: Routes = [
   {
@@ -21,6 +22,13 @@ export const DashboardsRoutes: Routes = [
         component: AppDashboard2Component,
         data: {
           title: 'Dashboard 2',
+        },
+      },
+      {
+        path: 'tm',
+        component: AppDashboardTMComponent,
+        data: {
+          title: 'Dashboard',
         },
       },
       {

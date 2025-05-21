@@ -1,5 +1,8 @@
 import { NavItem } from './nav-item/nav-item';
 
+
+const role = localStorage.getItem('role');
+
 export const navItems: NavItem[] = [
   {
     navCap: 'Home',
@@ -14,7 +17,7 @@ export const navItems: NavItem[] = [
     displayName: 'Dashboard',
     iconName: 'layout-dashboard',
     bgcolor: 'primary',
-    route: '/dashboards/dashboard2',
+    route: role === '2' ? '/dashboards/tm' : '/dashboards/dashboard2',
   },
   {
     displayName: 'Reports',
