@@ -35,6 +35,7 @@ import {
 } from 'src/app/components/reports-filter/reports-filter.component';
 import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -139,12 +140,14 @@ export class AppEmployeeComponent implements AfterViewInit {
               if (!userSchedules) {
                 return {
                   id: user.user.id,
-                  Name: `${user.user.name} ${user.user.last_name}`,
-                  Position: 'Default Position',
+                  name: user.user.name,
+                  last_name: user.user.last_name,
+                  email: user.user.email,
+                  position: user.position_id,
+                  projects: user.projects.map((project: any) => project.id),
                   schedule: 'No registered hours',
                   WorkingDays: 'N/A',
-                  Salary: 12000,
-                  Projects: 0,
+                  Salary: 0,
                   imagePath: this.assetsPath + '/default-profile-pic.png',
                 };
               }
@@ -168,12 +171,14 @@ export class AppEmployeeComponent implements AfterViewInit {
 
               return {
                 id: user.user.id,
-                Name: `${user.user.name} ${user.user.last_name}`,
-                Position: 'Default Position', 
+                name: user.user.name,
+                last_name: user.user.last_name,
+                email: user.user.email,
+                position: user.position_id,
+                projects: user.projects.map((project: any) => project.id),
                 schedule: `${totalWorkHours.toFixed()} hours per day`,
                 WorkingDays: workingDays,
-                Salary: 12000, 
-                Projects: 0, 
+                Salary: 0, 
                 imagePath: this.assetsPath + '/default-profile-pic.png',
               };
             });
@@ -260,12 +265,21 @@ interface DialogData {
 export class AppEmployeeDialogContentComponent {
   action: string | any;
   // tslint:disable-next-line - Disables all
-  local_data: Employee;
+  local_data: any;
   selectedImage: any = '';
   joiningDate = new FormControl();
   positions: any[] = [];
   projects: any[] = [];
   selectedFile: File | null = null;
+  sendingData: boolean = false;
+  addEmployeeForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    last_name: ['', Validators.required],
+    password: [''],
+    email: ['', [Validators.required, Validators.email]],
+    position: ['', Validators.required],
+    projects: [[]],
+  });
 
   constructor(
     public dialog: MatDialog,
@@ -274,11 +288,23 @@ export class AppEmployeeDialogContentComponent {
     private snackBar: MatSnackBar,
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
+    private fb: FormBuilder,
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.action = data.action;
+    if(this.action === 'Add') {
+      this.addEmployeeForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
+    }
     this.local_data = { ...data.employee };
+    this.addEmployeeForm.patchValue({ // Populate form data
+      name: this.local_data.name || '',
+      last_name: this.local_data.last_name || '',
+      password: '',
+      email: this.local_data.email || '',
+      position: this.local_data.position || '',
+      projects: this.local_data.projects || [],
+    });
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -297,30 +323,39 @@ export class AppEmployeeDialogContentComponent {
   doAction(): void {
 
     if (this.action === 'Add') {
-      this.employeesService.addEmployee(this.local_data, this.selectedFile || null).subscribe((employee: any) => {
-        this.dialogRef.close();
-
-        const successDialogRef = this.dialog.open(AppAddEmployeeComponent);
-        successDialogRef.afterClosed().subscribe(() => {
-          this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Added successfully!', 'Close');
-        });
+      this.sendingData = true;
+      this.employeesService.addEmployee(this.addEmployeeForm.value, this.selectedFile || null).subscribe({
+        next: () => {
+          this.dialogRef.close();
+          const successDialogRef = this.dialog.open(AppAddEmployeeComponent);
+          successDialogRef.afterClosed().subscribe(() => {
+            this.dialogRef.close({ event: 'Refresh' });
+            this.openSnackBar('Employee Added successfully!', 'Close');
+          });
+        },
+        error: (err) => {
+          console.error('Error adding employee:', err);
+          this.openSnackBar('Error adding employee', 'Close');
+        },
+        complete: () => {
+          this.sendingData = false;
+        },
       });
     } else if (this.action === 'Update') {
       // this.employeesService.updateEmployee(this.local_data);
       // this.dialogRef.close({ event: 'Update' });
       // this.openSnackBar('Employee Updated successfully!', 'Close');
     } else if (this.action === 'Delete') {
-      // this.employeesService.deleteEmployee(this.local_data.id).subscribe({
-      //   next: (data) => {
-      //     this.dialogRef.close({ event: 'Delete' });
-      //     this.openSnackBar('Employee Deleted successfully!', 'Close');
-      //   },
-      //   error: (err) => {
-      //     console.error('Error deleting employee:', err);
-      //     this.openSnackBar('Error deleting employee', 'Close');
-      //   },
-      // });
+      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Delete' });
+          this.openSnackBar('Employee Deleted successfully!', 'Close');
+        },
+        error: (err:any) => {
+          console.error('Error deleting employee:', err);
+          this.openSnackBar('Error deleting employee', 'Close');
+        },
+      });
     }
   }
 
