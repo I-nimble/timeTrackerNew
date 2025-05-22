@@ -29,13 +29,13 @@ export const navItems: NavItem[] = [
     displayName: 'Chat',
     iconName: 'message-2',
     bgcolor: 'primary',
-    route: 'apps/chat',
+    route: '/apps/chat',
   },
   {
     displayName: 'Calendar',
     iconName: 'calendar-event',
     bgcolor: 'primary',
-    route: 'apps/calendar',
+    route: '/apps/calendar',
   },
   // {
   //   displayName: 'Email',
@@ -47,7 +47,7 @@ export const navItems: NavItem[] = [
     displayName: 'Kanban',
     iconName: 'checklist',
     bgcolor: 'primary',
-    route: 'apps/kanban',
+    route: '/apps/kanban',
   },
   // {
   //   displayName: 'Contacts',
@@ -74,13 +74,13 @@ export const navItems: NavItem[] = [
     displayName: 'Time tracker',
     iconName: 'brand-ctemplar',
     bgcolor: 'primary',
-    route: 'apps/employee',
+    route: '/apps/employee',
   },
   {
     displayName: 'Notes',
     iconName: 'note',
     bgcolor: 'primary',
-    route: 'apps/notes',
+    route: '/apps/notes',
   },
   // {
   //   displayName: 'Tickets',
@@ -124,7 +124,7 @@ export const navItems: NavItem[] = [
     displayName: 'ToDo',
     iconName: 'edit',
     bgcolor: 'primary',
-    route: 'apps/todo',
+    route: '/apps/todo',
   },
   // {
   //   displayName: 'Blog',
