@@ -107,7 +107,7 @@ export class AppSideLoginComponent {
           const role = v.role_id;
           const email = v.email;
           localStorage.setItem('role', role);
-          const route = role === 2 ? '/dashboards/tm' : '/dashboards/dashboard2';
+          const route = Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2';
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);

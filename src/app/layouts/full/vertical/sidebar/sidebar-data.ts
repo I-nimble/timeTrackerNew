@@ -1,10 +1,11 @@
 import { NavItem } from './nav-item/nav-item';
 
 
-const role = localStorage.getItem('role');
+const role: any = localStorage.getItem('role');
 
-export const navItems: NavItem[] = [
-  {
+export function getNavItems(role: number): NavItem[] {
+  return [
+    {
     navCap: 'Home',
   },
   // {
@@ -17,7 +18,7 @@ export const navItems: NavItem[] = [
     displayName: 'Dashboard',
     iconName: 'layout-dashboard',
     bgcolor: 'primary',
-    route: role === '2' ? '/dashboards/tm' : '/dashboards/dashboard2',
+    route: Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2'
   },
   {
     displayName: 'Reports',
@@ -714,4 +715,5 @@ export const navItems: NavItem[] = [
   //   route: 'https://www.google.com/',
   //   external: true,
   // },
-];
+  ]
+};

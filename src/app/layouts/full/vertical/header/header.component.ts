@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
-import { navItems } from '../sidebar/sidebar-data';
+import { getNavItems } from '../sidebar/sidebar-data';
 import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
@@ -335,6 +335,13 @@ export class HeaderComponent implements OnInit {
       link: '/theme-pages/treeview',
     },
   ];
+
+  logout(){
+    localStorage.removeItem('email');
+    localStorage.removeItem('jwt');
+    localStorage.removeItem('role');
+    localStorage.removeItem('username');
+  }
 }
 
 @Component({
@@ -343,10 +350,11 @@ export class HeaderComponent implements OnInit {
   templateUrl: 'search-dialog.component.html',
 })
 export class AppSearchDialogComponent {
+  role: any = localStorage.getItem('role');
   searchText: string = '';
-  navItems = navItems;
+  navItems = getNavItems(this.role);
 
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter((navitem) => navitem.displayName);
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;
