@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
+import { AppIntakeFormComponent } from './pages/intake/intake-form.component'
 
 export const routes: Routes = [
   {
@@ -24,7 +25,6 @@ export const routes: Routes = [
             (m) => m.DashboardsRoutes
           ),
       },
-
       {
         path: 'forms',
         loadChildren: () =>
@@ -46,14 +46,9 @@ export const routes: Routes = [
           import('./pages/widgets/widgets.routes').then((m) => m.WidgetsRoutes),
       },
       {
-        path: 'tables',
-        loadChildren: () =>
-          import('./pages/tables/tables.routes').then((m) => m.TablesRoutes),
-      },
-      {
         path: 'datatable',
         loadChildren: () =>
-          import('./pages/datatable/datatable.routes').then(
+          import('./pages/apps/storage/tables.routes').then(
             (m) => m.DatatablesRoutes
           ),
       },
@@ -97,6 +92,18 @@ export const routes: Routes = [
           import('./pages/theme-pages/front.routes').then(
             (m) => m.HomePageRoutes
           ),
+      },
+      {
+        path: 'discovery',
+        pathMatch: 'full',
+        component: AppIntakeFormComponent,
+        data: {
+          title: 'Intake form',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Intake form' },
+          ],
+        },
       },
     ],
   },

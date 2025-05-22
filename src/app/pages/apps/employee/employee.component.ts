@@ -118,7 +118,7 @@ export class AppEmployeeComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.dataSource.data = this.users;
+      this.getEmployees();
     });
   }
 
@@ -127,21 +127,19 @@ export class AppEmployeeComponent implements AfterViewInit {
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
-          .map((user: any) => user.user)
-          .filter((user: any) => user.active == 1);
+          .filter((user: any) => user.user.active == 1);
 
         this.schedulesService.get().subscribe({
           next: (schedules: any) => {
             schedules = schedules.schedules;
             this.users = this.users.map((user: any) => {
-              
               const userSchedules = schedules.find(
                 (schedule: any) => schedule.employee_id === user.id
               );
               if (!userSchedules) {
                 return {
-                  id: user.id,
-                  Name: `${user.name} ${user.last_name}`,
+                  id: user.user.id,
+                  Name: `${user.user.name} ${user.user.last_name}`,
                   Position: 'Default Position',
                   schedule: 'No registered hours',
                   WorkingDays: 'N/A',
@@ -169,8 +167,8 @@ export class AppEmployeeComponent implements AfterViewInit {
               const totalWorkHours = end.diff(start, 'hours', true);
 
               return {
-                id: user.id,
-                Name: `${user.name} ${user.last_name}`,
+                id: user.user.id,
+                Name: `${user.user.name} ${user.user.last_name}`,
                 Position: 'Default Position', 
                 schedule: `${totalWorkHours.toFixed()} hours per day`,
                 WorkingDays: workingDays,

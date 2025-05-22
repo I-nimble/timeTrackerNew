@@ -96,9 +96,30 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat']">Chat</a>
-    <a mat-button [routerLink]="['/apps/calendar']">Calendar</a>
-    <a mat-button [routerLink]="['/apps/email/inbox']">Email</a>
+    <a mat-button [routerLink]="['/apps/chat']">HR and Operations</a>
+          <!-- --------------------------------------------------------------- -->
+      <!-- Messages Dropdown -->
+      <!-- --------------------------------------------------------------- -->
+      <button
+        mat-button
+        [matMenuTriggerFor]="msgMenu"
+        aria-label="Messages"
+      >
+        <a>Notifications</a>
+        <div class="pulse">
+          <span class="heartbit border-primary"></span>
+          <span class="point bg-primary"></span>
+        </div>
+      </button>
+    <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
+    Talent Match
+  </span></a>
+    <mat-menu #invoiceMenu="matMenu">
+    <button mat-menu-item [routerLink]="['']">
+      Invoice
+    </button>
+    </mat-menu>
+    <a mat-button [matMenuTriggerFor]="invoiceMenu">Payroll</a>
   </div>
 
   <span class="flex-1-auto"></span>
@@ -215,21 +236,6 @@
       </button>
 
       <!-- --------------------------------------------------------------- -->
-      <!-- Messages Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="msgMenu"
-        aria-label="Messages"
-      >
-        <i-tabler class="d-flex" name="message-2"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
-        </div>
-      </button>
-
-      <!-- --------------------------------------------------------------- -->
       <!-- Profile Dropdown -->
       <!-- --------------------------------------------------------------- -->
       <button
@@ -259,18 +265,6 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Messages Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
-    mat-icon-button
-    [matMenuTriggerFor]="msgMenu"
-    aria-label="Messages"
-    class="d-none d-lg-block align-items-center justify-content-center"
-  >
-    <i-tabler class="d-flex" name="message-2"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-primary"></span>
-      <span class="point bg-primary"></span>
-    </div>
-  </button>
   <mat-menu
     #msgMenu="matMenu"
     xPosition="before"
