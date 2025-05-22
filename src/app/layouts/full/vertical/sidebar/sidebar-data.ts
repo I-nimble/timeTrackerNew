@@ -23,6 +23,12 @@ export const navItems: NavItem[] = [
     route: '/dashboards/reports',
   },
   {
+    displayName: 'Productivity',
+    iconName: 'chart-bar',
+    bgcolor: 'primary',
+    route: '/dashboards/productivity',
+  },
+  {
     navCap: 'Apps',
   },
   {

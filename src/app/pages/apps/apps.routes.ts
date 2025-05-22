@@ -23,6 +23,7 @@ import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 import { AppStorageComponent } from './storage/storage.component';
+import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
 
 export const AppsRoutes: Routes = [
   {

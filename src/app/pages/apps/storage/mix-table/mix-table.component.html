@@ -22,12 +22,12 @@
           </mat-cell>
         </ng-container>
 
-        <!-- Progress Column -->
-        <ng-container matColumnDef="progress">
+        <!-- Productivity Column -->
+        <ng-container matColumnDef="productivity">
           <mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600  f-s-16">
-            Progress
+            Productivity
           </mat-header-cell>
-          <mat-cell *matCellDef="let row"> {{ row.progress }}% </mat-cell>
+          <mat-cell *matCellDef="let row"> {{ row.productivity }}% </mat-cell>
         </ng-container>
 
         <!-- Name Column -->
@@ -43,13 +43,13 @@
           </mat-cell>
         </ng-container>
 
-        <!-- Color Column -->
-        <ng-container matColumnDef="color">
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
           <mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600  f-s-16">
-            Color
+            Status
           </mat-header-cell>
-          <mat-cell *matCellDef="let row" [style.color]="row.color">
-            {{ row.color }}
+          <mat-cell *matCellDef="let row" [style.status]="row.status">
+            {{ row.status }}
           </mat-cell>
         </ng-container>
 
