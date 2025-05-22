@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { AppDailyProductivityComponent } from 'src/app/components/dashboard2/daily-productivity/daily-productivity.component';
-import { AppMixTableComponent } from '../../tables/mix-table/mix-table.component';
+import { AppMixTableComponent } from '../../apps/storage/mix-table/mix-table.component';
+
 
 @Component({
   selector: 'app-productivity',
