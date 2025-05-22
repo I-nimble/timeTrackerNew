@@ -22,6 +22,7 @@ import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.com
 import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
+import { AppStorageComponent } from './storage/storage.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -104,6 +105,28 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Todo App' },
+          ],
+        },
+      },
+      {
+        path: 'storage',
+        component: AppStorageComponent,
+        data: {
+          title: 'Storage',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Storage' },
+          ],
+        },
+      },
+            {
+        path: 'talent-match',
+        component: AppTalentMatchComponent,
+        data: {
+          title: 'Talent match',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'talent match' },
           ],
         },
       },
