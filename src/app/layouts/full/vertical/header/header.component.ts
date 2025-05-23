@@ -18,8 +18,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
-import {CompaniesService} from 'src/app/services/companies.service';
-import {environment} from 'src/environments/environment';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { environment } from 'src/environments/environment';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface notifications {
   id: number;
@@ -73,9 +75,10 @@ export class HeaderComponent implements OnInit {
   isCollapse: boolean = false; // Initially hidden
   company: any;
   userName:any;
-  companyLogo:any = null;
+  companyLogo:any = "assets/images/default-logo.jpg";
   userEmail: any;
   assetsPath: string = environment.assets;
+  totalApplications: number = 0;
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -122,6 +125,8 @@ export class HeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
+    private applicationsService: ApplicationsService,
+    private authService: AuthService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -129,26 +134,40 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
-    this.userData();
+    this.getUserData();
+    this.getTotalApplications();
   }
-  userData(){
+
+  getUserData(){
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
-    if(role == '3'){
+    if (role == '3') {
       this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
       });
     }
-    
   }
 
   loadCompanyLogo() {
     this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
-        this.companyLogo = logo;
-      });
+      this.companieService
+        .getCompanyLogo(company.company_id)
+        .subscribe((logo) => {
+          if(logo != null) this.companyLogo = logo;
+        });
+    });
+  }
+
+  getTotalApplications() {
+    this.applicationsService.get().subscribe({
+      next: (apps) => {
+        this.totalApplications = apps.length;
+      },
+      error: () => {
+        this.totalApplications = 0;
+      },
     });
   }
 
@@ -172,6 +191,10 @@ export class HeaderComponent implements OnInit {
 
   private emitOptions() {
     this.optionsChange.emit(this.options);
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
   notifications: notifications[] = [

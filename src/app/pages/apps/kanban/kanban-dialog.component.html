@@ -1,95 +1,73 @@
 <mat-dialog-content class="mat-typography">
   <div class="d-flex align-items-center justify-content-between m-b-16">
-    <h4 class="f-s-16 f-w-600">{{ action }} Task</h4>
-    <button
-      mat-icon-button
-      mat-dialog-close
-      class="d-flex justify-content-center"
-    >
+    <h4 class="f-s-16 f-w-600">{{ action }} {{ local_data.type === 'board' ? 'Board' : 'Task' }}</h4>
+    <button mat-icon-button mat-dialog-close>
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
     </button>
   </div>
-  <form #task="ngForm">
+
+  <form #form="ngForm">
     <div class="row">
       <div class="col-12">
-        <mat-label class="f-w-600 m-b-8 d-block">Title</mat-label>
+        <mat-label class="f-w-600 m-b-8 d-block">{{ local_data.type === 'board' ? 'Board Name' : 'Task Name' }}</mat-label>
         <mat-form-field appearance="outline" class="w-100">
           <input
             type="text"
             matInput
             required
-            id="heading"
-            name="heading"
-            [(ngModel)]="local_data.title"
-            placeholder="Title"
+            name="goal"
+            [(ngModel)]="local_data.goal"
+            placeholder="{{ local_data.type === 'board' ? 'Enter board name' : 'Enter task name' }}"
           />
         </mat-form-field>
       </div>
-      @if(local_data.description) {
-      <div class="col-12">
+
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
         <mat-label class="f-w-600 m-b-8 d-block">Description</mat-label>
         <mat-form-field appearance="outline" class="w-100">
           <input
             type="text"
             matInput
-            required
-            id="descrip"
-            name="descrip"
-            [(ngModel)]="local_data.description"
-            placeholder="Description"
+            name="recommendations"
+            [(ngModel)]="local_data.recommendations"
+            placeholder="{{ local_data.type === 'board' ? 'Enter board description' : 'Enter task description' }}"
           />
         </mat-form-field>
       </div>
-      }
 
-      <div class="col-12">
-        <mat-label class="f-w-600 m-b-8 d-block">Property</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-select [(ngModel)]="local_data.taskProperty" name="taskProperty">
-            <mat-option value="Design">Design</mat-option>
-            <mat-option value="Mobile">Mobile</mat-option>
-            <mat-option value="UX Stage">UX Stage</mat-option>
-            <mat-option value="Research">Research</mat-option>
-            <mat-option value="Data Science">Data Science</mat-option>
-            <mat-option value="Branding">Branding</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      @if(local_data.imageUrl || action=='Add'){
-      <div class="col-12">
-        <mat-label class="f-w-600 m-b-8 d-block">Image URL</mat-label>
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
+        <mat-label class="f-w-600 m-b-8 d-block">Due Date</mat-label>
         <mat-form-field appearance="outline" class="w-100">
           <input
-            type="text"
             matInput
-            id="imageUrl"
-            name="imageUrl"
-            [(ngModel)]="local_data.imageUrl"
-            placeholder="Image URL"
+            [matDatepicker]="picker"
+            placeholder="Choose a date"
+            name="due_date"
+            [(ngModel)]="local_data.due_date"
           />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
-        <div class="row">
-          <div class="col-12">
-            <img
-              [src]="local_data.imageUrl"
-              alt="Task Image"
-              style="max-width: 100%"
-              class="rounded m-t-10"
-            />
-          </div>
-        </div>
       </div>
-      }
+
+
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
+        <mat-label class="f-w-600 m-b-8 d-block">Priority</mat-label>
+        <mat-form-field appearance="outline" class="w-100 mt-2">
+          <select matNativeControl required>
+            <option *ngFor="let priority of priorities" [value]="priority.id">
+              {{ priority.name }}
+            </option>
+          </select>
+        </mat-form-field>
+      </div>
     </div>
   </form>
 </mat-dialog-content>
 
-<div mat-dialog-actions>
-  <button mat-flat-button (click)="doAction()" [disabled]="task.invalid">
-    <span>{{ action === "Edit" ? "Save" : "Add" }}</span>
+<mat-dialog-actions>
+  <button mat-flat-button (click)="doAction()" [disabled]="form.invalid">
+    {{ action === 'Edit' ? 'Save' : 'Add' }}
   </button>
-  <button mat-flat-button class="bg-error text-white" (click)="closeDialog()">
-    Cancel
-  </button>
-</div>
+  <button mat-flat-button class="bg-error text-white" (click)="closeDialog()">Cancel</button>
+</mat-dialog-actions>

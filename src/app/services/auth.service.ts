@@ -129,13 +129,13 @@ export class AuthService {
   }
   userTypeRouting(rol: string) {
     if (rol == '1') {
-      this.routes.navigate(['admin']);
+      this.routes.navigate(['dashboards/dashboard2']);
       return;
     } else if (rol == '2') {
-      this.routes.navigate(['dashboard']);
+      this.routes.navigate(['dashboards/dashboard2']);
       return;
     } else if (rol == '3') {
-      this.routes.navigate(['client']);
+      this.routes.navigate(['dashboards/dashboard2']);
       return;
     }
   }
