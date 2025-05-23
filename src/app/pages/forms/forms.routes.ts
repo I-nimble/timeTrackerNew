@@ -24,7 +24,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Autocomplete',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Autocomplete' },
           ],
         },
@@ -35,7 +35,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Button',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Button' },
           ],
         },
@@ -46,7 +46,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Checkbox',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Checkbox' },
           ],
         },
@@ -58,7 +58,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Radio Button',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Radio Button' },
           ],
         },
@@ -69,7 +69,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Datepicker',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Datepicker' },
           ],
         },
@@ -85,7 +85,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Form Layouts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Layouts' },
           ],
         },
@@ -96,7 +96,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Form Horizontal',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Horizontal' },
           ],
         },
@@ -107,7 +107,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Form Vertical',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Vertical' },
           ],
         },
@@ -118,7 +118,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Form Wizard',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Wizard' },
           ],
         },
@@ -129,7 +129,7 @@ export const FormsRoutes: Routes = [
         data: {
           title: 'Form Toastr',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Toastr' },
           ],
         },

@@ -22,6 +22,8 @@ import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.com
 import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
+import { AppStorageComponent } from './storage/storage.component';
+import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -33,7 +35,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Chat',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Chat' },
           ],
         },
@@ -44,7 +46,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Calendar',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Calendar' },
           ],
         },
@@ -55,7 +57,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Notes',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Notes' },
           ],
         },
@@ -67,7 +69,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Email',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Email' },
           ],
         },
@@ -78,7 +80,7 @@ export const AppsRoutes: Routes = [
             data: {
               title: 'Email Detail',
               urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Dashboard', url: '/dashboards/dashboard2' },
                 { title: 'Email Detail' },
               ],
             },
@@ -91,7 +93,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Roll Base Access',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Roll Base Access' },
           ],
         },
@@ -102,8 +104,30 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Todo App',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Todo App' },
+          ],
+        },
+      },
+      {
+        path: 'storage',
+        component: AppStorageComponent,
+        data: {
+          title: 'Storage',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Storage' },
+          ],
+        },
+      },
+            {
+        path: 'talent-match',
+        component: AppTalentMatchComponent,
+        data: {
+          title: 'Talent match',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'talent match' },
           ],
         },
       },
@@ -113,7 +137,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Kanban',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Kanban' },
           ],
         },
@@ -124,7 +148,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Tickets',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Tickets' },
           ],
         },
@@ -135,7 +159,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Contacts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Contacts' },
           ],
         },
@@ -146,7 +170,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Courses',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Courses' },
           ],
         },
@@ -157,7 +181,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Contact List',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Contact List' },
           ],
         },
@@ -168,7 +192,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Course Detail',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Course Detail' },
           ],
         },
@@ -179,7 +203,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Posts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Posts' },
           ],
         },
@@ -190,18 +214,18 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Blog Detail',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Blog Detail' },
           ],
         },
       },
       {
-        path: 'employee',
+        path: 'time-tracker',
         component: AppEmployeeComponent,
         data: {
-          title: 'Employee',
+          title: 'Time tracker',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee' },
           ],
         },
@@ -217,7 +241,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Invoice' },
           ],
         },
@@ -228,7 +252,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Add Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Add Invoice' },
           ],
         },
@@ -239,7 +263,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'View Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'View Invoice' },
           ],
         },
@@ -250,7 +274,7 @@ export const AppsRoutes: Routes = [
         data: {
           title: 'Edit Invoice',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Edit Invoice' },
           ],
         },

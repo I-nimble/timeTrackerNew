@@ -19,7 +19,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Area Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Area Chart' },
           ],
         },
@@ -30,7 +30,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Candlestick',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Candlestick' },
           ],
         },
@@ -41,7 +41,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Column Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Column Chart' },
           ],
         },
@@ -52,7 +52,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Doughnut-Pie Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Doughnut-Pie Chart' },
           ],
         },
@@ -63,7 +63,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Gredient Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Gredient Chart' },
           ],
         },
@@ -74,7 +74,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Line Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Line Chart' },
           ],
         },
@@ -85,7 +85,7 @@ export const ChartsRoutes: Routes = [
         data: {
           title: 'Radial-Radar Chart',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Radial-Radar Chart' },
           ],
         },

@@ -23,6 +23,16 @@ import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
+import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+export function jwtOptionsFactory() {
+  return {
+    tokenGetter: () => localStorage.getItem('jwt'),
+    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
+    disallowedRoutes: ['/auth/signin', '/auth/signup'],
+  };
+}
 
 @Component({
   selector: 'app-side-login',
@@ -35,7 +45,8 @@ import { Loader } from 'src/app/app.models';
     EntriesService,
     SignupDataService,
     UsersService,
-    CompaniesService
+    CompaniesService,
+    MatSnackBar,
   ],
   templateUrl: './side-login.component.html',
 })
@@ -75,6 +86,7 @@ export class AppSideLoginComponent {
      private employeeService: UsersService,
      private companieService: CompaniesService,
      private authService: AuthService,
+     private snackBar: MatSnackBar,
   ) {}
 
   form = new FormGroup({
@@ -138,7 +150,7 @@ export class AppSideLoginComponent {
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;
-          this.notificationStore.addNotifications(error.message);
+          this.openSnackBar('Error al iniciar sesión: ' + (err.error?.message || ' Intenta de nuevo'));
         },
       });
     }
@@ -157,6 +169,14 @@ export class AppSideLoginComponent {
       this.message = null;
       this.passerror = false;
     }, 3000);
+  }
+
+  openSnackBar(message: string, action: string = 'Cerrar') {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 
   private validateEmail(email: string): boolean {

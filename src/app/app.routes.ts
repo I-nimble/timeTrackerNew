@@ -61,13 +61,13 @@ export const routes: Routes = [
       {
         path: 'tables',
         loadChildren: () =>
-          import('./pages/tables/tables.routes').then((m) => m.TablesRoutes),
+          import('./pages/apps/storage/tables.routes').then((m) => m.DatatablesRoutes),
         canActivate: [AuthGuard],
       },
       {
         path: 'datatable',
         loadChildren: () =>
-          import('./pages/datatable/datatable.routes').then(
+          import('./pages/apps/storage/tables.routes').then(
             (m) => m.DatatablesRoutes
           ),
         canActivate: [AuthGuard],
