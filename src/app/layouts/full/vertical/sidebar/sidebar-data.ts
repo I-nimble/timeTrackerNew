@@ -80,7 +80,7 @@ export const navItems: NavItem[] = [
     displayName: 'Time tracker',
     iconName: 'brand-ctemplar',
     bgcolor: 'primary',
-    route: 'apps/employee',
+    route: 'apps/time-tracker',
   },
   {
     displayName: 'Notes',

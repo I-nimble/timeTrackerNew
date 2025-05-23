@@ -220,10 +220,10 @@ export const AppsRoutes: Routes = [
         },
       },
       {
-        path: 'employee',
+        path: 'time-tracker',
         component: AppEmployeeComponent,
         data: {
-          title: 'Employee',
+          title: 'Time tracker',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Employee' },
