@@ -24,6 +24,7 @@ import { EmployeeDetailsComponent } from './employee/employee-details/employee-d
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 import { AppStorageComponent } from './storage/storage.component';
 import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
+import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -37,6 +38,17 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Chat' },
+          ],
+        },
+      },
+      {
+        path: 'chat/support',
+        component: HrOperationsComponent,
+        data: {
+          title: 'Chat',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Support chat' },
           ],
         },
       },
