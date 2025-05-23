@@ -18,6 +18,9 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideClientHydration } from '@angular/platform-browser';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { ReportsService } from './services/reports.service';
+import { WebSocketService } from './services/socket/web-socket.service';
 import { JwtInterceptor } from './services/jwt.interceptor';
 
 import { ToastrModule } from 'ngx-toastr';
@@ -46,8 +49,19 @@ export function HttpLoaderFactory(http: HttpClient): any {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
+export function jwtOptionsFactory() {
+  return {
+    tokenGetter: () => localStorage.getItem('jwt'),
+    allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
+    disallowedRoutes: ['/auth/signin', '/auth/signup'],
+  };
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
+    JwtHelperService,
+    WebSocketService,
+    ReportsService,
     provideAnimationsAsync(), // required animations providers
     provideToastr(), // Toastr providers
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -91,6 +105,12 @@ export const appConfig: ApplicationConfig = {
           provide: TranslateLoader,
           useFactory: HttpLoaderFactory,
           deps: [HttpClient],
+        },
+      }),
+      JwtModule.forRoot({
+        jwtOptionsProvider: {
+          provide: JWT_OPTIONS,
+          useFactory: jwtOptionsFactory,
         },
       })
     ),

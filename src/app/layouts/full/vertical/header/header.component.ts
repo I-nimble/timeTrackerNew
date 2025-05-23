@@ -21,6 +21,7 @@ import { AppSettings } from 'src/app/config';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { environment } from 'src/environments/environment';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface notifications {
   id: number;
@@ -73,8 +74,8 @@ export class HeaderComponent implements OnInit {
 
   isCollapse: boolean = false; // Initially hidden
   company: any;
-  userName: any;
-  companyLogo: any = null;
+  userName:any;
+  companyLogo:any = "assets/images/default-logo.jpg";
   userEmail: any;
   assetsPath: string = environment.assets;
   totalApplications: number = 0;
@@ -124,7 +125,8 @@ export class HeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
-    private applicationsService: ApplicationsService
+    private applicationsService: ApplicationsService,
+    private authService: AuthService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -132,10 +134,11 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
-    this.userData();
+    this.getUserData();
     this.getTotalApplications();
   }
-  userData() {
+
+  getUserData(){
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
@@ -152,7 +155,7 @@ export class HeaderComponent implements OnInit {
       this.companieService
         .getCompanyLogo(company.company_id)
         .subscribe((logo) => {
-          this.companyLogo = logo;
+          if(logo != null) this.companyLogo = logo;
         });
     });
   }
@@ -188,6 +191,10 @@ export class HeaderComponent implements OnInit {
 
   private emitOptions() {
     this.optionsChange.emit(this.options);
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
   notifications: notifications[] = [
