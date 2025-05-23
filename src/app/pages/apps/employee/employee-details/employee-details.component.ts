@@ -4,7 +4,6 @@ import { MatCardModule } from '@angular/material/card';
 import {
   ApexAxisChartSeries,
   ApexChart,
-  ChartComponent,
   ApexDataLabels,
   ApexYAxis,
   ApexLegend,
@@ -18,12 +17,12 @@ import {
 } from 'ng-apexcharts';
 import { MatIconModule } from '@angular/material/icon'; 
 import { Location } from '@angular/common';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import moment from 'moment-timezone';
-import { CompaniesService } from 'src/app/services/companies.service';
 import { UsersService } from 'src/app/services/users.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -44,50 +43,46 @@ export type ChartOptions = {
 };
 
 @Component({
+  standalone: true,
   selector: 'app-employee-details',
   templateUrl: './employee-details.component.html',
   styleUrls: ['./employee-details.component.scss'],
   imports: [MatCardModule, NgApexchartsModule,MatIconModule],
 })
 export class EmployeeDetailsComponent implements OnInit {
-  employeeId: string | null = null;
+  userId: string | null = null;
   datesRange: any = {};
-  filters: any = { user: 'all', company: 'all' };
+  filters: any = { user: { id: null }, company: 'all', project: 'all' };
   hoursElapsed: number = 0;
   hoursRemaining: number = 0;
   companyTimezone: string = 'UTC';
   entries: any = [];
   user: any;
+  schedules: any = [];
 
-  public mostvisitChart: Partial<ChartOptions> | any;
-  public salesOverviewChart: Partial<ChartOptions> | any;
-
-
-
-
+  public weeklyHoursChart: Partial<ChartOptions> | any;
+  public dailyHoursChart: Partial<ChartOptions> | any;
 
   constructor(
     private route: ActivatedRoute,
     private location: Location,
-    private ratingsEntriesService: RatingsEntriesService,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
-    private companieService: CompaniesService,
     private userService: UsersService,
-     
+    private employeesService: EmployeesService,
+    private snackBar: MatSnackBar,
   ) {
-    this.mostvisitChart = {
+    this.weeklyHoursChart = {
       series: [
         {
           name: 'Worked',
-          data: [8, 6, 8, 5.5, 8, 8],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
         {
           name: 'Not worked',
-          data: [0, 2, 0, 2.5, 0, 0],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
       ],
-  
       chart: {
         type: 'bar',
         fontFamily: "'DM Sans',sans-serif",
@@ -136,8 +131,8 @@ export class EmployeeDetailsComponent implements OnInit {
       },
     };
 
-    this.salesOverviewChart = {
-      series: [75, 25],
+    this.dailyHoursChart = {
+      series: [0, 0],
       chart: { type: 'donut', height: 275 },
       labels: ['Worked', 'Not worked'],
       colors: ['#92b46c', '#adb0bb'],
@@ -146,109 +141,151 @@ export class EmployeeDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.user = this.userService.getSelectedUser();
-    this.employeeId = this.route.snapshot.paramMap.get('id');
-    this.loadCompanyData();
-    //this.defaultWeek();
+    this.userId = this.route.snapshot.paramMap.get('id');
+
+    if(!this.user.name || !this.userId) {
+      this.openSnackBar("Select a user to see their report", "Close");
+      this.location.back();
+    }
+
+    this.defaultWeek();
+    this.getDailyHours();
   }
 
-  // private defaultWeek(): void {
-  //   const firstday = moment().isoWeekday(1).format('YYYY/MM/DD');
-  //   const lastday = moment().isoWeekday(5).format('YYYY/MM/DD');
-  //   this.datesRange = { firstSelect: firstday, lastSelect: lastday };
-  // }
-
-  private loadCompanyData(): void {
-    this.companieService.getByOwner().subscribe((company: any) => {
-      this.filters.company = company.company;
-      company.company.timezone != null ? this.companyTimezone = company.company.timezone : this.companyTimezone = 'UTC';
-      // this.loadEntries();
-      this.getSchedules();
-    });
+  private defaultWeek(): void {
+    const firstday = moment().isoWeekday(1).format('YYYY-MM-DD');
+    const lastday = moment().isoWeekday(7).format('YYYY-MM-DD');
+    this.datesRange = { firstSelect: firstday, lastSelect: lastday };
   }
 
-  // private loadEntries(): void {
-  //   const userParams = { id: this.employeeId }; 
+  private getWeeklyHours(): void {
+    const userParams = { id: this.userId }; 
     
-  //   this.reportsService.getRange(
-  //     this.datesRange, 
-  //     userParams, 
-  //     this.filters
-  //   ).subscribe(v => {
-  //     this.entries = v;
-  //     this.ratingsEntriesService.getEntryId(this.entries).subscribe(processedEntries => {
-  //       console.log('Processed Entries:', processedEntries);
-  //     });
-  //   });
-  // }
-
-  // private processEntries(entries: any[]): void {
-  //   // Lógica idéntica a TeamReportsComponent.arrangeEntries()
-  //   const totalHoursPerDay = entries.reduce((acc, entry) => {
-  //     const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
-  //     const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
-  //     acc[date] = (acc[date] || 0) + duration;
-  //     return acc;
-  //   }, {});
-
-  //   // Actualizar gráfico de barras
-  //   this.mostvisitChart.series[0].data = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => 
-  //     totalHoursPerDay[day.substring(0, 3)] || 0
-  //   );
-
-  //   // Actualizar gráfico de donut con horas diarias
-  //   // const totalDailyHours = Object.values(totalHoursPerDay).reduce((a: number, b: number) => a + b, 0);
-  //   // this.salesOverviewChart.series = [totalDailyHours, 24 - totalDailyHours];
-  // }
-
-  private getSchedules(): void {
-    this.schedulesService.get().subscribe({
-      next: (schedules: any) => {
-         schedules = schedules.schedules;
-        const dayOfWeek = new Date().getUTCDay() || 7; 
-        const todaySchedule = schedules.find(
-          (schedule: any) =>
-            schedule.employee_id == this.employeeId &&
-            schedule.days.some((day: any) => day.id === dayOfWeek)
-        );
-
-        if (todaySchedule) {
-          const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
-          const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
-          const now = moment.tz(this.companyTimezone);
-          const currentTime = moment.tz();
-
-          start.set({
-              year: currentTime.year(),
-              month: currentTime.month(),
-              date: currentTime.date(),
-            });
-            end.set({
-              year: currentTime.year(),
-              month: currentTime.month(),
-              date: currentTime.date(),
-            });
-          
-          if (end.isBefore(start)) end.add(1, 'day');
-
-          const totalWorkHours = end.diff(start, 'hours', true);
-          
-          this.hoursElapsed = currentTime.diff(start, 'hours', true);
-          this.hoursElapsed = Math.min(Math.max(this.hoursElapsed, 0), totalWorkHours);
-
-          this.hoursRemaining = totalWorkHours - this.hoursElapsed;
-
-          // Actualizar gráfico
-          this.salesOverviewChart.series = [
-            this.hoursElapsed, 
-            this.hoursRemaining
-          ];
-        }
-      },
-      error: (err) => console.error('Error fetching schedules:', err)
+    this.reportsService.getRange(
+      this.datesRange, 
+      userParams, 
+      this.filters
+    ).subscribe(entries => {
+      this.entries = entries;
+      this.processEntries(this.entries);
     });
+  }
+
+  private processEntries(entries: any[]): void {
+    // Calculate worked hours per day
+    const workedHoursPerDay = entries.reduce((acc, entry) => {
+      const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
+      const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
+      acc[date] = (acc[date] || 0) + duration;
+      return acc;
+    }, {});
+    
+    // Calculate total scheduled hours per day for each day in each schedule
+    const totalHoursPerDay = this.schedules.reduce((acc: any, schedule: any) => {
+      // Calculate duration for this schedule
+      const today = moment().tz(this.companyTimezone).format('YYYY-MM-DD');
+      const start = moment.tz(`${today} ${schedule.start_time}`, 'YYYY-MM-DD HH:mm:ss', this.companyTimezone);
+      const end = moment.tz(`${today} ${schedule.end_time}`, 'YYYY-MM-DD HH:mm:ss', this.companyTimezone);
+      if (end.isBefore(start)) end.add(1, 'day');
+      const duration = end.diff(start, 'hours', true);
+      // Assign duration to each day in schedule.days
+      if (Array.isArray(schedule.days)) {
+        schedule.days.forEach((dayObj: any) => {
+          const dayShort = dayObj.name.substring(0, 3);
+          acc[dayShort] = (acc[dayShort] || 0) + duration;
+        });
+      }
+      return acc;
+    }, {});
+
+    this.weeklyHoursChart.series = [
+      {
+        name: 'Worked',
+        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => 
+          Number(workedHoursPerDay[day.substring(0, 3)]).toFixed(2) || 0
+        ),
+      },
+      {
+        name: 'Not worked',
+        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+          const total = totalHoursPerDay[day.substring(0, 3)] || 0;
+          const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
+          return Number(Math.max(total - worked, 0)).toFixed(2);
+        }),
+      }
+    ];
+  }
+
+  private getDailyHours(): void {
+    if(!this.userId) {
+      this.openSnackBar('User ID is not available', 'Close');
+      return;
+    };
+
+    this.employeesService.getById(this.userId).subscribe({
+      next: (employee: any) => {
+        this.filters.user.id = employee[0].id;
+
+        this.schedulesService.getById(employee[0].id).subscribe({
+          next: (schedules: any) => {
+            this.schedules = schedules.schedules;
+            const dayOfWeek = new Date().getUTCDay() || 7; 
+            const todaySchedule = this.schedules.find(
+              (schedule: any) => schedule.days.some((day: any) => day.id === dayOfWeek)
+            );
+    
+            if (todaySchedule) {
+              const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
+              const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
+              const currentTime = moment.tz();
+    
+              start.set({
+                year: currentTime.year(),
+                month: currentTime.month(),
+                date: currentTime.date(),
+              });
+              end.set({
+                year: currentTime.year(),
+                month: currentTime.month(),
+                date: currentTime.date(),
+              });
+              if (end.isBefore(start)) end.add(1, 'day');
+    
+              const totalWorkHours = end.diff(start, 'hours', true);
+              
+              this.hoursElapsed = currentTime.diff(start, 'hours', true);
+
+              this.hoursElapsed = Number(Math.min(Math.max(this.hoursElapsed, 0), totalWorkHours).toFixed(2));
+              this.hoursRemaining = Number((totalWorkHours - this.hoursElapsed).toFixed(2));
+    
+              // Update daily hours chart
+              this.dailyHoursChart.series = [
+                this.hoursElapsed, 
+                this.hoursRemaining
+              ];
+            }
+
+            this.getWeeklyHours();
+          },
+          error: (err) => {
+            console.error(err);
+            this.openSnackBar('Error fetching schedules', 'Close');
+          }
+        });
+      }
+    });
+
   }
 
   goBack(): void {
     this.location.back(); 
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }
