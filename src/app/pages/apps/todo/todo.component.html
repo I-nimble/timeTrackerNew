@@ -81,7 +81,12 @@
                 <h4 class="f-w-500 f-s-18 m-0">Edit Task</h4>
                 }
                 @else {
-                <h4 class="f-w-500 f-s-18 m-0">New Task</h4>
+                <div class="w-100">
+                  <h4 class="f-w-500 f-s-18 m-0">New Task</h4>
+                </div>
+                <div *ngIf="teamMemberId === null">
+                  <p class="f-s-12 text-muted">*Select a team member</p>
+                </div>
                 }
               </mat-toolbar>
               <form (ngSubmit)="addTodo()" [formGroup]="newTaskForm">
@@ -99,6 +104,16 @@
                     <mat-datepicker-toggle matSuffix [for]="startDateDP"></mat-datepicker-toggle>
                     <mat-datepicker #startDateDP></mat-datepicker>
                   </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                  <mat-label class="f-s-14 m-b-8 d-block">Select a board</mat-label>
+                  <select matNativeControl formControlName="board_id">
+                    <option [value]="null">None</option>
+                    <option *ngFor="let board of boards" [value]="board.id">
+                      {{ board.name }}
+                    </option>
+                  </select>
+                </mat-form-field>
 
                   <mat-form-field appearance="outline" class="w-100 mt-2">
                     <mat-label class="f-s-14 m-b-8 d-block">Priority</mat-label>
