@@ -39,8 +39,6 @@ export function jwtOptionsFactory() {
   standalone: true,
   imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
   providers: [
-    JwtHelperService,
-    { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
     AuthService,
     WebSocketService,
     NotificationsService,
