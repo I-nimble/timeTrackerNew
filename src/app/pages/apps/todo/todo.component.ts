@@ -29,6 +29,7 @@ import { SchedulesService } from 'src/app/services/schedules.service';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-todo',
@@ -76,6 +77,7 @@ export class AppTodoComponent implements OnInit {
   toDoToEdit!: any;
   teamMembers: any[] = [];
   priorities: any[] = [];
+  loggedInUser: any;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
   newTaskForm: FormGroup = this.fb.group({
@@ -105,9 +107,10 @@ export class AppTodoComponent implements OnInit {
     public ratingsEntriesService: RatingsEntriesService,
     public schedulesService: SchedulesService,
     private userService: UsersService,
-    private employeesService: EmployeesService,
+    public employeesService: EmployeesService,
+    public companiesService: CompaniesService,
     public kanbanService: BoardsService,
-  ) { }
+  ) {}
 
   isOver(): boolean {
     return window.matchMedia(`(max-width: 960px)`).matches;
@@ -193,6 +196,14 @@ export class AppTodoComponent implements OnInit {
       this.userService.getEmployees().subscribe({
         next: (employees: any) => {
           this.teamMembers = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
+          this.companiesService.getEmployer(this.teamMembers[0].company_id).subscribe(data => {
+          this.loggedInUser = {
+            name: data.user?.name,
+            last_name: data.user?.last_name,
+            id: data?.user?.id,
+            company_id: this.teamMembers[0]?.company_id
+          };
+        });
         },
       });
     }
@@ -204,15 +215,23 @@ export class AppTodoComponent implements OnInit {
     });
   }
 
-  handleTMSelection(event: any) {
+handleTMSelection(event: any) {
+  if (event.value === this.loggedInUser?.id) {
+    this.teamMemberId = this.loggedInUser.id;
+    this.newTaskForm.patchValue({
+      company_id: this.loggedInUser.company_id,
+      employee_id: this.loggedInUser.id
+    });
+  } else {
     const selectedTeamMember = this.teamMembers.find(tm => tm.id === event.value);
     this.teamMemberId = selectedTeamMember.user.id;
     this.newTaskForm.patchValue({
       company_id: selectedTeamMember.company_id,
       employee_id: selectedTeamMember.user.id
     });
-    this.buildToDoForm();
   }
+  this.buildToDoForm();
+}
 
   public onDateChange(event: any) {
     const today = new Date()
@@ -310,7 +329,7 @@ export class AppTodoComponent implements OnInit {
       next: () => {
         this.selectedCategory.set('uncomplete');
         this.buildToDoForm();
-        this.calendar.getToDos();
+        this.calendar?.getToDos();
       },
       error: (res: any) => {
         this.openSnackBar('There was an error submitting the goal', 'Close');
@@ -362,7 +381,7 @@ export class AppTodoComponent implements OnInit {
           this.toDoArray[taskIndex] = response;
         }
         this.buildToDoForm();
-        this.calendar.getToDos();
+        this.calendar?.getToDos();
       },
       error: () => {
         this.openSnackBar('Error submitting form', 'Close');
@@ -415,7 +434,7 @@ export class AppTodoComponent implements OnInit {
               (task: any) => task.id != id
             );
             this.buildToDoForm();
-            this.calendar.getToDos();
+            this.calendar?.getToDos();
             this.openSnackBar('Todo successfully deleted!', 'Close');
           },
           error: (error: ErrorEvent) => {
