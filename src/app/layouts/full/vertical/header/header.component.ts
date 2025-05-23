@@ -22,6 +22,8 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { environment } from 'src/environments/environment';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 
 interface notifications {
   id: number;
@@ -79,6 +81,7 @@ export class HeaderComponent implements OnInit {
   userEmail: any;
   assetsPath: string = environment.assets;
   totalApplications: number = 0;
+  recentNotifications: any[] = [];
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -127,6 +130,8 @@ export class HeaderComponent implements OnInit {
     private companieService: CompaniesService,
     private applicationsService: ApplicationsService,
     private authService: AuthService,
+    public notificationsService: NotificationsService,
+    public webSocketService: WebSocketService
   ) {
     translate.setDefaultLang('en');
   }
@@ -136,6 +141,12 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     this.getUserData();
     this.getTotalApplications();
+    this.loadNotifications();
+    this.webSocketService.getNotifications().subscribe(event => {
+      if (event === 'update') {
+        this.loadNotifications();
+      }
+    });
   }
 
   getUserData(){
@@ -196,38 +207,38 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout();
   }
-
-  notifications: notifications[] = [
+  
+  notificationIcons = [
     {
-      id: 1,
-      img: '/assets/images/profile/user-1.jpg',
-      title: 'Roman Joined the Team!',
-      subtitle: 'Congratulate him sf',
+      icon: 'fa-solid fa-circle-info',
+      color: '#92b46c',
+      type: 'Notification'
     },
     {
-      id: 2,
-      img: '/assets/images/profile/user-2.jpg',
-      title: 'New message received',
-      subtitle: 'Salma sent you new message',
+      icon: 'fa-solid fa-bell',
+      color: '#d0bf45',
+      type: 'Reminder'
     },
     {
-      id: 3,
-      img: '/assets/images/profile/user-3.jpg',
-      title: 'New Payment received',
-      subtitle: 'Check your earnings',
+      icon: 'fa-solid fa-envelope',
+      color: '#92b46c',
+      type: 'Message'
     },
     {
-      id: 4,
-      img: '/assets/images/profile/user-4.jpg',
-      title: 'Jolly completed tasks',
-      subtitle: 'Assign her new tasks',
+      icon: 'fa-solid fa-clock',
+      color: '#d0bf45',
+      type: 'Lateness alert'
     },
     {
-      id: 5,
-      img: '/assets/images/profile/user-5.jpg',
-      title: 'Hitesh Joined thed Team!',
-      subtitle: 'Congratulate him',
+      icon: 'fa-solid fa-calendar-check',
+      color: '#d0bf45',
+      type: 'Leave request'
     },
+    {
+      icon: 'fa-solid fa-briefcase',
+      color: '#b54343',
+      type: 'Job application'
+    }
   ];
 
   profiledd: profiledd[] = [
@@ -358,6 +369,19 @@ export class HeaderComponent implements OnInit {
       link: '/theme-pages/treeview',
     },
   ];
+
+  loadNotifications() {
+    this.notificationsService.get().subscribe(notifications => {
+      const allNotifications = notifications;
+      allNotifications.sort((a:any, b:any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      this.recentNotifications = allNotifications.slice(0, 5);
+    });
+  }
+
+  addNotification(notification: any) {
+    this.recentNotifications.push(notification);
+    this.recentNotifications = [...this.recentNotifications]; 
+  }
 }
 
 @Component({

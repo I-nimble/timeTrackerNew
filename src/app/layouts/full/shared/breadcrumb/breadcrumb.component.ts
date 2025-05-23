@@ -38,6 +38,20 @@ export class AppBreadcrumbComponent {
         // tslint:disable-next-line - Disables all
         this.titleService.setTitle(event['title'] + ' - Angular 19');
         this.pageInfo = event;
+        if(this.pageInfo.title === 'Notifications') {
+          this.pageInfo = {
+            "title": "Notifications",
+            "urls": [
+              {
+                "title": "Dashboard",
+                "url": "/dashboards/dashboard1"
+              },
+              {
+                "title": "Notifications"
+              }
+            ]
+          }
+        }
       });
   }
 }
