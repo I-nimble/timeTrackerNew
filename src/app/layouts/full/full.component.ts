@@ -6,7 +6,7 @@ import { CoreService } from 'src/app/services/core.service';
 import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
-import { navItems } from './vertical/sidebar/sidebar-data';
+import { getNavItems } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
@@ -81,7 +81,8 @@ interface quicklinks {
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {
-  navItems = navItems;
+  role: any = localStorage.getItem('role');
+  navItems = getNavItems(this.role);
   company: any;
   userName:any;
   companyLogo:any = 'assets/images/default-logo.jpg';

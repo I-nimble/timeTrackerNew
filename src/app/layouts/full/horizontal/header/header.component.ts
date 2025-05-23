@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
-import { navItems } from '../../vertical/sidebar/sidebar-data';
+import { getNavItems } from '../../vertical/sidebar/sidebar-data';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -339,9 +339,10 @@ export class AppHorizontalHeaderComponent implements OnInit {
 })
 export class AppHorizontalSearchDialogComponent {
   searchText: string = '';
-  navItems = navItems;
+  role: any = localStorage.getItem('role');
+  navItems = getNavItems(this.role);
 
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter((navitem:any) => navitem.displayName);
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;
