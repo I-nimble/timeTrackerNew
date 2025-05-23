@@ -8,6 +8,8 @@ import { UsersService } from '../../../services/users.service';
 import { EntriesService } from '../../../services/entries.service';
 import { forkJoin, Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { WebSocketService } from '../../../services/socket/web-socket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-top-employees',
@@ -31,15 +33,25 @@ export class AppTopEmployeesComponent {
   }
 
   dateRange: any = this.getCurrentWeekDates();
+  private subscription: Subscription[] = [];
 
   constructor(
     @Inject(RatingsEntriesService) private ratingsEntriesService: RatingsEntriesService, 
     @Inject(UsersService) private usersService: UsersService,
-    @Inject(EntriesService) private entriesService: EntriesService
+    @Inject(EntriesService) private entriesService: EntriesService,
+    private socketService: WebSocketService
   ) {}
 
   ngOnInit(): void {
     this.getDataSource();
+
+    this.socketService.socket.on('server:closedEntry', () => {
+    this.subscription.forEach((sub) => sub.unsubscribe());
+      this.getDataSource();
+    });
+    this.socketService.socket.on('server:admin:newEntry', () => {
+      this.getDataSource();
+    });
   }
   
   getDataSource() {
