@@ -20,7 +20,7 @@ export class EmployeesService {
     return this.http.get<Company[]>(this.API_URI);
   }
 
-  public getById(id:number | string): Observable<any[]> {
+  public getById(id:any | string): Observable<any[]> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 

@@ -33,7 +33,7 @@ export class RatingsService {
     return this.http.get<Ratings[]>(`${this.API_URI}/${id}`);
   }
 
-  public getByUser(id: number): Observable<Ratings[]> {
+  public getByUser(id: any): Observable<Ratings[]> {
     return this.http
       .get(`${this.API_URI}/user/${id}`)
       .pipe(map((res: any) => res.ratings));
@@ -46,7 +46,7 @@ export class RatingsService {
   }
 
   public submit(data: any, id: any = null) {
-    if (id) return this.http.put(`${this.API_URI}/${id}`, data);
+    if (id != null) return this.http.put(`${this.API_URI}/${id}`, data)
     return this.http.post(`${this.API_URI}`, data);
   }
 

@@ -252,7 +252,7 @@ handleTMSelection(event: any) {
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
-    this.ratingsService.getToDo(this.selectedDate, this.teamMemberId).subscribe({
+    this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
         if (!array || !Array.isArray(array)) {
           this.openSnackBar('No To Do data found or data is not an array.', 'Close');
