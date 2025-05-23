@@ -1,0 +1,51 @@
+<div class="card overflow-hidden">
+  <div class="card-body p-0">
+    <img
+      src="assets/images/backgrounds/profilebg.jpg"
+      alt="spike-img"
+      class="img-fluid"
+    />
+    <div class="row align-items-center">
+      <div class="col-lg-4 order-lg-1 order-2">
+        <!-- <div class="d-flex align-items-center justify-content-around m-4">
+              
+                  </div> -->
+      </div>
+      <div class="col-lg-4 mt-n3 order-lg-2 order-1">
+        <div class="mt-n5">
+          <div class="d-flex align-items-center justify-content-center mb-2">
+            <div
+              class="d-flex align-items-center justify-content-center round-110"
+            >
+              <div
+                class="border border-4 border-white d-flex align-items-center justify-content-center rounded-circle overflow-hidden round-100"
+              >
+                <img [src]="picture" alt="spike-img" class="w-100 h-100" />
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <h5 class="mb-0">{{ user.name }} {{ user.last_name }}</h5>
+            <p class="mb-0 position">{{ user.employee.position_name }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 order-last">
+        <div
+          class="list-unstyled d-flex align-items-center justify-content-end my-3 mx-4 pe-xxl-4 gap-3"
+        >
+          <app-entries-panel
+            [entryCheck]="entryCheck"
+            [currentEntryId]="currentEntryId"
+            [start_time]="start_time"
+            [entry]="startedEntry"
+            (cancel_entry)="cancelCurrentEntry($event)"
+            (end_entry)="endCurrentEntry($event)"
+            (start_entry)="addEntry($event)"
+            [timeZone]="timeZone"
+            ></app-entries-panel>
+        </div>
+        </div>
+      </div>
+    </div>
+</div>

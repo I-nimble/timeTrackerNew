@@ -108,6 +108,7 @@ export class AppSideLoginComponent {
           const role = v.role_id;
           const email = v.email;
           localStorage.setItem('role', role);
+          const route = Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2';
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
@@ -117,7 +118,7 @@ export class AppSideLoginComponent {
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.router.navigate(['/dashboards/dashboard2']);
+          this.router.navigate([route]);
           this.authService.updateLiveChatBubbleVisibility(role);
           this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
 

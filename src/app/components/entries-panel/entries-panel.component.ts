@@ -16,22 +16,26 @@ import { CustomDatePipe } from '../../services/custom-date.pipe';
 import { ProjectsService } from 'src/app/services/projects.service';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { Project } from 'src/app/models/Project.model';
-import { NotificationStore } from 'src/app/stores/notification.store';
 import { EntriesService } from 'src/app/services/entries.service';
 import { RatingsService } from 'src/app/services/ratings.service';
 import { MatDialog } from '@angular/material/dialog';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
-import * as moment from 'moment-timezone';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import moment from 'moment-timezone';
 import { Router } from '@angular/router';
-const Cookies = require('js-cookie');
+import Cookies from 'js-cookie';
 import { environment } from 'src/environments/environment';
 import { ToDoPopupComponent } from '../to-do-popup/to-do-popup.component';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MaterialModule } from 'src/app/material.module';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 @Component({
   selector: 'app-entries-panel',
+  standalone: true,
+  imports: [CommonModule, FormsModule, MaterialModule],
   templateUrl: './entries-panel.component.html',
   styleUrls: ['./entries-panel.component.scss'],
 })
@@ -52,7 +56,6 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     project_id: '',
     project: '',
   };
-  store = inject(NotificationStore);
   showProjects: boolean = false;
   showMoreOption: boolean = false;
   currentTime: any;
@@ -84,7 +87,8 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     private ratingsService: RatingsService,
     private dialog: MatDialog, 
     private notificationsService: NotificationsService,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit() {
@@ -149,25 +153,27 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
   getStartTime() {
     const now = new Date();
-    const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const localTime = moment.tz(now, localTimeZone);
-    const convertedLocaltime = localTime.clone().tz(this.timeZone).format('MM-DD-YYYY HH:mm:ss'); 
-    this.startTime = this.strToDate(convertedLocaltime)
+    const convertedLocaltime = moment.tz(now, this.timeZone).format('MM-DD-YYYY HH:mm:ss');
+    this.startTime = this.strToDate(convertedLocaltime);
 
     this.entriesService.getAllEntries({}).subscribe((entries) => {
-      const active = entries.entries.filter((entry:any) => entry.status == 0)[0]
+      const active = entries.entries.filter((entry:any) => entry.status == 0)[0];
 
-      if(active) {
+      if (active && active.start_time) {
         this.UTCStartTime = this.strToDate(moment.utc(active.start_time).format('MM-DD-YYYY HH:mm:ss'));
         const utcStartTime = moment.utc(active.start_time, true);
-        const convertedStartTime = utcStartTime.clone().tz(this.timeZone); 
-        this.startTime = this.strToDate(convertedStartTime.format('MM-DD-YYYY HH:mm:ss'));
+        if (utcStartTime.isValid()) {
+          const convertedStartTime = utcStartTime.tz(this.timeZone);
+          if (convertedStartTime && convertedStartTime.isValid()) {
+            this.startTime = this.strToDate(convertedStartTime.format('MM-DD-YYYY HH:mm:ss'));
+          }
+        }
         if(this.entryCheck) {
-          this.stopTimer()
-          this.startTimer(this.UTCStartTime)
+          this.stopTimer();
+          this.startTimer(this.UTCStartTime);
         }
       }
-    })
+    });
   }
 
   startedEarly() {
@@ -184,8 +190,11 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   convertToCompanyStr(timeString:string) {
     const UTCTime = moment.utc(timeString, 'HH:mm:ss', true);
     const momentTime = UTCTime.tz(this.timeZone);
+    if (momentTime?.isValid()) {
     const companyTimeString = momentTime.format('HH:mm:ss');
     return companyTimeString;
+    }
+    return ;
   }
 
   validateStartTime() {
@@ -195,7 +204,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
         schedules = schedules.schedules
         if(schedules.length <= 0 ) {
-          this.store.addNotifications("You don't have a defined schedule.");
+          this.showSnackbar("You don't have a defined schedule.");
         } else {
           let dayOfWeek:any = null
           if (this.entry.date)  dayOfWeek = new Date(`${this.entry.date}T00:00:00`).getUTCDay()
@@ -238,7 +247,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
                     Cookies.set('toDoNotificationSent', 'true', { expires: 1 });
                     this.notificationsService.rememberToDo({}).subscribe({
                       error: (res:any) => {
-                        this.store.addNotifications("Remember to log your achieved goals.")
+                        this.showSnackbar("Remember to log your achieved goals.");
                       }
                     })
                   }
@@ -281,20 +290,33 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
       const endTimeHour = parseInt(endTimeParts[0], 10);
       const endTimeMinute = parseInt(endTimeParts[1], 10);
       const endTimeSecond = parseInt(endTimeParts[2], 10);
-      const caracasTime = moment.tz(endTimeHour + ':' + endTimeMinute + ':' + endTimeSecond, 'HH:mm:ss', 'America/Caracas');
-      const convertedEndOfShift = caracasTime.clone().tz(this.timeZone).format('MM-DD-YYYY HH:mm:ss'); 
-      const endOfShiftDate = this.strToDate(convertedEndOfShift);
-      const UTCEndOfShift = this.strToDate(moment(endOfShiftDate).tz(this.timeZone, true).utc().format('MM-DD-YYYY HH:mm:ss'));
-      return UTCEndOfShift
+      const caracasTime = moment.tz(
+        `${endTimeHour}:${endTimeMinute}:${endTimeSecond}`,
+        'HH:mm:ss',
+        'America/Caracas'
+      );
+      if (caracasTime.isValid()) {
+        let convertedEndOfShiftMoment = caracasTime;
+        if (this.timeZone && this.timeZone !== 'America/Caracas') {
+          convertedEndOfShiftMoment = caracasTime.clone().tz(this.timeZone);
+        }
+        const convertedEndOfShift = convertedEndOfShiftMoment.format('MM-DD-YYYY HH:mm:ss'); 
+        const endOfShiftDate = this.strToDate(convertedEndOfShift);
+        const UTCEndOfShift = this.strToDate(
+          moment(endOfShiftDate).tz(this.timeZone, true)?.utc().format('MM-DD-YYYY HH:mm:ss')
+        );
+        return UTCEndOfShift;
+      }
+      return;
     } else {
       return null;
     }
   }
 
   strToDate(date:string) {
-    const parts = date.split(' ');
-    const dateParts = parts[0].split('-');
-    const timeParts = parts[1].split(':');
+    const parts = date?.split(' ');
+    const dateParts = parts[0]?.split('-');
+    const timeParts = parts[1]?.split(':');
 
     const month = parseInt(dateParts[0], 10);
     const day = parseInt(dateParts[1], 10);
@@ -357,7 +379,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
         }
       },
       error: () => {
-        this.store.addNotifications('Error getting user name', 'error');
+        this.showSnackbar('Error getting user name');
       }
     })
   }
@@ -405,13 +427,13 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
           }); 
           dialogRef.afterClosed().subscribe(result => {
             if (result == 'now') {
-              this.router.navigate(['ratings/tm']);
+              // this.router.navigate(['ratings/tm']);
             }
           });
         }
       },
       error: (err) => {
-        this.store.addNotifications('Error checking today goals', 'error');
+        this.showSnackbar('Error checking today goals');
         console.error(err)
       }
     })
@@ -423,5 +445,13 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  showSnackbar(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }

@@ -7,6 +7,7 @@ import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 
+import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 
 export const DashboardsRoutes: Routes = [
   {
@@ -24,6 +25,13 @@ export const DashboardsRoutes: Routes = [
         component: AppDashboard2Component,
         data: {
           title: 'Dashboard 2',
+        },
+      },
+      {
+        path: 'tm',
+        component: AppDashboardTMComponent,
+        data: {
+          title: 'Dashboard',
         },
       },
       {
