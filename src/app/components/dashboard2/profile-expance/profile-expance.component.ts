@@ -48,12 +48,12 @@ export class AppProfileExpanceCpmponent {
       series: [
         {
           colors: 'var(--mat-sys-primary)',
-          name: 'Profit',
+          name: 'Completed',
           data: [60, 40, 37, 35, 35, 20, 30],
         },
         {
           colors: '#fb977d',
-          name: 'Expenses',
+          name: 'No completed',
           data: [15, 30, 15, 35, 25, 30, 30],
         },
       ],

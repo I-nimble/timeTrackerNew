@@ -1,0 +1,18 @@
+<mat-card class="chat-app cardWithShadow overflow-hidden p-16">
+    <div class="row container">
+        <div class="col-12 col-md-6">
+            <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="d-flex justify-content-start align-items-center m-b-24">
+                    <img src="assets/images/inimble.png" class="logo m-r-24" alt="Inimble logo">
+                    <div class="chat-heading">
+                        <h2>HR & Operations</h2>
+                        <p class="text-success"><span class="m-r-16"></span>Online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <iframe [src]="safeChatUrl" height="500" width="100%" id="chat-box"></iframe> 
+        </div>
+    </div>
+</mat-card>

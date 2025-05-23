@@ -18,7 +18,7 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 
 /** Constants used to fill up our data base. */
-const COLORS = [
+const STATUS = [
   'maroon',
   'red',
   'orange',
@@ -73,7 +73,7 @@ export class AppMixTableComponent {
   codeForMixTable = MIX_TABLE_HTML_SNIPPET;
   codeForMixTableTs = MIX_TABLE_TS_SNIPPET;
 
-  displayedColumns = ['id', 'name', 'progress', 'color'];
+  displayedColumns = ['id', 'name', 'productivity', 'status'];
   dataSource: MatTableDataSource<UserData>;
 
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
@@ -83,8 +83,8 @@ export class AppMixTableComponent {
   constructor(breakpointObserver: BreakpointObserver) {
     breakpointObserver.observe(['(max-width: 600px)']).subscribe((result) => {
       this.displayedColumns = result.matches
-        ? ['id', 'name', 'progress', 'color']
-        : ['id', 'name', 'progress', 'color'];
+        ? ['id', 'name', 'productivity', 'status']
+        : ['id', 'name', 'productivity', 'status'];
     });
 
     // Create 100 users
@@ -123,14 +123,14 @@ function createNewUser(id: number): UserData {
   return {
     id: id.toString(),
     name: name,
-    progress: Math.round(Math.random() * 100).toString(),
-    color: COLORS[Math.round(Math.random() * (COLORS.length - 1))],
+    productivity: Math.round(Math.random() * 100).toString(),
+    status: STATUS[Math.round(Math.random() * (STATUS.length - 1))],
   };
 }
 
 export interface UserData {
   id: string;
   name: string;
-  progress: string;
-  color: string;
+  productivity: string;
+  status: string;
 }
