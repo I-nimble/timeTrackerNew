@@ -24,7 +24,7 @@ export class NoteService {
     this.notes.update(
       (currentNotes) =>
         currentNotes.map((n) =>
-          n.title === updatedNote.title ? updatedNote : n
+          n.content === updatedNote.content ? updatedNote : n
         )
     );
   }

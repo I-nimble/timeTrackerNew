@@ -19,13 +19,13 @@ export class notAuthGuard {
         this.isAdmin = isAdmin
       })
       if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '2'){
-        this.router.navigate(['dashboard'])
+        this.router.navigate(['dashboards/dashboard2'])
         return false;
       }else if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '1'){
-        this.router.navigate(['admin'])
+        this.router.navigate(['dashboards/dashboard2'])
         return false
       }else if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '3'){
-        this.router.navigate(['client'])
+        this.router.navigate(['dashboards/dashboard2'])
         return false
       }else{
         return true

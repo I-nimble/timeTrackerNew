@@ -118,8 +118,7 @@ export class UsersService {
 
     return this.http.patch(`${this.API_URI}/users/${userData.id}`, form);
   }
-
-  public delete(id: string) {
+  public delete(id: string | number) {
     return this.http.delete(`${this.API_URI}/users/${id}`);
   }
 
