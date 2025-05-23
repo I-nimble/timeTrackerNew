@@ -96,7 +96,7 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat']">HR and Operations</a>
+    <a mat-button [routerLink]="['/apps/chat/support']">HR & Operations</a>
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
@@ -111,8 +111,15 @@
           <span class="point bg-primary"></span>
         </div>
       </button>
-    <a mat-button [routerLink]="['/apps/email/inbox']">Talent Match</a>
-    <a mat-button [routerLink]="['/apps/invoice']">Payroll</a>
+    <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
+    Talent Match
+  </span></a>
+    <mat-menu #invoiceMenu="matMenu">
+    <button mat-menu-item [routerLink]="['']">
+      Invoice
+    </button>
+    </mat-menu>
+    <a mat-button [matMenuTriggerFor]="invoiceMenu">Payroll</a>
   </div>
 
   <span class="flex-1-auto"></span>
@@ -448,10 +455,6 @@
           <div class="m-l-16">
             <h6 class="f-s-16 f-w-600 m-0">{{userName}}</h6>
             <span class="f-s-14 text-body d-block m-b-4">{{company}}</span>
-            <span class="d-flex align-items-center">
-              <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
-              {{userEmail}}
-            </span>
           </div>
         </div>
       </div>
@@ -483,7 +486,7 @@
 
       <div class="p-y-12 p-x-32">
         <button
-          [routerLink]="['/authentication/login']"
+          (click)="logout()"
           mat-flat-button
           color="primary"
           class="w-100"
