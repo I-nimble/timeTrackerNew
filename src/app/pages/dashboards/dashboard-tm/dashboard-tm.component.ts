@@ -8,6 +8,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -22,6 +23,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AppDashboardTMComponent implements OnInit {
   role: string | null = localStorage.getItem('role');
+  employees: any = [];
   user: any = {
     name: '',
     last_name: '',
@@ -80,7 +82,7 @@ export class AppDashboardTMComponent implements OnInit {
 
   constructor(private usersService: UsersService, 
               private employeesService: EmployeesService,
-              private companiesService: EmployeesService,
+              private companiesService: CompaniesService,
               private entriesService: EntriesService, 
               private socketService: WebSocketService, 
               private snackBar: MatSnackBar
@@ -136,9 +138,32 @@ export class AppDashboardTMComponent implements OnInit {
             }
           },
         });
+
+        this.getEmployees()
       },
     });
   }
+
+  getEmployees() {
+  this.companiesService.getEmployees(this.user.employee.id).subscribe((employees: any) => {
+      this.employees = employees.filter((employee: any) => 
+      employee.user.active === 1 && 
+      employee.user.roles.some((role: any) => role.id === 2) &&
+      employee.user.id !== this.user.id
+    );
+
+    this.employees.forEach((employee: any) => {
+      this.usersService.getProfilePic(employee.user.id).subscribe({
+        next: (image: any) => {
+          employee.user.picture = image || this.picture; 
+        },
+        error: () => {
+          employee.user.picture = this.picture;
+        }
+      });
+    });
+  });
+}
 
   // timer
     getEntries() {
