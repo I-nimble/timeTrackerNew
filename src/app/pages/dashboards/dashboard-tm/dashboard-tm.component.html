@@ -20,7 +20,11 @@
               <div
                 class="border border-4 border-white d-flex align-items-center justify-content-center rounded-circle overflow-hidden round-100"
               >
-                <img [src]="picture" alt="spike-img" class="w-100 h-100" />
+                <img
+                  [src]="picture"
+                  alt="{{ user.name }} {{ user.last_name }}"
+                  class="w-100 h-100"
+                />
               </div>
             </div>
           </div>
@@ -43,9 +47,64 @@
             (end_entry)="endCurrentEntry($event)"
             (start_entry)="addEntry($event)"
             [timeZone]="timeZone"
-            ></app-entries-panel>
-        </div>
+          ></app-entries-panel>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Company Information -->
+<div class="row mt-4">
+  <div class="col-lg-5">
+    <div class="card shadow-none border">
+      <div class="card-body company">
+        <p class="mb-3">{{ user.employee.company }}</p>
+        <div class="vstack gap-3 mt-4">
+          <div
+            class="hstack gap-6 small"
+            *ngIf="user.employee.supervisor != ''"
+          >
+            <mat-icon>person</mat-icon>
+            <p class="mb-0">{{ user.employee.supervisor }}</p>
+          </div>
+          <div class="hstack gap-6 small" *ngIf="user.employee.website != ''">
+            <mat-icon>open_in_new</mat-icon>
+            <a
+              class="mb-0"
+              href="{{ user.employee.website }}"
+              target="_blank"
+              >{{ user.employee.website }}</a
+            >
+          </div>
+          <div class="hstack gap-6 small" *ngIf="user.employee.location != ''">
+            <mat-icon>location_on</mat-icon>
+            <p class="mb-0">{{ user.employee.location }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7" *ngIf="employees.length > 0">
+    <div class="card shadow-none border">
+      <div class="card-body tm-photos">
+        <div class="row">
+          <div class="col-4" *ngFor="let employee of employees">
+            <div style="display: flex; justify-content: center">
+              <img
+                [src]="employee.user.picture || picture"
+                [alt]="employee.user.name"
+                width="100"
+                height="100"
+                class="rounded-circle"
+              />
+            </div>
+            <p class="text-center tm">
+              {{ employee.user.name }} {{ employee.user.last_name }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
