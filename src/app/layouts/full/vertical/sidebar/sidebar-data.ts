@@ -142,12 +142,6 @@ export function getNavItems(role: number): NavItem[] {
     bgcolor: 'primary',
     route: 'apps/storage',
   },
-  {
-    displayName: 'Storage',
-    iconName: 'packages',
-    bgcolor: 'primary',
-    route: 'apps/storage',
-  },
   // {
   //   displayName: 'Blog',
   //   iconName: 'chart-donut-3',
