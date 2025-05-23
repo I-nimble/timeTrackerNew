@@ -6,8 +6,8 @@
     <mat-toolbar class="topbar topbar-xl m-auto">
       <div class="container full-width p-xs-6 justify-content-between">
         <!-- --------------------------------------------------------------- -->
-        <div class="branding p-x-0">
-          <app-branding></app-branding>
+        <div class="branding p-x-0 landingpage-logo">
+          <app-branding [fullLogoMaxWidth]="'200px'"></app-branding>
         </div>
 
         <!-- --------------------------------------------------------------- -->
@@ -29,7 +29,7 @@
             [matMenuTriggerFor]="appsmenu"
             aria-label="Notifications"
           >
-            <div class="d-flex align-items-center" style="color: #818181;">
+            <div class="d-flex align-items-center" style="color: #818181">
               Products
               <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
             </div>
@@ -89,23 +89,23 @@
             mat-button
             class="m-x-8 f-s-16 f-w-500"
             [routerLink]="['/industry']"
-            style="color: #818181;"
+            style="color: #818181"
             >Industry</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
             href="https://support.wrappixel.com/"
-            style="color: #818181;"
+            style="color: #818181"
             >Pricing</a
           >
           <a
-          mat-button
-          class="m-x-8 f-s-16 f-w-500"
-          hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
-          style="color: #818181;"
-          >Why us</a
-        >
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+            style="color: #818181"
+            >Why us</a
+          >
         </div>
 
         <div class="d-flex align-items-center gap-10">
@@ -145,8 +145,10 @@
                 Build Your Remote Team.<br> Save Money. Stay in Control.
               </h1>
               <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
-                Inimble is the all-in-one platform to hire, train, and manage top talent from Latin America.
-                We handle the hard stuff — recruiting, onboarding, payroll, compliance, and IT — so you don’t have to.
+                Inimble is the all-in-one platform to hire, train, and manage
+                top talent from Latin America. We handle the hard stuff —
+                recruiting, onboarding, payroll, compliance, and IT — so you
+                don’t have to.
               </p>
               <div class="m-t-24 hstack justify-content-center">
                 <a
@@ -375,12 +377,12 @@
         
         <div class="text-center m-t-30 m-b-32">
           <a
-                  mat-flat-button
-                  color="primary"
-                  (click)="gotoDemos()"
-                  class="btn-custom"
-                  >Use Inimble for free</a
-                >
+            mat-flat-button
+            color="primary"
+            (click)="gotoDemos()"
+            class="btn-custom"
+            >Use Inimble for free</a
+          >
         </div>
         <!-- demos and apps -->
         <div class="row m-t-24 justify-content-center">
@@ -479,7 +481,6 @@
                 using our templates</span
               >
             </div>
-            
           </div>
         </div>
       </div>
@@ -488,7 +489,7 @@
     End Template
     ------------------------------------------------------------------ -->
 
-      <!-- ------------------------------------------------------------------
+    <!-- ------------------------------------------------------------------
     buy section
     ------------------------------------------------------------------ -->
     <div class="bg-white">
@@ -537,29 +538,49 @@
     buy section
     ------------------------------------------------------------------ -->
 
-        <!-- Social Section -->
-<div class="spacer bg-white">
-  <div class="container text-center">
-    <h3 class="section-title">Let's get social</h3>
-    <div class="social-icons d-flex justify-content-center gap-15 m-t-24">
-      <a href="https://www.linkedin.com/company/inimble/" target="_blank" aria-label="LinkedIn" class="social-icon">
-        <i-tabler name="brand-linkedin" class="icon-28"></i-tabler>
-      </a>
-      <a href="https://www.facebook.com/inimble/" target="_blank" aria-label="Facebook" class="social-icon">
-        <i-tabler name="brand-facebook-filled" class="icon-28"></i-tabler>
-      </a>
-      <a href="https://www.tiktok.com/@inimbleteam" target="_blank" aria-label="Twitter" class="social-icon">
-        <i-tabler name="brand-tiktok-filled" class="icon-28"></i-tabler>
-      </a>
-      <a href="https://www.instagram.com/inimbleteam/" target="_blank" aria-label="Instagram" class="social-icon">
-        <i-tabler name="brand-instagram" class="icon-28"></i-tabler>
-      </a>
-      <a href="https://www.youtube.com/@inimbleTeam" target="_blank" aria-label="YouTube" class="social-icon">
-        <i-tabler name="brand-youtube-filled" class="icon-28"></i-tabler>
-      </a>
+    <!-- Social Section -->
+    <div class="spacer bg-white">
+      <div class="container text-center">
+        <h3 class="section-title">Let's get social</h3>
+        <div class="social-icons d-flex justify-content-center gap-20 m-t-24">
+          <a
+            href="https://www.linkedin.com/company/inimble/"
+            target="_blank"
+            aria-label="LinkedIn"
+          >
+            <i-tabler name="brand-linkedin" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.facebook.com/inimble/"
+            target="_blank"
+            aria-label="Facebook"
+          >
+            <i-tabler name="brand-facebook" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.tiktok.com/@inimbleteam"
+            target="_blank"
+            aria-label="Twitter"
+          >
+            <i-tabler name="brand-tiktok" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.instagram.com/inimbleteam/"
+            target="_blank"
+            aria-label="Instagram"
+          >
+            <i-tabler name="brand-instagram" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.youtube.com/@inimbleTeam"
+            target="_blank"
+            aria-label="YouTube"
+          >
+            <i-tabler name="brand-youtube" class="icon-34"></i-tabler>
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- ------------------------------------------------------------------
     Features
@@ -611,11 +632,10 @@
     End Features
     ------------------------------------------------------------------ -->
 
-
     <!-- ------------------------------------------------------------------
     Testimonial
     ------------------------------------------------------------------ -->
-    <div class="spacer bg-white">
+    <!-- <div class="spacer bg-white">
       <div class="container">
         <div class="row m-t-24">
           <div class="col-12">
@@ -665,7 +685,7 @@
       </div>
     </div>
 
-    <!-- Call to action-->
+    Call to action-->
     <div class="bg-white">
       <div class="container">
         <div class="bg-green rounded p-32 position-relative">
@@ -798,19 +818,15 @@
     End Testimonial
     ------------------------------------------------------------------ -->
 
-  
-
     <div class="container spacer">
       <div class="row justify-content-center spacer">
-          <div class="col-lg-6 col-sm-8">
-            <!-- <span class="d-block text-center f-w-500 f-s-16"
+        <div class="col-lg-6 col-sm-8">
+          <!-- <span class="d-block text-center f-w-500 f-s-16"
               >Almost Covered Everything</span
             > -->
-            <h2 class="section-title text-center m-t-16 f-w-700">
-              Resources
-            </h2>
-          </div>
+          <h2 class="section-title text-center m-t-16 f-w-700">Resources</h2>
         </div>
+      </div>
       <app-blogs></app-blogs>
     </div>
 
@@ -818,7 +834,7 @@
     footer
     ------------------------------------------------------------------ -->
 
-      <app-footer></app-footer>
+    <app-footer></app-footer>
 
     <!-- ------------------------------------------------------------------
     end footer

@@ -4,6 +4,9 @@ import { Routes } from '@angular/router';
 import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ReportsComponent } from './reports/reports.component';
+import { ProductivityComponent } from './productivity/productivity.component';
+import { NotificationsComponent } from './notifications/notifications.component';
+
 
 export const DashboardsRoutes: Routes = [
   {
@@ -28,6 +31,20 @@ export const DashboardsRoutes: Routes = [
         component: ReportsComponent,
         data: {
           title: 'Reports',
+        },
+      },
+      {
+        path: 'productivity',
+        component: ProductivityComponent,
+        data: {
+          title: 'Productivity',
+        },
+      },
+      {
+        path: 'notifications',
+        component: NotificationsComponent,
+        data: {
+          title: 'Notifications',
         },
       }
     ],

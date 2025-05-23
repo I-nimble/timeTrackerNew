@@ -15,7 +15,7 @@ export class EmployeesService {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
-  public getById(id:number): Observable<any[]> {
+  public getById(id:number | string): Observable<any[]> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 
@@ -25,15 +25,19 @@ export class EmployeesService {
 
   public addEmployee(employee: any, file: File | null) {
     let formData = new FormData();
-    if(employee.Name) formData.append('name', employee.Name);
-    if(employee.LastName) formData.append('last_name', employee.LastName);
-    if(employee.Email) formData.append('email', employee.Email);
-    if(employee.Password) formData.append('password', employee.Password);
-    if(employee.Position) formData.append('position', employee.Position.toString());
-    if(employee.Projects && employee.Projects.length > 0) 
-      formData.append('projects', JSON.stringify(employee.Projects));
+    if(employee.name) formData.append('name', employee.name);
+    if(employee.last_name) formData.append('last_name', employee.last_name);
+    if(employee.email) formData.append('email', employee.email);
+    if(employee.password) formData.append('password', employee.password);
+    if(employee.position) formData.append('position', employee.position.toString());
+    if(employee.projects && employee.projects.length > 0) 
+      formData.append('projects', JSON.stringify(employee.projects));
     if(file) formData.append('image', file);
 
     return this.http.post<any>(`${this.API_URI}/add`, formData);
+  }
+
+  public deleteEmployee(id: number) {
+    return this.http.delete(`${this.API_URI}/${id}`);
   }
 }

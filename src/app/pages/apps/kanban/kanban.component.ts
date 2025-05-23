@@ -12,94 +12,189 @@ import { AppDeleteDialogComponent } from './delete-dialog/delete-dialog.componen
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { KanbanService } from 'src/app/services/apps/kanban/kanban.service';
 import { Todos } from './kanban';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-// tslint:disable-next-line - Disables all
+import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 
 @Component({
-    selector: 'app-kanban',
-    templateUrl: './kanban.component.html',
-    imports: [
-        MaterialModule,
-        CommonModule,
-        TablerIconsModule,
-        DragDropModule,
-        NgScrollbarModule,
-    ]
+  selector: 'app-kanban',
+  templateUrl: './kanban.component.html',
+  imports: [
+    MaterialModule,
+    CommonModule,
+    TablerIconsModule,
+    DragDropModule,
+    NgScrollbarModule,
+  ],
 })
 export class AppKanbanComponent {
+  role = localStorage.getItem('role');
+  boards: any[] = [];
   todos: Todos[] = [];
   inprogress: Todos[] = [];
   completed: Todos[] = [];
   onhold: Todos[] = [];
+  selectedBoardId: number;
+  selectedBoardColumns: any[] = [];
+  employees: any;
 
   constructor(
     public dialog: MatDialog,
-    public taskService: KanbanService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private kanbanService: BoardsService,
+    private employeesService: EmployeesService
   ) {
-    this.loadTasks();
+    this.loadBoards();
+  }
+  
+  loadBoards(): void {
+    this.kanbanService.getBoards().subscribe((boards) => {
+      this.boards = boards;
+      if (boards.length) {
+        this.selectedBoardId = boards[0].id;
+        this.loadTasks(this.selectedBoardId);
+      }
+    });
+  }
+  
+  loadTasks(boardId: number): void {
+    this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
+      this.selectedBoardColumns = boardData.columns || [];
+
+      this.selectedBoardColumns.sort((a, b) => a.position - b.position);
+
+      const tasks = boardData.tasks || [];
+      this.selectedBoardColumns.forEach(column => {
+        column.tasks = tasks.filter((task: any) => task.column_id === column.id);
+      });
+    });
   }
 
-  loadTasks(): void {
-    const allTasks = this.taskService.getAllTasks();
-
-    this.todos = allTasks.todos;
-    this.inprogress = allTasks.inProgress;
-    this.completed = allTasks.completed;
-    this.onhold = allTasks.onHold;
-  }
-
-  drop(event: CdkDragDrop<any[]>): void {
+  drop(event: CdkDragDrop<any[]>, newColumnId: number): void {
     if (event.previousContainer === event.container) {
-      moveItemInArray(
-        event.container.data,
-        event.previousIndex,
-        event.currentIndex
-      );
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
+      const movedTask = event.previousContainer.data[event.previousIndex];
+
+      movedTask.column_id = newColumnId;
+
       transferArrayItem(
         event.previousContainer.data,
         event.container.data,
         event.previousIndex,
         event.currentIndex
       );
+
+      this.kanbanService.updateTask(movedTask.id, { column_id: newColumnId }).subscribe(() => {
+       
+      }, () => {
+        this.showSnackbar('Error moving task.');
+        this.loadTasks(this.selectedBoardId); 
+      });
     }
   }
 
-  openDialog(action: string, obj: any): void {
-    obj.action = action;
 
+  openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      data: obj,
-      autoFocus: false, 
+      width: '600px',
+      data: {
+        action,
+        ...data,
+      },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result.event === 'Add') {
-        this.taskService.addTask(result.data);
-        this.loadTasks();
-        this.dialog.open(AppOkDialogComponent);
-        this.showSnackbar('Task added successfully!');
-      }
-      if (result.event === 'Edit') {
-        this.taskService.editTask(result.data);
-        this.loadTasks();
+      if (result?.event === 'Add' || result?.event === 'Edit') {
+        if (result.data.type === 'board') {
+          this.saveBoard(result.data);
+        } else {
+           if (action === 'Edit') {
+            this.updateTask(result.data);
+          } else {
+            this.saveTask(result.data);
+          }
+        }
       }
     });
   }
 
-  deleteTask(t: Todos) {
+  saveBoard(board: any): void {
+    const newBoard = {
+      name: board.goal
+    };
+
+    this.kanbanService.createBoard(newBoard).subscribe(() => {
+      this.loadBoards();
+      this.showSnackbar('Board created!');
+    });
+  }
+
+  saveTask(taskData: any): void {
+    const newTask = {
+      company_id: this.boards[0].company_id, 
+      goal: taskData.goal,
+      recommendations: taskData.recommendations,
+      due_date: taskData.due_date,
+      priority: taskData.priority,
+      board_id: this.selectedBoardId,
+      column_id: taskData.columnId
+    };
+
+    this.kanbanService.addTaskToBoard(newTask).subscribe(() => {
+      this.loadTasks(this.selectedBoardId);
+      this.showSnackbar('Task added to board successfully!');
+    });
+  }
+
+  updateTask(taskData: any): void {
+  const updatedTask = {
+    id: taskData.id,
+    company_id: this.boards[0].company_id, 
+    goal: taskData.goal,
+    recommendations: taskData.recommendations,
+    due_date: taskData.due_date,
+    priority: taskData.priority,
+    board_id: this.selectedBoardId,
+    column_id: taskData.columnId
+  };
+
+  this.kanbanService.updateTask(updatedTask.id, updatedTask).subscribe(() => {
+    this.loadTasks(this.selectedBoardId);
+    this.showSnackbar('Task updated successfully!');
+  }, () => {
+    this.showSnackbar('Error updating task.');
+  });
+}
+
+
+
+  deleteTask(task: Todos, boardId: number): void {
     const del = this.dialog.open(AppDeleteDialogComponent);
 
     del.afterClosed().subscribe((result) => {
       if (result === 'true') {
-        this.taskService.deleteTask(t.id);
-        this.loadTasks();
-        this.showSnackbar('Task deleted successfully!');
+        this.kanbanService.removeTaskFromBoard(task).subscribe(() => {
+          this.loadTasks(boardId);
+          this.showSnackbar('Task deleted successfully!');
+        });
       }
+    });
+  }
+
+  createBoard(board: any): void {
+    this.kanbanService.createBoard(board).subscribe(() => {
+      this.loadBoards();
+      this.showSnackbar('Board created!');
+    });
+  }
+
+  deleteBoard(id: number): void {
+    this.kanbanService.deleteBoard(id).subscribe(() => {
+      this.loadBoards();
+      this.showSnackbar('Board deleted!');
     });
   }
 
@@ -109,21 +204,5 @@ export class AppKanbanComponent {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
-  }
-  //taskProperty bgcolor
-  getTaskClass(taskProperty: string | any): any {
-    return taskProperty === 'Design'
-      ? 'bg-success'
-      : taskProperty === 'Mobile'
-      ? 'bg-primary'
-      : taskProperty === 'UX Stage'
-      ? 'bg-warning'
-      : taskProperty === 'Research'
-      ? 'bg-error'
-      : taskProperty === 'Data Science'
-      ? 'bg-secondary'
-      : taskProperty === 'Branding'
-      ? 'bg-primary'
-      : '';
   }
 }

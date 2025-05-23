@@ -15,7 +15,7 @@
 
 @if(action !== 'Delete') {
 <mat-dialog-content>
-  <form #userForm="ngForm">
+  <form [formGroup]="addEmployeeForm">
     <div class="d-flex align-items-center m-b-16">
       <img
         class="mat-card-avatar"
@@ -38,7 +38,7 @@
             required
             id="name"
             name="name"
-            [(ngModel)]="local_data.Name"
+            formControlName="name"
             placeholder="Name"
           />
         </mat-form-field>
@@ -52,7 +52,7 @@
             required
             id="lastName"
             name="last_name"
-            [(ngModel)]="local_data.LastName"
+            formControlName="last_name"
             placeholder="Last Name"
           />
         </mat-form-field>
@@ -63,10 +63,9 @@
           <input
             type="password"
             matInput
-            required
             id="password"
             name="password"
-            [(ngModel)]="local_data.Password"
+            formControlName="password"
             placeholder="Employees password"
           />
         </mat-form-field>
@@ -80,7 +79,7 @@
             required
             id="email"
             name="email"
-            [(ngModel)]="local_data.Email"
+            formControlName="email"
             placeholder="Email"
           />
         </mat-form-field>
@@ -89,7 +88,7 @@
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Position</mat-label>
         <mat-form-field appearance="outline" class="w-100">          
-          <mat-select [(ngModel)]="local_data.Position" name="position" required>
+          <mat-select formControlName="position" name="position" required>
             <mat-option *ngFor="let position of positions" [value]="position.id">
               {{ position.title }}
             </mat-option>
@@ -100,7 +99,7 @@
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Projects</mat-label>
         <mat-form-field appearance="outline" class="w-100">
-          <mat-select [(ngModel)]="local_data.Projects" multiple name="projects">
+          <mat-select formControlName="projects" multiple name="projects">
             <mat-option *ngFor="let project of projects" [value]="project.id">
               {{ project.name }}
             </mat-option>
@@ -112,7 +111,7 @@
       mat-flat-button
       (click)="doAction()"
       mat-flat-button
-      [disabled]="!userForm.valid"
+      [disabled]="!addEmployeeForm.valid || sendingData"
     >
       {{action}}
     </button>

@@ -4,7 +4,7 @@
       <div class="w-100 position-relative rounded bg-white auth-card">
         <div class="auth-body">
           <div class="m-t-20">
-            <app-branding></app-branding>
+            <app-branding [fullLogoMaxWidth]="'180px'"></app-branding>
           </div>
 
           <div class="row">
@@ -15,7 +15,7 @@
                 <img
                   src="{{assetPath}}"
                   alt="login"
-                  style="max-width: 500px"
+                  style="max-width: 500px; margin-top: 70px;"
                 />
               </div>
             </div>
@@ -66,7 +66,7 @@
 
                     <div class="or-border m-t-30">or sign up with</div>
 
-                    <form
+                    <!-- <form
                       class="m-t-30"
                       [formGroup]="form"
                       (ngSubmit)="submit()"
@@ -95,7 +95,6 @@
                         </mat-hint>
                         }
                       </mat-form-field>
-                      <!-- email -->
                       <mat-label
                         class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
                         >Email Address</mat-label
@@ -115,7 +114,6 @@
                         </mat-hint>
                         }
                       </mat-form-field>
-                      <!-- password -->
                       <mat-label
                         class="mat-subtitle-2 f-s-14 f-w-600 m-b-12 d-block"
                         >Password</mat-label
@@ -148,8 +146,86 @@
                       >
                         Sign Up
                       </button>
-                      <!-- input -->
-                    </form>
+                    </form> -->
+                    
+                    <mat-stepper #stepper id="register-form">
+                      <mat-step [stepControl]="registerForm">
+                        <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                          <form [formGroup]="registerForm">
+                            <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
+                            </mat-form-field>
+    
+                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerForm.get('email')?.valid">Next</button>
+                          </form>
+                        </div>
+                      </mat-step>
+                      <mat-step [stepControl]="registerForm">
+                        <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                          <form [formGroup]="registerForm">
+                            <h2 class="text-center m-b-24 label-title">Enter your full name</h2>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input matInput formControlName="name" required type="text" placeholder="First name" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input matInput formControlName="last_name" required type="text" placeholder="Last name" />
+                            </mat-form-field>
+    
+                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerForm.get('name')?.valid || !registerForm.get('last_name')?.valid">Next</button>
+                          </form>
+                        </div>
+                      </mat-step>
+                      <mat-step [stepControl]="registerForm">
+                        <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                          <form class="m-t-24" [formGroup]="registerForm">
+                            <h2 class="text-center m-b-24 label-title">Enter your company name</h2>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input matInput formControlName="company_name" required type="text" />
+                            </mat-form-field>
+    
+                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerForm.get('company_name')?.valid">Next</button>
+                          </form>
+                        </div>
+                      </mat-step>
+                      <mat-step [stepControl]="registerForm">
+                        <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                          <form class="m-t-24" [formGroup]="registerForm">
+                            <h2 class="text-center m-b-10 label-title">Enter your phone number</h2>
+                            <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
+    
+                            <div class="d-flex flex-row">
+                              <mat-form-field appearance="outline" style="width: 100px;" class="m-r-16">
+                                <mat-select formControlName="countryCode">
+                                  <mat-option value="+1">+1 (US)</mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                              <mat-form-field appearance="outline" style="flex-grow: 1;">
+                                <input matInput formControlName="phone" type="phone" />
+                              </mat-form-field>
+                            </div>
+                            <div *ngIf="registerForm.get('phone')?.touched && registerForm.get('phone')?.errors">
+                              <p class="text-danger f-s-12 m-t-0" *ngIf="registerForm.get('phone')?.errors?.['pattern']">Please enter a valid phone number (e.g., +1 1234567890)</p>
+                            </div>
+    
+                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerForm.get('phone')?.valid">Next</button>
+                          </form>
+                        </div>
+                      </mat-step>
+                      <mat-step [stepControl]="registerForm">
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                            <form class="m-t-24" [formGroup]="registerForm">
+                              <h2 class="text-center m-b-24 label-title">Enter your password</h2>
+                              <mat-form-field appearance="outline" class="w-100">
+                                <input matInput formControlName="password" required type="password" />
+                              </mat-form-field>
+
+                              <button class="w-100" mat-flat-button (click)="submit()" [disabled]="!registerForm.valid">Finish</button>
+                            </form>
+                          </div>
+                      </mat-step>
+                    </mat-stepper>
+
                     <span class="d-block f-w-500 d-block m-t-24"
                       >Already have an Account?
 

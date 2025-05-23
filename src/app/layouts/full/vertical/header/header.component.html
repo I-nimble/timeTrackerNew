@@ -96,9 +96,30 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat']">Chat</a>
-    <a mat-button [routerLink]="['/apps/calendar']">Calendar</a>
-    <a mat-button [routerLink]="['/apps/email/inbox']">Email</a>
+    <a mat-button [routerLink]="['/apps/chat/support']">HR & Operations</a>
+          <!-- --------------------------------------------------------------- -->
+      <!-- Messages Dropdown -->
+      <!-- --------------------------------------------------------------- -->
+      <button
+        mat-button
+        [matMenuTriggerFor]="msgMenu"
+        aria-label="Messages"
+      >
+        <a>Notifications</a>
+        <div class="pulse">
+          <span class="heartbit border-primary"></span>
+          <span class="point bg-primary"></span>
+        </div>
+      </button>
+    <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
+    Talent Match
+  </span></a>
+    <mat-menu #invoiceMenu="matMenu">
+    <button mat-menu-item [routerLink]="['']">
+      Invoice
+    </button>
+    </mat-menu>
+    <a mat-button [matMenuTriggerFor]="invoiceMenu">Payroll</a>
   </div>
 
   <span class="flex-1-auto"></span>
@@ -215,21 +236,6 @@
       </button>
 
       <!-- --------------------------------------------------------------- -->
-      <!-- Messages Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="msgMenu"
-        aria-label="Messages"
-      >
-        <i-tabler class="d-flex" name="message-2"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
-        </div>
-      </button>
-
-      <!-- --------------------------------------------------------------- -->
       <!-- Profile Dropdown -->
       <!-- --------------------------------------------------------------- -->
       <button
@@ -259,49 +265,38 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Messages Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
-    mat-icon-button
-    [matMenuTriggerFor]="msgMenu"
-    aria-label="Messages"
-    class="d-none d-lg-block align-items-center justify-content-center"
-  >
-    <i-tabler class="d-flex" name="message-2"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-primary"></span>
-      <span class="point bg-primary"></span>
-    </div>
-  </button>
   <mat-menu
     #msgMenu="matMenu"
     xPosition="before"
     class="topbar-dd cardWithShadow"
   >
     <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Messages</h6>
-      <span class="m-l-16">
+      <h6 class="f-s-16 f-w-600 m-0">Notifications</h6>
+      <!-- <span class="m-l-16">
         <span class="bg-warning text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
           >5 new</span
         >
-      </span>
+      </span> -->
     </div>
 
-    @for(notification of notifications; track notification.title) {
+    @for(notification of recentNotifications; track notification.message) {
     <button mat-menu-item class="p-x-32 p-y-16">
       <div class="d-flex align-items-center">
-        <img [src]="notification.img" class="rounded-circle" width="48" />
+         <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
+             [ngStyle]="{'color': notificationIcons[notification.type_id-1].color}"></i>
         <div class="m-l-16">
           <h5 class="f-s-14 f-w-600 m-0">
-            {{ notification.title }}
+            {{ notification.message }}
           </h5>
-          <span>{{ notification.subtitle }}</span>
+          <span>{{ notification.createdAt | date: 'MMM d, y' }}</span>
         </div>
       </div>
     </button>
     }
 
     <div class="p-y-12 p-x-32">
-      <button mat-flat-button color="primary" class="w-100">
-        See All Messages
+      <button [routerLink]="['/dashboards/notifications']" mat-flat-button color="primary" class="w-100">
+        See All Notifications
       </button>
     </div>
   </mat-menu>
@@ -460,10 +455,6 @@
           <div class="m-l-16">
             <h6 class="f-s-16 f-w-600 m-0">{{userName}}</h6>
             <span class="f-s-14 text-body d-block m-b-4">{{company}}</span>
-            <span class="d-flex align-items-center">
-              <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
-              {{userEmail}}
-            </span>
           </div>
         </div>
       </div>
@@ -495,7 +486,7 @@
 
       <div class="p-y-12 p-x-32">
         <button
-          [routerLink]="['/authentication/login']"
+          (click)="logout()"
           mat-flat-button
           color="primary"
           class="w-100"

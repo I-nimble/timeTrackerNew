@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NotificationsPopupComponent } from '../components/notifications-popup/notifications-popup.component';
-import { catchError, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
 import { notificationCategory, Notification } from '../models/Notifications';
 
 
@@ -69,7 +69,7 @@ export class NotificationsService {
   constructor(private http: HttpClient,
               private router: Router,
               private dialog: MatDialog,
-              private sanitizer: DomSanitizer) { }
+              private sanitizer: DomSanitizer) {}
 
   get() {
     return this.http.get<any>(`${this.API_URI}`);
@@ -99,34 +99,29 @@ export class NotificationsService {
     return this.http.post(`${this.API_URI}/to-do`, data);
   }
 
-  update(notifications: Notification[], status: number) {
-    if(notifications.length > 0) {
-      const promises = notifications.map((notification: any) => {
-        if(notification.users_notifications) {
-          if(notification.users_notifications.user_id && notification.id) {
-            const now = new Date();
-            const body:any = {
-              "user_id": notification.users_notifications.user_id,
-              "notification_id": notification.id,
-              "status": status,
-              "updatedAt": now
-            }
-          
-            return this.http.put(`${this.API_URI}/${notification.id}/${notification.users_notifications.user_id}`, body)
-            .subscribe({
-              next: (response) => {
-                this.loadNotifications()
-              }
-            });
-          }
-          return
+  update(notifications: Notification[], status: number): Observable<any> { 
+  if (notifications.length > 0) {
+    const promises = notifications.map((notification: any) => {
+      if (notification.users_notifications) {
+        if (notification.users_notifications.user_id && notification.id) {
+          const now = new Date();
+          const body: any = {
+            "user_id": notification.users_notifications.user_id,
+            "notification_id": notification.id,
+            "status": status,
+            "updatedAt": now
+          };
+
+          return this.http.put(`${this.API_URI}/${notification.id}/${notification.users_notifications.user_id}`, body);
         }
-        else {
-          return
-        }
-      });
-    }
+      }
+      return null; 
+    }).filter(Boolean); 
+
+    return forkJoin(promises);
   }
+  return of(null); 
+}
 
   delete(id:number) {
     return this.http.delete<any>(`${this.API_URI}/${id}`, {});

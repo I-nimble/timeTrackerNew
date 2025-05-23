@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface notifications {
   id: number;
@@ -112,6 +113,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
+    private authService: AuthService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -163,7 +165,9 @@ export class AppHorizontalHeaderComponent implements OnInit {
     this.emitOptions();
   }
 
-
+  logout() {
+    this.authService.logout();
+  }
 
   notifications: notifications[] = [
     {
@@ -205,7 +209,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
       color: 'primary',
       title: 'My Profile',
       subtitle: 'Account Settings',
-      link: '/',
+      link: 'apps/account-settings',
     },
     {
       id: 2,
