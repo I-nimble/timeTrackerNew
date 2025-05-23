@@ -29,7 +29,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Badge',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Badge' },
           ],
         },
@@ -40,7 +40,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Expansion Panel',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Expansion Panel' },
           ],
         },
@@ -51,7 +51,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Chip',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Chip' },
           ],
         },
@@ -62,7 +62,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Dialog',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Dialog' },
           ],
         },
@@ -73,7 +73,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Lists',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Lists' },
           ],
         },
@@ -84,7 +84,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Divider',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Divider' },
           ],
         },
@@ -95,7 +95,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Menu',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Menu' },
           ],
         },
@@ -106,7 +106,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Paginator',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Paginator' },
           ],
         },
@@ -117,7 +117,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Progress',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Progress' },
           ],
         },
@@ -128,7 +128,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Progress Spinner',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Progress Spinner' },
           ],
         },
@@ -139,7 +139,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Ripples',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Ripples' },
           ],
         },
@@ -150,7 +150,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Slide Toggle',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Slide Toggle' },
           ],
         },
@@ -161,7 +161,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Slider',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Slider' },
           ],
         },
@@ -172,7 +172,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Snackbar',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Snackbar' },
           ],
         },
@@ -183,7 +183,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Tabs',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Tabs' },
           ],
         },
@@ -194,7 +194,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Toolbar',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Toolbar' },
           ],
         },
@@ -205,7 +205,7 @@ export const UiComponentsRoutes: Routes = [
         data: {
           title: 'Tooltips',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Tooltips' },
           ],
         },
