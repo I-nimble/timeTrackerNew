@@ -28,6 +28,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 
 @Component({
   selector: 'app-todo',
@@ -76,7 +77,7 @@ export class AppTodoComponent implements OnInit {
   teamMembers: any[] = [];
   priorities: any[] = [];
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
-
+  boards: any[] = [];
   newTaskForm: FormGroup = this.fb.group({
     goal: ['', [Validators.required]],
     frequency_id: [null],
@@ -88,6 +89,7 @@ export class AppTodoComponent implements OnInit {
     numeric_goal: [null],
     company_id: [null, [Validators.required]],
     employee_id: [null, [Validators.required]],
+    board_id: [null],
     updatedAt: [new Date(), []],
   }, { validators: this.recurrentDueDateValidator });
 
@@ -104,6 +106,7 @@ export class AppTodoComponent implements OnInit {
     public schedulesService: SchedulesService,
     private userService: UsersService,
     private employeesService: EmployeesService,
+    public kanbanService: BoardsService,
   ) { }
 
   isOver(): boolean {
@@ -116,6 +119,7 @@ export class AppTodoComponent implements OnInit {
 
   ngOnInit(): void {
     this.initilizeTaskForm();
+    this.loadBoards();
   }
 
   ngOnChanges(changes: any) {
@@ -140,6 +144,13 @@ export class AppTodoComponent implements OnInit {
       } else {
         dueDateControl?.enable();
       }
+    });
+  }
+
+  loadBoards(): void {
+    this.kanbanService.getBoards().subscribe((boards) => {
+      this.boards = boards;
+      console.log(boards)
     });
   }
 
@@ -336,29 +347,28 @@ export class AppTodoComponent implements OnInit {
       return;
     }
 
-    this.ratingsService
-      .submit(
-        this.newTaskForm.value,
-        this.toDoToEdit?.id || null
-      )
-      .subscribe({
-        next: (response: any) => {
-          if (!this.toDoToEdit) { // Create a new element
-            this.toDoArray.push(response);
-          }
-          else { // Update an existing element
-            const taskIndex = this.toDoArray.findIndex(
-              (task: any) => task.id == this.toDoToEdit.id
-            );
-            this.toDoArray[taskIndex] = response;
-          }
-          this.buildToDoForm();
-          this.calendar.getToDos();
-        },
-        error: () => {
-          this.openSnackBar('Error submitting form', 'Close');
-        },
-      });
+    const taskData = {
+      ...this.newTaskForm.value,
+      board_id: this.newTaskForm.value.board_id || null // Send null if no board is selected
+    };
+
+    this.ratingsService.submit(taskData, this.toDoToEdit?.id || null).subscribe({
+      next: (response: any) => {
+        if (!this.toDoToEdit) { // Create a new element
+          this.toDoArray.push(response);
+        } else { // Update an existing element
+          const taskIndex = this.toDoArray.findIndex(
+            (task: any) => task.id == this.toDoToEdit.id
+          );
+          this.toDoArray[taskIndex] = response;
+        }
+        this.buildToDoForm();
+        this.calendar.getToDos();
+      },
+      error: () => {
+        this.openSnackBar('Error submitting form', 'Close');
+      },
+    });
   }
 
   resetForm(): void {
