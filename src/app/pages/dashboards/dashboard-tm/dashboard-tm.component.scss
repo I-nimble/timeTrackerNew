@@ -106,3 +106,51 @@ img {
     font-size: .9rem;
     color: #707A82;
 }
+
+// company information
+.mt-4 {
+    margin-top: 2rem !important;
+}
+.border {
+    border: 1px solid #e6ecf1 !important;
+}
+
+.shadow-none {
+    box-shadow: none !important;
+}
+
+.company, .tm-photos {
+    border-radius: 1.125rem!important;
+}
+
+.fw-semibold {
+    font-weight: 600 !important;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+.h4, h4 {
+    font-size: calc(1.26rem + .12vw);
+}
+
+.rounded-1 {
+    border-radius: 0.5rem !important;
+}
+.mb-9 {
+    margin-bottom: 20px !important;
+}
+.tm {
+    font-size: .8rem;
+}
+mat-icon {
+    color: #707A82!important;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+}
+.small {
+    font-size: .9rem;
+    display: flex;
+    align-items: center;
+}
