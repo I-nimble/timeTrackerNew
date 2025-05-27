@@ -1,0 +1,180 @@
+<mat-card class="cardWithShadow header">
+<h4 class="page-title f-s-20 f-w-600">Employee Performance</h4>
+<!-- Filters -->
+<div class="row">
+  <!-- Select a Client -->
+  <div class="col-md-4 mb-2">
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>Select a Client</mat-label>
+      <mat-select
+        [(value)]="selectedClient"
+        (selectionChange)="onClientChange($event.value)"
+      >
+        <mat-option [value]="null" disabled>Select a client</mat-option>
+        <mat-option *ngFor="let client of clientList" [value]="client">
+          {{ client.name }} {{ client.last_name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <!-- Select an Employee -->
+  <div class="col-md-4 mb-2">
+    <mat-form-field class="w-100"  appearance="outline">
+    <mat-label>Select an Employee</mat-label>
+    <mat-select [(value)]="selectedEmployee" (selectionChange)="onEmployeeChange($event.value)">
+      <mat-option [value]="null">All</mat-option>
+      <mat-option *ngFor="let employee of employeeList" [value]="employee">
+        {{ employee.employeeName }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  </div>
+  <!-- Date Range -->
+  <div class="col-md-4 mb-2">
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>Date Range</mat-label>
+      <mat-date-range-input [rangePicker]="picker">
+      <input
+        matStartDate
+        placeholder="Start date"
+        [(ngModel)]="startDate"
+        (dateChange)="onDateRangeChange()"
+      />
+      <input
+        matEndDate
+        placeholder="End date"
+        [(ngModel)]="endDate"
+        (dateChange)="onDateRangeChange()"
+      />
+    </mat-date-range-input>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
+  </div>
+</div>
+</mat-card>
+<!-- Summary  -->
+<div class="row">
+  <div class="col-4">
+    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+      <img
+        src="assets/images/backgrounds/top-warning-shape.png"
+        class="top-img"
+      />
+      <mat-card-content>
+        <div class="m-t-30 p-t-10 text-center">
+          <h5 class="f-s-18">Total Employees</h5>
+          <h5 class="f-w-600 f-s-24 m-0 m-t-30">
+            {{ filteredEmployeeTableData.length }}
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-4">
+    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+      <img
+        src="assets/images/backgrounds/top-error-shape.png"
+        class="top-img"
+      />
+      <mat-card-content>
+        <div class="m-t-30 p-t-10 text-center">
+          <h5 class="f-s-18">Avg Tasks Completed</h5>
+          <h5 class="f-w-600 f-s-24 m-0 m-t-30">
+            {{ avgTasksCompleted }}
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <div class="col-4">
+    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+      <img src="assets/images/backgrounds/top-info-shape.png" class="top-img" />
+      <mat-card-content>
+        <div class="m-t-30 p-t-10 text-center">
+          <h5 class="f-s-18">Avg Performance</h5>
+          <h5 class="f-w-600 f-s-24 m-0 m-t-30">
+            {{ avgPerformance }}%
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+<!-- Charts -->
+<div class="row">
+  <div class="col-lg-6">
+    <mat-card>
+      <mat-card-title>Performance by Employee</mat-card-title>
+      <apx-chart
+        [series]="barChartOptions.series"
+        [chart]="barChartOptions.chart"
+        [xaxis]="barChartOptions.xaxis"
+        [colors]="barChartOptions.colors"
+        [plotOptions]="barChartOptions.plotOptions"
+      ></apx-chart>
+    </mat-card>
+  </div>
+  <div class="col-lg-6">
+    <mat-card>
+      <mat-card-title>Performance Over Time</mat-card-title>
+      <apx-chart
+        [series]="lineChartOptions.series"
+        [chart]="lineChartOptions.chart"
+        [xaxis]="lineChartOptions.xaxis"
+        [colors]="lineChartOptions.colors"
+      ></apx-chart>
+    </mat-card>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12">
+    <mat-card>
+      <mat-card-title>Employee Performance</mat-card-title>
+      <div class="table-responsive">
+        <table
+          mat-table
+          [dataSource]="filteredEmployeeTableData"
+          class="mat-elevation-z1 w-100"
+        >
+          <!-- Employee Name Column -->
+          <ng-container matColumnDef="employee">
+            <th mat-header-cell *matHeaderCellDef>Employee</th>
+            <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+          </ng-container>
+
+          <!-- Tasks Completed Column -->
+          <ng-container matColumnDef="tasksCompleted">
+            <th mat-header-cell *matHeaderCellDef>Tasks Completed</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.tasksCompleted }}
+            </td>
+          </ng-container>
+
+          <!-- Punctuality Column -->
+          <ng-container matColumnDef="punctuality">
+            <th mat-header-cell *matHeaderCellDef>Punctuality</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.punctuality }}%
+            </td>
+          </ng-container>
+
+          <!-- Quality of Work Column -->
+          <ng-container matColumnDef="quality">
+            <th mat-header-cell *matHeaderCellDef>Quality of Work</th>
+            <td mat-cell *matCellDef="let element">{{ element.quality }}%</td>
+          </ng-container>
+
+          <tr
+            mat-header-row
+            *matHeaderRowDef="employeeTableDisplayedColumns"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: employeeTableDisplayedColumns"
+          ></tr>
+        </table>
+      </div>
+    </mat-card>
+  </div>
+</div>
