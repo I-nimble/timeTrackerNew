@@ -20,7 +20,7 @@ export class WebSocketService {
     this.socket = io(this.API_URI, {
       withCredentials: true,  
       transports: ['websocket', 'polling'],  
-      auth: {  
+      query: {
         jwt: localStorage.getItem('jwt'),
         userId: localStorage.getItem('email')
       },
