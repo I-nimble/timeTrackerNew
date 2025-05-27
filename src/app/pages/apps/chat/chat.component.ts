@@ -1,85 +1,125 @@
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { PlansService } from 'src/app/services/plans.service';
+import { Plan } from 'src/app/models/Plan.model';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { CometChatConversationsWithMessages, CometChatGroups, CometChatMessageComposer, CometChatMessageHeader, CometChatMessageList, CometChatUsers } from '@cometchat/chat-uikit-angular';
+import { CometChatService } from '../../../services/apps/chat/chat.service';
+import { MessageComposerStyle, CallButtonsStyle } from '@cometchat/uikit-shared';
+import { CometChatThemeService, CometChatCallButtons } from '@cometchat/chat-uikit-angular';
+import '@cometchat/uikit-elements';
+import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
-import { NgScrollbarModule } from 'ngx-scrollbar';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { ChatService } from 'src/app/services/apps/chat/chat.service';
-import { Message } from 'src/app/pages/apps/chat/chat';
 
 @Component({
+  standalone: true,
   selector: 'app-chat',
   imports: [
-    CommonModule,
-    NgScrollbarModule,
-    TablerIconsModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MaterialModule,
+    CometChatConversationsWithMessages,
+    CometChatGroups,
+    CometChatUsers,
+    CometChatMessageComposer,
+    CometChatMessageHeader,
+    CometChatMessageList,
+    CometChatCallButtons,
+    CommonModule
   ],
   templateUrl: './chat.component.html',
+  styleUrl: './chat.component.scss'
 })
-export class AppChatComponent {
-  sidePanelOpened = true;
-  //input feild for  new msg
-  msg = signal('');
+export class AppChatComponent implements OnInit {
+  selectedUser!: CometChat.User;
+  selectedGroup!: CometChat.Group;
+  selectedConversation: any = null;
+  public userObject!: CometChat.User;
+  plansService = inject(PlansService);
+  companiesService = inject(CompaniesService);
+  plan?: Plan;
 
-  // MESSAGE
-  selectedMessage = signal<Message | null>(null);
+  constructor(
+    private themeService: CometChatThemeService,
+    private cometChatService: CometChatService
+  ) { }
 
-  messages = signal<Message[]>([]);
-
-  filteredMessages = signal<Message[]>([]);
-
-  searchTerm = signal('');
-
-  // tslint:disable-next-line - Disables all
-
-  constructor(private chatService: ChatService) {}
-
-  isOver(): boolean {
-    return window.matchMedia(`(max-width: 960px)`).matches;
-  }
-  
-  ngOnInit() {
-    this.messages.set(this.chatService.messages());
-
-    this.filteredMessages.set(this.messages());
-    this.selectedMessage.set(this.chatService.selectedMessage());
-
-    if (this.isOver()) {
-      // Check if the screen is small
-      this.sidePanelOpened = false; // Close the sidebar
-    }
+  ngOnInit(): void {
+    this.companiesService.getByOwner().subscribe((company: any) => {
+      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
+        this.plan = companyPlan.plan;
+        console.log('plan', companyPlan.plan);
+      });
+    });
+    this.configureTheme();
+    CometChat.getUser('cometchat-uid-2').then((user: CometChat.User) => {
+      this.selectedUser = user;
+    });
   }
 
-
-
-  // tslint:disable-next-line - Disables all
-  selectMessage(message: Message): void {
-    this.selectedMessage.set(message);
-
-    if (this.isOver()) {
-      // Check if the screen is small
-      this.sidePanelOpened = false; // Close the sidebar
-    }
+  private configureTheme(): void {
+    this.themeService.theme.palette.setMode('light');
+    this.themeService.theme.palette.setPrimary({
+      light: '#92b46c',
+      dark: '#388E3C'
+    });
+    this.themeService.theme.typography.setFontFamily('Arial, sans-serif');
   }
 
-  sendMessage(): void {
-    const currentSelectedMessage = this.selectedMessage();
-    if (currentSelectedMessage) {
-      this.chatService.sendMessage(currentSelectedMessage, this.msg());
-      this.msg.set('');
-    }
+  handleUserSelection(user: CometChat.User): void {
+    this.selectedUser = user;
+    //this.selectedGroup = null;
+    this.selectedConversation = user;
+    console.log("el plan", this.plan?.name);
+    console.log('your custom on item click action', this.selectedUser);
   }
 
-  searchMessages(): void {
-    this.filteredMessages.set(
-      this.searchTerm().trim()
-        ? this.messages().filter((message) =>
-            message.from.toLowerCase().includes(this.searchTerm().toLowerCase())
-          )
-        : this.messages()
-    );
+  handleGroupSelection(group: CometChat.Group): void {
+    this.selectedGroup = group;
+    //this.selectedUser = null;
+    this.selectedConversation = group;
+    console.log('your custom on item click action', this.selectedGroup);
   }
+
+  public handleOnItemClickGroup = (group: CometChat.Group) => {
+    console.log('your custom on item click action', group);
+  };
+
+  messageComposerStyle = new MessageComposerStyle({
+    background: '#F8F9FA',
+    border: '1px solid #E0E0E0',
+    borderRadius: '28px',
+    inputBackground: 'transparent',
+    textColor: '#2D3436',
+    sendIconTint: '#92B46C',
+    //attachIconTint: "#6C757D",
+    emojiIconTint: '#6C757D',
+    dividerTint: 'transparent',
+    //placeholderTextColor: '#ADB5BD',
+    //height: '56px',
+  });
+
+  callButtonsStyle = new CallButtonsStyle({
+    background: 'transparent',
+    //height: '50px',
+    //width: '400px',
+    //border: '1px solid #f8f5fa',
+    buttonBackground: 'transparent',
+    buttonBorderRadius: '10px',
+    videoCallIconTextColor: 'transparent',
+    voiceCallIconTextColor: 'transparent',
+    //buttonPadding: '20px',
+    voiceCallIconTint: '#6C757D',
+    videoCallIconTint: '#6C757D',
+  });
+
+  callButtonsStyleBasic = new CallButtonsStyle({
+    background: 'transparent',
+    //height: '50px',
+    //width: '400px',
+    //border: '1px solid #f8f5fa',
+    buttonBackground: 'transparent',
+    buttonBorderRadius: '10px',
+    videoCallIconTextColor: 'transparent',
+    voiceCallIconTextColor: 'transparent',
+    //buttonPadding: '20px',
+    voiceCallIconTint: '#6C757D',
+    videoCallIconTint: 'transparent',
+  });
 }

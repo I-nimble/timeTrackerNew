@@ -1,40 +1,45 @@
-import { Injectable, signal } from '@angular/core';
-import { messages } from 'src/app/pages/apps/chat/chatData';
-import { Message } from 'src/app/pages/apps/chat/chat';
+import { Injectable } from '@angular/core';
+import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
+import { CometChatUIKit } from "@cometchat/chat-uikit-angular";
+
+const COMETCHAT_CONSTANTS = {
+  APP_ID: "270688328e214865",
+  REGION: "us",
+  AUTH_KEY: "a10a89bdee324305d1a76e25203ca1aceaad9e9a",
+  UID: "cometchat-uid-1"
+};
 
 @Injectable({
   providedIn: 'root',
 })
-export class ChatService {
-  private messagesSignal = signal<Message[]>(messages);
-  private selectedMessageSignal = signal<Message | null>(messages[0]);
+export class CometChatService {
+  private UIKitSettings = new UIKitSettingsBuilder()
+    .setAppId(COMETCHAT_CONSTANTS.APP_ID)
+    .setRegion(COMETCHAT_CONSTANTS.REGION)
+    .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
+    .subscribePresenceForAllUsers()
+    .build();
 
-  constructor() {}
-
-  get messages() {
-    return this.messagesSignal;
-  }
-
-  get selectedMessage() {
-    return this.selectedMessageSignal;
-  }
-
-  sendMessage(selectedMessage: Message, msg: string) {
-    if (msg.trim()) {
-      const newMessage = { type: 'even', msg, date: new Date() };
-      selectedMessage.chat.push(newMessage);
-      this.messagesSignal.update((currentMessages) =>
-        currentMessages.map((message) =>
-          message === selectedMessage
-            ? { ...message, chat: [...selectedMessage.chat] }
-            : message
-        )
-      );
-      this.selectedMessageSignal.set({ ...selectedMessage });
+  async initializeCometChat(): Promise<void> {
+    try {
+      await CometChatUIKit.init(this.UIKitSettings);
+      console.log("Initialization completed successfully");
+      this.login(COMETCHAT_CONSTANTS.UID);
+    } catch (error) {
+      console.error("Initialization failed with error:", error);
     }
   }
 
-  selectMessage(message: Message): void {
-    this.selectedMessageSignal.set(message);
+  async login(UID: string): Promise<void> {
+    try {
+      const user = await CometChatUIKit.getLoggedinUser();
+      if (!user) {
+        const loggedInUser = await CometChatUIKit.login({ uid: UID });
+        console.log("Login Successful:", { user: loggedInUser });
+      }
+    } catch (error) {
+      console.error("Login failed with error:", error);
+      throw error;
+    }
   }
 }

@@ -1,179 +1,88 @@
-<mat-card class="chat-app cardWithShadow overflow-hidden">
-  <mat-sidenav-container
-    [ngClass]="{
-      'side-panel-opened': sidePanelOpened,
-      'side-panel-closed': !sidePanelOpened
-    }"
-  >
-    <!-- ---------------------------------------------------- -->
-    <!-- sidebar -->
-    <!-- ---------------------------------------------------- -->
-    <mat-sidenav
-      [mode]="isOver() ? 'over' : 'side'"
-      [opened]="sidePanelOpened"
-      (open)="sidePanelOpened = true"
-      (close)="sidePanelOpened = false" class="bg-white"
-    >
-      <ng-scrollbar class="position-relative" style="height: 100%">
-        <div class="d-flex align-items-center p-24 gap-16">
-          <img
-            src="assets/images/profile/user-1.jpg"
-            class="rounded-circle"
-            width="54"
-          />
-          <div>
-            <h4 class="f-s-16 f-w-600">Mike Nielsen</h4>
-            <span class="f-s-12">info&#64;spike.com</span>
-          </div>
-        </div>
+<div class="communication-container">
+  <!-- Título del chat -->
+<div class="header-container" *ngIf="plan?.name === 'Basic'; else defaultCallButtons">
+  <h1 class="chat-title">Communication</h1>
+  <div class="call-buttons">
+    <cometchat-call-buttons
+      *ngIf="selectedUser"
+      [user]="selectedUser"
+      [callButtonsStyle]="callButtonsStyleBasic">
+    </cometchat-call-buttons>
+  </div>
+</div>
+<ng-template #defaultCallButtons>
+  <div class="header-container">
+    <h1 class="chat-title">Communication</h1>
+    <div class="call-buttons">
+      <cometchat-call-buttons
+        *ngIf="selectedUser"
+        [user]="selectedUser"
+        [callButtonsStyle]="callButtonsStyle">
+      </cometchat-call-buttons>
+    </div>
+  </div>
+</ng-template>
+  <div class="chat-layout">
+    <!-- Sección de grupos -->
+    <div class="group-chats">
+      <h2>Group Chats</h2>
+      <div class = "groups"><cometchat-groups [onItemClick]="handleGroupSelection"></cometchat-groups></div>
 
-        <div class="p-x-24">
-          <!-- search -->
-          <mat-form-field appearance="outline" class="w-100">
-            <input
-              matInput
-              placeholder="Search Contacts"
-              [(ngModel)]="searchTerm"
-              (input)="searchMessages()"
-            />
-            <mat-icon matSuffix>
-              <i-tabler
-                name="search"
-                class="icon-20 d-flex align-items-end m-t-2"
-              ></i-tabler>
-            </mat-icon>
-          </mat-form-field>
-        </div>
+      <!-- Separador -->
+      <div class="separator"></div>
 
-        @if (filteredMessages() && filteredMessages().length > 0) {
-        <div class="m-x-24">
-          <mat-nav-list class="chat-listing">
-            @for(message of filteredMessages(); track message.from) {
-            <mat-list-item
-              role="listitem"
-              (click)="selectMessage(message)"
-              [class.bg-light-primary]="message === selectedMessage()"
-              class="m-b-2 gap-12"
-            >
-              <span matListItemIcon>
-                <img
-                  src="{{ message.photo }}"
-                  alt=""
-                  width="42"
-                  class="rounded-circle"
-                />
-              </span>
-              <h3 class="f-w-600 f-s-16" matListItemTitle>
-                {{ message.from }}
-              </h3>
-              <p class="f-s-14 m-t-4" matListItemLine>
-                {{ message.subject }}
-              </p>
-            </mat-list-item>
-            }
-          </mat-nav-list>
-        </div>
-        } @else {
-        <div
-          class="p-15 bg-light-primary text-primary rounded m-x-20 m-t-20 text-center"
-        >
-          <span class="f-s-14">No messages found.</span>
-        </div>
-        }
-      </ng-scrollbar>
-    </mat-sidenav>
-    <mat-sidenav-content>
-      <!-- ------------------------------------------- -->
-      <!-- chat details -->
-      <!-- ------------------------------------------- -->
-      <mat-toolbar
-        class="chat-right-panel d-flex align-items-center bg-white b-b-1 gap-8"
-      >
-        <button (click)="sidePanelOpened = !sidePanelOpened" mat-icon-button>
-          <mat-icon>short_text</mat-icon>
-        </button>
-        <div class="d-flex align-items-center gap-16">
-          <img
-            src="{{ selectedMessage()?.photo }}"
-            width="40"
-            class="rounded-circle"
-          />
-          <div class="f-s-16 f-w-600">
-            {{ selectedMessage()?.from }}
-          </div>
-        </div>
-        <button [matMenuTriggerFor]="moredd" class="m-l-auto" mat-icon-button>
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #moredd="matMenu" x-position="before">
-          <button mat-menu-item>Contact info</button>
-          <button mat-menu-item>Mute</button>
-          <button mat-menu-item>Delete chat</button>
-        </mat-menu>
-      </mat-toolbar>
-
-      <!-- ------------------------------------------- -->
-      <!-- chat content -->
-      <!-- ------------------------------------------- -->
-      <ng-scrollbar
-        style="height: calc(100vh - 442px)"
-        class="position-relative"
-      >
-        <mat-card-content class="chat-middle-box p-24 bg-white">
-          @for(c of selectedMessage()?.chat; track c) { @if(c.type === 'odd') {
-          <div class="chat-list odd">
-            <div class="m-b-15">
-              <div
-                class="bg-light-primary p-10 rounded d-flex align-items-center gap-16"
-              >
-                <img
-                  src="{{ selectedMessage()?.photo }}"
-                  class="rounded-circle"
-                  width="40"
-                />
-                <span class="f-s-14">{{ c.msg }}</span>
-              </div>
-              <span class="f-s-12">
-                {{ c.date | date }}
-              </span>
-            </div>
-          </div>
-          } @else {
-          <div class="chat-list even">
-            <div class="m-b-15">
-              <div
-                class="bg-light-secondary p-10 rounded d-flex align-items-center f-s-14"
-              >
-                {{ c.msg }}
-              </div>
-              <span class="f-s-12">
-                {{ c.date | date }}
-              </span>
-            </div>
-          </div>
-          } }
-        </mat-card-content>
-      </ng-scrollbar>
-      <mat-divider></mat-divider>
-      <div class="p-t-20 p-x-24 bg-white">
-        <mat-form-field appearance="outline" class="w-100">
-          <input
-            matInput
-            placeholder="Send message"
-            [ngModel]="msg()"
-            (ngModelChange)="msg.set($event)"
-            (keydown.enter)="sendMessage()"
-          />
-          <button
-            mat-icon-button
-            matSuffix
-            (click)="sendMessage()"
-            [disabled]="!msg"
-          >
-            <mat-icon>send</mat-icon>
-          </button>
-        </mat-form-field>
+      <div *ngIf="plan?.name !== 'Basic'" >
+      <h2>Single Chats</h2>
+      <cometchat-users [onItemClick]="handleUserSelection"></cometchat-users>
       </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
-</mat-card>
+    </div>
+
+    <!-- Sección de mensajes -->
+    <div class="messages">
+      <!-- Cabecera del chat -->
+      <ng-container *ngIf="plan?.name === 'Basic'; else defaultTemplate">
+      <cometchat-message-header 
+        [user]="selectedUser"
+        [group]="selectedGroup">
+      </cometchat-message-header>
+
+      <cometchat-message-list
+      *ngIf="selectedUser"
+      [user]="selectedUser"
+      [group]="selectedGroup"></cometchat-message-list>
+
+      <!-- Composer para nuevos mensajes -->
+      <cometchat-message-composer
+        [user]="selectedUser"
+        [group]="selectedGroup"
+        [messageComposerStyle]="messageComposerStyle"
+        attachmentIconURL="assets/images/attachment.png"
+        [placeholderText]="'Write a message'"
+        [hideVoiceRecording]="true">
+      </cometchat-message-composer>
+    </ng-container>
+      <ng-template #defaultTemplate>
+        <cometchat-message-header 
+        [user]="selectedUser"
+        [group]="selectedGroup">
+      </cometchat-message-header>
+
+      <cometchat-message-list
+        *ngIf="selectedUser || selectedGroup"
+        [user]="selectedUser"
+        [group]="selectedGroup">
+      </cometchat-message-list>
+
+      <!-- Composer sin estilos ni hideVoiceRecording -->
+      <cometchat-message-composer
+        [user]="selectedUser"
+        [group]="selectedGroup"
+        [messageComposerStyle]="messageComposerStyle"
+        attachmentIconURL="assets/images/attachment.png"
+        [placeholderText]="'Write a message'">
+      </cometchat-message-composer>
+      </ng-template>
+      <!-- <cometchat-conversations-with-messages></cometchat-conversations-with-messages> -->
+    </div>
+  </div>
+</div>
