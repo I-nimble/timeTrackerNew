@@ -25,6 +25,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -87,6 +88,7 @@ export class AppSideLoginComponent {
      private companieService: CompaniesService,
      private authService: AuthService,
      private snackBar: MatSnackBar,
+     private chatService: CometChatService,
   ) {}
 
   form = new FormGroup({
@@ -107,11 +109,13 @@ export class AppSideLoginComponent {
           const last_name = v.last_name;
           const role = v.role_id;
           const email = v.email;
+          const id = v.id;
           localStorage.setItem('role', role);
           const route = Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2';
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
+          localStorage.setItem('id', id);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);
@@ -121,6 +125,7 @@ export class AppSideLoginComponent {
           this.router.navigate([route]);
           this.authService.updateLiveChatBubbleVisibility(role);
           this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
+          this.chatService.initializeCometChat();
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;

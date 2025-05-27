@@ -1,30 +1,43 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
 import { CometChatUIKit } from "@cometchat/chat-uikit-angular";
-
-const COMETCHAT_CONSTANTS = {
-  APP_ID: "270688328e214865",
-  REGION: "us",
-  AUTH_KEY: "a10a89bdee324305d1a76e25203ca1aceaad9e9a",
-  UID: "cometchat-uid-1"
-};
+import { Observable, firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CometChatService {
-  private UIKitSettings = new UIKitSettingsBuilder()
-    .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-    .setRegion(COMETCHAT_CONSTANTS.REGION)
-    .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-    .subscribePresenceForAllUsers()
-    .build();
+  private UIKitSettings!: any;
+  API_URI = environment.apiUrl;
+
+  constructor(private http: HttpClient) { }
 
   async initializeCometChat(): Promise<void> {
     try {
-      await CometChatUIKit.init(this.UIKitSettings);
-      console.log("Initialization completed successfully");
-      this.login(COMETCHAT_CONSTANTS.UID);
+      const chat_uid = localStorage.getItem('id');
+      if (chat_uid) {
+        // Fetch credentials first
+        const credentials: any = await firstValueFrom(this.getChatCredentials());
+        if(!credentials) {
+          console.log("No chat credentials found in the database.");
+          return;
+        }
+
+        this.UIKitSettings = new UIKitSettingsBuilder()
+          .setAppId(credentials.app_id)
+          .setRegion("us")
+          .setAuthKey(credentials.auth_key)
+          .subscribePresenceForAllUsers()
+          .build();
+
+        await CometChatUIKit.init(this.UIKitSettings);
+        // Now login the user
+        await this.login(chat_uid);
+
+        console.log("Initialization completed successfully");
+      }
     } catch (error) {
       console.error("Initialization failed with error:", error);
     }
@@ -34,12 +47,15 @@ export class CometChatService {
     try {
       const user = await CometChatUIKit.getLoggedinUser();
       if (!user) {
-        const loggedInUser = await CometChatUIKit.login({ uid: UID });
-        console.log("Login Successful:", { user: loggedInUser });
+        await CometChatUIKit.login({ uid: UID });
       }
     } catch (error) {
       console.error("Login failed with error:", error);
       throw error;
     }
+  }
+
+  public getChatCredentials(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 }
