@@ -106,62 +106,73 @@ export class AppActivityReportComponent implements OnInit {
     };
   }
 
-  ngOnInit(): void {
-    this.getTeamMembers().subscribe((employees: number[]) => {
-      this.employees = employees;
-
-      // Get the entries for the selected date range for every employee
-      const entriesObservables = employees.map((employee: number) => {
-        return this.entriesService.getAllEntries({ 
-          start_time: this.dateRange.firstSelect, 
+ngOnInit(): void {
+  this.resetCounters();
+  
+  this.getTeamMembers().pipe(
+    switchMap((employees: number[]) => {
+      const entriesRequests = employees.map(employee => 
+        this.entriesService.getAllEntries({
+          start_time: this.dateRange.firstSelect,
           end_time: this.dateRange.lastSelect,
           user_id: employee
-        });
-      });
+        })
+      );
 
-      const schedulesObservables = employees.map((employee: number) => {
-        return this.schedulesService.getById(employee);
-      });
+      const schedulesRequests = employees.map(employee => 
+        this.schedulesService.getById(employee)
+      );
 
-      // Wait for all entries requests to complete
-      forkJoin([
-        forkJoin(entriesObservables),
-        forkJoin(schedulesObservables)
-      ]).subscribe(([userEntries, schedules]) => {
-        // create an array with all the entries
-        const allEntries = userEntries.map((obj: any) => obj.entries).flat();
-        // Accumulate the total hours worked by summing the durations of the entries
-        allEntries.forEach((entry: any) => {
-          const start = new Date(entry.start_time);
-          const end = new Date(entry.end_time);
-          const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          this.hoursWorked += duration;
-        });
+      return forkJoin([
+        forkJoin(entriesRequests),
+        forkJoin(schedulesRequests)
+      ]);
+    })
+  ).subscribe(([entriesResults, schedulesResults]) => {
+    this.processEntries(entriesResults);
+    this.processSchedules(schedulesResults);
+    this.updateChart();
+  });
+}
 
-        // Get the schedules for every employee, calculate the hours of every shift and add them to the total hours
-        const allSchedules = schedules.map((schedule: any) => schedule.schedules).flat();
+// Nuevo método para resetear contadores
+private resetCounters(): void {
+  this.hoursWorked = 0;
+  this.totalHours = 0;
+}
 
-        allSchedules.forEach((schedule: any) => {
-          // console.log('schedule: ', schedule)
-          const [startHour, startMinute, startSecond] = schedule.start_time.split(':').map(Number);
-          const [endHour, endMinute, endSecond] = schedule.end_time.split(':').map(Number);
-          // Calculate duration in hours
-          let startDate = new Date(0, 0, 0, startHour, startMinute, startSecond);
-          let endDate = new Date(0, 0, 0, endHour, endMinute, endSecond);
-          let duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
-          // Handle overnight shifts where end is before start
-          if (duration < 0) {
-            duration += 24;
-          }
-          this.totalHours += duration * schedule.days.length;
-        });
-        // Calculate hours left
-        const hoursLeft = this.totalHours - this.hoursWorked;
-        // Update chart
-        this.trafficChart.series = [this.hoursWorked, hoursLeft];
-      });
-    });
-  }
+// Nuevo método para procesar entries
+private processEntries(entriesResults: any[]): void {
+  this.hoursWorked = entriesResults
+    .flatMap(response => response.entries)
+    .reduce((total, entry) => {
+      const start = new Date(entry.start_time);
+      const end = new Date(entry.end_time);
+      return total + (end.getTime() - start.getTime()) / 3.6e6;
+    }, 0);
+}
+
+// Nuevo método para procesar schedules
+private processSchedules(schedulesResults: any[]): void {
+  this.totalHours = schedulesResults
+    .flatMap(response => response.schedules)
+    .reduce((total, schedule) => {
+      const [startH, startM] = schedule.start_time.split(':').map(Number);
+      const [endH, endM] = schedule.end_time.split(':').map(Number);
+      let duration = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+      duration = duration < 0 ? duration + 24 : duration;
+      return total + (duration * schedule.days.length);
+    }, 0);
+}
+
+// Nuevo método para actualizar el gráfico
+private updateChart(): void {
+  const hoursLeft = this.totalHours - this.hoursWorked;
+  this.trafficChart = {
+    ...this.trafficChart,
+    series: [this.hoursWorked, hoursLeft]
+  };
+}
 
   getTeamMembers(): Observable<number[]> {
     // Return an Observable of employee IDs depending on user role
