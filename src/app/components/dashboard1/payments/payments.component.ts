@@ -52,11 +52,11 @@ export class AppPaymentsComponent implements OnInit {
       series: [
         {
           name: 'Last Year ',
-          data: [29, 52, 38, 47, 56, 41, 46],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
         {
           name: 'This Year ',
-          data: [71, 71, 71, 71, 71, 71, 71],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
       ],
 

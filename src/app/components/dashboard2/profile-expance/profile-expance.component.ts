@@ -64,12 +64,12 @@ export class AppProfileExpanceCpmponent implements OnInit {
         {
           colors: 'var(--mat-sys-primary)',
           name: 'Completed',
-          data: [60, 40, 37, 35, 35, 20, 30],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
         {
           colors: '#fb977d',
           name: 'No completed',
-          data: [15, 30, 15, 35, 25, 30, 30],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
       ],
 
@@ -106,7 +106,21 @@ export class AppProfileExpanceCpmponent implements OnInit {
         padding: { top: 0, bottom: -8, left: 20, right: 20 },
       },
       xaxis: {
-        categories: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+        categories: [
+          ,
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ],
         axisBorder: {
           show: false,
         },
@@ -129,7 +143,6 @@ export class AppProfileExpanceCpmponent implements OnInit {
   }
 
   loadAllTasksForClient() {
-  
     this.usersService.getEmployees().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
@@ -137,7 +150,6 @@ export class AppProfileExpanceCpmponent implements OnInit {
         );
         const employeeIds = filteredEmployees.map((emp: any) => emp.user.id);
 
-      
         const today = new Date();
         const tasksObservables = employeeIds.map((id: any) =>
           this.ratingsService.getToDo(today, id)
@@ -145,9 +157,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
 
         import('rxjs').then((rxjs) => {
           rxjs.forkJoin(tasksObservables).subscribe((results: any) => {
-          
             this.allTasks = results.flat();
-
 
             this.totalCount = this.allTasks.length;
             this.completedCount = this.allTasks.filter(
@@ -168,7 +178,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
   loadTeamReport() {
     const today = new Date();
     const year = today.getFullYear();
-    const currentMonth = today.getMonth(); 
+    const currentMonth = today.getMonth();
     const months: { firstSelect: string; lastSelect: string; label: string }[] =
       [];
 
@@ -178,7 +188,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
       months.push({
         firstSelect: firstDay.toISOString().split('T')[0],
         lastSelect: lastDay.toISOString().split('T')[0],
-        label: firstDay.toLocaleString('default', { month: 'short' }),
+        label: firstDay.toLocaleString('en-US', { month: 'short' }),
       });
     }
 
@@ -188,34 +198,58 @@ export class AppProfileExpanceCpmponent implements OnInit {
         lastSelect: month.lastSelect,
       })
     );
-
+    console.log('Solicitudes preparadas:', requests);
     forkJoin(requests).subscribe({
-      next: (results: any[][]) => {
+      next: (results: any[]) => {
+        console.log('Resultados de todas las solicitudes:', results);
         const completedData: number[] = [];
         const totalTasksData: number[] = [];
 
-        results.forEach((monthData, idx) => {
+        results.forEach((monthResult, idx) => {
           let completed = 0;
           let totalTasks = 0;
-          const safeMonthData = Array.isArray(monthData) ? monthData : [];
-          safeMonthData.forEach((entry) => {
-            completed += entry.completed || 0;
-            totalTasks += entry.totalTasks || 0;
+          
+          const safeMonthData = Array.isArray(monthResult?.ratings)
+            ? monthResult.ratings
+            : [];
+          console.log(`Datos del mes (${months[idx].label}):`, safeMonthData);
+
+          safeMonthData.forEach((entry: { completed: number; totalTasks: number; }) => {
+            
+            const entryCompleted = entry.completed || 0;
+            const entryTotalTasks = entry.totalTasks || 0;
+            completed += entryCompleted;
+            
+            totalTasks += entryCompleted + entryTotalTasks;
           });
+
+          console.log(
+            `Sumatoria para ${months[idx].label} - Completed: ${completed}, TotalTasks: ${totalTasks}`
+          );
           completedData.push(completed);
           totalTasksData.push(totalTasks);
         });
+        const notCompletedData = totalTasksData.map((total, idx) => total - completedData[idx]);
+        console.log(
+          'Datos finales para la gráfica - Completed:',
+          completedData
+        );
+        console.log(
+          'Datos finales para la gráfica - notCompletedData:',
+          notCompletedData
+        );
         // console.log('epa', completedData);
         // console.log('ey', totalTasksData);
         // Actualizar la gráfica
+        this.notCompletedCount = this.totalCount - this.completedCount;
         this.revenuetwoChart.series = [
           {
             name: 'Completed',
             data: completedData,
           },
           {
-            name: 'Total Tasks',
-            data: totalTasksData,
+            name: 'Not Completed',
+            data: notCompletedData,
           },
         ];
         this.revenuetwoChart.xaxis = {
