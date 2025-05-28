@@ -19,7 +19,7 @@ import { HeaderComponent } from './vertical/header/header.component';
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
-import { CustomizerComponent } from './shared/customizer/customizer.component';
+//import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
@@ -69,7 +69,7 @@ interface quicklinks {
     AppHorizontalHeaderComponent,
     AppHorizontalSidebarComponent,
     AppBreadcrumbComponent,
-    CustomizerComponent,
+    //CustomizerComponent,
     BrandingComponent
   ],
   providers: [AuthService,WebSocketService,

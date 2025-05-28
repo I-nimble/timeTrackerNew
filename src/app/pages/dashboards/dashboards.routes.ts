@@ -6,6 +6,7 @@ import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';
 import { NotificationsComponent } from './notifications/notifications.component';
+import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
 
 import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 
@@ -53,6 +54,13 @@ export const DashboardsRoutes: Routes = [
         component: NotificationsComponent,
         data: {
           title: 'Notifications',
+        },
+      },
+      {
+        path: 'maintenance',
+        component: AppMaintenanceComponent,
+        data: {
+          title: 'Maintenance',
         },
       }
     ],
