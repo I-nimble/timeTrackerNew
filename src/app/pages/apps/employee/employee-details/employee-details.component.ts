@@ -23,6 +23,7 @@ import moment from 'moment-timezone';
 import { UsersService } from 'src/app/services/users.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { EntriesService } from 'src/app/services/entries.service';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -68,9 +69,10 @@ export class EmployeeDetailsComponent implements OnInit {
     private location: Location,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
-    private userService: UsersService,
     private employeesService: EmployeesService,
+    private userService: UsersService,
     private snackBar: MatSnackBar,
+    private entriesService: EntriesService
   ) {
     this.weeklyHoursChart = {
       series: [
@@ -252,20 +254,30 @@ export class EmployeeDetailsComponent implements OnInit {
               if (end.isBefore(start)) end.add(1, 'day');
     
               const totalWorkHours = end.diff(start, 'hours', true);
-              
-              this.hoursElapsed = currentTime.diff(start, 'hours', true);
 
-              this.hoursElapsed = Number(Math.min(Math.max(this.hoursElapsed, 0), totalWorkHours).toFixed(2));
-              this.hoursRemaining = Number((totalWorkHours - this.hoursElapsed).toFixed(2));
-    
-              // Update daily hours chart
-              this.dailyHoursChart.series = [
-                this.hoursElapsed, 
-                this.hoursRemaining
-              ];
+              this.entriesService.getUsersEntries(this.userId).subscribe({
+                next: (entries: any) => {
+                  const activeEntry = entries.entries.find((entry: any) => entry.status === 0);
+                  if (activeEntry) {
+                    const startTime = moment.utc(activeEntry.start_time);
+                    const currentTime = moment.tz();
+                    this.hoursElapsed = currentTime.diff(startTime, 'hours', true);
+                    this.hoursElapsed = Number(Math.max(this.hoursElapsed, 0).toFixed(2));
+                    this.hoursRemaining = Number((totalWorkHours - this.hoursElapsed).toFixed(2));
+                  } else {
+                    this.hoursElapsed = 0;
+                    this.hoursRemaining = totalWorkHours;
+                  }
+                  // Update daily hours chart
+                  this.dailyHoursChart.series = [
+                    this.hoursElapsed, 
+                    this.hoursRemaining
+                  ];
+                  
+                  this.getWeeklyHours();
+                }
+              });
             }
-
-            this.getWeeklyHours();
           },
           error: (err) => {
             console.error(err);
