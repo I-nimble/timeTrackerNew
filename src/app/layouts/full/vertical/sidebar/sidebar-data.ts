@@ -1,7 +1,11 @@
 import { NavItem } from './nav-item/nav-item';
 
-export const navItems: NavItem[] = [
-  {
+
+const role: any = localStorage.getItem('role');
+
+export function getNavItems(role: number): NavItem[] {
+  return [
+    {
     navCap: 'Home',
   },
   // {
@@ -14,7 +18,7 @@ export const navItems: NavItem[] = [
     displayName: 'Dashboard',
     iconName: 'layout-dashboard',
     bgcolor: 'primary',
-    route: '/dashboards/dashboard2',
+    route: Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2'
   },
   {
     displayName: 'Reports',
@@ -35,13 +39,13 @@ export const navItems: NavItem[] = [
     displayName: 'Chat',
     iconName: 'message-2',
     bgcolor: 'primary',
-    route: 'apps/chat',
+    route: '/apps/chat',
   },
   {
     displayName: 'Calendar',
     iconName: 'calendar-event',
     bgcolor: 'primary',
-    route: 'apps/calendar',
+    route: '/apps/calendar',
   },
   // {
   //   displayName: 'Email',
@@ -53,7 +57,7 @@ export const navItems: NavItem[] = [
     displayName: 'Kanban',
     iconName: 'checklist',
     bgcolor: 'primary',
-    route: 'apps/kanban',
+    route: '/apps/kanban',
   },
   // {
   //   displayName: 'Contacts',
@@ -86,7 +90,7 @@ export const navItems: NavItem[] = [
     displayName: 'Notes',
     iconName: 'note',
     bgcolor: 'primary',
-    route: 'apps/notes',
+    route: '/apps/notes',
   },
   // {
   //   displayName: 'Tickets',
@@ -130,7 +134,7 @@ export const navItems: NavItem[] = [
     displayName: 'ToDo',
     iconName: 'edit',
     bgcolor: 'primary',
-    route: 'apps/todo',
+    route: '/apps/todo',
   },
   {
     displayName: 'Storage',
@@ -723,4 +727,5 @@ export const navItems: NavItem[] = [
   //   route: 'https://www.google.com/',
   //   external: true,
   // },
-];
+  ]
+};

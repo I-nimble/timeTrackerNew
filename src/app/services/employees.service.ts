@@ -2,6 +2,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
+import { Company } from '../models/Company.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,11 @@ export class EmployeesService {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
-  public getById(id:number): Observable<any[]> {
+  public getCompanies(): Observable<Company[]> {
+    return this.http.get<Company[]>(this.API_URI);
+  }
+
+  public getById(id:any | string): Observable<any[]> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 

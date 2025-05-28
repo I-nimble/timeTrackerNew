@@ -15,7 +15,7 @@ export const WidgetsRoutes: Routes = [
         data: {
           title: 'Banners',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Banners' },
           ],
         },
@@ -26,7 +26,7 @@ export const WidgetsRoutes: Routes = [
         data: {
           title: 'Cards',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Cards' },
           ],
         },
@@ -37,7 +37,7 @@ export const WidgetsRoutes: Routes = [
         data: {
           title: 'Charts',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Charts' },
           ],
         },

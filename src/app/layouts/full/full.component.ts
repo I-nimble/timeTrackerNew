@@ -6,7 +6,7 @@ import { CoreService } from 'src/app/services/core.service';
 import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
-import { navItems } from './vertical/sidebar/sidebar-data';
+import { getNavItems } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
@@ -81,11 +81,11 @@ interface quicklinks {
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {
-  navItems = navItems;
+  role: any = localStorage.getItem('role');
+  navItems = getNavItems(this.role);
   company: any;
   userName:any;
-  companyLogo:any = null;
-  assetsPath: string = environment.assets;
+  companyLogo:any = 'assets/images/default-logo.jpg';
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -309,28 +309,28 @@ export class FullComponent implements OnInit {
     this.userName = localStorage.getItem('username');
     const role = localStorage.getItem('role');
     if(role == '3'){
-      this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
+        this.loadCompanyLogo(company.company_id);
       });
     }
     
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
+  loadCompanyLogo(companyId: number) {
+    this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
+      if(logo) {
         this.companyLogo = logo;
-      });
-      // this.plansService.getCurrentPlan(company.company_id).subscribe({
-      //   next: (userPlan: any) => {
-      //     let plan = userPlan?.plan;
-      //     this.plan = (plan?.name === 'Basic') ? false : true;  
-      //   },
-      //   error: (error: any) => {
-      //     this.store.addNotifications('Error loading plan data', 'error');
-      //   },
-      // });
+      }
     });
+    // this.plansService.getCurrentPlan(company.company_id).subscribe({
+    //   next: (userPlan: any) => {
+    //     let plan = userPlan?.plan;
+    //     this.plan = (plan?.name === 'Basic') ? false : true;  
+    //   },
+    //   error: (error: any) => {
+    //     this.store.addNotifications('Error loading plan data', 'error');
+    //   },
+    // });
   }
 }

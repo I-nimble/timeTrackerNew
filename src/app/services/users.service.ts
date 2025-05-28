@@ -108,10 +108,12 @@ export class UsersService {
     if (userData.email) form.append('email', userData.email);
     if (userData.phone) form.append('phone', userData.phone);
     if (userData.address) form.append('address', userData.address);
-    if (userData.employee) form.append('employee', JSON.stringify(userData.employee));
-    if (userData.employee.emergency_contact) form.append('emergency_contact', JSON.stringify(userData.employee.emergency_contact));
-    if (userData.employee.social_media) form.append('social_media', JSON.stringify(userData.employee.social_media));
-    if (userData.employee.insurance_data) form.append('insurance_data', JSON.stringify(userData.employee.insurance_data));
+    if (userData.employee) {
+      form.append('employee', JSON.stringify(userData.employee))
+      if (userData.employee.emergency_contact) form.append('emergency_contact', JSON.stringify(userData.employee.emergency_contact));
+      if (userData.employee.social_media) form.append('social_media', JSON.stringify(userData.employee.social_media));
+      if (userData.employee.insurance_data) form.append('insurance_data', JSON.stringify(userData.employee.insurance_data));
+    };
     if (userData.role) form.append('role', userData.role);
     if (userData.company) form.append('company', JSON.stringify(userData.company));
     if (userData.profile) form.append('profile', userData.profile);

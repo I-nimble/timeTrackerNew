@@ -9,6 +9,8 @@ import {
 import { BrandingComponent } from './branding.component';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
+import { NavItem } from './nav-item/nav-item';
+import { getNavItems } from './sidebar-data';
 
 @Component({
   standalone: true,
@@ -22,6 +24,10 @@ export class SidebarComponent implements OnInit {
   @Input() collapsed = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
-
-  ngOnInit(): void { }
+  navItems: NavItem[] = [];
+  
+  ngOnInit(): void {
+    const role = Number(localStorage.getItem('role'));
+    this.navItems = getNavItems(role);
+  }
 }
