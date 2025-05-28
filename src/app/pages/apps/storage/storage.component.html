@@ -7,23 +7,44 @@
         <span class="f-s-14 f-w-400 d-block">add files dynamically</span>
       </h4>
       <div output>
-        <div class="d-flex d-sm-block align-items-center gap-1 m-b-16 m-t-16">
-          <button mat-flat-button color="primary" class="m-r-8 file">
-            Upload file
-            <input
-              type="file"
-              name="file"
-              (change)="onFileSelected($event)"
-              accept="*"
-              style="
-                position: absolute;
-                display: block;
-                width: 100%;
-                opacity: 0;
-                top: 0;
-                left: 0;
-                cursor: pointer;"
-            />
+        <div class="d-flex flex-column d-sm-block align-items-start gap-1 m-b-16 m-t-16">
+          <div class="d-flex align-items-center gap-8">
+            <button mat-flat-button color="primary" class="m-r-8 file">
+              Upload file
+              <input
+                type="file"
+                name="file"
+                (change)="onFileSelected($event)"
+                accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                style="
+                  position: absolute;
+                  display: block;
+                  width: 100%;
+                  opacity: 0;
+                  top: 0;
+                  left: 0;
+                  cursor: pointer;"
+              />
+            </button>
+            <span class="f-w-500 f-s-14 f-w-400" *ngIf="selectedFile">
+              <!-- File name -->
+              {{ selectedFile.name }}
+            </span>
+          </div>
+          <!-- File preview -->
+          <span class="f-w-400 f-s-14 m-t-16" *ngIf="selectedFile && selectedFile.type.startsWith('image/')">
+            <img [src]="filePreview" alt="File Preview" class="file-preview" />
+          </span>
+          <!-- Confirm file upload -->
+          <button
+            mat-flat-button
+            color="primary"
+            class="m-t-16"
+            (click)="uploadFile()"
+            [disabled]="!selectedFile"
+            *ngIf="selectedFile"
+          >
+            Confirm file upload
           </button>
         </div>
 
@@ -36,10 +57,16 @@
               </th>
               <td mat-cell *matCellDef="let element" class="p-l-0 f-s-14">
                 @if(column == 'download') {
-                  <i-tabler class="icon-22" name="download"></i-tabler>
+                  <!-- Button to download file -->
+                  <a [href]="element.download" download="{{element.name}}">
+                    <i-tabler class="icon-22" name="download"></i-tabler>
+                  </a>
                 }
                 @else if(column == "preview") {
-                  <i-tabler class="icon-22" name="eye"></i-tabler>
+                  <!-- Link to preview file in new tab -->
+                  <a [href]="element.preview" target="_blank">
+                    <i-tabler class="icon-22" name="eye"></i-tabler>
+                  </a>
                 }
                 @else {
                   {{ element[column] }}
