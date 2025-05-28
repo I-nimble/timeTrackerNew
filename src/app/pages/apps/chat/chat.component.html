@@ -1,6 +1,9 @@
-<div class="communication-container">
-  <div class="header-container">
-    <h1 class="chat-title">Communication</h1>
-  </div>
-  <cometchat-conversations-with-messages id="chat-container"></cometchat-conversations-with-messages>
-</div>
+<mat-card class="mat-card-top cardWithShadow communication-container">
+  <cometchat-conversations-with-messages *ngIf="chatService.isChatAvailable; else ctaMessage" id="chat-container"></cometchat-conversations-with-messages>
+  <ng-template #ctaMessage>
+    <div class="cta-message">
+      <h2>Welcome to the Inimble Chat!</h2>
+      <p>Communicate with support to activate your chat service.</p>
+    </div>
+  </ng-template>
+</mat-card>

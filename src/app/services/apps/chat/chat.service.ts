@@ -11,6 +11,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class CometChatService {
   private UIKitSettings!: any;
   API_URI = environment.apiUrl;
+  isChatAvailable: boolean = false; 
 
   constructor(private http: HttpClient) { }
 
@@ -24,6 +25,7 @@ export class CometChatService {
           console.log("No chat credentials found in the database.");
           return;
         }
+        this.isChatAvailable = true;
 
         this.UIKitSettings = new UIKitSettingsBuilder()
           .setAppId(credentials.app_id)

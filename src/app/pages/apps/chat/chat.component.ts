@@ -10,6 +10,7 @@ import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { MaterialModule } from 'src/app/material.module';
 
 @Component({
   standalone: true,
@@ -22,7 +23,8 @@ import { ChangeDetectorRef } from '@angular/core';
     CometChatMessageHeader,
     CometChatMessageList,
     CometChatCallButtons,
-    CommonModule
+    CommonModule,
+    MaterialModule
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss'
@@ -34,8 +36,7 @@ export class AppChatComponent implements OnInit {
 
   constructor(
     private themeService: CometChatThemeService,
-    private cometChatService: CometChatService,
-    private cdr: ChangeDetectorRef
+    public chatService: CometChatService
   ) { }
 
   ngOnInit(): void {
