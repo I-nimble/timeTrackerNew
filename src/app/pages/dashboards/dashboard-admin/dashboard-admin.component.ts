@@ -12,6 +12,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { UsersService } from 'src/app/services/users.service';
 import moment from 'moment';
 import { PerformanceService } from 'src/app/services/performance.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -33,7 +34,7 @@ export class AppDashboardAdminComponent implements OnInit {
   selectedClient: any = '';
   selectedEmployee: any = '';
   usersList: any[] = [];
-  clientList: any[] = [];
+  companiesList: any[] = [];
   employeeList: any[] = [];
   startDate: any = '';
   endDate: any = '';
@@ -60,7 +61,8 @@ export class AppDashboardAdminComponent implements OnInit {
 
   constructor(
     private usersService: UsersService,
-    private performanceService: PerformanceService
+    private performanceService: PerformanceService,
+    private companiesService: CompaniesService	
   ) {}
 
   ngOnInit() {
@@ -73,20 +75,20 @@ export class AppDashboardAdminComponent implements OnInit {
   getUsers() {
     const body = {};
     this.usersService.getUsers(body).subscribe((res: any) => {
-      this.clientList = res.filter(
-        (user: any) => user.role === 3 && user.active === 1
-      );
       this.usersList = res;
       this.employeeList = [];
       this.selectedClient = null;
       this.selectedEmployee = null;
+    });
+    this.companiesService.getCompanies().subscribe((res: any) => {
+      this.companiesList = res;
     });
   }
 
   onClientChange(client: any) {
     if (client) {
       this.selectedEmployee = null;
-      const companyId = client.company.id;
+      const companyId = client.id;
       const dateFrom = this.startDate
         ? moment(this.startDate).format('YYYY-MM-DD')
         : '2025-05-1';
