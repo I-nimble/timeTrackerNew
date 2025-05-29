@@ -122,7 +122,7 @@ export class EmployeeDetailsComponent implements OnInit {
         tickAmount: 4,
       },
       xaxis: {
-        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        categories: ['M', 'T', 'W', 'T', 'F'],
         axisTicks: {
           show: true,
         },
@@ -203,13 +203,13 @@ export class EmployeeDetailsComponent implements OnInit {
     this.weeklyHoursChart.series = [
       {
        name: 'Worked',
-    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
+    data: ['M', 'T', 'W', 'T', 'F'].map(day =>
       Number(Number(workedHoursPerDay[day.substring(0, 3)] || 0).toFixed(2))
     ),
       },
      {
     name: 'Not worked',
-    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+    data: ['M', 'T', 'W', 'T', 'F'].map(day => {
       const total = totalHoursPerDay[day.substring(0, 3)] || 0;
       const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
       return Number(Math.max(total - worked, 0).toFixed(2));
