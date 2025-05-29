@@ -131,9 +131,7 @@ export class UsersService {
     };
     return this.http.post(`${this.API_URI}/users/verifyusername`, body);
   }
-  getEmployees() {
-    return this.http.get(environment.apiUrl + '/users/employees');
-  }
+  
   getRoles() {
     return this.http.get(`${this.API_URI}/roles`);
   }

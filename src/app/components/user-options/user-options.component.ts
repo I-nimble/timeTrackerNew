@@ -4,6 +4,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Company } from 'src/app/models/Company.model';
 import { ProjectsService } from 'src/app/services/projects.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 
 @Component({
   selector: 'app-user-options',
@@ -29,7 +30,8 @@ export class UserOptionsComponent implements OnInit {
   constructor(
     private userService: UsersService,
     private companiesService: CompaniesService,
-    private projectService: ProjectsService
+    private projectService: ProjectsService,
+    private employeesService: EmployeesService,
   ) {}
 
   ngOnInit(): void {
@@ -64,7 +66,7 @@ export class UserOptionsComponent implements OnInit {
   }
 
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.usersList = employees.map((user: any) => user.user);
         this.users = this.usersList.filter((user: any) => user.active == 1);
