@@ -37,6 +37,8 @@ import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
+import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
+import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -47,11 +49,13 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent
+    TimerComponent,
+    AppActivityReportComponent,
+    AppEmployeesReportsComponent
   ],
   standalone: true,
 })
-export class AppEmployeeComponent implements AfterViewInit {
+export class AppEmployeeComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
@@ -86,8 +90,11 @@ export class AppEmployeeComponent implements AfterViewInit {
 
   dataSource = new MatTableDataSource<Employee>([]);
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
-    Object.create(null);
+  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   constructor(
     public dialog: MatDialog,
@@ -127,9 +134,6 @@ export class AppEmployeeComponent implements AfterViewInit {
         this.companyTimezone = this.companyTimezone.split(':')[0];
       }
     });
-  }
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
   }
 
   applyFilter(filterValue: string): void {
