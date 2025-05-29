@@ -226,7 +226,7 @@ export class EmployeeDetailsComponent implements OnInit {
 
     this.employeesService.getById(this.userId).subscribe({
       next: (employee: any) => {
-        this.filters.user.id = employee[0].id;
+        this.filters.user.id = this.userId;
 
         this.schedulesService.getById(employee[0].id).subscribe({
           next: (schedules: any) => {
@@ -257,21 +257,31 @@ export class EmployeeDetailsComponent implements OnInit {
 
               this.entriesService.getUsersEntries(this.userId).subscribe({
                 next: (entries: any) => {
-                  const activeEntry = entries.entries.find((entry: any) => entry.status === 0);
+                  // filter entries by current day
+                  const entriesToday = entries.entries.filter(
+                    (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day')
+                  );
+                  // sum up the hours of today's entries
+                  this.hoursElapsed = entriesToday.reduce((acc: number, entry: any) => {
+                    const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
+                    return acc + duration;
+                  }, 0);
+                  
+                  const activeEntry = entriesToday.find(
+                    (entry: any) => entry.status === 0
+                  );
+                  // sum up the hours of today's active entries
                   if (activeEntry) {
                     const startTime = moment.utc(activeEntry.start_time);
                     const currentTime = moment.tz();
-                    this.hoursElapsed = currentTime.diff(startTime, 'hours', true);
-                    this.hoursElapsed = Number(Math.max(this.hoursElapsed, 0).toFixed(2));
-                    this.hoursRemaining = Number((totalWorkHours - this.hoursElapsed).toFixed(2));
-                  } else {
-                    this.hoursElapsed = 0;
-                    this.hoursRemaining = totalWorkHours;
+                    this.hoursElapsed += currentTime.diff(startTime, 'hours', true);
                   }
+                  this.hoursRemaining = totalWorkHours - this.hoursElapsed;
+
                   // Update daily hours chart
                   this.dailyHoursChart.series = [
-                    this.hoursElapsed, 
-                    this.hoursRemaining
+                    Number(this.hoursElapsed.toFixed(2)), 
+                    Number(this.hoursRemaining.toFixed(2))
                   ];
                   
                   this.getWeeklyHours();
