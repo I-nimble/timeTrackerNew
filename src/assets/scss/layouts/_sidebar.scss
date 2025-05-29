@@ -214,6 +214,15 @@ body {
           &:before {
             background-color: var(--mat-sys-primary-fixed-dim);
           }
+
+          html.dark-theme.blue_theme &.activeMenu,
+          html.dark-theme.blue_theme &.expanded,
+          html.dark-theme.blue_theme &:hover {
+            .mdc-list-item__primary-text,
+            .mat-mdc-list-item-icon {
+              color: #fff !important;
+            }
+          }
         }
 
         &.secondary {
