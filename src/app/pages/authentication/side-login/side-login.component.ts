@@ -75,6 +75,7 @@ export class AppSideLoginComponent {
   assetPath = environment.assets + '/resources/empleadossection.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
+  route: any = ''
 
   constructor(
     private settings: CoreService,
@@ -108,7 +109,13 @@ export class AppSideLoginComponent {
           const role = v.role_id;
           const email = v.email;
           localStorage.setItem('role', role);
-          const route = Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2';
+          if (Number(role) === 1) {
+            this.route = '/dashboards/admin';
+          } else if (Number(role) === 2) {
+            this.route = '/dashboards/tm';
+          } else {
+            this.route = '/dashboards/dashboard2';
+          }
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
@@ -118,7 +125,7 @@ export class AppSideLoginComponent {
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.router.navigate([route]);
+          this.router.navigate([this.route]);
           this.authService.updateLiveChatBubbleVisibility(role);
           this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
 

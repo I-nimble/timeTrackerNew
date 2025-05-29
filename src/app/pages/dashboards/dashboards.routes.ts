@@ -8,6 +8,7 @@ import { ProductivityComponent } from './productivity/productivity.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 
 import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
+import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 
 export const DashboardsRoutes: Routes = [
   {
@@ -30,6 +31,13 @@ export const DashboardsRoutes: Routes = [
       {
         path: 'tm',
         component: AppDashboardTMComponent,
+        data: {
+          title: 'Dashboard',
+        },
+      },
+      {
+        path: 'admin',
+        component: AppDashboardAdminComponent,
         data: {
           title: 'Dashboard',
         },
