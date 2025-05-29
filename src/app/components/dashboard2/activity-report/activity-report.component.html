@@ -2,12 +2,6 @@
   <mat-card-header>
     <div class="d-flex align-items-center justify-content-between w-100">
       <mat-card-title>Activity Report</mat-card-title>
-      <button mat-icon-button color="inherit">
-        <mat-icon
-          class="f-s-24 d-flex align-items-center justify-content-center"
-          >more_vert</mat-icon
-        >
-      </button>
     </div>
   </mat-card-header>
   <mat-card-content class="p-t-30">
@@ -34,7 +28,7 @@
 
             <div>
               <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">
-                {{ hoursWorked | number:'1.0-0' }}
+                {{ hoursWorked | number:'1.2-2' }}
                 <!-- <span class="text-success f-s-12 m-l-4">+23%</span> -->
               </h5>
               <span class="f-s-14">Worked Hours</span>
@@ -46,7 +40,7 @@
             </span>
 
             <div>
-              <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">{{ totalHours - hoursWorked | number:'1.0-0' }}</h5>
+              <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">{{ hoursLeft  | number:'1.2-2' }}</h5>
               <span class="f-s-14">Hours Left</span>
             </div>
           </div>
