@@ -57,6 +57,16 @@ export class CometChatService {
     }
   }
 
+  async logout(): Promise<void> {
+    try {
+      await CometChatUIKit.logout();
+      this.isChatAvailable = false;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   public getChatCredentials(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
