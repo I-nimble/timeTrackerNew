@@ -36,6 +36,7 @@ import {
 import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -46,6 +47,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
     TablerIconsModule,
     CommonModule,
     RouterModule,
+    TimerComponent
   ],
   standalone: true,
 })
@@ -56,7 +58,7 @@ export class AppEmployeeComponent implements AfterViewInit {
   employees: any[] = [];
   loaded: boolean = false;
   company: any;
-  companyTimezone: string = 'UTC';
+  companyTimezone: string = 'America/Los_Angeles';
   timeZone: string = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
@@ -121,7 +123,9 @@ export class AppEmployeeComponent implements AfterViewInit {
   loadCompany(): void {
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
-      this.companyTimezone = company.company.timezone || 'UTC';
+      if(company.company.timezone) {
+        this.companyTimezone = this.companyTimezone.split(':')[0];
+      }
     });
   }
   ngAfterViewInit(): void {
