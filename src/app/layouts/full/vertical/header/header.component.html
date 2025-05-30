@@ -108,7 +108,10 @@
         <a>Notifications</a>
         <div class="pulse">
           <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
+          <span
+            class="point bg-primary"
+            *ngIf="hasPendingNotifications"
+          ></span>
         </div>
       </button>
     <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">

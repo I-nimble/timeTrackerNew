@@ -82,6 +82,7 @@ export class HeaderComponent implements OnInit {
   assetsPath: string = environment.assets;
   totalApplications: number = 0;
   recentNotifications: any[] = [];
+  hasPendingNotifications: boolean = false;
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -146,6 +147,9 @@ export class HeaderComponent implements OnInit {
       if (event === 'update') {
         this.loadNotifications();
       }
+    });
+    this.notificationsService.notificationsChanged.subscribe(() => {
+      this.loadNotifications();
     });
   }
 
@@ -375,6 +379,7 @@ export class HeaderComponent implements OnInit {
       const allNotifications = notifications;
       allNotifications.sort((a:any, b:any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       this.recentNotifications = allNotifications.slice(0, 5);
+      this.hasPendingNotifications = this.recentNotifications?.some(n => n.users_notifications.status === 4);
     });
   }
 
