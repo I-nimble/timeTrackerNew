@@ -1,85 +1,59 @@
-import { Component, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { PlansService } from 'src/app/services/plans.service';
+import { Plan } from 'src/app/models/Plan.model';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { CometChatConversationsWithMessages, CometChatGroups, CometChatMessageComposer, CometChatMessageHeader, CometChatMessageList, CometChatUsers } from '@cometchat/chat-uikit-angular';
+import { CometChatService } from '../../../services/apps/chat/chat.service';
+import { MessageComposerStyle, CallButtonsStyle } from '@cometchat/uikit-shared';
+import { CometChatThemeService, CometChatCallButtons } from '@cometchat/chat-uikit-angular';
+import '@cometchat/uikit-elements';
+import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
-import { NgScrollbarModule } from 'ngx-scrollbar';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectorRef } from '@angular/core';
 import { MaterialModule } from 'src/app/material.module';
-import { ChatService } from 'src/app/services/apps/chat/chat.service';
-import { Message } from 'src/app/pages/apps/chat/chat';
 
 @Component({
+  standalone: true,
   selector: 'app-chat',
   imports: [
+    CometChatConversationsWithMessages,
+    CometChatGroups,
+    CometChatUsers,
+    CometChatMessageComposer,
+    CometChatMessageHeader,
+    CometChatMessageList,
+    CometChatCallButtons,
     CommonModule,
-    NgScrollbarModule,
-    TablerIconsModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MaterialModule,
+    MaterialModule
   ],
   templateUrl: './chat.component.html',
+  styleUrl: './chat.component.scss'
 })
-export class AppChatComponent {
-  sidePanelOpened = true;
-  //input feild for  new msg
-  msg = signal('');
+export class AppChatComponent implements OnInit {
+  plansService = inject(PlansService);
+  companiesService = inject(CompaniesService);
+  plan?: Plan;
 
-  // MESSAGE
-  selectedMessage = signal<Message | null>(null);
+  constructor(
+    private themeService: CometChatThemeService,
+    public chatService: CometChatService
+  ) { }
 
-  messages = signal<Message[]>([]);
-
-  filteredMessages = signal<Message[]>([]);
-
-  searchTerm = signal('');
-
-  // tslint:disable-next-line - Disables all
-
-  constructor(private chatService: ChatService) {}
-
-  isOver(): boolean {
-    return window.matchMedia(`(max-width: 960px)`).matches;
-  }
-  
-  ngOnInit() {
-    this.messages.set(this.chatService.messages());
-
-    this.filteredMessages.set(this.messages());
-    this.selectedMessage.set(this.chatService.selectedMessage());
-
-    if (this.isOver()) {
-      // Check if the screen is small
-      this.sidePanelOpened = false; // Close the sidebar
-    }
+  ngOnInit(): void {
+    this.companiesService.getByOwner().subscribe((company: any) => {
+      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
+        this.plan = companyPlan.plan;
+      });
+    });
+    this.configureTheme();
   }
 
-
-
-  // tslint:disable-next-line - Disables all
-  selectMessage(message: Message): void {
-    this.selectedMessage.set(message);
-
-    if (this.isOver()) {
-      // Check if the screen is small
-      this.sidePanelOpened = false; // Close the sidebar
-    }
-  }
-
-  sendMessage(): void {
-    const currentSelectedMessage = this.selectedMessage();
-    if (currentSelectedMessage) {
-      this.chatService.sendMessage(currentSelectedMessage, this.msg());
-      this.msg.set('');
-    }
-  }
-
-  searchMessages(): void {
-    this.filteredMessages.set(
-      this.searchTerm().trim()
-        ? this.messages().filter((message) =>
-            message.from.toLowerCase().includes(this.searchTerm().toLowerCase())
-          )
-        : this.messages()
-    );
+  private configureTheme(): void {
+    this.themeService.theme.palette.setMode('light'); // TODO: Set to the current mode in the app
+    this.themeService.theme.palette.setPrimary({
+      light: '#92b46c',
+      dark: '#388E3C'
+    });
+    this.themeService.theme.typography.setFontFamily('Arial, sans-serif');
   }
 }

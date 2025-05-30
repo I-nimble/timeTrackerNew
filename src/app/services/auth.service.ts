@@ -6,6 +6,7 @@ import { environment } from 'src/environments/environment';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
 import { NotificationsService } from './notifications.service';
+import { CometChatService } from './apps/chat/chat.service';
 // import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 // import { provideAuth, getAuth } from '@angular/fire/auth';
 //import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
@@ -26,7 +27,8 @@ export class AuthService {
     private http: HttpClient,
     private jwtHelper: JwtHelperService,
     private routes: Router,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private chatService: CometChatService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -39,7 +41,8 @@ export class AuthService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
-  logout() {
+  async logout() {
+    await this.chatService.logout();
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
@@ -158,8 +161,6 @@ export class AuthService {
     (window as any).Tawk_API.setAttributes({
       'name': localStorage.getItem('name') || name,
       'email': localStorage.getItem('email') || email,
-    }, function(error:any) {
-      console.error(error);
     });
   }
 

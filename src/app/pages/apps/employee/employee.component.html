@@ -1,136 +1,167 @@
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <div class="row justify-content-between gap-16">
-      <div class="col-lg-4">
-        <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <input
-            matInput
-            placeholder="Search Employee"
-            (keyup)="applyFilter($any($event.target).value)"
-          />
-          <mat-icon matSuffix>
-            <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-          </mat-icon>
-        </mat-form-field>
+<div *ngIf="userRole !== '2'; else employeeReport">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row justify-content-between gap-16">
+        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Search Employee"
+              (keyup)="applyFilter($any($event.target).value)"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+            <mat-select (selectionChange)="handleCompanySelection($event)">
+              <mat-option *ngFor="let company of companies" [value]="company.id">
+                {{ company.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+          <!-- add employee -->
+          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
+            Add Employee
+          </button>
+        </div>
       </div>
-      <div class="col-lg-4 d-flex align-items-center justify-content-end">
-        <!-- add employee -->
-        <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
-          Add Employee
-        </button>
-      </div>
-    </div>
-  </mat-card-content>
-</mat-card>
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <div class="table-responsive">
-      <table mat-table [dataSource]="dataSource" class="w-100">
-        <ng-container matColumnDef="#">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">#</th>
-          <td mat-cell *matCellDef="let element">{{ element.id }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
-          <td mat-cell *matCellDef="let element">
-            <div class="d-flex align-items-center gap-16">
-              <img
-                class="rounded-circle"
-                [src]="element.imagePath"
-                width="45"
-              />
-              <div>
-                <a
-                  class="text-decoration-none"
-                  (click)="setUser(element)"
-                  [routerLink]="['/apps/employee', element.id]"
-                >
-                  <h6 class="f-w-600 f-s-16 m-t-0">
-                    {{ element.name }} {{ element.last_name }}
-                  </h6>
-                </a>
-                <!-- <span class="f-s-14">{{ element.Position }}</span> -->
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="w-100">
+          <ng-container matColumnDef="#">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">#</th>
+            <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+          </ng-container>
+  
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
+            <td mat-cell *matCellDef="let element">
+              <div class="d-flex align-items-center gap-16">
+                <img
+                  class="rounded-circle"
+                  [src]="element.imagePath"
+                  width="45"
+                />
+                <div>
+                  <a
+                    class="text-decoration-none"
+                    (click)="setUser(element)"
+                    [routerLink]="['/apps/employee', element.id]"
+                  >
+                    <h6 class="f-w-600 f-s-16 m-t-0">
+                      {{ element.name }} {{ element.last_name }}
+                    </h6>
+                  </a>
+                  <!-- <span class="f-s-14">{{ element.Position }}</span> -->
+                </div>
               </div>
-            </div>
-          </td>
-        </ng-container>
+            </td>
+          </ng-container>
+  
+          <ng-container matColumnDef="schedule">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Schedule
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.schedule }}
+            </td>
+          </ng-container>
+          <!-- 
+          <ng-container matColumnDef="mobile">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Mobile
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.Mobile }}
+            </td>
+          </ng-container> -->
+  
+          <ng-container matColumnDef="date of joining">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Working days
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.WorkingDays }}
+            </td>
+          </ng-container>
+  
+          <ng-container matColumnDef="salary">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Status
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              <app-timer [userId]="element.id" [timeZone]="companyTimezone"></app-timer>
+            </td>
+          </ng-container>
+  
+          <ng-container matColumnDef="projects">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Reports
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              <button
+                mat-icon-button
+                (click)="downloadReport(element)"
+                title="Download Report"
+              >
+                <i-tabler name="download" class="icon-18"></i-tabler>
+              </button>
+              
+            </td>
+          </ng-container>
+  
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
+              Action
+            </th>
+            <td mat-cell *matCellDef="let element" class="action-link">
+              <a
+                (click)="openDialog('Update', element)"
+                class="m-r-10 cursor-pointer"
+                ><i-tabler name="edit" class="icon-18"></i-tabler
+              ></a>
+              <a (click)="openDialog('Delete', element)" class="cursor-pointer">
+                <i-tabler name="trash" class="icon-18"></i-tabler>
+              </a>
+            </td>
+          </ng-container>
+  
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <div *ngIf="dataSource?.data?.length === 0 && loaded" class="text-center p-4 f-s-16 text-muted">
+          No employees found.
+        </div>
+        <mat-paginator
+          [pageSizeOptions]="[5, 10, 20]"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
 
-        <ng-container matColumnDef="schedule">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Schedule
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.schedule }}
-          </td>
-        </ng-container>
-        <!-- 
-        <ng-container matColumnDef="mobile">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Mobile
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.Mobile }}
-          </td>
-        </ng-container> -->
-
-        <ng-container matColumnDef="date of joining">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Working days
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.WorkingDays }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="salary">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Status
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            <app-timer [userId]="element.id" [timeZone]="companyTimezone"></app-timer>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="projects">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Reports
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            <button
-              mat-icon-button
-              (click)="downloadReport(element)"
-              title="Download Report"
-            >
-              <i-tabler name="download" class="icon-18"></i-tabler>
-            </button>
-            
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-            Action
-          </th>
-          <td mat-cell *matCellDef="let element" class="action-link">
-            <a
-              (click)="openDialog('Update', element)"
-              class="m-r-10 cursor-pointer"
-              ><i-tabler name="edit" class="icon-18"></i-tabler
-            ></a>
-            <a (click)="openDialog('Delete', element)" class="cursor-pointer">
-              <i-tabler name="trash" class="icon-18"></i-tabler>
-            </a>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
-      <mat-paginator
-        [pageSizeOptions]="[5, 10, 20]"
-        showFirstLastButtons
-      ></mat-paginator>
-    </div>
-  </mat-card-content>
-</mat-card>
+<ng-template #employeeReport> 
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row">
+        <div class="d-flex m-b-30" style="flex-direction: row;">
+          <div class="col-lg-5" style="flex-grow: 1;">
+            <app-activity-report class="h-100 d-inline-block"></app-activity-report>
+          </div>
+          <div class="col-lg-7">
+            <app-employees-reports></app-employees-reports>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-template>

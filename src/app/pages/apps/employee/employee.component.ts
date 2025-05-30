@@ -37,6 +37,8 @@ import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
+import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
+import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -47,11 +49,13 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent
+    TimerComponent,
+    AppActivityReportComponent,
+    AppEmployeesReportsComponent
   ],
   standalone: true,
 })
-export class AppEmployeeComponent implements AfterViewInit {
+export class AppEmployeeComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
@@ -68,6 +72,9 @@ export class AppEmployeeComponent implements AfterViewInit {
     byClient: false,
     useTimezone: false,
   };
+  userRole = localStorage.getItem('role');
+  companies: any[] = [];
+  companyId: number | null = null;
 
   searchText: any;
 
@@ -83,34 +90,50 @@ export class AppEmployeeComponent implements AfterViewInit {
 
   dataSource = new MatTableDataSource<Employee>([]);
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
-    Object.create(null);
+  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   constructor(
     public dialog: MatDialog,
     private employeesService: EmployeesService,
     private userService: UsersService,
-    private companieService: CompaniesService,
     private positionsService: PositionsService,
     private schedulesService: SchedulesService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit(): void {
-    this.loadCompany();
+    if (this.userRole === '3') {
+      this.loadCompany();
+    }
     this.getEmployees();
+    this.getCompanies();
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        this.companies = companies;
+      },
+    });
+  }
+
+  handleCompanySelection(event: any) {
+    this.companyId = event.value;
+    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
   }
 
   loadCompany(): void {
-    this.companieService.getByOwner().subscribe((company: any) => {
+    this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
       if(company.company.timezone) {
         this.companyTimezone = this.companyTimezone.split(':')[0];
       }
     });
-  }
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
   }
 
   applyFilter(filterValue: string): void {
@@ -129,7 +152,7 @@ export class AppEmployeeComponent implements AfterViewInit {
   }
 
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
@@ -145,6 +168,7 @@ export class AppEmployeeComponent implements AfterViewInit {
               if (!userSchedules) {
                 return {
                   id: user.user.id,
+                  company_id: user.company_id,
                   name: user.user.name,
                   last_name: user.user.last_name,
                   email: user.user.email,
@@ -176,6 +200,7 @@ export class AppEmployeeComponent implements AfterViewInit {
 
               return {
                 id: user.user.id,
+                company_id: user.company_id,
                 name: user.user.name,
                 last_name: user.user.last_name,
                 email: user.user.email,

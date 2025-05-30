@@ -1,40 +1,73 @@
-import { Injectable, signal } from '@angular/core';
-import { messages } from 'src/app/pages/apps/chat/chatData';
-import { Message } from 'src/app/pages/apps/chat/chat';
+import { Injectable } from '@angular/core';
+import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
+import { CometChatUIKit } from "@cometchat/chat-uikit-angular";
+import { Observable, firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ChatService {
-  private messagesSignal = signal<Message[]>(messages);
-  private selectedMessageSignal = signal<Message | null>(messages[0]);
+export class CometChatService {
+  private UIKitSettings!: any;
+  API_URI = environment.apiUrl;
+  isChatAvailable: boolean = false; 
 
-  constructor() {}
+  constructor(private http: HttpClient) { }
 
-  get messages() {
-    return this.messagesSignal;
-  }
+  async initializeCometChat(): Promise<void> {
+    try {
+      const chat_uid = localStorage.getItem('id');
+      if (chat_uid) {
+        // Fetch credentials first
+        const credentials: any = await firstValueFrom(this.getChatCredentials());
+        if(!credentials) {
+          console.log("No chat credentials found in the database.");
+          return;
+        }
+        this.isChatAvailable = true;
 
-  get selectedMessage() {
-    return this.selectedMessageSignal;
-  }
+        this.UIKitSettings = new UIKitSettingsBuilder()
+          .setAppId(credentials.app_id)
+          .setRegion("us")
+          .setAuthKey(credentials.auth_key)
+          .subscribePresenceForAllUsers()
+          .build();
 
-  sendMessage(selectedMessage: Message, msg: string) {
-    if (msg.trim()) {
-      const newMessage = { type: 'even', msg, date: new Date() };
-      selectedMessage.chat.push(newMessage);
-      this.messagesSignal.update((currentMessages) =>
-        currentMessages.map((message) =>
-          message === selectedMessage
-            ? { ...message, chat: [...selectedMessage.chat] }
-            : message
-        )
-      );
-      this.selectedMessageSignal.set({ ...selectedMessage });
+        await CometChatUIKit.init(this.UIKitSettings);
+        // Now login the user
+        await this.login(chat_uid);
+
+        console.log("Initialization completed successfully");
+      }
+    } catch (error) {
+      console.error("Initialization failed with error:", error);
     }
   }
 
-  selectMessage(message: Message): void {
-    this.selectedMessageSignal.set(message);
+  async login(UID: string): Promise<void> {
+    try {
+      const user = await CometChatUIKit.getLoggedinUser();
+      if (!user) {
+        await CometChatUIKit.login({ uid: UID });
+      }
+    } catch (error) {
+      console.error("Login failed with error:", error);
+      throw error;
+    }
+  }
+
+  async logout(): Promise<void> {
+    try {
+      await CometChatUIKit.logout();
+      this.isChatAvailable = false;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  public getChatCredentials(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 }

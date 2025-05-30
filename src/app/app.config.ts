@@ -41,6 +41,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 
+import { CometChatConversationsWithMessages } from '@cometchat/chat-uikit-angular'; //comet chat
+
 // code view
 import { provideHighlightOptions } from 'ngx-highlightjs';
 import 'highlight.js/styles/atom-one-dark.min.css';
@@ -88,6 +90,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideAnimationsAsync(),
     importProvidersFrom(
+      CometChatConversationsWithMessages,
       FormsModule,
       ToastrModule.forRoot(),
       ReactiveFormsModule,
