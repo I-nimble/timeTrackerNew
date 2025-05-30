@@ -21,7 +21,7 @@
     </div>
     <ng-template #showTimer>
       @if(entry.status == null) {
-        <span
+        <span *ngIf="!(startedEarly() || localTime < validStartTime)"
             class="bg-light-error text-error border-error rounded f-w-600 p-6 p-y-4 f-s-12"
         >
             Offline
