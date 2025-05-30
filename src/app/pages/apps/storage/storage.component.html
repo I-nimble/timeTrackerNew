@@ -58,7 +58,7 @@
               <td mat-cell *matCellDef="let element" class="p-l-0 f-s-14">
                 @if(column == 'download') {
                   <!-- Button to download file -->
-                  <a [href]="element.download" download="{{element.name}}">
+                  <a (click)="downloadFile(element.download, element.name); $event.preventDefault()" style="cursor: pointer;">
                     <i-tabler class="icon-22" name="download"></i-tabler>
                   </a>
                 }

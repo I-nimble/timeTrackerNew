@@ -38,12 +38,16 @@ export class AppStorageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // TODO: Get the list of files from the server
-    console.log('getting files')
     this.storageService.get().subscribe({
       next: (files) => {
-        console.log('FILES: ',files)
-        // this.data = files;
+        this.data = files.map((file: any) => {
+          return {
+            name: file.name,
+            size: file.size,
+            preview: file.url,
+            download: file.url
+          };
+        });
       },
       error: (err: any) => {
         this.openSnackBar("Error fetching files", "Close");
@@ -56,7 +60,7 @@ export class AppStorageComponent implements OnInit {
     if (files.length > 0) {
       const file = files[0];
       // Validate file type and size
-      if (file.size > 10 * 1024 * 1024) { // 10 MB limit
+      if (file.size > 4 * 1024 * 1024) {
         this.openSnackBar('File size exceeds the limit', 'Close');
         return;
       }
@@ -83,7 +87,6 @@ export class AppStorageComponent implements OnInit {
     this.sendingFile = true;
     this.storageService.uploadFile(this.selectedFile).subscribe({
       next: (res: any) => {
-        console.log('FILE UPLOADED: ', res)
         this.openSnackBar('File uploaded successfully', 'Close');
         this.data.push({ download: res.url, name: this.selectedFile?.name, size: this.selectedFile?.size, preview: res.url });
         this.cdr.detectChanges();
@@ -93,6 +96,18 @@ export class AppStorageComponent implements OnInit {
         this.openSnackBar(err.error.message, 'Close');
       }
     });
+  }
+
+  downloadFile(url: string, filename: string) {
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      });
   }
 
   openSnackBar(message: string, action: string): void {
