@@ -42,6 +42,7 @@ import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 
 import { CometChatConversationsWithMessages } from '@cometchat/chat-uikit-angular'; //comet chat
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 // code view
 import { provideHighlightOptions } from 'ngx-highlightjs';
@@ -61,6 +62,7 @@ export function jwtOptionsFactory() {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideNativeDateAdapter(),
     JwtHelperService,
     WebSocketService,
     ReportsService,
