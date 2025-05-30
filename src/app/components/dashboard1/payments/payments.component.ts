@@ -17,6 +17,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { forkJoin } from 'rxjs';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 import moment from 'moment-timezone';
 
 export interface paymentsChart {
@@ -46,7 +47,8 @@ export class AppPaymentsComponent implements OnInit {
   constructor(
     private usersService: UsersService,
     private schedulesService: SchedulesService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private employeesService: EmployeesService,
   ) {
     this.paymentsChart = {
       series: [
@@ -133,7 +135,7 @@ export class AppPaymentsComponent implements OnInit {
   }
 
   getAllUsers() {
-    this.usersService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
           (user: any) => user.user.active == 1 && user.user.role == 2
@@ -265,7 +267,7 @@ export class AppPaymentsComponent implements OnInit {
           });
         });
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error fetching employees:', err);
       },
     });

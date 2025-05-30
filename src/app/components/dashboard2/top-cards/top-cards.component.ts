@@ -6,6 +6,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { forkJoin } from 'rxjs';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 import moment from 'moment-timezone';
 
 @Component({
@@ -20,7 +21,8 @@ export class AppTopCardsComponent implements OnInit {
     private ratingsEntriesService: RatingsEntriesService,
     private usersService: UsersService,
     private schedulesService: SchedulesService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private employeesService: EmployeesService
   ) {}
 
   companyTimezone: string = 'UTC';
@@ -59,7 +61,7 @@ export class AppTopCardsComponent implements OnInit {
   }
 
   getAllUsers() {
-    this.usersService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
           (user: any) => user.user.active == 1 && user.user.role == 2
@@ -191,7 +193,7 @@ export class AppTopCardsComponent implements OnInit {
           });
         });
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error fetching employees:', err);
       },
     });

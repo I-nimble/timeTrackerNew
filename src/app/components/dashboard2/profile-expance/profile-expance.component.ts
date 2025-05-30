@@ -130,7 +130,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
 
   loadAllTasksForClient() {
   
-    this.usersService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
           (user: any) => user.user.active == 1 && user.user.role == 2
