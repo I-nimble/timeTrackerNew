@@ -203,13 +203,13 @@ export class EmployeeDetailsComponent implements OnInit {
     this.weeklyHoursChart.series = [
       {
        name: 'Worked',
-    data: ['M', 'T', 'W', 'T', 'F'].map(day =>
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
       Number(Number(workedHoursPerDay[day.substring(0, 3)] || 0).toFixed(2))
     ),
       },
      {
     name: 'Not worked',
-    data: ['M', 'T', 'W', 'T', 'F'].map(day => {
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
       const total = totalHoursPerDay[day.substring(0, 3)] || 0;
       const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
       return Number(Math.max(total - worked, 0).toFixed(2));
