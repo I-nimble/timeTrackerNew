@@ -78,11 +78,11 @@ export class EmployeeDetailsComponent implements OnInit {
       series: [
         {
           name: 'Worked',
-          data: [0, 0, 0, 0, 0, 0, 0],
+          data: [0, 0, 0, 0, 0],
         },
         {
           name: 'Not worked',
-          data: [0, 0, 0, 0, 0, 0, 0],
+          data: [0, 0, 0, 0, 0],
         },
       ],
       chart: {
@@ -113,7 +113,7 @@ export class EmployeeDetailsComponent implements OnInit {
         enabled: false,
       },
       legend: {
-        show: false,
+        show: true,
       },
       grid: {
         show: false,
@@ -122,9 +122,9 @@ export class EmployeeDetailsComponent implements OnInit {
         tickAmount: 4,
       },
       xaxis: {
-        categories: ['Mon', 'Tue', 'Wen', 'Thu', 'Fri'],
+        categories: ['M', 'T', 'W', 'T', 'F'],
         axisTicks: {
-          show: false,
+          show: true,
         },
       },
       tooltip: {
@@ -202,19 +202,19 @@ export class EmployeeDetailsComponent implements OnInit {
 
     this.weeklyHoursChart.series = [
       {
-        name: 'Worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => 
-          Number(workedHoursPerDay[day.substring(0, 3)]).toFixed(2) || 0
-        ),
+       name: 'Worked',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
+      Number(Number(workedHoursPerDay[day.substring(0, 3)] || 0).toFixed(2))
+    ),
       },
-      {
-        name: 'Not worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-          const total = totalHoursPerDay[day.substring(0, 3)] || 0;
-          const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(total - worked, 0)).toFixed(2);
-        }),
-      }
+     {
+    name: 'Not worked',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+      const total = totalHoursPerDay[day.substring(0, 3)] || 0;
+      const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
+      return Number(Math.max(total - worked, 0).toFixed(2));
+    }),
+  }
     ];
   }
 
