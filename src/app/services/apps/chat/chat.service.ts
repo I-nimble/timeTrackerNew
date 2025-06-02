@@ -15,12 +15,12 @@ export class CometChatService {
 
   constructor(private http: HttpClient) { }
 
-  async initializeCometChat(): Promise<void> {
+  async initializeCometChat(companyId?: number): Promise<void> {
     try {
       const chat_uid = localStorage.getItem('id');
       if (chat_uid) {
         // Fetch credentials first
-        const credentials: any = await firstValueFrom(this.getChatCredentials());
+        const credentials: any = await firstValueFrom(this.getChatCredentials(companyId || undefined)); // Pass the company id optionally
         if(!credentials) {
           console.log("No chat credentials found in the database.");
           return;
@@ -33,7 +33,7 @@ export class CometChatService {
           .setAuthKey(credentials.auth_key)
           .subscribePresenceForAllUsers()
           .build();
-
+        
         await CometChatUIKit.init(this.UIKitSettings);
         // Now login the user
         await this.login(chat_uid);
@@ -59,7 +59,9 @@ export class CometChatService {
 
   async logout(): Promise<void> {
     try {
-      await CometChatUIKit.logout();
+      if(CometChatUIKit.getLoggedinUser()) {
+        await CometChatUIKit.logout();
+      }
       this.isChatAvailable = false;
     } catch (error) {
       console.error(error);
@@ -67,7 +69,8 @@ export class CometChatService {
     }
   }
 
-  public getChatCredentials(): Observable<any[]> {
+  public getChatCredentials(companyId?: number): Observable<any[]> {
+    if(companyId) return this.http.get<any[]>(`${this.API_URI}/chat/${companyId}`);
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 }

@@ -1,9 +1,29 @@
 <mat-card class="mat-card-top cardWithShadow communication-container">
-  <cometchat-conversations-with-messages *ngIf="chatService.isChatAvailable; else ctaMessage" id="chat-container"></cometchat-conversations-with-messages>
+  <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint m-b-20" id="company-select">
+    <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+    <mat-select (selectionChange)="handleCompanySelection($event)">
+      <mat-option *ngFor="let company of companies" [value]="company.id">
+        {{ company.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <button mat-flat-button color="primary" *ngIf="userRole === '3'" class="m-b-16 m-t-16" (click)="openDialog()" id="create-group-button">
+    Create Group
+  </button>
+
+  <cometchat-conversations-with-messages 
+    *ngIf="chatService.isChatAvailable; else ctaMessage" 
+    id="chat-container"
+    [conversationConfiguration]="conversationsConfigurations"
+  >
+  </cometchat-conversations-with-messages>
+  
   <ng-template #ctaMessage>
     <div class="cta-message">
       <h2>Welcome to the Inimble Chat!</h2>
-      <p>Communicate with support to activate your chat service.</p>
+      <p *ngIf="userRole !== '1'">Communicate with support to activate your chat service.</p>
+      <p *ngIf="userRole === '1'">Please, select a company to start chatting.</p>
     </div>
   </ng-template>
 </mat-card>
