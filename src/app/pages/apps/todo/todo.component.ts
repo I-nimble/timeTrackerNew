@@ -193,7 +193,7 @@ export class AppTodoComponent implements OnInit {
       });
     }
     if (this.userRole === '3') { // Get client company employees
-      this.userService.getEmployees().subscribe({
+      this.employeesService.get().subscribe({
         next: (employees: any) => {
           this.teamMembers = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
           this.companiesService.getEmployer(this.teamMembers[0].company_id).subscribe(data => {

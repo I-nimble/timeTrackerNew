@@ -82,6 +82,7 @@ export class HeaderComponent implements OnInit {
   assetsPath: string = environment.assets;
   totalApplications: number = 0;
   recentNotifications: any[] = [];
+  role: any = localStorage.getItem('role');
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -258,14 +259,14 @@ export class HeaderComponent implements OnInit {
       subtitle: 'Notifications',
       link: '/dashboards/notifications',
     },
-    {
+    ...(Number(this.role) !== 2 ? [{
       id: 3,
       img: 'credit-card',
       color: 'error',
       title: 'My Tasks',
       subtitle: 'To-do and Daily Tasks',
       link: '/',
-    },
+    }] : []),
   ];
 
   apps: apps[] = [
