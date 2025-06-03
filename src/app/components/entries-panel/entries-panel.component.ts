@@ -430,6 +430,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
               // this.router.navigate(['ratings/tm']);
             }
           });
+          this.entry.description = ''; 
         }
       },
       error: (err) => {

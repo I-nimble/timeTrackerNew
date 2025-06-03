@@ -90,3 +90,12 @@ button {
     padding-bottom: 20px; 
   }
 }
+
+.entries-panel {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 auto;
+}
+
