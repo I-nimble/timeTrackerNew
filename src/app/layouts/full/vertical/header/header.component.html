@@ -96,7 +96,8 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat/support']">HR & Operations</a>
+    <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1'"
+    >HR & Operations</a>
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
