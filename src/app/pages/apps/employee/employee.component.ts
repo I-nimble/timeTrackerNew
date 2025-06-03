@@ -38,7 +38,7 @@ import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
-import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
+import { EmployeesReportsComponent } from 'src/app/components/dashboard2/employees-reports/employees-reports.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -51,7 +51,7 @@ import { AppEmployeesReportsComponent } from '../../../components/dashboard2/emp
     RouterModule,
     TimerComponent,
     AppActivityReportComponent,
-    AppEmployeesReportsComponent
+    EmployeesReportsComponent
   ],
   standalone: true,
 })

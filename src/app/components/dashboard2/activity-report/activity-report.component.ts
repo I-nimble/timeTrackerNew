@@ -44,6 +44,7 @@ export class AppActivityReportComponent implements OnInit {
   employees: any[] = [];
   totalHours: number = 0;
   hoursWorked: number = 0;
+  hoursLeft: number = 0;
 
   constructor(
     private companiesService: CompaniesService,
@@ -156,11 +157,11 @@ export class AppActivityReportComponent implements OnInit {
           this.totalHours += duration * schedule.days.length;
         });
         // Calculate hours left
-        const hoursLeft = this.totalHours - this.hoursWorked;
+        this.hoursLeft = this.totalHours - this.hoursWorked;
         // Update chart
         this.trafficChart.series = [
           Number(this.hoursWorked.toFixed(2)),
-          Number(hoursLeft.toFixed(2))
+          Number(this.hoursLeft.toFixed(2))
         ];
       });
     });
