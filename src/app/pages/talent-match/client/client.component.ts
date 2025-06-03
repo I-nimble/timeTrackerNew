@@ -59,6 +59,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   interviews: any[] = [];
+  assetsPath: string = 'assets/images/default-user-profile-pic.png';
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -191,6 +192,12 @@ export class AppTalentMatchClientComponent implements OnInit {
       row.position + 1
     }`;
   }
+
+  handleImageError(event: Event) {
+  const imgElement = event.target as HTMLImageElement;
+  imgElement.src = this.assetsPath;
+  imgElement.onerror = null;
+}
 }
 
 
