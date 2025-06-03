@@ -10,5 +10,10 @@ import { AppEmployeesReportsComponent } from '../../../components/dashboard2/emp
   styleUrl: './reports.component.scss'
 })
 export class ReportsComponent {
+  dataSource: any[] = [];
+
+  onEmployeesDataSourceChange(data: any[]) {
+      this.dataSource = data;
+  }
 
 }
