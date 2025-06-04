@@ -427,7 +427,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
           }); 
           dialogRef.afterClosed().subscribe(result => {
             if (result == 'now') {
-              // this.router.navigate(['ratings/tm']);
+              this.router.navigate(['apps/todo']);
             }
           });
           this.entry.description = ''; 
