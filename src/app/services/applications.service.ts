@@ -11,7 +11,7 @@ export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
   selectedCards: any[] = [];
-  selectedApplicants: any = null;
+  selectedApplicants: any[] = [];
   resumeUrl: any = null;
   photoUrl: any = null;
 
@@ -37,6 +37,10 @@ export class ApplicationsService {
 
   getSelectedApplicant() {
     return this.selectedApplicants;
+  }
+
+  clearSelectedApplicants() {
+    this.selectedApplicants = [];
   }
 
   public get(): Observable<any[]> {

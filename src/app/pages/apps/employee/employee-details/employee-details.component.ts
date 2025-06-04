@@ -24,6 +24,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EntriesService } from 'src/app/services/entries.service';
+import { switchMap, map } from 'rxjs/operators';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -60,6 +61,7 @@ export class EmployeeDetailsComponent implements OnInit {
   entries: any = [];
   user: any;
   schedules: any = [];
+  userRole: string | null = localStorage.getItem('role');
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -78,11 +80,11 @@ export class EmployeeDetailsComponent implements OnInit {
       series: [
         {
           name: 'Worked',
-          data: [0, 0, 0, 0, 0, 0, 0],
+          data: [0, 0, 0, 0, 0],
         },
         {
           name: 'Not worked',
-          data: [0, 0, 0, 0, 0, 0, 0],
+          data: [0, 0, 0, 0, 0],
         },
       ],
       chart: {
@@ -113,7 +115,7 @@ export class EmployeeDetailsComponent implements OnInit {
         enabled: false,
       },
       legend: {
-        show: false,
+        show: true,
       },
       grid: {
         show: false,
@@ -122,9 +124,9 @@ export class EmployeeDetailsComponent implements OnInit {
         tickAmount: 4,
       },
       xaxis: {
-        categories: ['Mon', 'Tue', 'Wen', 'Thu', 'Fri'],
+        categories: ['M', 'T', 'W', 'T', 'F'],
         axisTicks: {
-          show: false,
+          show: true,
         },
       },
       tooltip: {
@@ -142,16 +144,27 @@ export class EmployeeDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.user = this.userService.getSelectedUser();
-    this.userId = this.route.snapshot.paramMap.get('id');
-
-    if(!this.user.name || !this.userId) {
-      this.openSnackBar("Select a user to see their report", "Close");
-      this.location.back();
+    if(this.userRole === '2') {
+      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
+        next: (res: any) => {
+          this.user = res[0];
+          this.userId = this.user.id;
+          this.defaultWeek();
+          this.getDailyHours();
+        }
+      })
     }
-
-    this.defaultWeek();
-    this.getDailyHours();
+    else {
+      this.user = this.userService.getSelectedUser();
+      this.userId = this.route.snapshot.paramMap.get('id');
+      this.defaultWeek();
+      this.getDailyHours();
+      
+      if(!this.user.name || !this.userId) {
+        this.openSnackBar("Select a user to see their report", "Close");
+        this.location.back();
+      }
+    }
   }
 
   private defaultWeek(): void {
@@ -202,19 +215,19 @@ export class EmployeeDetailsComponent implements OnInit {
 
     this.weeklyHoursChart.series = [
       {
-        name: 'Worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => 
-          Number(workedHoursPerDay[day.substring(0, 3)]).toFixed(2) || 0
-        ),
+       name: 'Worked',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
+      Number(Number(workedHoursPerDay[day.substring(0, 3)] || 0).toFixed(2))
+    ),
       },
-      {
-        name: 'Not worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-          const total = totalHoursPerDay[day.substring(0, 3)] || 0;
-          const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(total - worked, 0)).toFixed(2);
-        }),
-      }
+     {
+    name: 'Not worked',
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+      const total = totalHoursPerDay[day.substring(0, 3)] || 0;
+      const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
+      return Number(Math.max(total - worked, 0).toFixed(2));
+    }),
+  }
     ];
   }
 

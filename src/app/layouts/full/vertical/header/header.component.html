@@ -96,7 +96,8 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat/support']">HR & Operations</a>
+    <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1'"
+    >HR & Operations</a>
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
@@ -114,7 +115,7 @@
           ></span>
         </div>
       </button>
-    <a mat-button [routerLink]="['/apps/talent-match']">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
+    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2'">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
     Talent Match
   </span></a>
     <mat-menu #invoiceMenu="matMenu">
@@ -122,7 +123,8 @@
       Invoice
     </button>
     </mat-menu>
-    <a mat-button [matMenuTriggerFor]="invoiceMenu">Payroll</a>
+    <!-- <a mat-button [matMenuTriggerFor]="invoiceMenu"
+      *ngIf="role != '2'">Payroll</a> -->
   </div>
 
   <span class="flex-1-auto"></span>

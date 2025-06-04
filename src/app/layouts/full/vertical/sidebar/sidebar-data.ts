@@ -31,12 +31,12 @@ export function getNavItems(role: number): NavItem[] {
     bgcolor: 'primary',
     route: '/dashboards/reports',
   },
-  {
+    ...(Number(role) !== 2 ? [{
     displayName: 'Productivity',
     iconName: 'chart-bar',
     bgcolor: 'primary',
     route: '/dashboards/productivity',
-  },
+  }] : []),
   {
     navCap: 'Apps',
   },

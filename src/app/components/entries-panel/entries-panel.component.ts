@@ -344,11 +344,11 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
       this.showStartingMessage = true;
     }, 1000);
     let start_time
-    if (this.justInTime) { 
-      start_time = moment.utc(this.UTCValidStartTime + 'Z').format('YYYY-MM-DDTHH:mm:ss.000Z');
-    } else {
+    // if (this.justInTime) { 
+    //   start_time = moment.utc(this.UTCValidStartTime + 'Z').format('YYYY-MM-DDTHH:mm:ss.000Z');
+    // } else {
       start_time = moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
-    }
+    // }
 
     const data = {
       description: this.entry.description,
@@ -430,6 +430,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
               // this.router.navigate(['ratings/tm']);
             }
           });
+          this.entry.description = ''; 
         }
       },
       error: (err) => {
