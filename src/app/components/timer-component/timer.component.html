@@ -1,69 +1,17 @@
 <div class="">
   <div class="text-sm-end text-center">
-    <div *ngIf="hasLeaveRequest; else showTimer">
-        <span *ngIf="leaveRequest.has_substitute"
-            class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Substitute: {{ leaveRequest.substitute ? leaveRequest.substitute.name + ' ' + leaveRequest.substitute.last_name : leaveRequest.substitute_name }}
-        </span>
-        <span
-            class="bg-light-error text-error border-error rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            On {{leaveRequest.leave_type.name.toLowerCase()}}
-
-            @if (leaveRequest.start_date != leaveRequest.end_date) {
-            from {{ leaveRequest.start_date | date : 'MMM d' }} to {{ leaveRequest.end_date | date : 'MMM d' }}
-            }
-            @else {
-            today
-            }
-        </span>
-    </div>
-    <ng-template #showTimer>
-      @if(entry.status == null) {
-        <span *ngIf="!(startedEarly() || localTime < validStartTime)"
-            class="bg-light-error text-error border-error rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Offline
-        </span>
-      }
-      @else {
-        <p class="mb-0 fs-4" *ngIf="!(startedEarly() && localTime < validStartTime)">
-          {{ entry.started }} {{ entry.timeRef }}
-        </p>
-      }
-      
-       <span *ngIf="startedEarly() && localTime < validStartTime"
-            class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Starting at {{ localValidStartTime | date : "hh:mm a" }}
-        </span>
-       <span *ngIf="entry.status == null && initializing"
-            class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Initializing...
-        </span>
-  
-      @if(entry.status == null) {
-        <span *ngIf="!startedEarly() && localTime < validStartTime"
-            class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Shift begins at {{ localValidStartTime | date : "hh:mm a" }}
-        </span>
-      }
-      @else {
-        <span
-            class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12"
-        >
-            Online since
-            @if(startedEarly() || justInTime) {
-                {{localValidStartTime.toISOString() | date : "hh:mm a"}}
-            }
-            @else {
-                {{localEntryStartTime | date : "hh:mm a"}}
-            }
-        </span>
-      }
-    </ng-template>
+    @if(entry.status == null) {
+      <span class="bg-light-error text-error border-error rounded f-w-600 p-6 p-y-4 f-s-12">
+        Offline
+      </span>
+    }
+    @else {
+      <p class="mb-0 fs-4">
+        {{ entry.started }} {{ entry.timeRef }}
+      </p>
+      <span class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12">
+        Online
+      </span>
+    }
   </div>
 </div>

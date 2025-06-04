@@ -248,11 +248,11 @@ export class TimerComponent {
         const utcTime = moment.utc();
         const now = this.strToDate(utcTime.format('MM/DD/YYYY HH:mm:ss'))
 
-        if (this.startedEarly() || this.justInTime) { 
-          this.entry.started = this.customDate.getTotalHours(this.validStartTime.toISOString(), now);
-        } else {
+        // if (this.startedEarly() || this.justInTime) { 
+        //   this.entry.started = this.customDate.getTotalHours(this.validStartTime.toISOString(), now);
+        // } else {
           this.entry.started = this.customDate.getTotalHours(this.entry.start_time, now);
-        }
+        // }
         this.entry.timeRef = this.getTimeAgo(this.entry.started.split(':')); 
       });
       this.subscription.push(timer);

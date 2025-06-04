@@ -26,6 +26,7 @@ import { AppStorageComponent } from './storage/storage.component';
 import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
 import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
+import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 
 export const AppsRoutes: Routes = [
   {
