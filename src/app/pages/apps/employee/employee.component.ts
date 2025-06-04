@@ -39,6 +39,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
 import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
+import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -51,7 +52,8 @@ import { AppEmployeesReportsComponent } from '../../../components/dashboard2/emp
     RouterModule,
     TimerComponent,
     AppActivityReportComponent,
-    AppEmployeesReportsComponent
+    AppEmployeesReportsComponent,
+    EmployeeDetailsComponent
   ],
   standalone: true,
 })
