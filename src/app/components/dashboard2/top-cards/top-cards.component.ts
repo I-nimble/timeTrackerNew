@@ -2,11 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { UsersService } from 'src/app/services/users.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 import { forkJoin } from 'rxjs';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
-import { EmployeesService } from 'src/app/services/employees.service';
 import moment from 'moment-timezone';
 
 @Component({
@@ -19,10 +18,9 @@ export class AppTopCardsComponent implements OnInit {
   totalTasksSum: number = 0;
   constructor(
     private ratingsEntriesService: RatingsEntriesService,
-    private usersService: UsersService,
+    private employeesService: EmployeesService,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
-    private employeesService: EmployeesService
   ) {}
 
   companyTimezone: string = 'UTC';
@@ -36,23 +34,24 @@ export class AppTopCardsComponent implements OnInit {
 
   loadTeamReport() {
     const today = new Date();
-    const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+    const year = today.getFullYear();
+    const firstDay = new Date(year, 0, 1);
+    const lastDay = today;
+
     const dateRange = {
-      firstSelect: firstDayOfYear.toISOString().split('T')[0],
-      lastSelect: today.toISOString().split('T')[0],
+      firstSelect: firstDay.toISOString().split('T')[0],
+      lastSelect: lastDay.toISOString().split('T')[0],
     };
 
     this.ratingsEntriesService.getTeamReport(dateRange).subscribe({
       next: (data) => {
         const ratings = Array.isArray(data?.ratings) ? data.ratings : [];
         this.totalTasksSum = ratings.reduce(
-          (acc: number, curr: { totalTasks?: number }) =>
-            acc + (curr.totalTasks || 0),
+          (acc: number, curr: { completed?: number }) =>
+            acc + (curr.completed || 0),
           0
         );
-
-        // console.log('Team Report:', ratings);
-        // console.log('total: ', this.totalTasksSum);
+        console.log('Completed sum for current year:', this.totalTasksSum);
       },
       error: (err) => {
         console.error('Error loading team report:', err);
@@ -187,6 +186,7 @@ export class AppTopCardsComponent implements OnInit {
             this.totalHours = totalWorkedYear + totalScheduledYear;
             if (this.totalHours > 0) {
               this.performance = this.totalTasksSum / this.totalHours;
+              this.performance = Number(this.performance.toFixed(2));
             }
             // console.log('Worked Data:', totalWorkedYear);
             // console.log('Not Worked Data:', totalScheduledYear);
