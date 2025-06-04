@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   CdkDragDrop,
   DragDropModule,
@@ -17,6 +17,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-kanban',
@@ -29,7 +30,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
     NgScrollbarModule,
   ],
 })
-export class AppKanbanComponent {
+export class AppKanbanComponent implements OnInit {
   role = localStorage.getItem('role');
   boards: any[] = [];
   todos: Todos[] = [];
@@ -39,24 +40,65 @@ export class AppKanbanComponent {
   selectedBoardId: number;
   selectedBoardColumns: any[] = [];
   employees: any;
+  userId: any;
+  isLoading = true;
+
+ 
+  companyId: any;
 
   constructor(
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private kanbanService: BoardsService,
-    private employeesService: EmployeesService
+    private employeesService: EmployeesService,
+    private companieService: CompaniesService,
   ) {
     this.loadBoards();
   }
-  
+
+   ngOnInit(): void {
+    this.userId = localStorage.getItem('id');
+    this.getEmployee();
+    // this.loadBoards();
+  }
+
   loadBoards(): void {
     this.kanbanService.getBoards().subscribe((boards) => {
+      console.log(boards)
+      if (this.role === '2' || this.role === '3') {
+      this.boards = boards.filter((b: { company_id: any; }) => b.company_id === this.companyId);
+    } else {
+      
       this.boards = boards;
-      if (boards.length) {
-        this.selectedBoardId = boards[0].id;
-        this.loadTasks(this.selectedBoardId);
-      }
+    }
+    if (this.boards.length) {
+      this.selectedBoardId = this.boards[0].id;
+      this.loadTasks(this.selectedBoardId);
+    }
+    this.isLoading = false;
     });
+  }
+
+  getEmployee() {
+  console.log(this.role === '2')
+    if (this.role === '2' ) {
+      this.employeesService.getById(this.userId).subscribe((employee:any) => {
+        if(employee?.length > 0) {
+          this.companyId = employee[0].company_id
+          console.log("El companidi", this.companyId)
+          this.loadBoards(); 
+        } 
+      });
+    }
+    else if (this.role === '3'){
+      this.companieService.getByOwner().subscribe((company: any) => {
+        this.companyId = company.company_id;
+        console.log("El companidi", this.companyId)
+        this.loadBoards(); 
+      });
+    } else {
+      this.loadBoards();
+    }
   }
   
   loadTasks(boardId: number): void {
