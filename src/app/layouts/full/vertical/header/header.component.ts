@@ -80,9 +80,10 @@ export class HeaderComponent implements OnInit {
   companyLogo:any = "assets/images/default-logo.jpg";
   userEmail: any;
   assetsPath: string = environment.assets;
-  totalApplications: number = 0;
+  applications: any[] = [];
   recentNotifications: any[] = [];
   hasPendingNotifications: boolean = false;
+  hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
 
   toggleCollpase() {
@@ -142,11 +143,17 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.getUserData();
-    this.getTotalApplications();
+    this.getApplications();
     this.loadNotifications();
     this.webSocketService.getNotifications().subscribe(event => {
       if (event === 'update') {
         this.loadNotifications();
+      }
+    });
+    this.webSocketService.getNotifications().subscribe(event => {
+      if (event === 'new-talent-match') {
+        this.hasNewTalentMatch = true;
+        this.getApplications();
       }
     });
     this.notificationsService.notificationsChanged.subscribe(() => {
@@ -176,15 +183,16 @@ export class HeaderComponent implements OnInit {
     });
   }
 
-  getTotalApplications() {
+  getApplications() {
     this.applicationsService.get().subscribe({
       next: (apps) => {
-        this.totalApplications = apps.length;
-      },
-      error: () => {
-        this.totalApplications = 0;
+        this.applications = apps;
       },
     });
+  }
+
+  clearTalentMatchNotification() {
+    this.hasNewTalentMatch = false;
   }
 
   openDialog() {
