@@ -1,6 +1,5 @@
-<cometchat-create-group 
-    [closeCallback]="handleCloseCallback"
+<cometchat-create-group
     [createGroupStyle]="createGroupStyle"
-    (ccGroupCreated)="onGroupCreated($event)">
->
-</cometchat-create-group>
+    (ccGroupCreated)="onGroupCreated($event)"
+    (closeCreateGroup)="handleCloseCallback()"
+></cometchat-create-group>

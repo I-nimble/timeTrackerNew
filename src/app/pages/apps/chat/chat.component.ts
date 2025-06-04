@@ -14,9 +14,10 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { ConversationsConfiguration, MessagesConfiguration, DetailsConfiguration, GroupsConfiguration, AddMembersConfiguration, MessageComposerConfiguration } from '@cometchat/uikit-shared';
+import { ConversationsConfiguration, MessagesConfiguration, DetailsConfiguration, GroupsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration } from '@cometchat/uikit-shared';
 import { BackdropStyle, CreateGroupStyle } from "@cometchat/uikit-elements";
 import { EmployeesService } from 'src/app/services/employees.service';
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-angular";
 
 @Component({
   standalone: true,
@@ -30,6 +31,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
     CometChatMessageHeader,
     CometChatMessageList,
     CometChatCallButtons,
+    CometChatIncomingCall,
     CommonModule,
     MaterialModule
   ],
@@ -43,14 +45,17 @@ export class AppChatComponent implements OnInit {
   userRole: string | null = localStorage.getItem('role');
   companies: any[] = [];
   selectedCompanyId!: number;
-  public conversationsConfigurations = new ConversationsConfiguration({});
-  public startConversationConfiguration = new ConversationsConfiguration({});
-  public groupsConfiguration = new GroupsConfiguration({});
+  
+  // BASIC PLAN CONFIGURATION
+  public basicMessagesConfig: MessagesConfiguration;
   public backdropStyle = new BackdropStyle({
     position: 'absolute',
   });
-  public addMembersConfig: AddMembersConfiguration;
-  public basicMessagesConfig: MessagesConfiguration;
+  // ESSENTIAL PLAN CONFIGURATION
+  public essentialMessagesConfig: MessagesConfiguration;
+  // TODO: Remove conference call
+
+  // TODO: Disable SoundForMessages
 
   constructor(
     private themeService: CometChatThemeService,
@@ -61,6 +66,15 @@ export class AppChatComponent implements OnInit {
     private employeesService: EmployeesService
   ) { 
     const component = this; 
+
+    this.essentialMessagesConfig = new MessagesConfiguration({
+      messageListConfiguration: new MessageListConfiguration({
+        disableReactions: true,
+      }),
+      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
+        hideMessageComposer: true,
+      })
+    })
 
     this.basicMessagesConfig = new MessagesConfiguration({ // For Basic plan
       messageComposerConfiguration: new MessageComposerConfiguration({
@@ -99,7 +113,6 @@ export class AppChatComponent implements OnInit {
       this.companiesService.getByOwner().subscribe((company: any) => {
         this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
           this.plan = companyPlan.plan;
-          this.initializeConfigurations();
         });
       });
     }
@@ -107,8 +120,6 @@ export class AppChatComponent implements OnInit {
       this.employeesService.getByEmployee().subscribe((employees: any) => {
         this.plansService.getCurrentPlan(employees.company_id).subscribe((companyPlan: any) => {
           this.plan = companyPlan.plan;
-          console.log('Plan: ', this.plan);
-          this.initializeConfigurations();
         });
       });
     }
@@ -116,20 +127,6 @@ export class AppChatComponent implements OnInit {
       this.getCompanies();
     }
     this.configureTheme();
-  }
-
-  // Set configurations for every plan
-  initializeConfigurations() {
-    if(this.plan?.name === 'Basic') {
-      // Free plan
-      
-    }
-    else if(this.plan?.name === 'Essential') {
-      // Essential plan
-    }
-    else if(this.plan?.name === 'Professional') {
-      // Proffessional plan
-    }
   }
 
   openDialog(): void {
