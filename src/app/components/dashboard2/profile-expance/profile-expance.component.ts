@@ -23,6 +23,7 @@ import { RatingsService } from 'src/app/services/ratings.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { forkJoin } from 'rxjs';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { RouterModule } from '@angular/router';
 
 export interface revenuetwoChart {
   series: ApexAxisChartSeries;
@@ -42,7 +43,7 @@ export interface revenuetwoChart {
 @Component({
   selector: 'app-profile-expance',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule],
+  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule,RouterModule],
   templateUrl: './profile-expance.component.html',
 })
 export class AppProfileExpanceCpmponent implements OnInit {
@@ -173,9 +174,6 @@ export class AppProfileExpanceCpmponent implements OnInit {
             this.notCompletedCount = this.allTasks.filter(
               (t) => !t.achieved
             ).length;
-            console.log('Total count:', this.totalCount);
-            console.log('Completed count:', this.completedCount);
-            console.log('Not Completed count:', this.notCompletedCount);
           });
         });
       },
@@ -205,10 +203,8 @@ export class AppProfileExpanceCpmponent implements OnInit {
         lastSelect: month.lastSelect,
       })
     );
-    console.log('Solicitudes preparadas:', requests);
     forkJoin(requests).subscribe({
       next: (results: any[]) => {
-        console.log('Resultados de todas las solicitudes:', results);
         const completedData: number[] = [];
         const totalTasksData: number[] = [];
 
@@ -219,7 +215,6 @@ export class AppProfileExpanceCpmponent implements OnInit {
           const safeMonthData = Array.isArray(monthResult?.ratings)
             ? monthResult.ratings
             : [];
-          console.log(`Datos del mes (${months[idx].label}):`, safeMonthData);
 
           safeMonthData.forEach(
             (entry: { completed: number; totalTasks: number }) => {
@@ -231,25 +226,13 @@ export class AppProfileExpanceCpmponent implements OnInit {
             }
           );
 
-          console.log(
-            `Sumatoria para ${months[idx].label} - Completed: ${completed}, TotalTasks: ${totalTasks}`
-          );
           completedData.push(completed);
           totalTasksData.push(totalTasks);
         });
         const notCompletedData = totalTasksData.map(
           (total, idx) => total - completedData[idx]
         );
-        console.log(
-          'Datos finales para la gráfica - Completed:',
-          completedData
-        );
-        console.log(
-          'Datos finales para la gráfica - notCompletedData:',
-          notCompletedData
-        );
-        // console.log('epa', completedData);
-        // console.log('ey', totalTasksData);
+        
         // Actualizar la gráfica
         this.notCompletedCount = this.totalCount - this.completedCount;
         this.revenuetwoChart.series = [
@@ -285,7 +268,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
       this.completedCountKanban = 0;
       return;
     }
-    const clientBoard = boards[0]; // O selecciona el board adecuado según tu lógica
+    const clientBoard = boards[0]; 
     this.boardsService.getBoardWithTasks(clientBoard.id).subscribe((boardData) => {
       const columns = boardData.columns || [];
       const tasks = boardData.tasks || [];

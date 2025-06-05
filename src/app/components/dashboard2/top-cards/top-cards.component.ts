@@ -51,7 +51,6 @@ export class AppTopCardsComponent implements OnInit {
             acc + (curr.completed || 0),
           0
         );
-        console.log('Completed sum for current year:', this.totalTasksSum);
       },
       error: (err) => {
         console.error('Error loading team report:', err);
