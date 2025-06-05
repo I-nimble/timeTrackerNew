@@ -13,6 +13,7 @@ import { UsersService } from 'src/app/services/users.service';
 import moment from 'moment';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -21,12 +22,12 @@ import { CompaniesService } from 'src/app/services/companies.service';
     MaterialModule,
     TablerIconsModule,
     CommonModule,
-    FormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
     NgApexchartsModule,
+    FormsModule,
   ],
-  providers: [provideNativeDateAdapter()],
+  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './dashboard-admin.component.html',
   styleUrl: './dashboard-admin.component.scss',
 })

@@ -40,6 +40,8 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
 import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
 import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
+import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
+import { SelectionModel } from '@angular/cdk/collections';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -73,6 +75,7 @@ export class AppEmployeeComponent {
     project: 'all',
     byClient: false,
     useTimezone: false,
+    multipleUsers: false,
   };
   userRole = localStorage.getItem('role');
   companies: any[] = [];
@@ -81,14 +84,15 @@ export class AppEmployeeComponent {
   searchText: any;
 
   displayedColumns: string[] = [
+    'select',
     'name',
     'schedule',
     'salary',
     'projects',
     'action',
   ];
-
   dataSource = new MatTableDataSource<Employee>([]);
+  selection = new SelectionModel<any>(true, []);
 
   @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
     if (paginator) {
@@ -248,41 +252,84 @@ export class AppEmployeeComponent {
   }
 
   downloadReport(user: any): void {
+    let selectedIds = this.selection.selected.map(u => u.id);
+    if (!selectedIds.includes(user.id)) {
+      selectedIds.push(user.id);
+    }
     this.filters = {
-      user: user.id,
+      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
       company: 'all',
       project: 'all',
       byClient: false,
       useTimezone: false,
+      multipleUsers: selectedIds.length > 1,
     };
 
-    const datesRange = {
-      firstSelect: moment().startOf('week').toDate(),
-      lastSelect: moment().endOf('week').toDate(),
-    };
-
-    this.employees.map((employee: any) => {
-      user.id == employee.user.id ? user = employee.user : null;
+    const dialogRef = this.dialog.open(AppDateRangeDialogComponent, {
+      data: {},
+      autoFocus: false,
     });
-    this.reportsService
-      .getReport(datesRange, user, this.filters)
-      .subscribe((v) => {
-        let filename;
-        let display_name;
-        if (user.last_name) {
-          display_name = `${user.name}_${user.last_name}`;
-        } else {
-          display_name = user.name;
-        }
 
-        filename = `I-nimble_Report_${display_name}_${moment(
-          new Date(datesRange.firstSelect)
-        ).format('DD-MM-YYYY')}_${moment(
-          new Date(datesRange.lastSelect)
-        ).format('DD-MM-YYYY')}.xlsx`;
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const datesRange = {
+          firstSelect: result.firstSelect,
+          lastSelect: result.lastSelect,
+        };
 
-        filesaver.saveAs(v, filename);
-      });
+        this.employees.map((employee: any) => {
+          user.id == employee.user.id ? user = employee.user : null;
+        });
+        this.reportsService
+          .getReport(datesRange, user, this.filters)
+          .subscribe((v) => {
+            let filename;
+            let display_name;
+            if (this.filters.multipleUsers) {
+              display_name = 'multiple_users';
+            }
+            else {
+              display_name = `${user.name}_${user.last_name}`;
+            }
+    
+            filename = `I-nimble_Report_${display_name}_${moment( 
+              new Date(datesRange.firstSelect)
+            ).format('DD-MM-YYYY')}_${moment(
+              new Date(datesRange.lastSelect)
+            ).format('DD-MM-YYYY')}.xlsx`;
+    
+            filesaver.saveAs(v, filename);
+          });
+      }
+    });
+  }
+
+  isAllSelected(): boolean {
+    if (!this.dataSource || !this.dataSource.data) {
+      return false;
+    }
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  masterToggle(): void {
+    if (!this.dataSource || !this.dataSource.data) {
+      return;
+    }
+    this.selection.clear();
+    this.isAllSelected()
+      ? this.selection.clear()
+      : this.dataSource.data.forEach((row) => this.selection.select(row));
+  }
+
+  checkboxLabel(row?: any): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
+      row.position + 1
+    }`;
   }
 }
 

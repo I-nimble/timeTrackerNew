@@ -9,6 +9,9 @@ import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { RouterLink } from '@angular/router';
+import { RatingsService } from 'src/app/services/ratings.service';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -17,6 +20,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
     MaterialModule,
     EntriesPanelComponent,
     CommonModule,
+    RouterLink
   ],
   templateUrl: './dashboard-tm.component.html',
   styleUrl: './dashboard-tm.component.scss',
@@ -79,13 +83,16 @@ export class AppDashboardTMComponent implements OnInit {
     start_time: new Date(),
     end_time: new Date(),
   };
+  todayTasks: any[] = [];
 
   constructor(private usersService: UsersService, 
               private employeesService: EmployeesService,
               private companiesService: CompaniesService,
               private entriesService: EntriesService, 
               private socketService: WebSocketService, 
-              private snackBar: MatSnackBar
+              private snackBar: MatSnackBar,
+              public ratingsEntriesService: RatingsEntriesService,
+              public ratingsService: RatingsService
   ) {}
 
   ngOnInit(): void {
@@ -115,7 +122,13 @@ export class AppDashboardTMComponent implements OnInit {
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
-  }
+
+     const today = new Date();
+      this.ratingsService.getToDo(today).subscribe(tasks => {
+        this.todayTasks = tasks ? tasks.slice(0, 5) : [];
+      });
+    }
+  
 
   getUser() {
     const userEmail = localStorage.getItem('email') || '';

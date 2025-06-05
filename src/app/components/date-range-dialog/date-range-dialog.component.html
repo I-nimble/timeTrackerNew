@@ -1,0 +1,15 @@
+<div style="padding: 24px; min-width: 320px;">
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Date Range</mat-label>
+    <mat-date-range-input [rangePicker]="picker">
+      <input matStartDate placeholder="Start date" [(ngModel)]="startDate" />
+      <input matEndDate placeholder="End date" [(ngModel)]="endDate" />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+  </mat-form-field>
+  <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+    <button mat-flat-button (click)="close()" class="bg-error text-white m-r-16">Cancel</button>
+    <button mat-flat-button color="primary" (click)="download()" [disabled]="!startDate || !endDate">Download</button>
+  </div>
+</div>
