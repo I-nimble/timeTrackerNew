@@ -12,21 +12,23 @@
       </div>
     </mat-dialog-actions>
 </div>
-<mat-dialog-content>
-    <h2 mat-dialog-title class="text-center mt-2 mb-4">Remember to log your today's achieved goals!</h2>
+<mat-dialog-content class="d-flex flex-column justify-content-center align-items-center p-t-0">
+    <h2 mat-dialog-title class="text-center m-t-2 m-b-20">Remember to log your today's achieved goals!</h2>
     <div class="d-flex flex-row justify-content-around" style="width: 75%; margin: 0 auto;">
-        <a 
-            class="btn btn-danger mt-4 mr-3"
+        <button 
+            mat-flat-button
+            class="bg-error text-white m-r-16"
             [mat-dialog-close]="'later'"
         >
             Maybe later
-        </a>
-        <a 
-            class="btn btn-primary mt-4 ml-3"
+        </button>
+        <button 
+            mat-flat-button
+            color="primary"
             [mat-dialog-close]="'now'"
         >
             Log my goals
-        </a>
+        </button>
     </div>
-  </mat-dialog-content>
+</mat-dialog-content>
   
