@@ -34,6 +34,7 @@
     <cometchat-conversations-with-messages 
       *ngIf="plan && plan.id === 3"
       id="chat-container"
+      [messagesConfiguration]="professionalMessagesConfig"
     >
     </cometchat-conversations-with-messages>
   }

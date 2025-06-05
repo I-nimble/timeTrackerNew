@@ -1,7 +1,8 @@
 import { Component, Inject, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
-import { CreateGroupStyle, CometChatGroupEvents } from '@cometchat/chat-uikit-angular';
+import { CreateGroupStyle } from '@cometchat/chat-uikit-angular';
+import {CometChatGroupEvents} from "@cometchat/uikit-resources"
 import "@cometchat/uikit-elements";
 
 @Component({
@@ -14,6 +15,7 @@ import "@cometchat/uikit-elements";
 })
 export class NewGroupDialogComponent implements OnInit, OnDestroy {
   ccGroupCreated: any;
+  closeCreateGroup: any;
   createGroupStyle = new CreateGroupStyle({
     titleTextFont: 'Montserrat',
     createGroupButtonBackground: '#92b46c',
@@ -26,9 +28,9 @@ export class NewGroupDialogComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // this.ccGroupCreated = CometChatGroupEvents.ccGroupCreated.subscribe((group: any) => {
-    //   this.onGroupCreated(group);
-    // });
+    this.ccGroupCreated = CometChatGroupEvents.ccGroupCreated.subscribe((group: any) => {
+      this.onGroupCreated(group);
+    });
   }
 
   ngOnDestroy() {
