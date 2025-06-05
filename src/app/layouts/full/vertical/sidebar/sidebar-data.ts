@@ -15,10 +15,15 @@ export function getNavItems(role: number): NavItem[] {
   //   route: '/dashboards/dashboard1',
   // },
   {
-    displayName: 'Dashboard',
-    iconName: 'layout-dashboard',
-    bgcolor: 'primary',
-    route: Number(role) === 2 ? '/dashboards/tm' : '/dashboards/dashboard2'
+  displayName: 'Dashboard',
+  iconName: 'layout-dashboard',
+  bgcolor: 'primary',
+  route:
+    Number(role) === 1
+      ? '/dashboards/admin'
+      : Number(role) === 2
+      ? '/dashboards/tm'
+      : '/dashboards/dashboard2'
   },
   {
     displayName: 'Reports',
@@ -26,12 +31,12 @@ export function getNavItems(role: number): NavItem[] {
     bgcolor: 'primary',
     route: '/dashboards/reports',
   },
-  {
+    ...(Number(role) !== 2 ? [{
     displayName: 'Productivity',
     iconName: 'chart-bar',
     bgcolor: 'primary',
     route: '/dashboards/productivity',
-  },
+  }] : []),
   {
     navCap: 'Apps',
   },
@@ -729,3 +734,5 @@ export function getNavItems(role: number): NavItem[] {
   // },
   ]
 };
+
+export const navItems: NavItem[] = getNavItems(Number(role));

@@ -36,6 +36,10 @@ import {
 import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TimerComponent } from 'src/app/components/timer-component/timer.component';
+import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
+import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
+import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -46,17 +50,21 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
     TablerIconsModule,
     CommonModule,
     RouterModule,
+    TimerComponent,
+    AppActivityReportComponent,
+    AppEmployeesReportsComponent,
+    EmployeeDetailsComponent
   ],
   standalone: true,
 })
-export class AppEmployeeComponent implements AfterViewInit {
+export class AppEmployeeComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
   employees: any[] = [];
   loaded: boolean = false;
   company: any;
-  companyTimezone: string = 'UTC';
+  companyTimezone: string = 'America/Los_Angeles';
   timeZone: string = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
@@ -66,14 +74,15 @@ export class AppEmployeeComponent implements AfterViewInit {
     byClient: false,
     useTimezone: false,
   };
+  userRole = localStorage.getItem('role');
+  companies: any[] = [];
+  companyId: number | null = null;
 
   searchText: any;
 
   displayedColumns: string[] = [
-    '#',
     'name',
     'schedule',
-    'date of joining',
     'salary',
     'projects',
     'action',
@@ -81,32 +90,50 @@ export class AppEmployeeComponent implements AfterViewInit {
 
   dataSource = new MatTableDataSource<Employee>([]);
 
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
-    Object.create(null);
+  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
+    if (paginator) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   constructor(
     public dialog: MatDialog,
     private employeesService: EmployeesService,
     private userService: UsersService,
-    private companieService: CompaniesService,
     private positionsService: PositionsService,
     private schedulesService: SchedulesService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit(): void {
-    this.loadCompany();
+    if (this.userRole === '3') {
+      this.loadCompany();
+    }
     this.getEmployees();
+    this.getCompanies();
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        this.companies = companies;
+      },
+    });
+  }
+
+  handleCompanySelection(event: any) {
+    this.companyId = event.value;
+    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
   }
 
   loadCompany(): void {
-    this.companieService.getByOwner().subscribe((company: any) => {
+    this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
-      this.companyTimezone = company.company.timezone || 'UTC';
+      if(company.company.timezone) {
+        this.companyTimezone = this.companyTimezone.split(':')[0];
+      }
     });
-  }
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
   }
 
   applyFilter(filterValue: string): void {
@@ -125,7 +152,7 @@ export class AppEmployeeComponent implements AfterViewInit {
   }
 
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
@@ -141,44 +168,36 @@ export class AppEmployeeComponent implements AfterViewInit {
               if (!userSchedules) {
                 return {
                   id: user.user.id,
+                  company_id: user.company_id,
                   name: user.user.name,
                   last_name: user.user.last_name,
                   email: user.user.email,
                   position: user.position_id,
                   projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered hours',
-                  WorkingDays: 'N/A',
+                  schedule: 'No registered schedule',
                   Salary: 0,
                   imagePath: this.assetsPath + '/default-profile-pic.png',
                 };
               }
               
               const workingDays = userSchedules.days
-                .map((day: any) => day.name.charAt(0).toUpperCase()) 
-                .join(', ');
+                .map((day: any) => day.name)
+                .sort((a: string, b: string) => {
+                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  return weekDays.indexOf(a) - weekDays.indexOf(b);
+                });
 
-              const start = moment.tz(
-                userSchedules.start_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              const end = moment.tz(
-                userSchedules.end_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              if (end.isBefore(start)) end.add(1, 'day');
-              const totalWorkHours = end.diff(start, 'hours', true);
+              const scheduleString = this.formatDaysRange(workingDays);
 
               return {
                 id: user.user.id,
+                company_id: user.company_id,
                 name: user.user.name,
                 last_name: user.user.last_name,
                 email: user.user.email,
                 position: user.position_id,
                 projects: user.projects.map((project: any) => project.id),
-                schedule: `${totalWorkHours.toFixed()} hours per day`,
-                WorkingDays: workingDays,
+                schedule: scheduleString,
                 Salary: 0, 
                 imagePath: this.assetsPath + '/default-profile-pic.png',
               };
@@ -195,6 +214,28 @@ export class AppEmployeeComponent implements AfterViewInit {
         console.error('Error fetching employees:', err);
       },
     });
+  }
+
+  // Helper function to format days as a range "Monday to Friday"
+  formatDaysRange(days: string[]): string {
+    const weekDays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
+    if (indices.length === 0) return '';
+    // Check if days are consecutive
+    let isConsecutive = true;
+    for (let i = 1; i < indices.length; i++) {
+      if (indices[i] !== indices[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+    if (isConsecutive && indices.length > 1) {
+      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
+    } else {
+      return days.join(', ');
+    }
   }
 
   setUser(user: any): void {

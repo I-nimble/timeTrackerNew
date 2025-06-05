@@ -216,8 +216,8 @@ export class AppHorizontalHeaderComponent implements OnInit {
       img: 'shield',
       color: 'success',
       title: 'My Inbox',
-      subtitle: 'Messages & Email',
-      link: '/',
+      subtitle: 'Notifications',
+      link: '/dashboards/notifications',
     },
     {
       id: 3,

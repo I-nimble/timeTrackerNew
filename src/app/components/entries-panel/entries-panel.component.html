@@ -1,96 +1,50 @@
-<div class="col-md-12 col-12">
-  <div class="card mb-3 shadow rounded-1">
-    <!-- <div
-      class="card-header d-flex flex-wrap align-items-center justify-content-between"
-    >
-      <div class="col-12 col-sm-auto d-flex align-items-center">
-        <img id="profile-picture" [src]="profilePic ? profilePic : 'assets/images/default-profile-pic.png'" alt="Profile Picture" />
-        <h1 class="mb-0 title fs-4">{{ userName }}</h1>
-      </div>
-      <div
-        class="position-relative col-12 col-sm-auto text-end"
-        *ngIf="projects.length > 0"
-      >
-        <button class="p-1 project options-btn btn" id="project-options">
-          <i class="fa-solid fa-bars-progress"></i>
-          <span class="ms-1">{{
-            entry.project_id ? entry.project : "select project"
-          }}</span>
-        </button>
-        <div
-          [ngClass]="{ 'off-hours': showProjects }"
-          id=""
-          class="menu rounded dropdown-menu position-absolute end-0 p-0"
-        >
-          <div class="card-hover" *ngFor="let project of projects">
-            <li class="p-2 cursor-pointer" (click)="setProject(project)">
-              {{ project.name }}
-            </li>
-          </div>
-        </div>
-      </div>
-    </div> -->
-    <div
-      class="card-body mx-1 p-2 d-flex flex-wrap justify-content-center justify-content-sm-between gap-2"
-    >
-      <!-- <div class="form-group col-sm col-12 p-1 d-flex align-items-center">
-        <input
-          type="text"
-          class="form-control rounded-1 py-2"
-          [(ngModel)]="entry.description"
-          placeholder="Write a comment (optional)"
-        />
-      </div> -->
-      <div 
+<div class="entries-panel row m-t-15">
+  <div class="col-12">
+        <mat-form-field appearance="outline" class="w-100 m-0" *ngIf="entryCheck">
+          <mat-label>Write a comment (optional)</mat-label>
+          <input
+            matInput
+            type="text"
+            [(ngModel)]="entry.description"
+            placeholder="Write a comment (optional)"
+          />
+        </mat-form-field>
+  </div>
+  <div class="col-12">
+     <div 
         *ngIf="loading"
-        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3 timer"
+        class="col-12 d-flex timer"
       >
         Loading...
       </div>
       <div
-        class="col-12 col-sm-auto px-1 d-flex justify-content-between justify-content-sm-end align-items-center gap-3 timer"
+        class="d-flex justify-content-end timer"
         *ngIf="!loading"
       >
-        <div class="text-end" *ngIf="currentTime != null && entryCheck && UTCStartTime && currentDateTime">
+        <div class="text-end col" *ngIf="currentTime != null && entryCheck && UTCStartTime && currentDateTime">
           <p class="mb-0 fs-4">{{ timer }}</p>
         </div>
 
-        <div class="col-sm-auto col">
+        <div class="col-sm-auto col-4">
           @if ((validStartTime && currentDateTime) || !loading) {
             <button
               mat-flat-button
               *ngIf="!entryCheck"
               (click)="addEntry()"
-              class="col-12 shadow rounded start"
+              class="shadow rounded start"
             >
               START
             </button>
             <button
               mat-flat-button
               *ngIf="currentTime != null && entryCheck"
-              class="col-12 shadow rounded stop"
+              class="shadow rounded stop"
               (click)="checkToDoLogged()"
             >
               STOP
             </button>
           }
         </div>
-
-        <!-- <div class="">
-          <button id="more-btn" class="p-2 options-btn icon-btn btn fs-4">
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
-          <div
-            [ngClass]="{ 'off-hours': showMoreOption }"
-            id="menu-off-hours"
-            class="menu rounded dropdown-menu end-0 p-0"
-          >
-            <div class="absolute card-hover">
-              <li class="p-2">Log Off Hours (soon..)</li>
-            </div>
-          </div>
-        </div> -->
       </div>
-    </div>
   </div>
 </div>

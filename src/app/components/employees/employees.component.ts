@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UsersService } from 'src/app/services/users.service';
 import { environment } from 'src/environments/environment';
+import { EmployeesService } from 'src/app/services/employees.service';
 
 @Component({
   selector: 'app-employees',
@@ -11,13 +12,13 @@ export class EmployeesComponent implements OnInit {
   employees: any = [];
   assetsPath: string = environment.assets;
   
-  constructor(private userService: UsersService) {}
+  constructor(private userService: UsersService, private employeesService: EmployeesService) {}
 
   ngOnInit(): void {
     this.getEmployees();
   }
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.employees = employees.filter((user: any) => user.user.active == 1);
       },

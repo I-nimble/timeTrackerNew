@@ -8,6 +8,9 @@ import { UsersService } from '../../../services/users.service';
 import { EntriesService } from '../../../services/entries.service';
 import { forkJoin, Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { WebSocketService } from '../../../services/socket/web-socket.service';
+import { Subscription } from 'rxjs';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-top-employees',
@@ -18,6 +21,7 @@ import { map, switchMap } from 'rxjs/operators';
 export class AppTopEmployeesComponent {
   displayedColumns: string[] = ['profile', 'completed', 'status'];
   dataSource: any[] = [];
+  companyId: any;
   
   getCurrentWeekDates() {
     const today = new Date();
@@ -31,22 +35,46 @@ export class AppTopEmployeesComponent {
   }
 
   dateRange: any = this.getCurrentWeekDates();
+  private subscription: Subscription[] = [];
 
   constructor(
     @Inject(RatingsEntriesService) private ratingsEntriesService: RatingsEntriesService, 
     @Inject(UsersService) private usersService: UsersService,
-    @Inject(EntriesService) private entriesService: EntriesService
+    @Inject(EntriesService) private entriesService: EntriesService,
+    private socketService: WebSocketService,
+    private companieService: CompaniesService,
+
   ) {}
 
   ngOnInit(): void {
+    this.getCompany();
     this.getDataSource();
+
+    this.socketService.socket.on('server:closedEntry', () => {
+    this.subscription.forEach((sub) => sub.unsubscribe());
+      this.getDataSource();
+    });
+    this.socketService.socket.on('server:admin:newEntry', () => {
+      this.getDataSource();
+    });
+  }
+
+  getCompany(){
+      this.companieService.getByOwner().subscribe((company: any) => {
+        this.companyId = company.company_id;
+      });
+    
   }
   
   getDataSource() {
     this.ratingsEntriesService.getRange(this.dateRange).pipe(
       switchMap((tasks) => {
+
+        const filteredTasks = tasks.filter(
+        (task: any) => task.rating.company_id === this.companyId
+      );
         // First set basic user data without profile pictures
-        this.dataSource = tasks.map((task: any) => ({
+        this.dataSource = filteredTasks.map((task: any) => ({
           profile: {
             id: task.rating.user.id,
             name: task.rating.user.name + ' ' + task.rating.user.last_name,

@@ -1,0 +1,17 @@
+<div class="">
+  <div class="text-sm-end text-center">
+    @if(entry.status == null) {
+      <span class="bg-light-error text-error border-error rounded f-w-600 p-6 p-y-4 f-s-12">
+        Offline
+      </span>
+    }
+    @else {
+      <p class="mb-0 fs-4">
+        {{ entry.started }} {{ entry.timeRef }}
+      </p>
+      <span class="bg-light-success text-success border-success rounded f-w-600 p-6 p-y-4 f-s-12">
+        Online
+      </span>
+    }
+  </div>
+</div>

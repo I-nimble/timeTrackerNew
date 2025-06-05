@@ -107,20 +107,20 @@ export class AppActivityReportComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getTeamMembers().subscribe((employees: number[]) => {
+    this.getTeamMembers().subscribe((employees: any[]) => {
       this.employees = employees;
 
       // Get the entries for the selected date range for every employee
-      const entriesObservables = employees.map((employee: number) => {
+      const entriesObservables = employees.map((employee: any) => {
         return this.entriesService.getAllEntries({ 
           start_time: this.dateRange.firstSelect, 
           end_time: this.dateRange.lastSelect,
-          user_id: employee
+          user_id: employee.user_id
         });
       });
 
-      const schedulesObservables = employees.map((employee: number) => {
-        return this.schedulesService.getById(employee);
+      const schedulesObservables = employees.map((employee: any) => {
+        return this.schedulesService.getById(employee.employee_id);
       });
 
       // Wait for all entries requests to complete
@@ -158,22 +158,29 @@ export class AppActivityReportComponent implements OnInit {
         // Calculate hours left
         const hoursLeft = this.totalHours - this.hoursWorked;
         // Update chart
-        this.trafficChart.series = [this.hoursWorked, hoursLeft];
+        this.trafficChart.series = [
+          Number(this.hoursWorked.toFixed(2)),
+          Number(hoursLeft.toFixed(2))
+        ];
       });
     });
   }
 
-  getTeamMembers(): Observable<number[]> {
+  getTeamMembers(): Observable<any[]> {
     // Return an Observable of employee IDs depending on user role
     if(this.userRole === '3') {
       return this.companiesService.getByOwner().pipe(
         switchMap((company: any) => this.companiesService.getEmployees(company.company.id)),
-        map((employees: any) => employees.map((employee: any) => employee.user.id))
+        map((employees: any) => employees.map((employee: any) => {
+          return {employee_id: employee.id, user_id: employee.user.id}
+        }))
       );
     }
     else if(this.userRole === '1') {
       return this.employeesService.get().pipe(
-        map((employees: any) => employees.map((employee: any) => employee.user.id))
+        map((employees: any) => employees.map((employee: any) => {
+          return {employee_id: employee.id, user_id: employee.user.id}
+        }))
       );
     }
     else {
@@ -182,7 +189,9 @@ export class AppActivityReportComponent implements OnInit {
           const userId = res[0].id;
           return this.employeesService.getById(userId);
         }),
-        map((employee: any) => [employee.user.id])
+        map((employee: any) => {
+          return [{employee_id: employee[0].id, user_id: employee[0].user.id}]
+        }) 
       );
     }
   }
