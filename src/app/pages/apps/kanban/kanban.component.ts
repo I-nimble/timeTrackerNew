@@ -64,7 +64,6 @@ export class AppKanbanComponent implements OnInit {
 
   loadBoards(): void {
     this.kanbanService.getBoards().subscribe((boards) => {
-      console.log(boards)
       if (this.role === '2' || this.role === '3') {
       this.boards = boards.filter((b: { company_id: any; }) => b.company_id === this.companyId);
     } else {
@@ -80,12 +79,10 @@ export class AppKanbanComponent implements OnInit {
   }
 
   getEmployee() {
-  console.log(this.role === '2')
     if (this.role === '2' ) {
       this.employeesService.getById(this.userId).subscribe((employee:any) => {
         if(employee?.length > 0) {
-          this.companyId = employee[0].company_id
-          console.log("El companidi", this.companyId)
+          this.companyId = employee[0].company_id;
           this.loadBoards(); 
         } 
       });
@@ -93,7 +90,6 @@ export class AppKanbanComponent implements OnInit {
     else if (this.role === '3'){
       this.companieService.getByOwner().subscribe((company: any) => {
         this.companyId = company.company_id;
-        console.log("El companidi", this.companyId)
         this.loadBoards(); 
       });
     } else {
