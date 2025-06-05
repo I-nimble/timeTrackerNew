@@ -24,6 +24,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EntriesService } from 'src/app/services/entries.service';
+import { switchMap, map } from 'rxjs/operators';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -60,6 +61,7 @@ export class EmployeeDetailsComponent implements OnInit {
   entries: any = [];
   user: any;
   schedules: any = [];
+  userRole: string | null = localStorage.getItem('role');
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -142,16 +144,27 @@ export class EmployeeDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.user = this.userService.getSelectedUser();
-    this.userId = this.route.snapshot.paramMap.get('id');
-
-    if(!this.user.name || !this.userId) {
-      this.openSnackBar("Select a user to see their report", "Close");
-      this.location.back();
+    if(this.userRole === '2') {
+      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
+        next: (res: any) => {
+          this.user = res[0];
+          this.userId = this.user.id;
+          this.defaultWeek();
+          this.getDailyHours();
+        }
+      })
     }
-
-    this.defaultWeek();
-    this.getDailyHours();
+    else {
+      this.user = this.userService.getSelectedUser();
+      this.userId = this.route.snapshot.paramMap.get('id');
+      this.defaultWeek();
+      this.getDailyHours();
+      
+      if(!this.user.name || !this.userId) {
+        this.openSnackBar("Select a user to see their report", "Close");
+        this.location.back();
+      }
+    }
   }
 
   private defaultWeek(): void {

@@ -39,6 +39,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
 import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
+import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 
@@ -53,7 +54,8 @@ import { SelectionModel } from '@angular/cdk/collections';
     RouterModule,
     TimerComponent,
     AppActivityReportComponent,
-    AppEmployeesReportsComponent
+    AppEmployeesReportsComponent,
+    EmployeeDetailsComponent
   ],
   standalone: true,
 })
@@ -85,7 +87,6 @@ export class AppEmployeeComponent {
     'select',
     'name',
     'schedule',
-    'date of joining',
     'salary',
     'projects',
     'action',
@@ -177,29 +178,20 @@ export class AppEmployeeComponent {
                   email: user.user.email,
                   position: user.position_id,
                   projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered hours',
-                  WorkingDays: 'N/A',
+                  schedule: 'No registered schedule',
                   Salary: 0,
                   imagePath: this.assetsPath + '/default-profile-pic.png',
                 };
               }
               
               const workingDays = userSchedules.days
-                .map((day: any) => day.name.charAt(0).toUpperCase()) 
-                .join(', ');
+                .map((day: any) => day.name)
+                .sort((a: string, b: string) => {
+                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  return weekDays.indexOf(a) - weekDays.indexOf(b);
+                });
 
-              const start = moment.tz(
-                userSchedules.start_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              const end = moment.tz(
-                userSchedules.end_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              if (end.isBefore(start)) end.add(1, 'day');
-              const totalWorkHours = end.diff(start, 'hours', true);
+              const scheduleString = this.formatDaysRange(workingDays);
 
               return {
                 id: user.user.id,
@@ -209,8 +201,7 @@ export class AppEmployeeComponent {
                 email: user.user.email,
                 position: user.position_id,
                 projects: user.projects.map((project: any) => project.id),
-                schedule: `${totalWorkHours.toFixed()} hours per day`,
-                WorkingDays: workingDays,
+                schedule: scheduleString,
                 Salary: 0, 
                 imagePath: this.assetsPath + '/default-profile-pic.png',
               };
@@ -227,6 +218,28 @@ export class AppEmployeeComponent {
         console.error('Error fetching employees:', err);
       },
     });
+  }
+
+  // Helper function to format days as a range "Monday to Friday"
+  formatDaysRange(days: string[]): string {
+    const weekDays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
+    if (indices.length === 0) return '';
+    // Check if days are consecutive
+    let isConsecutive = true;
+    for (let i = 1; i < indices.length; i++) {
+      if (indices[i] !== indices[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+    if (isConsecutive && indices.length > 1) {
+      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
+    } else {
+      return days.join(', ');
+    }
   }
 
   setUser(user: any): void {
