@@ -14,7 +14,7 @@ export class NotAdmin {
       this.isAdmin = isAdmin
     })
     if(this.isAdmin){
-      this.router.navigate(['admin/dashboard'])
+      this.router.navigate(['dashboards/admin'])
       return false
     }else{
       return true
