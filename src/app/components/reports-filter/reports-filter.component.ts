@@ -20,11 +20,12 @@ import { EmployeesService } from 'src/app/services/employees.service';
 //import { SharedModule } from '../shared.module';
 
 export interface ReportFilter {
-  user: User | string;
+  user: any;
   company: Company | string;
   project: Project | string;
   byClient: boolean;
   useTimezone: boolean;
+  multipleUsers?: boolean;
 }
 
 @Component({
