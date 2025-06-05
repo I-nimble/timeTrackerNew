@@ -6,7 +6,7 @@ import {
   OnInit,
   Input,
   Output,
-  EventEmitter
+  EventEmitter,
 } from '@angular/core';
 import { CommonModule, DOCUMENT, NgSwitch } from '@angular/common';
 import {
@@ -25,12 +25,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
-import {
-  isSameDay,
-  isSameMonth,
-  subMonths,
-  addMonths,
-} from 'date-fns';
+import { isSameDay, isSameMonth, subMonths, addMonths } from 'date-fns';
 import { Subject } from 'rxjs';
 import {
   CalendarDateFormatter,
@@ -74,34 +69,38 @@ const colors: any = {
 };
 
 @Component({
-    selector: 'app-calendar-dialog',
-    templateUrl: './dialog.component.html',
-    standalone: true,
-    imports: [
-        MaterialModule,
-        FormsModule,
-        ReactiveFormsModule,
-        CommonModule,
-        MatNativeDateModule,
-        MatDialogModule,
-        MatDatepickerModule,  TablerIconsModule
-    ],
-    providers: [provideNativeDateAdapter()],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-calendar-dialog',
+  templateUrl: './dialog.component.html',
+  standalone: true,
+  imports: [
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule,
+    MatNativeDateModule,
+    MatDialogModule,
+    MatDatepickerModule,
+    TablerIconsModule,
+  ],
+  providers: [provideNativeDateAdapter()],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarDialogComponent implements OnInit {
   options!: UntypedFormGroup;
-  toDoForm: FormGroup = this.fb.group({
-    goal: ['', [Validators.required]],
-    recommendations: [''],
-    due_date: [null],
-    priority: [null],
-    recurrent: [false],
-    is_numeric: [false],
-    company_id: [null, [Validators.required]],
-    employee_id: [null, [Validators.required]],
-    updatedAt: [new Date(), []],
-  }, { validators: this.recurrentDueDateValidator });
+  toDoForm: FormGroup = this.fb.group(
+    {
+      goal: ['', [Validators.required]],
+      recommendations: [''],
+      due_date: [null],
+      priority: [null],
+      recurrent: [false],
+      is_numeric: [false],
+      company_id: [null, [Validators.required]],
+      employee_id: [null, [Validators.required]],
+      updatedAt: [new Date(), []],
+    },
+    { validators: this.recurrentDueDateValidator }
+  );
   priorities: any[];
 
   constructor(
@@ -109,21 +108,23 @@ export class CalendarDialogComponent implements OnInit {
     public fb: UntypedFormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private ratingsService: RatingsService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.getPriorities();
 
-    if(this.data.action !== 'Deleted') {
-      this.toDoForm.get('recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
-        const dueDateControl = this.toDoForm.get('due_date');
-        if (recurrent) {
-          dueDateControl?.setValue(null);
-          dueDateControl?.disable();
-        } else {
-          dueDateControl?.enable();
-        }
-      });
+    if (this.data.action !== 'Deleted') {
+      this.toDoForm
+        .get('recurrent')
+        ?.valueChanges.subscribe((recurrent: boolean) => {
+          const dueDateControl = this.toDoForm.get('due_date');
+          if (recurrent) {
+            dueDateControl?.setValue(null);
+            dueDateControl?.disable();
+          } else {
+            dueDateControl?.enable();
+          }
+        });
     }
     if (this.data.action === 'Edit') {
       this.toDoForm.patchValue({
@@ -136,8 +137,7 @@ export class CalendarDialogComponent implements OnInit {
         company_id: this.data.event.company_id,
         employee_id: this.data.event.employee_id,
       });
-    }
-    else if (this.data.action === 'Create') {
+    } else if (this.data.action === 'Create') {
       this.toDoForm.patchValue({
         goal: null,
         recommendations: null,
@@ -166,11 +166,14 @@ export class CalendarDialogComponent implements OnInit {
   }
 
   onSubmit() {
-    if ((this.data.action === 'Create' || this.data.action === 'Edit') && this.toDoForm.valid) {
+    if (
+      (this.data.action === 'Create' || this.data.action === 'Edit') &&
+      this.toDoForm.valid
+    ) {
       const formData = this.toDoForm.value;
       const taskId = this.data.action === 'Edit' ? this.data.event.id : null;
-      console.log('action', this.data.action);
-      console.log('task id', taskId);
+      // console.log('action', this.data.action);
+      // console.log('task id', taskId);
       this.ratingsService.submit(formData, taskId).subscribe({
         next: (response: any) => {
           const event = {
@@ -188,10 +191,9 @@ export class CalendarDialogComponent implements OnInit {
         error: (error) => {
           console.error('Error submitting task:', error);
           this.dialogRef.close();
-        }
+        },
       });
-    }
-    else if (this.data.action === 'Deleted') {
+    } else if (this.data.action === 'Deleted') {
       this.ratingsService.delete(this.data.event.id).subscribe({
         next: (response: any) => {
           this.dialogRef.close();
@@ -199,29 +201,29 @@ export class CalendarDialogComponent implements OnInit {
         error: (error) => {
           console.error('Error deleting task:', error);
           this.dialogRef.close();
-        }
+        },
       });
     }
   }
 }
 
 @Component({
-    selector: 'app-fullcalendar',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    templateUrl: './fullcalendar.component.html',
-    standalone: true,
-    imports: [
-        MaterialModule,
-        FormsModule,
-        ReactiveFormsModule,
-        NgSwitch,
-        CalendarModule,
-        CommonModule,
-        MatDatepickerModule,
-        MatDialogModule,
-        MatFormFieldModule,
-    ],
-    providers: [provideNativeDateAdapter(), CalendarDateFormatter]
+  selector: 'app-fullcalendar',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './fullcalendar.component.html',
+  standalone: true,
+  imports: [
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgSwitch,
+    CalendarModule,
+    CommonModule,
+    MatDatepickerModule,
+    MatDialogModule,
+    MatFormFieldModule,
+  ],
+  providers: [provideNativeDateAdapter(), CalendarDateFormatter],
 })
 export class AppFullcalendarComponent implements OnInit {
   @Input() priorities: any[] = [];
@@ -238,6 +240,7 @@ export class AppFullcalendarComponent implements OnInit {
   teamMemberId: number | null = null;
   companyId: number | null = null;
   companies: any[] = [];
+  loggedInUser: any = null;
 
   config: MatDialogConfig = {
     disableClose: false,
@@ -262,20 +265,21 @@ export class AppFullcalendarComponent implements OnInit {
       onClick: ({ event }: { event: CalendarEvent }): void => {
         this.handleEvent('Edit', event);
       },
-    }
+    },
   ];
 
   refresh: Subject<any> = new Subject();
-  
+
   events = signal<CalendarEvent[] | any>([]);
 
   constructor(
-    public dialog: MatDialog, @Inject(DOCUMENT) doc: any, 
+    public dialog: MatDialog,
+    @Inject(DOCUMENT) doc: any,
     private ratingsService: RatingsService,
     private employeesService: EmployeesService,
     private userService: UsersService,
     public snackBar: MatSnackBar,
-    private companiesService: CompaniesService,
+    private companiesService: CompaniesService
   ) {}
 
   ngOnInit(): void {
@@ -285,7 +289,9 @@ export class AppFullcalendarComponent implements OnInit {
         label: '<span class="text-danger m-l-5">Delete</span>',
         onClick: ({ event }: { event: CalendarEvent }): void => {
           this.events.set(
-            this.events().filter((iEvent: CalendarEvent<any>) => iEvent !== event)
+            this.events().filter(
+              (iEvent: CalendarEvent<any>) => iEvent !== event
+            )
           );
           this.handleEvent('Deleted', event);
         },
@@ -297,39 +303,50 @@ export class AppFullcalendarComponent implements OnInit {
 
   getTeamMembers() {
     if (this.userRole === '1') {
-      if(this.companyId) {
+      if (this.companyId) {
         this.companiesService.getEmployees(this.companyId).subscribe({
           next: (employees: any) => {
-            this.teamMembers = employees
-              .map((employee:any) => employee.user);
+            this.teamMembers = employees.map((employee: any) => employee.user);
           },
         });
-      }
-      else {
+      } else {
         this.employeesService.get().subscribe((employees: any) => {
-          this.teamMembers = employees.map((user:any) => user.user)
+          this.teamMembers = employees.map((user: any) => user.user);
         });
       }
+    } else if (this.userRole == '2') {
+      // Get current employee
+      this.userService
+        .getUsers({ searchField: '', filter: { currentUser: true } })
+        .subscribe({
+          next: (res: any) => {
+            const userId = res[0].id;
+            this.teamMemberId = userId;
+            this.companyId = res[0].employee.company_id;
+            this.getToDos();
+          },
+          error: () => {
+            this.openSnackBar('Error fetching user', 'Close');
+          },
+        });
     }
-    else if (this.userRole == '2') { // Get current employee
-      this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
-        next: (res: any) => {
-          const userId = res[0].id;
-          this.teamMemberId = userId;
-          this.companyId = res[0].employee.company_id;
-          this.getToDos();
-        },
-        error: () => {
-          this.openSnackBar('Error fetching user', 'Close');
-        }
-      });
-    }
-    if (this.userRole === '3') { // Get client company employees
+    if (this.userRole === '3') {
+      // Get client company employees
       this.employeesService.get().subscribe({
         next: (employees: any) => {
           this.teamMembers = employees
             .filter((user: any) => user.user.active == 1 && user.user.role == 2)
-            .map((user:any) => user.user);
+            .map((user: any) => user.user);
+          this.companiesService
+            .getEmployer(employees[0].company_id)
+            .subscribe((data) => {
+              this.loggedInUser = {
+                name: data.user?.name,
+                last_name: data.user?.last_name,
+                id: data?.user?.id,
+                company_id: this.teamMembers[0]?.company_id,
+              };
+            });
           this.companyId = employees[0].company_id;
         },
       });
@@ -350,7 +367,7 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   handleTeamMemberSelection(event: any) {
-    if(!this.companyId) {
+    if (!this.companyId) {
       this.openSnackBar('Please select a company first', 'Close');
       return;
     }
@@ -368,44 +385,44 @@ export class AppFullcalendarComponent implements OnInit {
   getToDos() {
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (toDos: any) => {
-        this.events
-          .set(toDos
-          .filter((toDo: any) => toDo.due_date)
-          .map((toDo: any) => {
-            const priority = toDo.priority;
-            let color;
-            switch(priority) {
-              case 1:
-                color = colors.red;
-                break;
-              case 2:
-                color = colors.yellow;
-                break;
-              case 4:
-                color = colors.green;
-                break;
-              default:
-                color = colors.blue;
-                break;
-            }
-            return {
-              title: toDo.goal,
-              color,
-              start: new Date(toDo.due_date),
-              actions: this.actions,
-              allDay: true,
-              recurrent: toDo.recurrent,
-              recommendations: toDo.recommendations,
-              priority: toDo.priority,
-              company_id: toDo.company_id,
-              employee_id: toDo.employee_id,
-              id: toDo.id,
-            };
-          }));
-      }
+        this.events.set(
+          toDos
+            .filter((toDo: any) => toDo.due_date)
+            .map((toDo: any) => {
+              const priority = toDo.priority;
+              let color;
+              switch (priority) {
+                case 1:
+                  color = colors.red;
+                  break;
+                case 2:
+                  color = colors.yellow;
+                  break;
+                case 4:
+                  color = colors.green;
+                  break;
+                default:
+                  color = colors.blue;
+                  break;
+              }
+              return {
+                title: toDo.goal,
+                color,
+                start: new Date(toDo.due_date),
+                actions: this.actions,
+                allDay: true,
+                recurrent: toDo.recurrent,
+                recommendations: toDo.recommendations,
+                priority: toDo.priority,
+                company_id: toDo.company_id,
+                employee_id: toDo.employee_id,
+                id: toDo.id,
+              };
+            })
+        );
+      },
     });
   }
-
 
   dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
     if (isSameMonth(date, this.viewDate())) {
@@ -420,16 +437,19 @@ export class AppFullcalendarComponent implements OnInit {
       }
     }
 
-    if(!this.teamMemberId || !this.companyId) {
+    if (!this.teamMemberId || !this.companyId) {
       this.openSnackBar('Select a team member to create a task', 'Close');
       return;
     }
 
-    this.config.data = { event: {
-      start: date,
-      company_id: this.companyId,
-      employee_id: this.teamMemberId,
-    }, action: 'Create' };
+    this.config.data = {
+      event: {
+        start: date,
+        company_id: this.companyId,
+        employee_id: this.teamMemberId,
+      },
+      action: 'Create',
+    };
     this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
 
     this.dialogRef()
@@ -438,7 +458,7 @@ export class AppFullcalendarComponent implements OnInit {
         // Add the new event to the events array
         const priority = result.priority;
         let color;
-        switch(priority) {
+        switch (priority) {
           case 1:
             color = colors.red;
             break;
@@ -463,7 +483,7 @@ export class AppFullcalendarComponent implements OnInit {
           priority: result.priority,
           company_id: result.company_id,
           employee_id: result.employee_id,
-          id: result.id
+          id: result.id,
         };
         this.events.set(this.events().concat(newEvent));
         this.lastCloseResult.set('Task created successfully');
@@ -484,7 +504,7 @@ export class AppFullcalendarComponent implements OnInit {
           // Update the event in the events array
           const priority = result.priority;
           let color;
-          switch(priority) {
+          switch (priority) {
             case 1:
               color = colors.red;
               break;
@@ -509,7 +529,7 @@ export class AppFullcalendarComponent implements OnInit {
             priority: result.priority,
             company_id: result.company_id,
             employee_id: result.employee_id,
-            id: result.id
+            id: result.id,
           };
           this.events.set(
             this.events().map((iEvent: CalendarEvent<any>) => {
@@ -520,8 +540,7 @@ export class AppFullcalendarComponent implements OnInit {
             })
           );
           this.lastCloseResult.set('Task updated');
-        }
-        else {
+        } else {
           this.lastCloseResult.set('Dialog closed');
         }
         this.calendarEventChange.emit();

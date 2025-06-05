@@ -156,7 +156,7 @@ export class AppEmployeeComponent {
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
-          .filter((user: any) => user.user.active == 1);
+          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
 
         this.schedulesService.get().subscribe({
           next: (schedules: any) => {
