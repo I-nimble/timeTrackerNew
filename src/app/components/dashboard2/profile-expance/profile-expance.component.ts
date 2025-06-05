@@ -43,7 +43,12 @@ export interface revenuetwoChart {
 @Component({
   selector: 'app-profile-expance',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule,RouterModule],
+  imports: [
+    MaterialModule,
+    NgApexchartsModule,
+    TablerIconsModule,
+    RouterModule,
+  ],
   templateUrl: './profile-expance.component.html',
 })
 export class AppProfileExpanceCpmponent implements OnInit {
@@ -113,21 +118,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
         padding: { top: 0, bottom: -8, left: 20, right: 20 },
       },
       xaxis: {
-        categories: [
-          ,
-          'Jan',
-          'Feb',
-          'Mar',
-          'Apr',
-          'May',
-          'Jun',
-          'Jul',
-          'Aug',
-          'Sep',
-          'Oct',
-          'Nov',
-          'Dec',
-        ],
+        categories: [, 'To do', 'In Progress', 'On Hold', 'Completed'],
         axisBorder: {
           show: false,
         },
@@ -232,7 +223,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
         const notCompletedData = totalTasksData.map(
           (total, idx) => total - completedData[idx]
         );
-        
+
         // Actualizar la gráfica
         this.notCompletedCount = this.totalCount - this.completedCount;
         this.revenuetwoChart.series = [
@@ -260,87 +251,108 @@ export class AppProfileExpanceCpmponent implements OnInit {
   }
 
   getKanbanTaskCountsForClient(): void {
-  this.boardsService.getBoards().subscribe((boards) => {
-    if (!boards.length) {
+    this.boardsService.getBoards().subscribe((boards) => {
+      // Inicializa los contadores
       this.todoCount = 0;
       this.inProgressCount = 0;
       this.onHoldCount = 0;
       this.completedCountKanban = 0;
-      return;
-    }
-    const clientBoard = boards[0]; 
-    this.boardsService.getBoardWithTasks(clientBoard.id).subscribe((boardData) => {
-      const columns = boardData.columns || [];
-      const tasks = boardData.tasks || [];
 
-      // Busca los IDs de las columnas por nombre
-      const todoColumn = columns.find((col: any) => col.name.toLowerCase().includes('to'));
-      const inProgressColumn = columns.find((col: any) => col.name.toLowerCase().includes('progress'));
-      const onHoldColumn = columns.find((col: any) => col.name.toLowerCase().includes('hold'));
-      const completedColumn = columns.find((col: any) => col.name.toLowerCase().includes('completed'));
-
-      this.todoCount = todoColumn ? tasks.filter((t: any) => t.column_id === todoColumn.id).length : 0;
-      this.inProgressCount = inProgressColumn ? tasks.filter((t: any) => t.column_id === inProgressColumn.id).length : 0;
-      this.onHoldCount = onHoldColumn ? tasks.filter((t: any) => t.column_id === onHoldColumn.id).length : 0;
-      this.completedCountKanban = completedColumn ? tasks.filter((t: any) => t.column_id === completedColumn.id).length : 0;
-      
-      this.setKanbanChart();
-    });
-  });
-}
-
-setKanbanChart() {
-  this.revenuetwoChart = {
-    series: [
-      {
-        name: 'Tasks',
-        data: [
-          this.todoCount,
-          this.inProgressCount,
-          this.onHoldCount,
-          this.completedCountKanban
-        ],
+      if (!boards.length) {
+        this.setKanbanChart();
+        return;
       }
-    ],
-    chart: {
-      type: 'bar',
-      fontFamily: "'Plus Jakarta Sans', sans-serif;",
-      foreColor: '#adb0bb',
-      toolbar: { show: false },
-      height: 300,
-      stacked: false,
-    },
-    colors: [
-      '#92b46c',  
-      '#6e797f26',    
-      '#fb977d',    
-      '#4bd08b26'    
-    ],
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '40%',
-        borderRadius: 6,
-        distributed: true,
+
+      const boardTasksObservables = boards.map((board: any) =>
+        this.boardsService.getBoardWithTasks(board.id)
+      );
+
+      forkJoin<any[]>(boardTasksObservables).subscribe((boardsData) => {
+        boardsData.forEach((boardData) => {
+          const columns = boardData.columns || [];
+          const tasks = boardData.tasks || [];
+
+          const todoColumn = columns.find((col: any) =>
+            col.name.toLowerCase().includes('to')
+          );
+          const inProgressColumn = columns.find((col: any) =>
+            col.name.toLowerCase().includes('progress')
+          );
+          const onHoldColumn = columns.find((col: any) =>
+            col.name.toLowerCase().includes('hold')
+          );
+          const completedColumn = columns.find((col: any) =>
+            col.name.toLowerCase().includes('completed')
+          );
+
+          this.todoCount += todoColumn
+            ? tasks.filter((t: any) => t.column_id === todoColumn.id).length
+            : 0;
+          this.inProgressCount += inProgressColumn
+            ? tasks.filter((t: any) => t.column_id === inProgressColumn.id)
+                .length
+            : 0;
+          this.onHoldCount += onHoldColumn
+            ? tasks.filter((t: any) => t.column_id === onHoldColumn.id).length
+            : 0;
+          this.completedCountKanban += completedColumn
+            ? tasks.filter((t: any) => t.column_id === completedColumn.id)
+                .length
+            : 0;
+        });
+
+        this.setKanbanChart();
+      });
+    });
+  }
+
+  setKanbanChart() {
+    this.revenuetwoChart = {
+      series: [
+        {
+          name: 'Tasks',
+          data: [
+            this.todoCount,
+            this.inProgressCount,
+            this.onHoldCount,
+            this.completedCountKanban,
+          ],
+        },
+      ],
+      chart: {
+        type: 'bar',
+        fontFamily: "'Plus Jakarta Sans', sans-serif;",
+        foreColor: '#adb0bb',
+        toolbar: { show: false },
+        height: 300,
+        stacked: false,
       },
-    },
-    dataLabels: { enabled: false },
-    stroke: { show: false },
-    legend: { show: false },
-    grid: {
-      borderColor: 'rgba(0,0,0,0.1)',
-      padding: { top: 0, bottom: -8, left: 20, right: 20 },
-    },
-    xaxis: {
-      categories: ['To-do', 'In progress', 'On Hold', 'Completed'],
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    fill: { opacity: 1 },
-    tooltip: {
-      theme: 'dark',
-      fillSeriesColor: false,
-    },
-  };
-}
+      colors: ['#92b46c', '#6e797f26', '#fb977d', '#4bd08b26'],
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '40%',
+          borderRadius: 6,
+          distributed: true,
+        },
+      },
+      dataLabels: { enabled: false },
+      stroke: { show: false },
+      legend: { show: false },
+      grid: {
+        borderColor: 'rgba(0,0,0,0.1)',
+        padding: { top: 0, bottom: -8, left: 20, right: 20 },
+      },
+      xaxis: {
+        categories: ['To-do', 'In progress', 'On Hold', 'Completed'],
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      fill: { opacity: 1 },
+      tooltip: {
+        theme: 'dark',
+        fillSeriesColor: false,
+      },
+    };
+  }
 }
