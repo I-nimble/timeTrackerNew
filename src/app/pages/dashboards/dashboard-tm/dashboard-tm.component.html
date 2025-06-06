@@ -55,7 +55,7 @@
 <!-- Company Information -->
 <div class="row mt-4">
   <div class="col-lg-5">
-    <div class="card shadow-none border">
+    <div class="card shadow-none">
       <div class="card-body company">
         <p class="mb-3">{{ user.employee.company }}</p>
         <div class="vstack gap-3 mt-4">
@@ -82,27 +82,79 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="col-lg-7" *ngIf="employees.length > 0">
-    <div class="card shadow-none border">
-      <div class="card-body tm-photos">
-        <div class="row">
-          <div class="col-4" *ngFor="let employee of employees">
-            <div style="display: flex; justify-content: center">
-              <img
-                [src]="employee.user.picture || picture"
-                [alt]="employee.user.name"
-                width="100"
-                height="100"
-                class="rounded-circle"
-              />
+    <!-- <div class="card shadow-none mt-4 m-b-24">
+       <div class="card-body tasks">
+          <p class="mb-3">My Tasks for Today</p>
+            <div
+              class="list-group-item d-flex align-items-center justify-content-between"
+              *ngFor="let task of todayTasks"
+            >
+              <div class="d-flex align-items-center m-t-10">
+                <mat-icon color="primary" class="me-2">check</mat-icon>
+                <div>
+                  <div class="fw-semibold">{{ task.goal }}</div>
+                  <div class="text-muted small" *ngIf="task.due_date">
+                    <mat-icon class="me-1" style="font-size: 16px"
+                      >event</mat-icon
+                    >
+                    Due: {{ task.due_date | date: "mediumDate" }}
+                  </div>
+                </div>
+              </div>
+               <span class="rounded f-s-12 p-x-8 text-white bg-primary" *ngIf="task.priorityAssociation.name">
+                        {{ task.priorityAssociation.name }}
+                      </span>
             </div>
-            <p class="text-center tm">
-              {{ employee.user.name }} {{ employee.user.last_name }}
-            </p>
+            <p
+              *ngIf="!todayTasks || todayTasks.length === 0"
+              class="list-group-item text-center text-muted"
+            >
+              No tasks for today
+          </p>
+          <div class="text-end btnTasks">
+            <button mat-stroked-button class="btn btn-primary" [routerLink]="['/apps/todo']">
+              See all tasks
+            </button>
           </div>
+      </div>
+    </div> -->
+  </div>
+  <div class="col-lg-7" *ngIf="employees.length > 0 || employer">
+  <div class="card shadow-none border">
+    <div class="card-body tm-photos">
+      <div class="row">
+        <!-- Employer -->
+        <div class="col-4" *ngIf="employer">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employer.picture || picture"
+              [alt]="employer.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+            />
+          </div>
+          <p class="text-center tm fw-bold">
+            {{ employer.name }} {{ employer.last_name }}
+          </p>
+        </div>
+        <!-- Employees -->
+        <div class="col-4" *ngFor="let employee of employees">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employee.user.picture || picture"
+              [alt]="employee.user.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+            />
+          </div>
+          <p class="text-center tm">
+            {{ employee.user.name }} {{ employee.user.last_name }}
+          </p>
         </div>
       </div>
     </div>
   </div>
+</div>
 </div>
