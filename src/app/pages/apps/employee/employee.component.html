@@ -36,9 +36,21 @@
     <mat-card-content>
       <div class="table-responsive">
         <table mat-table [dataSource]="dataSource" class="w-100">
-          <ng-container matColumnDef="#">
-            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">#</th>
-            <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+          
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef class="p-l-0">
+                <mat-checkbox (change)="$event ? masterToggle() : null"
+                    [checked]="selection.hasValue() && isAllSelected()" color="primary"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()"
+                    [aria-label]="checkboxLabel()">
+                </mat-checkbox>
+            </th>
+            <td mat-cell *matCellDef="let row" class="p-l-0">
+                <mat-checkbox (click)="$event.stopPropagation()"
+                    (change)="selection.toggle(row)" color="primary"
+                    [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)">
+                </mat-checkbox>
+            </td>
           </ng-container>
   
           <ng-container matColumnDef="name">
@@ -83,15 +95,6 @@
               {{ element.Mobile }}
             </td>
           </ng-container> -->
-  
-          <ng-container matColumnDef="date of joining">
-            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-              Working days
-            </th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">
-              {{ element.WorkingDays }}
-            </td>
-          </ng-container>
   
           <ng-container matColumnDef="salary">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
@@ -150,18 +153,5 @@
 </div>
 
 <ng-template #employeeReport> 
-  <mat-card class="cardWithShadow">
-    <mat-card-content>
-      <div class="row">
-        <div class="d-flex m-b-30" style="flex-direction: row;">
-          <div class="col-lg-5" style="flex-grow: 1;">
-            <app-activity-report class="h-100 d-inline-block"></app-activity-report>
-          </div>
-          <div class="col-lg-7">
-            <employees-reports></employees-reports>
-          </div>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+  <app-employee-details></app-employee-details>
 </ng-template>

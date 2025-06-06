@@ -59,7 +59,7 @@ export class RatingsService {
   }
 
   public checkToDoLogged(date: Date): Observable<any> {
-    return this.getToDo(date).pipe(
+    return this.get().pipe(
       switchMap((toDo) => {
         const toDoArray = toDo.map((toDo) => ({
           rating_id: toDo.id,

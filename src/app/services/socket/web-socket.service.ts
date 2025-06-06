@@ -43,6 +43,10 @@ export class WebSocketService {
     this.socket.on('server:notificationsUpdated', () => {
       this.notificationsSubject.next('update');
     });
+
+    this.socket.on('server:newTalentMatch', (data) => {
+      this.notificationsSubject.next('new-talent-match');
+    });
   }
 
   getNotifications() {

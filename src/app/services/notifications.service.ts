@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NotificationsPopupComponent } from '../components/notifications-popup/notifications-popup.component';
-import { catchError, forkJoin, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, Observable, of, Subject, switchMap } from 'rxjs';
 import { notificationCategory, Notification } from '../models/Notifications';
 
 
@@ -65,6 +65,7 @@ export class NotificationsService {
   recentNotifications: Notification[] = [];
   earlierNotifications: Notification[] = [];
   ToDoNotificationSent: boolean = false;
+  notificationsChanged = new Subject<void>()
 
   constructor(private http: HttpClient,
               private router: Router,
@@ -81,6 +82,10 @@ export class NotificationsService {
 
   getById(id:number) {
     return this.http.post<any>(`${this.API_URI}/${id}`, {});
+  }
+
+  markAsRead(notification: any) {
+    this.notificationsChanged.next();
   }
 
   public submit(data: any, id: any = null) {

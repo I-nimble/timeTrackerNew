@@ -14,10 +14,10 @@ import {
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { UsersService } from 'src/app/services/users.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 import { forkJoin } from 'rxjs';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
-import { EmployeesService } from 'src/app/services/employees.service';
 import moment from 'moment-timezone';
 
 export interface paymentsChart {
@@ -48,17 +48,17 @@ export class AppPaymentsComponent implements OnInit {
     private usersService: UsersService,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
-    private employeesService: EmployeesService,
+    private employeeService: EmployeesService,
   ) {
     this.paymentsChart = {
       series: [
         {
           name: 'Last Year ',
-          data: [29, 52, 38, 47, 56, 41, 46],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
         {
           name: 'This Year ',
-          data: [71, 71, 71, 71, 71, 71, 71],
+          data: [0, 0, 0, 0, 0, 0, 0],
         },
       ],
 
@@ -135,7 +135,7 @@ export class AppPaymentsComponent implements OnInit {
   }
 
   getAllUsers() {
-    this.employeesService.get().subscribe({
+    this.employeeService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
           (user: any) => user.user.active == 1 && user.user.role == 2

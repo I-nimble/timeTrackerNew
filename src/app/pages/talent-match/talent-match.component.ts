@@ -1,148 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDividerModule } from '@angular/material/divider';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-// import { SELECTION_TABLE_HTML_SNIPPET } from './code/selection-table-html-snippet';
-// import { SELECTION_TABLE_TS_SNIPPET } from './code/selection-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
-export interface PeriodicElement {
-  id: number;
-  imagePath: string;
-  uname: string;
-  position: string;
-  productName: string;
-  budget: number;
-  priority: string;
-}
-
-const ELEMENT_DATA: PeriodicElement[] = [
-  {
-    id: 1,
-    imagePath: 'assets/images/profile/user-1.jpg',
-    uname: 'Sunil Joshi',
-    position: 'Web Designer',
-    productName: 'Elite Admin',
-    budget: 3.9,
-    priority: 'low',
-  },
-  {
-    id: 2,
-    imagePath: 'assets/images/profile/user-2.jpg',
-    uname: 'Andrew McDownland',
-    position: 'Project Manager',
-    productName: 'Real Homes Theme',
-    budget: 24.5,
-    priority: 'medium',
-  },
-  {
-    id: 3,
-    imagePath: 'assets/images/profile/user-3.jpg',
-    uname: 'Christopher Jamil',
-    position: 'Project Manager',
-    productName: 'MedicalPro Theme',
-    budget: 12.8,
-    priority: 'high',
-  },
-  {
-    id: 4,
-    imagePath: 'assets/images/profile/user-4.jpg',
-    uname: 'Nirav Joshi',
-    position: 'Frontend Engineer',
-    productName: 'Hosting Press HTML',
-    budget: 2.4,
-    priority: 'critical',
-  },
-  {
-    id: 1,
-    imagePath: 'assets/images/profile/user-1.jpg',
-    uname: 'Sunil Joshi',
-    position: 'Web Designer',
-    productName: 'Elite Admin',
-    budget: 3.9,
-    priority: 'low',
-  },
-  {
-    id: 2,
-    imagePath: 'assets/images/profile/user-2.jpg',
-    uname: 'Andrew McDownland',
-    position: 'Project Manager',
-    productName: 'Real Homes Theme',
-    budget: 24.5,
-    priority: 'medium',
-  },
-];
+import { AppTalentMatchClientComponent } from './client/client.component';
+import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 
 @Component({
   standalone: true,
   selector: 'app-talent-match',
   imports: [
-    MatCardModule,
-    MatTableModule,
-    CommonModule,
-    MatCheckboxModule,
-    MatDividerModule,
-    Highlight,
-    HighlightAuto,
-    HighlightLineNumbers,
-    AppCodeViewComponent,
-    MaterialModule,
-    TablerIconsModule,
+    AppTalentMatchClientComponent,
+    AppTalentMatchAdminComponent,
+    CommonModule
   ],
   templateUrl: './talent-match.component.html',
 })
-export class AppTalentMatchComponent implements OnInit {
-
-  // 1 [Selection with Table]
-//   codeForSelectionTable = SELECTION_TABLE_HTML_SNIPPET;
-//   codeForSelectionTableTs = SELECTION_TABLE_TS_SNIPPET;
-
-  displayedColumns: string[] = [
-    'select',
-    'assigned',
-    'name',
-    'priority',
-    'budget',
-  ];
-  dataSource = new MatTableDataSource<PeriodicElement>(ELEMENT_DATA);
-  selection = new SelectionModel<PeriodicElement>(true, []);
-
-  /** Whether the number of selected elements matches the total number of rows. */
-  isAllSelected(): any {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
-  }
-
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle(): void {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
-  }
-
-  /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: PeriodicElement): string {
-    if (!row) {
-      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
-    }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
-      row.position + 1
-    }`;
-  }
+export class AppTalentMatchComponent {
+  userRole = localStorage.getItem('role');
 
   constructor() {}
-
-  ngOnInit(): void {}
 }

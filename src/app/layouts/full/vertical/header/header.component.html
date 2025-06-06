@@ -96,7 +96,8 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat/support']">HR & Operations</a>
+    <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1'"
+    >HR & Operations</a>
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
@@ -106,21 +107,28 @@
         aria-label="Messages"
       >
         <a>Notifications</a>
-        <div class="pulse">
+        <div class="pulse" *ngIf="hasPendingNotifications">
+          <span class="heartbit border-primary"></span>
+          <span
+            class="point bg-primary"
+          ></span>
+        </div>
+      </button>
+    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2'"
+     (click)="clearTalentMatchNotification()">
+        Talent Match
+        <div class="pulse" *ngIf="hasNewTalentMatch">
           <span class="heartbit border-primary"></span>
           <span class="point bg-primary"></span>
         </div>
-      </button>
-    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2'">  <span matBadge="{{ totalApplications }}" matBadgeOverlap="false" class="d-inline">
-    Talent Match
-  </span></a>
+    </a>
     <mat-menu #invoiceMenu="matMenu">
-    <button mat-menu-item [routerLink]="['']">
+    <button mat-menu-item [routerLink]="['/dashboards/maintenance']">
       Invoice
     </button>
     </mat-menu>
-    <a mat-button [matMenuTriggerFor]="invoiceMenu"
-      *ngIf="role != '2'">Payroll</a>
+    <!-- <a mat-button [matMenuTriggerFor]="invoiceMenu"
+      *ngIf="role != '2'">Payroll</a> -->
   </div>
 
   <span class="flex-1-auto"></span>
@@ -230,10 +238,6 @@
         aria-label="Notifications"
       >
         <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-success"></span>
-          <span class="point bg-success"></span>
-        </div>
       </button>
 
       <!-- --------------------------------------------------------------- -->
@@ -312,10 +316,6 @@
     class="d-none d-lg-block align-items-center justify-content-center"
   >
     <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-success"></span>
-      <span class="point bg-success"></span>
-    </div>
   </button>
   <mat-menu
     #notificationMenu="matMenu"

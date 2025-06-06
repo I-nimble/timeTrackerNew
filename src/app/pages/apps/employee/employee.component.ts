@@ -38,7 +38,10 @@ import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
-import { EmployeesReportsComponent } from 'src/app/components/dashboard2/employees-reports/employees-reports.component';
+import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
+import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
+import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
+import { SelectionModel } from '@angular/cdk/collections';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -51,7 +54,8 @@ import { EmployeesReportsComponent } from 'src/app/components/dashboard2/employe
     RouterModule,
     TimerComponent,
     AppActivityReportComponent,
-    EmployeesReportsComponent
+    AppEmployeesReportsComponent,
+    EmployeeDetailsComponent
   ],
   standalone: true,
 })
@@ -71,6 +75,7 @@ export class AppEmployeeComponent {
     project: 'all',
     byClient: false,
     useTimezone: false,
+    multipleUsers: false,
   };
   userRole = localStorage.getItem('role');
   companies: any[] = [];
@@ -79,16 +84,15 @@ export class AppEmployeeComponent {
   searchText: any;
 
   displayedColumns: string[] = [
-    '#',
+    'select',
     'name',
     'schedule',
-    'date of joining',
     'salary',
     'projects',
     'action',
   ];
-
   dataSource = new MatTableDataSource<Employee>([]);
+  selection = new SelectionModel<any>(true, []);
 
   @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
     if (paginator) {
@@ -174,29 +178,20 @@ export class AppEmployeeComponent {
                   email: user.user.email,
                   position: user.position_id,
                   projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered hours',
-                  WorkingDays: 'N/A',
+                  schedule: 'No registered schedule',
                   Salary: 0,
                   imagePath: this.assetsPath + '/default-profile-pic.png',
                 };
               }
               
               const workingDays = userSchedules.days
-                .map((day: any) => day.name.charAt(0).toUpperCase()) 
-                .join(', ');
+                .map((day: any) => day.name)
+                .sort((a: string, b: string) => {
+                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  return weekDays.indexOf(a) - weekDays.indexOf(b);
+                });
 
-              const start = moment.tz(
-                userSchedules.start_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              const end = moment.tz(
-                userSchedules.end_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              if (end.isBefore(start)) end.add(1, 'day');
-              const totalWorkHours = end.diff(start, 'hours', true);
+              const scheduleString = this.formatDaysRange(workingDays);
 
               return {
                 id: user.user.id,
@@ -206,8 +201,7 @@ export class AppEmployeeComponent {
                 email: user.user.email,
                 position: user.position_id,
                 projects: user.projects.map((project: any) => project.id),
-                schedule: `${totalWorkHours.toFixed()} hours per day`,
-                WorkingDays: workingDays,
+                schedule: scheduleString,
                 Salary: 0, 
                 imagePath: this.assetsPath + '/default-profile-pic.png',
               };
@@ -226,6 +220,28 @@ export class AppEmployeeComponent {
     });
   }
 
+  // Helper function to format days as a range "Monday to Friday"
+  formatDaysRange(days: string[]): string {
+    const weekDays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
+    if (indices.length === 0) return '';
+    // Check if days are consecutive
+    let isConsecutive = true;
+    for (let i = 1; i < indices.length; i++) {
+      if (indices[i] !== indices[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+    if (isConsecutive && indices.length > 1) {
+      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
+    } else {
+      return days.join(', ');
+    }
+  }
+
   setUser(user: any): void {
 
         this.employees.map((employee: any) => {
@@ -236,41 +252,84 @@ export class AppEmployeeComponent {
   }
 
   downloadReport(user: any): void {
+    let selectedIds = this.selection.selected.map(u => u.id);
+    if (!selectedIds.includes(user.id)) {
+      selectedIds.push(user.id);
+    }
     this.filters = {
-      user: user.id,
+      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
       company: 'all',
       project: 'all',
       byClient: false,
       useTimezone: false,
+      multipleUsers: selectedIds.length > 1,
     };
 
-    const datesRange = {
-      firstSelect: moment().startOf('week').toDate(),
-      lastSelect: moment().endOf('week').toDate(),
-    };
-
-    this.employees.map((employee: any) => {
-      user.id == employee.user.id ? user = employee.user : null;
+    const dialogRef = this.dialog.open(AppDateRangeDialogComponent, {
+      data: {},
+      autoFocus: false,
     });
-    this.reportsService
-      .getReport(datesRange, user, this.filters)
-      .subscribe((v) => {
-        let filename;
-        let display_name;
-        if (user.last_name) {
-          display_name = `${user.name}_${user.last_name}`;
-        } else {
-          display_name = user.name;
-        }
 
-        filename = `I-nimble_Report_${display_name}_${moment(
-          new Date(datesRange.firstSelect)
-        ).format('DD-MM-YYYY')}_${moment(
-          new Date(datesRange.lastSelect)
-        ).format('DD-MM-YYYY')}.xlsx`;
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const datesRange = {
+          firstSelect: result.firstSelect,
+          lastSelect: result.lastSelect,
+        };
 
-        filesaver.saveAs(v, filename);
-      });
+        this.employees.map((employee: any) => {
+          user.id == employee.user.id ? user = employee.user : null;
+        });
+        this.reportsService
+          .getReport(datesRange, user, this.filters)
+          .subscribe((v) => {
+            let filename;
+            let display_name;
+            if (this.filters.multipleUsers) {
+              display_name = 'multiple_users';
+            }
+            else {
+              display_name = `${user.name}_${user.last_name}`;
+            }
+    
+            filename = `I-nimble_Report_${display_name}_${moment( 
+              new Date(datesRange.firstSelect)
+            ).format('DD-MM-YYYY')}_${moment(
+              new Date(datesRange.lastSelect)
+            ).format('DD-MM-YYYY')}.xlsx`;
+    
+            filesaver.saveAs(v, filename);
+          });
+      }
+    });
+  }
+
+  isAllSelected(): boolean {
+    if (!this.dataSource || !this.dataSource.data) {
+      return false;
+    }
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  masterToggle(): void {
+    if (!this.dataSource || !this.dataSource.data) {
+      return;
+    }
+    this.selection.clear();
+    this.isAllSelected()
+      ? this.selection.clear()
+      : this.dataSource.data.forEach((row) => this.selection.select(row));
+  }
+
+  checkboxLabel(row?: any): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
+      row.position + 1
+    }`;
   }
 }
 

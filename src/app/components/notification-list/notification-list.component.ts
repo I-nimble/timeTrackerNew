@@ -111,7 +111,9 @@ export class NotificationListComponent implements OnInit, AfterViewInit{
     notification.users_notifications.status = 2;     
     this.notificationsService.update([notification], 2).subscribe(response => {
         this.notificationsDataSource.data = [...this.notificationsDataSource.data];
+        this.notificationsService.notificationsChanged.next(); 
     });
+    this.loadNotifications();
   }
 
   addNotification(notification: any) {
