@@ -166,22 +166,22 @@ export class AppDashboardTMComponent implements OnInit {
             employee.user.id !== this.user.id
         );
 
-        this.companiesService
-          .getEmployer(employees[0].company_id)
-          .subscribe((data) => {
-            this.employer = {
-              name: data.user?.name,
-              last_name: data.user?.last_name,
-              id: data?.user?.id,
-              picture: this.picture,
-            };
-          });
+        // this.companiesService
+        //   .getEmployer(employees[0].company_id)
+        //   .subscribe((data) => {
+        //     this.employer = {
+        //       name: data.user?.name,
+        //       last_name: data.user?.last_name,
+        //       id: data?.user?.id,
+        //       picture: this.picture,
+        //     };
+        //   });
 
-        this.companiesService
-          .getCompanyLogo(employees[0].company_id)
-          .subscribe((logo) => {
-            this.employer.picture = logo;
-          });
+        // this.companiesService
+        //   .getCompanyLogo(employees[0].company_id)
+        //   .subscribe((logo) => {
+        //     this.employer.picture = logo;
+        //   });
 
         this.employees.forEach((employee: any) => {
           this.usersService.getProfilePic(employee.user.id).subscribe({
