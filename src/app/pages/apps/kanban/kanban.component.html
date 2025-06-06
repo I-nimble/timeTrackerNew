@@ -27,11 +27,57 @@
           <button
             mat-flat-button
             (click)="openDialog('Add', { type: 'board' })"
-            *ngIf="role === '3'"
+            *ngIf="role === '3' || role === '2'"
           >
             Create Board
           </button>
         </div>
+      </div>
+
+      <div class="board-heading m-b-20 d-flex align-items-center justify-content-between">
+        <div>
+          <h3 class="f-s-16 f-w-600">{{ selectedBoard.name }}</h3>
+          @switch(selectedBoard.visibility) {
+            @case ('public') {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
+                Public
+              </span>
+            }
+            @case ('restricted') {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
+                Restricted
+              </span>
+            }
+            @default {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
+                Private
+              </span>
+            }
+          }
+        </div>
+
+        <button mat-icon-button [matMenuTriggerFor]="boardMenu">
+        <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #boardMenu="matMenu">
+            <button 
+              mat-menu-item 
+              (click)="openDialog('Edit', { 
+                type: 'board', 
+                id: selectedBoard.id,
+                name: selectedBoard.name,
+                visibility: selectedBoard.visibility,
+                restrictedUsers: selectedBoard.restrictedUsers,
+              })"
+            >
+              <mat-icon>edit</mat-icon>
+              <span>Edit</span>
+            </button>
+            <button mat-menu-item (click)="deleteBoard(selectedBoardId)" [disabled]="selectedBoard.user_id != userId">
+              <mat-icon>delete</mat-icon>
+              <span>Delete</span>
+            </button>
+        </mat-menu>
       </div>
 
       <div class="table-responsive">
