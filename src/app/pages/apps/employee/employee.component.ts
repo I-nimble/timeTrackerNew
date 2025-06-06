@@ -38,10 +38,10 @@ import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
-import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
 import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
+import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
 
 @Component({
   templateUrl: './employee.component.html',

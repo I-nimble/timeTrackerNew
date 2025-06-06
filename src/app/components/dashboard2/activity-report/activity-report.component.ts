@@ -37,6 +37,18 @@ export interface trafficChart {
   templateUrl: './activity-report.component.html',
 })
 export class AppActivityReportComponent implements OnInit {
+
+  getCurrentWeekDates() {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 6);
+    
+    return {
+      firstSelect: sevenDaysAgo.toISOString(),
+      lastSelect: today.toISOString()
+    };
+  }
+
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public trafficChart!: Partial<trafficChart> | any;
   dateRange: any = this.getCurrentWeekDates();
@@ -45,6 +57,7 @@ export class AppActivityReportComponent implements OnInit {
   totalHours: number = 0;
   hoursWorked: number = 0;
   hoursLeft: number = 0;
+  dataSource: any = [];
 
   constructor(
     private companiesService: CompaniesService,
