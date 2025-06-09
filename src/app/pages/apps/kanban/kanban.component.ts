@@ -64,8 +64,10 @@ export class AppKanbanComponent implements OnInit {
   loadBoards(): void {
     this.kanbanService.getBoards().subscribe((boards) => {
       this.boards = boards;
-      this.selectedBoardId = this.boards[0].id;
-      this.loadTasks(this.selectedBoardId);
+      if(this.boards.length > 0) {
+        this.selectedBoardId = this.boards[0].id;
+        this.loadTasks(this.selectedBoardId);
+      }
       this.isLoading = false;
     });
   }

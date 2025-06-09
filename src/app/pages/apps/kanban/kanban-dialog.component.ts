@@ -74,6 +74,12 @@ export class AppKanbanDialogComponent {
         this.getUsers(employee.company_id);
       });
     }
+    else if (localStorage.getItem('role') === '1' && this.local_data.company_id) {
+      this.companiesService.getCompanies().subscribe((companies: any) => {
+        const company = companies.find((c:any) => c.id === this.local_data.company_id);
+        this.getUsers(company.id);
+      });
+    }
   }
 
   getUsers(companyId: number) {
