@@ -221,11 +221,11 @@ export class AppHorizontalHeaderComponent implements OnInit {
     },
     {
       id: 3,
-      img: 'credit-card',
+      img: 'users',
       color: 'error',
-      title: 'My Tasks',
-      subtitle: 'To-do and Daily Tasks',
-      link: '/',
+      title: 'My Team',
+      subtitle: 'Team members',
+      link: '/apps/team',
     },
   ];
 

@@ -273,11 +273,11 @@ export class HeaderComponent implements OnInit {
     },
     ...(Number(this.role) !== 2 ? [{
       id: 3,
-      img: 'credit-card',
+      img: 'users',
       color: 'error',
-      title: 'My Tasks',
-      subtitle: 'To-do and Daily Tasks',
-      link: '/',
+      title: 'My Team',
+      subtitle: 'Team members',
+      link: '/apps/team',
     }] : []),
   ];
 
