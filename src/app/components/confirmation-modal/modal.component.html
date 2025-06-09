@@ -5,16 +5,16 @@
 </mat-dialog-content>
 <mat-dialog-actions class="d-flex flex-end">
   <button
-    mat-button
-    class="ms-2 rounded shadow px-4 py-1 btn btn-primary"
+    mat-flat-button
+    color="primary"
     [mat-dialog-close]="true"
   >
     Yes
   </button>
-  <button
-    mat-button
-    class="ms-2 rounded shadow px-4 py-1 btn btn-danger"
+  <button 
+    mat-button 
     [mat-dialog-close]="false"
+    class="bg-error text-white"
   >
     No
   </button>
