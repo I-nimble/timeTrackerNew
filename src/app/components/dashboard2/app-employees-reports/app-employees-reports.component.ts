@@ -14,17 +14,19 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ReportsService } from 'src/app/services/reports.service';
 
 @Component({
   selector: 'app-employees-reports',
   standalone: true,
-  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule, FormsModule, MatDatepickerModule,MatNativeDateModule, NgIf],
+  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule, FormsModule, MatDatepickerModule,MatNativeDateModule, NgIf, TablerIconsModule],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './app-employees-reports.component.html',
 })
 export class AppEmployeesReportsComponent {
   @Output() dataSourceChange = new EventEmitter<any[]>();
-  displayedColumns: string[] = ['profile', 'workedHours', 'completedTasks', 'status'];
+  displayedColumns: string[] = ['profile', 'workedHours', 'completedTasks', 'status', 'reports'];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';
@@ -38,7 +40,8 @@ export class AppEmployeesReportsComponent {
     @Inject(RatingsEntriesService) private ratingsEntriesService: RatingsEntriesService, 
     @Inject(UsersService) private usersService: UsersService,
     @Inject(EntriesService) private entriesService: EntriesService,
-    public companiesService: CompaniesService
+    public companiesService: CompaniesService,
+    public reportsService: ReportsService
   ) {}
 
   ngOnInit(): void {
@@ -116,5 +119,70 @@ export class AppEmployeesReportsComponent {
     this.dataSource = [];
     this.selectedClient = client.id;
     this.getDataSource();
+  }
+
+  downloadReport(user: any): void {
+    const datesRange = {
+      firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
+      lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
+    };
+
+    const filters = {
+      user: { id: user.id },
+      company: this.selectedClient || 'all',
+      project: 'all',
+      byClient: false,
+      useTimezone: false,
+      multipleUsers: false,
+    };
+
+    this.reportsService.getReport(datesRange, user, filters).subscribe((file: Blob) => {
+      const filename = `I-nimble_Report_${moment(datesRange.firstSelect).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format('DD-MM-YYYY')}.xlsx`;
+      
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    });
+  }
+
+  downloadReportAll(): void {
+    if (!this.dataSource?.length) return;
+
+    const userIds = this.dataSource.map(u => u.profile.id);
+
+    const filters = {
+      user: { id: userIds },
+      company: this.selectedClient || 'all',
+      project: 'all',
+      byClient: false,
+      useTimezone: false,
+      multipleUsers: true,
+    };
+
+    const datesRange = {
+      firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
+      lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
+    };
+
+    this.reportsService.getReport(datesRange, { id: userIds }, filters).subscribe((file: Blob) => {
+      const filename = `I-nimble_Report_${moment(datesRange.firstSelect).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format('DD-MM-YYYY')}.xlsx`;
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
+    });
   }
 }
