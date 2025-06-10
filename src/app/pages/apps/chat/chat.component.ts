@@ -192,20 +192,14 @@ export class AppChatComponent implements OnInit {
     });
   }
 
-  handleCompanySelection(event: any) {
+  async handleCompanySelection(event: any) {
+    await this.chatService.logout();
+
     this.selectedCompanyId = event.value;
     this.plan = {
       id: this.companies.find(c => c.id === this.selectedCompanyId).current_plan_id
     };
-    this.chatService.logout();
-    this.chatService.getChatCredentials(this.selectedCompanyId).subscribe({
-      next: (credentials: any) => {
-        this.chatService.initializeCometChat(this.selectedCompanyId);
-      },
-      error: (err) => {
-        this.openSnackBar('The company chat is not available', 'Close');
-      }
-    });
+    this.chatService.initializeCometChat(this.selectedCompanyId);
   }
 
   private configureTheme(): void {

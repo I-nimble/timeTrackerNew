@@ -25,7 +25,6 @@ export class CometChatService {
           console.log("No chat credentials found in the database.");
           return;
         }
-        this.isChatAvailable = true;
 
         this.UIKitSettings = new UIKitSettingsBuilder()
           .setAppId(credentials.app_id)
@@ -37,6 +36,8 @@ export class CometChatService {
         await CometChatUIKit.init(this.UIKitSettings);
         // Now login the user
         await this.login(chat_uid);
+        
+        this.isChatAvailable = true;
 
         console.log("Initialization completed successfully");
       }
@@ -59,7 +60,11 @@ export class CometChatService {
 
   async logout(): Promise<void> {
     try {
-      if(CometChatUIKit.getLoggedinUser()) {
+      if (!this.isChatAvailable) {
+        return;
+      }
+      const user = await CometChatUIKit.getLoggedinUser();
+      if (user) {
         await CometChatUIKit.logout();
       }
       this.isChatAvailable = false;
