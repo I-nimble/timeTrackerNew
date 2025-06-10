@@ -193,13 +193,20 @@ export class AppChatComponent implements OnInit {
   }
 
   async handleCompanySelection(event: any) {
-    await this.chatService.logout();
-
-    this.selectedCompanyId = event.value;
-    this.plan = {
-      id: this.companies.find(c => c.id === this.selectedCompanyId).current_plan_id
-    };
-    this.chatService.initializeCometChat(this.selectedCompanyId);
+    try {
+      await this.chatService.logout();
+  
+      this.selectedCompanyId = event?.value;
+      const selectedCompany = this.companies.find(c => c.id === this.selectedCompanyId);
+      this.plan = {
+        id: selectedCompany?.current_plan_id
+      };
+      this.chatService.initializeCometChat(this.selectedCompanyId);
+    }
+    catch (error) {
+      this.openSnackBar('Error initializing chat', 'Close');
+      console.error(error);
+    }
   }
 
   private configureTheme(): void {
