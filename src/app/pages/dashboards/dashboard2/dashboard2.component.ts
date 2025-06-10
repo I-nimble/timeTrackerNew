@@ -13,6 +13,7 @@ import { AppTopEmployeesComponent } from '../../../components/dashboard2/top-emp
 import { AppUpcomingSchedulesComponent } from '../../../components/dashboard2/upcoming-schedules/upcoming-schedules.component';
 import { AppVisitUsaComponent } from '../../../components/dashboard1/visit-usa/visit-usa.component';
 import { AppPaymentsComponent } from '../../../components/dashboard1/payments/payments.component';
+import { AppEmployeesReportsComponent } from '../../../components/dashboard2/employees-reports/employees-reports.component';
 
 @Component({
   selector: 'app-dashboard2',
@@ -29,10 +30,14 @@ import { AppPaymentsComponent } from '../../../components/dashboard1/payments/pa
     AppTopEmployeesComponent,
     AppUpcomingSchedulesComponent,
     AppVisitUsaComponent,
-    AppPaymentsComponent
+    AppPaymentsComponent,
+    AppEmployeesReportsComponent,
   ],
   templateUrl: './dashboard2.component.html',
 })
 export class AppDashboard2Component {
-  constructor() {}
+  activityDataSource: any[] = [];
+  onEmployeesDataSourceChange(data: any[]) {
+    this.activityDataSource = data;
+  }
 }
