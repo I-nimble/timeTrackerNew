@@ -1,0 +1,99 @@
+<div *ngIf="userRole !== '2'; else employeeReport">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row justify-content-between gap-16">
+        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Search Employee"
+              (keyup)="applyFilter($any($event.target).value)"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+            <mat-select (selectionChange)="handleCompanySelection($event)">
+              <mat-option *ngFor="let company of companies" [value]="company.id">
+                {{ company.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
+            Add Employee
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="dataSource" class="w-100">
+          
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
+                <td mat-cell *matCellDef="let element">
+                <div class="d-flex align-items-center gap-16">
+                    <img
+                        class="rounded-circle"
+                        [src]="element.imagePath"
+                        width="45"
+                        height="45"
+                    />
+                    <div>
+                        <a
+                            class="text-decoration-none"
+                            (click)="setUser(element)"
+                            [routerLink]="['/apps/employee', element.id]"
+                        >
+                            <h6 class="f-w-600 f-s-16 m-t-0">
+                            {{ element.name }} {{ element.last_name }}
+                            </h6>
+                        </a>
+                    </div>
+                </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Role</th>
+                <td mat-cell *matCellDef="let element">
+                <div>
+                    <span class="f-s-16">{{ element.role }}</span>
+                </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Email</th>
+                <td mat-cell *matCellDef="let element">
+                <div>
+                    <span class="f-s-16">{{ element.email }}</span>
+                </div>
+                </td>
+            </ng-container>
+  
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        <div *ngIf="dataSource?.data?.length === 0 && loaded" class="text-center p-4 f-s-16 text-muted">
+          No employees found.
+        </div>
+        <mat-paginator
+          [pageSizeOptions]="[5, 10, 20]"
+          showFirstLastButtons
+        ></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #employeeReport> 
+  <app-employee-details></app-employee-details>
+</ng-template>
