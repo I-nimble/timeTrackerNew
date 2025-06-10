@@ -196,18 +196,21 @@ export class EmployeeDetailsComponent implements OnInit {
     }, {});
     
     // Calculate total scheduled hours per day for each day in each schedule
+    const seenDaySchedule = new Set<string>();
     const totalHoursPerDay = this.schedules.reduce((acc: any, schedule: any) => {
-      // Calculate duration for this schedule
       const today = moment().tz(this.companyTimezone).format('YYYY-MM-DD');
       const start = moment.tz(`${today} ${schedule.start_time}`, 'YYYY-MM-DD HH:mm:ss', this.companyTimezone);
       const end = moment.tz(`${today} ${schedule.end_time}`, 'YYYY-MM-DD HH:mm:ss', this.companyTimezone);
       if (end.isBefore(start)) end.add(1, 'day');
       const duration = end.diff(start, 'hours', true);
-      // Assign duration to each day in schedule.days
       if (Array.isArray(schedule.days)) {
         schedule.days.forEach((dayObj: any) => {
           const dayShort = dayObj.name.substring(0, 3);
-          acc[dayShort] = (acc[dayShort] || 0) + duration;
+          const key = `${dayShort}_${schedule.start_time}_${schedule.end_time}`;
+          if (!seenDaySchedule.has(key)) {
+            acc[dayShort] = (acc[dayShort] || 0) + duration;
+            seenDaySchedule.add(key);
+          }
         });
       }
       return acc;
@@ -253,7 +256,7 @@ export class EmployeeDetailsComponent implements OnInit {
               const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
               const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
               const currentTime = moment.tz();
-    
+              
               start.set({
                 year: currentTime.year(),
                 month: currentTime.month(),
