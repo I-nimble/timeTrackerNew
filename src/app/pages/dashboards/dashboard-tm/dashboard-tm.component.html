@@ -53,36 +53,9 @@
 </div>
 
 <!-- Company Information -->
-<div class="row mt-4">
+<div class="row mt-4 m-b-20">
   <div class="col-lg-5">
-    <div class="card shadow-none">
-      <div class="card-body company">
-        <p class="mb-3">{{ user.employee.company }}</p>
-        <div class="vstack gap-3 mt-4">
-          <div
-            class="hstack gap-6 small"
-            *ngIf="user.employee.supervisor != ''"
-          >
-            <mat-icon>person</mat-icon>
-            <p class="mb-0">{{ user.employee.supervisor }}</p>
-          </div>
-          <div class="hstack gap-6 small" *ngIf="user.employee.website != ''">
-            <mat-icon>open_in_new</mat-icon>
-            <a
-              class="mb-0"
-              href="{{ user.employee.website }}"
-              target="_blank"
-              >{{ user.employee.website }}</a
-            >
-          </div>
-          <div class="hstack gap-6 small" *ngIf="user.employee.location != ''">
-            <mat-icon>location_on</mat-icon>
-            <p class="mb-0">{{ user.employee.location }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="card shadow-none mt-4 m-b-24">
+    <div class="card shadow-none h-100">
        <div class="card-body tasks">
           <p class="mb-3">My Tasks for Today</p>
             <div
@@ -101,9 +74,9 @@
                   </div>
                 </div>
               </div>
-               <span class="rounded f-s-12 p-x-8 text-white bg-primary">
-                        {{ task.priorityAssociation.name }}
-                      </span>
+                <span class="rounded f-s-12 p-x-8 text-white bg-primary" *ngIf="task.priorityAssociation">
+                  {{ task.priorityAssociation.name }}
+                </span>
             </div>
             <p
               *ngIf="!todayTasks || todayTasks.length === 0"
