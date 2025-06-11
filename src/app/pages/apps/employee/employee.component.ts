@@ -243,8 +243,7 @@ export class AppEmployeeComponent {
   }
 
   setUser(user: any): void {
-
-        this.employees.map((employee: any) => {
+    this.employees.map((employee: any) => {
       user.id == employee.user.id ? user = employee.user : null;
     });
 
