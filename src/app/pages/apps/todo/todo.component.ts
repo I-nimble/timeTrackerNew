@@ -319,7 +319,8 @@ export class AppTodoComponent implements OnInit {
                   rating_id: [toDo.id],
                   goal: [toDo.goal],
                   date: [this.selectedDateStr],
-                  achieved: [toDo.achieved, Validators.required],
+                  achieved: [false, Validators.required],
+                  wasAchieved: [toDo.achieved],
                   is_numeric: [false],
                   due_date: [toDo.due_date || null],
                   priority: [toDo.priority || 3], // 3 = Normal
@@ -342,10 +343,11 @@ export class AppTodoComponent implements OnInit {
       const parent = control.parent;
       if (parent) {
         const achieved = parent.get('achieved')?.value;
+        const wasAchieved = parent.get('wasAchieved')?.value;
         const details = control.value;
-        if (achieved && (!details || details.trim() === '')) {
-          return { detailsRequired: true };
-        }
+        if (achieved && !wasAchieved && (!details || details.trim() === '')) {
+        return { detailsRequired: true };
+      }
       }
       return null;
     };
@@ -503,4 +505,8 @@ export class AppTodoComponent implements OnInit {
       }
     });
   }
+
+  hasAnyAchieved(): boolean {
+  return this.toDoFormArray.controls.some(ctrl => ctrl.get('achieved')?.value);
+}
 }
