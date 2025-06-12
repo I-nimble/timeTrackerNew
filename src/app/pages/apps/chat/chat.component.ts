@@ -68,7 +68,7 @@ export class AppChatComponent implements OnInit {
     this.essentialMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
+        // disableReactions: true,
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -81,7 +81,7 @@ export class AppChatComponent implements OnInit {
       }),
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
+        // disableReactions: true,
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -123,7 +123,7 @@ export class AppChatComponent implements OnInit {
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
-            disableReactions: true,
+            // disableReactions: true,
           }),
           messageHeaderConfiguration: new MessageHeaderConfiguration({
             menu: [] // Hide call buttons for groups
@@ -136,7 +136,7 @@ export class AppChatComponent implements OnInit {
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
-            disableReactions: true,
+            // disableReactions: true,
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
