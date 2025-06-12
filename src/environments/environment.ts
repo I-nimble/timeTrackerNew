@@ -8,4 +8,12 @@ export const environment = {
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',
   upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
   stripePublicKey:'pk_test_51O4SNYGg6unjDe3ICpQ89l8OdzcIXtvNSFuHKMTsFCtQNkzFRDLgtlMjQmldsdc2WiXE1aCbvFjXbKQssLGa5tli00IUN819bL',
+  firebaseConfig: {
+    apiKey: "AIzaSyDi2g2jOi9coqrHgjF8Ojg_5mPKC1FNs1k",
+    authDomain: "inimbleapp.firebaseapp.com",
+    projectId: "inimbleapp",
+    storageBucket: "inimbleapp.firebasestorage.app",
+    messagingSenderId: "562152489018",
+    appId: "1:562152489018:web:10df1fd86381626629f503"
+  }
 };
