@@ -32,12 +32,12 @@ export interface paymentsChart {
 }
 
 @Component({
-  selector: 'app-payments',
+  selector: 'app-weekly-hours',
   standalone: true,
   imports: [MaterialModule, NgApexchartsModule, TablerIconsModule],
-  templateUrl: './payments.component.html',
+  templateUrl: './weekly-hours.component.html',
 })
-export class AppPaymentsComponent implements OnInit {
+export class AppWeeklyHoursComponent implements OnInit {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public paymentsChart!: Partial<paymentsChart> | any;
   companyTimezone: string = 'UTC';
@@ -48,6 +48,8 @@ export class AppPaymentsComponent implements OnInit {
   schedules: any = [];
   datesRange: any = {};
   entries: any = [];
+  totalUsers: number = 0;
+  processedUsers: number = 0;
   totalWorkedHoursAll: { [day: string]: number } = {
     Mon: 0,
     Tue: 0,
@@ -174,6 +176,7 @@ export class AppPaymentsComponent implements OnInit {
     }, {});
 
     // Calculate total scheduled hours per day for each day in each schedule
+    const seenDaySchedule = new Set<string>();
     const totalHoursPerDay = this.schedules.reduce(
       (acc: any, schedule: any) => {
         // Calculate duration for this schedule
@@ -194,7 +197,11 @@ export class AppPaymentsComponent implements OnInit {
         if (Array.isArray(schedule.days)) {
           schedule.days.forEach((dayObj: any) => {
             const dayShort = dayObj.name.substring(0, 3);
-            acc[dayShort] = (acc[dayShort] || 0) + duration;
+            const key = `${dayShort}_${schedule.start_time}_${schedule.end_time}`;
+            if (!seenDaySchedule.has(key)) {
+              acc[dayShort] = (acc[dayShort] || 0) + duration;
+              seenDaySchedule.add(key);
+            }
           });
         }
         return acc;
@@ -221,13 +228,16 @@ export class AppPaymentsComponent implements OnInit {
       (acc, day) => acc + (this.totalScheduledHoursAll[day] || 0),
       0
     );
-    if (totalScheduled > 0) {
-      workedPercent = Math.round((totalWorked / totalScheduled) * 100);
-      notWorkedPercent = 100 - workedPercent;
+    this.processedUsers++;
+    if (this.processedUsers === this.totalUsers) {
+      if (totalScheduled > 0) {
+          workedPercent = Math.round((totalWorked / totalScheduled) * 100);
+          notWorkedPercent = 100 - workedPercent;
+          this.workedPercent = workedPercent;
+          this.notWorkedPercent = notWorkedPercent;
+      }
     }
-
-    this.workedPercent = workedPercent;
-    this.notWorkedPercent = notWorkedPercent;
+    
 
     this.paymentsChart.series = [
       {
@@ -242,6 +252,8 @@ export class AppPaymentsComponent implements OnInit {
   }
 
   getAllUsers() {
+    this.totalWorkedHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+    this.totalScheduledHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
     this.employeeService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
@@ -253,6 +265,7 @@ export class AppPaymentsComponent implements OnInit {
         const firstday = moment(today).isoWeekday(1).format('YYYY-MM-DD');
         const lastday = moment(today).isoWeekday(7).format('YYYY-MM-DD');
         this.datesRange = { firstSelect: firstday, lastSelect: lastday };
+        this.totalUsers = employeeIds.length;
 
         employeeIds.map((userId: number) => {
           this.schedulesService.getById(userId).subscribe({
@@ -269,8 +282,6 @@ export class AppPaymentsComponent implements OnInit {
             },
           });
         });
-
-        
       },
       error: (err: any) => {
         console.error('Error fetching employees:', err);

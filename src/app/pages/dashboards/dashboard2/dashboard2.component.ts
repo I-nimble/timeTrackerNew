@@ -12,7 +12,7 @@ import { AppBlogCardComponent } from '../../../components/dashboard2/blog-card/b
 import { AppTopEmployeesComponent } from '../../../components/dashboard2/top-employees/top-employees.component';
 import { AppUpcomingSchedulesComponent } from '../../../components/dashboard2/upcoming-schedules/upcoming-schedules.component';
 import { AppVisitUsaComponent } from '../../../components/dashboard1/visit-usa/visit-usa.component';
-import { AppPaymentsComponent } from '../../../components/dashboard1/payments/payments.component';
+import { AppWeeklyHoursComponent } from '../../../components/dashboard1/weekly-hours/weekly-hours.component';
 import { AppEmployeesReportsComponent } from '../../../components/dashboard2/app-employees-reports/app-employees-reports.component';
 
 @Component({
@@ -30,7 +30,7 @@ import { AppEmployeesReportsComponent } from '../../../components/dashboard2/app
     AppTopEmployeesComponent,
     AppUpcomingSchedulesComponent,
     AppVisitUsaComponent,
-    AppPaymentsComponent,
+    AppWeeklyHoursComponent,
     AppEmployeesReportsComponent,
   ],
   templateUrl: './dashboard2.component.html',
