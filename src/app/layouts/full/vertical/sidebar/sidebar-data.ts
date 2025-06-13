@@ -25,13 +25,14 @@ export function getNavItems(role: number): NavItem[] {
       ? '/dashboards/tm'
       : '/dashboards/dashboard2'
   },
-  {
+
+    ...(Number(role) !== 2 ? [{
     displayName: 'Reports',
     iconName: 'chart-bar',
     bgcolor: 'primary',
-    route: '/dashboards/reports',
+    route: '/dashboards/reports',  
   },
-    ...(Number(role) !== 2 ? [{
+  {
     displayName: 'Productivity',
     iconName: 'chart-bar',
     bgcolor: 'primary',
