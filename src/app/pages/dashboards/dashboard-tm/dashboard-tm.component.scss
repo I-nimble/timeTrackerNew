@@ -119,7 +119,7 @@ img {
     box-shadow: none !important;
 }
 
-.company, .tm-photos {
+.company, .tm-photos, .tasks {
     border-radius: 1.125rem!important;
 }
 
@@ -153,4 +153,9 @@ mat-icon {
     font-size: .9rem;
     display: flex;
     align-items: center;
+}
+.btnTasks {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
 }

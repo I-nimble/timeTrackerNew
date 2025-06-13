@@ -53,33 +53,42 @@
 </div>
 
 <!-- Company Information -->
-<div class="row mt-4">
+<div class="row mt-4 m-b-20">
   <div class="col-lg-5">
-    <div class="card shadow-none border">
-      <div class="card-body company">
-        <p class="mb-3">{{ user.employee.company }}</p>
-        <div class="vstack gap-3 mt-4">
-          <div
-            class="hstack gap-6 small"
-            *ngIf="user.employee.supervisor != ''"
-          >
-            <mat-icon>person</mat-icon>
-            <p class="mb-0">{{ user.employee.supervisor }}</p>
-          </div>
-          <div class="hstack gap-6 small" *ngIf="user.employee.website != ''">
-            <mat-icon>open_in_new</mat-icon>
-            <a
-              class="mb-0"
-              href="{{ user.employee.website }}"
-              target="_blank"
-              >{{ user.employee.website }}</a
+    <div class="card shadow-none h-100">
+       <div class="card-body tasks">
+          <p class="mb-3">My Tasks for Today</p>
+            <div
+              class="list-group-item d-flex align-items-center justify-content-between"
+              *ngFor="let task of todayTasks"
             >
+              <div class="d-flex align-items-center m-t-10">
+                <mat-icon color="primary" class="me-2">check</mat-icon>
+                <div>
+                  <div class="fw-semibold">{{ task.goal }}</div>
+                  <div class="text-muted small" *ngIf="task.due_date">
+                    <mat-icon class="me-1" style="font-size: 16px"
+                      >event</mat-icon
+                    >
+                    Due: {{ task.due_date | date: "mediumDate" }}
+                  </div>
+                </div>
+              </div>
+                <span class="rounded f-s-12 p-x-8 text-white bg-primary" *ngIf="task.priorityAssociation">
+                  {{ task.priorityAssociation.name }}
+                </span>
+            </div>
+            <p
+              *ngIf="!todayTasks || todayTasks.length === 0"
+              class="list-group-item text-center text-muted"
+            >
+              No tasks for today
+          </p>
+          <div class="text-end btnTasks">
+            <button mat-stroked-button class="btn btn-primary" [routerLink]="['/apps/todo']">
+              See all tasks
+            </button>
           </div>
-          <div class="hstack gap-6 small" *ngIf="user.employee.location != ''">
-            <mat-icon>location_on</mat-icon>
-            <p class="mb-0">{{ user.employee.location }}</p>
-          </div>
-        </div>
       </div>
     </div>
   </div>
