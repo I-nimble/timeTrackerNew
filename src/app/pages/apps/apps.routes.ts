@@ -256,7 +256,7 @@ export const AppsRoutes: Routes = [
         },
       },
       {
-        path: 'employee/:id',
+        path: 'employee',
         component: EmployeeDetailsComponent,
         data: { title: 'Employee Details' },
       },

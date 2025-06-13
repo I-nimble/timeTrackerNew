@@ -1,10 +1,10 @@
 <div class="row">
     <div class="d-flex m-b-30" style="flex-direction: row;">
-      <div class="col-lg-5" style="flex-grow: 1;">
-        <app-activity-report class="h-100 d-inline-block"></app-activity-report>
+      <div class="col-lg-4" style="flex-grow: 1;">
+        <app-activity-reports [dataSource]="dataSource" class="h-100 d-inline-block"></app-activity-reports>
       </div>
-      <div class="col-lg-7">
-        <app-employees-reports></app-employees-reports>
+      <div class="col-lg-8">
+        <app-employees-reports (dataSourceChange)="onEmployeesDataSourceChange($event)"></app-employees-reports>
       </div>
     </div>
 </div>

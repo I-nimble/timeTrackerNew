@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit, Input, OnChanges } from '@angular/core';
 import {
   ApexChart,
   ChartComponent,
@@ -12,13 +12,6 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
-import { EntriesService } from 'src/app/services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
-import { SchedulesService } from 'src/app/services/schedules.service';
 import { DecimalPipe } from '@angular/common';
 
 export interface trafficChart {
@@ -31,41 +24,22 @@ export interface trafficChart {
   stroke: ApexStroke;
 }
 @Component({
-  selector: 'app-activity-report',
+  selector: 'app-activity-reports',
   standalone: true,
   imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe],
-  templateUrl: './activity-report.component.html',
+  templateUrl: './activity-reports.component.html',
 })
-export class AppActivityReportComponent implements OnInit {
-
-  getCurrentWeekDates() {
-    const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6);
-    
-    return {
-      firstSelect: sevenDaysAgo.toISOString(),
-      lastSelect: today.toISOString()
-    };
-  }
-
+export class AppActivityReportsComponent implements OnInit, OnChanges {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
+  @Input() dataSource: any[] = [];
   public trafficChart!: Partial<trafficChart> | any;
-  dateRange: any = this.getCurrentWeekDates();
   userRole: string | null = localStorage.getItem('role');
   employees: any[] = [];
   totalHours: number = 0;
   hoursWorked: number = 0;
   hoursLeft: number = 0;
-  dataSource: any = [];
 
-  constructor(
-    private companiesService: CompaniesService,
-    private employeesService: EmployeesService,
-    private usersService: UsersService,
-    private entriesService: EntriesService,
-    private schedulesService: SchedulesService
-  ) {
+  constructor() {
     this.trafficChart = {
       series: [0, 0],
 
@@ -113,9 +87,12 @@ export class AppActivityReportComponent implements OnInit {
       legend: {
         show: false,
       },
-      tooltip: {
+       tooltip: {
         theme: 'dark',
         fillSeriesColor: false,
+        y: {
+          formatter: (val: number) => val.toFixed(2)
+        }
       },
     };
   }
@@ -133,4 +110,5 @@ export class AppActivityReportComponent implements OnInit {
     this.hoursLeft = ratings.reduce((sum, emp) => sum + (emp.hoursLeft ?? 0), 0);
     this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
   }
+
 }

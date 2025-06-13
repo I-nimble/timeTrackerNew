@@ -10,12 +10,12 @@ import { forkJoin, Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-employees-reports',
+  selector: 'employees-reports',
   standalone: true,
   imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule],
   templateUrl: './employees-reports.component.html',
 })
-export class AppEmployeesReportsComponent {
+export class EmployeesReportsComponent {
   displayedColumns: string[] = ['profile', 'completed', 'status'];
   dataSource: any[] = [];
   

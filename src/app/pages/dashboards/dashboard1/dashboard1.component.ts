@@ -3,7 +3,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 
 // components
 import { AppCongratulateCardComponent } from '../../../components/dashboard1/congratulate-card/congratulate-card.component';
-import { AppPaymentsComponent } from '../../../components/dashboard1/payments/payments.component';
+import { AppWeeklyHoursComponent } from '../../../components/dashboard1/weekly-hours/weekly-hours.component';
 import { AppProductsComponent } from '../../../components/dashboard1/products/products.component';
 import { AppLatestDealsComponent } from '../../../components/dashboard1/latest-deals/latest-deals.component';
 import { AppCustomersComponent } from '../../../components/dashboard1/customers/customers.component';
@@ -20,7 +20,7 @@ import { AppLatestReviewsComponent } from '../../../components/dashboard1/latest
     AppCustomersComponent,
     AppProductsComponent,
     AppTopProjectsComponent,
-    AppPaymentsComponent,
+    AppWeeklyHoursComponent,
     AppLatestDealsComponent,
     AppVisitUsaComponent,
     AppProductsComponent,
