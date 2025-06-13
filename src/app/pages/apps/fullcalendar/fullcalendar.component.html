@@ -29,7 +29,6 @@
         <mat-option
           *ngFor="let tm of teamMembers"
           [value]="tm.id"
-          [disabled]="loggedInUser && tm.id === loggedInUser.id"
         >
           {{ tm.name }} {{ tm.last_name }}
         </mat-option>

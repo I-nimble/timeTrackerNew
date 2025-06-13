@@ -172,8 +172,6 @@ export class CalendarDialogComponent implements OnInit {
     ) {
       const formData = this.toDoForm.value;
       const taskId = this.data.action === 'Edit' ? this.data.event.id : null;
-      // console.log('action', this.data.action);
-      // console.log('task id', taskId);
       this.ratingsService.submit(formData, taskId).subscribe({
         next: (response: any) => {
           const event = {

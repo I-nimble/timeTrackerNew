@@ -121,11 +121,6 @@ export class AppDashboardTMComponent implements OnInit {
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
-
-    // const today = new Date();
-    // this.ratingsService.getToDo(today).subscribe((tasks) => {
-    //   this.todayTasks = tasks ? tasks.slice(0, 5) : [];
-    // });
   }
 
   getUser() {
