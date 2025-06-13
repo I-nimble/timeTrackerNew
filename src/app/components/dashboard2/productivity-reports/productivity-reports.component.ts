@@ -9,7 +9,10 @@ import { EntriesService } from '../../../services/entries.service';
 import { forkJoin, Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
+import {
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
@@ -20,13 +23,32 @@ import { ReportsService } from 'src/app/services/reports.service';
 @Component({
   selector: 'app-productivity-reports',
   standalone: true,
-  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule, FormsModule, MatDatepickerModule,MatNativeDateModule, NgIf, TablerIconsModule],
-  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
+  imports: [
+    MaterialModule,
+    CommonModule,
+    MatMenuModule,
+    MatButtonModule,
+    FormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    NgIf,
+    TablerIconsModule,
+  ],
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+  ],
   templateUrl: './productivity-reports.component.html',
 })
 export class AppProductivityReportsComponent {
   @Output() dataSourceChange = new EventEmitter<any[]>();
-  displayedColumns: string[] = ['profile', 'workedHours', 'completedTasks', 'status', 'reports'];
+  displayedColumns: string[] = [
+    'profile',
+    'workedHours',
+    'completedTasks',
+    'totalTasks',
+    'average',
+  ];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';
@@ -35,9 +57,15 @@ export class AppProductivityReportsComponent {
   selectedClient: any = 0;
   companiesList: any[] = [];
   isLoading = false;
+  selectedUserId: number | null = null;
+  filteredDataSource: any[] = [];
+  selectedPosition: string | null = null;
+  departmentsList: any[] = [];
+  selectedDepartment: string | null = null;
 
   constructor(
-    @Inject(RatingsEntriesService) private ratingsEntriesService: RatingsEntriesService, 
+    @Inject(RatingsEntriesService)
+    private ratingsEntriesService: RatingsEntriesService,
     @Inject(UsersService) private usersService: UsersService,
     @Inject(EntriesService) private entriesService: EntriesService,
     public companiesService: CompaniesService,
@@ -52,7 +80,6 @@ export class AppProductivityReportsComponent {
       this.getCompanies();
     }
     this.getDataSource();
-    
   }
 
   getCompanies() {
@@ -60,9 +87,12 @@ export class AppProductivityReportsComponent {
       this.companiesList = res;
     });
   }
-  
+
   getDataSource() {
-    if (this.role == '1' && (!this.selectedClient || this.selectedClient === 0)) {
+    if (
+      this.role == '1' &&
+      (!this.selectedClient || this.selectedClient === 0)
+    ) {
       this.dataSource = [];
       this.dataSourceChange.emit(this.dataSource);
       return;
@@ -72,41 +102,67 @@ export class AppProductivityReportsComponent {
       firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
       lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
       role: this.role,
-      company_id: this.selectedClient
+      company_id: this.selectedClient,
     };
 
-    this.ratingsEntriesService.getTeamReport(this.dateRange).pipe(
-      switchMap((data) => {
-        // First set basic user data without profile pictures
-        this.dataSource = data.ratings.map((employee: any) => ({
-          profile: {
-            id: employee.profile.id,
-            name: employee.profile.name,
-            position: employee.profile.position,
-            image: null
-          },
-          completed: employee.completed + '/' + employee.totalTasks,
-          workedHours: employee.workedHours,
-          hoursLeft: employee.hoursLeft,
-          status: employee.status,
-          progress: employee.status === 'Online' ? 'success' : 'error',
-        }));
+    this.ratingsEntriesService
+      .getTeamReport(this.dateRange)
+      .pipe(
+        switchMap((data) => {
+          console.log('Datos recibidos: ', data);
+          // First set basic user data without profile pictures
+          this.dataSource = data.ratings.map((employee: any) => {
+            const completedTasks = Number(employee.completed) || 0;
+            const totalTasks = Number(employee.TotalTasks) || 0;
+            const workedHours = Number(employee.workedHours) || 0;
 
-        const profilePicRequests = this.dataSource.map(task =>
-          this.usersService.getProfilePic(task.profile.id)
-        );
-        this.dataSourceChange.emit(this.dataSource);
-        return forkJoin({
-          profilePics: forkJoin(profilePicRequests)
+            const average =
+              completedTasks > 0 ? workedHours / completedTasks : 0;
+
+            return {
+              profile: {
+                id: employee.profile.id,
+                name: employee.profile.name,
+                position: employee.profile.position,
+                image: null,
+                department_id: employee.profile.department_id,
+                department: employee.profile.department,
+              },
+              completed: employee.completed,
+              totalTasks: employee.totalTasks,
+              workedHours: employee.workedHours,
+              hoursLeft: employee.hoursLeft,
+              progress: employee.status === 'Online' ? 'success' : 'error',
+              average: average,
+            };
+          });
+
+          const profilePicRequests = this.dataSource.map((task) =>
+            this.usersService.getProfilePic(task.profile.id)
+          );
+          this.departmentsList = Array.from(
+            new Set(
+              this.dataSource
+                .map((u) => u.profile.department)
+                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
+            )
+          );
+          console.log('Departamentos: ', this.departmentsList);
+          this.filterByUser();
+          this.dataSourceChange.emit(this.filteredDataSource);
+          console.log('Los datos: ', this.dataSource);
+          return forkJoin({
+            profilePics: forkJoin(profilePicRequests),
+          });
+        })
+      )
+      .subscribe(({ profilePics }) => {
+        // Update the dataSource with profile pictures and status
+        this.dataSource.forEach((task, index) => {
+          task.profile.image = profilePics[index];
         });
-      })
-    ).subscribe(({ profilePics }) => {
-      // Update the dataSource with profile pictures and status
-      this.dataSource.forEach((task, index) => {
-        task.profile.image = profilePics[index];
+        this.isLoading = false;
       });
-      this.isLoading = false; 
-    });
   }
 
   onDateRangeChange() {
@@ -121,68 +177,30 @@ export class AppProductivityReportsComponent {
     this.getDataSource();
   }
 
-  downloadReport(user: any): void {
-    const datesRange = {
-      firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
-      lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
-    };
-
-    const filters = {
-      user: { id: user.id },
-      company: this.selectedClient || 'all',
-      project: 'all',
-      byClient: false,
-      useTimezone: false,
-      multipleUsers: false,
-    };
-
-    this.reportsService.getReport(datesRange, user, filters).subscribe((file: Blob) => {
-      const filename = `I-nimble_Report_${moment(datesRange.firstSelect).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format('DD-MM-YYYY')}.xlsx`;
-      
-      const url = window.URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 0);
-    });
+  filterByUser() {
+    if (this.selectedUserId) {
+      this.filteredDataSource = this.dataSource.filter(
+        (u) => u.profile.id === this.selectedUserId
+      );
+    } else {
+      this.filteredDataSource = [...this.dataSource];
+    }
+    if (this.selectedDepartment) {
+      this.filteredDataSource = this.filteredDataSource.filter(
+        (u) => u.profile.department === this.selectedDepartment
+      );
+    }
   }
 
-  downloadReportAll(): void {
-    if (!this.dataSource?.length) return;
+  onUserChange(userId: number | null) {
+    this.selectedUserId = userId;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
+  }
 
-    const userIds = this.dataSource.map(u => u.profile.id);
-
-    const filters = {
-      user: { id: userIds },
-      company: this.selectedClient || 'all',
-      project: 'all',
-      byClient: false,
-      useTimezone: false,
-      multipleUsers: true,
-    };
-
-    const datesRange = {
-      firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
-      lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
-    };
-
-    this.reportsService.getReport(datesRange, { id: userIds }, filters).subscribe((file: Blob) => {
-      const filename = `I-nimble_Report_${moment(datesRange.firstSelect).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format('DD-MM-YYYY')}.xlsx`;
-      const url = window.URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      }, 0);
-    });
+  onDepartmentChange(department: string | null) {
+    this.selectedDepartment = department;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
   }
 }
