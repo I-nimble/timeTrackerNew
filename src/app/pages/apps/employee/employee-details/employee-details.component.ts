@@ -187,7 +187,8 @@ export class EmployeeDetailsComponent implements OnInit {
   }
 
   private getWeeklyHours(): void {
-    const userParams = { id: this.userId }; 
+    const userParams = { id: this.userId };
+    
     
     this.reportsService.getRange(
       this.datesRange, 
@@ -195,12 +196,14 @@ export class EmployeeDetailsComponent implements OnInit {
       this.filters
     ).subscribe(entries => {
       this.entries = entries;
+      
       this.processEntries(this.entries);
     });
   }
 
   private processEntries(entries: any[]): void {
     // Calculate worked hours per day
+    
     const workedHoursPerDay = entries.reduce((acc, entry) => {
       const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
       const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
