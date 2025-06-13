@@ -3,9 +3,8 @@ import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import { CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, ChatConfigurator, CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
@@ -16,7 +15,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration } from '@cometchat/uikit-shared';
 import { BackdropStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import {CometChatUIEvents} from "@cometchat/uikit-resources"
+import { CometChatUIEvents, CometChatMessageTemplate, CometChatUIKitConstants, CometChatTheme } from "@cometchat/uikit-resources"
+
 
 @Component({
   standalone: true,
@@ -39,6 +39,7 @@ export class AppChatComponent implements OnInit {
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
+  definedTemplates!: CometChatMessageTemplate[];
 
   
   // BASIC PLAN CONFIGURATION
@@ -60,6 +61,26 @@ export class AppChatComponent implements OnInit {
     private employeesService: EmployeesService
   ) { 
     const component = this; 
+    this.definedTemplates = [
+      new CometChatMessageTemplate({
+        type: "text",
+        category: CometChatUIKitConstants.MessageCategory.message,
+        options: (
+          loggedInUser: CometChat.User,
+          message: CometChat.BaseMessage,
+          theme: CometChatTheme,
+          group?: CometChat.Group
+        ) => {
+          const defaultOptions = ChatConfigurator.getDataSource().getMessageOptions(
+            loggedInUser,
+            message,
+            theme,
+            group
+          );
+          return defaultOptions.filter((option: any) => option.id !== 'react');
+        }
+      })
+    ];
 
     this.professionalMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true
@@ -69,6 +90,7 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         // disableReactions: true,
+        templates: this.definedTemplates
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -82,6 +104,7 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         // disableReactions: true,
+        templates: this.definedTemplates
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -124,6 +147,7 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             // disableReactions: true,
+            templates: this.definedTemplates
           }),
           messageHeaderConfiguration: new MessageHeaderConfiguration({
             menu: [] // Hide call buttons for groups
@@ -137,6 +161,7 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             // disableReactions: true,
+            templates: this.definedTemplates
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
