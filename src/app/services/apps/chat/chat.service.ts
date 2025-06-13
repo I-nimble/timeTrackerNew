@@ -103,7 +103,7 @@ export class CometChatService {
     try {
       const pushToken = await getToken(
         messaging,
-        { vapidKey: 'BAgM65bd3u0eip66PuUViB9xB4agoBNFqTOragNBofHJnz7BcZM4SJqoSZyu2gj8Aiz573ExvVDwfU_eICWf2JI' }
+        { vapidKey: environment.vapidKey }
       );
       if (pushToken) {
         await CometChatNotifications.registerPushToken(
