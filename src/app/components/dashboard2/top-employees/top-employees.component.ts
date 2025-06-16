@@ -19,7 +19,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
   templateUrl: './top-employees.component.html',
 })
 export class AppTopEmployeesComponent {
-  displayedColumns: string[] = ['profile', 'completed', 'status'];
+  displayedColumns: string[] = ['profile', 'status'];
   dataSource: any[] = [];
   companyId: any;
   
