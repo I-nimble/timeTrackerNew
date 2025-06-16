@@ -156,6 +156,22 @@ export class AppWeeklyHoursComponent implements OnInit {
     }
   }
 
+  private updateBarColors() {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const currentDay = moment().tz(this.companyTimezone).format('ddd');
+    const gray = '#e7ecf0';
+    const green = 'var(--mat-sys-primary)';
+    const workedColors = days.map(day => (day === currentDay ? green : gray));
+    const notWorkedColors = days.map(() => gray);
+
+    this.paymentsChart.colors = [
+      ({ dataPointIndex, seriesIndex }: any) => {
+        if (seriesIndex === 0) return workedColors[dataPointIndex] || gray;
+        return notWorkedColors[dataPointIndex] || gray;
+      }
+    ];
+  }
+
   private processEntries(entries: any[]): void {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     let workedData = [];
@@ -249,6 +265,8 @@ export class AppWeeklyHoursComponent implements OnInit {
         data: notWorkedData,
       },
     ];
+
+    this.updateBarColors();
   }
 
   getAllUsers() {
