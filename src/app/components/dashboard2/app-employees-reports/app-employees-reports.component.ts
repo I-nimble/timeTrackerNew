@@ -158,7 +158,7 @@ export class AppEmployeesReportsComponent {
     };
 
     const filters = {
-      user: { id: user.id },
+      user: { id: user.profile.id },
       company: this.selectedClient || 'all',
       project: 'all',
       byClient: false,
@@ -167,9 +167,9 @@ export class AppEmployeesReportsComponent {
     };
 
     this.reportsService
-      .getReport(datesRange, user, filters)
+      .getReport(datesRange, { id: user.profile.id }, filters)
       .subscribe((file: Blob) => {
-        const filename = `I-nimble_Report_${moment(
+        const filename = `I-nimble_Report_${user.profile.name}_${moment(
           datesRange.firstSelect
         ).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format(
           'DD-MM-YYYY'
