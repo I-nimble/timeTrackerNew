@@ -244,16 +244,13 @@ export class AppWeeklyHoursComponent implements OnInit {
       (acc, day) => acc + (this.totalScheduledHoursAll[day] || 0),
       0
     );
-    this.processedUsers++;
-    if (this.processedUsers === this.totalUsers) {
-      if (totalScheduled > 0) {
-          workedPercent = Math.round((totalWorked / totalScheduled) * 100);
-          notWorkedPercent = 100 - workedPercent;
-          this.workedPercent = workedPercent;
-          this.notWorkedPercent = notWorkedPercent;
-      }
+
+    if (totalScheduled > 0) {
+      workedPercent = Math.round((totalWorked / totalScheduled) * 100);
+      notWorkedPercent = 100 - workedPercent;
+      this.workedPercent = workedPercent;
+      this.notWorkedPercent = notWorkedPercent;
     }
-    
 
     this.paymentsChart.series = [
       {
@@ -285,17 +282,19 @@ export class AppWeeklyHoursComponent implements OnInit {
         this.datesRange = { firstSelect: firstday, lastSelect: lastday };
         this.totalUsers = employeeIds.length;
 
-        employeeIds.map((userId: number) => {
+        employeeIds.forEach((userId: number, idx: number) => {
           this.schedulesService.getById(userId).subscribe({
             next: (schedules: any) => {
-              this.schedules = schedules.schedules;
+              this.schedules = this.schedules.concat(schedules.schedules);
               this.filters.user.id = userId;
               const userParams = { id: userId };
               this.reportsService
                 .getRange(this.datesRange, userParams, this.filters)
                 .subscribe((entries) => {
-                  this.entries = entries;
-                  this.processEntries(this.entries);
+                  this.entries = this.entries.concat(entries);
+                  if (idx === employeeIds.length - 1) {
+                    this.processEntries(this.entries);
+                  }
                 });
             },
           });
