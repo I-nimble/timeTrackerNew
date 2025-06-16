@@ -3,7 +3,6 @@ import {
   Inject,
   Optional,
   ViewChild,
-  AfterViewInit,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -12,8 +11,7 @@ import {
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { DatePipe } from '@angular/common';
-import { AppAddEmployeeComponent } from './add/add.component';
+import { AppAddEmployeeComponent } from '../employee/add/add.component';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -31,20 +29,13 @@ import { ReportsService } from 'src/app/services/reports.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import {
   ReportFilter,
-  ReportsFilterComponent,
 } from 'src/app/components/reports-filter/reports-filter.component';
-import moment from 'moment-timezone';
-import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TimerComponent } from 'src/app/components/timer-component/timer.component';
-import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
-import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
-import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
+import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
 import { SelectionModel } from '@angular/cdk/collections';
-import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
 
 @Component({
-  templateUrl: './employee.component.html',
+  templateUrl: './team.component.html',
   imports: [
     MaterialModule,
     FormsModule,
@@ -52,21 +43,17 @@ import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent,
-    AppActivityReportComponent,
-    AppEmployeesReportsComponent,
     EmployeeDetailsComponent
   ],
   standalone: true,
 })
-export class AppEmployeeComponent {
+export class TeamComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
   employees: any[] = [];
   loaded: boolean = false;
   company: any;
-  companyTimezone: string = 'America/Los_Angeles';
   timeZone: string = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
@@ -84,12 +71,9 @@ export class AppEmployeeComponent {
   searchText: any;
 
   displayedColumns: string[] = [
-    'select',
     'name',
-    'schedule',
-    'salary',
-    'projects',
-    'action',
+    'role',
+    'email',
   ];
   dataSource = new MatTableDataSource<Employee>([]);
   selection = new SelectionModel<any>(true, []);
@@ -134,9 +118,6 @@ export class AppEmployeeComponent {
   loadCompany(): void {
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
-      if(company.company.timezone) {
-        this.companyTimezone = this.companyTimezone.split(':')[0];
-      }
     });
   }
 
@@ -160,59 +141,19 @@ export class AppEmployeeComponent {
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
-          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
-
-        this.schedulesService.get().subscribe({
-          next: (schedules: any) => {
-            schedules = schedules.schedules;
-            this.users = this.users.map((user: any) => {
-              const userSchedules = schedules.find(
-                (schedule: any) => schedule.employee_id === user.id
-              );
-              if (!userSchedules) {
-                return {
-                  id: user.user.id,
-                  company_id: user.company_id,
-                  name: user.user.name,
-                  last_name: user.user.last_name,
-                  email: user.user.email,
-                  position: user.position_id,
-                  projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered schedule',
-                  Salary: 0,
-                  imagePath: this.assetsPath + '/default-profile-pic.png',
-                };
-              }
-              
-              const workingDays = userSchedules.days
-                .map((day: any) => day.name)
-                .sort((a: string, b: string) => {
-                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  return weekDays.indexOf(a) - weekDays.indexOf(b);
-                });
-
-              const scheduleString = this.formatDaysRange(workingDays);
-
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
-                schedule: scheduleString,
-                Salary: 0, 
-                imagePath: this.assetsPath + '/default-profile-pic.png',
-              };
-            });
-            this.dataSource.data = this.users;
-            this.loaded = true;
-          },
-          error: (err) => {
-            console.error('Error fetching schedules:', err);
-          },
+        .filter((user: any) => user.user.active == 1 && user.user.role == 2);
+        this.users = this.users.map((user: any) => {
+          return {
+            id: user.user.id,
+            company_id: user.company_id,
+            name: user.user.name,
+            last_name: user.user.last_name,
+            email: user.user.email,
+            role: user.position?.title || 'Other',
+            imagePath: '/assets/images/default-user-profile-pic.png',
+          };
         });
+        this.getProfilePics();
       },
       error: (err) => {
         console.error('Error fetching employees:', err);
@@ -220,26 +161,20 @@ export class AppEmployeeComponent {
     });
   }
 
-  // Helper function to format days as a range "Monday to Friday"
-  formatDaysRange(days: string[]): string {
-    const weekDays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-    ];
-    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
-    if (indices.length === 0) return '';
-    // Check if days are consecutive
-    let isConsecutive = true;
-    for (let i = 1; i < indices.length; i++) {
-      if (indices[i] !== indices[i - 1] + 1) {
-        isConsecutive = false;
-        break;
-      }
-    }
-    if (isConsecutive && indices.length > 1) {
-      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
-    } else {
-      return days.join(', ');
-    }
+  getProfilePics() {
+    this.users.map((user: any) => {
+      this.userService.getProfilePic(user.id).subscribe({
+        next: (response: any) => {
+          if(!response) return;
+          user.imagePath = response;
+        },
+        error: (err) => {
+          console.error('Error fetching profile picture:', err);
+        },
+      });
+    });
+    this.dataSource.data = this.users;
+    this.loaded = true;
   }
 
   setUser(user: any): void {
@@ -248,87 +183,6 @@ export class AppEmployeeComponent {
     });
 
     this.userService.setUserInformation(user);
-  }
-
-  downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map(u => u.id);
-    if (!selectedIds.includes(user.id)) {
-      selectedIds.push(user.id);
-    }
-    this.filters = {
-      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
-      company: 'all',
-      project: 'all',
-      byClient: false,
-      useTimezone: false,
-      multipleUsers: selectedIds.length > 1,
-    };
-
-    const dialogRef = this.dialog.open(AppDateRangeDialogComponent, {
-      data: {},
-      autoFocus: false,
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        const datesRange = {
-          firstSelect: result.firstSelect,
-          lastSelect: result.lastSelect,
-        };
-
-        this.employees.map((employee: any) => {
-          user.id == employee.user.id ? user = employee.user : null;
-        });
-        this.reportsService
-          .getReport(datesRange, user, this.filters)
-          .subscribe((v) => {
-            let filename;
-            let display_name;
-            if (this.filters.multipleUsers) {
-              display_name = 'multiple_users';
-            }
-            else {
-              display_name = `${user.name}_${user.last_name}`;
-            }
-    
-            filename = `I-nimble_Report_${display_name}_${moment( 
-              new Date(datesRange.firstSelect)
-            ).format('DD-MM-YYYY')}_${moment(
-              new Date(datesRange.lastSelect)
-            ).format('DD-MM-YYYY')}.xlsx`;
-    
-            filesaver.saveAs(v, filename);
-          });
-      }
-    });
-  }
-
-  isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSource.data) {
-      return false;
-    }
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
-  }
-
-  masterToggle(): void {
-    if (!this.dataSource || !this.dataSource.data) {
-      return;
-    }
-    this.selection.clear();
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
-  }
-
-  checkboxLabel(row?: any): string {
-    if (!row) {
-      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
-    }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
-      row.position + 1
-    }`;
   }
 }
 
@@ -347,7 +201,7 @@ interface DialogData {
     CommonModule,
     TablerIconsModule,
   ],
-  templateUrl: 'employee-dialog-content.html',
+  templateUrl: '../employee/employee-dialog-content.html',
 })
 // tslint:disable-next-line: component-class-suffix
 export class AppEmployeeDialogContentComponent {

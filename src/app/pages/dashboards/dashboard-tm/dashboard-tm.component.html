@@ -90,28 +90,44 @@
             </button>
           </div>
       </div>
-    </div>
+    </div> 
   </div>
-  <div class="col-lg-7" *ngIf="employees.length > 0">
-    <div class="card shadow-none border">
-      <div class="card-body tm-photos">
-        <div class="row">
-          <div class="col-4" *ngFor="let employee of employees">
-            <div style="display: flex; justify-content: center">
-              <img
-                [src]="employee.user.picture || picture"
-                [alt]="employee.user.name"
-                width="100"
-                height="100"
-                class="rounded-circle"
-              />
-            </div>
-            <p class="text-center tm">
-              {{ employee.user.name }} {{ employee.user.last_name }}
-            </p>
+  <div class="col-lg-7" *ngIf="employees.length > 0 || employer">
+  <div class="card shadow-none border">
+    <div class="card-body tm-photos">
+      <div class="row">
+        <!-- Employer -->
+        <div class="col-4" *ngIf="employer">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employer.picture || picture"
+              [alt]="employer.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+            />
           </div>
+          <p class="text-center tm fw-bold">
+            {{ employer.name }} {{ employer.last_name }}
+          </p>
+        </div>
+        <!-- Employees -->
+        <div class="col-4" *ngFor="let employee of employees">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employee.user.picture || picture"
+              [alt]="employee.user.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+            />
+          </div>
+          <p class="text-center tm">
+            {{ employee.user.name }} {{ employee.user.last_name }}
+          </p>
         </div>
       </div>
     </div>
   </div>
+</div>
 </div>
