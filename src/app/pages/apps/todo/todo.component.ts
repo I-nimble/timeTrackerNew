@@ -285,7 +285,6 @@ export class AppTodoComponent implements OnInit {
           .getByUser(this.teamMemberId as number)
           .subscribe({
             next: (ratingsEntries: any[]) => {
-              console.log('Rating entries: ', ratingsEntries);
               if (!array || !Array.isArray(array)) {
                 this.openSnackBar(
                   'No To Do data found or data is not an array.',
@@ -301,10 +300,9 @@ export class AppTodoComponent implements OnInit {
                   (re: any) => re.rating_id === todo.id
                 );
                 if (entry) {
-                  todo.achieved = !!entry.achieved;
+                  todo.achieved = entry.achieved;
                 }
               });
-              console.log('To Do Array: ', this.toDoArray);
               const filteredArray = this.toDoArray.filter((todo: any) => {
                 if (this.selectedCategory() === 'all') return true;
                 if (this.selectedCategory() === 'complete')
