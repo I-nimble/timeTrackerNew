@@ -109,7 +109,6 @@ export class AppProductivityReportsComponent {
       .getTeamReport(this.dateRange)
       .pipe(
         switchMap((data) => {
-          console.log('Datos recibidos: ', data);
           // First set basic user data without profile pictures
           this.dataSource = data.ratings.map((employee: any) => {
             const completedTasks = Number(employee.completed) || 0;
@@ -147,10 +146,8 @@ export class AppProductivityReportsComponent {
                 .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
             )
           );
-          console.log('Departamentos: ', this.departmentsList);
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
-          console.log('Los datos: ', this.dataSource);
           return forkJoin({
             profilePics: forkJoin(profilePicRequests),
           });
