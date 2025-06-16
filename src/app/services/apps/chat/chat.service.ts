@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,7 @@ export class CometChatService {
   API_URI = environment.apiUrl;
   isChatAvailable: boolean = false; 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private snackBar: MatSnackBar) { }
 
   async initializeCometChat(companyId?: number): Promise<void> {
     try {
@@ -32,12 +33,13 @@ export class CometChatService {
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
 
+      this.isChatAvailable = true;
+
       const permissionGranted = await this.requestNotificationPermission();
       if (!permissionGranted) return;
 
       await this.registerPushToken();
 
-      this.isChatAvailable = true;
     } catch (error) {
       console.error("Initialization failed with error:", error);
     }
@@ -90,6 +92,7 @@ export class CometChatService {
     try {
       const permissionResult = await Notification.requestPermission();
       if (permissionResult !== "granted") {
+        this.openSnackBar('Allow notifications to not miss any messages', 'Close');
         return false;
       }
       return true;
@@ -137,5 +140,13 @@ export class CometChatService {
   public getChatCredentials(companyId?: number): Observable<any[]> {
     if(companyId) return this.http.get<any[]>(`${this.API_URI}/chat/${companyId}`);
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
+  }
+
+  public openSnackBar(message: string, action: string) {
+    this.snackBar.open(message, action, {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }
