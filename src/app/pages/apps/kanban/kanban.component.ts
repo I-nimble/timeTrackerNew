@@ -38,7 +38,7 @@ export class AppKanbanComponent implements OnInit {
   inprogress: Todos[] = [];
   completed: Todos[] = [];
   onhold: Todos[] = [];
-  selectedBoardId: number;
+  selectedBoardId: any = null;
   selectedBoardColumns: any[] = [];
   employees: any;
   isLoading = true;
@@ -73,6 +73,10 @@ export class AppKanbanComponent implements OnInit {
   }
   
   loadTasks(boardId: number): void {
+    this.kanbanService.getAllBoardsTasks().subscribe((allBoardsData) => {
+      console.log("Todos los datos: ", allBoardsData )
+
+    });
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
 
