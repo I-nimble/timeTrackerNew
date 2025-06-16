@@ -316,7 +316,6 @@ export class AppEmployeeComponent {
     if (!this.dataSource || !this.dataSource.data) {
       return;
     }
-    this.selection.clear();
     this.isAllSelected()
       ? this.selection.clear()
       : this.dataSource.data.forEach((row) => this.selection.select(row));
