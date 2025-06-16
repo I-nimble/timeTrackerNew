@@ -9,8 +9,8 @@
   <form #form="ngForm">
     <div class="row">
       <div class="col-12">
-        <mat-label class="f-w-600 m-b-8 d-block">{{ local_data.type === 'board' ? 'Board Name' : 'Task Name' }}</mat-label>
         <mat-form-field appearance="outline" class="w-100">
+          <mat-label class="f-w-600 m-b-8 d-block">{{ local_data.type === 'board' ? 'Board Name' : 'Task Name' }}</mat-label>
           <input
             type="text"
             matInput
@@ -19,6 +19,26 @@
             [(ngModel)]="local_data.goal"
             placeholder="{{ local_data.type === 'board' ? 'Enter board name' : 'Enter task name' }}"
           />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12" *ngIf="local_data.type === 'board'">
+        <mat-form-field appearance="outline" class="mt-4 w-100">
+          <mat-label>Visibility</mat-label>
+          <mat-select (selectionChange)="handleVisibilityChange($event)" required [(value)]="local_data.selectedVisibility">
+            <mat-option *ngFor="let visibility of visibilities" [value]="visibility">
+              {{ visibility }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100" *ngIf="local_data.selectedVisibility === 'restricted'">
+          <mat-label>Allowed users</mat-label>
+          <mat-select multiple [(value)]="local_data.restrictedUsers" required>
+            <mat-option *ngFor="let user of users" [value]="user.id">
+              {{ user.name }} {{ user.last_name }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
 

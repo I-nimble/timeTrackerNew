@@ -27,11 +27,23 @@ import { AppTalentMatchComponent } from '../talent-match/talent-match.component'
 import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
+import { TeamComponent } from './team/team.component';
 
 export const AppsRoutes: Routes = [
   {
     path: '',
     children: [
+      {
+        path: 'team',
+        component: TeamComponent,
+        data: {
+          title: 'Team',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Team' },
+          ],
+        },
+      },
       {
         path: 'chat',
         component: AppChatComponent,
@@ -256,7 +268,7 @@ export const AppsRoutes: Routes = [
         },
       },
       {
-        path: 'employee/:id',
+        path: 'employee',
         component: EmployeeDetailsComponent,
         data: { title: 'Employee Details' },
       },

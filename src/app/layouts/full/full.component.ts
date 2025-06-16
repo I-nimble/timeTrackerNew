@@ -26,6 +26,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { CometChatIncomingCall } from "@cometchat/chat-uikit-angular";
 
 export function jwtOptionsFactory() {
   return {
@@ -70,7 +71,8 @@ interface quicklinks {
     AppHorizontalSidebarComponent,
     AppBreadcrumbComponent,
     CustomizerComponent,
-    BrandingComponent
+    BrandingComponent,
+    CometChatIncomingCall
   ],
   providers: [AuthService,WebSocketService,
         JwtHelperService,
