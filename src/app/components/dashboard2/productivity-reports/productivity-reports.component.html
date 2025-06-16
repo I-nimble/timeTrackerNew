@@ -88,7 +88,11 @@
                 class="rounded-circle"
               />
               <div class="m-l-16">
-                <h6 class="text-truncate-2 f-s-14 f-w-600">
+                <h6
+                  class="text-truncate-2 f-s-14 f-w-600"
+                  style="cursor: pointer; text-decoration: none"
+                  (click)="onUserChange(element.profile.id)"
+                >
                   {{ element.profile.name }}
                 </h6>
                 <span class="f-s-14">{{ element.profile.position }}</span>
