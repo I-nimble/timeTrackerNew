@@ -118,6 +118,16 @@
                     class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
                   >
                     <h5 class="f-s-14 f-w-600">{{ task.goal }}</h5>
+                    <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
+                      <i-tabler name="user" class="icon-16 d-flex"></i-tabler>
+                      <span class="f-s-12 lh-base">
+                        {{
+                          task.user?.name
+                            ? task.user.name + " " + (task.user.last_name || "")
+                            : "Unassigned"
+                        }}
+                      </span>
+                    </div>
                     <button
                       class="d-flex align-items-center justify-content-center"
                       mat-icon-button
