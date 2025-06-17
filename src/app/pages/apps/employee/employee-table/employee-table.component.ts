@@ -1,9 +1,9 @@
 import {
   Component,
   Inject,
+  Input,
   Optional,
   ViewChild,
-  AfterViewInit,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -13,7 +13,7 @@ import {
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
-import { AppAddEmployeeComponent } from './add/add.component';
+import { AppAddEmployeeComponent } from '../add/add.component';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -31,21 +31,16 @@ import { ReportsService } from 'src/app/services/reports.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import {
   ReportFilter,
-  ReportsFilterComponent,
 } from 'src/app/components/reports-filter/reports-filter.component';
 import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
-import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
-import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
-import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
-import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 
 @Component({
-  templateUrl: './employee.component.html',
+  templateUrl: './employee-table.component.html',
   imports: [
     MaterialModule,
     FormsModule,
@@ -53,17 +48,23 @@ import { AppEmployeeTableComponent } from "./employee-table/employee-table.compo
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent,
-    AppActivityReportComponent,
-    AppEmployeesReportsComponent,
-    EmployeeDetailsComponent,
-    AppEmployeeTableComponent
-],
+    TimerComponent
+  ],
+  selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeComponent {
+export class AppEmployeeTableComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
+
+  @Input() displayedColumns: string[] = [
+    'select',
+    'name',
+    'status',
+    'schedule',
+    'projects',
+    'action'
+  ];
   users: any[] = [];
   employees: any[] = [];
   loaded: boolean = false;
@@ -85,16 +86,9 @@ export class AppEmployeeComponent {
 
   searchText: any;
 
-  displayedColumns: string[] = [
-    'select',
-    'name',
-    'schedule',
-    'salary',
-    'projects',
-    'action',
-  ];
   dataSource = new MatTableDataSource<Employee>([]);
   selection = new SelectionModel<any>(true, []);
+
 
   @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
     if (paginator) {
@@ -106,7 +100,6 @@ export class AppEmployeeComponent {
     public dialog: MatDialog,
     private employeesService: EmployeesService,
     private userService: UsersService,
-    private positionsService: PositionsService,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private companiesService: CompaniesService,
@@ -348,7 +341,7 @@ interface DialogData {
     CommonModule,
     TablerIconsModule,
   ],
-  templateUrl: 'employee-dialog-content.html',
+  templateUrl: '../employee-dialog-content.html',
 })
 // tslint:disable-next-line: component-class-suffix
 export class AppEmployeeDialogContentComponent {
