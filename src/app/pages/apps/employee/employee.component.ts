@@ -37,11 +37,12 @@ import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
-import { AppActivityReportComponent } from '../../../components/dashboard2/activity-report/activity-report.component';
+import { AppActivityReportsComponent } from '../../../components/dashboard2/app-activity-reports/activity-reports.component';
 import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
+import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -53,7 +54,7 @@ import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-
     CommonModule,
     RouterModule,
     TimerComponent,
-    AppActivityReportComponent,
+    TeamProductivityComponent,
     AppEmployeesReportsComponent,
     EmployeeDetailsComponent
   ],
