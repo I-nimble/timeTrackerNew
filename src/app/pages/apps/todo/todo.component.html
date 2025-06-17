@@ -242,7 +242,8 @@
               </div>
 
               <button *ngIf="userRole === '2'" mat-flat-button class="w-100 mt-2" id="btnSend" type="submit"
-                value="Send" [disabled]="!toDoFormArray.valid">
+                value="Send"
+                [disabled]="!toDoFormArray.valid || !hasAnyAchieved()">
                 Send
               </button>
             </form>
