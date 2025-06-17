@@ -19,6 +19,7 @@
               [(value)]="selectedBoardId"
               (selectionChange)="loadTasks(selectedBoardId)"
             >
+              <mat-option [value]="null">All Boards</mat-option>
               <mat-option *ngFor="let board of boards" [value]="board.id">
                 {{ board.name }}
               </mat-option>
@@ -34,35 +35,35 @@
         </div>
       </div>
 
-      <div class="board-heading m-b-20 d-flex align-items-center justify-content-between">
+      <div
+        class="board-heading m-b-20 d-flex align-items-center justify-content-between"
+      >
         <div>
-          <h3 class="f-s-16 f-w-600">{{ selectedBoard.name }}</h3>
-          @switch(selectedBoard.visibility) {
-            @case ('public') {
-              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
-                Public
-              </span>
-            }
-            @case ('restricted') {
-              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
-                Restricted
-              </span>
-            }
-            @default {
-              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
-                Private
-              </span>
-            }
-          }
+          <h3 class="f-s-16 f-w-600">
+            {{ selectedBoardId === null ? "All Boards" : selectedBoard?.name }}
+          </h3>
+          @switch(selectedBoard.visibility) { @case ('public') {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
+            Public
+          </span>
+          } @case ('restricted') {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
+            Restricted
+          </span>
+          } @default {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
+            Private
+          </span>
+          } }
         </div>
 
         <button mat-icon-button [matMenuTriggerFor]="boardMenu">
-        <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #boardMenu="matMenu">
-            <button 
-              mat-menu-item 
-              (click)="openDialog('Edit', { 
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #boardMenu="matMenu">
+          <button
+            mat-menu-item
+            (click)="openDialog('Edit', { 
                 type: 'board', 
                 id: selectedBoard.id,
                 company_id: selectedBoard.company_id,
@@ -70,14 +71,18 @@
                 visibility: selectedBoard.visibility,
                 restrictedUsers: selectedBoard.restrictedUsers,
               })"
-            >
-              <mat-icon>edit</mat-icon>
-              <span>Edit</span>
-            </button>
-            <button mat-menu-item (click)="deleteBoard(selectedBoardId)" [disabled]="selectedBoard.user_id != userId">
-              <mat-icon>delete</mat-icon>
-              <span>Delete</span>
-            </button>
+          >
+            <mat-icon>edit</mat-icon>
+            <span>Edit</span>
+          </button>
+          <button
+            mat-menu-item
+            (click)="deleteBoard(selectedBoardId)"
+            [disabled]="selectedBoard.user_id != userId"
+          >
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
         </mat-menu>
       </div>
 
