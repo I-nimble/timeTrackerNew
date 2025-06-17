@@ -249,6 +249,7 @@ handleTMSelection(event: any) {
     return `${year}-${month}-${day}`;
   }
 
+  
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
@@ -380,6 +381,7 @@ handleTMSelection(event: any) {
           );
           this.toDoArray[taskIndex] = response;
         }
+        this.resetForm();        
         this.buildToDoForm();
         this.calendar?.getToDos();
       },
@@ -388,6 +390,24 @@ handleTMSelection(event: any) {
       },
     });
   }
+
+
+  /*
+  clearForm(): void {
+      this.newTaskForm.setValue({
+        goal: null,
+        frequency_id: null,
+        recommendations: '',
+        due_date: null,
+        priority: 3,
+        recurrent: false,
+        is_numeric: false,
+        numeric_goal: null,
+        company_id: this.companyId,
+        employee_id: this.teamMemberId,
+        board_id: null
+      });
+  }*/
 
   resetForm(): void {
     this.newTaskForm.reset();
