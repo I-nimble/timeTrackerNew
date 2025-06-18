@@ -13,12 +13,10 @@ import { environment } from 'src/environments/environment';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddCandidateDialogComponent } from './new-candidate-dialog/add-candidate-dialog.component'; 
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-// import { SELECTION_TABLE_HTML_SNIPPET } from './code/selection-table-html-snippet';
-// import { SELECTION_TABLE_TS_SNIPPET } from './code/selection-table-ts-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
@@ -32,63 +30,6 @@ export interface PeriodicElement {
   budget: number;
   priority: string;
 }
-
-// const ELEMENT_DATA: PeriodicElement[] = [
-//   {
-//     id: 1,
-//     imagePath: 'assets/images/profile/user-1.jpg',
-//     uname: 'Sunil Joshi',
-//     position: 'Web Designer',
-//     productName: 'Elite Admin',
-//     budget: 3.9,
-//     priority: 'low',
-//   },
-//   {
-//     id: 2,
-//     imagePath: 'assets/images/profile/user-2.jpg',
-//     uname: 'Andrew McDownland',
-//     position: 'Project Manager',
-//     productName: 'Real Homes Theme',
-//     budget: 24.5,
-//     priority: 'medium',
-//   },
-//   {
-//     id: 3,
-//     imagePath: 'assets/images/profile/user-3.jpg',
-//     uname: 'Christopher Jamil',
-//     position: 'Project Manager',
-//     productName: 'MedicalPro Theme',
-//     budget: 12.8,
-//     priority: 'high',
-//   },
-//   {
-//     id: 4,
-//     imagePath: 'assets/images/profile/user-4.jpg',
-//     uname: 'Nirav Joshi',
-//     position: 'Frontend Engineer',
-//     productName: 'Hosting Press HTML',
-//     budget: 2.4,
-//     priority: 'critical',
-//   },
-//   {
-//     id: 1,
-//     imagePath: 'assets/images/profile/user-1.jpg',
-//     uname: 'Sunil Joshi',
-//     position: 'Web Designer',
-//     productName: 'Elite Admin',
-//     budget: 3.9,
-//     priority: 'low',
-//   },
-//   {
-//     id: 2,
-//     imagePath: 'assets/images/profile/user-2.jpg',
-//     uname: 'Andrew McDownland',
-//     position: 'Project Manager',
-//     productName: 'Real Homes Theme',
-//     budget: 24.5,
-//     priority: 'medium',
-//   },
-// ];
 
 @Component({
   standalone: true,
@@ -109,62 +50,40 @@ export interface PeriodicElement {
   templateUrl: './talent-match-admin.component.html',
 })
 export class AppTalentMatchAdminComponent implements OnInit {
-
-  // 1 [Selection with Table]
-//   codeForSelectionTable = SELECTION_TABLE_HTML_SNIPPET;
-//   codeForSelectionTableTs = SELECTION_TABLE_TS_SNIPPET;
-
   displayedColumns: string[] = [
-    'select',
+    // 'select',
     'name',
     'skills',
     'status',
     'email',
     'company',
-    'edit',
+    'actions',
   ];
-    dataSource = new MatTableDataSource<any>([]); // dataSource = new MatTableDataSource<PeriodicElement>(ELEMENT_DATA);
-    selection = new SelectionModel<any>(true, []);// selection = new SelectionModel<PeriodicElement>(true, []);
+  dataSource = new MatTableDataSource<any>([]);
+  selection = new SelectionModel<any>(true, []);
   applicationsData: any[] = [];
   interviews: any[] = [];
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/photos';
+  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/resumes';
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
 
-  /** Whether the number of selected elements matches the total number of rows. */
-  isAllSelected(): any {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
-  }
-
-  /** Selects all rows if they are not all selected; otherwise clear selection. */
-  masterToggle(): void {
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
-  }
-
-  /** The label for the checkbox on the passed row */
-  checkboxLabel(row?: PeriodicElement): string {
-    if (!row) {
-      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
-    }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
-      row.position + 1
-    }`;
-  }
+  constructor(
+    private applicationService: ApplicationsService,
+    private interviewsService: InterviewsService,
+    private companiesService: CompaniesService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   getApplications() {
     this.applicationService.get().subscribe((applications) => {
       this.applicationsData = applications;
       this.dataSource.data = applications;
-      console.log("Applications: ",this.applicationsData)
     });
     this.companiesService.getCompanies().subscribe({
       next: companies => {
         this.companiesData = companies;
-        console.log("Companies: ", this.companiesData);
       },
     });
   }
@@ -172,7 +91,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.interviewsService.get().subscribe({
       next: interviews => {
         this.interviews = interviews;
-        console.log("Interviews: ", this.interviews);
       },
     });
   }
@@ -195,49 +113,83 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getCompanyName(company_id: number): string {
-  if (company_id === -1) return 'N/A';
-  const company = this.companiesData.find((c: any) => c.id === company_id);
-  return company ? company.name : 'N/A';
-}
+    if (company_id === -1) return 'N/A';
+    const company = this.companiesData.find((c: any) => c.id === company_id);
+    return company ? company.name : 'N/A';
+  }
 
-openAddCandidateDialog(): void {
-  const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
-    width: '600px',
-    data: { companies: this.companiesData }
-  });
+  openAddCandidateDialog(): void {
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: { companies: this.companiesData }
+    });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result === 'success') {
-      this.getApplications(); // Refrescar la lista
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.getApplications();
+      }
+    });
+  }
+
+  openEditCandidateDialog(candidate: any): void {
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: {
+        candidate, 
+        companies: this.companiesData
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.getApplications();
+      }
+    });
+  }
+
+  openCandidateResume(resumeUrl: string) {
+    if(!resumeUrl) {
+      this.openSnackBar('No resume found for this candidate', 'Close');
+      return;
     }
-  });
-}
+    const url = this.resumesUrl + '/' + resumeUrl;
+    window.open(url, '_blank');
+  }
 
-openEditCandidateDialog(candidate: any): void {
-  const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
-    width: '600px',
-    data: {
-      candidate, 
-      companies: this.companiesData
-    }
-  });
+  deleteCandidate(id: number) {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      width: '400px',
+      data: {
+        action: 'Delete',
+        subject: 'candidate',
+      },
+    });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result === 'success') {
-      this.getApplications();
-    }
-  });
-}
-  
-  constructor(
-    private applicationService: ApplicationsService,
-    private interviewsService: InterviewsService,
-    private companiesService: CompaniesService,
-    private dialog: MatDialog
-  ) {}
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.applicationService.delete(id).subscribe({
+          next: () => {
+            this.getApplications();
+          },
+          error: (err) => {
+            this.openSnackBar('Error deleting candidate', 'Close');
+          },
+        });
+      }
+    });
+
+  }
 
   ngOnInit(): void {
     this.getApplications();
     this.getInterviews();
+  }
+
+  openSnackBar(message: string, action: string) {
+    this.snackBar.open(message, action, {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }
