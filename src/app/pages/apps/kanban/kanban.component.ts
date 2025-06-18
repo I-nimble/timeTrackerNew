@@ -51,7 +51,7 @@ export class AppKanbanComponent implements OnInit {
     private kanbanService: BoardsService,
     private employeesService: EmployeesService,
     private companieService: CompaniesService,
-    public ratingsEntriesService: RatingsEntriesService,
+    public ratingsEntriesService: RatingsEntriesService
   ) {}
 
   ngOnInit(): void {
@@ -65,29 +65,43 @@ export class AppKanbanComponent implements OnInit {
 
   loadBoards(): void {
     this.kanbanService.getBoards().subscribe((boards) => {
-    this.boards = boards;
-    this.selectedBoardId = null;
-    this.loadTasks(this.selectedBoardId);
-    this.isLoading = false;
+      this.boards = boards;
+      this.selectedBoardId = null;
+      this.loadTasks(this.selectedBoardId);
+      this.isLoading = false;
     });
   }
 
   loadTasks(boardId: number | null): void {
     if (boardId === null) {
       this.kanbanService.getAllBoardsTasks().subscribe((allBoardsData) => {
-        console.log(allBoardsData);
-        this.selectedBoardColumns = [];
-        allBoardsData.forEach((board: { columns: never[]; tasks: never[] }) => {
+        const columnsMap = new Map<string, any>();
+
+        allBoardsData.forEach((board: { columns: any[]; tasks: any[] }) => {
           const columns = board.columns || [];
           const tasks = board.tasks || [];
-          columns.forEach((column: { tasks: any; id: any }) => {
-            column.tasks = tasks.filter(
-              (task: any) => task.column_id === column.id
-            );
+          columns.forEach((column) => {
+            if (columnsMap.has(column.name)) {
+              const existing = columnsMap.get(column.name);
+
+              existing.tasks.push(
+                ...tasks.filter((task: any) => task.column_id === column.id)
+              );
+            } else {
+              columnsMap.set(column.name, {
+                ...column,
+
+                tasks: tasks.filter(
+                  (task: any) => task.column_id === column.id
+                ),
+              });
+            }
           });
-          this.selectedBoardColumns.push(...columns);
         });
-        this.selectedBoardColumns.sort((a, b) => a.position - b.position);
+
+        this.selectedBoardColumns = Array.from(columnsMap.values()).sort(
+          (a, b) => a.position - b.position
+        );
       });
     } else {
       this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
@@ -123,40 +137,41 @@ export class AppKanbanComponent implements OnInit {
       );
 
       const columns = this.selectedBoardColumns;
-    const lastColumn = columns.reduce((prev, curr) =>
-      prev.position > curr.position ? prev : curr
-    );
+      const lastColumn = columns.reduce((prev, curr) =>
+        prev.position > curr.position ? prev : curr
+      );
 
       if (newColumnId === lastColumn.id) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const entryData = [{
-        rating_id: movedTask.id,
-        date: todayStr,
-        achieved: true,
-        user_id: movedTask.employee_id || movedTask.user_id 
-      }];
-      this.ratingsEntriesService.submit(entryData).subscribe({
-        next: () => {
-          this.showSnackbar('Task marked as completed!');
-          this.loadTasks(this.selectedBoardId);
-        },
-        error: () => {
-          this.showSnackbar('Error marking task as completed.');
-          this.loadTasks(this.selectedBoardId);
-        }
-      });
-    } else {
-      
-      this.kanbanService
-        .updateTask(movedTask.id, { column_id: newColumnId })
-        .subscribe(
-          () => {},
-          () => {
-            this.showSnackbar('Error moving task.');
+        const todayStr = new Date().toISOString().split('T')[0];
+        const entryData = [
+          {
+            rating_id: movedTask.id,
+            date: todayStr,
+            achieved: true,
+            user_id: movedTask.employee_id || movedTask.user_id,
+          },
+        ];
+        this.ratingsEntriesService.submit(entryData).subscribe({
+          next: () => {
+            this.showSnackbar('Task marked as completed!');
             this.loadTasks(this.selectedBoardId);
-          }
-        );
-    }
+          },
+          error: () => {
+            this.showSnackbar('Error marking task as completed.');
+            this.loadTasks(this.selectedBoardId);
+          },
+        });
+      } else {
+        this.kanbanService
+          .updateTask(movedTask.id, { column_id: newColumnId })
+          .subscribe(
+            () => {},
+            () => {
+              this.showSnackbar('Error moving task.');
+              this.loadTasks(this.selectedBoardId);
+            }
+          );
+      }
     }
   }
 
@@ -232,7 +247,7 @@ export class AppKanbanComponent implements OnInit {
       priority: taskData.priority,
       board_id: this.selectedBoardId,
       column_id: taskData.columnId,
-      employee_id: taskData.employee_id
+      employee_id: taskData.employee_id,
     };
 
     this.kanbanService.addTaskToBoard(newTask).subscribe(() => {
@@ -251,7 +266,7 @@ export class AppKanbanComponent implements OnInit {
       priority: taskData.priority,
       board_id: this.selectedBoardId,
       column_id: taskData.columnId,
-      employee_id: taskData.employee_id
+      employee_id: taskData.employee_id,
     };
 
     this.kanbanService.updateTask(updatedTask.id, updatedTask).subscribe(
