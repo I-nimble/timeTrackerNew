@@ -11,17 +11,20 @@ import { map, switchMap } from 'rxjs/operators';
 import { WebSocketService } from '../../../services/socket/web-socket.service';
 import { Subscription } from 'rxjs';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { AppEmployeeTableComponent } from "../../../pages/apps/employee/employee-table/employee-table.component";
 
 @Component({
   selector: 'app-top-employees',
   standalone: true,
-  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule],
+  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule, AppEmployeeTableComponent],
   templateUrl: './top-employees.component.html',
 })
 export class AppTopEmployeesComponent {
   displayedColumns: string[] = ['profile', 'status'];
   dataSource: any[] = [];
   companyId: any;
+  customColumns: string[] = ['name', 'status'];
+
   
   getCurrentWeekDates() {
     const today = new Date();
@@ -48,15 +51,15 @@ export class AppTopEmployeesComponent {
 
   ngOnInit(): void {
     this.getCompany();
-    this.getDataSource();
+    // this.getDataSource();
 
-    this.socketService.socket.on('server:closedEntry', () => {
-    this.subscription.forEach((sub) => sub.unsubscribe());
-      this.getDataSource();
-    });
-    this.socketService.socket.on('server:admin:newEntry', () => {
-      this.getDataSource();
-    });
+    // this.socketService.socket.on('server:closedEntry', () => {
+    // this.subscription.forEach((sub) => sub.unsubscribe());
+    //   this.getDataSource();
+    // });
+    // this.socketService.socket.on('server:admin:newEntry', () => {
+    //   this.getDataSource();
+    // });
   }
 
   getCompany(){

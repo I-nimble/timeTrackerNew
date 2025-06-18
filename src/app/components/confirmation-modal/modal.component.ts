@@ -1,5 +1,6 @@
 import { Component, Inject } from '@angular/core';
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MaterialModule } from 'src/app/material.module';
 
 import {
   MAT_DIALOG_DATA,
@@ -10,7 +11,7 @@ import {
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [MatDialogModule, MatFormFieldModule],
+  imports: [MatDialogModule, MatFormFieldModule, MaterialModule],
   templateUrl: './modal.component.html',
   styleUrl: './modal.component.scss',
 })
