@@ -21,8 +21,13 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" style="margin-left: 1rem;">
-          <input matInput placeholder="Date" name="date" [matDatepicker]="datePicker" [value]="selectedDateStr"
-            [max]="todayStr()" (change)="onDateChange($event)" />
+          <input matInput
+                placeholder="Date"
+                name="date"
+                [matDatepicker]="datePicker"
+                [value]="selectedDate"
+                [max]="todayStr()"
+                (dateChange)="onDateChange($event)" />
           <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
           <mat-datepicker #datePicker></mat-datepicker>
         </mat-form-field>

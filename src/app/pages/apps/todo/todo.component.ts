@@ -25,6 +25,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AppDeleteDialogComponent } from '../kanban/delete-dialog/delete-dialog.component';
@@ -275,21 +276,19 @@ export class AppTodoComponent implements OnInit {
     this.buildToDoForm();
   }
 
-  public onDateChange(event: any) {
+  public onDateChange(event: MatDatepickerInputEvent<Date>) {
     const today = new Date();
-    this.selectedDate = new Date(`${event.target.value}T00:00:00`);
+    this.selectedDate = event.value ? new Date(event.value) : new Date();
     this.selectedDateStr = this.formatDate(this.selectedDate);
-    this.selectedDate.getTime() > today.getTime()
-      ? (this.isDateFuture = true)
-      : (this.isDateFuture = false);
+    this.isDateFuture = this.selectedDate.getTime() > today.getTime();
     this.toDoFormArray.clear();
     this.buildToDoForm();
   }
 
   private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
@@ -352,12 +351,16 @@ export class AppTodoComponent implements OnInit {
 
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
-                  (re: any) => re.rating_id === todo.id
+                  (re: any) => re.rating_id === todo.id 
+                  && re.date == this.selectedDateStr
                 );
                 if (entry) {
                   todo.achieved = entry.achieved;
+                } else {
+                  todo.achieved = false;
                 }
               });
+
               const filteredArray = this.toDoArray.filter((todo: any) => {
                 if (this.selectedCategory() === 'all') return true;
                 if (this.selectedCategory() === 'complete')
@@ -456,12 +459,9 @@ export class AppTodoComponent implements OnInit {
     this.updateCounts();
   }
 
-  todayStr() {
+  todayStr(): Date {
     const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return today;
   }
 
   selectionlblClick(category: string): void {
