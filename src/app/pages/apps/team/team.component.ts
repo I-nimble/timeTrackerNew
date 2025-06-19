@@ -74,6 +74,7 @@ export class TeamComponent {
     'name',
     'role',
     'email',
+    'action',
   ];
   dataSource = new MatTableDataSource<Employee>([]);
   selection = new SelectionModel<any>(true, []);
@@ -150,6 +151,8 @@ export class TeamComponent {
             last_name: user.user.last_name,
             email: user.user.email,
             role: user.position?.title || 'Other',
+            position: user.position_id || user.position?.id || '',
+            projects: user.projects ? user.projects.map((project: any) => project.id) : [],
             imagePath: '/assets/images/default-user-profile-pic.png',
           };
         });
