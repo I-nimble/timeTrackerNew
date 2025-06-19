@@ -39,10 +39,6 @@ export class RatingsService {
       .pipe(map((res: any) => res.ratings));
   }
 
-  public getByCompany(companyId: number): Observable<Ratings[]> {
-    return this.http.get<Ratings[]>(`${this.API_URI}/all-by-company/${companyId}`);
-  }
-
   public getByNullUser(id: number): Observable<Ratings[]> {
     return this.http
       .get(`${this.API_URI}/user-null/${id}`)

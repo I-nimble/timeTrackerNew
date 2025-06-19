@@ -185,6 +185,9 @@ export class AppTodoComponent implements OnInit {
       // Get all employees
       this.employeesService.get().subscribe((employees: any) => {
         this.teamMembers = employees;
+        if (this.teamMemberId === null) {
+          this.buildToDoForm();
+        }
       });
     } else if (this.userRole == '2') {
       // Get current employee
@@ -261,10 +264,10 @@ export class AppTodoComponent implements OnInit {
       const selectedTeamMember = this.teamMembers.find(
         (tm) => tm.id === event.value
       );
-      this.teamMemberId = selectedTeamMember.user.id;
+      this.teamMemberId = selectedTeamMember.id;
       this.newTaskForm.patchValue({
         company_id: selectedTeamMember.company_id,
-        employee_id: selectedTeamMember.user.id,
+        employee_id: selectedTeamMember.id,
       });
     }
     this.buildToDoForm();
@@ -291,8 +294,42 @@ export class AppTodoComponent implements OnInit {
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
+    if (this.userRole === '1' && this.teamMemberId === null) {
+      this.ratingsService.get().subscribe({
+        next: (array: any) => {
+          const activeArray = (array || []).filter((task: any) => task.active !== false);
+          this.toDoArray = activeArray;
+          const filteredArray = this.toDoArray.filter((todo: any) => {
+            if (this.selectedCategory() === 'all') return true;
+            if (this.selectedCategory() === 'complete') return todo.achieved;
+            if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
+            return true;
+          });
+          for (let toDo of filteredArray) {
+            let toDoField = this.fb.group({
+              rating_id: [toDo.id],
+              goal: [toDo.goal],
+              date: [this.selectedDateStr],
+              achieved: [false, Validators.required],
+              wasAchieved: [toDo.achieved],
+              is_numeric: [false],
+              due_date: [toDo.due_date || null],
+              priority: [toDo.priority || 3],
+              details: [null, this.detailsRequiredValidator()],
+            });
+            this.toDoFormArray.push(toDoField);
+          }
+          this.updateCounts();
+        },
+        error: () => {
+          this.openSnackBar('Error loading To Do', 'Close');
+        },
+      });
+      return;
+    }
+
     if (this.userRole === '3' && this.teamMemberId === null && this.companyId) {
-      this.ratingsService.getByCompany(this.companyId).subscribe({
+      this.ratingsService.get().subscribe({
         next: (array: any) => {
           const activeArray = (array || []).filter((task: any) => task.active !== false);
           this.toDoArray = activeArray;
