@@ -58,6 +58,10 @@ export class AppEmployeesReportsComponent {
   selectedClient: any = 0;
   companiesList: any[] = [];
   isLoading = false;
+  selectedUserId: number | null = null;
+  selectedDepartment: string | null = null;
+  departmentsList: string[] = [];
+  filteredDataSource: any[] = [];
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -106,13 +110,13 @@ export class AppEmployeesReportsComponent {
       .getTeamReport(this.dateRange)
       .pipe(
         switchMap((data) => {
-          // First set basic user data without profile pictures
           this.dataSource = data.ratings.map((employee: any) => ({
             profile: {
               id: employee.profile.id,
               name: employee.profile.name,
               position: employee.profile.position,
               image: null,
+              department: employee.profile.department,
             },
             completed: employee.completed + '/' + employee.totalTasks,
             workedHours: employee.workedHours,
@@ -121,22 +125,55 @@ export class AppEmployeesReportsComponent {
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
 
+          
+          this.departmentsList = Array.from(
+            new Set(
+              this.dataSource
+                .map((u) => u.profile.department)
+                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
+            )
+          );
+          
+          this.filterByUser();
+          this.dataSourceChange.emit(this.filteredDataSource);
+
           const profilePicRequests = this.dataSource.map((task) =>
             this.usersService.getProfilePic(task.profile.id)
           );
-          this.dataSourceChange.emit(this.dataSource);
           return forkJoin({
             profilePics: forkJoin(profilePicRequests),
           });
         })
       )
       .subscribe(({ profilePics }) => {
-        // Update the dataSource with profile pictures and status
         this.dataSource.forEach((task, index) => {
           task.profile.image = profilePics[index];
         });
         this.isLoading = false;
       });
+  }
+
+  filterByUser() {
+    this.filteredDataSource = this.dataSource.filter((u) => {
+      const userMatch =
+        !this.selectedUserId || u.profile.id === this.selectedUserId;
+      const depMatch =
+        !this.selectedDepartment ||
+        u.profile.department === this.selectedDepartment;
+      return userMatch && depMatch;
+    });
+  }
+
+  onUserChange(userId: number | null) {
+    this.selectedUserId = userId;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
+  }
+
+  onDepartmentChange(department: string | null) {
+    this.selectedDepartment = department;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
   }
 
   onDateRangeChange() {

@@ -1,16 +1,31 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header>
     <div class="d-flex align-items-center justify-content-end w-100">
-      <div *ngIf="role == '1'">
+      <div>
         <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a Company</mat-label>
+          <mat-label>Select a member</mat-label>
           <mat-select
-            [(value)]="selectedClient"
-            (selectionChange)="onClientChange($event.value)"
+            [(value)]="selectedUserId"
+            (selectionChange)="onUserChange($event.value)"
           >
-            <mat-option [value]="null" disabled>Select a client</mat-option>
-            <mat-option *ngFor="let company of companiesList" [value]="company">
-              {{ company.name }}
+            <mat-option [value]="null">All members</mat-option>
+            <mat-option
+              *ngFor="let user of dataSource"
+              [value]="user.profile.id"
+            >
+              {{ user.profile.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Select a department</mat-label>
+          <mat-select
+            [(value)]="selectedDepartment"
+            (selectionChange)="onDepartmentChange($event.value)"
+          >
+            <mat-option [value]="null">All departments</mat-option>
+            <mat-option *ngFor="let dep of departmentsList" [value]="dep">
+              {{ dep }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -36,6 +51,20 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-date-range-picker #picker></mat-date-range-picker>
       </mat-form-field>
+      <div *ngIf="role == '1'">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Select a Company</mat-label>
+          <mat-select
+            [(value)]="selectedClient"
+            (selectionChange)="onClientChange($event.value)"
+          >
+            <mat-option [value]="null" disabled>Select a client</mat-option>
+            <mat-option *ngFor="let company of companiesList" [value]="company">
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
     </div>
     <button
       *ngIf="role != '2'"
@@ -45,11 +74,11 @@
       title="Download All Reports"
     >
       <i-tabler name="download" class="icon-18"></i-tabler>
-    </button>  
+    </button>
   </mat-card-header>
   <mat-card-content class="p-t-0">
     <div class="table-responsive">
-      <table mat-table [dataSource]="dataSource" class="w-100">
+      <table mat-table [dataSource]="filteredDataSource" class="w-100">
         <!-- Profile Column -->
         <ng-container matColumnDef="profile">
           <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16">
@@ -124,7 +153,6 @@
             >
               <i-tabler name="download" class="icon-18"></i-tabler>
             </button>
-            
           </td>
         </ng-container>
 
@@ -132,11 +160,18 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
       <div *ngIf="isLoading" class="text-center p-4">
-      <mat-progress-spinner diameter="70" style="margin: 0 auto;" mode="indeterminate"></mat-progress-spinner>
-    </div>
-    <div *ngIf="!isLoading && dataSource?.length === 0" class="text-center p-4 f-s-16 text-muted">
-      No completed tasks yet.
-    </div>
+        <mat-progress-spinner
+          diameter="70"
+          style="margin: 0 auto"
+          mode="indeterminate"
+        ></mat-progress-spinner>
+      </div>
+      <div
+        *ngIf="!isLoading && dataSource?.length === 0"
+        class="text-center p-4 f-s-16 text-muted"
+      >
+        No completed tasks yet.
+      </div>
     </div>
   </mat-card-content>
 </mat-card>
