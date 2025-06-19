@@ -128,7 +128,6 @@ export class AppKanbanComponent implements OnInit {
       const movedTask = event.previousContainer.data[event.previousIndex];
 
       movedTask.column_id = newColumnId;
-      console.log("Task movido: ",movedTask)
 
       transferArrayItem(
         event.previousContainer.data,
