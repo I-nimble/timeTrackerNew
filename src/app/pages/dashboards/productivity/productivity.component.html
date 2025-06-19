@@ -1,7 +1,7 @@
 <div class="row">
     <div class="d-flex m-b-30" style="flex-direction: row;">
       <div class="col-lg-4" style="flex-grow: 1;">
-        <app-activity-reports [dataSource]="dataSource" class="h-100 d-inline-block"></app-activity-reports>
+        <team-productivity [dataSource]="dataSource" class="h-100 d-inline-block"></team-productivity>
       </div>
       <div class="col-lg-8">
         <app-productivity-reports (dataSourceChange)="onEmployeesDataSourceChange($event)"></app-productivity-reports>

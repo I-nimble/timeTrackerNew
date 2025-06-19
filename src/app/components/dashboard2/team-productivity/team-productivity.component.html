@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header>
     <div class="d-flex align-items-center justify-content-between w-100">
-      <mat-card-title>Activity Report</mat-card-title>
+      <mat-card-title>Team Productivity</mat-card-title>
     </div>
   </mat-card-header>
   <mat-card-content class="p-t-30">
@@ -18,6 +18,7 @@
           [labels]="trafficChart.labels"
           [stroke]="trafficChart.stroke"
         ></apx-chart>
+        <span class="f-s-14">Productivity percentage: {{ productivityPercentage | number:'1.2-2' }}% </span>
       </div>
       <div class="col-lg-12">
         <div class="m-t-30">
@@ -28,10 +29,10 @@
 
             <div>
               <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">
-                {{ hoursWorked | number:'1.2-2' }}
+                {{ completed | number:'1.2-2' }}
                 <!-- <span class="text-success f-s-12 m-l-4">+23%</span> -->
               </h5>
-              <span class="f-s-14">Worked Hours</span>
+              <span class="f-s-14">Tasks Completed</span>
             </div>
           </div>
           <div class="d-flex align-items-center m-t-24 gap-12">
@@ -40,8 +41,8 @@
             </span>
 
             <div>
-              <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">{{ hoursLeft  | number:'1.2-2' }}</h5>
-              <span class="f-s-14">Hours Left</span>
+              <h5 class="f-w-600 m-t-4 f-s-16 m-t-4">{{ totalTasks  | number:'1.2-2' }}</h5>
+              <span class="f-s-14">Tasks Assigned</span>
             </div>
           </div>
         </div>
