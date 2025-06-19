@@ -258,14 +258,14 @@ export class AppFullcalendarComponent implements OnInit {
   };
   numTemplateOpens = 0;
 
-  actions: CalendarEventAction[] = [
-    {
-      label: '<span class="text-white link m-l-5">Edit</span>',
-      onClick: ({ event }: { event: CalendarEvent }): void => {
-        this.handleEvent('Edit', event);
-      },
-    },
-  ];
+  // actions: CalendarEventAction[] = [
+  //   {
+  //     label: '<span class="text-white link m-l-5">Edit</span>',
+  //     onClick: ({ event }: { event: CalendarEvent }): void => {
+  //       this.handleEvent('Edit', event);
+  //     },
+  //   },
+  // ];
 
   refresh: Subject<any> = new Subject();
 
@@ -283,19 +283,19 @@ export class AppFullcalendarComponent implements OnInit {
 
   ngOnInit(): void {
     const userRole = localStorage.getItem('role');
-    if (userRole !== '2') {
-      this.actions.push({
-        label: '<span class="text-danger m-l-5">Delete</span>',
-        onClick: ({ event }: { event: CalendarEvent }): void => {
-          this.events.set(
-            this.events().filter(
-              (iEvent: CalendarEvent<any>) => iEvent !== event
-            )
-          );
-          this.handleEvent('Deleted', event);
-        },
-      });
-    }
+    // if (userRole !== '2') {
+    //   this.actions.push({
+    //     label: '<span class="text-danger m-l-5">Delete</span>',
+    //     onClick: ({ event }: { event: CalendarEvent }): void => {
+    //       this.events.set(
+    //         this.events().filter(
+    //           (iEvent: CalendarEvent<any>) => iEvent !== event
+    //         )
+    //       );
+    //       this.handleEvent('Deleted', event);
+    //     },
+    //   });
+    // }
     this.getPriorities();
     this.getTeamMembers();
     this.getCompanies();
@@ -417,7 +417,7 @@ export class AppFullcalendarComponent implements OnInit {
             title: toDo.goal,
             color,
             start: new Date(toDo.due_date),
-            actions: this.actions,
+            // actions: this.actions,
             allDay: true,
             recurrent: toDo.recurrent,
             recommendations: toDo.recommendations,
@@ -496,7 +496,7 @@ export class AppFullcalendarComponent implements OnInit {
           title: result.title,
           color,
           start: new Date(result.start),
-          actions: this.actions,
+          // actions: this.actions,
           allDay: true,
           recurrent: result.recurrent,
           recommendations: result.recommendations,
@@ -542,7 +542,7 @@ export class AppFullcalendarComponent implements OnInit {
             title: result.title,
             color,
             start: new Date(result.start),
-            actions: this.actions,
+            // actions: this.actions,
             allDay: true,
             recurrent: result.recurrent,
             recommendations: result.recommendations,
