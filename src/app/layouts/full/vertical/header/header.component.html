@@ -284,7 +284,7 @@
       </span> -->
     </div>
 
-    @for(notification of recentNotifications; track notification.message) {
+    @for(notification of recentNotifications; track notification.id) {
     <button mat-menu-item class="p-x-32 p-y-16">
       <div class="d-flex align-items-center">
          <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
