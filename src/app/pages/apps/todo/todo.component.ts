@@ -281,18 +281,20 @@ export class AppTodoComponent implements OnInit {
 
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
+        // Filter out inactive (deleted) tasks
+        const activeArray = (array || []).filter((task: any) => task.active !== false);
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
           .subscribe({
             next: (ratingsEntries: any[]) => {
-              if (!array || !Array.isArray(array)) {
+              if (!activeArray || !Array.isArray(activeArray)) {
                 this.openSnackBar(
                   'No To Do data found or data is not an array.',
                   'Close'
                 );
                 return;
               }
-              this.toDoArray = array;
+              this.toDoArray = activeArray;
 
               // Marca cada tarea como completed/uncompleted según ratingsEntries
               this.toDoArray.forEach((todo: any) => {
