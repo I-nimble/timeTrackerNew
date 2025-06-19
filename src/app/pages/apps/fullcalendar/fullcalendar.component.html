@@ -23,6 +23,7 @@
         [(ngModel)]="teamMemberId"
         (selectionChange)="handleTeamMemberSelection($event)"
       >
+        <mat-option [value]="null">All</mat-option>
         <mat-option *ngIf="loggedInUser" [value]="loggedInUser.id">
           {{ loggedInUser.name }} {{ loggedInUser.last_name }}
         </mat-option>
@@ -35,16 +36,15 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- <mat-card-content>
-      <div class="d-flex align-items-center">
-        <mat-card-title class="m-b-0">Angular Calendar</mat-card-title>
-        <div class="m-l-auto">
-          <button mat-flat-button color="primary" (click)="addEvent()">
-            Add Event
-          </button>
-        </div>
-      </div>
-    </mat-card-content> -->
+    <mat-form-field appearance="outline" style="width: max-content; margin-left: 16px;">
+  <mat-label class="f-s-14 m-b-8">Filter by Priority</mat-label>
+  <mat-select [(ngModel)]="selectedPriority" (selectionChange)="getToDos()">
+    <mat-option [value]="null">All</mat-option>
+    <mat-option *ngFor="let priority of priorities" [value]="priority.id">
+      {{ priority.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
   </div>
 </mat-card>
 
@@ -141,7 +141,6 @@
         [refresh]="refresh"
         [activeDayIsOpen]="activeDayIsOpen()"
         (dayClicked)="dayClicked($event.day)"
-        (eventClicked)="handleEvent('Clicked', $event.event)"
       >
       </mwl-calendar-month-view>
 
@@ -151,7 +150,6 @@
         [viewDate]="viewDate()"
         [events]="events()"
         [refresh]="refresh"
-        (eventClicked)="handleEvent('Clicked', $event.event)"
       >
       </mwl-calendar-week-view>
 
@@ -161,7 +159,6 @@
         [viewDate]="viewDate()"
         [events]="events()"
         [refresh]="refresh"
-        (eventClicked)="handleEvent('Clicked', $event.event)"
       >
       </mwl-calendar-day-view>
     </div>

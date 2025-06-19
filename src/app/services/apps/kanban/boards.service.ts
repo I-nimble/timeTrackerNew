@@ -15,6 +15,10 @@ export class BoardsService {
     return this.http.get<any>(this.API_URI);
   }
 
+  getAllBoardsTasks(): Observable<any> {
+  return this.http.get<any>(`${this.API_URI}/all-tasks`);
+  }
+
   getBoardById(id: number): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
