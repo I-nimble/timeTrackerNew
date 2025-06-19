@@ -281,7 +281,6 @@ export class AppTodoComponent implements OnInit {
 
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
-        // Filter out inactive (deleted) tasks
         const activeArray = (array || []).filter((task: any) => task.active !== false);
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
@@ -488,7 +487,7 @@ export class AppTodoComponent implements OnInit {
     const dialogRef = this.dialog.open(AppDeleteDialogComponent);
 
     dialogRef.afterClosed().subscribe((result: any) => {
-      if (result) {
+      if (result === true) { // Only delete if user confirmed
         this.ratingsService.delete(id).subscribe({
           next: () => {
             this.toDoArray = this.toDoArray.filter(
