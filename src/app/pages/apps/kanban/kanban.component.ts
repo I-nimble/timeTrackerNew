@@ -128,6 +128,7 @@ export class AppKanbanComponent implements OnInit {
       const movedTask = event.previousContainer.data[event.previousIndex];
 
       movedTask.column_id = newColumnId;
+      console.log("Task movido: ",movedTask)
 
       transferArrayItem(
         event.previousContainer.data,
@@ -141,7 +142,7 @@ export class AppKanbanComponent implements OnInit {
         prev.position > curr.position ? prev : curr
       );
 
-      if (newColumnId === lastColumn.id) {
+      if (newColumnId === lastColumn.id && movedTask.active == true) {
         const todayStr = new Date().toISOString().split('T')[0];
         const entryData = [
           {
