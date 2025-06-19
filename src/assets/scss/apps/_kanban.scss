@@ -33,3 +33,25 @@
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
+
+.kanban-task-card {
+  max-width: 320px;     
+  min-width: 220px;      
+  word-break: break-word; 
+  white-space: normal;    
+}
+
+.kanban-task-card h5,
+.kanban-task-card span,
+.kanban-task-card .f-s-12 {
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.kanban-task-card .f-s-12 {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
