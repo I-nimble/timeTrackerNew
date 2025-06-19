@@ -1,116 +1,94 @@
-import { Component, Inject } from '@angular/core';
+import { Component, EventEmitter, Inject, Output } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { RatingsEntriesService } from '../../../services/ratings_entries.service';
 import { UsersService } from '../../../services/users.service';
-import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
-import { WebSocketService } from '../../../services/socket/web-socket.service';
-import { Subscription } from 'rxjs';
+import { forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { AppEmployeeTableComponent } from "../../../pages/apps/employee/employee-table/employee-table.component";
+import { AppEmployeeTableComponent } from '../../../pages/apps/employee/employee-table/employee-table.component';
+import moment from 'moment';
 
 @Component({
   selector: 'app-top-employees',
   standalone: true,
-  imports: [MaterialModule, CommonModule, MatMenuModule, MatButtonModule, AppEmployeeTableComponent],
+  imports: [
+    MaterialModule,
+    CommonModule,
+    MatMenuModule,
+    MatButtonModule,
+    AppEmployeeTableComponent,
+  ],
   templateUrl: './top-employees.component.html',
 })
 export class AppTopEmployeesComponent {
+  @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = ['profile', 'status'];
   dataSource: any[] = [];
   companyId: any;
   customColumns: string[] = ['name', 'status'];
-
-  
-  getCurrentWeekDates() {
-    const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6);
-    
-    return {
-      firstSelect: sevenDaysAgo.toISOString().split('T')[0],
-      lastSelect: today.toISOString().split('T')[0]
-    };
-  }
-
-  dateRange: any = this.getCurrentWeekDates();
-  private subscription: Subscription[] = [];
+  dateRange: any;
 
   constructor(
-    @Inject(RatingsEntriesService) private ratingsEntriesService: RatingsEntriesService, 
+    @Inject(RatingsEntriesService)
+    private ratingsEntriesService: RatingsEntriesService,
     @Inject(UsersService) private usersService: UsersService,
-    @Inject(EntriesService) private entriesService: EntriesService,
-    private socketService: WebSocketService,
-    private companieService: CompaniesService,
-
+    private companieService: CompaniesService
   ) {}
 
   ngOnInit(): void {
     this.getCompany();
-    // this.getDataSource();
-
-    // this.socketService.socket.on('server:closedEntry', () => {
-    // this.subscription.forEach((sub) => sub.unsubscribe());
-    //   this.getDataSource();
-    // });
-    // this.socketService.socket.on('server:admin:newEntry', () => {
-    //   this.getDataSource();
-    // });
+    this.getDataSource();
   }
 
-  getCompany(){
-      this.companieService.getByOwner().subscribe((company: any) => {
-        this.companyId = company.company_id;
-      });
-    
-  }
-  
-  getDataSource() {
-    this.ratingsEntriesService.getRange(this.dateRange).pipe(
-      switchMap((tasks) => {
-
-        const filteredTasks = tasks.filter(
-        (task: any) => task.rating.company_id === this.companyId
-      );
-        // First set basic user data without profile pictures
-        this.dataSource = filteredTasks.map((task: any) => ({
-          profile: {
-            id: task.rating.user.id,
-            name: task.rating.user.name + ' ' + task.rating.user.last_name,
-            position: task.rating.user.employees[0].position.title,
-            image: null
-          },
-          completed: task.rating.goal,
-          status: null 
-        }));
-  
-        const profilePicRequests = this.dataSource.map(task => 
-          this.usersService.getProfilePic(task.profile.id)
-        );
-        const entriesRequests = this.dataSource.map(task =>
-          this.entriesService.getUsersEntries(task.profile.id)
-        );
-  
-        return forkJoin({
-          profilePics: forkJoin(profilePicRequests),
-          entries: forkJoin(entriesRequests)
-        });
-      })
-    ).subscribe(({ profilePics, entries }) => {
-      // Update the dataSource with profile pictures and status
-      this.dataSource.forEach((task, index) => {
-        task.profile.image = profilePics[index];
-        const userEntries = entries[index].entries;
-        const status = userEntries.find(
-          (item: any) => item.status === 0 && item.user_id === task.profile.id
-        );
-        task.status = status ? 'Online' : 'Offline';
-        task.progress = status ? 'success' : 'error';
-      });
+  getCompany() {
+    this.companieService.getByOwner().subscribe((company: any) => {
+      this.companyId = company.company_id;
     });
+  }
+
+  getDataSource() {
+    this.dateRange = {
+      firstSelect: moment().format('YYYY-MM-DD'),
+      lastSelect: moment().format('YYYY-MM-DD'),
+      company_id: this.companyId,
+    };
+
+    this.ratingsEntriesService
+      .getTeamReport(this.dateRange)
+      .pipe(
+        switchMap((data) => {
+          // First set basic user data without profile pictures
+          this.dataSource = data.ratings.map((employee: any) => ({
+            profile: {
+              id: employee.profile.id,
+              name: employee.profile.name,
+              position: employee.profile.position,
+              image: null,
+            },
+            completed: employee.completed + '/' + employee.totalTasks,
+            workedHours: employee.workedHours,
+            hoursLeft: employee.hoursLeft,
+            status: employee.status,
+            progress: employee.status === 'Online' ? 'success' : 'error',
+          }));
+
+          const profilePicRequests = this.dataSource.map((task) =>
+            this.usersService.getProfilePic(task.profile.id)
+          );
+          this.dataSourceChange.emit(this.dataSource);
+          return forkJoin({
+            profilePics: forkJoin(profilePicRequests),
+          });
+        })
+      )
+      .subscribe(({ profilePics }) => {
+        // Update the dataSource with profile pictures and status
+        this.dataSource.forEach((task, index) => {
+          task.profile.image = profilePics[index];
+        });
+      });
   }
 }
