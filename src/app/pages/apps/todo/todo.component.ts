@@ -226,6 +226,10 @@ export class AppTodoComponent implements OnInit {
                 id: data?.user?.id,
                 company_id: this.teamMembers[0]?.company_id,
               };
+              this.companyId = this.teamMembers[0]?.company_id;
+              if (this.teamMemberId === null) {
+                this.buildToDoForm();
+              }
             });
         },
       });
@@ -239,6 +243,14 @@ export class AppTodoComponent implements OnInit {
   }
 
   handleTMSelection(event: any) {
+    if (event.value === null) {
+      this.teamMemberId = null;
+      if (!this.companyId && this.teamMembers.length > 0) {
+        this.companyId = this.teamMembers[0].company_id;
+      }
+      this.buildToDoForm();
+      return;
+    }
     if (event.value === this.loggedInUser?.id) {
       this.teamMemberId = this.loggedInUser.id;
       this.newTaskForm.patchValue({
@@ -279,6 +291,40 @@ export class AppTodoComponent implements OnInit {
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
+    if (this.userRole === '3' && this.teamMemberId === null && this.companyId) {
+      this.ratingsService.getByCompany(this.companyId).subscribe({
+        next: (array: any) => {
+          const activeArray = (array || []).filter((task: any) => task.active !== false);
+          this.toDoArray = activeArray;
+          const filteredArray = this.toDoArray.filter((todo: any) => {
+            if (this.selectedCategory() === 'all') return true;
+            if (this.selectedCategory() === 'complete') return todo.achieved;
+            if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
+            return true;
+          });
+          for (let toDo of filteredArray) {
+            let toDoField = this.fb.group({
+              rating_id: [toDo.id],
+              goal: [toDo.goal],
+              date: [this.selectedDateStr],
+              achieved: [false, Validators.required],
+              wasAchieved: [toDo.achieved],
+              is_numeric: [false],
+              due_date: [toDo.due_date || null],
+              priority: [toDo.priority || 3],
+              details: [null, this.detailsRequiredValidator()],
+            });
+            this.toDoFormArray.push(toDoField);
+          }
+          this.updateCounts();
+        },
+        error: () => {
+          this.openSnackBar('Error loading To Do', 'Close');
+        },
+      });
+      return;
+    }
+
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
         const activeArray = (array || []).filter((task: any) => task.active !== false);
@@ -295,7 +341,6 @@ export class AppTodoComponent implements OnInit {
               }
               this.toDoArray = activeArray;
 
-              // Marca cada tarea como completed/uncompleted según ratingsEntries
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
                   (re: any) => re.rating_id === todo.id
