@@ -239,6 +239,7 @@ export class AppFullcalendarComponent implements OnInit {
   selectedPriority: number | null = null;
   companyId: number | null = null;
   companies: any[] = [];
+  loggedInUser: any = null;
 
   config: MatDialogConfig = {
     disableClose: false,
@@ -337,6 +338,16 @@ export class AppFullcalendarComponent implements OnInit {
           this.teamMembers = employees
             .filter((user: any) => user.user.active == 1 && user.user.role == 2)
             .map((user: any) => user.user);
+          this.companiesService
+            .getEmployer(employees[0].company_id)
+            .subscribe((data) => {
+              this.loggedInUser = {
+                name: data.user?.name,
+                last_name: data.user?.last_name,
+                id: data?.user?.id,
+                company_id: this.teamMembers[0]?.company_id,
+              };
+            });
           this.companyId = employees[0].company_id;
         },
       });

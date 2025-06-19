@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header>
     <div class="d-flex align-items-center justify-content-between w-100">
-      <mat-card-title>Completed Tasks</mat-card-title>
+      <mat-card-title>My Team</mat-card-title>
       <button mat-icon-button color="inherit">
         <mat-icon
           class="f-s-24 d-flex align-items-center justify-content-center"
@@ -10,62 +10,9 @@
       </button>
     </div>
   </mat-card-header>
-  <mat-card-content class="p-t-0">
+  <mat-card-content class="p-t-30">
     <div class="table-responsive">
-      <table mat-table [dataSource]="dataSource" class="w-100">
-        <!-- Profile Column -->
-        <ng-container matColumnDef="profile">
-          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16">
-            Team Member
-          </th>
-          <td mat-cell *matCellDef="let element">
-            <div class="d-flex align-items-center">
-              <img
-                [src]="element.profile.image || 'assets/images/default-user-profile-pic.png'"
-                alt="users"
-                width="50"
-                height="50"
-                class="rounded-circle"
-              />
-              <div class="m-l-16">
-                <h6 class="text-truncate-2 f-s-14 f-w-600">
-                  {{ element.profile.name }}
-                </h6>
-                <span class="f-s-14">{{ element.profile.position }}</span>
-              </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <!-- Completed task Column -->
-        <ng-container matColumnDef="completed">
-          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16">
-            Completed
-          </th>
-          <td mat-cell *matCellDef="let element">
-            <span>{{ element.completed }}</span>
-          </td>
-        </ng-container>
-
-        <!-- Weight Column -->
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16">
-            Status
-          </th>
-          <td mat-cell *matCellDef="let element">
-            <span
-              class="bg-light-{{ element.progress }} text-{{
-                element.progress
-              }} border-{{ element.progress }} rounded f-w-600 p-6 p-y-4 f-s-12"
-            >
-              {{ element.status }}
-            </span>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
+      <app-employee-table [displayedColumns]="customColumns"></app-employee-table>
     </div>
   </mat-card-content>
 </mat-card>

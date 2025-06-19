@@ -1,3 +1,5 @@
+<cometchat-incoming-call></cometchat-incoming-call>
+
 <mat-sidenav-container
   class="mainWrapper"
   autosize
@@ -22,6 +24,7 @@
     (openedChange)="onSidenavOpenedChange($event)"
     (closedStart)="onSidenavClosedStart()"
     class="sidebarNav"
+    style="z-index: 2;"
   >
     <div class="flex-layout">
       <app-sidebar

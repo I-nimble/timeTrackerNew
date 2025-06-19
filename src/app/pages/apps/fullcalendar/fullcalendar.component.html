@@ -1,19 +1,36 @@
 <mat-card class="cardWithShadow p-16" *ngIf="userRole !== '2'">
   <div class="d-flex justify-content-end flex-row w-100">
-    <mat-form-field appearance="outline" *ngIf="userRole === '1'" style="width: max-content" class="m-r-16">
+    <mat-form-field
+      appearance="outline"
+      *ngIf="userRole === '1'"
+      style="width: max-content"
+      class="m-r-16"
+    >
       <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-      <mat-select [(ngModel)]="teamMemberId" (selectionChange)="handleCompanySelection($event)">
+      <mat-select
+        [(ngModel)]="teamMemberId"
+        (selectionChange)="handleCompanySelection($event)"
+      >
         <mat-option *ngFor="let company of companies" [value]="company.id">
           {{ company.name }}
         </mat-option>
       </mat-select>
     </mat-form-field>
-    
+
     <mat-form-field appearance="outline" style="width: max-content">
       <mat-label class="f-s-14 m-b-8">Select a Team Member</mat-label>
-      <mat-select [(ngModel)]="teamMemberId" (selectionChange)="handleTeamMemberSelection($event)">
+      <mat-select
+        [(ngModel)]="teamMemberId"
+        (selectionChange)="handleTeamMemberSelection($event)"
+      >
         <mat-option [value]="null">All</mat-option>
-        <mat-option *ngFor="let tm of teamMembers" [value]="tm.id">
+        <mat-option *ngIf="loggedInUser" [value]="loggedInUser.id">
+          {{ loggedInUser.name }} {{ loggedInUser.last_name }}
+        </mat-option>
+        <mat-option
+          *ngFor="let tm of teamMembers"
+          [value]="tm.id"
+        >
           {{ tm.name }} {{ tm.last_name }}
         </mat-option>
       </mat-select>
@@ -46,47 +63,51 @@
   <mat-toolbar class="bg-primary text-white no-shadow">
     <mat-toolbar-row>
       <div class="d-flex align-items-center w-100">
-        <span>{{
-          viewDate() | calendarDate : view() + "ViewTitle" : "en"
-        }}</span>
+        <span>{{ viewDate() | calendarDate: view() + "ViewTitle":"en" }}</span>
         <div class="m-l-auto d-flex align-items-center">
           <button
-            mat-button class="text-white"
+            mat-button
+            class="text-white"
             (click)="setView('month')"
             [class.active]="view() === 'month'"
           >
             Month
           </button>
           <button
-            mat-button class="text-white"
+            mat-button
+            class="text-white"
             (click)="setView('week')"
             [class.active]="view() === 'week'"
           >
             Week
           </button>
           <button
-            mat-button class="text-white"
+            mat-button
+            class="text-white"
             (click)="setView('day')"
             [class.active]="view() === 'day'"
           >
             Day
           </button>
           <button
-            mat-icon-button class="text-white"
+            mat-icon-button
+            class="text-white"
             (click)="setView('month')"
             [class.active]="view() === 'month'"
           >
             <mat-icon>view_module</mat-icon>
           </button>
           <button
-            mat-icon-button class="text-white"
+            mat-icon-button
+            class="text-white"
             (click)="setView('week')"
             [class.active]="view() === 'week'"
           >
             <mat-icon>view_week</mat-icon>
           </button>
           <button
-            mat-icon-button class="text-white"
+            mat-icon-button
+            class="text-white"
             (click)="setView('day')"
             [class.active]="view() === 'day'"
           >
@@ -94,16 +115,27 @@
           </button>
 
           <button
-            mat-icon-button class="text-white"
+            mat-icon-button
+            class="text-white"
             mwlCalendarPreviousView
             (click)="goToPreviousMonth()"
           >
             <mat-icon>chevron_left</mat-icon>
           </button>
-          <button mat-icon-button mwlCalendarToday class="text-white" (click)="goToToday()">
+          <button
+            mat-icon-button
+            mwlCalendarToday
+            class="text-white"
+            (click)="goToToday()"
+          >
             <mat-icon>today</mat-icon>
           </button>
-          <button mat-icon-button mwlCalendarNextView class="text-white" (click)="goToNextMonth()">
+          <button
+            mat-icon-button
+            mwlCalendarNextView
+            class="text-white"
+            (click)="goToNextMonth()"
+          >
             <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
