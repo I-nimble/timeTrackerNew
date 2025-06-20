@@ -277,10 +277,11 @@ export class AppInterviewDialogContentComponent {
       date: [null, Validators.required],
       time: [null, Validators.required]
     });
+    const m = moment(this.local_data.date_time).local();
     if(this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
       this.interviewForm.patchValue({
-        date: moment(this.local_data.date_time).format('YYYY-MM-DD'),
-        time: moment(this.local_data.date_time).format('HH:mm')
+        date: m.toDate(),
+        time: m.format('HH:mm')
       })
     }
   }
