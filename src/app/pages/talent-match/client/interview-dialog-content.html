@@ -4,7 +4,7 @@
       <form [formGroup]="interviewForm" (ngSubmit)="onScheduleInterview()">
         <mat-form-field appearance="outline" class="w-100 m-b-16">
             <mat-label>Date</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="date" required>
+            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="availableDaysFilter" formControlName="date" required>
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
@@ -14,7 +14,7 @@
             <input matInput type="time" formControlName="time" required>
         </mat-form-field>
         <button mat-flat-button color="primary" type="submit" [disabled]="interviewForm.invalid">
-          Schedule interview
+          {{ local_data.action === 'Schedule' ? 'Schedule interview' : 'Reeschedule interview' }}
         </button>
       </form>
     </div>
