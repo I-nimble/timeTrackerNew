@@ -11,6 +11,7 @@ export class EmployeesService {
 
   constructor(private http: HttpClient) {}
   private API_URI = environment.apiUrl + '/employees';
+  private USERS_API_URI = environment.apiUrl + '/users';
 
   public get(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}`);
@@ -44,5 +45,19 @@ export class EmployeesService {
 
   public deleteEmployee(id: number) {
     return this.http.delete(`${this.API_URI}/${id}`);
+  }
+
+  public updateEmployee(id: number, employee: any, companyId: number, file: File | null) {
+    const formData = new FormData();
+    formData.append('name', employee.name);
+    formData.append('last_name', employee.last_name);
+    formData.append('email', employee.email);
+    if (employee.password) formData.append('password', employee.password);
+    formData.append('role', '2');
+    formData.append('position', employee.position);
+    formData.append('projects', JSON.stringify(employee.projects));
+    formData.append('employee', JSON.stringify({ id: companyId, position: employee.position }));
+    if (file) formData.append('profile', file);
+    return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
   }
 }

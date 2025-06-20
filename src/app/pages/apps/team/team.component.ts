@@ -74,6 +74,7 @@ export class TeamComponent {
     'name',
     'role',
     'email',
+    'action',
   ];
   dataSource = new MatTableDataSource<Employee>([]);
   selection = new SelectionModel<any>(true, []);
@@ -150,6 +151,8 @@ export class TeamComponent {
             last_name: user.user.last_name,
             email: user.user.email,
             role: user.position?.title || 'Other',
+            position: user.position_id || user.position?.id || '',
+            projects: user.projects ? user.projects.map((project: any) => project.id) : [],
             imagePath: '/assets/images/default-user-profile-pic.png',
           };
         });
@@ -285,9 +288,26 @@ export class AppEmployeeDialogContentComponent {
         },
       });
     } else if (this.action === 'Update') {
-      // this.employeesService.updateEmployee(this.local_data);
-      // this.dialogRef.close({ event: 'Update' });
-      // this.openSnackBar('Employee Updated successfully!', 'Close');
+      this.sendingData = true;
+      // Use company_id from local_data for the employee object
+      this.employeesService.updateEmployee(
+        this.local_data.id,
+        this.addEmployeeForm.value,
+        this.local_data.company_id,
+        this.selectedFile
+      ).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Update' });
+          this.openSnackBar('Employee Updated successfully!', 'Close');
+        },
+        error: (err) => {
+          console.error('Error updating employee:', err);
+          this.openSnackBar('Error updating employee', 'Close');
+        },
+        complete: () => {
+          this.sendingData = false;
+        },
+      });
     } else if (this.action === 'Delete') {
       this.employeesService.deleteEmployee(this.local_data.id).subscribe({
         next: () => {
