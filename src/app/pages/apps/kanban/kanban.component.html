@@ -111,23 +111,14 @@
               >
                 <mat-card
                   *ngFor="let task of column.tasks"
-                  class="cardWithShadow img-task m-b-15 overflow-hidden mb-4"
+                  class="cardWithShadow img-task m-b-15 overflow-hidden mb-4 kanban-task-card"
                   cdkDrag
                 >
                   <div
                     class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
                   >
                     <h5 class="f-s-14 f-w-600">{{ task.goal }}</h5>
-                    <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
-                      <i-tabler name="user" class="icon-16 d-flex"></i-tabler>
-                      <span class="f-s-12 lh-base">
-                        {{
-                          task.user?.name
-                            ? task.user.name + " " + (task.user.last_name || "")
-                            : "Unassigned"
-                        }}
-                      </span>
-                    </div>
+
                     <button
                       class="d-flex align-items-center justify-content-center"
                       mat-icon-button
@@ -181,6 +172,16 @@
                       task.recommendations
                     }}</span>
                   </div>
+                  <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
+                    <i-tabler name="user" class="icon-16 d-flex"></i-tabler>
+                    <span class="f-s-12 lh-base">
+                      {{
+                        task.user?.name
+                          ? task.user.name + " " + (task.user.last_name || "")
+                          : "Unassigned"
+                      }}
+                    </span>
+                  </div>
                   <div>
                     <div
                       class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
@@ -194,9 +195,30 @@
                           task.due_date | date: "MM.dd.yyyy"
                         }}</span>
                       </div>
+                      @switch(task.priority || task.priorityAssociation?.id) {
+                      @case(4) {
                       <span class="rounded f-s-12 p-x-8 text-white bg-primary">
-                        {{ task.priorityAssociation.name }}
+                        {{ task.priorityAssociation?.name || "Low Priority" }}
                       </span>
+                      } @case(3) {
+                      <span
+                        class="rounded f-s-12 p-x-8 text-white bg-secondary"
+                      >
+                        {{ task.priorityAssociation?.name || "Normal" }}
+                      </span>
+                      } @case(2) {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-warning">
+                        {{ task.priorityAssociation?.name || "Important" }}
+                      </span>
+                      } @case(1) {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-error">
+                        {{ task.priorityAssociation?.name || "Urgent" }}
+                      </span>
+                      } @default {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-primary">
+                        {{ task.priorityAssociation?.name || "Normal" }}
+                      </span>
+                      } }
                     </div>
                   </div>
                 </mat-card>

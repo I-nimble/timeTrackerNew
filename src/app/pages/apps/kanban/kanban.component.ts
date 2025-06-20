@@ -141,7 +141,7 @@ export class AppKanbanComponent implements OnInit {
         prev.position > curr.position ? prev : curr
       );
 
-      if (newColumnId === lastColumn.id) {
+      if (newColumnId === lastColumn.id && movedTask.active == true) {
         const todayStr = new Date().toISOString().split('T')[0];
         const entryData = [
           {

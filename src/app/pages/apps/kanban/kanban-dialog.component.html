@@ -99,11 +99,18 @@
       <div class="col-12" *ngIf="local_data.type !== 'board'">
         <mat-label class="f-w-600 m-b-8 d-block">Priority</mat-label>
         <mat-form-field appearance="outline" class="w-100 mt-2">
-          <select matNativeControl required>
-            <option *ngFor="let priority of priorities" [value]="priority.id">
+          <mat-select
+            [(ngModel)]="local_data.priority"
+            name="priority"
+            required
+          >
+            <mat-option
+              *ngFor="let priority of priorities"
+              [value]="priority.id"
+            >
               {{ priority.name }}
-            </option>
-          </select>
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
 
