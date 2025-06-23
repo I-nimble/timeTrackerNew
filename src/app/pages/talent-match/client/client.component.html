@@ -3,7 +3,7 @@
         <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-16">
             <h4 Ctitle>
                 Talent match
-                <span class="f-s-14 f-w-400 d-block">select one or more candidate to schedule an interview</span>
+                <span class="f-s-14 f-w-400 d-block">select one or more candidates to schedule an interview</span>
             </h4>
 
             <div output>
@@ -16,7 +16,7 @@
                         </mat-icon>
                     </mat-form-field>
                     <button mat-flat-button class="m-r-8" [disabled]="selection.selected.length === 0"
-                        (click)="openDialog()">
+                        (click)="openDialog('Schedule')">
                         Interview
                     </button>
                 </div>
@@ -31,9 +31,18 @@
                                 </mat-checkbox>
                             </th>
                             <td mat-cell *matCellDef="let row" class="p-l-0">
-                                <mat-checkbox (click)="$event.stopPropagation()"
+                                <mat-checkbox 
+                                    (click)="$event.stopPropagation()"
                                     (change)="selection.toggle(row); onRowSelectionChange()" color="primary"
-                                    [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)">
+                                    [checked]="selection.isSelected(row)" [aria-label]="checkboxLabel(row)"
+                                    *ngIf="!getInterviewDateTime(row.id)"
+                                >
+                                </mat-checkbox>
+                                <mat-checkbox 
+                                    [checked]="true"
+                                    *ngIf="getInterviewDateTime(row.id)"
+                                    [disabled]="true"
+                                >
                                 </mat-checkbox>
                             </td>
                         </ng-container>
@@ -108,16 +117,6 @@
                             </td>
                         </ng-container>
 
-                        <ng-container matColumnDef="interview">
-                            <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
-                                Interview
-                            </th>
-                            <td mat-cell *matCellDef="let element">
-                                {{ getInterviewDateTime(element.id) ? (getInterviewDateTime(element.id) | date: 'short')
-                                : 'No interview scheduled' }}
-                            </td>
-                        </ng-container>
-
                         <ng-container matColumnDef="resume">
                             <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
                                 Resume
@@ -130,9 +129,49 @@
                             </td>
                         </ng-container>
 
+                        <ng-container matColumnDef="interview">
+                            <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                                Interview
+                            </th>
+                            <td mat-cell *matCellDef="let element">
+                                {{ getInterviewDateTime(element.id) ? (getInterviewDateTime(element.id) | date: 'short')
+                                : 'No interview scheduled' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                                Actions
+                            </th>
+                            <td mat-cell *matCellDef="let element">
+                                <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+                                <mat-icon>more_vert</mat-icon>
+                                </button>
+                                <mat-menu #actionsMenu="matMenu">
+                                    @if(getInterviewDateTime(element.id)) {
+                                        <button mat-menu-item (click)="openDialog('Reeschedule', element)">
+                                            <mat-icon>edit</mat-icon>
+                                            <span>Reeschedule</span>
+                                        </button>
+                                        <button mat-menu-item (click)="cancelInterview(element.id)">
+                                            <mat-icon>delete</mat-icon>
+                                            <span>Cancel Interview</span>
+                                        </button>
+                                    }
+                                    @else {
+                                        <button mat-menu-item (click)="openDialog('Schedule', element)">
+                                            <mat-icon>event</mat-icon>
+                                            <span>Schedule</span>
+                                        </button>
+                                    }
+                                </mat-menu>
+                            </td>
+                        </ng-container>
+
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                         <tr mat-row *matRowDef="let row; columns: displayedColumns"
-                            (click)="selection.toggle(row); onRowSelectionChange()"></tr>
+                            (click)="onRowClick(row)"
+                            [class.disabled]="getInterviewDateTime(row.id)"></tr>
                         <tr *ngIf="dataSource?.data?.length === 0">
                             <td colspan="8">
                                 <p>No candidates available.</p>

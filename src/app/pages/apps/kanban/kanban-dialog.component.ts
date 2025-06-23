@@ -63,6 +63,7 @@ export class AppKanbanDialogComponent {
       this.local_data.date = this.datePipe.transform(new Date(), 'd MMMM')!;
       this.local_data.taskProperty ||= 'Design';
       this.local_data.imageUrl ||= '/assets/images/taskboard/kanban-img-1.jpg';
+      this.getCompany();
     }
   }
 

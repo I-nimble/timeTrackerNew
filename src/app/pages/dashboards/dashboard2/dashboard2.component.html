@@ -9,7 +9,7 @@
       <app-activity-reports [dataSource]="activityDataSource" class="h-100 d-inline-block"></app-activity-reports>
     </div>
     <div class="col-lg-8 m-b-30">
-      <app-top-employees></app-top-employees>
+      <app-top-employees (dataSourceChange)="onEmployeesDataSourceChange($event)"></app-top-employees>
     </div>
   <div class="col-lg-8">
     <app-profile-expance></app-profile-expance>

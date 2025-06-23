@@ -1,6 +1,8 @@
 <mat-dialog-content class="mat-typography">
   <div class="d-flex align-items-center justify-content-between m-b-16">
-    <h4 class="f-s-16 f-w-600">{{ action }} {{ local_data.type === 'board' ? 'Board' : 'Task' }}</h4>
+    <h4 class="f-s-16 f-w-600">
+      {{ action }} {{ local_data.type === "board" ? "Board" : "Task" }}
+    </h4>
     <button mat-icon-button mat-dialog-close>
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
     </button>
@@ -10,14 +12,20 @@
     <div class="row">
       <div class="col-12">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label class="f-w-600 m-b-8 d-block">{{ local_data.type === 'board' ? 'Board Name' : 'Task Name' }}</mat-label>
+          <mat-label class="f-w-600 m-b-8 d-block">{{
+            local_data.type === "board" ? "Board Name" : "Task Name"
+          }}</mat-label>
           <input
             type="text"
             matInput
             required
             name="goal"
             [(ngModel)]="local_data.goal"
-            placeholder="{{ local_data.type === 'board' ? 'Enter board name' : 'Enter task name' }}"
+            placeholder="{{
+              local_data.type === 'board'
+                ? 'Enter board name'
+                : 'Enter task name'
+            }}"
           />
         </mat-form-field>
       </div>
@@ -25,14 +33,25 @@
       <div class="col-12" *ngIf="local_data.type === 'board'">
         <mat-form-field appearance="outline" class="mt-4 w-100">
           <mat-label>Visibility</mat-label>
-          <mat-select (selectionChange)="handleVisibilityChange($event)" required [(value)]="local_data.selectedVisibility">
-            <mat-option *ngFor="let visibility of visibilities" [value]="visibility">
+          <mat-select
+            (selectionChange)="handleVisibilityChange($event)"
+            required
+            [(value)]="local_data.selectedVisibility"
+          >
+            <mat-option
+              *ngFor="let visibility of visibilities"
+              [value]="visibility"
+            >
               {{ visibility }}
             </mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="w-100" *ngIf="local_data.selectedVisibility === 'restricted'">
+        <mat-form-field
+          appearance="outline"
+          class="w-100"
+          *ngIf="local_data.selectedVisibility === 'restricted'"
+        >
           <mat-label>Allowed users</mat-label>
           <mat-select multiple [(value)]="local_data.restrictedUsers" required>
             <mat-option *ngFor="let user of users" [value]="user.id">
@@ -50,7 +69,11 @@
             matInput
             name="recommendations"
             [(ngModel)]="local_data.recommendations"
-            placeholder="{{ local_data.type === 'board' ? 'Enter board description' : 'Enter task description' }}"
+            placeholder="{{
+              local_data.type === 'board'
+                ? 'Enter board description'
+                : 'Enter task description'
+            }}"
           />
         </mat-form-field>
       </div>
@@ -65,20 +88,44 @@
             name="due_date"
             [(ngModel)]="local_data.due_date"
           />
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
       </div>
 
-
       <div class="col-12" *ngIf="local_data.type !== 'board'">
         <mat-label class="f-w-600 m-b-8 d-block">Priority</mat-label>
         <mat-form-field appearance="outline" class="w-100 mt-2">
-          <select matNativeControl required>
-            <option *ngFor="let priority of priorities" [value]="priority.id">
+          <mat-select
+            [(ngModel)]="local_data.priority"
+            name="priority"
+            required
+          >
+            <mat-option
+              *ngFor="let priority of priorities"
+              [value]="priority.id"
+            >
               {{ priority.name }}
-            </option>
-          </select>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
+        <mat-label class="f-w-600 m-b-8 d-block">Assign to</mat-label>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-select
+            [(ngModel)]="local_data.employee_id"
+            name="employee_id"
+            required
+          >
+            <mat-option *ngFor="let user of users" [value]="user.id">
+              {{ user.name }} {{ user.last_name }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
     </div>
@@ -87,7 +134,9 @@
 
 <mat-dialog-actions>
   <button mat-flat-button (click)="doAction()" [disabled]="form.invalid">
-    {{ action === 'Edit' ? 'Save' : 'Add' }}
+    {{ action === "Edit" ? "Save" : "Add" }}
   </button>
-  <button mat-flat-button class="bg-error text-white" (click)="closeDialog()">Cancel</button>
+  <button mat-flat-button class="bg-error text-white" (click)="closeDialog()">
+    Cancel
+  </button>
 </mat-dialog-actions>

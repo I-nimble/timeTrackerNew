@@ -236,6 +236,7 @@ export class AppFullcalendarComponent implements OnInit {
   userRole: string | null = localStorage.getItem('role');
   teamMembers: any[] = [];
   teamMemberId: number | null = null;
+  selectedPriority: number | null = null;
   companyId: number | null = null;
   companies: any[] = [];
   loggedInUser: any = null;
@@ -257,15 +258,6 @@ export class AppFullcalendarComponent implements OnInit {
   };
   numTemplateOpens = 0;
 
-  actions: CalendarEventAction[] = [
-    {
-      label: '<span class="text-white link m-l-5">Edit</span>',
-      onClick: ({ event }: { event: CalendarEvent }): void => {
-        this.handleEvent('Edit', event);
-      },
-    },
-  ];
-
   refresh: Subject<any> = new Subject();
 
   events = signal<CalendarEvent[] | any>([]);
@@ -282,21 +274,10 @@ export class AppFullcalendarComponent implements OnInit {
 
   ngOnInit(): void {
     const userRole = localStorage.getItem('role');
-    if (userRole !== '2') {
-      this.actions.push({
-        label: '<span class="text-danger m-l-5">Delete</span>',
-        onClick: ({ event }: { event: CalendarEvent }): void => {
-          this.events.set(
-            this.events().filter(
-              (iEvent: CalendarEvent<any>) => iEvent !== event
-            )
-          );
-          this.handleEvent('Deleted', event);
-        },
-      });
-    }
+    this.getPriorities();
     this.getTeamMembers();
     this.getCompanies();
+    this.getToDos();
   }
 
   getTeamMembers() {
@@ -351,6 +332,12 @@ export class AppFullcalendarComponent implements OnInit {
     }
   }
 
+  getPriorities() {
+    this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
+      this.priorities = priorities;
+    });
+  }
+
   getCompanies() {
     this.companiesService.getCompanies().subscribe({
       next: (companies: any) => {
@@ -381,45 +368,57 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   getToDos() {
-    this.ratingsService.getByUser(this.teamMemberId).subscribe({
-      next: (toDos: any) => {
-        this.events.set(
-          toDos
-            .filter((toDo: any) => toDo.due_date)
-            .map((toDo: any) => {
-              const priority = toDo.priority;
-              let color;
-              switch (priority) {
-                case 1:
-                  color = colors.red;
-                  break;
-                case 2:
-                  color = colors.yellow;
-                  break;
-                case 4:
-                  color = colors.green;
-                  break;
-                default:
-                  color = colors.blue;
-                  break;
-              }
-              return {
-                title: toDo.goal,
-                color,
-                start: new Date(toDo.due_date),
-                actions: this.actions,
-                allDay: true,
-                recurrent: toDo.recurrent,
-                recommendations: toDo.recommendations,
-                priority: toDo.priority,
-                company_id: toDo.company_id,
-                employee_id: toDo.employee_id,
-                id: toDo.id,
-              };
-            })
-        );
-      },
-    });
+    const filterByPriority = (toDos: any[]) => {
+      return toDos
+        .filter((toDo: any) => toDo.due_date)
+        .filter((toDo: any) =>
+          this.selectedPriority ? toDo.priority === this.selectedPriority : true
+        )
+        .map((toDo: any) => {
+          const priority = toDo.priority;
+          let color;
+          switch (priority) {
+            case 1:
+              color = colors.red;
+              break;
+            case 2:
+              color = colors.yellow;
+              break;
+            case 4:
+              color = colors.green;
+              break;
+            default:
+              color = colors.blue;
+              break;
+          }
+          return {
+            title: toDo.goal,
+            color,
+            start: new Date(toDo.due_date),
+            allDay: true,
+            recurrent: toDo.recurrent,
+            recommendations: toDo.recommendations,
+            priority: toDo.priority,
+            company_id: toDo.company_id,
+            employee_id: toDo.employee_id,
+            id: toDo.id,
+          };
+        });
+    };
+
+    if (this.teamMemberId === null) {
+      this.ratingsService.get().subscribe({
+        next: (toDos: any) => {
+          this.events.set(filterByPriority(toDos));
+        },
+      });
+    } else {
+      this.ratingsService.getByUser(this.teamMemberId).subscribe({
+        next: (toDos: any) => {
+          this.events.set(filterByPriority(toDos));
+        },
+      });
+    }
   }
 
   dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
@@ -474,7 +473,6 @@ export class AppFullcalendarComponent implements OnInit {
           title: result.title,
           color,
           start: new Date(result.start),
-          actions: this.actions,
           allDay: true,
           recurrent: result.recurrent,
           recommendations: result.recommendations,
@@ -520,7 +518,6 @@ export class AppFullcalendarComponent implements OnInit {
             title: result.title,
             color,
             start: new Date(result.start),
-            actions: this.actions,
             allDay: true,
             recurrent: result.recurrent,
             recommendations: result.recommendations,

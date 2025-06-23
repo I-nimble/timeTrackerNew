@@ -8,9 +8,11 @@
         <mat-form-field appearance="outline" *ngIf="userRole !== '2'">
           <mat-label class="f-s-14 m-b-8 d-block">Select a Team Member</mat-label>
           <mat-select *ngIf="userRole !== '2'" [(ngModel)]="teamMemberId" (selectionChange)="handleTMSelection($event)">
+
             <mat-option [value]="null">
               All members
             </mat-option>
+
             <mat-option [value]="loggedInUser?.id">
               {{ loggedInUser?.name }} {{ loggedInUser?.last_name }}
             </mat-option>
@@ -62,7 +64,7 @@
               <mat-list-item [class.bg-light-primary]="selectedCategory() === 'uncomplete'" class="incomplete m-b-2"
                 (click)="selectionlblClick('uncomplete')">
                 <div class="d-flex align-items-center">
-                  <span class="f-s-14">Incompleted</span>
+                  <span class="f-s-14">To do</span>
                   <div class="m-l-auto">
                     <span
                       class="icon-27 bg-error text-white rounded d-flex align-items-center justify-content-center">{{

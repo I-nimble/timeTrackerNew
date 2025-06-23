@@ -21,6 +21,7 @@ import { Optional, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
+import moment from 'moment';
 
 @Component({
   standalone: true,
@@ -52,8 +53,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     'skills',
     'english level',
     'availability',
-    'interview',
     'resume',
+    'interview',
+    'actions'
   ];
   dataSource!: MatTableDataSource<any>;
   selection = new SelectionModel<any>(true, []);
@@ -101,14 +103,40 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  openDialog(): void {
+  openDialog(action: string, row?:any): void {
+    if(row && !this.selection.isSelected(row)) {
+      this.selection.toggle(row)
+    };
+    let interview = null;
+    if(action === 'Reeschedule' && row) {
+      interview = this.interviews.find(interview => interview.application_id === row.id)
+    }
     const dialogRef = this.dialog.open(AppInterviewDialogContentComponent, {
-      data: { selected: this.selection.selected, companyId: this.companyId },
+      data: { 
+        action,
+        date_time: interview?.date_time || null,
+        interviewId: interview?.id || null,
+        selected: this.selection.selected, 
+        companyId: this.companyId 
+      },
       autoFocus: false,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       this.getInterviews();
+      this.selection.clear();
+    });
+  }
+
+  cancelInterview(applicationId: number) {
+    const interview = this.interviews.find(interview => interview.application_id === applicationId);
+    this.interviewsService.cancel(interview.id).subscribe({
+      next: (response: any) => {
+        this.getInterviews();
+      },
+      error: (err: any) => {
+        console.error('Error cancelling interview:', err);
+      },
     });
   }
 
@@ -193,11 +221,18 @@ export class AppTalentMatchClientComponent implements OnInit {
     }`;
   }
 
+  onRowClick(row: any) {
+    if (!this.getInterviewDateTime(row.id)) {
+      this.selection.toggle(row);
+      this.onRowSelectionChange();
+    }
+  }
+
   handleImageError(event: Event) {
-  const imgElement = event.target as HTMLImageElement;
-  imgElement.src = this.assetsPath;
-  imgElement.onerror = null;
-}
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = this.assetsPath;
+    imgElement.onerror = null;
+  }
 }
 
 
@@ -218,6 +253,15 @@ export class AppInterviewDialogContentComponent {
   local_data: any;
   interviewForm: FormGroup;
   interviewScheduled = false;
+  availableDaysFilter = (d: Date | null): boolean => {
+    const day = (d || new Date()).getDay();
+    // Allow only future dates
+    if (!d || d < new Date()) {
+      return false;
+    }
+    // Allow only wednesdays and thursdays
+    return day === 3 || day === 4;
+  };
 
   constructor(
     public dialog: MatDialog,
@@ -233,6 +277,13 @@ export class AppInterviewDialogContentComponent {
       date: [null, Validators.required],
       time: [null, Validators.required]
     });
+    const m = moment(this.local_data.date_time).local();
+    if(this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
+      this.interviewForm.patchValue({
+        date: m.toDate(),
+        time: m.format('HH:mm')
+      })
+    }
   }
 
   onScheduleInterview() {
@@ -244,7 +295,7 @@ export class AppInterviewDialogContentComponent {
       dateTime.setHours(+hours, +minutes, 0, 0);
       const date_time = dateTime.toISOString();
 
-      const applicants = this.applicationsService.getSelectedApplicant();
+      const applicants = this.local_data.selected;
       const company_id = this.data.companyId;
 
       const data = {
@@ -252,16 +303,30 @@ export class AppInterviewDialogContentComponent {
         applicants,
         company_id
       };
-      this.interviewsService.post(data).subscribe({
-        next: (response: any) => {
-          this.interviewScheduled = true;
-        },
-        error: (err: any) => {
-          console.error('Error scheduling interview:', err);
-          this.openSnackBar('Error scheduling interview', 'Close');
-          this.dialogRef.close({ event: 'Cancel' });
-        },
-      });
+      if(this.local_data.action === 'Schedule') {
+        this.interviewsService.post(data).subscribe({
+          next: (response: any) => {
+            this.interviewScheduled = true;
+          },
+          error: (err: any) => {
+            console.error('Error scheduling interview:', err);
+            this.openSnackBar('Error scheduling interview', 'Close');
+            this.dialogRef.close({ event: 'Cancel' });
+          },
+        });
+      }
+      else if (this.local_data.action === 'Reeschedule') {
+        this.interviewsService.put(data, this.local_data.interviewId).subscribe({
+          next: (response: any) => {
+            this.interviewScheduled = true;
+          },
+          error: (err: any) => {
+            console.error('Error reescheduling interview:', err);
+            this.openSnackBar('Error reescheduling interview', 'Close');
+            this.dialogRef.close({ event: 'Cancel' });
+          },
+        });
+      }
     }
   }
 
