@@ -290,9 +290,7 @@
          <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
              [ngStyle]="{'color': notificationIcons[notification.type_id-1].color}"></i>
         <div class="m-l-16">
-          <h5 class="f-s-14 f-w-600 m-0">
-            {{ notification.message }}
-          </h5>
+          <p class="f-s-14 f-w-600 m-0" [innerHTML]="formatMessage(notification.message)"></p>
           <span>{{ notification.createdAt | date: 'MMM d, y' }}</span>
         </div>
       </div>

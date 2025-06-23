@@ -83,6 +83,10 @@ export class NotificationListComponent implements OnInit, AfterViewInit{
     this.notificationsDataSource.paginator = this.paginator;
   }
 
+  formatMessage(message: string): string {
+    return message.replace(/\n/g, '<br>')
+  }
+
   handleClick(notification: any) {
     if(notification.type_id === 6) {
       let dialogRef = this.dialog.open(this.applicationDetailsDialog, {

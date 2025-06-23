@@ -6,8 +6,8 @@
         <mat-cell *matCellDef="let notification">
           <i [ngClass]="notificationIcons[notification.type_id - 1].icon" 
              [ngStyle]="{'color': notification.users_notifications.status === 2 ? '#727272' : notificationIcons[notification.type_id - 1].color}"></i>
-          <span [class.read-notification]="notification.users_notifications.status === 2">
-            {{ notification.message }}
+          <span [class.read-notification]="notification.users_notifications.status === 2"
+          [innerHTML]="formatMessage(notification.message)">
           </span>
         </mat-cell>
       </ng-container>
