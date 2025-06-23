@@ -43,8 +43,8 @@ import moment from 'moment';
 })
 export class AppTalentMatchClientComponent implements OnInit {
   userRole = localStorage.getItem('role');
-  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/resumes';
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/photos';
+  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   positions: any[] = [];
   searchText: string = '';
   displayedColumns: string[] = [
