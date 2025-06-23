@@ -186,6 +186,9 @@ export class AppTodoComponent implements OnInit {
       // Get all employees
       this.employeesService.get().subscribe((employees: any) => {
         this.teamMembers = employees;
+        if (this.teamMemberId === null) {
+          this.buildToDoForm();
+        }
       });
     } else if (this.userRole == '2') {
       // Get current employee
@@ -227,6 +230,10 @@ export class AppTodoComponent implements OnInit {
                 id: data?.user?.id,
                 company_id: this.teamMembers[0]?.company_id,
               };
+              this.companyId = this.teamMembers[0]?.company_id;
+              if (this.teamMemberId === null) {
+                this.buildToDoForm();
+              }
             });
         },
       });
@@ -240,6 +247,14 @@ export class AppTodoComponent implements OnInit {
   }
 
   handleTMSelection(event: any) {
+    if (event.value === null) {
+      this.teamMemberId = null;
+      if (!this.companyId && this.teamMembers.length > 0) {
+        this.companyId = this.teamMembers[0].company_id;
+      }
+      this.buildToDoForm();
+      return;
+    }
     if (event.value === this.loggedInUser?.id) {
       this.teamMemberId = this.loggedInUser.id;
       this.newTaskForm.patchValue({
@@ -248,13 +263,15 @@ export class AppTodoComponent implements OnInit {
       });
     } else {
       const selectedTeamMember = this.teamMembers.find(
-        (tm) => tm.id === event.value
+        (tm) => tm.user.id === event.value
       );
-      this.teamMemberId = selectedTeamMember.user.id;
-      this.newTaskForm.patchValue({
-        company_id: selectedTeamMember.company_id,
-        employee_id: selectedTeamMember.user.id,
-      });
+      if (selectedTeamMember) {
+        this.teamMemberId = selectedTeamMember.user.id;
+        this.newTaskForm.patchValue({
+          company_id: selectedTeamMember.company_id,
+          employee_id: selectedTeamMember.id,
+        });
+      }
     }
     this.buildToDoForm();
   }
@@ -275,13 +292,50 @@ export class AppTodoComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
+    if (
+      (this.userRole === '1' && this.teamMemberId === null) ||
+      this.userRole === '2' ||
+      (this.userRole === '3' && this.teamMemberId === null && this.companyId)
+    ) {
+      this.ratingsService.get().subscribe({
+        next: (array: any) => {
+          const activeArray = (array || []).filter((task: any) => task.active);
+          this.toDoArray = activeArray;
+          const filteredArray = this.toDoArray.filter((todo: any) => {
+            if (this.selectedCategory() === 'all') return true;
+            if (this.selectedCategory() === 'complete') return todo.achieved;
+            if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
+            return true;
+          });
+          for (let toDo of filteredArray) {
+            let toDoField = this.fb.group({
+              rating_id: [toDo.id],
+              goal: [toDo.goal],
+              date: [this.selectedDateStr],
+              achieved: [false, Validators.required],
+              wasAchieved: [toDo.achieved],
+              is_numeric: [false],
+              due_date: [toDo.due_date || null],
+              priority: [toDo.priority || 3],
+              details: [null, this.detailsRequiredValidator()],
+            });
+            this.toDoFormArray.push(toDoField);
+          }
+          this.updateCounts();
+        },
+        error: () => {
+          this.openSnackBar('Error loading To Do', 'Close');
+        },
+      });
+      return;
+    }
+
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
-        const activeArray = (array || []).filter((task: any) => task.active !== false);
+        const activeArray = (array || []).filter((task: any) => task.active);
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
           .subscribe({
@@ -295,7 +349,6 @@ export class AppTodoComponent implements OnInit {
               }
               this.toDoArray = activeArray;
 
-              // Marca cada tarea como completed/uncompleted según ratingsEntries
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
                   (re: any) => re.rating_id === todo.id 
@@ -427,43 +480,28 @@ export class AppTodoComponent implements OnInit {
       board_id: this.newTaskForm.value.board_id || null, // Send null if no board is selected
     };
 
-    this.ratingsService.submit(taskData, this.toDoToEdit?.id || null).subscribe({
-      next: (response: any) => {
-        if (!this.toDoToEdit) { // Create a new element
-          this.toDoArray.push(response);
-        } else { // Update an existing element
-          const taskIndex = this.toDoArray.findIndex(
-            (task: any) => task.id == this.toDoToEdit.id
-          );
-          this.toDoArray[taskIndex] = response;
-        }
-        this.resetForm();        
-        this.buildToDoForm();
-        this.calendar?.getToDos();
-      },
-      error: () => {
-        this.openSnackBar('Error submitting form', 'Close');
-      },
-    });
-  }
-
-
-  /*
-  clearForm(): void {
-      this.newTaskForm.setValue({
-        goal: null,
-        frequency_id: null,
-        recommendations: '',
-        due_date: null,
-        priority: 3,
-        recurrent: false,
-        is_numeric: false,
-        numeric_goal: null,
-        company_id: this.companyId,
-        employee_id: this.teamMemberId,
-        board_id: null
+    this.ratingsService
+      .submit(taskData, this.toDoToEdit?.id || null)
+      .subscribe({
+        next: (response: any) => {
+          if (!this.toDoToEdit) {
+            // Create a new element
+            this.toDoArray.push(response);
+          } else {
+            // Update an existing element
+            const taskIndex = this.toDoArray.findIndex(
+              (task: any) => task.id == this.toDoToEdit.id
+            );
+            this.toDoArray[taskIndex] = response;
+          }
+          this.buildToDoForm();
+          this.calendar?.getToDos();
+        },
+        error: () => {
+          this.openSnackBar('Error submitting form', 'Close');
+        },
       });
-  }*/
+  }
 
   resetForm(): void {
     this.newTaskForm.reset();
