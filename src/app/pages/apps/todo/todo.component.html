@@ -9,7 +9,7 @@
           <mat-label class="f-s-14 m-b-8 d-block">Select a Team Member</mat-label>
           <mat-select *ngIf="userRole !== '2'" [(ngModel)]="teamMemberId" (selectionChange)="handleTMSelection($event)">
             <mat-option [value]="null">
-              Select All
+              All members
             </mat-option>
             <mat-option [value]="loggedInUser?.id">
               {{ loggedInUser?.name }} {{ loggedInUser?.last_name }}
