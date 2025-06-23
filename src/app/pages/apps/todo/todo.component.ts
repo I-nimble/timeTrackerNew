@@ -292,7 +292,6 @@ export class AppTodoComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
@@ -481,43 +480,28 @@ export class AppTodoComponent implements OnInit {
       board_id: this.newTaskForm.value.board_id || null, // Send null if no board is selected
     };
 
-    this.ratingsService.submit(taskData, this.toDoToEdit?.id || null).subscribe({
-      next: (response: any) => {
-        if (!this.toDoToEdit) { // Create a new element
-          this.toDoArray.push(response);
-        } else { // Update an existing element
-          const taskIndex = this.toDoArray.findIndex(
-            (task: any) => task.id == this.toDoToEdit.id
-          );
-          this.toDoArray[taskIndex] = response;
-        }
-        this.resetForm();        
-        this.buildToDoForm();
-        this.calendar?.getToDos();
-      },
-      error: () => {
-        this.openSnackBar('Error submitting form', 'Close');
-      },
-    });
-  }
-
-
-  /*
-  clearForm(): void {
-      this.newTaskForm.setValue({
-        goal: null,
-        frequency_id: null,
-        recommendations: '',
-        due_date: null,
-        priority: 3,
-        recurrent: false,
-        is_numeric: false,
-        numeric_goal: null,
-        company_id: this.companyId,
-        employee_id: this.teamMemberId,
-        board_id: null
+    this.ratingsService
+      .submit(taskData, this.toDoToEdit?.id || null)
+      .subscribe({
+        next: (response: any) => {
+          if (!this.toDoToEdit) {
+            // Create a new element
+            this.toDoArray.push(response);
+          } else {
+            // Update an existing element
+            const taskIndex = this.toDoArray.findIndex(
+              (task: any) => task.id == this.toDoToEdit.id
+            );
+            this.toDoArray[taskIndex] = response;
+          }
+          this.buildToDoForm();
+          this.calendar?.getToDos();
+        },
+        error: () => {
+          this.openSnackBar('Error submitting form', 'Close');
+        },
       });
-  }*/
+  }
 
   resetForm(): void {
     this.newTaskForm.reset();
