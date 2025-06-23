@@ -262,13 +262,15 @@ export class AppTodoComponent implements OnInit {
       });
     } else {
       const selectedTeamMember = this.teamMembers.find(
-        (tm) => tm.id === event.value
+        (tm) => tm.user.id === event.value
       );
-      this.teamMemberId = selectedTeamMember.id;
-      this.newTaskForm.patchValue({
-        company_id: selectedTeamMember.company_id,
-        employee_id: selectedTeamMember.id,
-      });
+      if (selectedTeamMember) {
+        this.teamMemberId = selectedTeamMember.user.id;
+        this.newTaskForm.patchValue({
+          company_id: selectedTeamMember.company_id,
+          employee_id: selectedTeamMember.id,
+        });
+      }
     }
     this.buildToDoForm();
   }
