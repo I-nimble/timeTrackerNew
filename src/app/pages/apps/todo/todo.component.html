@@ -141,8 +141,9 @@
                   </mat-form-field>
 
                   <button mat-flat-button class="w-100 mt-2" id="btnAddTodo" type="submit"
-                    [disabled]="!newTaskForm.valid">
-                    Submit
+                  [disabled]="!newTaskForm.valid">
+                  
+                  Submit
                   </button>
                 </div>
               </form>
@@ -193,8 +194,8 @@
                       </mat-checkbox>
                       <label *ngIf="userRole !== '2'">
                         {{ toDoArray[i].goal }}
+                      <p *ngIf="userRole !== '2'">To Do: {{ toDoArray[i].user.name }} {{ toDoArray[i].user.last_name }}</p>
                       </label>
-
                       <mat-form-field appearance="outline" class="w-100" *ngIf="goal.get('achieved')?.value">
                         <mat-label>Description</mat-label>
                         <textarea placeholder="Describe the activity performed and the achievements obtained" matInput
