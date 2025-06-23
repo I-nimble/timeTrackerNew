@@ -294,44 +294,14 @@ export class AppTodoComponent implements OnInit {
   async buildToDoForm() {
     this.toDoFormArray.clear();
 
-    if (this.userRole === '1' && this.teamMemberId === null) {
+    if (
+      (this.userRole === '1' && this.teamMemberId === null) ||
+      this.userRole === '2' ||
+      (this.userRole === '3' && this.teamMemberId === null && this.companyId)
+    ) {
       this.ratingsService.get().subscribe({
         next: (array: any) => {
-          const activeArray = (array || []).filter((task: any) => task.active !== false);
-          this.toDoArray = activeArray;
-          const filteredArray = this.toDoArray.filter((todo: any) => {
-            if (this.selectedCategory() === 'all') return true;
-            if (this.selectedCategory() === 'complete') return todo.achieved;
-            if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
-            return true;
-          });
-          for (let toDo of filteredArray) {
-            let toDoField = this.fb.group({
-              rating_id: [toDo.id],
-              goal: [toDo.goal],
-              date: [this.selectedDateStr],
-              achieved: [false, Validators.required],
-              wasAchieved: [toDo.achieved],
-              is_numeric: [false],
-              due_date: [toDo.due_date || null],
-              priority: [toDo.priority || 3],
-              details: [null, this.detailsRequiredValidator()],
-            });
-            this.toDoFormArray.push(toDoField);
-          }
-          this.updateCounts();
-        },
-        error: () => {
-          this.openSnackBar('Error loading To Do', 'Close');
-        },
-      });
-      return;
-    }
-
-    if (this.userRole === '3' && this.teamMemberId === null && this.companyId) {
-      this.ratingsService.get().subscribe({
-        next: (array: any) => {
-          const activeArray = (array || []).filter((task: any) => task.active !== false);
+          const activeArray = (array || []).filter((task: any) => task.active);
           this.toDoArray = activeArray;
           const filteredArray = this.toDoArray.filter((todo: any) => {
             if (this.selectedCategory() === 'all') return true;
@@ -364,7 +334,7 @@ export class AppTodoComponent implements OnInit {
 
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
-        const activeArray = (array || []).filter((task: any) => task.active !== false);
+        const activeArray = (array || []).filter((task: any) => task.active);
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
           .subscribe({
