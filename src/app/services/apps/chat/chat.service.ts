@@ -16,6 +16,9 @@ export class CometChatService {
   private UIKitSettings!: any;
   API_URI = environment.apiUrl;
   isChatAvailable: boolean = false; 
+  isCallOngoing: boolean = false;
+  public callObject!: CometChat.Call | null;
+  public outGoingCallObject!: CometChat.Call | null;
 
   constructor(private http: HttpClient, private snackBar: MatSnackBar) { }
 
@@ -92,7 +95,7 @@ export class CometChatService {
     try {
       const permissionResult = await Notification.requestPermission();
       if (permissionResult !== "granted") {
-        this.openSnackBar('Allow notifications to not miss any messages', 'Close');
+        this.openSnackBar('You have blocked notifications. Please enable them in your browser settings.', 'Close');
         return false;
       }
       return true;

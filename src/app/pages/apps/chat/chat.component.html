@@ -7,6 +7,17 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+
+  <ng-template #customMenu>
+    <div style="display: flex; gap: 12px; margin-right: 5px;">
+      <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
+        <img src="assets/images/Audio-Call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
+      </button>
+      <button [ngStyle]="getButtonStyle()" (click)="startVideoCall()">
+        <img src="assets/images/Video-call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
+      </button>
+    </div>
+  </ng-template>
   
   @if(chatService.isChatAvailable) {
     <button mat-flat-button color="primary" *ngIf="userRole === '3'" class="m-b-16 m-t-16" (click)="openDialog()" id="create-group-button">
@@ -27,6 +38,7 @@
       *ngIf="plan && plan.id === 2"
       id="chat-container"
       [messagesConfiguration]="essentialMessagesConfig"
+      [StartConversationConfiguration]="contactsConfiguration"
     >
     </cometchat-conversations-with-messages>
 
@@ -35,6 +47,7 @@
       *ngIf="plan && plan.id === 3"
       id="chat-container"
       [messagesConfiguration]="professionalMessagesConfig"
+      [StartConversationConfiguration]="contactsConfiguration"
     >
     </cometchat-conversations-with-messages>
   }
