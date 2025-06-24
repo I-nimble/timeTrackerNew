@@ -150,6 +150,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
         this.dataSource = new MatTableDataSource(applications);
+        if(applications.find((app: any) => app.status_id === 1)) {
+          this.applicationsService.markAsSeen().subscribe();
+        }
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);

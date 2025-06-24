@@ -159,6 +159,9 @@ export class HeaderComponent implements OnInit {
     this.notificationsService.notificationsChanged.subscribe(() => {
       this.loadNotifications();
     });
+    this.applicationsService.applicationsSeen$.subscribe(() => {
+      this.hasNewTalentMatch = false;
+    });
   }
 
   getUserData(){
@@ -187,12 +190,22 @@ export class HeaderComponent implements OnInit {
     this.applicationsService.get().subscribe({
       next: (apps) => {
         this.applications = apps;
+        const role = localStorage.getItem('role');
+        if(role === '3' && apps.find((app: any) => app.status_id === 1)) {
+          this.hasNewTalentMatch = true;
+        } else {
+          this.hasNewTalentMatch = false;
+        }
       },
     });
   }
 
   clearTalentMatchNotification() {
     this.hasNewTalentMatch = false;
+  }
+
+  formatMessage(message: string): string {
+    return message.replace(/\n/g, '<br>')
   }
 
   openDialog() {
