@@ -24,6 +24,7 @@ import { ApplicationsService } from 'src/app/services/applications.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { Router } from '@angular/router';
 
 interface notifications {
   id: number;
@@ -134,7 +135,8 @@ export class HeaderComponent implements OnInit {
     private applicationsService: ApplicationsService,
     private authService: AuthService,
     public notificationsService: NotificationsService,
-    public webSocketService: WebSocketService
+    public webSocketService: WebSocketService,
+    private router: Router
   ) {
     translate.setDefaultLang('en');
   }
@@ -409,6 +411,22 @@ export class HeaderComponent implements OnInit {
     this.recentNotifications.push(notification);
     this.recentNotifications = [...this.recentNotifications]; 
   }
+
+  redirectNotification(notification: any) {
+  const message = notification.message?.toLowerCase() || '';
+
+  if (message.includes('clock') || message.includes('late')) {
+    this.router.navigate(['/apps/chat/support']);
+  } else if (message.includes('board')) {
+    this.router.navigate(['/apps/kanban']);
+  } else if (notification.type_id === 6) {
+    this.router.navigate(['/apps/talent-match']);
+  }
+
+  this.notificationsService.update([notification], 2).subscribe(() => {
+    this.loadNotifications();
+  });
+}
 }
 
 @Component({

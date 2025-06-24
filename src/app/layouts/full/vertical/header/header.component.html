@@ -285,7 +285,7 @@
     </div>
 
     @for(notification of recentNotifications; track notification.id) {
-    <button mat-menu-item class="p-x-32 p-y-16">
+    <button mat-menu-item class="p-x-32 p-y-16" (click)="redirectNotification(notification)">
       <div class="d-flex align-items-center">
          <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
              [ngStyle]="{'color': notificationIcons[notification.type_id-1].color}"></i>
