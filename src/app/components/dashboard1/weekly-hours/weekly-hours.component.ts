@@ -161,8 +161,9 @@ export class AppWeeklyHoursComponent implements OnInit {
     const currentDay = moment().tz(this.companyTimezone).format('ddd');
     const gray = '#e7ecf0';
     const green = 'var(--mat-sys-primary)';
+    const lightGreen = '#bdd99b'; 
     const workedColors = days.map(day => (day === currentDay ? green : gray));
-    const notWorkedColors = days.map(() => gray);
+    const notWorkedColors = days.map(day => (day === currentDay ? lightGreen : gray));
 
     this.paymentsChart.colors = [
       ({ dataPointIndex, seriesIndex }: any) => {
