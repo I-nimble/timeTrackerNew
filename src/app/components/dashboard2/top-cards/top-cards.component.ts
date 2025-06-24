@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-top-cards',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule],
+  imports: [MaterialModule, TablerIconsModule, RouterModule],
   templateUrl: './top-cards.component.html',
 })
 export class AppTopCardsComponent implements OnInit {
