@@ -452,6 +452,9 @@ export class AppFullcalendarComponent implements OnInit {
     this.dialogRef()
       .afterClosed()
       .subscribe((result: any) => {
+        if(!result) {
+          return;
+        }
         // Add the new event to the events array
         const priority = result.priority;
         let color;
