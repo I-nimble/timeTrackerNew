@@ -14,6 +14,7 @@ import moment from 'moment';
 import { PerformanceService } from 'src/app/services/performance.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -26,6 +27,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
     MatNativeDateModule,
     NgApexchartsModule,
     FormsModule,
+    RouterModule,
   ],
   providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
   templateUrl: './dashboard-admin.component.html',

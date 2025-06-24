@@ -59,7 +59,11 @@
 <!-- Summary  -->
 <div class="row">
   <div class="col-4">
-    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+    <mat-card 
+      class="cardWithShadow bg-primary text-white overflow-hidden" 
+      [routerLink]="'/apps/team'" 
+      style="cursor: pointer;"
+    >
       <img
         src="assets/images/backgrounds/top-warning-shape.png"
         class="top-img"
@@ -75,7 +79,11 @@
     </mat-card>
   </div>
   <div class="col-4">
-    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+    <mat-card 
+      class="cardWithShadow bg-primary text-white overflow-hidden" 
+      [routerLink]="'/apps/todo'" 
+      style="cursor: pointer;"
+    >
       <img
         src="assets/images/backgrounds/top-error-shape.png"
         class="top-img"
@@ -91,7 +99,11 @@
     </mat-card>
   </div>
   <div class="col-4">
-    <mat-card class="cardWithShadow bg-primary text-white overflow-hidden">
+    <mat-card 
+      class="cardWithShadow bg-primary text-white overflow-hidden" 
+      [routerLink]="'/dashboards/productivity'" 
+      style="cursor: pointer;"
+    >
       <img src="assets/images/backgrounds/top-info-shape.png" class="top-img" />
       <mat-card-content>
         <div class="m-t-30 p-t-10 text-center">
