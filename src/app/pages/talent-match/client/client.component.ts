@@ -37,7 +37,7 @@ import moment from 'moment';
     HighlightLineNumbers,
     MaterialModule,
     TablerIconsModule,
-    FormsModule
+    FormsModule,
   ],
   templateUrl: './client.component.html',
 })
@@ -55,7 +55,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     'availability',
     'resume',
     'interview',
-    'actions'
+    'actions',
   ];
   dataSource!: MatTableDataSource<any>;
   selection = new SelectionModel<any>(true, []);
@@ -68,7 +68,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
-    private interviewsService: InterviewsService,
+    private interviewsService: InterviewsService
   ) {}
 
   ngOnInit(): void {
@@ -79,7 +79,9 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   getInterviewDateTime(applicationId: number) {
-    const interview = this.interviews.find(interview => interview.application_id === applicationId);
+    const interview = this.interviews.find(
+      (interview) => interview.application_id === applicationId
+    );
     if (interview) {
       return interview.date_time;
     }
@@ -103,21 +105,23 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  openDialog(action: string, row?:any): void {
-    if(row && !this.selection.isSelected(row)) {
-      this.selection.toggle(row)
-    };
+  openDialog(action: string, row?: any): void {
+    if (row && !this.selection.isSelected(row)) {
+      this.selection.toggle(row);
+    }
     let interview = null;
-    if(action === 'Reeschedule' && row) {
-      interview = this.interviews.find(interview => interview.application_id === row.id)
+    if (action === 'Reeschedule' && row) {
+      interview = this.interviews.find(
+        (interview) => interview.application_id === row.id
+      );
     }
     const dialogRef = this.dialog.open(AppInterviewDialogContentComponent, {
-      data: { 
+      data: {
         action,
         date_time: interview?.date_time || null,
         interviewId: interview?.id || null,
-        selected: this.selection.selected, 
-        companyId: this.companyId 
+        selected: this.selection.selected,
+        companyId: this.companyId,
       },
       autoFocus: false,
     });
@@ -129,7 +133,9 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   cancelInterview(applicationId: number) {
-    const interview = this.interviews.find(interview => interview.application_id === applicationId);
+    const interview = this.interviews.find(
+      (interview) => interview.application_id === applicationId
+    );
     this.interviewsService.cancel(interview.id).subscribe({
       next: (response: any) => {
         this.getInterviews();
@@ -149,8 +155,43 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
-        this.dataSource = new MatTableDataSource(applications);
-        if(applications.find((app: any) => app.status_id === 1)) {
+        // Get today and normalize to 00:00:00
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get current day of week
+        const dayOfWeek = today.getDay();
+
+        // Calculate the Monday of the current week
+        // If today is Sunday (0), go back 6 days; else, go back (dayOfWeek - 1)
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+        monday.setHours(0, 0, 0, 0);
+
+        // Calculate the Friday of the current week
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
+        friday.setHours(0, 0, 0, 0);
+
+        let filteredApplications: any[] = [];
+        // Only show applications if today is Monday to Friday
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+          // 1=Monday, ..., 5=Friday
+          filteredApplications = applications.filter((app: any) => {
+            if (!app.submission_date) return false;
+            const submission = new Date(app.submission_date);
+            submission.setHours(0, 0, 0, 0);
+            // Show only if submission_date is between monday and friday of this week (inclusive)
+            return submission >= monday && submission <= friday;
+          });
+        } else {
+          // Saturday or Sunday: show nothing
+          filteredApplications = [];
+        }
+
+        this.dataSource = new MatTableDataSource(filteredApplications);
+
+        if (filteredApplications.find((app: any) => app.status_id === 1)) {
           this.applicationsService.markAsSeen().subscribe();
         }
       },
@@ -177,8 +218,8 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   downloadFile(url: string, filename: string) {
     fetch(this.resumesUrl + '/' + url)
-      .then(response => response.blob())
-      .then(blob => {
+      .then((response) => response.blob())
+      .then((blob) => {
         const link = document.createElement('a');
         link.href = window.URL.createObjectURL(blob);
         link.download = filename + '.pdf';
@@ -238,7 +279,6 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 }
 
-
 // Interview modal component
 @Component({
   selector: 'app-dialog-content',
@@ -257,13 +297,31 @@ export class AppInterviewDialogContentComponent {
   interviewForm: FormGroup;
   interviewScheduled = false;
   availableDaysFilter = (d: Date | null): boolean => {
-    const day = (d || new Date()).getDay();
-    // Allow only future dates
-    if (!d || d < new Date()) {
-      return false;
-    }
-    // Allow only wednesdays and thursdays
-    return day === 3 || day === 4;
+    if (!d) return false;
+
+    // Get today and normalize to 00:00:00
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate the Monday of the current week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - today.getDay() + 1);
+
+    // Calculate the Sunday of the current week
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    // Normalize the selected date
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+
+    // Only allow Wednesday and Thursday of the current week, and not before today
+    const day = date.getDay();
+    const isThisWeek = date >= monday && date <= sunday;
+    const isWedOrThu = day === 3 || day === 4;
+    const isTodayOrFuture = date >= today;
+
+    return isThisWeek && isWedOrThu && isTodayOrFuture;
   };
 
   constructor(
@@ -278,14 +336,14 @@ export class AppInterviewDialogContentComponent {
     this.local_data = data;
     this.interviewForm = this.fb.group({
       date: [null, Validators.required],
-      time: [null, Validators.required]
+      time: [null, Validators.required],
     });
     const m = moment(this.local_data.date_time).local();
-    if(this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
+    if (this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
       this.interviewForm.patchValue({
         date: m.toDate(),
-        time: m.format('HH:mm')
-      })
+        time: m.format('HH:mm'),
+      });
     }
   }
 
@@ -304,9 +362,9 @@ export class AppInterviewDialogContentComponent {
       const data = {
         date_time,
         applicants,
-        company_id
+        company_id,
       };
-      if(this.local_data.action === 'Schedule') {
+      if (this.local_data.action === 'Schedule') {
         this.interviewsService.post(data).subscribe({
           next: (response: any) => {
             this.interviewScheduled = true;
@@ -317,18 +375,19 @@ export class AppInterviewDialogContentComponent {
             this.dialogRef.close({ event: 'Cancel' });
           },
         });
-      }
-      else if (this.local_data.action === 'Reeschedule') {
-        this.interviewsService.put(data, this.local_data.interviewId).subscribe({
-          next: (response: any) => {
-            this.interviewScheduled = true;
-          },
-          error: (err: any) => {
-            console.error('Error reescheduling interview:', err);
-            this.openSnackBar('Error reescheduling interview', 'Close');
-            this.dialogRef.close({ event: 'Cancel' });
-          },
-        });
+      } else if (this.local_data.action === 'Reeschedule') {
+        this.interviewsService
+          .put(data, this.local_data.interviewId)
+          .subscribe({
+            next: (response: any) => {
+              this.interviewScheduled = true;
+            },
+            error: (err: any) => {
+              console.error('Error reescheduling interview:', err);
+              this.openSnackBar('Error reescheduling interview', 'Close');
+              this.dialogRef.close({ event: 'Cancel' });
+            },
+          });
       }
     }
   }
