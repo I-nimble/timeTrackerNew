@@ -6,6 +6,7 @@ import {
   OnChanges,
   Output,
   EventEmitter,
+  CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
 import { NavItem } from './nav-item';
 import { Router } from '@angular/router';
@@ -21,10 +22,13 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { BadgeStyle } from '@cometchat/chat-uikit-angular';
+import { UnreadCountComponent } from 'src/app/components/unread-count/unread-count.component';
 
 @Component({
   selector: 'app-nav-item',
-  imports: [TranslateModule, TablerIconsModule, MaterialModule, CommonModule],
+  standalone: true,
+  imports: [TranslateModule, TablerIconsModule, MaterialModule, CommonModule, UnreadCountComponent],
   templateUrl: './nav-item.component.html',
   styleUrls: [],
   animations: [
@@ -37,19 +41,29 @@ import { CommonModule } from '@angular/common';
       ),
     ]),
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppNavItemComponent implements OnChanges {
   @Output() toggleMobileLink: any = new EventEmitter<void>();
   @Output() notify: EventEmitter<boolean> = new EventEmitter<boolean>();
-
+  badgeStyle:BadgeStyle = new BadgeStyle({
+    width:"36px",
+    height:"36px",
+    textFont:"400 13px Inter",
+    textColor:"black"
+  })
   expanded: any = false;
   disabled: any = false;
   twoLines: any = false;
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   @Input() item: NavItem | any;
   @Input() depth: any;
+  unreadMessageCount: number = 0;
 
-  constructor(public navService: NavService, public router: Router) {
+  constructor(
+    public navService: NavService, 
+    public router: Router
+  ) {
     if (this.depth === undefined) {
       this.depth = 0;
     }
