@@ -63,8 +63,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   selection = new SelectionModel<any>(true, []);
   applicationsData: any[] = [];
   interviews: any[] = [];
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/photos';
-  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/resumes';
+  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
+  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
 
