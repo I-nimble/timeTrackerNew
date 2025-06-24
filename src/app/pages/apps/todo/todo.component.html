@@ -196,7 +196,9 @@
                       <label *ngIf="userRole !== '2'">
                         {{ toDoArray[i].goal }}
                       </label>
-
+                      <p *ngIf="userRole !== '2' && toDoArray[i].user">
+                        To Do: {{ toDoArray[i].user?.name }} {{ toDoArray[i].user?.last_name }}
+                      </p>
                       <mat-form-field appearance="outline" class="w-100 mt-2" *ngIf="toDoArray[i]?.recommendations">
                         <mat-label>Recommendations</mat-label>
                         <textarea matInput rows="2" [readonly]="true" tabindex="-1"
