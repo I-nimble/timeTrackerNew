@@ -100,5 +100,5 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" class="bg-error text-white">Cancel</button>
-  <button mat-flat-button color="primary" (click)="onSubmit()">Save</button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="!isCreationAllowed">Save</button>
 </mat-dialog-actions>
