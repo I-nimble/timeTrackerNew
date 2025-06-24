@@ -47,7 +47,7 @@ export class AppProductivityReportsComponent {
     'workedHours',
     'completedTasks',
     'totalTasks',
-    'average',
+    'productivityPercentage',
   ];
   dataSource: any[] = [];
   startDate: any = '';
@@ -112,11 +112,11 @@ export class AppProductivityReportsComponent {
           // First set basic user data without profile pictures
           this.dataSource = data.ratings.map((employee: any) => {
             const completedTasks = Number(employee.completed) || 0;
-            const totalTasks = Number(employee.TotalTasks) || 0;
+            const totalTasks = Number(employee.totalTasks) || 0; // Use lowercase property
             const workedHours = Number(employee.workedHours) || 0;
 
-            const average =
-              completedTasks > 0 ? workedHours / completedTasks : 0;
+            const productivityPercentage =
+              totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
             return {
               profile: {
@@ -132,7 +132,7 @@ export class AppProductivityReportsComponent {
               workedHours: employee.workedHours,
               hoursLeft: employee.hoursLeft,
               progress: employee.status === 'Online' ? 'success' : 'error',
-              average: average,
+              productivityPercentage: productivityPercentage,
             };
           });
 

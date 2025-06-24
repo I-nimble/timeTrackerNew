@@ -112,7 +112,11 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
     this.totalTasks = ratings.reduce((sum, emp) => sum + (emp.totalTasks ?? 0), 0);
     this.productivityPercentage = this.totalTasks > 0 ? (this.completed / this.totalTasks) * 100 : 0;
     this.tasksLeft = this.totalTasks - this.completed;
-    this.trafficChart.series = [this.completed, this.tasksLeft];
+    if (this.completed === 0 && this.totalTasks === 0) {
+      this.trafficChart.series = [0, 1];
+    } else {
+      this.trafficChart.series = [this.completed, this.tasksLeft];
+    }
   }
 
 }

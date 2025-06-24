@@ -197,12 +197,21 @@
                         {{ toDoArray[i].goal }}
                       </label>
 
+                      <mat-form-field appearance="outline" class="w-100 mt-2" *ngIf="toDoArray[i]?.recommendations">
+                        <mat-label>Recommendations</mat-label>
+                        <textarea matInput rows="2" [readonly]="true" tabindex="-1"
+                          class="recommendations-textarea"
+                          [value]="toDoArray[i].recommendations?.trim()"></textarea>
+                      </mat-form-field>
+                      <div style="height: 1rem;"></div>
+
                       <mat-form-field appearance="outline" class="w-100" *ngIf="goal.get('achieved')?.value">
                         <mat-label>Description</mat-label>
                         <textarea placeholder="Describe the activity performed and the achievements obtained" matInput
                           rows="2" formControlName="details">
                         </textarea>
                       </mat-form-field>
+
 
                       <p class="m-t-10 f-s-14">
                         @switch(goal.value.priority) {
