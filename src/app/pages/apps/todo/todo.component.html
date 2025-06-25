@@ -185,18 +185,25 @@
                         color="primary" 
                         formControlName="achieved"
                         (change)="onAchievedChange(i)">
-                        <span class="f-s-16 f-w-500" [ngClass]="{ completed: toDoArray[i].achieved }">{{
-                          toDoArray[i].goal }}</span>
+                        <span class="f-s-16 f-w-500" [ngClass]="{ completed: toDoArray[i].achieved }">
+                          {{ toDoArray[i].goal }}
+                        </span>
                       </mat-checkbox>
                       <label *ngIf="userRole !== '2'">
                         {{ toDoArray[i].goal }}
                       </label>
 
+                      <div style="margin-bottom: 0.5rem;"></div>
+
                       <mat-form-field appearance="outline" class="w-100" *ngIf="goal.get('achieved')?.value">
                         <mat-label>Description</mat-label>
-                        <textarea placeholder="Describe the activity performed and the achievements obtained" matInput
-                          rows="2" formControlName="details">
-                        </textarea>
+                        <textarea
+                          placeholder="Describe the activity performed and the achievements obtained"
+                          matInput
+                          rows="2"
+                          formControlName="details"
+                          [readonly]="goal.value.wasAchieved"
+                        ></textarea>
                       </mat-form-field>
 
                       <p class="m-t-10 f-s-14">
