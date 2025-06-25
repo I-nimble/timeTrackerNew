@@ -4,10 +4,11 @@ import { RouterModule } from '@angular/router';
 import { Router, NavigationEnd, ActivatedRoute, Data } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { GoBackComponent } from '../../../../components/go-back/go-back.component';
 
 @Component({
   selector: 'app-breadcrumb',
-  imports: [RouterModule, TablerIconsModule],
+  imports: [RouterModule, TablerIconsModule, GoBackComponent],
   templateUrl: './breadcrumb.component.html',
   styleUrls: [],
 })
