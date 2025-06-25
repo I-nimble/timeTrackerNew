@@ -28,6 +28,7 @@ import { HrOperationsComponent } from './chat/hr-operations/hr-operations.compon
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { TeamComponent } from './team/team.component';
+import { HistoryComponent } from './history/history.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -330,6 +331,17 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Account Settings' },
+          ],
+        },
+      },
+      {
+        path: 'history',
+        component: HistoryComponent,
+        data: {
+          title: 'History',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'History' },
           ],
         },
       },
