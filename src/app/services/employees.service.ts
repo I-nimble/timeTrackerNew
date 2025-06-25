@@ -60,4 +60,8 @@ export class EmployeesService {
     if (file) formData.append('profile', file);
     return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
   }
+
+  public getLocations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/locations`);
+  }
 }
