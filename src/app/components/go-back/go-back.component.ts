@@ -1,11 +1,12 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { SharedModule } from '../shared.module';
-import { Location, LocationStrategy } from '@angular/common';
+import { Component } from '@angular/core';
+import { Location } from '@angular/common';
+import { MaterialModule } from '../../material.module';
 
 @Component({
   selector: 'app-go-back',
   templateUrl: './go-back.component.html',
   styleUrl: './go-back.component.scss',
+  imports: [MaterialModule],
 })
 export class GoBackComponent {
 
