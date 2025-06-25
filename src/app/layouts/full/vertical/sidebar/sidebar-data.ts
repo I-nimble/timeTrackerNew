@@ -143,11 +143,17 @@ export function getNavItems(role: number): NavItem[] {
     route: '/apps/todo',
   },
   {
-    displayName: 'Storage',
+    displayName: 'History',
     iconName: 'packages',
     bgcolor: 'primary',
-    route: 'apps/storage',
+    route: 'apps/history',
   },
+  // {
+  //   displayName: 'Storage',
+  //   iconName: 'packages',
+  //   bgcolor: 'primary',
+  //   route: 'apps/storage',
+  // },
   // {
   //   displayName: 'Blog',
   //   iconName: 'chart-donut-3',

@@ -10,20 +10,22 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { Employee } from 'src/app/pages/apps/employee/employee';
 import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
+import { AppHistoryTableComponent } from './history-table/history-table.component';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
+import { HistoryDetailsComponent } from './history-details/history-details.component';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, MaterialModule, AppEmployeeTableComponent, TablerIconsModule, EmployeeDetailsComponent],
+  imports: [CommonModule, MaterialModule, AppEmployeeTableComponent, AppHistoryTableComponent, TablerIconsModule, HistoryDetailsComponent, EmployeeDetailsComponent],
   templateUrl: './history.component.html',
   styleUrls: ['./history.component.scss']
 })
 export class HistoryComponent implements OnInit {
-  dataSource = new MatTableDataSource<Employee>([]);
+  dataSource = new MatTableDataSource<History>([]);
   loaded = false;
   userRole = localStorage.getItem('role');
   companies: any[] = [];

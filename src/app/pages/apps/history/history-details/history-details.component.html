@@ -1,0 +1,50 @@
+
+<mat-card class="cardWithShadow">
+    <mat-card-header>
+      <mat-card-title>Employee Details</mat-card-title>
+      <mat-card-subtitle>{{ user.name + ' ' + user.last_name }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="row">
+        <div class="col-lg-6">
+          <mat-card class="cardWithShadow">
+            <mat-card-header>
+              <mat-card-title>Weekly Hours</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <apx-chart
+                [series]="weeklyHoursChart.series"
+                [dataLabels]="weeklyHoursChart.dataLabels"
+                [chart]="weeklyHoursChart.chart"
+                [legend]="weeklyHoursChart.legend"
+                [colors]="weeklyHoursChart.colors"
+                [stroke]="weeklyHoursChart.stroke"
+                [tooltip]="weeklyHoursChart.tooltip"
+                [grid]="weeklyHoursChart.grid"
+                [plotOptions]="weeklyHoursChart.plotOptions"
+                [responsive]="weeklyHoursChart.responsive"
+                [xaxis]="weeklyHoursChart.xaxis" 
+                [yaxis]="weeklyHoursChart.yaxis"
+              ></apx-chart>
+            </mat-card-content>
+          </mat-card>
+        </div>
+  
+        <div class="col-lg-6">
+          <mat-card class="cardWithShadow">
+            <mat-card-header>
+              <mat-card-title>Daily Hours</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <apx-chart
+                [series]="dailyHoursChart.series"
+                [chart]="dailyHoursChart.chart"
+                [labels]="dailyHoursChart.labels"
+                [colors]="dailyHoursChart.colors"
+              ></apx-chart>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>

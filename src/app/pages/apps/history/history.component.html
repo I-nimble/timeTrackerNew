@@ -1,5 +1,5 @@
 <p>History works!</p>
-<div *ngIf="userRole !== '2'; else employeeReport">
+<div *ngIf="userRole !== '2'; else employeeHistory">
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="row justify-content-between gap-16">
@@ -25,10 +25,6 @@
           </mat-form-field>
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
-          <!-- add employee -->
-          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
-            Add Employee
-          </button>
         </div>
       </div>
     </mat-card-content>
@@ -36,12 +32,12 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive">
-        <app-employee-table></app-employee-table>
+        <app-history-table></app-history-table>
       </div>
     </mat-card-content>
   </mat-card>
 </div>
 
-<ng-template #employeeReport> 
-  <app-employee-details></app-employee-details>
+<ng-template #employeeHistory> 
+  <app-history-details></app-history-details>
 </ng-template>

@@ -158,6 +158,17 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
+      {
+        path: 'history',
+        component: HistoryComponent,
+        data: {
+          title: 'History',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'History' },
+          ],
+        },
+      },
             {
         path: 'talent-match',
         component: AppTalentMatchComponent,
@@ -331,17 +342,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Account Settings' },
-          ],
-        },
-      },
-      {
-        path: 'history',
-        component: HistoryComponent,
-        data: {
-          title: 'History',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'History' },
           ],
         },
       },
