@@ -447,23 +447,18 @@ export class AppTodoComponent implements OnInit {
         justification: toDo.details ? String(toDo.details) : null
       }));
 
-    if (!updatedToDoFormArray.length) {
-      this.openSnackBar('No new completed tasks to submit', 'Close');
-      return;
+    if(!this.toDoToEdit){
+      this.ratingsEntriesService.submit(updatedToDoFormArray).subscribe({
+        next: () => {
+          this.selectedCategory.set('uncomplete');
+          this.buildToDoForm();
+          this.calendar?.getToDos();
+        },
+        error: (res: any) => {
+          this.openSnackBar('There was an error submitting the goal', 'Close');
+        },
+      });
     }
-
-    console.log('Submitting:', updatedToDoFormArray);
-
-    this.ratingsEntriesService.submit(updatedToDoFormArray).subscribe({
-      next: () => {
-        this.selectedCategory.set('uncomplete');
-        this.buildToDoForm();
-        this.calendar?.getToDos();
-      },
-      error: (res: any) => {
-        this.openSnackBar('There was an error submitting the goal', 'Close');
-      },
-    });
   }
 
   onAchievedChange(index: number) {
