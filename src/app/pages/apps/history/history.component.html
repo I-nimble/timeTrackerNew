@@ -1,1 +1,47 @@
 <p>History works!</p>
+<div *ngIf="userRole !== '2'; else employeeReport">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row justify-content-between gap-16">
+        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Search Employee"
+              (keyup)="applyFilter($any($event.target).value)"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+            <mat-select (selectionChange)="handleCompanySelection($event)">
+              <mat-option *ngFor="let company of companies" [value]="company.id">
+                {{ company.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+          <!-- add employee -->
+          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
+            Add Employee
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="table-responsive">
+        <app-employee-table></app-employee-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ng-template #employeeReport> 
+  <app-employee-details></app-employee-details>
+</ng-template>
