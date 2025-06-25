@@ -65,9 +65,11 @@ export class AppComponent implements OnInit, OnDestroy {
           );
         },
         onOutgoingCallRejected: (call:any) => {
+          this.cometChatService.outGoingCallObject = null;
           this.clearCall();
         },
         onIncomingCallCancelled: (call:any) => {
+          this.cometChatService.outGoingCallObject = null;
           this.clearCall();
         }
       })
