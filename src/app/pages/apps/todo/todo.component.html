@@ -230,7 +230,7 @@
                             (click)="editTodo(goal.value.rating_id)">
                             <i-tabler name="pencil" class="icon-18 d-flex"></i-tabler>
                           </button>
-                          <button *ngIf="userRole !== '2'" mat-icon-button class="d-flex justify-content-center" href="javascript: void(0);"
+                          <button *ngIf="userRole !== '2'" mat-icon-button type="button" class="d-flex justify-content-center" href="javascript: void(0);"
                             (click)="deleteTodo(goal.value.rating_id)">
                             <i-tabler name="trash" class="icon-18 d-flex"></i-tabler>
                           </button>
