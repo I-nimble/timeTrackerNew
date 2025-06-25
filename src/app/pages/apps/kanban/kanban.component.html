@@ -113,6 +113,7 @@
                   *ngFor="let task of column.tasks"
                   class="cardWithShadow img-task m-b-15 overflow-hidden mb-4 kanban-task-card"
                   cdkDrag
+                  (click)="openDialog('Edit', task)"
                 >
                   <div
                     class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
@@ -171,6 +172,11 @@
                     <span class="f-s-12 p-x-12 p-y-10 d-block">{{
                       task.recommendations
                     }}</span>
+                  </div>
+                  <div *ngIf="task.comments">
+                    <span class="f-s-12 p-x-12 p-y-10 d-block text-primary">
+                      <b>Comments:</b> {{ task.comments }}
+                    </span>
                   </div>
                   <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
                     <i-tabler name="user" class="icon-16 d-flex"></i-tabler>

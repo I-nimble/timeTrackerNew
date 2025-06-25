@@ -65,6 +65,7 @@ export class AppKanbanDialogComponent {
       this.local_data.imageUrl ||= '/assets/images/taskboard/kanban-img-1.jpg';
       this.getCompany();
     }
+    
   }
 
   getCompany() {
