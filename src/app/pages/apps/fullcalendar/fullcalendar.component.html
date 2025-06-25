@@ -141,6 +141,7 @@
         [refresh]="refresh"
         [activeDayIsOpen]="activeDayIsOpen()"
         (dayClicked)="dayClicked($event.day)"
+        (eventClicked)="handleEvent('Edit', $event.event)"
       >
       </mwl-calendar-month-view>
 
