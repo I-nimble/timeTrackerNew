@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -23,13 +23,14 @@ import moment from 'moment';
   ],
   templateUrl: './top-employees.component.html',
 })
-export class AppTopEmployeesComponent {
+export class AppTopEmployeesComponent implements OnInit, OnDestroy {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = ['profile', 'status'];
   dataSource: any[] = [];
   companyId: any;
   customColumns: string[] = ['name', 'status'];
   dateRange: any;
+  refreshInterval: any;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -41,6 +42,16 @@ export class AppTopEmployeesComponent {
   ngOnInit(): void {
     this.getCompany();
     this.getDataSource();
+
+    this.refreshInterval = setInterval(() => {
+      this.getDataSource();
+    }, 300000);
+  }
+
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   getCompany() {

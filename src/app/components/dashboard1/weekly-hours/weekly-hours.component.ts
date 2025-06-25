@@ -37,7 +37,7 @@ export interface paymentsChart {
   imports: [MaterialModule, NgApexchartsModule, TablerIconsModule],
   templateUrl: './weekly-hours.component.html',
 })
-export class AppWeeklyHoursComponent implements OnInit {
+export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public paymentsChart!: Partial<paymentsChart> | any;
   companyTimezone: string = 'UTC';
@@ -191,6 +191,17 @@ export class AppWeeklyHoursComponent implements OnInit {
       acc[date] = (acc[date] || 0) + duration;
       return acc;
     }, {});
+
+    // Sum up active entry hours  
+    const currentDay = moment().format('ddd');
+    const activeEntry = this.entries.find(
+      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && entry.status === 0
+    );
+    if (activeEntry) {
+      const startTime = moment(activeEntry.start_time);
+      const currentTime = moment();
+      workedHoursPerDay[currentDay] = (workedHoursPerDay[currentDay] || 0) + currentTime.diff(startTime, 'hours', true);
+    }
 
     // Calculate total scheduled hours per day for each day in each schedule
     const seenDaySchedule = new Set<string>();
