@@ -83,6 +83,7 @@ export class AppTodoComponent implements OnInit {
   toDoToEdit!: any;
   teamMembers: any[] = [];
   priorities: any[] = [];
+  filteredArray: any[] = [];
   loggedInUser: any;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
@@ -303,14 +304,14 @@ export class AppTodoComponent implements OnInit {
       this.ratingsService.get().subscribe({
         next: (array: any) => {
           const activeArray = (array || []).filter((task: any) => task.active);
-          this.toDoArray = activeArray;
-          const filteredArray = this.toDoArray.filter((todo: any) => {
+          this.toDoArray = array;
+           this.filteredArray = this.toDoArray.filter((todo: any) => {
             if (this.selectedCategory() === 'all') return true;
-            if (this.selectedCategory() === 'complete') return todo.achieved;
-            if (this.selectedCategory() === 'uncomplete') return !todo.achieved;
+            if (this.selectedCategory() === 'complete') return !todo.active;
+            if (this.selectedCategory() === 'uncomplete') return todo.active;
             return true;
           });
-          for (let toDo of filteredArray) {
+          for (let toDo of this.filteredArray) {
             let toDoField = this.fb.group({
               rating_id: [toDo.id],
               goal: [toDo.goal],
@@ -324,6 +325,7 @@ export class AppTodoComponent implements OnInit {
             });
             this.toDoFormArray.push(toDoField);
           }
+          
           this.updateCounts();
         },
         error: () => {
@@ -347,7 +349,7 @@ export class AppTodoComponent implements OnInit {
                 );
                 return;
               }
-              this.toDoArray = activeArray;
+              this.toDoArray = array;
 
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
@@ -365,16 +367,16 @@ export class AppTodoComponent implements OnInit {
                 }
               });
 
-              const filteredArray = this.toDoArray.filter((todo: any) => {
+               this.filteredArray = this.toDoArray.filter((todo: any) => {
                 if (this.selectedCategory() === 'all') return true;
                 if (this.selectedCategory() === 'complete')
-                  return todo.achieved;
+                  return !todo.active;
                 if (this.selectedCategory() === 'uncomplete')
-                  return !todo.achieved;
+                  return todo.active;
                 return true;
               });
 
-              for (let toDo of filteredArray) {
+              for (let toDo of this.filteredArray) {
                 let toDoField = this.fb.group({
                   rating_id: [toDo.id],
                   goal: [toDo.goal],
@@ -418,10 +420,10 @@ export class AppTodoComponent implements OnInit {
   updateCounts() {
     this.totalTodos.set(this.toDoArray.length);
     this.totalCompleted.set(
-      this.toDoArray.filter((todo: any) => todo.achieved).length
+      this.toDoArray.filter((todo: any) => !todo.active).length
     );
     this.totalIncomplete.set(
-      this.toDoArray.filter((todo: any) => !todo.achieved).length
+      this.toDoArray.filter((todo: any) => todo.active).length
     );
   }
 
