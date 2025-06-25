@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule, NgIf } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -41,7 +41,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   ],
   templateUrl: './app-employees-reports.component.html',
 })
-export class AppEmployeesReportsComponent {
+export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = [
     'profile',
@@ -62,6 +62,7 @@ export class AppEmployeesReportsComponent {
   selectedDepartment: string | null = null;
   departmentsList: string[] = [];
   filteredDataSource: any[] = [];
+  refreshInterval: any;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -81,6 +82,16 @@ export class AppEmployeesReportsComponent {
       this.getCompanies();
     }
     this.getDataSource();
+
+    this.refreshInterval = setInterval(() => {
+      this.getDataSource();
+    }, 300000);
+  }
+
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   getCompanies() {

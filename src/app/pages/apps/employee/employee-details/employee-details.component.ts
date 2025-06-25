@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import {
@@ -52,7 +52,7 @@ export type ChartOptions = {
   styleUrls: ['./employee-details.component.scss'],
   imports: [MatCardModule, NgApexchartsModule,MatIconModule],
 })
-export class EmployeeDetailsComponent implements OnInit {
+export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   userId: string | null = null;
   datesRange: any = {};
   filters: any = { user: { id: null }, company: 'all', project: 'all' };
@@ -63,6 +63,7 @@ export class EmployeeDetailsComponent implements OnInit {
   user: any;
   schedules: any = [];
   userRole: string | null = localStorage.getItem('role');
+  refreshInterval: any;
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -178,6 +179,17 @@ export class EmployeeDetailsComponent implements OnInit {
         return;
       }
     }
+
+    this.refreshInterval = setInterval(() => {
+      this.defaultWeek();
+      this.getDailyHours();
+    }, 300000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 
   private defaultWeek(): void {
@@ -188,7 +200,6 @@ export class EmployeeDetailsComponent implements OnInit {
 
   private getWeeklyHours(): void {
     const userParams = { id: this.userId };
-    
     
     this.reportsService.getRange(
       this.datesRange, 
@@ -203,13 +214,23 @@ export class EmployeeDetailsComponent implements OnInit {
 
   private processEntries(entries: any[]): void {
     // Calculate worked hours per day
-    
     const workedHoursPerDay = entries.reduce((acc, entry) => {
       const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
       const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
       acc[date] = (acc[date] || 0) + duration;
       return acc;
     }, {});
+
+    // Sum up the current day entry if it is active
+    const today = moment().format('ddd');
+    const activeEntry = this.entries.find(
+      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && entry.status === 0
+    );
+    if (activeEntry) {
+      const startTime = moment(activeEntry.start_time);
+      const currentTime = moment();
+      workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + currentTime.diff(startTime, 'hours', true);
+    }
     
     // Calculate total scheduled hours per day for each day in each schedule
     const seenDaySchedule = new Set<string>();
