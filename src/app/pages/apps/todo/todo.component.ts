@@ -356,8 +356,12 @@ export class AppTodoComponent implements OnInit {
                 );
                 if (entry) {
                   todo.achieved = entry.achieved;
+                  todo.justification = entry.justification;
+                  todo.details = entry.justification
                 } else {
                   todo.achieved = false;
+                  todo.justification = null;
+                  todo.details = null;
                 }
               });
 
@@ -375,12 +379,14 @@ export class AppTodoComponent implements OnInit {
                   rating_id: [toDo.id],
                   goal: [toDo.goal],
                   date: [this.selectedDateStr],
-                  achieved: [false, Validators.required],
+                  achieved: [toDo.achieved, Validators.required],
                   wasAchieved: [toDo.achieved],
                   is_numeric: [false],
                   due_date: [toDo.due_date || null],
                   priority: [toDo.priority || 3], // 3 = Normal
-                  details: [null, this.detailsRequiredValidator()],
+                  details: [toDo.details || null], // remove validator so it's not required for already completed
+                  justification: [toDo.justification || null],
+                  recommendations: [toDo.recommendations || null],
                 });
                 this.toDoFormArray.push(toDoField);
               }
@@ -429,12 +435,24 @@ export class AppTodoComponent implements OnInit {
       return;
     }
 
+    const userId = this.teamMemberId;
+    // Only submit tasks that are marked achieved and were not already achieved (i.e., just completed now)
     const updatedToDoFormArray = this.toDoFormArray.value
+      .filter((todo: any, idx: number) => todo.achieved && !this.toDoFormArray.at(idx).get('wasAchieved')?.value)
       .map((toDo: any) => ({
-        ...toDo,
-        user_id: this.toDoArray[0].employee_id,
-      }))
-      .filter((todo: any) => todo.achieved);
+        rating_id: Number(toDo.rating_id),
+        date: String(toDo.date),
+        achieved: toDo.achieved === true || toDo.achieved === 1,
+        user_id: Number(userId),
+        justification: toDo.details ? String(toDo.details) : null
+      }));
+
+    if (!updatedToDoFormArray.length) {
+      this.openSnackBar('No new completed tasks to submit', 'Close');
+      return;
+    }
+
+    console.log('Submitting:', updatedToDoFormArray);
 
     this.ratingsEntriesService.submit(updatedToDoFormArray).subscribe({
       next: () => {
