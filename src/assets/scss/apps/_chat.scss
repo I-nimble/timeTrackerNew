@@ -1,3 +1,15 @@
+#outgoingCall {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgb(84 84 84 / 49%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .chat-list {
   overflow: hidden;
   box-sizing: border-box;

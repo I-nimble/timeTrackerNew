@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef } from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, ChatConfigurator, CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
@@ -12,11 +12,10 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration } from '@cometchat/uikit-shared';
+import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration } from '@cometchat/uikit-shared';
 import { BackdropStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import { CometChatUIEvents, CometChatMessageTemplate, CometChatUIKitConstants, CometChatTheme } from "@cometchat/uikit-resources"
-
+import { CometChatUIEvents } from "@cometchat/uikit-resources"
 
 @Component({
   standalone: true,
@@ -39,8 +38,11 @@ export class AppChatComponent implements OnInit {
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
-  definedTemplates!: CometChatMessageTemplate[];
-
+  public contactsConfiguration: ContactsConfiguration = new ContactsConfiguration({
+    usersConfiguration: new UsersConfiguration({
+      hideSeparator: true
+    })
+  });
   
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -52,6 +54,29 @@ export class AppChatComponent implements OnInit {
   // PROFESSIONAL PLAN CONFIGURATION
   public professionalMessagesConfig: MessagesConfiguration;
 
+  @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
+  currentChatContext: any = null;
+
+  getButtonStyle() {
+    return {
+      height: '20px',
+      width: '20px',
+      border: 'none',
+      borderRadius: '0',
+      background: 'transparent',
+      padding: '0',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  }
+  getButtonIconStyle() {
+    return {
+      filter: 'invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%)'
+    };
+  }
+
   constructor(
     private themeService: CometChatThemeService,
     public chatService: CometChatService,
@@ -60,27 +85,7 @@ export class AppChatComponent implements OnInit {
     private dialog: MatDialog,
     private employeesService: EmployeesService
   ) { 
-    const component = this; 
-    this.definedTemplates = [
-      new CometChatMessageTemplate({
-        type: "text",
-        category: CometChatUIKitConstants.MessageCategory.message,
-        options: (
-          loggedInUser: CometChat.User,
-          message: CometChat.BaseMessage,
-          theme: CometChatTheme,
-          group?: CometChat.Group
-        ) => {
-          const defaultOptions = ChatConfigurator.getDataSource().getMessageOptions(
-            loggedInUser,
-            message,
-            theme,
-            group
-          );
-          return defaultOptions.filter((option: any) => option.id !== 'react');
-        }
-      })
-    ];
+    const component = this;
 
     this.professionalMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true
@@ -89,12 +94,14 @@ export class AppChatComponent implements OnInit {
     this.essentialMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
-        // disableReactions: true,
-        templates: this.definedTemplates
+        disableReactions: true,
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
-      })
+      }),
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: this.customMenu
+      }),
     })
 
     this.basicMessagesConfig = new MessagesConfiguration({ 
@@ -103,8 +110,7 @@ export class AppChatComponent implements OnInit {
       }),
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
-        // disableReactions: true,
-        templates: this.definedTemplates
+        disableReactions: true,
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -142,12 +148,12 @@ export class AppChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
+      this.currentChatContext = event;
       if (event.group) {
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
-            // disableReactions: true,
-            templates: this.definedTemplates
+            disableReactions: true,
           }),
           messageHeaderConfiguration: new MessageHeaderConfiguration({
             menu: [] // Hide call buttons for groups
@@ -160,12 +166,14 @@ export class AppChatComponent implements OnInit {
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
-            // disableReactions: true,
-            templates: this.definedTemplates
+            disableReactions: true,
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
-          })
+          }),
+          messageHeaderConfiguration: new MessageHeaderConfiguration({
+            menu: this.customMenu
+          }),
         })
       }
     });
@@ -189,6 +197,64 @@ export class AppChatComponent implements OnInit {
     }
     this.configureTheme();
     this.observeAppTheme();
+  }
+
+  startVoiceCall() {
+    const context = this.currentChatContext;
+    if (context.user) {
+      const receiverID = context.user.uid;
+      const callType = CometChat.CALL_TYPE.AUDIO;
+      const receiverType = CometChat.RECEIVER_TYPE.USER;
+      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
+      CometChat.initiateCall(this.chatService.callObject).then(
+        (call: any) => {
+          this.chatService.outGoingCallObject = call;
+          this.chatService.callObject = call;
+        },
+        (error: any) => console.error("Voice call initiation failed:", error)
+      );
+    } else if (context.group) {
+      const receiverID = context.group.guid;
+      const callType = CometChat.CALL_TYPE.AUDIO;
+      const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
+      CometChat.initiateCall(this.chatService.callObject).then(
+        (call: any) => {
+          this.chatService.outGoingCallObject = call;
+          this.chatService.callObject = call;
+        },
+        (error: any) => console.error("Group voice call initiation failed:", error)
+      );
+    }
+  }
+
+  startVideoCall() {
+    const context = this.currentChatContext;
+    if (context.user) {
+      const receiverID = context.user.uid;
+      const callType = CometChat.CALL_TYPE.VIDEO;
+      const receiverType = CometChat.RECEIVER_TYPE.USER;
+      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
+      CometChat.initiateCall(this.chatService.callObject).then(
+        (call: any) => {
+          this.chatService.outGoingCallObject = call;
+          this.chatService.callObject = call;
+        },
+        (error: any) => console.error("Video call initiation failed:", error)
+      );
+    } else if (context.group) {
+      const receiverID = context.group.guid;
+      const callType = CometChat.CALL_TYPE.VIDEO;
+      const receiverType = CometChat.RECEIVER_TYPE.GROUP;
+      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
+      CometChat.initiateCall(this.chatService.callObject).then(
+        (call: any) => {
+          this.chatService.outGoingCallObject = call;
+          this.chatService.callObject = call;
+        },
+        (error: any) => console.error("Group video call initiation failed:", error)
+      );
+    }
   }
 
   openDialog(): void {
