@@ -44,7 +44,6 @@ export class AppProductivityReportsComponent {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = [
     'profile',
-    'workedHours',
     'completedTasks',
     'totalTasks',
     'productivityPercentage',
