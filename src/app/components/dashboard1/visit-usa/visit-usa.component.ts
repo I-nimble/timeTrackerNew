@@ -41,7 +41,7 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateLocationTimes();
       this.initMap();
 
-      this.timer = setInterval(() => this.updateLocationTimes(), 1000);
+      this.timer = setInterval(() => this.updateLocationTimes(), 60000);
     });
   }
 
@@ -122,7 +122,7 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   getLocalTime(latitude: string, longitude: string): string {
     const lng = parseFloat(longitude);
     
-    const timeZoneOffset = Math.round(lng / 15);
+    const timeZoneOffset = Math.ceil(lng / 15);
     const now = new Date();
     
     now.setHours(now.getUTCHours() + timeZoneOffset);
