@@ -47,8 +47,6 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     'profile',
     'workedHours',
     'completedTasks',
-    'status',
-    'reports',
   ];
   dataSource: any[] = [];
   startDate: any = '';
