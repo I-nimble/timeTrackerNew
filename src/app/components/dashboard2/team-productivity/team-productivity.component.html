@@ -18,6 +18,9 @@
           [labels]="trafficChart.labels"
           [stroke]="trafficChart.stroke"
         ></apx-chart>
+        <div class="donut-center-label" *ngIf="isChartLoaded">
+          <h2>{{ productivityPercentage | number:'1.2-2' }}%</h2>
+        </div>
         <span class="f-s-14">Productivity percentage: {{ productivityPercentage | number:'1.2-2' }}% </span>
       </div>
       <div class="col-lg-12">

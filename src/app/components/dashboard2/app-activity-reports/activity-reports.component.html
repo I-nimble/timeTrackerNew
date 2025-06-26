@@ -18,6 +18,9 @@
           [labels]="trafficChart.labels"
           [stroke]="trafficChart.stroke"
         ></apx-chart>
+        <div class="donut-center-label" *ngIf="isChartLoaded">
+          <h2>{{ hoursWorked }}</h2>
+        </div>
       </div>
       <div class="col-lg-12">
         <div class="m-t-30">

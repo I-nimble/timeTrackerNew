@@ -12,7 +12,7 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgIf } from '@angular/common';
 
 export interface trafficChart {
   series: ApexAxisChartSeries;
@@ -26,8 +26,9 @@ export interface trafficChart {
 @Component({
   selector: 'team-productivity',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe],
+  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe, NgIf],
   templateUrl: './team-productivity.component.html',
+  styleUrls: ['./team-productivity.component.scss'],
 })
 export class TeamProductivityComponent implements OnInit, OnChanges {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
@@ -40,6 +41,7 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
   totalTasks: number = 0;
   tasksLeft: number = 0;
   productivityPercentage: number = 0;
+  isChartLoaded: boolean = false;
 
   constructor() {
     this.trafficChart = {
@@ -67,15 +69,14 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
             labels: {
               show: true,
               name: {
-                show: true,
-                fontSize: '18px',
-                color: undefined,
-                offsetY: 5,
+                show: false, 
               },
               value: {
-                show: false,
-                color: '#98aab4',
+                show: false, 
               },
+              total: {
+                show: false 
+              }
             },
           },
         },
@@ -101,6 +102,9 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.updateWorkedAndLeftFromRatings(this.dataSource);
+    setTimeout(() => {
+      this.isChartLoaded = true;
+    }, 700);
   }
 
   ngOnChanges() {

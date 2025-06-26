@@ -12,7 +12,7 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgIf } from '@angular/common';
 
 export interface trafficChart {
   series: ApexAxisChartSeries;
@@ -26,8 +26,9 @@ export interface trafficChart {
 @Component({
   selector: 'app-activity-reports',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe],
+  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe, NgIf],
   templateUrl: './activity-reports.component.html',
+  styleUrls: ['./activity-reports.component.scss'],
 })
 export class AppActivityReportsComponent implements OnInit, OnChanges {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
@@ -38,6 +39,7 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
   totalHours: number = 0;
   hoursWorked: number = 0;
   hoursLeft: number = 0;
+  isChartLoaded: boolean = false;
 
   constructor() {
     this.trafficChart = {
@@ -65,15 +67,14 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
             labels: {
               show: true,
               name: {
-                show: true,
-                fontSize: '18px',
-                color: undefined,
-                offsetY: 5,
+                show: false, 
               },
               value: {
-                show: false,
-                color: '#98aab4',
+                show: false, 
               },
+              total: {
+                show: false 
+              }
             },
           },
         },
@@ -99,6 +100,9 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.updateWorkedAndLeftFromRatings(this.dataSource);
+    setTimeout(() => {
+      this.isChartLoaded = true;
+    }, 700);
   }
 
   ngOnChanges() {
