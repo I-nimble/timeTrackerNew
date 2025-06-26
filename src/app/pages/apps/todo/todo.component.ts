@@ -85,6 +85,7 @@ export class AppTodoComponent implements OnInit {
   priorities: any[] = [];
   filteredArray: any[] = [];
   loggedInUser: any;
+  isLoading: boolean = true;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
   newTaskForm: FormGroup = this.fb.group(
@@ -294,6 +295,7 @@ export class AppTodoComponent implements OnInit {
   }
 
   async buildToDoForm() {
+    this.isLoading = true;
     this.toDoFormArray.clear();
 
     if (
@@ -327,9 +329,11 @@ export class AppTodoComponent implements OnInit {
           }
           
           this.updateCounts();
+          this.isLoading = false;
         },
         error: () => {
           this.openSnackBar('Error loading To Do', 'Close');
+          this.isLoading = false;
         },
       });
       return;
@@ -393,11 +397,13 @@ export class AppTodoComponent implements OnInit {
                 this.toDoFormArray.push(toDoField);
               }
               this.updateCounts();
+              this.isLoading = false;
             },
           });
       },
       error: () => {
         this.openSnackBar('Error loading To Do', 'Close');
+        this.isLoading = false;
       },
     });
   }
