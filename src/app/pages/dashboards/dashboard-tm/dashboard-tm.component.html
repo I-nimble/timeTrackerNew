@@ -23,7 +23,9 @@
                 <img
                   [src]="picture"
                   alt="{{ user.name }} {{ user.last_name }}"
-                  class="w-100 h-100"
+                  width="100"
+                  height="100"
+                  style="object-fit: cover;"
                 />
               </div>
             </div>
@@ -100,11 +102,12 @@
         <div class="col-4" *ngIf="employer">
           <div style="display: flex; justify-content: center">
             <img
-              [src]="employer.picture || picture"
+              [src]="companyLogo || 'assets/images/default-logo.jpg'"
               [alt]="employer.name"
               width="100"
               height="100"
               class="rounded-circle"
+              style="object-fit: contain;"
             />
           </div>
           <p class="text-center tm fw-bold">
@@ -115,11 +118,12 @@
         <div class="col-4" *ngFor="let employee of employees">
           <div style="display: flex; justify-content: center">
             <img
-              [src]="employee.user.picture || picture"
+              [src]="employee.user.picture || 'assets/images/default-user-profile-pic.png'"
               [alt]="employee.user.name"
               width="100"
               height="100"
               class="rounded-circle"
+              style="object-fit: cover;"
             />
           </div>
           <p class="text-center tm">
