@@ -26,6 +26,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { UsersService } from 'src/app/services/users.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -85,7 +86,10 @@ export class FullComponent implements OnInit {
   navItems = getNavItems(this.role);
   company: any;
   userName:any;
+  userId:any;
   companyLogo:any = 'assets/images/default-logo.jpg';
+  profilePicture:any = 'assets/images/default-user-profile-pic.png';
+  assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -218,6 +222,7 @@ export class FullComponent implements OnInit {
     private navService: NavService,
     private authService: AuthService,
     private companieService: CompaniesService,
+    private usersService: UsersService,
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -307,6 +312,7 @@ export class FullComponent implements OnInit {
 
   userData(){
     this.userName = localStorage.getItem('username');
+    this.userId = localStorage.getItem('id');
     const role = localStorage.getItem('role');
     if(role == '3'){
       this.companieService.getByOwner().subscribe((company: any) => {
@@ -314,7 +320,17 @@ export class FullComponent implements OnInit {
         this.loadCompanyLogo(company.company_id);
       });
     }
-    
+    else {
+      this.loadProfilePicture();
+    }
+  }
+
+  loadProfilePicture() {
+    this.usersService.getProfilePic(this.userId).subscribe({
+      next: (image: any) => {
+        this.profilePicture = image;
+      },
+    });
   }
 
   loadCompanyLogo(companyId: number) {

@@ -396,7 +396,13 @@
   >
     <div class="d-flex align-items-center gap-12">
       <img
-      [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+        *ngIf="role === '3'"
+        [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+        class="shadow rounded-circle logo"
+      />
+      <img
+        *ngIf="role !== '3'"
+        [src]="profilePicture ? profilePicture : assetsPath + '/images/default-user-profile-pic.png'"
         class="shadow rounded-circle logo"
       />
       <div class="d-none d-lg-flex text-left flex-col">
@@ -416,7 +422,14 @@
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
           <img
-          [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+            *ngIf="role === '3'"
+            [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+            class="shadow rounded-circle logo"
+            style="width:95px; height:95px;"
+          />
+          <img
+            *ngIf="role !== '3'"
+            [src]="profilePicture ? profilePicture : assetsPath + '/images/default-user-profile-pic.png'"
             class="shadow rounded-circle logo"
             style="width:95px; height:95px;"
           />
