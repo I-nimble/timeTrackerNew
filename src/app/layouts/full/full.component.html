@@ -41,7 +41,13 @@
       <div class="p-24 m-t-auto profile-bar">
         <div class="bg-light-primary d-flex align-items-center rounded p-16">
           <img
-          [src]="companyLogo"
+            *ngIf="role === '3'"
+            [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+            class="shadow rounded-circle logo"
+          />
+          <img
+            *ngIf="role !== '3'"
+            [src]="profilePicture ? profilePicture : assetsPath + '/images/default-user-profile-pic.png'"
             class="shadow rounded-circle logo"
           />
           <div class="m-l-16">

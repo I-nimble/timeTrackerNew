@@ -23,6 +23,7 @@ import { environment } from 'src/environments/environment';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { Router } from '@angular/router';
 
@@ -78,7 +79,9 @@ export class HeaderComponent implements OnInit {
   isCollapse: boolean = false; // Initially hidden
   company: any;
   userName: any;
+  userId: any;
   companyLogo: any = 'assets/images/default-logo.jpg';
+  profilePicture: any = 'assets/images/default-user-profile-pic.png';
   userEmail: any;
   assetsPath: string = environment.assets;
   applications: any[] = [];
@@ -136,7 +139,8 @@ export class HeaderComponent implements OnInit {
     private authService: AuthService,
     public notificationsService: NotificationsService,
     public webSocketService: WebSocketService,
-    private router: Router
+    private router: Router,
+    private usersService: UsersService
   ) {
     translate.setDefaultLang('en');
   }
@@ -166,6 +170,7 @@ export class HeaderComponent implements OnInit {
   }
 
   getUserData() {
+    this.userId = localStorage.getItem('id');
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
@@ -174,6 +179,9 @@ export class HeaderComponent implements OnInit {
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
       });
+    }
+    else {
+      this.loadProfilePicture();
     }
   }
 
@@ -184,6 +192,14 @@ export class HeaderComponent implements OnInit {
         .subscribe((logo) => {
           if (logo != null) this.companyLogo = logo;
         });
+    });
+  }
+
+  loadProfilePicture() {
+    this.usersService.getProfilePic(this.userId).subscribe({
+      next: (image: any) => {
+        this.profilePicture = image;
+      },
     });
   }
 

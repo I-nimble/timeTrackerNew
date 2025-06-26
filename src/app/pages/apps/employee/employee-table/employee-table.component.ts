@@ -175,7 +175,7 @@ export class AppEmployeeTableComponent {
                   projects: user.projects.map((project: any) => project.id),
                   schedule: 'No registered schedule',
                   Salary: 0,
-                  imagePath: this.assetsPath + '/default-profile-pic.png',
+                  imagePath: null,
                 };
               }
               
@@ -198,11 +198,10 @@ export class AppEmployeeTableComponent {
                 projects: user.projects.map((project: any) => project.id),
                 schedule: scheduleString,
                 Salary: 0, 
-                imagePath: this.assetsPath + '/default-profile-pic.png',
+                imagePath: null,
               };
             });
-            this.dataSource.data = this.users;
-            this.loaded = true;
+            this.getUsersPictures();
           },
           error: (err) => {
             console.error('Error fetching schedules:', err);
@@ -213,6 +212,20 @@ export class AppEmployeeTableComponent {
         console.error('Error fetching employees:', err);
       },
     });
+  }
+
+  getUsersPictures() {
+    this.users.forEach((user: any) => {
+      this.userService.getProfilePic(user.id).subscribe({
+        next: (image: any) => {
+          if(image) {
+            user.imagePath = image;
+          }
+        }
+      });
+    });
+    this.dataSource.data = this.users;
+    this.loaded = true;
   }
 
   // Helper function to format days as a range "Monday to Friday"

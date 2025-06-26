@@ -22,8 +22,10 @@
               <div class="d-flex align-items-center gap-16">
                 <img
                   class="rounded-circle"
-                  [src]="element.imagePath"
+                  [src]="element.imagePath ? element.imagePath : 'assets/images/default-user-profile-pic.png'"
                   width="45"
+                  height="45"
+                  style="object-fit: cover;"
                 />
                 <div>
                   <a
