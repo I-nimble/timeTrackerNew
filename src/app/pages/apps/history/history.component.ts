@@ -19,6 +19,10 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-history',
@@ -62,6 +66,46 @@ export class AppHistoryComponent {
   selectedPosition: string | null = null;
   departmentsList: any[] = [];
   selectedDepartment: string | null = null;
+  displayedColumnsNotifications: string[] = ['message', 'date'];
+  notificationsDataSource = new MatTableDataSource<any>([]);
+  loaded = false;
+  allNotifications: any[] = [];
+  selectedMemberName: string | null = null;
+  notificationMembers: string[] = [];
+  
+  notificationIcons = [
+    {
+      icon: 'fa-solid fa-circle-info',
+      color: '#92b46c',
+      type: 'Notification',
+    },
+    {
+      icon: 'fa-solid fa-bell',
+      color: '#d0bf45',
+      type: 'Reminder',
+    },
+    {
+      icon: 'fa-solid fa-envelope',
+      color: '#92b46c',
+      type: 'Message',
+    },
+    {
+      icon: 'fa-solid fa-clock',
+      color: '#d0bf45',
+      type: 'Lateness alert',
+    },
+    {
+      icon: 'fa-solid fa-calendar-check',
+      color: '#d0bf45',
+      type: 'Leave request',
+    },
+    {
+      icon: 'fa-solid fa-briefcase',
+      color: '#b54343',
+      type: 'Job application',
+    },
+  ];
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -69,10 +113,14 @@ export class AppHistoryComponent {
     @Inject(UsersService) private usersService: UsersService,
     @Inject(EntriesService) private entriesService: EntriesService,
     public companiesService: CompaniesService,
-    public reportsService: ReportsService
+    public reportsService: ReportsService,
+    public notificationsService: NotificationsService,
   ) {}
 
   ngOnInit(): void {
+    this.loadNotifications();
+    this.loaded = true;
+
     const today = moment();
     this.startDate = today.clone().startOf('isoWeek').toDate();
     this.endDate = today.clone().endOf('isoWeek').toDate();
@@ -200,4 +248,70 @@ export class AppHistoryComponent {
     this.filterByUser();
     this.dataSourceChange.emit(this.filteredDataSource);
   }
+
+  ngAfterViewInit() {
+    this.notificationsDataSource.paginator = this.paginator;
+  }
+
+  loadNotifications() {
+  this.notificationsService.get().subscribe((notifications) => {
+    const allNotifications = [...notifications];
+    allNotifications.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    this.allNotifications = allNotifications;
+    this.notificationMembers = this.extractMembersFromNotifications(allNotifications);
+    this.applyNotificationFilter();
+    this.loaded = true;
+  });
+}
+
+  formatMessage(message: string): string {
+    return message.replace(/\n/g, '<br>');
+  }
+
+  markAsRead(notification: any) {
+    notification.users_notifications.status = 2;
+    this.notificationsService
+      .update([notification], 2)
+      .subscribe(() => {
+        this.loadNotifications();
+      });
+  }
+
+  filterNotificationsByMember() {
+  this.applyNotificationFilter();
+}
+
+applyNotificationFilter() {
+  let filtered = this.allNotifications;
+  if (this.selectedMemberName) {
+    filtered = filtered.filter(n =>
+      n.message && n.message.toLowerCase().includes(this.selectedMemberName!.toLowerCase())
+    );
+  }
+  this.notificationsDataSource = new MatTableDataSource<any>(filtered);
+  setTimeout(() => {
+    this.notificationsDataSource.paginator = this.paginator;
+  });
+}
+
+onMemberNameChange(name: string | null) {
+  this.selectedMemberName = name;
+  this.applyNotificationFilter();
+}
+
+extractMembersFromNotifications(notifications: any[]): string[] {
+  const names = new Set<string>();
+  notifications.forEach(n => {
+    if (n.message) {
+      const firstWord = n.message.split(' ')[0];
+      if (firstWord && firstWord.length > 2) { 
+        names.add(firstWord);
+      }
+    }
+  });
+  return Array.from(names);
+}
 }
