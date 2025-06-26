@@ -30,9 +30,9 @@
           <span [class.read-notification]="notification.users_notifications.status === 2">
             {{ notification.createdAt | date: 'MMM d, y' }}
           </span>
-          <button *ngIf="notification.users_notifications.status !== 2"
+          <!-- <button *ngIf="notification.users_notifications.status !== 2"
                   (click)="markAsRead(notification)"
-                  mat-button>Mark as read</button>
+                  mat-button>Mark as read</button> -->
         </mat-cell>
       </ng-container>
 

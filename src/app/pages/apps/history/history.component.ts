@@ -271,14 +271,14 @@ export class AppHistoryComponent {
     return message.replace(/\n/g, '<br>');
   }
 
-  markAsRead(notification: any) {
-    notification.users_notifications.status = 2;
-    this.notificationsService
-      .update([notification], 2)
-      .subscribe(() => {
-        this.loadNotifications();
-      });
-  }
+  // markAsRead(notification: any) {
+  //   notification.users_notifications.status = 2;
+  //   this.notificationsService
+  //     .update([notification], 2)
+  //     .subscribe(() => {
+  //       this.loadNotifications();
+  //     });
+  // }
 
   filterNotificationsByMember() {
   this.applyNotificationFilter();
