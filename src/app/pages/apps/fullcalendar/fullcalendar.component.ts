@@ -422,11 +422,11 @@ export class AppFullcalendarComponent implements OnInit {
     }
   }
 
-  dayClicked({ date, events }: { date: Date; events: CalendarEvent[] }): void {
-    if (isSameMonth(date, this.viewDate())) {
+  dayClicked({ date, events }: { date: Date; events?: CalendarEvent[] }): void {
+    if (isSameMonth(date, this.viewDate()) && events) {
       if (
         (isSameDay(this.viewDate(), date) && this.activeDayIsOpen() === true) ||
-        events.length === 0
+        events?.length === 0
       ) {
         this.activeDayIsOpen.set(false);
       } else {

@@ -151,6 +151,8 @@
         [viewDate]="viewDate()"
         [events]="events()"
         [refresh]="refresh"
+        (dayHeaderClicked)="dayClicked($event.day)"
+        (eventClicked)="handleEvent('Edit', $event.event)"
       >
       </mwl-calendar-week-view>
 
