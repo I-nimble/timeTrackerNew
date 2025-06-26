@@ -85,7 +85,7 @@ export class AppTodoComponent implements OnInit {
   priorities: any[] = [];
   filteredArray: any[] = [];
   loggedInUser: any;
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
   newTaskForm: FormGroup = this.fb.group(
