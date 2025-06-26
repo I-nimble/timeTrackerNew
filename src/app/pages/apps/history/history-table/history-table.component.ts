@@ -60,9 +60,8 @@ export class AppHistoryTableComponent {
     'select',
     'name',
     'status',
-    'schedule',
-    'projects',
-    'action'
+    'clock-in',
+    'clock-out'
   ];
   users: any[] = [];
   employees: any[] = [];

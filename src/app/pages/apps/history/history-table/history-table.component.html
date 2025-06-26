@@ -40,9 +40,9 @@
             </td>
           </ng-container>
   
-          <ng-container matColumnDef="schedule">
+          <ng-container matColumnDef="clock-in">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-              Schedule
+              Clock-in
             </th>
             <td mat-cell *matCellDef="let element" class="f-s-14">
               {{ element.schedule }}
@@ -58,29 +58,14 @@
             </td>
           </ng-container>
   
-          <ng-container matColumnDef="projects">
+          <ng-container matColumnDef="clock-out">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-              Reports
+              Clock-out
             </th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">
-              <button
-                mat-icon-button
-                (click)="downloadReport(element)"
-                title="Download Report"
-              >
-                <i-tabler name="download" class="icon-18"></i-tabler>
-              </button>
-              
+            <td mat-cell *matCellDef="let element" class="f-s-14">  
             </td>
           </ng-container>
   
-          <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
-              Action
-            </th>
-            <td mat-cell *matCellDef="let element" class="action-link">
-            </td>
-          </ng-container>
   
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
