@@ -73,8 +73,8 @@ export class AppProductivityReportsComponent {
 
   ngOnInit(): void {
     const today = moment();
-    this.startDate = today.clone().startOf('isoWeek').toDate();
-    this.endDate = today.clone().endOf('isoWeek').toDate();
+    this.startDate = today.toDate();
+    this.endDate = today.toDate();
     if (this.role == '1') {
       this.getCompanies();
     }
