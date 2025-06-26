@@ -12,6 +12,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { RouterLink } from '@angular/router';
 import { RatingsService } from 'src/app/services/ratings.service';
+import { SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -79,7 +80,8 @@ export class AppDashboardTMComponent implements OnInit {
     end_time: new Date(),
   };
   todayTasks: any[] = [];
-  employer: any;
+  employer: any = {};
+  companyLogo!: SafeResourceUrl;
 
   constructor(
     private usersService: UsersService,
@@ -129,8 +131,7 @@ export class AppDashboardTMComponent implements OnInit {
     const userFilter = {
       searchField: '',
       filter: {
-        currentUser: this.role == '2' ? true : false,
-        email: userEmail,
+        currentUser: true,
       },
     };
     this.usersService.getUsers(userFilter).subscribe({
@@ -168,26 +169,26 @@ export class AppDashboardTMComponent implements OnInit {
               name: data.user?.name,
               last_name: data.user?.last_name,
               id: data?.user?.id,
-              picture: this.picture,
+              picture: null,
             };
           });
 
         this.companiesService
           .getCompanyLogo(employees[0].company_id)
           .subscribe((logo) => {
-            this.employer.picture = logo;
+            if(logo) {
+              this.companyLogo = logo;
+            }
           });
 
-        this.employees.forEach((employee: any) => {
+        for (let i = 0; i < this.employees.length; i++) {
+          const employee = this.employees[i];
           this.usersService.getProfilePic(employee.user.id).subscribe({
             next: (image: any) => {
-              employee.user.picture = image || this.picture;
-            },
-            error: () => {
-              employee.user.picture = this.picture;
-            },
+              this.employees[i].user.picture = image;
+            }
           });
-        });
+        }
       });
   }
 
