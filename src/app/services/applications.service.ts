@@ -142,4 +142,32 @@ export class ApplicationsService {
       })
     );
   }
+
+  getFilteredApplicationsByDay(applications: any[]): any[] {
+    let filteredApplications: any[] = [];
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    monday.setHours(0, 0, 0, 0);
+
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    friday.setHours(0, 0, 0, 0);
+    // Only show applications if today is Monday to Friday
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      filteredApplications = applications.filter((app: any) => {
+        if (!app.submission_date) return false;
+        const submission = new Date(app.submission_date);
+        submission.setHours(0, 0, 0, 0);
+        return submission >= monday && submission <= friday;
+      });
+    } else {
+      filteredApplications = [];
+    }
+    return filteredApplications;
+  }
 }

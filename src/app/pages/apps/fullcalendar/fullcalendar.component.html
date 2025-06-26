@@ -107,7 +107,7 @@
             mat-icon-button
             class="text-white"
             mwlCalendarPreviousView
-            (click)="goToPreviousMonth()"
+            (click)="goToPrevious()"
           >
             <mat-icon>chevron_left</mat-icon>
           </button>
@@ -123,7 +123,7 @@
             mat-icon-button
             mwlCalendarNextView
             class="text-white"
-            (click)="goToNextMonth()"
+            (click)="goToNext()"
           >
             <mat-icon>chevron_right</mat-icon>
           </button>
@@ -151,6 +151,8 @@
         [viewDate]="viewDate()"
         [events]="events()"
         [refresh]="refresh"
+        (dayHeaderClicked)="dayClicked($event.day)"
+        (eventClicked)="handleEvent('Edit', $event.event)"
       >
       </mwl-calendar-week-view>
 

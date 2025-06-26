@@ -154,7 +154,6 @@ export class HeaderComponent implements OnInit {
     });
     this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'new-talent-match') {
-        this.hasNewTalentMatch = true;
         this.getApplications();
       }
     });
@@ -193,7 +192,10 @@ export class HeaderComponent implements OnInit {
       next: (apps) => {
         this.applications = apps;
         const role = localStorage.getItem('role');
-        if (role === '3' && apps.find((app: any) => app.status_id === 1)) {
+        
+        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(apps);
+        
+        if(role === '3' && filteredApplications.find((app: any) => app.status_id === 1)) {
           this.hasNewTalentMatch = true;
         } else {
           this.hasNewTalentMatch = false;
@@ -404,12 +406,14 @@ export class HeaderComponent implements OnInit {
 
   loadNotifications() {
     this.notificationsService.get().subscribe((notifications) => {
-      const allNotifications = notifications;
-      allNotifications.sort(
+      const unreadNotifications = notifications.filter(
+        (n: any) => n.users_notifications.status != 2
+      );
+      unreadNotifications.sort(
         (a: any, b: any) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      this.recentNotifications = allNotifications.slice(0, 5);
+      this.recentNotifications = unreadNotifications.slice(0, 5);
       this.hasPendingNotifications = this.recentNotifications?.some(
         (n) => n.users_notifications.status === 4
       );
