@@ -404,12 +404,14 @@ export class HeaderComponent implements OnInit {
 
   loadNotifications() {
     this.notificationsService.get().subscribe((notifications) => {
-      const allNotifications = notifications;
-      allNotifications.sort(
+      const unreadNotifications = notifications.filter(
+        (n: any) => n.users_notifications.status != 2
+      );
+      unreadNotifications.sort(
         (a: any, b: any) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      this.recentNotifications = allNotifications.slice(0, 5);
+      this.recentNotifications = unreadNotifications.slice(0, 5);
       this.hasPendingNotifications = this.recentNotifications?.some(
         (n) => n.users_notifications.status === 4
       );
