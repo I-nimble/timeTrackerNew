@@ -54,12 +54,21 @@
                     <h6 class="f-s-14 f-w-600">
                       {{ element.name }}
                     </h6>
-                    <span class="f-s-14 f-s-12">
-                      {{ element.position }}
-                    </span>
                   </div>
                 </div>
               </td>
+            </ng-container>
+
+            <!-- Position Column -->
+            <ng-container matColumnDef="position">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                    Position
+                </th>
+                <td mat-cell *matCellDef="let element">
+                    <p class="f-s-14 f-s-12 m-0">
+                        {{ getPositionTitle(element.position_id) }}
+                    </p>
+                </td>
             </ng-container>
 
             <!-- Skills Column -->
@@ -70,23 +79,71 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="availability">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                Availability (location)
+              </th>
+              <td mat-cell *matCellDef="let element">
+                @if(element.availability === 'available') {
+                    <p class="f-s-14 m-0">
+                        <span class="bg-light-success text-success rounded f-w-600 p-6 p-y-4 f-s-12">
+                            {{ element.availability | titlecase }}
+                        </span>
+                        <span *ngIf="element.location">
+                            in {{ element.location | titlecase }}
+                        </span>
+                    </p>
+                }
+                @if(element.availability === 'unavailable') {
+                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
+                        {{ element.availability | titlecase }}
+                    </span>
+                }
+              </td>
+          </ng-container>
+
             <!-- Status Column -->
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef>Status</th>
               <td mat-cell *matCellDef="let element">
-                <span
-                  [ngClass]="getStatus(element).color"
-                  class="rounded f-w-600 p-6 p-y-4 f-s-12"
-                >
-                  {{ getStatus(element).label }}
-                </span>
+                @switch(element.status) {
+                  @case('Unread') {
+                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Posted
+                    </span>
+                  }
+                  @case('Read') {
+                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Seen by Client
+                    </span>
+                  }
+                  @case('Scheduled Interview') {
+                    <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Waiting for Interview
+                    </span>
+                  }
+                  @case('Rejected') {
+                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Rejected
+                    </span>
+                  }
+                  @case('Accepted') {
+                    <span class="bg-light-success text-success rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Hired
+                    </span>
+                  }
+                }
               </td>
             </ng-container>
 
-            <!-- Email Column -->
-            <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>Email</th>
-              <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+            <ng-container matColumnDef="interviewing on">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                  Interviewing on
+              </th>
+              <td mat-cell *matCellDef="let element">
+                  {{ getInterviewDateTime(element.id) ? (getInterviewDateTime(element.id) | date: 'short')
+                  : 'No scheduled' }}
+              </td>
             </ng-container>
 
             <!-- company Column -->

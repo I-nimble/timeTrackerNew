@@ -17,6 +17,10 @@ export class ApplicationsService {
   private applicationsSeenSource = new Subject<void>();
   applicationsSeen$ = this.applicationsSeenSource.asObservable();
 
+  reject(id: number): Observable<any[]> {
+    return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
+  }
+
   markAsSeen() {
     return this.http.put(`${this.API_URI}/applications/mark-as-seen`, {}).pipe(
       tap(() => this.applicationsSeenSource.next())
@@ -49,6 +53,10 @@ export class ApplicationsService {
 
   clearSelectedApplicants() {
     this.selectedApplicants = [];
+  }
+
+  public getLocations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
   public get(): Observable<any[]> {
