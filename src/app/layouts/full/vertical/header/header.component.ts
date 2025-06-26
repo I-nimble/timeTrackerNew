@@ -154,7 +154,6 @@ export class HeaderComponent implements OnInit {
     });
     this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'new-talent-match') {
-        this.hasNewTalentMatch = true;
         this.getApplications();
       }
     });
@@ -193,7 +192,10 @@ export class HeaderComponent implements OnInit {
       next: (apps) => {
         this.applications = apps;
         const role = localStorage.getItem('role');
-        if (role === '3' && apps.find((app: any) => app.status_id === 1)) {
+        
+        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(apps);
+        
+        if(role === '3' && filteredApplications.find((app: any) => app.status_id === 1)) {
           this.hasNewTalentMatch = true;
         } else {
           this.hasNewTalentMatch = false;
