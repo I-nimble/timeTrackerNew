@@ -1,42 +1,46 @@
-<div *ngIf="userRole !== '2'; else employeeHistory">
-  <mat-card class="cardWithShadow">
-    <mat-card-content>
-      <div class="row justify-content-between gap-16">
-        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
-          <mat-form-field appearance="outline" class="w-100 hide-hint">
-            <input
-              matInput
-              placeholder="Search Employee"
-              (keyup)="applyFilter($any($event.target).value)"
-            />
-            <mat-icon matSuffix>
-              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-            </mat-icon>
-          </mat-form-field>
-  
-          <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
-            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
-              <mat-option *ngFor="let company of companies" [value]="company.id">
-                {{ company.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end">
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
-  <mat-card class="cardWithShadow">
-    <mat-card-content>
-      <div class="table-responsive">
-        <app-history-table></app-history-table>
-      </div>
-    </mat-card-content>
-  </mat-card>
-</div>
+<mat-card class="cardWithShadow h-100">
+  <mat-card-header>
+    <div class="d-flex flex-wrap align-items-center justify-content-start w-100 gap-3">
+      <!-- Select a member -->
+      <mat-form-field appearance="outline" class="me-3 min-w-200">
+        <mat-label>Select a member</mat-label>
+        <mat-select
+          [(value)]="selectedUserId"
+          (selectionChange)="onUserChange($event.value)">
+          <mat-option [value]="null">All members</mat-option>
+          <mat-option *ngFor="let user of dataSource" [value]="user.profile.id">
+            {{ user.profile.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-<ng-template #employeeHistory> 
-  <app-history-details></app-history-details>
-</ng-template>
+      <!-- Select a department -->
+      <mat-form-field appearance="outline" class="me-3 min-w-200">
+        <mat-label>Select a department</mat-label>
+        <mat-select
+          [(value)]="selectedDepartment"
+          (selectionChange)="onDepartmentChange($event.value)">
+          <mat-option [value]="null">All departments</mat-option>
+          <mat-option *ngFor="let dep of departmentsList" [value]="dep">
+            {{ dep }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Select a company (only for role 1) -->
+      <div *ngIf="role == '1'">
+        <mat-form-field appearance="outline" class="me-3 min-w-200">
+          <mat-label>Select a Company</mat-label>
+          <mat-select
+            [(value)]="selectedClient"
+            (selectionChange)="onClientChange($event.value)">
+            <mat-option [value]="null" disabled>Select a client</mat-option>
+            <mat-option *ngFor="let company of companiesList" [value]="company">
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </mat-card-header>
+</mat-card>

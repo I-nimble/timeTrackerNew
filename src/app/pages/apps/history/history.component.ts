@@ -1,122 +1,203 @@
+import { Component, EventEmitter, Inject, Output } from '@angular/core';
+import { MaterialModule } from '../../../material.module';
+import { CommonModule, NgIf } from '@angular/common';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { RatingsEntriesService } from '../../../services/ratings_entries.service';
+import { UsersService } from '../../../services/users.service';
+import { EntriesService } from '../../../services/entries.service';
+import { forkJoin, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 import {
-  Component,
-  ViewChild,
-  OnInit
-} from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import moment from 'moment';
+import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { Employee } from 'src/app/pages/apps/employee/employee';
-import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
-import { AppHistoryTableComponent } from './history-table/history-table.component';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
-import { HistoryDetailsComponent } from './history-details/history-details.component';
+import { ReportsService } from 'src/app/services/reports.service';
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, MaterialModule, AppEmployeeTableComponent, AppHistoryTableComponent, TablerIconsModule, HistoryDetailsComponent, EmployeeDetailsComponent],
+  imports: [
+    MaterialModule,
+    CommonModule,
+    MatMenuModule,
+    MatButtonModule,
+    FormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    NgIf,
+    TablerIconsModule,
+  ],
+  providers: [
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+  ],
   templateUrl: './history.component.html',
-  styleUrls: ['./history.component.scss']
 })
-export class HistoryComponent implements OnInit {
-  dataSource = new MatTableDataSource<History>([]);
-  loaded = false;
-  userRole = localStorage.getItem('role');
-  companies: any[] = [];
-  companyId: number | null = null;
+export class AppHistoryComponent {
+  @Output() dataSourceChange = new EventEmitter<any[]>();
+  displayedColumns: string[] = [
+    'profile',
+    'workedHours',
+    'completedTasks',
+    'totalTasks',
+    'productivityPercentage',
+  ];
+  dataSource: any[] = [];
+  startDate: any = '';
+  endDate: any = '';
+  dateRange: any = {};
+  role = localStorage.getItem('role');
+  selectedClient: any = 0;
+  companiesList: any[] = [];
+  isLoading = false;
+  selectedUserId: number | null = null;
+  filteredDataSource: any[] = [];
+  selectedPosition: string | null = null;
+  departmentsList: any[] = [];
+  selectedDepartment: string | null = null;
 
   constructor(
-    private employeesService: EmployeesService,
-    private usersService: UsersService,
-    private companiesService: CompaniesService,
-    private schedulesService: SchedulesService
+    @Inject(RatingsEntriesService)
+    private ratingsEntriesService: RatingsEntriesService,
+    @Inject(UsersService) private usersService: UsersService,
+    @Inject(EntriesService) private entriesService: EntriesService,
+    public companiesService: CompaniesService,
+    public reportsService: ReportsService
   ) {}
 
   ngOnInit(): void {
-    this.getEmployees();
+    const today = moment();
+    this.startDate = today.clone().startOf('isoWeek').toDate();
+    this.endDate = today.clone().endOf('isoWeek').toDate();
+    if (this.role == '1') {
+      this.getCompanies();
+    }
+    this.getDataSource();
   }
 
-  getEmployees() {
-    this.employeesService.get().subscribe({
-      next: (employees: any) => {
-        let users = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
-        this.schedulesService.get().subscribe({
-          next: (schedules: any) => {
-            schedules = schedules.schedules;
-            users = users.map((user: any) => {
-              const userSchedules = schedules.find((schedule: any) => schedule.employee_id === user.id);
-              let scheduleString = 'No registered schedule';
-              if (userSchedules) {
-                const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                const workingDays = userSchedules.days
-                  .map((day: any) => day.name)
-                  .sort((a: string, b: string) => weekDays.indexOf(a) - weekDays.indexOf(b));
-                scheduleString = this.formatDaysRange(workingDays);
-              }
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
-                schedule: scheduleString,
-                Salary: 0,
-                imagePath: 'assets/images/default-profile-pic.png',
-              };
-            });
-            this.dataSource.data = users;
-            this.loaded = true;
-          },
-          error: (err) => {
-            console.error('Error fetching schedules:', err);
-          },
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching employees:', err);
-      },
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe((res: any) => {
+      this.companiesList = res;
     });
   }
 
-  formatDaysRange(days: string[]): string {
-    const weekDays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-    ];
-    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
-    if (indices.length === 0) return '';
-    let isConsecutive = true;
-    for (let i = 1; i < indices.length; i++) {
-      if (indices[i] !== indices[i - 1] + 1) {
-        isConsecutive = false;
-        break;
-      }
+  getDataSource() {
+    if (
+      this.role == '1' &&
+      (!this.selectedClient || this.selectedClient === 0)
+    ) {
+      this.dataSource = [];
+      this.dataSourceChange.emit(this.dataSource);
+      return;
     }
-    if (isConsecutive && indices.length > 1) {
-      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
+    this.isLoading = true;
+    this.dateRange = {
+      firstSelect: moment(this.startDate).format('YYYY-MM-DD'),
+      lastSelect: moment(this.endDate).format('YYYY-MM-DD'),
+      role: this.role,
+      company_id: this.selectedClient,
+    };
+
+    this.ratingsEntriesService
+      .getTeamReport(this.dateRange)
+      .pipe(
+        switchMap((data) => {
+          // First set basic user data without profile pictures
+          this.dataSource = data.ratings.map((employee: any) => {
+            const completedTasks = Number(employee.completed) || 0;
+            const totalTasks = Number(employee.totalTasks) || 0; // Use lowercase property
+            const workedHours = Number(employee.workedHours) || 0;
+
+            const productivityPercentage =
+              totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+            return {
+              profile: {
+                id: employee.profile.id,
+                name: employee.profile.name,
+                position: employee.profile.position,
+                image: null,
+                department_id: employee.profile.department_id,
+                department: employee.profile.department,
+              },
+              completed: employee.completed,
+              totalTasks: employee.totalTasks,
+              workedHours: employee.workedHours,
+              hoursLeft: employee.hoursLeft,
+              progress: employee.status === 'Online' ? 'success' : 'error',
+              productivityPercentage: productivityPercentage,
+            };
+          });
+
+          const profilePicRequests = this.dataSource.map((task) =>
+            this.usersService.getProfilePic(task.profile.id)
+          );
+          this.departmentsList = Array.from(
+            new Set(
+              this.dataSource
+                .map((u) => u.profile.department)
+                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
+            )
+          );
+          this.filterByUser();
+          this.dataSourceChange.emit(this.filteredDataSource);
+          return forkJoin({
+            profilePics: forkJoin(profilePicRequests),
+          });
+        })
+      )
+      .subscribe(({ profilePics }) => {
+        // Update the dataSource with profile pictures and status
+        this.dataSource.forEach((task, index) => {
+          task.profile.image = profilePics[index];
+        });
+        this.isLoading = false;
+      });
+  }
+
+  onDateRangeChange() {
+    if (this.startDate && this.endDate) {
+      this.getDataSource();
+    }
+  }
+
+  onClientChange(client: any) {
+    this.dataSource = [];
+    this.selectedClient = client.id;
+    this.getDataSource();
+  }
+
+  filterByUser() {
+    if (this.selectedUserId) {
+      this.filteredDataSource = this.dataSource.filter(
+        (u) => u.profile.id === this.selectedUserId
+      );
     } else {
-      return days.join(', ');
+      this.filteredDataSource = [...this.dataSource];
+    }
+    if (this.selectedDepartment) {
+      this.filteredDataSource = this.filteredDataSource.filter(
+        (u) => u.profile.department === this.selectedDepartment
+      );
     }
   }
 
-  applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  onUserChange(userId: number | null) {
+    this.selectedUserId = userId;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
   }
 
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.dataSource.data = this.dataSource.data.filter((user: any) => user.company_id === this.companyId);
-  }
-
-  openDialog(action: string, employee: any): void {
-    // Placeholder: implement dialog logic if needed
-    alert(`${action} dialog for employee: ${employee?.name || ''}`);
+  onDepartmentChange(department: string | null) {
+    this.selectedDepartment = department;
+    this.filterByUser();
+    this.dataSourceChange.emit(this.filteredDataSource);
   }
 }

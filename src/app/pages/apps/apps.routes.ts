@@ -28,7 +28,7 @@ import { HrOperationsComponent } from './chat/hr-operations/hr-operations.compon
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { TeamComponent } from './team/team.component';
-import { HistoryComponent } from './history/history.component';
+import { AppHistoryComponent } from './history/history.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -160,7 +160,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'history',
-        component: HistoryComponent,
+        component: AppHistoryComponent,
         data: {
           title: 'History',
           urls: [
