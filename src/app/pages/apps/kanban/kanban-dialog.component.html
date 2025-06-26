@@ -128,6 +128,19 @@
           </mat-select>
         </mat-form-field>
       </div>
+
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
+        <mat-label class="f-w-600 m-b-8 d-block">Comments</mat-label>
+        <mat-form-field appearance="outline" class="w-100">
+          <textarea
+            matInput
+            name="comments"
+            [(ngModel)]="local_data.comments"
+            placeholder="Add comments"
+            rows="2"
+          ></textarea>
+        </mat-form-field>
+      </div>
     </div>
   </form>
 </mat-dialog-content>

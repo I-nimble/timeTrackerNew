@@ -248,6 +248,7 @@ export class AppKanbanComponent implements OnInit {
       board_id: this.selectedBoardId,
       column_id: taskData.columnId,
       employee_id: taskData.employee_id,
+      comments: taskData.comments,
     };
 
     this.kanbanService.addTaskToBoard(newTask).subscribe(() => {
@@ -267,6 +268,7 @@ export class AppKanbanComponent implements OnInit {
       board_id: this.selectedBoardId,
       column_id: taskData.columnId,
       employee_id: taskData.employee_id,
+      comments: taskData.comments,
     };
 
     this.kanbanService.updateTask(updatedTask.id, updatedTask).subscribe(
