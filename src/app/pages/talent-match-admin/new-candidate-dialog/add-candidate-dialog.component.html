@@ -70,6 +70,22 @@
           </mat-select>
         </mat-form-field>
       </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Location</mat-label>
+          <mat-select formControlName="location_id">
+            <mat-option
+              *ngFor="let location of locations"
+              [value]="location.id"
+              >{{ location.name }}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <!-- Availability checkbox input -->
+      <div class="col-12 m-b-16">
+        <mat-checkbox formControlName="availability">Currently available</mat-checkbox>
+      </div>
       <!-- CV Upload -->
       <div class="col-12 mb-3">
         <!-- <label>CV (PDF, max 1MB)</label> -->

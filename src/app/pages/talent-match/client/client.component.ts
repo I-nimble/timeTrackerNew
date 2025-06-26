@@ -22,6 +22,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   standalone: true,
@@ -50,11 +51,10 @@ export class AppTalentMatchClientComponent implements OnInit {
   displayedColumns: string[] = [
     'select',
     'name',
+    'position',
     'skills',
-    'english level',
     'availability',
-    'resume',
-    'interview',
+    'interviewing on',
     'actions',
   ];
   dataSource!: MatTableDataSource<any>;
@@ -68,7 +68,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
-    private interviewsService: InterviewsService
+    private interviewsService: InterviewsService,
   ) {}
 
   ngOnInit(): void {
@@ -146,6 +146,24 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
+  rejectApplication(applicationId: number) {
+    const dialog = this.dialog.open(ModalComponent, {
+      data: { subject: 'application', action: 'reject' },
+    });
+    dialog.afterClosed().subscribe((option: boolean) => {
+      if (option) {
+        this.applicationsService.reject(applicationId).subscribe({
+          next: (response: any) => {
+            this.getApplications();
+          },
+          error: (err: any) => {
+            console.error('Error rejecting application:', err);
+          },
+        });
+      }
+    });
+  }
+
   applyFilter() {
     if (this.dataSource) {
       this.dataSource.filter = this.searchText.trim().toLowerCase();
@@ -155,6 +173,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
+        console.log('Applications:', applications);
         // Get today and normalize to 00:00:00
         const today = new Date();
         today.setHours(0, 0, 0, 0);

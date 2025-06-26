@@ -11,6 +11,7 @@ import { ApplicationsService } from 'src/app/services/applications.service';
 import { InterviewsService } from 'src/app/services/interviews.service';
 import { environment } from 'src/environments/environment';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { PositionsService } from 'src/app/services/positions.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddCandidateDialogComponent } from './new-candidate-dialog/add-candidate-dialog.component'; 
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -53,9 +54,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
   displayedColumns: string[] = [
     // 'select',
     'name',
+    'position',
     'skills',
+    'availability',
     'status',
-    'email',
+    'interviewing on',
     'company',
     'actions',
   ];
@@ -67,14 +70,34 @@ export class AppTalentMatchAdminComponent implements OnInit {
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
+  positions: any[] = [];
 
   constructor(
     private applicationService: ApplicationsService,
     private interviewsService: InterviewsService,
     private companiesService: CompaniesService,
+    private positionsService: PositionsService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
+  
+  
+  ngOnInit(): void {
+    this.getApplications();
+    this.getPositions();
+    this.getInterviews();
+  }
+
+  getPositions() {
+    this.positionsService.get().subscribe({
+      next: (positions: any) => {
+        this.positions = positions;
+      },
+      error: (err: any) => {
+        console.error('Error fetching positions:', err);
+      },
+    });
+  }
 
   getApplications() {
     this.applicationService.get().subscribe((applications) => {
@@ -95,14 +118,18 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
-  getStatus(application: any): { label: string, color: string } {
-    if (application.company_id === -1) {
-      return { label: 'On Hold', color: 'bg-light-error text-error' }; // high
+  getInterviewDateTime(applicationId: number) {
+    const interview = this.interviews.find(
+      (interview) => interview.application_id === applicationId
+    );
+    if (interview) {
+      return interview.date_time;
     }
-    if (this.interviews.some(i => i.company_id === application.company_id)) {
-      return { label: 'Waiting for Interview', color: 'bg-light-warning text-warning' }; // medium
-    }
-    return { label: 'Assigned', color: 'bg-light-success text-success' }; // low
+    return null;
+  }
+
+  getPositionTitle(positionId: any) {
+    return this.positions.find((p: any) => p.id == positionId)?.title;
   }
 
   handleImageError(event: Event) {
@@ -178,11 +205,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
       }
     });
 
-  }
-
-  ngOnInit(): void {
-    this.getApplications();
-    this.getInterviews();
   }
 
   openSnackBar(message: string, action: string) {

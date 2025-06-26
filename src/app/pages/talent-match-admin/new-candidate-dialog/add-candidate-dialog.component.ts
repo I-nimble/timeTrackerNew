@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -28,6 +29,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
+    MatCheckboxModule
   ],
 })
 export class AddCandidateDialogComponent implements OnInit {
@@ -38,6 +40,7 @@ export class AddCandidateDialogComponent implements OnInit {
   selectedProfilePicFile: File | null = null;
   isCreationAllowed: boolean = true;
   restrictionMessage: string = '';
+  locations: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -54,12 +57,18 @@ export class AddCandidateDialogComponent implements OnInit {
       english_level: ['', Validators.required],
       position_id: ['', Validators.required],
       company_id: [''],
+      availability: [false, Validators.required],
+      location_id: ['', Validators.required],
     });
   }
 
   ngOnInit(): void {
     this.positionsService.get().subscribe((positions) => {
       this.positions = positions;
+    });
+
+    this.applicationsService.getLocations().subscribe((locations) => {
+      this.locations = locations;
     });
 
     const today = new Date().getDay();
@@ -88,6 +97,8 @@ export class AddCandidateDialogComponent implements OnInit {
           this.data.candidate.company_id !== undefined
             ? this.data.candidate.company_id
             : '',
+        availability: this.data.candidate.availability,
+        location_id: this.data.candidate.location_id,
       });
     }
   }
@@ -165,6 +176,8 @@ export class AddCandidateDialogComponent implements OnInit {
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
+      availability: formValue.availability,
+      location_id: formValue.location_id,
       }),
     };
 
