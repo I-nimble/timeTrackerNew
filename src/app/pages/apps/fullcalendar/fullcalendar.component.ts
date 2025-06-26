@@ -48,6 +48,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { UsersService } from 'src/app/services/users.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { addWeeks, subWeeks } from 'date-fns';
 
 const colors: any = {
   red: {
@@ -230,7 +231,7 @@ export class AppFullcalendarComponent implements OnInit {
   dialogRef2 = signal<MatDialogRef<CalendarFormDialogComponent> | any>(null);
   lastCloseResult = signal<string>('');
   actionsAlignment = signal<string>('');
-  view = signal<any>('month');
+  view = signal<any>('week');
   viewDate = signal<Date>(new Date());
   activeDayIsOpen = signal<boolean>(true);
   userRole: string | null = localStorage.getItem('role');
@@ -452,7 +453,7 @@ export class AppFullcalendarComponent implements OnInit {
     this.dialogRef()
       .afterClosed()
       .subscribe((result: any) => {
-        if(!result) {
+        if (!result) {
           return;
         }
         // Add the new event to the events array
@@ -561,5 +562,21 @@ export class AppFullcalendarComponent implements OnInit {
 
   goToToday() {
     this.viewDate.set(new Date());
+  }
+
+  goToNext(): void {
+    if (this.view() === 'week') {
+      this.viewDate.set(addWeeks(this.viewDate(), 1));
+    } else {
+      this.viewDate.set(addMonths(this.viewDate(), 1));
+    }
+  }
+
+  goToPrevious(): void {
+    if (this.view() === 'week') {
+      this.viewDate.set(subWeeks(this.viewDate(), 1));
+    } else {
+      this.viewDate.set(subMonths(this.viewDate(), 1));
+    }
   }
 }
