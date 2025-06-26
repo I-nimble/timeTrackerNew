@@ -155,40 +155,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
-        // Get today and normalize to 00:00:00
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Get current day of week
-        const dayOfWeek = today.getDay();
-
-        // Calculate the Monday of the current week
-        // If today is Sunday (0), go back 6 days; else, go back (dayOfWeek - 1)
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-        monday.setHours(0, 0, 0, 0);
-
-        // Calculate the Friday of the current week
-        const friday = new Date(monday);
-        friday.setDate(monday.getDate() + 4);
-        friday.setHours(0, 0, 0, 0);
-
-        let filteredApplications: any[] = [];
-        // Only show applications if today is Monday to Friday
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          // 1=Monday, ..., 5=Friday
-          filteredApplications = applications.filter((app: any) => {
-            if (!app.submission_date) return false;
-            const submission = new Date(app.submission_date);
-            submission.setHours(0, 0, 0, 0);
-            // Show only if submission_date is between monday and friday of this week (inclusive)
-            return submission >= monday && submission <= friday;
-          });
-        } else {
-          // Saturday or Sunday: show nothing
-          filteredApplications = [];
-        }
-
+        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(applications);
+       
         this.dataSource = new MatTableDataSource(filteredApplications);
 
         if (filteredApplications.find((app: any) => app.status_id === 1)) {
