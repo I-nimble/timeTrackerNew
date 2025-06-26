@@ -77,8 +77,8 @@ export class HeaderComponent implements OnInit {
 
   isCollapse: boolean = false; // Initially hidden
   company: any;
-  userName:any;
-  companyLogo:any = "assets/images/default-logo.jpg";
+  userName: any;
+  companyLogo: any = 'assets/images/default-logo.jpg';
   userEmail: any;
   assetsPath: string = environment.assets;
   applications: any[] = [];
@@ -147,12 +147,12 @@ export class HeaderComponent implements OnInit {
     this.getUserData();
     this.getApplications();
     this.loadNotifications();
-    this.webSocketService.getNotifications().subscribe(event => {
+    this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'update') {
         this.loadNotifications();
       }
     });
-    this.webSocketService.getNotifications().subscribe(event => {
+    this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'new-talent-match') {
         this.hasNewTalentMatch = true;
         this.getApplications();
@@ -166,7 +166,7 @@ export class HeaderComponent implements OnInit {
     });
   }
 
-  getUserData(){
+  getUserData() {
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
@@ -183,7 +183,7 @@ export class HeaderComponent implements OnInit {
       this.companieService
         .getCompanyLogo(company.company_id)
         .subscribe((logo) => {
-          if(logo != null) this.companyLogo = logo;
+          if (logo != null) this.companyLogo = logo;
         });
     });
   }
@@ -193,7 +193,7 @@ export class HeaderComponent implements OnInit {
       next: (apps) => {
         this.applications = apps;
         const role = localStorage.getItem('role');
-        if(role === '3' && apps.find((app: any) => app.status_id === 1)) {
+        if (role === '3' && apps.find((app: any) => app.status_id === 1)) {
           this.hasNewTalentMatch = true;
         } else {
           this.hasNewTalentMatch = false;
@@ -207,7 +207,7 @@ export class HeaderComponent implements OnInit {
   }
 
   formatMessage(message: string): string {
-    return message.replace(/\n/g, '<br>')
+    return message.replace(/\n/g, '<br>');
   }
 
   openDialog() {
@@ -235,38 +235,38 @@ export class HeaderComponent implements OnInit {
   logout() {
     this.authService.logout();
   }
-  
+
   notificationIcons = [
     {
       icon: 'fa-solid fa-circle-info',
       color: '#92b46c',
-      type: 'Notification'
+      type: 'Notification',
     },
     {
       icon: 'fa-solid fa-bell',
       color: '#d0bf45',
-      type: 'Reminder'
+      type: 'Reminder',
     },
     {
       icon: 'fa-solid fa-envelope',
       color: '#92b46c',
-      type: 'Message'
+      type: 'Message',
     },
     {
       icon: 'fa-solid fa-clock',
       color: '#d0bf45',
-      type: 'Lateness alert'
+      type: 'Lateness alert',
     },
     {
       icon: 'fa-solid fa-calendar-check',
       color: '#d0bf45',
-      type: 'Leave request'
+      type: 'Leave request',
     },
     {
       icon: 'fa-solid fa-briefcase',
       color: '#b54343',
-      type: 'Job application'
-    }
+      type: 'Job application',
+    },
   ];
 
   profiledd: profiledd[] = [
@@ -286,14 +286,18 @@ export class HeaderComponent implements OnInit {
       subtitle: 'Notifications',
       link: '/dashboards/notifications',
     },
-    ...(Number(this.role) !== 2 ? [{
-      id: 3,
-      img: 'users',
-      color: 'error',
-      title: 'My Team',
-      subtitle: 'Team members',
-      link: '/apps/team',
-    }] : []),
+    ...(Number(this.role) !== 2
+      ? [
+          {
+            id: 3,
+            img: 'users',
+            color: 'error',
+            title: 'My Team',
+            subtitle: 'Team members',
+            link: '/apps/team',
+          },
+        ]
+      : []),
   ];
 
   apps: apps[] = [
@@ -399,34 +403,40 @@ export class HeaderComponent implements OnInit {
   ];
 
   loadNotifications() {
-    this.notificationsService.get().subscribe(notifications => {
+    this.notificationsService.get().subscribe((notifications) => {
       const allNotifications = notifications;
-      allNotifications.sort((a:any, b:any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      allNotifications.sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       this.recentNotifications = allNotifications.slice(0, 5);
-      this.hasPendingNotifications = this.recentNotifications?.some(n => n.users_notifications.status === 4);
+      this.hasPendingNotifications = this.recentNotifications?.some(
+        (n) => n.users_notifications.status === 4
+      );
     });
   }
 
   addNotification(notification: any) {
     this.recentNotifications.push(notification);
-    this.recentNotifications = [...this.recentNotifications]; 
+    this.recentNotifications = [...this.recentNotifications];
   }
 
   redirectNotification(notification: any) {
-  const message = notification.message?.toLowerCase() || '';
+    // const message = notification.message?.toLowerCase() || '';
 
-  if (message.includes('clock') || message.includes('late')) {
-    this.router.navigate(['/apps/chat/support']);
-  } else if (message.includes('board')) {
-    this.router.navigate(['/apps/kanban']);
-  } else if (notification.type_id === 6) {
-    this.router.navigate(['/apps/talent-match']);
+    // if (message.includes('clock') || message.includes('late')) {
+    //   this.router.navigate(['/apps/chat/support']);
+    // } else if (message.includes('board')) {
+    //   this.router.navigate(['/apps/kanban']);
+    // } else if (notification.type_id === 6) {
+    //   this.router.navigate(['/apps/talent-match']);
+    // }
+
+    // this.notificationsService.update([notification], 2).subscribe(() => {
+    //   this.loadNotifications();
+    // });
+    this.router.navigate(['/dashboards/notifications']);
   }
-
-  this.notificationsService.update([notification], 2).subscribe(() => {
-    this.loadNotifications();
-  });
-}
 }
 
 @Component({
@@ -439,7 +449,9 @@ export class AppSearchDialogComponent {
   searchText: string = '';
   navItems = getNavItems(this.role);
 
-  navItemsData = getNavItems(this.role).filter((navitem) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter(
+    (navitem) => navitem.displayName
+  );
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;
