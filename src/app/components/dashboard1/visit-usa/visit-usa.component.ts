@@ -111,7 +111,7 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
       this.locations.forEach((loc) => {
         pointSeries.data.push({
           geometry: { type: "Point", coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)] },
-          title: loc.name,
+          title: loc.city,
         });
       });
 
