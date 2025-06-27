@@ -56,7 +56,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
     'name',
     'position',
     'skills',
-    'availability',
+    'location',
     'status',
     'interviewing on',
     'company',

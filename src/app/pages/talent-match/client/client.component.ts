@@ -53,7 +53,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     'name',
     'position',
     'skills',
-    'availability',
+    'location',
     'interviewing on',
     'actions',
   ];
