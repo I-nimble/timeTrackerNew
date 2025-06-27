@@ -20,7 +20,14 @@
   </ng-template>
   
   @if(chatService.isChatAvailable) {
-    <button mat-flat-button color="primary" *ngIf="userRole === '3'" class="m-b-16 m-t-16" (click)="openDialog()" id="create-group-button">
+    <button
+      mat-flat-button 
+      color="primary" 
+      *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))"
+      class="m-b-16 m-t-16" 
+      (click)="openDialog()" 
+      id="create-group-button"
+    >
       Create Group
     </button>
     <!-- BASIC PLAN CHAT -->

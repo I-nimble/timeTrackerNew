@@ -34,6 +34,8 @@ export class AppChatComponent implements OnInit {
   plansService = inject(PlansService);
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
+  userId: string | null = localStorage.getItem('id');
+  groupCreatorUserIds = ['189', '159']; // Steffi and Fernando
   companies: any[] = [];
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
@@ -264,7 +266,7 @@ export class AppChatComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if(result.group) {
+      if(result?.group) {
         this.openSnackBar('Group Created successfully!', 'Close');
         this.chatService.isChatAvailable = false;
         setTimeout(() => {
