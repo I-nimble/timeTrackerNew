@@ -104,6 +104,12 @@ export class AppHistoryComponent {
       color: '#b54343',
       type: 'Job application',
     },
+    {
+      icon: 'fa-solid fa-business-time',
+      color: '#4a90e2',
+      type: 'Time Entry',
+    }
+
   ];
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -118,8 +124,6 @@ export class AppHistoryComponent {
   ) {}
 
   ngOnInit(): void {
-    this.loadNotifications();
-    this.loaded = true;
 
     const today = moment();
     this.startDate = today.clone().startOf('isoWeek').toDate();
@@ -207,6 +211,7 @@ export class AppHistoryComponent {
           task.profile.image = profilePics[index];
         });
         this.isLoading = false;
+        this.loadNotifications();
       });
   }
 
@@ -254,18 +259,48 @@ export class AppHistoryComponent {
   }
 
   loadNotifications() {
-  this.notificationsService.get().subscribe((notifications) => {
-    const allNotifications = [...notifications];
-    allNotifications.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    const users = this.selectedUserId
+      ? [this.selectedUserId]
+      : this.dataSource.map((u) => u.profile.id);
+
+    const entryRequests = users.map((userId) =>
+      this.entriesService.getUsersEntries(userId).pipe(
+        map((res) =>
+          res.entries.map((entry: any) => {
+            const user = this.dataSource.find(u => u.profile.id === entry.user_id);
+            const name = user ? user.profile.name : 'Unknown';
+            return {
+              message: `${name} clocked in from ${moment(entry.start_time).format('HH:mm')} to ${moment(entry.end_time).format('HH:mm')}`,
+              createdAt: entry.date,
+              type_id: 4,
+              users_notifications: { status: 1 },
+            };
+          })
+        )
+      )
     );
-    this.allNotifications = allNotifications;
-    this.notificationMembers = this.extractMembersFromNotifications(allNotifications);
-    this.applyNotificationFilter();
-    this.loaded = true;
-  });
-}
+
+    forkJoin({
+      notifications: this.notificationsService.get(),
+      entries: forkJoin(entryRequests).pipe(map((entriesArray) => entriesArray.flat())),
+    }).subscribe(({ notifications, entries }) => {
+      const allNotifications = [...notifications, ...entries];
+      allNotifications.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      this.allNotifications = allNotifications;
+      this.notificationMembers = this.extractMembersFromNotifications(notifications);
+      this.applyNotificationFilter();
+      this.loaded = true;
+    });
+
+    console.log('DataSource:', this.dataSource);
+    console.log('Selected users for entries:', users);
+    console.log('Combined notifications + entries:', this.allNotifications);
+
+  }
+
 
   formatMessage(message: string): string {
     return message.replace(/\n/g, '<br>');
