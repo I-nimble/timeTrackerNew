@@ -8,7 +8,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { AppKanbanDialogComponent } from './kanban-dialog.component';
 import { AppOkDialogComponent } from './ok-dialog/ok-dialog.component';
-import { AppDeleteDialogComponent } from './delete-dialog/delete-dialog.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -283,10 +283,15 @@ export class AppKanbanComponent implements OnInit {
   }
 
   deleteTask(task: Todos, boardId: number): void {
-    const del = this.dialog.open(AppDeleteDialogComponent);
+    const del = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'task'
+      },
+    });
 
     del.afterClosed().subscribe((result) => {
-      if (result === 'true') {
+      if (result) {
         this.kanbanService.removeTaskFromBoard(task).subscribe(() => {
           this.loadTasks(boardId);
           this.showSnackbar('Task deleted successfully!');
