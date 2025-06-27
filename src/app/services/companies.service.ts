@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Company } from '../models/Company.model';
 import { PossibleClient } from '../models/Client';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, of, forkJoin, Subject } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { switchMap, map } from 'rxjs/operators';
 
@@ -15,6 +15,8 @@ export class CompaniesService {
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
   API_URI = environment.apiUrl + '/companies';
   logoUrl: any = null;
+  private logoUpdatedSource = new Subject<void>();
+  logoUpdated$ = this.logoUpdatedSource.asObservable();
 
   public getCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(this.API_URI);
@@ -33,30 +35,13 @@ export class CompaniesService {
   }
 
   public getCompanyLogo(id: number): Observable<SafeResourceUrl | null> {
-    if (!id) {
-      return of(null);
-    }
-
-    const url = `${environment.upload}/company-logos/${id}.jpeg`;
-    const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-
-    return new Observable<SafeResourceUrl | null>((observer) => {
-      const img = new Image();
-      img.src = url;
-      img.onload = () => {
-        if (img.width === 0 && img.height === 0) {
-          observer.next(null);
-        } else {
-          observer.next(url);
-        }
-        observer.complete();
-      };
-  
-      img.onerror = () => {
-        observer.next(null);
-        observer.complete();
-      };
-    });
+    return this.http.post<{ logo: string }>(`${this.API_URI}/logo`, { id }).pipe(
+      map(response => {
+        if (!response.logo) return null;
+        const url = `${environment.upload}/company-logos/${response.logo}`;
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      })
+    );
   }
 
   getUploadUrl(type: string) {
@@ -96,8 +81,16 @@ export class CompaniesService {
                 id: data.id == -1 ? null : data.id,
             };
 
-            if (id) return this.http.put(`${this.API_URI}/${id}`, body);
-            return this.http.post(`${this.API_URI}`, body);
+            const request$ = id
+              ? this.http.put(`${this.API_URI}/${id}`, body)
+              : this.http.post(`${this.API_URI}`, body);
+
+            return request$.pipe(
+              map((result) => {
+                this.logoUpdatedSource.next();
+                return result;
+              })
+            );
         })
     );
   }

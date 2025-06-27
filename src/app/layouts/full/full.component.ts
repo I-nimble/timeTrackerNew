@@ -250,6 +250,16 @@ export class FullComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.companieService.logoUpdated$.subscribe(() => {
+      if (this.role == '3') {
+        this.companieService.getByOwner().subscribe((company: any) => {
+          this.loadCompanyLogo(company.company_id);
+        });
+      }
+    });
+    this.usersService.profilePicUpdated$.subscribe(() => {
+      this.loadProfilePicture();
+    });
     this.userData();
   }
 
@@ -328,16 +338,14 @@ export class FullComponent implements OnInit {
   loadProfilePicture() {
     this.usersService.getProfilePic(this.userId).subscribe({
       next: (image: any) => {
-        this.profilePicture = image;
+        if(image != null) this.profilePicture = image;
       },
     });
   }
 
   loadCompanyLogo(companyId: number) {
     this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
-      if(logo) {
-        this.companyLogo = logo;
-      }
+      if (logo != null) this.companyLogo = logo;
     });
     // this.plansService.getCurrentPlan(company.company_id).subscribe({
     //   next: (userPlan: any) => {
