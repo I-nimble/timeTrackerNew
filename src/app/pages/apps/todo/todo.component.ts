@@ -28,7 +28,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { AppDeleteDialogComponent } from '../kanban/delete-dialog/delete-dialog.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { AppFullcalendarComponent } from '../fullcalendar/fullcalendar.component';
 import { MatSelectModule } from '@angular/material/select';
 import { RatingsService } from 'src/app/services/ratings.service';
@@ -559,7 +559,12 @@ export class AppTodoComponent implements OnInit {
   }
 
   deleteTodo(id: number): void {
-    const dialogRef = this.dialog.open(AppDeleteDialogComponent);
+    const dialogRef = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'task'
+      },
+    });
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result === true) { // Only delete if user confirmed
