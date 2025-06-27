@@ -105,8 +105,8 @@ export class AppHistoryComponent {
       type: 'Job application',
     },
     {
-      icon: 'fa-solid fa-business-time',
-      color: '#4a90e2',
+      icon: 'fa-solid fa-clock',
+      color: '#92b46c',
       type: 'Time Entry',
     }
 
@@ -266,15 +266,28 @@ export class AppHistoryComponent {
     const entryRequests = users.map((userId) =>
       this.entriesService.getUsersEntries(userId).pipe(
         map((res) =>
-          res.entries.map((entry: any) => {
+          res.entries.flatMap((entry: any) => {
             const user = this.dataSource.find(u => u.profile.id === entry.user_id);
             const name = user ? user.profile.name : 'Unknown';
-            return {
-              message: `${name} clocked in from ${moment(entry.start_time).format('HH:mm')} to ${moment(entry.end_time).format('HH:mm')}`,
-              createdAt: entry.date,
-              type_id: 4,
+
+            const clockIn = {
+              message: `${name} clocked in at ${moment(entry.start_time).format('HH:mm')}`,
+              createdAt: entry.start_time,
+              type_id: 7,
               users_notifications: { status: 1 },
             };
+
+            const clockOut =
+              entry.end_time && entry.status !== 0
+                ? {
+                    message: `${name} clocked out at ${moment(entry.end_time).format('HH:mm')}`,
+                    createdAt: entry.end_time,
+                    type_id: 7,
+                    users_notifications: { status: 1 },
+                  }
+                : null;
+
+            return clockOut ? [clockIn, clockOut] : [clockIn];
           })
         )
       )
