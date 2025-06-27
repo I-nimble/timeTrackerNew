@@ -124,6 +124,7 @@
                       class="d-flex align-items-center justify-content-center"
                       mat-icon-button
                       [matMenuTriggerFor]="menu"
+                      (click)="$event.stopPropagation()"
                     >
                       <mat-icon>more_vert</mat-icon>
                     </button>
