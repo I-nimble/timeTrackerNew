@@ -153,6 +153,7 @@
         [refresh]="refresh"
         (dayHeaderClicked)="dayClicked($event.day)"
         (eventClicked)="handleEvent('Edit', $event.event)"
+        (hourSegmentClicked)="dayClicked($event)"
       >
       </mwl-calendar-week-view>
 
