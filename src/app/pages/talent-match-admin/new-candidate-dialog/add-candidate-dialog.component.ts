@@ -75,7 +75,7 @@ export class AddCandidateDialogComponent implements OnInit {
     if (today !== 1 && today !== 2) {
       this.isCreationAllowed = false;
       this.restrictionMessage =
-        'Talent registration is restricted to Mondays and Thuesdays only.';
+        'Talent registration is restricted to Mondays and Tuesdays only.';
     }
 
     if (!this.isCreationAllowed) {
