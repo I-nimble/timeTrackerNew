@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, catchError, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +14,8 @@ export class UsersService {
   private teamMemberSource = new BehaviorSubject<number | null>(null);
   teamMember$ = this.teamMemberSource.asObservable();
   private API_URI = environment.apiUrl;
+  private profilePicUpdatedSource = new Subject<void>();
+  profilePicUpdated$ = this.profilePicUpdatedSource.asObservable();
 
   public updatePassword(passwordData: any) {
     return this.http.put(`${this.API_URI}/users/password`, passwordData);
@@ -118,7 +120,14 @@ export class UsersService {
     if (userData.company) form.append('company', JSON.stringify(userData.company));
     if (userData.profile) form.append('profile', userData.profile);
 
-    return this.http.patch(`${this.API_URI}/users/${userData.id}`, form);
+    return this.http.patch(`${this.API_URI}/users/${userData.id}`, form).pipe(
+      map((result) => {
+        if (userData.profile) {
+          this.profilePicUpdatedSource.next();
+        }
+        return result;
+      })
+    );
   }
   public delete(id: string | number) {
     return this.http.delete(`${this.API_URI}/users/${id}`);

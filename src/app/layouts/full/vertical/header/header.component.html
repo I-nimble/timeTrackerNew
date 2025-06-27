@@ -397,13 +397,15 @@
     <div class="d-flex align-items-center gap-12">
       <img
         *ngIf="role === '3'"
-        [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+        [src]="companyLogo"
         class="shadow rounded-circle logo"
+        style="object-fit: contain;"
       />
       <img
         *ngIf="role !== '3'"
-        [src]="profilePicture ? profilePicture : assetsPath + '/images/default-user-profile-pic.png'"
+        [src]="profilePicture"
         class="shadow rounded-circle logo"
+        style="object-fit: cover;"
       />
       <div class="d-none d-lg-flex text-left flex-col">
         <h5 class="f-s-16 f-w-600">{{userName}}</h5>
@@ -423,15 +425,15 @@
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
           <img
             *ngIf="role === '3'"
-            [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+            [src]="companyLogo"
             class="shadow rounded-circle logo"
-            style="width:95px; height:95px;"
+            style="width:95px; height:95px;object-fit: contain;"
           />
           <img
             *ngIf="role !== '3'"
-            [src]="profilePicture ? profilePicture : assetsPath + '/images/default-user-profile-pic.png'"
+            [src]="profilePicture"
             class="shadow rounded-circle logo"
-            style="width:95px; height:95px;"
+            style="width:95px; height:95px; object-fit: cover;"
           />
           <div class="m-l-16">
             <h6 class="f-s-16 f-w-600 m-0">{{userName}}</h6>

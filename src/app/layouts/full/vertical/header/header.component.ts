@@ -82,8 +82,8 @@ export class HeaderComponent implements OnInit {
   userId: any;
   companyLogo: any = 'assets/images/default-logo.jpg';
   profilePicture: any = 'assets/images/default-user-profile-pic.png';
-  userEmail: any;
   assetsPath: string = environment.assets;
+  userEmail: any;
   applications: any[] = [];
   recentNotifications: any[] = [];
   hasPendingNotifications: boolean = false;
@@ -148,6 +148,13 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
+    this.companieService.logoUpdated$.subscribe(() => {
+      this.loadCompanyLogo();
+    });
+    this.usersService.profilePicUpdated$.subscribe(() => {
+      this.loadProfilePicture();
+    });
+
     this.getUserData();
     this.getApplications();
     this.loadNotifications();
@@ -198,7 +205,7 @@ export class HeaderComponent implements OnInit {
   loadProfilePicture() {
     this.usersService.getProfilePic(this.userId).subscribe({
       next: (image: any) => {
-        this.profilePicture = image;
+        if(image != null) this.profilePicture = image;
       },
     });
   }
