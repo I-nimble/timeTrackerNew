@@ -307,11 +307,6 @@ export class AppHistoryComponent {
       this.applyNotificationFilter();
       this.loaded = true;
     });
-
-    console.log('DataSource:', this.dataSource);
-    console.log('Selected users for entries:', users);
-    console.log('Combined notifications + entries:', this.allNotifications);
-
   }
 
 
@@ -328,9 +323,6 @@ export class AppHistoryComponent {
   //     });
   // }
 
-  filterNotificationsByMember() {
-  this.applyNotificationFilter();
-}
 
 applyNotificationFilter() {
   let filtered = this.allNotifications;
