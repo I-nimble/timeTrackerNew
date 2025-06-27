@@ -142,12 +142,12 @@ export function getNavItems(role: number): NavItem[] {
     bgcolor: 'primary',
     route: '/apps/todo',
   },
-  {
+  ...(Number(role) == 3 ? [{
     displayName: 'History',
     iconName: 'packages',
     bgcolor: 'primary',
     route: 'apps/history',
-  },
+  }] : []),
   // {
   //   displayName: 'Storage',
   //   iconName: 'packages',
