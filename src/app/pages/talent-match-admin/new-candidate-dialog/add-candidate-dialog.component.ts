@@ -56,6 +56,7 @@ export class AddCandidateDialogComponent implements OnInit {
       skills: ['', Validators.required],
       english_level: ['', Validators.required],
       position_id: ['', Validators.required],
+      current_position: [''],
       company_id: [''],
       availability: [false, Validators.required],
       location_id: ['', Validators.required],
@@ -172,6 +173,7 @@ export class AddCandidateDialogComponent implements OnInit {
       skills: formValue.skills,
       english_level: formValue.english_level,
       position_id: formValue.position_id,
+      current_position: formValue.current_position,
       company_id: companyId,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
