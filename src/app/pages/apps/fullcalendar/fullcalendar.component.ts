@@ -132,7 +132,7 @@ export class CalendarDialogComponent implements OnInit {
         id: this.data.event.id,
         goal: this.data.event.title,
         recommendations: this.data.event.recommendations,
-        due_date: new Date(this.data.event.start),
+        due_date: this.formatDateToInput(new Date(this.data.event.start)),
         priority: this.data.event.priority,
         recurrent: this.data.event.recurrent,
         company_id: this.data.event.company_id,
