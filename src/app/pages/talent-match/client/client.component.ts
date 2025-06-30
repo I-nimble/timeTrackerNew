@@ -285,29 +285,24 @@ export class AppInterviewDialogContentComponent {
   availableDaysFilter = (d: Date | null): boolean => {
     if (!d) return false;
 
-    // Get today and normalize to 00:00:00
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Calculate the Monday of the current week
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - today.getDay() + 1);
+    const currentMonday = new Date(today);
+    currentMonday.setDate(today.getDate() - today.getDay() + 1);
 
-    // Calculate the Sunday of the current week
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const nextMonday = new Date(currentMonday);
+    nextMonday.setDate(currentMonday.getDate() + 7);
 
-    // Normalize the selected date
     const date = new Date(d);
     date.setHours(0, 0, 0, 0);
 
-    // Only allow Wednesday and Thursday of the current week, and not before today
+    // Only allow Wednesday and Thursday of any week starting from next week
     const day = date.getDay();
-    const isThisWeek = date >= monday && date <= sunday;
     const isWedOrThu = day === 3 || day === 4;
-    const isTodayOrFuture = date >= today;
+    const isFromNextWeekOnward = date >= nextMonday;
 
-    return isThisWeek && isWedOrThu && isTodayOrFuture;
+    return isWedOrThu && isFromNextWeekOnward;
   };
 
   constructor(

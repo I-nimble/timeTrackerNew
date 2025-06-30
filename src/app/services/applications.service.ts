@@ -145,7 +145,7 @@ export class ApplicationsService {
 
   getFilteredApplicationsByDay(applications: any[]): any[] {
     let filteredApplications: any[] = [];
-
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dayOfWeek = today.getDay();
@@ -161,7 +161,8 @@ export class ApplicationsService {
     if (dayOfWeek >= 1 && dayOfWeek <= 5) {
       filteredApplications = applications.filter((app: any) => {
         if (!app.submission_date) return false;
-        const submission = new Date(app.submission_date);
+        const [year, month, day] = app.submission_date.split('-').map(Number);
+        const submission = new Date(year, month - 1, day);
         submission.setHours(0, 0, 0, 0);
         return submission >= monday && submission <= friday;
       });
