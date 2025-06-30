@@ -132,23 +132,34 @@ export class CalendarDialogComponent implements OnInit {
         id: this.data.event.id,
         goal: this.data.event.title,
         recommendations: this.data.event.recommendations,
-        due_date: this.data.event.start,
+        due_date: new Date(this.data.event.start),
         priority: this.data.event.priority,
         recurrent: this.data.event.recurrent,
         company_id: this.data.event.company_id,
         employee_id: this.data.event.employee_id,
       });
     } else if (this.data.action === 'Create') {
+      const formattedDate = this.formatDateToInput(new Date(this.data.event.start));
       this.toDoForm.patchValue({
         goal: null,
         recommendations: null,
-        due_date: this.data.event.start,
+        due_date: formattedDate,
         priority: null,
         recurrent: false,
         company_id: this.data.event.company_id,
         employee_id: this.data.event.employee_id,
       });
     }
+  }
+
+  formatDateToInput(date: Date): string {
+    const pad = (n: number) => (n < 10 ? '0' + n : n);
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
 
   getPriorities() {
@@ -232,6 +243,8 @@ export class AppFullcalendarComponent implements OnInit {
   lastCloseResult = signal<string>('');
   actionsAlignment = signal<string>('');
   view = signal<any>('week');
+  dayStartHour = 8;
+  dayEndHour = 20;
   viewDate = signal<Date>(new Date());
   activeDayIsOpen = signal<boolean>(true);
   userRole: string | null = localStorage.getItem('role');
@@ -392,11 +405,15 @@ export class AppFullcalendarComponent implements OnInit {
               color = colors.blue;
               break;
           }
+
+          const dueDate = new Date(toDo.due_date);
+
           return {
             title: toDo.goal,
             color,
-            start: new Date(toDo.due_date),
-            allDay: true,
+            start: dueDate,
+            allDay: false,
+            due_date: dueDate,
             recurrent: toDo.recurrent,
             recommendations: toDo.recommendations,
             priority: toDo.priority,
@@ -420,6 +437,42 @@ export class AppFullcalendarComponent implements OnInit {
         },
       });
     }
+  }
+
+  private formatEventFromDialogResult(result: any): CalendarEvent {
+    let color;
+    switch (result.priority) {
+      case 1:
+        color = colors.red;
+        break;
+      case 2:
+        color = colors.yellow;
+        break;
+      case 4:
+        color = colors.green;
+        break;
+      default:
+        color = colors.blue;
+        break;
+    }
+
+    const dueDate = new Date(result.due_date || result.start);
+
+    return {
+      title: result.goal || result.title,
+      color,
+      start: dueDate,
+      allDay: false,
+      id: result.id,
+      meta: {
+        due_date: dueDate,
+        recurrent: result.recurrent,
+        recommendations: result.recommendations,
+        priority: result.priority,
+        company_id: result.company_id,
+        employee_id: result.employee_id,
+      },
+    };
   }
 
   dayClicked({ date, events }: { date: Date; events?: CalendarEvent[] }): void {
@@ -473,25 +526,61 @@ export class AppFullcalendarComponent implements OnInit {
             color = colors.blue;
             break;
         }
-        const newEvent = {
-          title: result.title,
-          color,
-          start: new Date(result.start),
-          allDay: true,
-          recurrent: result.recurrent,
-          recommendations: result.recommendations,
-          priority: result.priority,
-          company_id: result.company_id,
-          employee_id: result.employee_id,
-          id: result.id,
-        };
-        this.events.set(this.events().concat(newEvent));
-        this.lastCloseResult.set('Task created successfully');
-        this.calendarEventChange.emit();
-        this.dialogRef.set(null);
-        this.refresh.next(result);
-      });
+        const newEvent = this.formatEventFromDialogResult(result);
+          this.events.set([...this.events(), newEvent]);
+          this.lastCloseResult.set('Task created successfully');
+          this.calendarEventChange.emit();
+          this.dialogRef.set(null);
+          this.refresh.next(result);
+        });
   }
+
+  hourSegmentClicked(date: Date): void {
+    if (!this.teamMemberId || !this.companyId) {
+      this.openSnackBar('Select a team member to create a task', 'Close');
+      return;
+    }
+
+    this.config.data = {
+      event: {
+        start: date,
+        company_id: this.companyId,
+        employee_id: this.teamMemberId,
+      },
+      action: 'Create',
+    };
+
+    this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
+
+    this.dialogRef().afterClosed().subscribe((result: any) => {
+      if (!result) return;
+
+      const priority = result.priority;
+      let color;
+      switch (priority) {
+        case 1:
+          color = colors.red;
+          break;
+        case 2:
+          color = colors.yellow;
+          break;
+        case 4:
+          color = colors.green;
+          break;
+        default:
+          color = colors.blue;
+          break;
+      }
+
+    const newEvent = this.formatEventFromDialogResult(result);
+    this.events.set([...this.events(), newEvent]);
+          this.lastCloseResult.set('Task created successfully');
+          this.calendarEventChange.emit();
+          this.dialogRef.set(null);
+          this.refresh.next(result);
+        });
+  }
+
 
   handleEvent(action: string, event: CalendarEvent): void {
     this.config.data = { event, action };
