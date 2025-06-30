@@ -525,7 +525,10 @@ export class AppFullcalendarComponent implements OnInit {
         this.viewDate.set(date);
       }
     }
+    this.handleTimeGridClick(date);
+  }
 
+  handleTimeGridClick(date: Date): void {
     if (!this.teamMemberId || !this.companyId) {
       this.openSnackBar('Select a team member to create a task', 'Close');
       return;
@@ -539,84 +542,21 @@ export class AppFullcalendarComponent implements OnInit {
       },
       action: 'Create',
     };
+
     this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
 
     this.dialogRef()
       .afterClosed()
       .subscribe((result: any) => {
-        if (!result) {
-          return;
-        }
-        // Add the new event to the events array
-        const priority = result.priority;
-        let color;
-        switch (priority) {
-          case 1:
-            color = colors.red;
-            break;
-          case 2:
-            color = colors.yellow;
-            break;
-          case 4:
-            color = colors.green;
-            break;
-          default:
-            color = colors.blue;
-            break;
-        }
+        if (!result) return;
+
         const newEvent = this.formatEventFromDialogResult(result);
-          this.events.set([...this.events(), newEvent]);
-          this.lastCloseResult.set('Task created successfully');
-          this.calendarEventChange.emit();
-          this.dialogRef.set(null);
-          this.refresh.next(result);
-        });
-  }
-
-  hourSegmentClicked(date: Date): void {
-    if (!this.teamMemberId || !this.companyId) {
-      this.openSnackBar('Select a team member to create a task', 'Close');
-      return;
-    }
-
-    this.config.data = {
-      event: {
-        start: date,
-        company_id: this.companyId,
-        employee_id: this.teamMemberId,
-      },
-      action: 'Create',
-    };
-
-    this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
-
-    this.dialogRef().afterClosed().subscribe((result: any) => {
-      if (!result) return;
-
-      const priority = result.priority;
-      let color;
-      switch (priority) {
-        case 1:
-          color = colors.red;
-          break;
-        case 2:
-          color = colors.yellow;
-          break;
-        case 4:
-          color = colors.green;
-          break;
-        default:
-          color = colors.blue;
-          break;
-      }
-
-    const newEvent = this.formatEventFromDialogResult(result);
-    this.events.set([...this.events(), newEvent]);
-          this.lastCloseResult.set('Task created successfully');
-          this.calendarEventChange.emit();
-          this.dialogRef.set(null);
-          this.refresh.next(result);
-        });
+        this.events.set([...this.events(), newEvent]);
+        this.lastCloseResult.set('Task created successfully');
+        this.calendarEventChange.emit();
+        this.dialogRef.set(null);
+        this.refresh.next(result);
+      });
   }
 
 
