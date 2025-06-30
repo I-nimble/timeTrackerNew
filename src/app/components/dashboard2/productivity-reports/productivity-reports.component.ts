@@ -46,6 +46,7 @@ export class AppProductivityReportsComponent {
     'profile',
     'completedTasks',
     'totalTasks',
+    'pendingTasks',    
     'productivityPercentage',
   ];
   dataSource: any[] = [];
@@ -117,6 +118,8 @@ export class AppProductivityReportsComponent {
             const productivityPercentage =
               totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+            const pendingTasks = totalTasks - completedTasks;
+
             return {
               profile: {
                 id: employee.profile.id,
@@ -130,6 +133,7 @@ export class AppProductivityReportsComponent {
               totalTasks: employee.totalTasks,
               workedHours: employee.workedHours,
               hoursLeft: employee.hoursLeft,
+              pendingTasks: pendingTasks,
               progress: employee.status === 'Online' ? 'success' : 'error',
               productivityPercentage: productivityPercentage,
             };
