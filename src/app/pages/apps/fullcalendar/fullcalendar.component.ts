@@ -112,7 +112,31 @@ export class CalendarDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getPriorities();
+    this.getPriorities().then(() => {
+      if (this.data.action === 'Edit') {
+        this.toDoForm.patchValue({
+          id: this.data.event.id,
+          goal: this.data.event.title,
+          recommendations: this.data.event.recommendations,
+          due_date: this.formatDateToInput(new Date(this.data.event.start)),
+          priority: this.data.event.priority, // must be a number
+          recurrent: this.data.event.recurrent,
+          company_id: this.data.event.company_id,
+          employee_id: this.data.event.employee_id,
+        });
+      } else if (this.data.action === 'Create') {
+        const formattedDate = this.formatDateToInput(new Date(this.data.event.start));
+        this.toDoForm.patchValue({
+          goal: null,
+          recommendations: null,
+          due_date: formattedDate,
+          priority: null,
+          recurrent: false,
+          company_id: this.data.event.company_id,
+          employee_id: this.data.event.employee_id,
+        });
+      }
+    });
 
     if (this.data.action !== 'Deleted') {
       this.toDoForm
@@ -162,9 +186,12 @@ export class CalendarDialogComponent implements OnInit {
     return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   }
 
-  getPriorities() {
-    this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
-      this.priorities = priorities;
+  getPriorities(): Promise<void> {
+    return new Promise((resolve) => {
+      this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
+        this.priorities = priorities;
+        resolve();
+      });
     });
   }
 
@@ -189,7 +216,9 @@ export class CalendarDialogComponent implements OnInit {
           const event = {
             ...this.data.event,
             title: formData.goal,
-            start: formData.due_date,
+            start: new Date(formData.due_date),
+            allDay: false,
+            due_date: formData.due_date,
             recommendations: formData.recommendations,
             priority: formData.priority,
             recurrent: formData.recurrent,
@@ -611,7 +640,7 @@ export class AppFullcalendarComponent implements OnInit {
             title: result.title,
             color,
             start: new Date(result.start),
-            allDay: true,
+            allDay: false,
             recurrent: result.recurrent,
             recommendations: result.recommendations,
             priority: result.priority,
