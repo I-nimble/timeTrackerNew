@@ -216,8 +216,8 @@ export class CalendarDialogComponent implements OnInit {
           const event = {
             ...this.data.event,
             title: formData.goal,
-            start: new Date(formData.due_date),
-            allDay: false,
+            start: formData.due_date ? new Date(formData.due_date) : null,
+            allDay: !formData.due_date,
             due_date: formData.due_date,
             recommendations: formData.recommendations,
             priority: formData.priority,
@@ -435,13 +435,17 @@ export class AppFullcalendarComponent implements OnInit {
               break;
           }
 
-          const dueDate = new Date(toDo.due_date);
+          const dueDate = toDo.due_date ? new Date(toDo.due_date) : new Date();
+          const isAllDay = toDo.due_date
+            ? new Date(toDo.due_date).getHours() === 0 &&
+              new Date(toDo.due_date).getMinutes() === 0
+            : true;
 
           return {
             title: toDo.goal,
             color,
             start: dueDate,
-            allDay: false,
+            allDay: isAllDay,
             due_date: dueDate,
             recurrent: toDo.recurrent,
             recommendations: toDo.recommendations,
@@ -485,13 +489,18 @@ export class AppFullcalendarComponent implements OnInit {
         break;
     }
 
-    const dueDate = new Date(result.due_date || result.start);
+    
+    const dueDate = result.due_date ? new Date(result.due_date) : new Date();
+    const isAllDay = result.due_date
+      ? new Date(result.due_date).getHours() === 0 &&
+        new Date(result.due_date).getMinutes() === 0
+      : true;
 
     return {
       title: result.goal || result.title,
       color,
       start: dueDate,
-      allDay: false,
+      allDay: isAllDay,
       id: result.id,
       meta: {
         due_date: dueDate,
@@ -636,11 +645,14 @@ export class AppFullcalendarComponent implements OnInit {
               color = colors.blue;
               break;
           }
+
+          const startDate = result.due_date ? new Date(result.due_date) : null;
+
           const newEvent = {
             title: result.title,
             color,
-            start: new Date(result.start),
-            allDay: false,
+            start: startDate,
+            allDay: !startDate,
             recurrent: result.recurrent,
             recommendations: result.recommendations,
             priority: result.priority,
