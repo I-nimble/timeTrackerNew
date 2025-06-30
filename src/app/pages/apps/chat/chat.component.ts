@@ -35,7 +35,7 @@ export class AppChatComponent implements OnInit {
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
   userId: string | null = localStorage.getItem('id');
-  groupCreatorUserIds = ['189', '159']; // Steffi and Fernando
+  groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
   companies: any[] = [];
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
