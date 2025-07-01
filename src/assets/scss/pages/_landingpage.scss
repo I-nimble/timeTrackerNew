@@ -476,3 +476,15 @@
     height: 160px;
   }
 }
+
+.hover-card {
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s;
+  will-change: transform;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(146, 180, 108, 0.15);
+    z-index: 2;
+  }
+}
