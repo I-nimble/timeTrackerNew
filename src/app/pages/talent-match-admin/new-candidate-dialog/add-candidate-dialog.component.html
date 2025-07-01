@@ -44,7 +44,13 @@
       </div>
       <div class="col-12 col-md-6 mb-3">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Position</mat-label>
+          <mat-label>Current Position</mat-label>
+          <input matInput formControlName="current_position" />
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Vacancy</mat-label>
           <mat-select formControlName="position_id">
             <mat-option
               *ngFor="let position of positions"

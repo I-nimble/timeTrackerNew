@@ -59,6 +59,9 @@
                                         <h6 class=" f-s-14 f-w-600">
                                             {{ element.name }}
                                         </h6>
+                                        <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
+                                            {{ element.current_position }}
+                                        </span>
                                     </div>
                                 </div>
                             </td>
