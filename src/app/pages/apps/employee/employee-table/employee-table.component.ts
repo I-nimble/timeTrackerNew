@@ -8,7 +8,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import {
   MatDialog,
   MatDialogRef,
@@ -50,12 +50,13 @@ import { SelectionModel } from '@angular/cdk/collections';
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent
+    TimerComponent,
+    MatPaginatorModule
   ],
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent implements OnInit {
+export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -88,14 +89,21 @@ export class AppEmployeeTableComponent implements OnInit {
 
   searchText: any;
 
-  @Input() dataSource: any = new MatTableDataSource<any>([]);
+  private _inputData: any[] = [];
+
+  @Input() set dataSource(data: any[]) {
+    this._inputData = data;
+    this.dataSourceTable.data = data;
+  }
+
+  dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
 
-  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
-    if (paginator) {
-      this.dataSource.paginator = paginator;
-    }
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  ngAfterViewInit() {
+    this.dataSourceTable.paginator = this.paginator;
   }
 
   constructor(
@@ -109,37 +117,9 @@ export class AppEmployeeTableComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.userRole === '3') {
-      this.loadCompany();
     }
-    this.getEmployees();
-    this.getCompanies();
   }
 
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies: any) => {
-        this.companies = companies;
-      },
-    });
-  }
-
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
-  }
-
-  loadCompany(): void {
-    this.companiesService.getByOwner().subscribe((company: any) => {
-      this.company = company.company.name;
-      if(company.company.timezone) {
-        this.companyTimezone = this.companyTimezone.split(':')[0];
-      }
-    });
-  }
-
-  applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-  }
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
@@ -226,7 +206,7 @@ export class AppEmployeeTableComponent implements OnInit {
         }
       });
     });
-    this.dataSource.data = this.users;
+    //this.dataSource.data = this.users;
     this.loaded = true;
   }
 
@@ -314,21 +294,21 @@ export class AppEmployeeTableComponent implements OnInit {
   }
 
   isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.dataSource || !this.dataSourceTable.data) {
       return false;
     }
     const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.dataSourceTable.data.length;
     return numSelected === numRows;
   }
 
   masterToggle(): void {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.dataSource || !this.dataSourceTable.data) {
       return;
     }
     this.isAllSelected()
       ? this.selection.clear()
-      : this.dataSource.data.forEach((row: any) => this.selection.select(row));
+      : this.dataSourceTable.data.forEach((row: any) => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {

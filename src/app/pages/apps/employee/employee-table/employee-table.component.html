@@ -1,4 +1,4 @@
-<table mat-table [dataSource]="dataSource" class="w-100">
+<table mat-table [dataSource]="dataSourceTable" class="w-100">
           
           <ng-container matColumnDef="select">
             <th mat-header-cell *matHeaderCellDef class="p-l-0">
@@ -162,11 +162,12 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
-        <div *ngIf="dataSource?.data?.length === 0 && loaded" class="text-center p-4 f-s-16 text-muted">
+        <div *ngIf="dataSourceTable?.data?.length === 0 && loaded" class="text-center p-4 f-s-16 text-muted">
           No employees found.
         </div>
         <mat-paginator
           [pageSizeOptions]="[5, 10, 20]"
           showFirstLastButtons
-          [length]="dataSource.data.length"
+          [length]="dataSourceTable.data.length"
+          [pageSize]="5">
         ></mat-paginator>
