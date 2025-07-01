@@ -41,6 +41,25 @@
               </div>
             </td>
           </ng-container>
+
+           <ng-container matColumnDef="nameUser">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
+                <td mat-cell *matCellDef="let element">
+                <div class="d-flex align-items-center gap-16">
+                    <img
+                        class="rounded-circle"
+                        [src]="element.profile.imagePath"
+                        width="45"
+                        height="45"
+                    />
+                    <div>
+                      <h6 class="f-w-600 f-s-16 m-t-0">
+                       {{ element.profile.name }} {{ element.profile.last_name }}
+                      </h6>
+                    </div>
+                </div>
+                </td>
+            </ng-container>
   
           <ng-container matColumnDef="schedule">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
@@ -60,7 +79,7 @@
             </td>
           </ng-container>
   
-          <ng-container matColumnDef="projects">
+          <ng-container matColumnDef="reports">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
               Reports
             </th>
@@ -158,6 +177,24 @@
               </span>
             </td>
           </ng-container>
+
+            <ng-container matColumnDef="role">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Role</th>
+                <td mat-cell *matCellDef="let element">
+                <div>
+                    <span class="f-s-14">{{ element.role }}</span>
+                </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Email</th>
+                <td mat-cell *matCellDef="let element">
+                <div>
+                    <span class="f-s-14">{{ element.email }}</span>
+                </div>
+                </td>
+            </ng-container>
     
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>

@@ -1,7 +1,9 @@
 import {
   Component,
+  EventEmitter,
   Inject,
   Optional,
+  Output,
   ViewChild,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
@@ -33,6 +35,7 @@ import {
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
 import { SelectionModel } from '@angular/cdk/collections';
+import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
 
 @Component({
   templateUrl: './team.component.html',
@@ -43,11 +46,13 @@ import { SelectionModel } from '@angular/cdk/collections';
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    EmployeeDetailsComponent
+    EmployeeDetailsComponent,
+    AppEmployeeTableComponent
   ],
   standalone: true,
 })
 export class TeamComponent {
+  @Output() dataSourceChange = new EventEmitter<any[]>();
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
@@ -71,19 +76,14 @@ export class TeamComponent {
   searchText: any;
 
   displayedColumns: string[] = [
-    'name',
+    'nameUser',
     'role',
     'email',
     'action',
   ];
-  dataSource = new MatTableDataSource<Employee>([]);
+  customColumns: string[] = ['nameUser', 'role', 'email', 'action',];
+  dataSource: any[] = [];
   selection = new SelectionModel<any>(true, []);
-
-  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
-    if (paginator) {
-      this.dataSource.paginator = paginator;
-    }
-  }
 
   constructor(
     public dialog: MatDialog,
@@ -101,6 +101,7 @@ export class TeamComponent {
     }
     this.getEmployees();
     this.getCompanies();
+    console.log(this.dataSource)
   }
 
   getCompanies() {
@@ -113,7 +114,7 @@ export class TeamComponent {
 
   handleCompanySelection(event: any) {
     this.companyId = event.value;
-    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
+    this.dataSource = this.users.filter((user: any) => user.company_id === this.companyId);
   }
 
   loadCompany(): void {
@@ -123,7 +124,7 @@ export class TeamComponent {
   }
 
   applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    // this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   openDialog(action: string, employee: Employee | any): void {
@@ -144,17 +145,19 @@ export class TeamComponent {
         this.users = employees
         .filter((user: any) => user.user.active == 1 && user.user.role == 2);
         this.users = this.users.map((user: any) => {
-          return {
-            id: user.user.id,
-            company_id: user.company_id,
-            name: user.user.name,
-            last_name: user.user.last_name,
-            email: user.user.email,
+          return ({
+              profile: {
+              id: user.user.id,
+              company_id: user.company_id,
+              name: user.user.name,
+              last_name: user.user.last_name,
+              position: user.position_id || user.position?.id || '',
+              projects: user.projects ? user.projects.map((project: any) => project.id) : [],
+              imagePath: '/assets/images/default-user-profile-pic.png',
+            },
             role: user.position?.title || 'Other',
-            position: user.position_id || user.position?.id || '',
-            projects: user.projects ? user.projects.map((project: any) => project.id) : [],
-            imagePath: '/assets/images/default-user-profile-pic.png',
-          };
+            email: user.user.email,
+          });
         });
         this.getProfilePics();
       },
@@ -176,7 +179,7 @@ export class TeamComponent {
         },
       });
     });
-    this.dataSource.data = this.users;
+    this.dataSource = this.users;
     this.loaded = true;
   }
 

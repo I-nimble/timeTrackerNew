@@ -94,14 +94,16 @@ export class AppEmployeeComponent {
     'projects',
     'action',
   ];
-  dataSource = new MatTableDataSource<Employee>([]);
+  customColumns = [
+    'select',
+    'name',
+    'status',
+    'schedule',
+    'reports',
+    'action',
+  ];
+  dataSource: any[] = []
   selection = new SelectionModel<any>(true, []);
-
-  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
-    if (paginator) {
-      this.dataSource.paginator = paginator;
-    }
-  }
 
   constructor(
     public dialog: MatDialog,
@@ -131,7 +133,7 @@ export class AppEmployeeComponent {
 
   handleCompanySelection(event: any) {
     this.companyId = event.value;
-    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
+    this.dataSource = this.users.filter((user: any) => user.company_id === this.companyId);
   }
 
   loadCompany(): void {
@@ -144,7 +146,7 @@ export class AppEmployeeComponent {
   }
 
   applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    // this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   openDialog(action: string, employee: Employee | any): void {
@@ -173,19 +175,21 @@ export class AppEmployeeComponent {
                 (schedule: any) => schedule.employee_id === user.id
               );
               if (!userSchedules) {
-                return {
-                  id: user.user.id,
-                  company_id: user.company_id,
-                  name: user.user.name,
-                  last_name: user.user.last_name,
-                  email: user.user.email,
-                  position: user.position_id,
-                  projects: user.projects.map((project: any) => project.id),
+                return ({
+                  profile: {
+                    id: user.user.id,
+                    company_id: user.company_id,
+                    name: user.user.name,
+                    last_name: user.user.last_name,
+                    email: user.user.email,
+                    position: user.position_id,
+                    projects: user.projects.map((project: any) => project.id),
+                    Salary: 0,
+                    imagePath: this.assetsPath + '/default-profile-pic.png',
+                  },
                   schedule: 'No registered schedule',
-                  Salary: 0,
-                  imagePath: this.assetsPath + '/default-profile-pic.png',
-                };
-              }
+                });
+              };
               
               const workingDays = userSchedules.days
                 .map((day: any) => day.name)
@@ -196,20 +200,22 @@ export class AppEmployeeComponent {
 
               const scheduleString = this.formatDaysRange(workingDays);
 
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
+              return ({
+                profile : {
+                  id: user.user.id,
+                  company_id: user.company_id,
+                  name: user.user.name,
+                  last_name: user.user.last_name,
+                  email: user.user.email,
+                  position: user.position_id,
+                  projects: user.projects.map((project: any) => project.id),
+                  Salary: 0, 
+                  imagePath: this.assetsPath + '/default-profile-pic.png',
+                },
                 schedule: scheduleString,
-                Salary: 0, 
-                imagePath: this.assetsPath + '/default-profile-pic.png',
-              };
+              });
             });
-            this.dataSource.data = this.users;
+            this.dataSource = this.users;
             this.loaded = true;
           },
           error: (err) => {
@@ -307,21 +313,21 @@ export class AppEmployeeComponent {
   }
 
   isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.dataSource || !this.dataSource) {
       return false;
     }
     const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.dataSource.length;
     return numSelected === numRows;
   }
 
   masterToggle(): void {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.dataSource || !this.dataSource) {
       return;
     }
     this.isAllSelected()
       ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
+      : this.dataSource.forEach((row) => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {
