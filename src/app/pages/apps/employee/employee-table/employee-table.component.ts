@@ -1,7 +1,9 @@
 import {
+  AfterViewInit,
   Component,
   Inject,
   Input,
+  OnInit,
   Optional,
   ViewChild,
 } from '@angular/core';
@@ -53,7 +55,7 @@ import { SelectionModel } from '@angular/cdk/collections';
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent {
+export class AppEmployeeTableComponent implements OnInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -86,7 +88,7 @@ export class AppEmployeeTableComponent {
 
   searchText: any;
 
-  dataSource = new MatTableDataSource<Employee>([]);
+  @Input() dataSource: any = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
 
@@ -259,7 +261,7 @@ export class AppEmployeeTableComponent {
   }
 
   downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map(u => u.id);
+    let selectedIds = this.selection.selected.map((u:any) => u.id);
     if (!selectedIds.includes(user.id)) {
       selectedIds.push(user.id);
     }
@@ -326,7 +328,7 @@ export class AppEmployeeTableComponent {
     }
     this.isAllSelected()
       ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
+      : this.dataSource.data.forEach((row: any) => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {
