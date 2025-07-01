@@ -34,6 +34,8 @@ export class AppKanbanDialogComponent {
   priorities: any[] = [];
   visibilities = ['public', 'restricted', 'private'];
   users: any[] = [];
+  attachments: any[] = [];
+  attachmentsUrl: string = "https://inimble-app.s3.us-east-1.amazonaws.com/task_attachments/";
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -59,6 +61,9 @@ export class AppKanbanDialogComponent {
       this.getCompany();
     }
     else {
+      if (this.local_data.task_attachments && Array.isArray(this.local_data.task_attachments)) {
+        this.attachments = [...this.local_data.task_attachments];
+      }
       this.local_data.type = 'task';
       this.local_data.date = this.datePipe.transform(new Date(), 'd MMMM')!;
       this.local_data.taskProperty ||= 'Design';
@@ -66,6 +71,36 @@ export class AppKanbanDialogComponent {
       this.getCompany();
     }
     
+  }
+
+  downloadAttachment(filename: string) {
+    const url = this.attachmentsUrl + filename;
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(error => {
+        console.error('Download failed:', error);
+      });
+  }
+
+  onFileSelected(event: any): void {
+    const files: FileList = event.target.files;
+    for (let i = 0; i < files.length; i++) {
+      this.attachments.push(files.item(i)!);
+    }
+    event.target.value = '';
+  }
+
+  removeAttachment(index: number): void {
+    this.attachments.splice(index, 1);
   }
 
   getCompany() {
@@ -104,6 +139,7 @@ export class AppKanbanDialogComponent {
   }
 
   doAction(): void {
+    this.local_data.task_attachments = this.attachments;
     if (this.action === 'Edit' && this.local_data.previousVisibility === 'private' && this.local_data.selectedVisibility === 'public') {
       const dialogRef = this.dialog.open(ModalComponent, {
         data: {

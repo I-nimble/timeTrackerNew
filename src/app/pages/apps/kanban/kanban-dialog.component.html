@@ -141,6 +141,44 @@
           ></textarea>
         </mat-form-field>
       </div>
+
+      <div class="col-12" *ngIf="local_data.type !== 'board'">
+        <input
+          #fileInput
+          type="file"
+          multiple
+          (change)="onFileSelected($event)"
+          style="display: none"
+        />
+        <button
+          mat-raised-button
+          type="button"
+          style="
+            background-color: #92b46c;
+            color: #fff;
+            margin-right: 8px;
+            margin-bottom: 8px;
+          "
+          (click)="fileInput.click()"
+        >
+          <mat-icon>upload</mat-icon>
+          Upload files
+        </button>
+
+        <div *ngIf="attachments.length > 0">
+          <mat-list>
+            <mat-list-item *ngFor="let file of attachments; let i = index">
+              <span>{{ file.name || file.file_name }}</span>
+              <button mat-icon-button (click)="downloadAttachment(file.s3_filename)">
+                <i-tabler name="download"></i-tabler>
+              </button>
+              <button mat-icon-button (click)="removeAttachment(i)">
+                <i-tabler name="x"></i-tabler>
+              </button>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </div>
     </div>
   </form>
 </mat-dialog-content>
