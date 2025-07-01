@@ -60,8 +60,6 @@ export class AppProductivityReportsComponent {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   selectedPosition: string | null = null;
-  departmentsList: any[] = [];
-  selectedDepartment: string | null = null;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -142,13 +140,6 @@ export class AppProductivityReportsComponent {
           const profilePicRequests = this.dataSource.map((task) =>
             this.usersService.getProfilePic(task.profile.id)
           );
-          this.departmentsList = Array.from(
-            new Set(
-              this.dataSource
-                .map((u) => u.profile.department)
-                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
-            )
-          );
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
           return forkJoin({
@@ -185,21 +176,10 @@ export class AppProductivityReportsComponent {
     } else {
       this.filteredDataSource = [...this.dataSource];
     }
-    if (this.selectedDepartment) {
-      this.filteredDataSource = this.filteredDataSource.filter(
-        (u) => u.profile.department === this.selectedDepartment
-      );
-    }
   }
 
   onUserChange(userId: number | null) {
     this.selectedUserId = userId;
-    this.filterByUser();
-    this.dataSourceChange.emit(this.filteredDataSource);
-  }
-
-  onDepartmentChange(department: string | null) {
-    this.selectedDepartment = department;
     this.filterByUser();
     this.dataSourceChange.emit(this.filteredDataSource);
   }

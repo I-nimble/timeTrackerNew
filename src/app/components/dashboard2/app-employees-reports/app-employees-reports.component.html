@@ -1,31 +1,31 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header>
-    <div class="d-flex align-items-center justify-content-end w-100">
-      <div>
-        <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a member</mat-label>
-          <mat-select
-            [(value)]="selectedUserId"
-            (selectionChange)="onUserChange($event.value)"
+    <div class="col-md-5 mb-2">
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>Select a member</mat-label>
+        <mat-select
+          [(value)]="selectedUserId"
+          (selectionChange)="onUserChange($event.value)"
+        >
+          <mat-option [value]="null">All members</mat-option>
+          <mat-option
+            *ngFor="let user of dataSource"
+            [value]="user.profile.id"
           >
-            <mat-option [value]="null">All members</mat-option>
-            <mat-option
-              *ngFor="let user of dataSource"
-              [value]="user.profile.id"
-            >
-              {{ user.profile.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+            {{ user.profile.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div *ngIf="role == '1'">
         <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a department</mat-label>
+          <mat-label>Select a Company</mat-label>
           <mat-select
-            [(value)]="selectedDepartment"
-            (selectionChange)="onDepartmentChange($event.value)"
+            [(value)]="selectedClient"
+            (selectionChange)="onClientChange($event.value)"
           >
-            <mat-option [value]="null">All departments</mat-option>
-            <mat-option *ngFor="let dep of departmentsList" [value]="dep">
-              {{ dep }}
+            <mat-option [value]="null" disabled>Select a client</mat-option>
+            <mat-option *ngFor="let company of companiesList" [value]="company">
+              {{ company.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -51,20 +51,6 @@
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-date-range-picker #picker></mat-date-range-picker>
       </mat-form-field>
-      <div *ngIf="role == '1'">
-        <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a Company</mat-label>
-          <mat-select
-            [(value)]="selectedClient"
-            (selectionChange)="onClientChange($event.value)"
-          >
-            <mat-option [value]="null" disabled>Select a client</mat-option>
-            <mat-option *ngFor="let company of companiesList" [value]="company">
-              {{ company.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
     </div>
     <button
       *ngIf="role != '2'"
