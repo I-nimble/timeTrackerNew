@@ -86,8 +86,8 @@ const colors: any = {
   providers: [provideNativeDateAdapter()],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
 export class CalendarDialogComponent implements OnInit {
-  options!: UntypedFormGroup;
   toDoForm: FormGroup = this.fb.group(
     {
       goal: ['', [Validators.required]],
@@ -102,7 +102,8 @@ export class CalendarDialogComponent implements OnInit {
     },
     { validators: this.recurrentDueDateValidator }
   );
-  priorities: any[];
+
+  priorities: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<CalendarDialogComponent>,
@@ -111,69 +112,42 @@ export class CalendarDialogComponent implements OnInit {
     private ratingsService: RatingsService
   ) {}
 
-  ngOnInit(): void {
-    this.getPriorities().then(() => {
-      if (this.data.action === 'Edit') {
-        this.toDoForm.patchValue({
-          id: this.data.event.id,
-          goal: this.data.event.title,
-          recommendations: this.data.event.recommendations,
-          due_date: this.formatDateToInput(new Date(this.data.event.start)),
-          priority: this.data.event.priority, // must be a number
-          recurrent: this.data.event.recurrent,
-          company_id: this.data.event.company_id,
-          employee_id: this.data.event.employee_id,
-        });
-      } else if (this.data.action === 'Create') {
-        const formattedDate = this.formatDateToInput(new Date(this.data.event.start));
-        this.toDoForm.patchValue({
-          goal: null,
-          recommendations: null,
-          due_date: formattedDate,
-          priority: null,
-          recurrent: false,
-          company_id: this.data.event.company_id,
-          employee_id: this.data.event.employee_id,
-        });
-      }
-    });
+  async ngOnInit(): Promise<void> {
+    await this.getPriorities();
+
+    if (this.data.action === 'Edit' || this.data.action === 'Create') {
+      this.patchFormData();
+    }
 
     if (this.data.action !== 'Deleted') {
-      this.toDoForm
-        .get('recurrent')
-        ?.valueChanges.subscribe((recurrent: boolean) => {
-          const dueDateControl = this.toDoForm.get('due_date');
-          if (recurrent) {
-            dueDateControl?.setValue(null);
-            dueDateControl?.disable();
-          } else {
-            dueDateControl?.enable();
-          }
-        });
-    }
-    if (this.data.action === 'Edit') {
-      this.toDoForm.patchValue({
-        id: this.data.event.id,
-        goal: this.data.event.title,
-        recommendations: this.data.event.recommendations,
-        due_date: this.formatDateToInput(new Date(this.data.event.start)),
-        priority: this.data.event.priority,
-        recurrent: this.data.event.recurrent,
-        company_id: this.data.event.company_id,
-        employee_id: this.data.event.employee_id,
-      });
-    } else if (this.data.action === 'Create') {
-      const formattedDate = this.formatDateToInput(new Date(this.data.event.start));
-      this.toDoForm.patchValue({
-        goal: null,
-        recommendations: null,
-        due_date: formattedDate,
-        priority: null,
-        recurrent: false,
-        company_id: this.data.event.company_id,
-        employee_id: this.data.event.employee_id,
+      this.toDoForm.get('recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
+        const dueDateControl = this.toDoForm.get('due_date');
+        if (recurrent) {
+          dueDateControl?.setValue(null);
+          dueDateControl?.disable();
+        } else {
+          dueDateControl?.enable();
+        }
       });
     }
+  }
+
+  patchFormData() {
+    const eventData = this.data.event.meta || this.data.event;
+    const startDate = this.data.event.start || eventData.due_date;
+
+    this.toDoForm.patchValue({
+      id: this.data.event.id || null,
+      goal: this.data.event.title || eventData.goal || '',
+      recommendations: eventData.recommendations || '',
+      due_date: startDate ? this.formatDateToInput(new Date(startDate)) : null,
+      priority: eventData.priority || null,
+      recurrent: eventData.recurrent || false,
+      company_id: eventData.company_id || null,
+      employee_id: eventData.employee_id || null,
+    });
+
+    console.log('Form patched with:', this.toDoForm.value);
   }
 
   formatDateToInput(date: Date): string {
@@ -197,11 +171,8 @@ export class CalendarDialogComponent implements OnInit {
 
   recurrentDueDateValidator(group: FormGroup) {
     const recurrent = group.get('recurrent')?.value;
-    const dueDateControl = group.get('due_date');
-    if (recurrent && dueDateControl?.value) {
-      return { recurrentDueDateError: true };
-    }
-    return null;
+    const dueDate = group.get('due_date')?.value;
+    return recurrent && dueDate ? { recurrentDueDateError: true } : null;
   }
 
   onSubmit() {
@@ -215,6 +186,7 @@ export class CalendarDialogComponent implements OnInit {
         next: (response: any) => {
           const event = {
             ...this.data.event,
+            id: response.id,
             title: formData.goal,
             start: formData.due_date ? new Date(formData.due_date) : null,
             allDay: !formData.due_date,
@@ -234,9 +206,7 @@ export class CalendarDialogComponent implements OnInit {
       });
     } else if (this.data.action === 'Deleted') {
       this.ratingsService.delete(this.data.event.id).subscribe({
-        next: (response: any) => {
-          this.dialogRef.close();
-        },
+        next: () => this.dialogRef.close(),
         error: (error) => {
           console.error('Error deleting task:', error);
           this.dialogRef.close();
@@ -489,19 +459,15 @@ export class AppFullcalendarComponent implements OnInit {
         break;
     }
 
-    
     const dueDate = result.due_date ? new Date(result.due_date) : new Date();
-    const isAllDay = result.due_date
-      ? new Date(result.due_date).getHours() === 0 &&
-        new Date(result.due_date).getMinutes() === 0
-      : true;
+    const isAllDay = dueDate.getHours() === 0 && dueDate.getMinutes() === 0;
 
     return {
+      id: result.id,
       title: result.goal || result.title,
-      color,
       start: dueDate,
       allDay: isAllDay,
-      id: result.id,
+      color,
       meta: {
         due_date: dueDate,
         recurrent: result.recurrent,
@@ -509,6 +475,7 @@ export class AppFullcalendarComponent implements OnInit {
         priority: result.priority,
         company_id: result.company_id,
         employee_id: result.employee_id,
+        goal: result.goal,
       },
     };
   }
@@ -568,44 +535,11 @@ export class AppFullcalendarComponent implements OnInit {
       .afterClosed()
       .subscribe((result: any) => {
         if (result && action === 'Edit') {
-          // Update the event in the events array
-          const priority = result.priority;
-          let color;
-          switch (priority) {
-            case 1:
-              color = colors.red;
-              break;
-            case 2:
-              color = colors.yellow;
-              break;
-            case 4:
-              color = colors.green;
-              break;
-            default:
-              color = colors.blue;
-              break;
-          }
+          const updatedEvent = this.formatEventFromDialogResult(result);
 
-          const startDate = result.due_date ? new Date(result.due_date) : null;
-
-          const newEvent = {
-            title: result.title,
-            color,
-            start: startDate,
-            allDay: !startDate,
-            recurrent: result.recurrent,
-            recommendations: result.recommendations,
-            priority: result.priority,
-            company_id: result.company_id,
-            employee_id: result.employee_id,
-            id: result.id,
-          };
           this.events.set(
             this.events().map((iEvent: CalendarEvent<any>) => {
-              if (iEvent === event) {
-                return newEvent;
-              }
-              return iEvent;
+              return iEvent.id === updatedEvent.id ? updatedEvent : iEvent;
             })
           );
           this.lastCloseResult.set('Task updated');
