@@ -49,89 +49,94 @@
 </mat-card>
 
 <mat-card class="cardWithShadow overflow-hidden">
-  <mat-toolbar class="bg-primary text-white no-shadow">
-    <mat-toolbar-row>
-      <div class="d-flex align-items-center w-100">
+  <mat-toolbar class="bg-primary p-10 text-white no-shadow">
+    <mat-toolbar-row class="h-auto">
+      <div class="d-flex align-items-center justify-content-between w-100" id="calendar-header">
         <span>{{ viewDate() | calendarDate: view() + "ViewTitle":"en" }}</span>
-        <div class="m-l-auto d-flex align-items-center">
-          <button
-            mat-button
-            class="text-white"
-            (click)="setView('month')"
-            [class.active]="view() === 'month'"
-          >
-            Month
-          </button>
-          <button
-            mat-button
-            class="text-white"
-            (click)="setView('week')"
-            [class.active]="view() === 'week'"
-          >
-            Week
-          </button>
-          <button
-            mat-button
-            class="text-white"
-            (click)="setView('day')"
-            [class.active]="view() === 'day'"
-          >
-            Day
-          </button>
-          <button
-            mat-icon-button
-            class="text-white"
-            (click)="setView('month')"
-            [class.active]="view() === 'month'"
-          >
-            <mat-icon>view_module</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="text-white"
-            (click)="setView('week')"
-            [class.active]="view() === 'week'"
-          >
-            <mat-icon>view_week</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="text-white"
-            (click)="setView('day')"
-            [class.active]="view() === 'day'"
-          >
-            <mat-icon>view_day</mat-icon>
-          </button>
-
-          <button
-            mat-icon-button
-            class="text-white"
-            mwlCalendarPreviousView
-            (click)="goToPrevious()"
-          >
-            <mat-icon>chevron_left</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            mwlCalendarToday
-            class="text-white"
-            (click)="goToToday()"
-          >
-            <mat-icon>today</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            mwlCalendarNextView
-            class="text-white"
-            (click)="goToNext()"
-          >
-            <mat-icon>chevron_right</mat-icon>
-          </button>
+        <div class="d-flex" id="calendar-header-buttons">
+          <div class="d-flex justify-content-center">
+            <button
+              mat-button
+              class="text-white"
+              (click)="setView('month')"
+              [class.active]="view() === 'month'"
+            >
+              Month
+            </button>
+            <button
+              mat-button
+              class="text-white"
+              (click)="setView('week')"
+              [class.active]="view() === 'week'"
+            >
+              Week
+            </button>
+            <button
+              mat-button
+              class="text-white"
+              (click)="setView('day')"
+              [class.active]="view() === 'day'"
+            >
+              Day
+            </button>
+          </div>
+          <div class="d-flex justify-content-center" id="calendar-header-view-icon-buttons">
+            <button
+              mat-icon-button
+              class="text-white"
+              (click)="setView('month')"
+              [class.active]="view() === 'month'"
+            >
+              <mat-icon>view_module</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="text-white"
+              (click)="setView('week')"
+              [class.active]="view() === 'week'"
+            >
+              <mat-icon>view_week</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="text-white"
+              (click)="setView('day')"
+              [class.active]="view() === 'day'"
+            >
+              <mat-icon>view_day</mat-icon>
+            </button>
+          </div>
+          <div class="d-flex justify-content-center">
+            <button
+              mat-icon-button
+              class="text-white"
+              mwlCalendarPreviousView
+              (click)="goToPrevious()"
+            >
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              mwlCalendarToday
+              class="text-white"
+              (click)="goToToday()"
+            >
+              <mat-icon>today</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              mwlCalendarNextView
+              class="text-white"
+              (click)="goToNext()"
+            >
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </mat-toolbar-row>
   </mat-toolbar>
-  <mat-card-content>
+  <mat-card-content class="p-0">
     <div [ngSwitch]="view()">
       <!-- month view -->
       <mwl-calendar-month-view
