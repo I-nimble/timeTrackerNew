@@ -169,7 +169,10 @@
           <mat-list>
             <mat-list-item *ngFor="let file of attachments; let i = index">
               <span>{{ file.name || file.file_name }}</span>
-              <button mat-icon-button (click)="downloadAttachment(file.s3_filename)">
+              <button
+                mat-icon-button
+                (click)="downloadAttachment(file.s3_filename)"
+              >
                 <i-tabler name="download"></i-tabler>
               </button>
               <button mat-icon-button (click)="removeAttachment(i)">
@@ -177,6 +180,21 @@
               </button>
             </mat-list-item>
           </mat-list>
+          <div class="m-t-16" *ngFor="let file of attachments">
+            <img
+              *ngIf="file.file_type && file.file_type.startsWith('image/')"
+              [src]="attachmentsUrl + file.s3_filename"
+              alt="Attachment Preview"
+              style="
+                max-width: 100%;
+                max-height: 220px;
+                display: block;
+                margin: 0 auto 12px auto;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+              "
+            />
+          </div>
         </div>
       </div>
     </div>
