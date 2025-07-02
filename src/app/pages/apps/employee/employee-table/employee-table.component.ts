@@ -237,7 +237,7 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
       user.id == employee.user.id ? user = employee.user : null;
     });
 
-    this.userService.setUserInformation(user);
+    this.userService.setUserInformation(user.profile);
   }
 
   downloadReport(user: any): void {
@@ -294,30 +294,22 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
   }
 
   isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSourceTable.data) {
-      return false;
-    }
     const numSelected = this.selection.selected.length;
     const numRows = this.dataSourceTable.data.length;
     return numSelected === numRows;
   }
 
   masterToggle(): void {
-    if (!this.dataSource || !this.dataSourceTable.data) {
-      return;
-    }
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSourceTable.data.forEach((row: any) => this.selection.select(row));
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.dataSourceTable.data.forEach(row => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
-      row.position + 1
-    }`;
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
   }
 }
 
