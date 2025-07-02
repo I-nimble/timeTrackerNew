@@ -9,14 +9,14 @@
       <div
         class="d-flex row align-items-center justify-content-between m-l-auto m-t-16 m-r-16"
       >
-        <mat-form-field appearance="outline" *ngIf="userRole !== '2'">
+        <mat-form-field appearance="outline" *ngIf="userRole !== '2'" class="m-l-20" >
           <mat-label class="f-s-14 m-b-8 d-block"
             >Select a Team Member</mat-label
           >
           <mat-select
             *ngIf="userRole !== '2'"
             [(ngModel)]="teamMemberId"
-            (selectionChange)="handleTMSelection($event)"
+            (selectionChange)="handleTMSelection($event)" 
           >
             <mat-option [value]="null"> All members </mat-option>
 
