@@ -208,6 +208,15 @@ export class AppChatComponent implements OnInit {
     this.observeAppTheme();
   }
 
+  ngAfterViewInit() {
+    document.addEventListener('cc-image-clicked', () => {
+      const viewer = document.querySelector('cometchat-full-screen-viewer');
+      if (viewer) {
+        document.body.appendChild(viewer);
+      }
+    });
+  }
+
   startVoiceCall() {
     const context = this.currentChatContext;
     if (context.user) {
