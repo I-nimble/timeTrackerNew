@@ -90,13 +90,17 @@ export class AppChatComponent implements OnInit {
     const component = this;
 
     this.professionalMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        templates: this.chatService.templates
+      }),
     })
 
     this.essentialMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
+        templates: this.chatService.templates
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -113,6 +117,7 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
+        templates: this.chatService.templates
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -156,9 +161,10 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
+            templates: this.chatService.templates
           }),
           messageHeaderConfiguration: new MessageHeaderConfiguration({
-            menu: [] // Hide call buttons for groups
+            menu: null // Hide call buttons for groups
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
@@ -169,6 +175,7 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
+            templates: this.chatService.templates
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
