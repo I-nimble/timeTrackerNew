@@ -171,6 +171,13 @@ export class AppDashboardTMComponent implements OnInit {
               id: data?.user?.id,
               picture: null,
             };
+            if (this.employer.id) {
+              this.usersService.getProfilePic(this.employer.id).subscribe({
+                next: (image: any) => {
+                  this.employer.picture = image;
+                }
+              });
+            }
           });
 
         this.companiesService
