@@ -87,7 +87,7 @@ export class FullComponent implements OnInit {
   company: any;
   userName:any;
   userId:any;
-  companyLogo:any = 'assets/images/default-logo.jpg';
+  // companyLogo:any = 'assets/images/default-logo.jpg';
   profilePicture:any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
 
@@ -250,13 +250,13 @@ export class FullComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.companieService.logoUpdated$.subscribe(() => {
-      if (this.role == '3') {
-        this.companieService.getByOwner().subscribe((company: any) => {
-          this.loadCompanyLogo(company.company_id);
-        });
-      }
-    });
+    // this.companieService.logoUpdated$.subscribe(() => {
+    //   if (this.role == '3') {
+    //     this.companieService.getByOwner().subscribe((company: any) => {
+    //       this.loadCompanyLogo(company.company_id);
+    //     });
+    //   }
+    // });
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
@@ -323,16 +323,16 @@ export class FullComponent implements OnInit {
   userData(){
     this.userName = localStorage.getItem('username');
     this.userId = localStorage.getItem('id');
-    const role = localStorage.getItem('role');
-    if(role == '3'){
-      this.companieService.getByOwner().subscribe((company: any) => {
-        this.company = company.company.name;
-        this.loadCompanyLogo(company.company_id);
-      });
-    }
-    else {
+    // const role = localStorage.getItem('role');
+    // if(role == '3'){
+    //   this.companieService.getByOwner().subscribe((company: any) => {
+    //     this.company = company.company.name;
+    //     this.loadCompanyLogo(company.company_id);
+    //   });
+    // }
+    // else {
       this.loadProfilePicture();
-    }
+    // }
   }
 
   loadProfilePicture() {
@@ -343,10 +343,10 @@ export class FullComponent implements OnInit {
     });
   }
 
-  loadCompanyLogo(companyId: number) {
-    this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
-      if (logo != null) this.companyLogo = logo;
-    });
+  // loadCompanyLogo(companyId: number) {
+  //   this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
+  //     if (logo != null) this.companyLogo = logo;
+  //   });
     // this.plansService.getCurrentPlan(company.company_id).subscribe({
     //   next: (userPlan: any) => {
     //     let plan = userPlan?.plan;
@@ -356,5 +356,5 @@ export class FullComponent implements OnInit {
     //     this.store.addNotifications('Error loading plan data', 'error');
     //   },
     // });
-  }
+  // }
 }
