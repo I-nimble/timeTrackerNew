@@ -1,56 +1,64 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header>
-    <div class="col-md-6 mb-2">
-      <mat-form-field class="w-100" appearance="outline">
-        <mat-label>Select a member</mat-label>
-        <mat-select
-          [(value)]="selectedUserId"
-          (selectionChange)="onUserChange($event.value)"
-        >
-          <mat-option [value]="null">All members</mat-option>
-          <mat-option
-            *ngFor="let user of dataSource"
-            [value]="user.profile.id"
-          >
-            {{ user.profile.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <div *ngIf="role == '1'">
+    <div class="filters-row row w-100">
+      <div class="col-12 col-md-6">
         <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a Company</mat-label>
+          <mat-label>Select a member</mat-label>
           <mat-select
-            [(value)]="selectedClient"
-            (selectionChange)="onClientChange($event.value)"
+            [(value)]="selectedUserId"
+            (selectionChange)="onUserChange($event.value)"
           >
-            <mat-option [value]="null" disabled>Select a client</mat-option>
-            <mat-option *ngFor="let company of companiesList" [value]="company">
-              {{ company.name }}
+            <mat-option [value]="null">All members</mat-option>
+            <mat-option
+              *ngFor="let user of dataSource"
+              [value]="user.profile.id"
+            >
+              {{ user.profile.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
+        <div *ngIf="role == '1'">
+          <mat-form-field class="w-100" appearance="outline">
+            <mat-label>Select a Company</mat-label>
+            <mat-select
+              [(value)]="selectedClient"
+              (selectionChange)="onClientChange($event.value)"
+            >
+              <mat-option [value]="null" disabled>Select a client</mat-option>
+              <mat-option
+                *ngFor="let company of companiesList"
+                [value]="company"
+              >
+                {{ company.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
-    </div>
-    <div class="col-md-6 mb-2">
-      <mat-form-field class="w-100" appearance="outline">
-        <mat-label>Date Range</mat-label>
-        <mat-date-range-input [rangePicker]="picker">
-          <input
-            matStartDate
-            placeholder="Start date"
-            [(ngModel)]="startDate"
-            (dateChange)="onDateRangeChange()"
-          />
-          <input
-            matEndDate
-            placeholder="End date"
-            [(ngModel)]="endDate"
-            (dateChange)="onDateRangeChange()"
-          />
-        </mat-date-range-input>
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-date-range-picker #picker></mat-date-range-picker>
-      </mat-form-field>
+      <div class="col-12 col-md-6">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Date Range</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input
+              matStartDate
+              placeholder="Start date"
+              [(ngModel)]="startDate"
+              (dateChange)="onDateRangeChange()"
+            />
+            <input
+              matEndDate
+              placeholder="End date"
+              [(ngModel)]="endDate"
+              (dateChange)="onDateRangeChange()"
+            />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="picker"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
     </div>
   </mat-card-header>
   <mat-card-content class="p-t-0">
@@ -126,7 +134,7 @@
           </th>
           <td mat-cell *matCellDef="let element">
             <span class="f-w-600">
-              {{ element.productivityPercentage | number: '1.2-2' }}%
+              {{ element.productivityPercentage | number: "1.2-2" }}%
             </span>
           </td>
         </ng-container>
