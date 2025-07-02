@@ -146,7 +146,19 @@ export class AppEmployeeComponent {
   }
 
   applyFilter(filterValue: string): void {
-    // this.dataSource.filter = filterValue.trim().toLowerCase();
+    filterValue = filterValue.trim()?.toLowerCase();
+    if (!filterValue) {
+      this.dataSource = [...this.users];
+      return;
+    }
+    
+    this.dataSource = this.users.filter(user => {
+      return (
+        user.profile.name?.toLowerCase().includes(filterValue) ||
+        user.profile.last_name?.toLowerCase().includes(filterValue) ||
+        user.email?.toLowerCase().includes(filterValue)
+      );
+    });
   }
 
   openDialog(action: string, employee: Employee | any): void {
