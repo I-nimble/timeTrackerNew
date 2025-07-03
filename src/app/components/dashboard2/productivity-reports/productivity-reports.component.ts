@@ -48,6 +48,7 @@ export class AppProductivityReportsComponent {
     'profile',
     'completedTasks',
     'totalTasks',
+    'pendingTasks',    
     'productivityPercentage',
   ];
   customColumns: string[] = [ 'profile', 'completedTasks', 'totalTasks', 'productivityPercentage'];
@@ -62,8 +63,6 @@ export class AppProductivityReportsComponent {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   selectedPosition: string | null = null;
-  departmentsList: any[] = [];
-  selectedDepartment: string | null = null;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -120,6 +119,8 @@ export class AppProductivityReportsComponent {
             const productivityPercentage =
               totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
+            const pendingTasks = totalTasks - completedTasks;
+
             return {
               profile: {
                 id: employee.profile.id,
@@ -133,6 +134,7 @@ export class AppProductivityReportsComponent {
               totalTasks: employee.totalTasks,
               workedHours: employee.workedHours,
               hoursLeft: employee.hoursLeft,
+              pendingTasks: pendingTasks,
               progress: employee.status === 'Online' ? 'success' : 'error',
               productivityPercentage: productivityPercentage,
             };
@@ -140,13 +142,6 @@ export class AppProductivityReportsComponent {
 
           const profilePicRequests = this.dataSource.map((task) =>
             this.usersService.getProfilePic(task.profile.id)
-          );
-          this.departmentsList = Array.from(
-            new Set(
-              this.dataSource
-                .map((u) => u.profile.department)
-                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
-            )
           );
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
@@ -184,21 +179,10 @@ export class AppProductivityReportsComponent {
     } else {
       this.filteredDataSource = [...this.dataSource];
     }
-    if (this.selectedDepartment) {
-      this.filteredDataSource = this.filteredDataSource.filter(
-        (u) => u.profile.department === this.selectedDepartment
-      );
-    }
   }
 
   onUserChange(userId: number | null) {
     this.selectedUserId = userId;
-    this.filterByUser();
-    this.dataSourceChange.emit(this.filteredDataSource);
-  }
-
-  onDepartmentChange(department: string | null) {
-    this.selectedDepartment = department;
     this.filterByUser();
     this.dataSourceChange.emit(this.filteredDataSource);
   }

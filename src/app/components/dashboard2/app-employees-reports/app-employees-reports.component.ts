@@ -60,8 +60,6 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   companiesList: any[] = [];
   isLoading = false;
   selectedUserId: number | null = null;
-  selectedDepartment: string | null = null;
-  departmentsList: string[] = [];
   filteredDataSource: any[] = [];
   refreshInterval: any;
 
@@ -136,15 +134,6 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             status: employee.status,
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
-
-          
-          this.departmentsList = Array.from(
-            new Set(
-              this.dataSource
-                .map((u) => u.profile.department)
-                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
-            )
-          );
           
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
@@ -169,21 +158,12 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     this.filteredDataSource = this.dataSource.filter((u) => {
       const userMatch =
         !this.selectedUserId || u.profile.id === this.selectedUserId;
-      const depMatch =
-        !this.selectedDepartment ||
-        u.profile.department === this.selectedDepartment;
-      return userMatch && depMatch;
+      return userMatch;
     });
   }
 
   onUserChange(userId: number | null) {
     this.selectedUserId = userId;
-    this.filterByUser();
-    this.dataSourceChange.emit(this.filteredDataSource);
-  }
-
-  onDepartmentChange(department: string | null) {
-    this.selectedDepartment = department;
     this.filterByUser();
     this.dataSourceChange.emit(this.filteredDataSource);
   }

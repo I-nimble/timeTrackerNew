@@ -121,7 +121,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ''
   };
   logo: string = 'assets/images/default-logo.jpg';
-  picture: string = 'assets/images/default-user-profile-pic.png';
+  picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
   originalLogo: string = '';
   
   constructor(public companiesService: CompaniesService,  
@@ -144,6 +144,14 @@ export class AppAccountSettingComponent implements OnInit {
       ).subscribe({
           next: (users: any) => {
             this.user = users[0];
+            this.usersService.getProfilePic(this.user.id).subscribe({
+              next: (url: any) => {
+                if (url) {
+                    this.picture = url;
+                }
+              }
+            });
+
             this.companiesService.getByOwner().subscribe((company: any) => {
               if(company.company.logo) {
                   this.logo = `${environment.upload}/company-logos/${company.company.logo}`;
@@ -201,6 +209,7 @@ export class AppAccountSettingComponent implements OnInit {
         name: this.user.name,
         last_name: this.user.last_name,
         logo: this.logo,
+        picture: this.picture,
         email: this.user.email,
         phone: this.user.phone,
         companyName: this.user.company.name,
@@ -270,29 +279,31 @@ export class AppAccountSettingComponent implements OnInit {
         return
       }
       this.previewImage(img);
-      if(this.role === '3') this.profileForm.patchValue({ logo: img })
-      else this.personalForm.patchValue({ profile: img });
+      // if(this.role === '3') this.profileForm.patchValue({ logo: img })
+      // else this.personalForm.patchValue({ profile: img });
+      this.personalForm.patchValue({ profile: img });
     }
   }
 
   previewImage(file: File) {
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      if (this.role === '3') this.logo = e.target.result;
-      else this.picture = e.target.result;
+      // if (this.role === '3') this.logo = e.target.result;
+      // else this.picture = e.target.result;
+      this.picture = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 
   deleteImage() {
-    if(this.role ==='3') {
-      this.logo = 'assets/images/default-logo.jpg';
-      this.profileForm.patchValue({ logo: null });
-    }
-    else {
-      this.picture = 'assets/images/default-user-profile-pic.png';
+    // if(this.role ==='3') {
+    //   this.logo = 'assets/images/default-logo.jpg';
+    //   this.profileForm.patchValue({ logo: null });
+    // }
+    // else {
+      this.picture = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
       this.personalForm.patchValue({ profile: null });
-    }
+    // }
   }
 
   saveProfile() {
@@ -308,7 +319,8 @@ export class AppAccountSettingComponent implements OnInit {
         role: localStorage.getItem('role'),
         company: {
           id: this.user.company.id
-        }
+        },
+        profile: this.personalForm.get('profile')?.value
       };
   
       const companyData = {

@@ -395,7 +395,7 @@
     class="profile-btn d-none d-lg-flex align-items-center justify-content-center"
   >
     <div class="d-flex align-items-center gap-12">
-      <img
+      <!-- <img
         *ngIf="role === '3'"
         [src]="companyLogo"
         class="shadow rounded-circle logo"
@@ -403,6 +403,11 @@
       />
       <img
         *ngIf="role !== '3'"
+        [src]="profilePicture"
+        class="shadow rounded-circle logo"
+        style="object-fit: cover;"
+      /> -->
+      <img
         [src]="profilePicture"
         class="shadow rounded-circle logo"
         style="object-fit: cover;"
@@ -423,14 +428,19 @@
         <h6 class="f-s-16 f-w-600 m-0">User Profile</h6>
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
-          <img
+          <!-- <img
             *ngIf="role === '3'"
             [src]="companyLogo"
             class="shadow rounded-circle logo"
             style="width:95px; height:95px;object-fit: contain;"
-          />
-          <img
+          /> -->
+          <!-- <img
             *ngIf="role !== '3'"
+            [src]="profilePicture"
+            class="shadow rounded-circle logo"
+            style="width:95px; height:95px; object-fit: cover;"
+          /> -->
+          <img
             [src]="profilePicture"
             class="shadow rounded-circle logo"
             style="width:95px; height:95px; object-fit: cover;"

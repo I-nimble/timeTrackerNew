@@ -40,15 +40,15 @@
       </ng-scrollbar>
       <div class="p-24 m-t-auto profile-bar">
         <div class="bg-light-primary d-flex align-items-center rounded p-16">
-          <img
+          <!-- <img
             *ngIf="role === '3'"
             [src]="companyLogo"
             class="shadow rounded-circle logo"
-          />
+          /> -->
           <img
-            *ngIf="role !== '3'"
             [src]="profilePicture"
             class="shadow rounded-circle logo"
+            style="object-fit: cover;"
           />
           <div class="m-l-16">
             <h4 class="f-w-600">{{userName}}</h4>

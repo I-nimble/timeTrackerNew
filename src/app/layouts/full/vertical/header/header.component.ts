@@ -80,7 +80,7 @@ export class HeaderComponent implements OnInit {
   company: any;
   userName: any;
   userId: any;
-  companyLogo: any = 'assets/images/default-logo.jpg';
+  // companyLogo: any = 'assets/images/default-logo.jpg';
   profilePicture: any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
   userEmail: any;
@@ -148,9 +148,9 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
-    this.companieService.logoUpdated$.subscribe(() => {
-      this.loadCompanyLogo();
-    });
+    // this.companieService.logoUpdated$.subscribe(() => {
+    //   this.loadCompanyLogo();
+    // });
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
@@ -182,25 +182,25 @@ export class HeaderComponent implements OnInit {
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
     if (role == '3') {
-      this.loadCompanyLogo();
+      // this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
       });
     }
-    else {
+    // else {
       this.loadProfilePicture();
-    }
+    // }
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService
-        .getCompanyLogo(company.company_id)
-        .subscribe((logo) => {
-          if (logo != null) this.companyLogo = logo;
-        });
-    });
-  }
+  // loadCompanyLogo() {
+  //   this.companieService.getByOwner().subscribe((company) => {
+  //     this.companieService
+  //       .getCompanyLogo(company.company_id)
+  //       .subscribe((logo) => {
+  //         if (logo != null) this.companyLogo = logo;
+  //       });
+  //   });
+  // }
 
   loadProfilePicture() {
     this.usersService.getProfilePic(this.userId).subscribe({

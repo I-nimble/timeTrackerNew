@@ -1,5 +1,21 @@
 @use "../variables" as *;
 
+@media screen and (max-width: 768px) {
+  #calendar-header {
+    flex-direction: column;
+  }
+  #calendar-header-buttons {
+    flex-direction: column;
+  }
+  #calendar-header-view-icon-buttons {
+    display: none!important;
+  }
+}
+
+.h-auto {
+  height: auto !important;
+}
+
 .cal-event-action {
   text-decoration: none;
   margin-left: 5px;
