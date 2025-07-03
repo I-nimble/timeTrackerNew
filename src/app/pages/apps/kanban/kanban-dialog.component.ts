@@ -1,12 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
+import {
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
 import { RatingsService } from 'src/app/services/ratings.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
@@ -14,19 +21,19 @@ import { UsersService } from 'src/app/services/users.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
-    selector: 'app-kanban-dialog',
-    templateUrl: './kanban-dialog.component.html',
-    standalone: true,
-    imports: [
-        MaterialModule,
-        CommonModule,
-        TablerIconsModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatDatepickerModule,
-        MatNativeDateModule
-    ],
-    providers: [DatePipe, provideNativeDateAdapter()]
+  selector: 'app-kanban-dialog',
+  templateUrl: './kanban-dialog.component.html',
+  standalone: true,
+  imports: [
+    MaterialModule,
+    CommonModule,
+    TablerIconsModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+  ],
+  providers: [DatePipe, provideNativeDateAdapter()],
 })
 export class AppKanbanDialogComponent {
   action: string;
@@ -35,7 +42,13 @@ export class AppKanbanDialogComponent {
   visibilities = ['public', 'restricted', 'private'];
   users: any[] = [];
   attachments: any[] = [];
-  attachmentsUrl: string = "https://inimble-app.s3.us-east-1.amazonaws.com/task_attachments/";
+  attachmentsUrl: string =
+    'https://inimble-app.s3.us-east-1.amazonaws.com/task_attachments/';
+  showMentionList = false;
+  mentionQuery = '';
+  mentionIndex = 0;
+  filteredUsers: any[] = [];
+  mentionStartPos = 0;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -50,18 +63,21 @@ export class AppKanbanDialogComponent {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
-    
+
     if (data.type === 'board') {
       this.local_data.type = 'board';
       this.local_data.id = data.id || null;
       this.local_data.goal = data.name || '';
       this.local_data.previousVisibility = data.visibility || 'public';
       this.local_data.selectedVisibility = data.visibility || 'public';
-      this.local_data.restrictedUsers = data.restrictedUsers?.map((u:any) => u.user_id) || [];
+      this.local_data.restrictedUsers =
+        data.restrictedUsers?.map((u: any) => u.user_id) || [];
       this.getCompany();
-    }
-    else {
-      if (this.local_data.task_attachments && Array.isArray(this.local_data.task_attachments)) {
+    } else {
+      if (
+        this.local_data.task_attachments &&
+        Array.isArray(this.local_data.task_attachments)
+      ) {
         this.attachments = [...this.local_data.task_attachments];
       }
       this.local_data.type = 'task';
@@ -70,14 +86,13 @@ export class AppKanbanDialogComponent {
       this.local_data.imageUrl ||= '/assets/images/taskboard/kanban-img-1.jpg';
       this.getCompany();
     }
-    
   }
 
   downloadAttachment(filename: string) {
     const url = this.attachmentsUrl + filename;
     fetch(url)
-      .then(response => response.blob())
-      .then(blob => {
+      .then((response) => response.blob())
+      .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = filename;
@@ -86,7 +101,7 @@ export class AppKanbanDialogComponent {
         a.remove();
         URL.revokeObjectURL(a.href);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Download failed:', error);
       });
   }
@@ -104,32 +119,41 @@ export class AppKanbanDialogComponent {
   }
 
   getCompany() {
-    if(localStorage.getItem('role') === '3') {
+    if (localStorage.getItem('role') === '3') {
       this.companiesService.getByOwner().subscribe((company: any) => {
         this.getUsers(company.company_id);
       });
-    }
-    else if (localStorage.getItem('role') === '2') {
+    } else if (localStorage.getItem('role') === '2') {
       this.employeesService.getByEmployee().subscribe((employee: any) => {
         this.getUsers(employee.company_id);
       });
-    }
-    else if (localStorage.getItem('role') === '1' && this.local_data.company_id) {
+    } else if (
+      localStorage.getItem('role') === '1' &&
+      this.local_data.company_id
+    ) {
       this.companiesService.getCompanies().subscribe((companies: any) => {
-        const company = companies.find((c:any) => c.id === this.local_data.company_id);
+        const company = companies.find(
+          (c: any) => c.id === this.local_data.company_id
+        );
         this.getUsers(company.id);
       });
     }
   }
 
   getUsers(companyId: number) {
-    this.companiesService.getEmployees(companyId).subscribe((employees: any) => {
-      this.users = this.users.concat(employees.map((e:any) => e.user));
-      this.companiesService.getEmployer(companyId).subscribe((employer: any) => {
-        this.users.push(employer.user);
-        this.users = this.users.sort((a:any, b:any) => a.name.localeCompare(b.name));
+    this.companiesService
+      .getEmployees(companyId)
+      .subscribe((employees: any) => {
+        this.users = this.users.concat(employees.map((e: any) => e.user));
+        this.companiesService
+          .getEmployer(companyId)
+          .subscribe((employer: any) => {
+            this.users.push(employer.user);
+            this.users = this.users.sort((a: any, b: any) =>
+              a.name.localeCompare(b.name)
+            );
+          });
       });
-    });
   }
 
   getPriorities() {
@@ -140,23 +164,27 @@ export class AppKanbanDialogComponent {
 
   doAction(): void {
     this.local_data.task_attachments = this.attachments;
-    if (this.action === 'Edit' && this.local_data.previousVisibility === 'private' && this.local_data.selectedVisibility === 'public') {
+    if (
+      this.action === 'Edit' &&
+      this.local_data.previousVisibility === 'private' &&
+      this.local_data.selectedVisibility === 'public'
+    ) {
       const dialogRef = this.dialog.open(ModalComponent, {
         data: {
           action: this.action,
           type: 'board visibility',
-          message: 'This will make the board public. Everyone will be able to see it.',
-        }
+          message:
+            'This will make the board public. Everyone will be able to see it.',
+        },
       });
 
-      dialogRef.afterClosed().subscribe((result:any) => {
+      dialogRef.afterClosed().subscribe((result: any) => {
         if (!result) return;
-        if(result) {
+        if (result) {
           this.dialogRef.close({ event: this.action, data: this.local_data });
         }
       });
-    }
-    else {
+    } else {
       this.dialogRef.close({ event: this.action, data: this.local_data });
     }
   }
@@ -168,5 +196,72 @@ export class AppKanbanDialogComponent {
   handleVisibilityChange(event: any) {
     this.local_data.selectedVisibility = event.value;
     this.local_data.restrictedUsers = [];
+  }
+
+  onCommentInput(event: any) {
+    const textarea = event.target;
+    const value = textarea.value;
+    const pos = textarea.selectionStart;
+    const textUpToCursor = value.slice(0, pos);
+    const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
+
+    if (atMatch) {
+      this.mentionQuery = atMatch[1];
+      this.filteredUsers = this.users.filter((u) =>
+        `${u.name} ${u.last_name}`
+          .toLowerCase()
+          .includes(this.mentionQuery.toLowerCase())
+      );
+      this.showMentionList = this.filteredUsers.length > 0;
+      this.mentionStartPos = pos - this.mentionQuery.length - 1;
+      this.mentionIndex = 0;
+    } else {
+      this.showMentionList = false;
+    }
+  }
+
+  onCommentKeydown(event: KeyboardEvent) {
+    if (!this.showMentionList) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.mentionIndex =
+        (this.mentionIndex - 1 + this.filteredUsers.length) %
+        this.filteredUsers.length;
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.selectMention(this.filteredUsers[this.mentionIndex]);
+    } else if (event.key === 'Escape') {
+      this.showMentionList = false;
+    }
+  }
+
+  selectMention(user: any) {
+    const textarea: HTMLTextAreaElement | null = document.querySelector(
+      'textarea[name="comments"]'
+    );
+    if (!textarea) return;
+    const value = this.local_data.comments || '';
+    const before = value.slice(0, this.mentionStartPos);
+    const after = value.slice(textarea.selectionStart);
+    const mentionText = `@${user.name} ${user.last_name}`;
+    this.local_data.comments =
+      before + this.getMentionMarkup(user) + ' ' + after;
+    this.showMentionList = false;
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = (
+        before +
+        this.getMentionMarkup(user) +
+        ' '
+      ).length;
+    });
+  }
+
+  getMentionMarkup(user: any): string {
+    return `@${user.name}${user.last_name}`;
   }
 }

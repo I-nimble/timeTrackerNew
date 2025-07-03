@@ -134,8 +134,21 @@
             [(ngModel)]="local_data.comments"
             placeholder="Add comments"
             rows="2"
+            (input)="onCommentInput($event)"
+            (keydown)="onCommentKeydown($event)"
+            #commentTextarea
           ></textarea>
         </mat-form-field>
+        <div *ngIf="showMentionList" class="mention-list">
+          <div
+            *ngFor="let user of filteredUsers; let i = index"
+            [class.selected]="i === mentionIndex"
+            (mousedown)="selectMention(user)"
+            class="mention-item"
+          >
+            &#64;{{ user.name }} {{ user.last_name }}
+          </div>
+        </div>
       </div>
 
       <div class="col-12" *ngIf="local_data.type !== 'board'">
