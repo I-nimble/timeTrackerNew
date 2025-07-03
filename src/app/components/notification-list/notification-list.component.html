@@ -1,45 +1,59 @@
 <mat-card class="cardWithShadow">
-  <mat-card-content>
-    <mat-table [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
-      <ng-container class="mat-column-message" matColumnDef="message">
-        <mat-header-cell *matHeaderCellDef> Message </mat-header-cell>
-        <mat-cell *matCellDef="let notification">
-          <i [ngClass]="notificationIcons[notification.type_id - 1].icon" 
-             [ngStyle]="{'color': notification.users_notifications.status === 2 ? '#727272' : notificationIcons[notification.type_id - 1].color}"></i>
-          <span [class.read-notification]="notification.users_notifications.status === 2"
-          [innerHTML]="formatMessage(notification.message)">
-          </span>
-        </mat-cell>
-      </ng-container>
+  <mat-card-content class="p-t-0">
+    <div class="table-responsive">
+      <table mat-table [dataSource]="notificationsDataSource" class="w-100 mat-elevation-z8 demo-table">
 
-      <ng-container class="mat-column-date" matColumnDef="date">
-        <mat-header-cell *matHeaderCellDef> Date </mat-header-cell>
-        <mat-cell class="d-flex justify-content-between" *matCellDef="let notification">
-          <span [class.read-notification]="notification.users_notifications.status === 2">
-            {{ notification.createdAt | date: 'MMM d, y' }}
-          </span>
-          <button *ngIf="notification.users_notifications.status !== 2" 
-                  (click)="markAsRead(notification)" 
-                  mat-button>Mark as read</button>
-        </mat-cell>
-      </ng-container>
+        <ng-container class="mat-column-message" matColumnDef="message">
+          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16" style="width: 40%">Message</th>
+          <td mat-cell *matCellDef="let notification" style="width: 40%">
+            <div class="d-flex align-items-start gap-2">
+              <i [ngClass]="notificationIcons[notification.type_id - 1].icon" 
+                 [ngStyle]="{
+                   'color': notification.users_notifications.status === 2 
+                     ? '#727272' 
+                     : notificationIcons[notification.type_id - 1].color
+                 }">
+              </i>
+              <span 
+                class="text-truncate-3-lines"
+                [class.read-notification]="notification.users_notifications.status === 2"
+                [innerHTML]="formatMessage(notification.message)">
+              </span>
+            </div>
+          </td>
+        </ng-container>
 
-      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-      <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="handleClick(row)"></mat-row>
-      
-    </mat-table>
+        <ng-container class="mat-column-date" matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16">Date</th>
+          <td mat-cell *matCellDef="let notification" class="d-flex justify-content-between align-items-center">
+            <span [class.read-notification]="notification.users_notifications.status === 2">
+              {{ notification.createdAt | date: 'MMM d, y' }}
+            </span>
+            <button *ngIf="notification.users_notifications.status !== 2" 
+                    (click)="markAsRead(notification)" 
+                    mat-button>
+              Mark as read
+            </button>
+          </td>
+        </ng-container>
 
-    <mat-paginator [length]="notificationsDataSource.data.length"
-                   [pageSize]="10"
-                   [pageSizeOptions]="[10, 20, 50]">
-    </mat-paginator>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="handleClick(row)"></tr>
+      </table>
 
-    <div *ngIf="notificationsDataSource.data.length === 0">
-        <span>There are no notifications yet</span>
-    </div>
+      <mat-paginator
+        [length]="notificationsDataSource.data.length"
+        [pageSize]="10"
+        [pageSizeOptions]="[10, 20, 50]">
+      </mat-paginator>
 
-    <div *ngIf="!loaded" class="d-flex justify-content-center">
-      <mat-spinner></mat-spinner>
+      <div *ngIf="notificationsDataSource.data.length === 0" class="text-center p-4 f-s-16 text-muted">
+        There are no notifications yet.
+      </div>
+
+      <div *ngIf="!loaded" class="d-flex justify-content-center p-4">
+        <mat-spinner></mat-spinner>
+      </div>
     </div>
   </mat-card-content>
 </mat-card>

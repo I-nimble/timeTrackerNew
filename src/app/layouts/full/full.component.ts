@@ -27,6 +27,7 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
+import { NotificationsComponent } from 'src/app/pages/dashboards/notifications/notifications.component';
 
 export function jwtOptionsFactory() {
   return {
@@ -168,6 +169,13 @@ export class FullComponent implements OnInit {
       title: 'Courses',
       subtitle: 'Create new course',
       link: '/apps/courses',
+    },
+    {
+      id: 9,
+      img: '/assets/images/svgs/icon-dd-application.svg',
+      title: 'Notifications',
+      subtitle: 'See your notifications',
+      link: '/apps/notifications',
     },
   ];
 
