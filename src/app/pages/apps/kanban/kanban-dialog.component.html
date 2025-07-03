@@ -64,17 +64,13 @@
       <div class="col-12" *ngIf="local_data.type !== 'board'">
         <mat-label class="f-w-600 m-b-8 d-block">Description</mat-label>
         <mat-form-field appearance="outline" class="w-100">
-          <input
-            type="text"
+          <textarea
             matInput
             name="recommendations"
             [(ngModel)]="local_data.recommendations"
-            placeholder="{{
-              local_data.type === 'board'
-                ? 'Enter board description'
-                : 'Enter task description'
-            }}"
-          />
+            placeholder="Enter task description"
+            rows="2"
+          ></textarea>
         </mat-form-field>
       </div>
 
