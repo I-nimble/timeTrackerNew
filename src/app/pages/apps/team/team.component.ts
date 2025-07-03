@@ -101,7 +101,6 @@ export class TeamComponent {
     }
     this.getEmployees();
     this.getCompanies();
-    console.log(this.dataSource)
   }
 
   getCompanies() {
