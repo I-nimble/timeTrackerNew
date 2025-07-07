@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Optional } from '@angular/core';
+import { Component, Inject, Optional, OnInit, } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
@@ -35,7 +35,7 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
   ],
   providers: [DatePipe, provideNativeDateAdapter()],
 })
-export class AppKanbanDialogComponent {
+export class AppKanbanDialogComponent implements OnInit {
   action: string;
   local_data: any;
   priorities: any[] = [];
@@ -50,6 +50,7 @@ export class AppKanbanDialogComponent {
   filteredUsers: any[] = [];
   mentionStartPos = 0;
   commentText: string = '';
+  dueTime: string = '';
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -88,6 +89,17 @@ export class AppKanbanDialogComponent {
       this.getCompany();
     }
   }
+
+  ngOnInit() {
+  if (this.local_data.due_date) {
+    const dueDate = new Date(this.local_data.due_date);
+    if (!isNaN(dueDate.getTime())) {
+      const hours = dueDate.getHours().toString().padStart(2, '0');
+      const minutes = dueDate.getMinutes().toString().padStart(2, '0');
+      this.dueTime = `${hours}:${minutes}`;
+    }
+  }
+}
 
   downloadAttachment(filename: string) {
     const url = this.attachmentsUrl + filename;
@@ -277,4 +289,35 @@ export class AppKanbanDialogComponent {
       this.commentText = '';
     }
   }
+
+  onDueDateChange(event: any) {
+  const date = event.value;
+  let time = this.dueTime || '00:00';
+  this.setDueDateTime(date, time);
+}
+
+onDueTimeChange(event: any) {
+  this.dueTime = event.target.value;
+  const date = this.local_data.due_date;
+  this.setDueDateTime(date, this.dueTime);
+}
+
+setDueDateTime(date: Date | string, time: string) {
+  if (!date || !time) return;
+
+  let localDate: Date;
+  if (typeof date === 'string') {
+    // Si es formato ISO, extrae solo la fecha y crea Date en local
+    const dateOnly = date.split('T')[0];
+    const [year, month, day] = dateOnly.split('-').map(Number);
+    localDate = new Date(year, month - 1, day);
+  } else {
+    localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  const [hours, minutes] = time.split(':').map(Number);
+  localDate.setHours(hours, minutes, 0, 0);
+
+  this.local_data.due_date = localDate;
+}
 }

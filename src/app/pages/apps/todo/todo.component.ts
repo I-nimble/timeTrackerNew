@@ -85,6 +85,7 @@ export class AppTodoComponent implements OnInit {
   priorities: any[] = [];
   filteredArray: any[] = [];
   loggedInUser: any;
+  dueTime: string = '';
   isLoading: boolean = true;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
@@ -554,9 +555,18 @@ export class AppTodoComponent implements OnInit {
   }
 
   editTodo(todoId: number): void {
-    this.toDoToEdit = this.toDoArray.find((todo: any) => todo.id === todoId);
-    this.newTaskForm.patchValue(this.toDoToEdit);
+  this.toDoToEdit = this.toDoArray.find((todo: any) => todo.id === todoId);
+  this.newTaskForm.patchValue(this.toDoToEdit);
+
+  const dueDate = this.toDoToEdit?.due_date ? new Date(this.toDoToEdit.due_date) : null;
+  if (dueDate && !isNaN(dueDate.getTime())) {
+    const hours = dueDate.getHours().toString().padStart(2, '0');
+    const minutes = dueDate.getMinutes().toString().padStart(2, '0');
+    this.dueTime = `${hours}:${minutes}`;
+  } else {
+    this.dueTime = '';
   }
+}
 
   deleteTodo(id: number): void {
     const dialogRef = this.dialog.open(ModalComponent, {
@@ -587,5 +597,30 @@ export class AppTodoComponent implements OnInit {
 
   hasAnyAchieved(): boolean {
   return this.toDoFormArray.controls.some(ctrl => ctrl.get('achieved')?.value);
+}
+
+onDueDateChange(event: any) {
+  const date = event.value;
+  let time = this.dueTime || '00:00';
+  this.setDueDateTime(date, time);
+}
+
+onDueTimeChange(event: any) {
+  this.dueTime = event.target.value;
+  const date = this.newTaskForm.value.due_date;
+  this.setDueDateTime(date, this.dueTime);
+}
+
+setDueDateTime(date: Date | string, time: string) {
+  if (!date || !time) return;
+  // Si date es string, conviértelo a Date correctamente
+  let localDate = typeof date === 'string' ? new Date(date) : new Date(date);
+  const [hours, minutes] = time.split(':').map(Number);
+
+  // Ajusta la hora localmente
+  localDate.setHours(hours, minutes, 0, 0);
+
+  // Actualiza el formControl con el nuevo Date (con hora local)
+  this.newTaskForm.patchValue({ due_date: localDate });
 }
 }
