@@ -1,55 +1,42 @@
-import { Component, OnInit } from '@angular/core';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { CometChatUIEvents } from "@cometchat/uikit-resources"
+import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 
 @Component({
   selector: 'app-unread-count',
   templateUrl: './unread-count.component.html',
   styleUrls: ['./unread-count.component.scss'],
 })
-export class UnreadCountComponent implements OnInit {
+export class UnreadCountComponent implements OnInit, OnDestroy {
   unreadMessageCount = 0;
-  public ccActiveChatChanged: Subscription;
+  private subscriptions = new Subscription();
 
-  constructor() {}
+  constructor(private chatService: CometChatService) {}
 
-  ngOnInit() {
-    this.fetchUnreadMessages();
+  async ngOnInit() {
+    let messages = await this.chatService.fetchUnreadMessages();
+    this.unreadMessageCount = messages.length;
 
-    CometChat.addMessageListener(
-      "UNIQUE_LISTENER_ID",
-      new CometChat.MessageListener({
-        onTextMessageReceived: () => this.fetchUnreadMessages(),
-        onMediaMessageReceived: () => this.fetchUnreadMessages(),
-        onCustomMessageReceived: () => this.fetchUnreadMessages(),
-        onInteractiveMessageReceived: () => this.fetchUnreadMessages(),
-        onTransientMessageReceived: () => this.fetchUnreadMessages(),
-        onMessagesRead: () => this.fetchUnreadMessages(),
+    this.subscriptions.add(
+      this.chatService.unreadCountUpdated$.subscribe(async () => {
+        let messages = await this.chatService.fetchUnreadMessages();
+        this.unreadMessageCount = messages.length;
       })
     );
 
-    this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
+    const ccActiveChatChangedSub = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
       setTimeout(() => {
-        this.fetchUnreadMessages();
+        this.chatService.fetchUnreadMessages()
+          .then((messages: any[]) => {
+            this.unreadMessageCount = messages.length;
+          })
       }, 1000);
     });
+    this.subscriptions.add(ccActiveChatChangedSub);
   }
 
-  fetchUnreadMessages() {
-    let limit = 99;
-    let messagesRequest = new CometChat.MessagesRequestBuilder()
-      .setUnread(true)
-      .setLimit(limit)
-      .build();
-
-    messagesRequest.fetchPrevious().then(
-      (messages: CometChat.BaseMessage[]) => {
-        this.unreadMessageCount = messages.length;
-      },
-      (error: CometChat.CometChatException) => {
-        console.error("Message fetching failed with error:", error);
-      }
-    );
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 }
