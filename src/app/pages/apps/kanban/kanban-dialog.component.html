@@ -130,8 +130,8 @@
         <mat-form-field appearance="outline" class="w-100">
           <textarea
             matInput
-            name="comments"
-            [(ngModel)]="local_data.comments"
+            name="commentText"
+            [(ngModel)]="commentText"
             placeholder="Add comments"
             rows="2"
             (input)="onCommentInput($event)"
@@ -139,6 +139,14 @@
             #commentTextarea
           ></textarea>
         </mat-form-field>
+        <button
+          mat-flat-button
+          color="primary"
+          (click)="addComment()"
+          [disabled]="!commentText.trim()"
+        >
+          Add Comment
+        </button>
         <div *ngIf="showMentionList" class="mention-list">
           <div
             *ngFor="let user of filteredUsers; let i = index"
@@ -147,6 +155,14 @@
             class="mention-item"
           >
             &#64;{{ user.name }} {{ user.last_name }}
+          </div>
+        </div>
+        <div class="comment-list m-t-16" *ngIf="local_data.comments">
+          <div
+            *ngFor="let c of local_data.comments.split('\n')"
+            class="comment-item m-b-8"
+          >
+            {{ c }}
           </div>
         </div>
       </div>

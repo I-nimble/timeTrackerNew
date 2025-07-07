@@ -120,7 +120,9 @@
                     class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
                   >
                     <h5 class="f-s-14 f-w-600">{{ task.goal }}</h5>
-                    <span class="text-muted f-s-12 m-l-8">[SD-{{ task.id }}]</span>
+                    <span class="text-muted f-s-12 m-l-8"
+                      >[SD-{{ task.id }}]</span
+                    >
 
                     <button
                       class="d-flex align-items-center justify-content-center"
@@ -178,7 +180,23 @@
                   </div>
                   <div *ngIf="task.comments">
                     <span class="f-s-12 p-x-12 p-y-10 d-block text-primary">
-                      <b>Comments:</b> {{ task.comments }}
+                      <b>Comments:</b>
+                      <div class="m-t-8">
+                        <div
+                          *ngFor="let c of task.comments.split('\n')"
+                          class="comment-item m-b-4"
+                        >
+                          <ng-container
+                            *ngIf="c.includes(':'); else plainComment"
+                          >
+                            <b>{{ c.split(":")[0] }}:</b>
+                            {{ c.split(":").slice(1).join(":").trim() }}
+                          </ng-container>
+                          <ng-template #plainComment>
+                            {{ c }}
+                          </ng-template>
+                        </div>
+                      </div>
                     </span>
                   </div>
                   <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">

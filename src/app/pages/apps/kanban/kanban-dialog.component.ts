@@ -49,6 +49,7 @@ export class AppKanbanDialogComponent {
   mentionIndex = 0;
   filteredUsers: any[] = [];
   mentionStartPos = 0;
+  commentText: string = '';
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -263,5 +264,17 @@ export class AppKanbanDialogComponent {
 
   getMentionMarkup(user: any): string {
     return `@${user.name}${user.last_name}`;
+  }
+
+  addComment() {
+    const username = localStorage.getItem('username') || 'Usuario';
+    if (!this.local_data.comments) this.local_data.comments = '';
+    if (this.commentText.trim()) {
+      if (this.local_data.comments.length > 0) {
+        this.local_data.comments += '\n';
+      }
+      this.local_data.comments += `${username}: ${this.commentText.trim()}`;
+      this.commentText = '';
+    }
   }
 }
