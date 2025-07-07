@@ -10,6 +10,7 @@ import { CdkTableModule } from '@angular/cdk/table';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatCommonModule } from '@angular/material/core';
 import { Router } from '@angular/router';
+import { ChangeDetectorRef, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-notification-list',
@@ -34,13 +35,22 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   message: any;
   applicationDetailsDialog: any = ApplicationDetails;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  isDesktopRow = () => window.innerWidth > 768;
+  isMobileRow = () => window.innerWidth <= 768;
 
   constructor(
     public notificationsService: NotificationsService,
     private webSocketService: WebSocketService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {}
+
+  @HostListener('window:resize', [])
+  onResize() {
+    this.cdr.markForCheck();
+    this.notificationsDataSource._updateChangeSubscription();
+  }
 
   notificationIcons = [
     {

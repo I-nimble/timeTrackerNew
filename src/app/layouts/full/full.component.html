@@ -270,6 +270,12 @@
       >
         <span class="f-s-15 f-w-500 m-l-8">Dashboard</span>
       </a>
+      <a
+        [routerLink]="['/apps/notifications']"
+        class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
+      >
+        <span class="f-s-15 f-w-500 m-l-8">Notifications</span>
+      </a>
       @if(role !== '2') {
         <a
           [routerLink]="['/dashboards/reports']"
