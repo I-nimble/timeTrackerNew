@@ -27,3 +27,27 @@ button {
 .read-notification {
   color: #727272;
 }
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: table-row !important;
+  }
+  th.mobile-only, td.mobile-only, .mat-column-mobile {
+    display: table-cell !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .desktop-only {
+    display: table-row !important;
+  }
+  th.desktop-only, td.desktop-only, .mat-column-message, .mat-column-date {
+    display: table-cell !important;
+  }
+}
