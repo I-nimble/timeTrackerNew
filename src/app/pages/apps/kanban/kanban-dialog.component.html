@@ -75,22 +75,30 @@
       </div>
 
       <div class="col-12" *ngIf="local_data.type !== 'board'">
-        <mat-label class="f-w-600 m-b-8 d-block">Due Date</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <input
-            matInput
-            [matDatepicker]="picker"
-            placeholder="Choose a date"
-            name="due_date"
-            [(ngModel)]="local_data.due_date"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="picker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
+  <mat-label class="f-w-600 m-b-8 d-block">Due Date</mat-label>
+  <mat-form-field appearance="outline" class="w-100">
+    <input
+      matInput
+      [matDatepicker]="picker"
+      placeholder="Choose a date"
+      name="due_date"
+      [(ngModel)]="local_data.due_date"
+      (dateChange)="onDueDateChange($event)"
+    />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  <mat-form-field appearance="outline" class="w-100 mt-2">
+    <input
+      matInput
+      type="time"
+      placeholder="Due Time"
+      [(ngModel)]="dueTime"
+      name="due_time"
+      (change)="onDueTimeChange($event)"
+    />
+  </mat-form-field>
+</div>
 
       <div class="col-12" *ngIf="local_data.type !== 'board'">
         <mat-label class="f-w-600 m-b-8 d-block">Priority</mat-label>
@@ -144,6 +152,7 @@
           color="primary"
           (click)="addComment()"
           [disabled]="!commentText.trim()"
+          class="m-b-8"
         >
           Add Comment
         </button>
