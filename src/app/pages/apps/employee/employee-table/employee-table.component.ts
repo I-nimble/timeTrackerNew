@@ -1,12 +1,14 @@
 import {
+  AfterViewInit,
   Component,
   Inject,
   Input,
+  OnInit,
   Optional,
   ViewChild,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import {
   MatDialog,
   MatDialogRef,
@@ -48,12 +50,13 @@ import { SelectionModel } from '@angular/cdk/collections';
     TablerIconsModule,
     CommonModule,
     RouterModule,
-    TimerComponent
+    TimerComponent,
+    MatPaginatorModule
   ],
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent {
+export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -86,14 +89,21 @@ export class AppEmployeeTableComponent {
 
   searchText: any;
 
-  dataSource = new MatTableDataSource<Employee>([]);
+  private _inputData: any[] = [];
+
+  @Input() set dataSource(data: any[]) {
+    this._inputData = data;
+    this.dataSourceTable.data = data;
+  }
+
+  dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
 
-  @ViewChild(MatPaginator) set matPaginator(paginator: MatPaginator) {
-    if (paginator) {
-      this.dataSource.paginator = paginator;
-    }
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  ngAfterViewInit() {
+    this.dataSourceTable.paginator = this.paginator;
   }
 
   constructor(
@@ -107,37 +117,9 @@ export class AppEmployeeTableComponent {
 
   ngOnInit(): void {
     if (this.userRole === '3') {
-      this.loadCompany();
     }
-    this.getEmployees();
-    this.getCompanies();
   }
 
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies: any) => {
-        this.companies = companies;
-      },
-    });
-  }
-
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.dataSource.data = this.users.filter((user: any) => user.company_id === this.companyId);
-  }
-
-  loadCompany(): void {
-    this.companiesService.getByOwner().subscribe((company: any) => {
-      this.company = company.company.name;
-      if(company.company.timezone) {
-        this.companyTimezone = this.companyTimezone.split(':')[0];
-      }
-    });
-  }
-
-  applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-  }
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
@@ -224,7 +206,7 @@ export class AppEmployeeTableComponent {
         }
       });
     });
-    this.dataSource.data = this.users;
+    //this.dataSource.data = this.users;
     this.loaded = true;
   }
 
@@ -255,11 +237,11 @@ export class AppEmployeeTableComponent {
       user.id == employee.user.id ? user = employee.user : null;
     });
 
-    this.userService.setUserInformation(user);
+    this.userService.setUserInformation(user.profile);
   }
 
   downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map(u => u.id);
+    let selectedIds = this.selection.selected.map((u:any) => u.id);
     if (!selectedIds.includes(user.id)) {
       selectedIds.push(user.id);
     }
@@ -312,30 +294,22 @@ export class AppEmployeeTableComponent {
   }
 
   isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSource.data) {
-      return false;
-    }
     const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
+    const numRows = this.dataSourceTable.data.length;
     return numSelected === numRows;
   }
 
   masterToggle(): void {
-    if (!this.dataSource || !this.dataSource.data) {
-      return;
-    }
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.dataSourceTable.data.forEach(row => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {
     if (!row) {
       return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
     }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
-      row.position + 1
-    }`;
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
   }
 }
 

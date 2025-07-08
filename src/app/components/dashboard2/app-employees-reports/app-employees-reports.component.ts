@@ -20,6 +20,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
 
 @Component({
   selector: 'app-employees-reports',
@@ -34,6 +35,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatNativeDateModule,
     NgIf,
     TablerIconsModule,
+    AppEmployeeTableComponent,
   ],
   providers: [
     provideNativeDateAdapter(),
@@ -48,6 +50,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     'workedHours',
     'completedTasks',
   ];
+  customColumns: string[] = [ 'profile', 'workedHours', 'completedTasks'];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';

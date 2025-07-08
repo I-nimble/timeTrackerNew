@@ -19,6 +19,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
+import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
 
 @Component({
   selector: 'app-productivity-reports',
@@ -33,6 +34,7 @@ import { ReportsService } from 'src/app/services/reports.service';
     MatNativeDateModule,
     NgIf,
     TablerIconsModule,
+    AppEmployeeTableComponent,
   ],
   providers: [
     provideNativeDateAdapter(),
@@ -49,6 +51,7 @@ export class AppProductivityReportsComponent {
     'pendingTasks',    
     'productivityPercentage',
   ];
+  customColumns: string[] = [ 'profile', 'completedTasks', 'totalTasks', 'pendingTasks', 'productivityPercentage'];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';
