@@ -37,6 +37,41 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
+    CometChat.addMessageListener(
+      "UNIQUE_LISTENER_ID",
+      new CometChat.MessageListener({
+        onTextMessageReceived: () => {
+          navigator.vibrate(1000);
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+        onMediaMessageReceived: () => {
+          navigator.vibrate(1000);
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+        onCustomMessageReceived: () => {
+          navigator.vibrate(1000);
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+        onInteractiveMessageReceived: () => {
+          navigator.vibrate(1000);
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+        onTransientMessageReceived: () => {
+          navigator.vibrate(1000);
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+        onMessagesRead: () => {
+          this.cometChatService.fetchUnreadMessages();
+          this.cometChatService.unreadCountUpdated$.next();
+        },
+      })
+    );
+
     CometChat.addCallListener(
       this.callListenerId,
       new CometChat.CallListener({

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
 import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
@@ -9,6 +9,7 @@ import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
+import { CometChat } from '@cometchat/chat-sdk-javascript';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class CometChatService {
   public callObject!: CometChat.Call | null;
   public outGoingCallObject!: CometChat.Call | null;
   templates: CometChatMessageTemplate[] = [];
+  public unreadCountUpdated$ = new Subject<void>();
 
   constructor(
     private http: HttpClient, 
@@ -53,6 +55,24 @@ export class CometChatService {
 
     } catch (error) {
       console.error("Initialization failed with error:", error);
+    }
+  }
+
+  
+  async fetchUnreadMessages(): Promise<any[]> {
+    let limit = 99;
+    let messagesRequest = new CometChat.MessagesRequestBuilder()
+      .setUnread(true)
+      .setLimit(limit)
+      .build();
+
+    try {
+      const messages: CometChat.BaseMessage[] = await messagesRequest.fetchPrevious();
+      this.unreadCountUpdated$.next();
+      return messages;
+    } catch (error) {
+      console.error("Message fetching failed with error:", error);
+      return [];
     }
   }
 
