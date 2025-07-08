@@ -353,11 +353,13 @@ interface DialogData {
 })
 // tslint:disable-next-line: component-class-suffix
 export class AppEmployeeDialogContentComponent {
+  userRole = localStorage.getItem('role');
   action: string | any;
   // tslint:disable-next-line - Disables all
   local_data: any;
   selectedImage: any = '';
   joiningDate = new FormControl();
+  companies: any[] = [];
   positions: any[] = [];
   projects: any[] = [];
   selectedFile: File | null = null;
@@ -369,6 +371,7 @@ export class AppEmployeeDialogContentComponent {
     email: ['', [Validators.required, Validators.email]],
     position: ['', Validators.required],
     projects: [[]],
+    company_id: [[]],
   });
 
   constructor(
@@ -377,12 +380,14 @@ export class AppEmployeeDialogContentComponent {
     private employeesService: EmployeesService,
     private usersService: UsersService,
     private snackBar: MatSnackBar,
+    public companiesService: CompaniesService,
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
     private fb: FormBuilder,
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
+    this.getCompanies();
     this.action = data.action;
     if(this.action === 'Add') {
       this.addEmployeeForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
@@ -393,6 +398,7 @@ export class AppEmployeeDialogContentComponent {
       last_name: this.local_data.last_name || '',
       password: '',
       email: this.local_data.email || '',
+      company_id: this.local_data.company_id || '',
       position: this.local_data.position || '',
       projects: this.local_data.projects || [],
     });
@@ -483,5 +489,13 @@ export class AppEmployeeDialogContentComponent {
         this.local_data.image = reader.result; // Set selected image for preview
       };
     }
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        this.companies = companies;
+      },
+    });
   }
 }

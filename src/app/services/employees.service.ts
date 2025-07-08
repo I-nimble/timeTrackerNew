@@ -34,6 +34,7 @@ export class EmployeesService {
     if(employee.name) formData.append('name', employee.name);
     if(employee.last_name) formData.append('last_name', employee.last_name);
     if(employee.email) formData.append('email', employee.email);
+    if(employee.company_id) formData.append('company_id', employee.company_id);
     if(employee.password) formData.append('password', employee.password);
     if(employee.position) formData.append('position', employee.position.toString());
     if(employee.projects && employee.projects.length > 0) 
