@@ -51,7 +51,7 @@ export class AppProductivityReportsComponent {
     'pendingTasks',    
     'productivityPercentage',
   ];
-  customColumns: string[] = [ 'profile', 'completedTasks', 'totalTasks', 'productivityPercentage'];
+  customColumns: string[] = [ 'profile', 'completedTasks', 'totalTasks', 'pendingTasks', 'productivityPercentage'];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';
