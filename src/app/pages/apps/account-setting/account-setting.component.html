@@ -102,7 +102,7 @@
                           type="file"
                           name="logo"
                           (change)="onFileSelected($event)"
-                          accept="image/jpeg, image/jpg"
+                          accept="image/jpeg, image/jpg, image/png"
                           style="
                             position: absolute;
                             display: block;
@@ -116,7 +116,7 @@
                       <button mat-stroked-button color="warn" (click)="deleteImage()">Reset</button>
                     </div>
                     <span class="f-s-14 m-t-24 d-block"
-                      >Allowed JPG. Max size of 1MB</span
+                      >Allowed JPG, PNG. Max size of 1MB</span
                     >
                   </div>
                 </mat-card-content>

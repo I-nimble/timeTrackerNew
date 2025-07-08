@@ -274,9 +274,9 @@ export class AppAccountSettingComponent implements OnInit {
         this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
         return
       }
-      if(img.type != 'image/jpeg') {
-        this.notificationStore.addNotifications('Only .jpeg files are allowed!', 'error')
-        return
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+        this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
+        return;
       }
       this.previewImage(img);
       // if(this.role === '3') this.profileForm.patchValue({ logo: img })
