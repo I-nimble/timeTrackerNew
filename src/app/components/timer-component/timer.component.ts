@@ -4,7 +4,7 @@ import {
   OnChanges,
   OnInit,
   SimpleChanges,
-  inject
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 // import { SharedModule } from '../shared.module';
@@ -23,7 +23,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-timer',
   imports: [CommonModule],
   templateUrl: './timer.component.html',
-  styleUrl: './timer.component.scss'
+  styleUrl: './timer.component.scss',
 })
 export class TimerComponent {
   @Input() userId: any;
@@ -31,14 +31,14 @@ export class TimerComponent {
   start_date: string = moment().format('YYYY/MM/DD');
   end_date: string = moment().format('YYYY/MM/DD');
   initializing: boolean = false;
-  validStartTime: any
-  localValidStartTime: any
-  validEndTime: any
-  localValidEndTime: any
-  localEntryStartTime: any
-  localTime: any
-  justInTime?: boolean
-  initialized: boolean = false
+  validStartTime: any;
+  localValidStartTime: any;
+  validEndTime: any;
+  localValidEndTime: any;
+  localEntryStartTime: any;
+  localTime: any;
+  justInTime?: boolean;
+  initialized: boolean = false;
   private subscription: Subscription[] = [];
   private entries: any;
   private userType: any;
@@ -63,7 +63,10 @@ export class TimerComponent {
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['timeZone'] && changes['timeZone'].currentValue != changes['timeZone'].previousValue) {
+    if (
+      changes['timeZone'] &&
+      changes['timeZone'].currentValue != changes['timeZone'].previousValue
+    ) {
       this.getUser();
     }
   }
@@ -71,9 +74,9 @@ export class TimerComponent {
   ngOnInit(): void {
     this.getUser();
     this.userType = localStorage.getItem('role');
-    
+
     this.socketService.socket.on('server:closedEntry', () => {
-    this.subscription.forEach((sub) => sub.unsubscribe());
+      this.subscription.forEach((sub) => sub.unsubscribe());
       this.getEntries();
     });
     this.socketService.socket.on('server:admin:newEntry', () => {
@@ -82,105 +85,126 @@ export class TimerComponent {
   }
 
   getUser() {
-    this.usersService.getUsers({ searchField: '', filter: { id: this.userId } }).subscribe({
-      next: (users) => {
-        if(users.length > 0) {
-          this.user = users[0];
-          this.hasActiveLeaveRequest()
-          this.checkInitializing()
-          this.getEntries();
-        }
-      },
-      error: () => {
-        this.user = null;
-      }
-    })
+    this.usersService
+      .getUsers({ searchField: '', filter: { id: this.userId } })
+      .subscribe({
+        next: (users) => {
+          if (users.length > 0) {
+            this.user = users[0];
+            this.hasActiveLeaveRequest();
+            this.checkInitializing();
+            this.getEntries();
+          }
+        },
+        error: () => {
+          this.user = null;
+        },
+      });
   }
 
   startedEarly() {
-    if (this.entry.status !== null && this.validStartTime != null && this.entry.start_time != null) {
-      const startTime = this.entry.start_time.getTime()
-      const validStartTime = this.validStartTime.getTime()
+    if (
+      this.entry.status !== null &&
+      this.validStartTime != null &&
+      this.entry.start_time != null
+    ) {
+      const startTime = this.entry.start_time.getTime();
+      const validStartTime = this.validStartTime.getTime();
       if (startTime && validStartTime) {
-        return startTime <= validStartTime
+        return startTime <= validStartTime;
       }
     }
-    return false
+    return false;
   }
 
-  utcToLocal(date:Date) {
-    const utcMoment = moment(date).clone().utc(true)
-    const localMoment = utcMoment.clone().tz(this.timeZone, false)
-    return this.strToDate(localMoment.format('MM/DD/YYYY HH:mm:ss'))
+  utcToLocal(date: Date) {
+    const utcMoment = moment(date).clone().utc(true);
+    const localMoment = utcMoment.clone().tz(this.timeZone, false);
+    return this.strToDate(localMoment.format('MM/DD/YYYY HH:mm:ss'));
   }
 
   checkInitializing() {
     const fiveMinutes = 5 * 60 * 1000;
 
-    const schedules = this.user.employee.schedule
-    if(schedules.length <= 0 && !this.initialized) {
-      this.openSnackBar(`${this.user.name} ${this.user.last_name} doesn't have a defined schedule`, 'Close');
+    if (!this.user || !this.user.employee || !this.user.employee.schedule) {
+      return;
+    }
+
+    const schedules = this.user.employee.schedule;
+    if (schedules.length <= 0 && !this.initialized) {
+      this.openSnackBar(
+        `${this.user.name} ${this.user.last_name} doesn't have a defined schedule`,
+        'Close'
+      );
     } else {
       let dayOfWeek = new Date().getDay();
-      dayOfWeek = this.convertDayOfWeek(dayOfWeek)
+      dayOfWeek = this.convertDayOfWeek(dayOfWeek);
 
       schedules.forEach((schedule: any) => {
         const scheduleDays = schedule.days;
-        const matchingDay = scheduleDays.find((day:any) => dayOfWeek == day.id);
+        const matchingDay = scheduleDays.find(
+          (day: any) => dayOfWeek == day.id
+        );
 
         if (matchingDay) {
-          this.validStartTime = this.parseScheduleTime(schedule.start_time)
-          this.localValidStartTime = this.utcToLocal(this.validStartTime)
-          this.validEndTime = this.parseScheduleTime(schedule.end_time)
-          this.localValidEndTime = this.utcToLocal(this.validEndTime)
+          this.validStartTime = this.parseScheduleTime(schedule.start_time);
+          this.localValidStartTime = this.utcToLocal(this.validStartTime);
+          this.validEndTime = this.parseScheduleTime(schedule.end_time);
+          this.localValidEndTime = this.utcToLocal(this.validEndTime);
         }
       });
 
       setInterval(() => {
         const utcTime = moment.utc().format('MM/DD/YYYY HH:mm:ss');
-        this.localTime = this.strToDate(utcTime)
+        this.localTime = this.strToDate(utcTime);
 
         if (this.validStartTime !== null) {
-          if (this.localTime.getTime() >= this.validStartTime.getTime() && this.localTime.getTime() <= this.validEndTime.getTime()) {
-            if (this.localTime.getTime() <= (this.validStartTime.getTime() + fiveMinutes)) {
+          if (
+            this.localTime.getTime() >= this.validStartTime.getTime() &&
+            this.localTime.getTime() <= this.validEndTime.getTime()
+          ) {
+            if (
+              this.localTime.getTime() <=
+              this.validStartTime.getTime() + fiveMinutes
+            ) {
               if (!this.initializing) {
-                this.initializing = true
-                this.justInTime = true
+                this.initializing = true;
+                this.justInTime = true;
                 // if(this.userType == '1') this.store.addNotifications(`${this.user.name} ${this.user.last_name} Initializing...`);
               }
             } else if (this.entry.status == null) {
               if (this.justInTime) {
-                this.justInTime = false
-                this.initializing = false
+                this.justInTime = false;
+                this.initializing = false;
               }
               // if(!this.notifiedLate && this.userType == '1') {
               //   this.store.addNotifications(`${this.user.name} ${this.user.last_name} is late. Please, talk to HR.`, 'error');
               //   this.notifiedLate = true
               // }
-            } 
+            }
           } else {
-            if (this.initializing) this.initializing = false
+            if (this.initializing) this.initializing = false;
           }
         }
       }, 1000);
     }
-    this.initialized = true
+    this.initialized = true;
   }
 
-  convertDayOfWeek(dayOfWeek:any) {
-    const dayMap:any = {
+  convertDayOfWeek(dayOfWeek: any) {
+    const dayMap: any = {
       0: 7, // Sunday
       1: 1, // Monday
       2: 2, // Tuesday
       3: 3, // Wednesday
       4: 4, // Thursday
       5: 5, // Friday
-      6: 6  // Saturday
+      6: 6, // Saturday
     };
     return dayMap[dayOfWeek];
   }
 
-  strToDate(date:string) {
+  strToDate(date: string) {
     const parts = date.split(' ');
     const dateParts = parts[0].split('/');
     const timeParts = parts[1].split(':');
@@ -194,19 +218,29 @@ export class TimerComponent {
 
     const dateObject = new Date(year, month - 1, day, hour, minute, second);
 
-    return dateObject
+    return dateObject;
   }
 
-  parseScheduleTime(time:any) {
+  parseScheduleTime(time: any) {
     const timeParts = time?.split(':');
     if (timeParts && timeParts.length === 3) {
       const timeHour = parseInt(timeParts[0], 10);
       const timeMinutes = parseInt(timeParts[1], 10);
       const timeSeconds = parseInt(timeParts[2], 10);
-      const utcMoment = moment.utc(timeHour + ':' + this.padZero(timeMinutes) + ':' + this.padZero(timeSeconds), 'HH:mm:ss', true);
-      const convertedDate = this.strToDate(utcMoment.format('MM/DD/YYYY HH:mm:ss'));
+      const utcMoment = moment.utc(
+        timeHour +
+          ':' +
+          this.padZero(timeMinutes) +
+          ':' +
+          this.padZero(timeSeconds),
+        'HH:mm:ss',
+        true
+      );
+      const convertedDate = this.strToDate(
+        utcMoment.format('MM/DD/YYYY HH:mm:ss')
+      );
 
-      return convertedDate
+      return convertedDate;
     } else {
       return null;
     }
@@ -240,20 +274,25 @@ export class TimerComponent {
       (item: any) => item.status === 0 && item.user_id === user.id
     );
     if (status) {
-      const utcStartTime = moment.utc(status.start_time, true).format('MM/DD/YYYY HH:mm:ss');
-      this.entry.start_time = this.strToDate(utcStartTime)
-      this.localEntryStartTime = this.utcToLocal(this.entry.start_time)
-      
+      const utcStartTime = moment
+        .utc(status.start_time, true)
+        .format('MM/DD/YYYY HH:mm:ss');
+      this.entry.start_time = this.strToDate(utcStartTime);
+      this.localEntryStartTime = this.utcToLocal(this.entry.start_time);
+
       let timer = interval(1000).subscribe(() => {
         const utcTime = moment.utc();
-        const now = this.strToDate(utcTime.format('MM/DD/YYYY HH:mm:ss'))
+        const now = this.strToDate(utcTime.format('MM/DD/YYYY HH:mm:ss'));
 
-        // if (this.startedEarly() || this.justInTime) { 
+        // if (this.startedEarly() || this.justInTime) {
         //   this.entry.started = this.customDate.getTotalHours(this.validStartTime.toISOString(), now);
         // } else {
-          this.entry.started = this.customDate.getTotalHours(this.entry.start_time, now);
+        this.entry.started = this.customDate.getTotalHours(
+          this.entry.start_time,
+          now
+        );
         // }
-        this.entry.timeRef = this.getTimeAgo(this.entry.started.split(':')); 
+        this.entry.timeRef = this.getTimeAgo(this.entry.started.split(':'));
       });
       this.subscription.push(timer);
       this.entry.status = status.status;
@@ -309,18 +348,18 @@ export class TimerComponent {
   }
 
   hasActiveLeaveRequest() {
-    const today = new Date()
-    this.leaveRequestsService.get({id: this.user.id, date: today}).subscribe({ 
-      next: (res:any) => {
-        if(res.length > 0) {
-          this.hasLeaveRequest = true
-          this.leaveRequest = res[0]
+    const today = new Date();
+    this.leaveRequestsService.get({ id: this.user.id, date: today }).subscribe({
+      next: (res: any) => {
+        if (res.length > 0) {
+          this.hasLeaveRequest = true;
+          this.leaveRequest = res[0];
         }
       },
       error: () => {
-        this.hasLeaveRequest = false
-      }
-    })
+        this.hasLeaveRequest = false;
+      },
+    });
   }
 
   openSnackBar(message: string, action: string) {
