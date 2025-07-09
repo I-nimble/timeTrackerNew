@@ -37,6 +37,10 @@ export class EmployeesService {
     return this.http.delete(`${this.API_URI}/${id}`);
   }
 
+  public registerEmployee(data: any): Observable<HttpResponse<any>> {
+    return this.http.post<HttpResponse<any>>(`${this.API_URI}/register`, data);
+  }
+
   public updateEmployee(id: number, employee: any, companyId: number, file: File | null) {
     const formData = new FormData();
     formData.append('name', employee.name);
