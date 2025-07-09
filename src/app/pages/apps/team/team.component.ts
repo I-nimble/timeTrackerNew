@@ -231,7 +231,7 @@ export class AppEmployeeDialogContentComponent {
   projects: any[] = [];
   selectedFile: File | null = null;
   sendingData: boolean = false;
-  addEmployeeForm: FormGroup = this.fb.group({
+  editEmployeeForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     password: [''],
@@ -239,6 +239,11 @@ export class AppEmployeeDialogContentComponent {
     position: ['', Validators.required],
     projects: [[]],
   });
+  inviteEmployeeForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+  });
+  companyId!: number;
 
   constructor(
     public dialog: MatDialog,
@@ -249,15 +254,13 @@ export class AppEmployeeDialogContentComponent {
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
     private fb: FormBuilder,
+    private companiesService: CompaniesService,
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.action = data.action;
-    if(this.action === 'Add') {
-      this.addEmployeeForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
-    }
     this.local_data = { ...data.employee };
-    this.addEmployeeForm.patchValue({ // Populate form data
+    this.editEmployeeForm.patchValue({ // Populate form data
       name: this.local_data.name || '',
       last_name: this.local_data.last_name || '',
       password: '',
@@ -265,6 +268,17 @@ export class AppEmployeeDialogContentComponent {
       position: this.local_data.position || '',
       projects: this.local_data.projects || [],
     });
+    const role = localStorage.getItem('role');
+    if(this.action === 'Invite') {
+      if(role === '2') {
+        this.companiesService.getByOwner().subscribe((company: any) => {
+          this.companyId = company.company.id;
+        });
+      }
+      else if (role === '1') {
+        this.companyId = this.local_data.companyId;
+      }
+    }
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -282,31 +296,43 @@ export class AppEmployeeDialogContentComponent {
 
   doAction(): void {
 
-    if (this.action === 'Add') {
+    if (this.action === 'Invite') {
       this.sendingData = true;
-      this.employeesService.addEmployee(this.addEmployeeForm.value, this.selectedFile || null).subscribe({
+      if(!this.inviteEmployeeForm.valid) {
+        this.openSnackBar('Please fill in all required fields', 'Close');
+        this.sendingData = false;
+        return;
+      }
+      if(!this.companyId) {
+        this.openSnackBar('Company ID is required', 'Close');
+        this.sendingData = false;
+        return;
+      }
+      const invitationData = {
+        name: this.inviteEmployeeForm.value.name,
+        email: this.inviteEmployeeForm.value.email,
+        company_id: this.companyId,
+      };
+      this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
-          this.dialogRef.close();
-          const successDialogRef = this.dialog.open(AppAddEmployeeComponent);
-          successDialogRef.afterClosed().subscribe(() => {
-            this.dialogRef.close({ event: 'Refresh' });
-            this.openSnackBar('Employee Added successfully!', 'Close');
-          });
-        },
-        error: (err) => {
-          console.error('Error adding employee:', err);
-          this.openSnackBar('Error adding employee', 'Close');
-        },
-        complete: () => {
+          this.dialogRef.close({ event: 'Refresh' });
+          this.openSnackBar('Employee Invited successfully!', 'Close');
           this.sendingData = false;
+          this.inviteEmployeeForm.reset();
         },
+        error: (err: any) => {
+          console.error('Error adding employee:', err);
+          this.openSnackBar('Error inviting employee', 'Close');
+          this.sendingData = false;
+          this.inviteEmployeeForm.reset();
+        }
       });
     } else if (this.action === 'Update') {
       this.sendingData = true;
       // Use company_id from local_data for the employee object
       this.employeesService.updateEmployee(
         this.local_data.id,
-        this.addEmployeeForm.value,
+        this.editEmployeeForm.value,
         this.local_data.company_id,
         this.selectedFile
       ).subscribe({
