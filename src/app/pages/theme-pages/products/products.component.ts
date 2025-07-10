@@ -1,14 +1,14 @@
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller, CommonModule } from '@angular/common';
+import { ViewportScroller } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
-import { AppFaqComponent } from '../faq/faq.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -48,19 +48,18 @@ interface features {
 }
 
 @Component({
-  selector: 'app-industry',
+  selector: 'app-products',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
-  templateUrl: './industry.component.html',
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent],
+  templateUrl: './products.component.html',
 })
-export class AppIndustryComponent {
+export class AppProductsComponent {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   options = this.settings.getOptions();
-  panelOpenState = false;
 
   constructor(
     private settings: CoreService,
@@ -71,39 +70,6 @@ export class AppIndustryComponent {
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
-
-  cards = [
-    {
-      title: 'Marketing & Brand',
-      subtitle: 'Boost your brand with premium strategies.',
-      footer: 'Monday.com',
-    },
-    {
-      title: 'Projects & Tasks',
-      subtitle: 'Deliver on time, every time.',
-      footer: 'Monday.com',
-    },
-    {
-      title: 'CRM & Sales',
-      subtitle: 'Manage clients, prioritize deals.',
-      footer: 'Monday.com',
-    },
-    {
-      title: 'IT & Support',
-      subtitle: 'Resolve tickets 5x faster.',
-      footer: 'Monday.com',
-    },
-    {
-      title: 'Operations & Finance',
-      subtitle: 'Scale operations seamlessly.',
-      footer: 'Monday.com',
-    },
-    {
-      title: 'Creative & Design',
-      subtitle: 'Collaborate and create with ease.',
-      footer: 'Monday.com',
-    },
-  ];
 
   apps: apps[] = [
     {
@@ -167,28 +133,28 @@ export class AppIndustryComponent {
   demos: demos[] = [
     {
       id: 1,
-      imgSrc: '/assets/images/landingpage/demos/demo-main.jpg',
+      imgSrc: '/assets/images/landingpage/demos/dashboard.png',
       name: 'Performance',
       subtext: '',
       url: 'https://spike-angular-pro-main.netlify.app/dashboards/dashboard1',
     },
     {
       id: 2,
-      imgSrc: '/assets/images/landingpage/demos/demo-dark.jpg',
+      imgSrc: '/assets/images/landingpage/demos/productivity.png',
       name: 'Productivity',
       subtext: '',
       url: 'https://spike-angular-pro-dark.netlify.app/dashboards/dashboard2',
     },
     {
       id: 5,
-      imgSrc: '/assets/images/landingpage/demos/demo-horizontal.jpg',
+      imgSrc: '/assets/images/landingpage/demos/communication.png',
       name: 'Professional & Communication',
       subtext: '',
       url: 'https://spike-angular-pro-horizontal.netlify.app/dashboards/dashboard2',
     },
     {
       id: 3,
-      imgSrc: '/assets/images/landingpage/demos/demo-rtl.jpg',
+      imgSrc: '/assets/images/landingpage/demos/TimeTracker2.png',
       name: 'Premium remote management',
       subtext: '',
       url: 'https://spike-angular-pro-rtl.netlify.app/dashboards/dashboard1',

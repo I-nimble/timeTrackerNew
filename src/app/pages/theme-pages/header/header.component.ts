@@ -48,13 +48,14 @@ interface features {
 }
 
 @Component({
-  selector: 'app-industry',
+  selector: 'app-header',
   standalone: true,
   imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
-  templateUrl: './industry.component.html',
+  templateUrl: './header.component.html',
 })
-export class AppIndustryComponent {
+export class AppHeaderComponent {
   @Input() showToggle = true;
+  @Input() showMenus: boolean = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();

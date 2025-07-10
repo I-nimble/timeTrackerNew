@@ -488,3 +488,47 @@
     z-index: 2;
   }
 }
+
+.industry-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: #222b45;
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0 10px 0;
+    border-bottom: 1px solid #f3f4f6;
+    &:last-child {
+      border-bottom: none;
+    }
+    .industry-list-icon {
+      color: #80974F;
+      font-size: 20px;
+      min-width: 20px;
+    }
+  }
+}
+.industry-list-caption {
+  font-size: 15px;
+  color: #388e3c;
+  font-weight: 600;
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.industry-list-light {
+  li {
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    .industry-list-icon {
+      color: #c4e57f;
+    }
+    span b {
+      color: #c4e57f;
+      font-weight: 600;
+    }
+  }
+}
