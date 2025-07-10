@@ -352,8 +352,10 @@ export class AppEmployeeDialogContentComponent {
   inviteEmployeeForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
+    company_id: ['', Validators.required],
   });
-  companyId!: number;
+  companies: any[] = [];
+  userRole = localStorage.getItem('role');
 
   constructor(
     public dialog: MatDialog,
@@ -378,17 +380,6 @@ export class AppEmployeeDialogContentComponent {
       position: this.local_data.position || '',
       projects: this.local_data.projects || [],
     });
-    const role = localStorage.getItem('role');
-    if(this.action === 'Invite') {
-      if(role === '2') {
-        this.companiesService.getByOwner().subscribe((company: any) => {
-          this.companyId = company.company.id;
-        });
-      }
-      else if (role === '1') {
-        this.companyId = this.local_data.companyId;
-      }
-    }
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -397,6 +388,24 @@ export class AppEmployeeDialogContentComponent {
     this.projectsService.get().subscribe((projects: any) => {
       this.projects = projects;
     });
+
+    if(this.action === 'Invite') {
+      this.companiesService.getCompanies().subscribe((companies: any) => {
+        this.companies = companies;
+        if(this.userRole === '3') {
+          this.companiesService.getByOwner().subscribe((company: any) => {
+            this.inviteEmployeeForm.patchValue({
+              company_id: company.company.id
+            });
+          });
+        }
+        else if (this.userRole === '1') {
+          this.inviteEmployeeForm.patchValue({
+            company_id: this.local_data.companyId || ''
+          });
+        }
+      });
+    }
 
     // Set default image path if not already set
     if (!this.local_data.image) {
@@ -413,15 +422,10 @@ export class AppEmployeeDialogContentComponent {
         this.sendingData = false;
         return;
       }
-      if(!this.companyId) {
-        this.openSnackBar('Company ID is required', 'Close');
-        this.sendingData = false;
-        return;
-      }
       const invitationData = {
         name: this.inviteEmployeeForm.value.name,
         email: this.inviteEmployeeForm.value.email,
-        company_id: this.companyId,
+        company_id: this.inviteEmployeeForm.value.company_id,
       };
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
