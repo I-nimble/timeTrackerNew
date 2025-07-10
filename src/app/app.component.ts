@@ -126,8 +126,7 @@ export class AppComponent implements OnInit, OnDestroy {
     if (sessionId) {
       CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.CANCELLED).then(
         (call) => {
-          this.cometChatService.outGoingCallObject = null;
-          this.cometChatService.isCallOngoing = false;
+          this.clearCall();
         },
         (error) => {
           console.error("Call cancel failed:", error);

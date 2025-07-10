@@ -86,72 +86,7 @@ export class AppChatComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private employeesService: EmployeesService
-  ) { 
-    const component = this;
-
-    this.professionalMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        templates: this.chatService.templates
-      }),
-    })
-
-    this.essentialMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.chatService.templates
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: this.customMenu
-      }),
-    })
-
-    this.basicMessagesConfig = new MessagesConfiguration({ 
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: [] 
-      }),
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.chatService.templates
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageComposerConfiguration: new MessageComposerConfiguration({
-        hideVoiceRecording: true
-      }),
-      detailsConfiguration: new DetailsConfiguration({
-        addMembersConfiguration: new AddMembersConfiguration({
-          onAddMembersButtonClick: function (guid: string, members: CometChat.User[]) {
-            const membersRequest = new CometChat.GroupMembersRequestBuilder(guid)
-              .setLimit(100)
-              .build();
-
-            membersRequest.fetchNext().then(response => {
-              const currentCount = response.length;
-              if (currentCount + members.length > 6) {
-                component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
-              } else {
-                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                  CometChat.addMembersToGroup(
-                    guid,
-                    groupMembers,
-                    [] // empty bannedMembersList
-                  ).then(() => {
-                    if (this.onClose) this.onClose(); 
-                  });
-              }
-            });
-          }
-        })
-      })
-    })
-  }
+  ) { }
 
   ngOnInit(): void {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
@@ -215,6 +150,74 @@ export class AppChatComponent implements OnInit {
         document.body.appendChild(viewer);
       }
     });
+
+    const component = this;
+
+    this.professionalMessagesConfig = new MessagesConfiguration({
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        templates: this.chatService.templates
+      }),
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: this.customMenu
+      }),
+    })
+
+    this.essentialMessagesConfig = new MessagesConfiguration({
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        disableReactions: true,
+        templates: this.chatService.templates
+      }),
+      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
+        hideMessageComposer: true,
+      }),
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: this.customMenu
+      }),
+    })
+
+    this.basicMessagesConfig = new MessagesConfiguration({ 
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: null
+      }),
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        disableReactions: true,
+        templates: this.chatService.templates
+      }),
+      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
+        hideMessageComposer: true,
+      }),
+      messageComposerConfiguration: new MessageComposerConfiguration({
+        hideVoiceRecording: true
+      }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          onAddMembersButtonClick: function (guid: string, members: CometChat.User[]) {
+            const membersRequest = new CometChat.GroupMembersRequestBuilder(guid)
+              .setLimit(100)
+              .build();
+
+            membersRequest.fetchNext().then(response => {
+              const currentCount = response.length;
+              if (currentCount + members.length > 6) {
+                component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
+              } else {
+                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
+                  CometChat.addMembersToGroup(
+                    guid,
+                    groupMembers,
+                    [] // empty bannedMembersList
+                  ).then(() => {
+                    if (this.onClose) this.onClose(); 
+                  });
+              }
+            });
+          }
+        })
+      })
+    })
   }
 
   startVoiceCall() {
