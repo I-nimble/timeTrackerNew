@@ -32,17 +32,16 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ]
 })
 export class AppInvoiceListComponent implements AfterViewInit {
+  role: any = localStorage.getItem('role');
   allComplete = signal<boolean>(false);
   invoiceList = new MatTableDataSource<InvoiceList>([]);
   activeTab = signal<string>('All');
-  allInvoices = signal<InvoiceList[]>([]);
+  paidInvoices = signal<InvoiceList[]>([]);
   searchQuery = signal<string>('');
   displayedColumns: string[] = [
-    'chk',
     'id',
-    'billFrom',
-    'billTo',
-    'totalCost',
+    'paymentDate',
+    'amount',
     'status',
     'action',
   ];
@@ -54,8 +53,8 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
   ngOnInit(): void {
     // Fetch all invoices and initialize the data source
-    this.allInvoices.set(this.invoiceService.getInvoiceList());
-    this.invoiceList = new MatTableDataSource(this.allInvoices());
+    this.paidInvoices.set(this.invoiceService.getInvoiceList());
+    this.invoiceList = new MatTableDataSource(this.paidInvoices());
   }
 
   ngAfterViewInit(): void {
@@ -74,7 +73,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
   filterInvoices(): void {
     const currentTab = this.activeTab();
-    const filteredInvoices = this.allInvoices().filter((invoice) => {
+    const filteredInvoices = this.paidInvoices().filter((invoice) => {
       const matchesTab = currentTab === 'All' || invoice.status === currentTab;
 
       // Search filtering
@@ -112,7 +111,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
 
   countInvoicesByStatus(status: string): number {
-    return this.allInvoices().filter((invoice) => invoice.status === status)
+    return this.paidInvoices().filter((invoice) => invoice.status === status)
       .length;
   }
 
@@ -123,7 +122,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
         this.invoiceService.deleteInvoice(id);
-        this.allInvoices.set(this.invoiceService.getInvoiceList()); 
+        this.paidInvoices.set(this.invoiceService.getInvoiceList()); 
         this.filterInvoices(); 
         this.showSnackbar('Invoice deleted successfully!');
       }

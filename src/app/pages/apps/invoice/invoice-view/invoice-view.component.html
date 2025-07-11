@@ -8,11 +8,6 @@
             #{{ invoiceDetail()?.id }}
           </h4>
         </div>
-        <div class="col-sm-8 text-right">
-          <a routerLink="/apps/invoice" mat-stroked-button class="m-r-10">Back to Invoice</a>
-
-          <a [routerLink]="['/apps/editinvoice/', invoiceDetail()?.id]" mat-flat-button>Edit Invoice</a>
-        </div>
       </div>
       <mat-divider></mat-divider>
       <div class="row p-y-24">
