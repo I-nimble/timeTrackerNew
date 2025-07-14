@@ -18,6 +18,8 @@ import { RouterModule } from '@angular/router';
 import { AppConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { StripeService } from 'src/app/services/stripe.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
     selector: 'app-invoice-list',
@@ -41,21 +43,46 @@ export class AppInvoiceListComponent implements AfterViewInit {
   displayedColumns: string[] = [
     'id',
     'paymentDate',
+    'client',
     'amount',
     'status',
     'action',
   ];
+  companies: any[] = [];
+companyMap: { [key: number]: string } = {};
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
 
-  constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar) {}
+  constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService,private companiesService: CompaniesService,) {}
 
   ngOnInit(): void {
-    // Fetch all invoices and initialize the data source
-    this.paidInvoices.set(this.invoiceService.getInvoiceList());
+  this.companiesService.getCompanies().subscribe({
+    next: (companies: any[]) => {
+      this.companies = companies;
+      this.companyMap = {};
+      companies.forEach(c => this.companyMap[c.id] = c.name);
+    }
+  });
+
+  this.stripeService.getPayments().subscribe((payments) => {
+    const mappedInvoices = payments.map((payment: any) => ({
+      id: payment.id,
+      billFrom: payment.currency?.description || payment.currency?.name || 'N/A',
+      billTo: payment.description?.replace(/\\r\\n/g, ' ').trim() || 'N/A',
+      totalCost: payment.amount,
+      status: this.mapStatus(payment.status?.id),
+      completed: false,
+      createdAt: payment.created_at,
+      client: payment.user_id,
+      user_id: payment.user_id
+    }));
+    this.paidInvoices.set(mappedInvoices);
     this.invoiceList = new MatTableDataSource(this.paidInvoices());
-  }
+    this.invoiceList.paginator = this.paginator;
+    this.invoiceList.sort = this.sort;
+  });
+}
 
   ngAfterViewInit(): void {
     this.invoiceList.paginator = this.paginator;
@@ -136,5 +163,41 @@ export class AppInvoiceListComponent implements AfterViewInit {
       verticalPosition: 'top',
     });
   }
+
+  mapStatus(statusId: number): string {
+    switch (statusId) {
+      case 1:
+        return 'Paid';
+      case 2:
+        return 'Pending';
+      case 3:
+        return 'Shipped';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        console.log(companies)
+      },
+    });
+  }
+
+  handleCompanySelection(event: any) {
+  const companyId = event.value;
+  //const filtered = this.paidInvoices().filter(inv => inv.user_id === companyId);
+  //this.invoiceList.data = filtered;
+}
+
+getCompanyName(userId: number): void {
+  // this.companiesService.getByUserId(userId).subscribe({
+  //   next: (company: any) => {
+  //     return company.name || 'N/A';
+  //   },
+  // });
+  
+}
   
 }

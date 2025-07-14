@@ -6,12 +6,15 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root'
 })
 export class StripeService {
-  // stripe = stripe(environment.stripePublicKey);
-  // constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
+
+  getPayments() {
+    const headers = new HttpHeaders({'content-type':'application/json'});
+    return this.http.get<any>(`${environment.apiUrl}/stripe`, { headers });
+  }
 
   // charge(body: any){
   //   const headers = new HttpHeaders({'content_type':'application/json'})
   //   return this.http.post<any>(environment.apiUrl+'/stripe/checkout', body, {headers})
   // }
-
 }
