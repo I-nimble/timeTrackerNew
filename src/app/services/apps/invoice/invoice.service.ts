@@ -1,37 +1,28 @@
-import { Injectable, signal } from '@angular/core';
-import { InvoiceList } from 'src/app/pages/apps/invoice/invoice';
-import { invoceLists } from 'src/app/pages/apps/invoice/invoiceData';
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { environment } from "src/environments/environment";
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InvoiceService {
-  private invoiceList = signal<InvoiceList[]>(invoceLists);
-  constructor() {}
+  private apiUrl = `${environment.apiUrl}/stripe`;
+  constructor(private http: HttpClient) { }
 
-  public getInvoiceList(): InvoiceList[] {
-    return this.invoiceList();
+  public getInvoiceList(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/invoice`);
   }
 
-  deleteInvoice(id: number): void {
-    this.invoiceList.update((invoices) =>
-      invoices.filter((invoice) => invoice.id !== id)
-    );
+  createInvoice(invoiceData: any): Observable<any> {
+  return this.http.post(`${this.apiUrl}/invoice`, invoiceData);
+}
+
+  updateInvoice(id: number, invoiceData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/invoice/${id}`, invoiceData);
   }
 
-  public addInvoice(invoice: InvoiceList): void {
-    this.invoiceList.update((invoices) => [...invoices, invoice]);
-  }
-
-  public updateInvoice(id: number, invoice: InvoiceList): void {
-    this.invoiceList.update((invoices) => {
-      const index = invoices.findIndex((x) => x.id === id);
-      if (index !== -1) {
-        const updatedInvoices = [...invoices];
-        updatedInvoices[index] = invoice; // Update the invoice at the found index
-        return updatedInvoices;
-      }
-      return invoices; // Return the original list if not found
-    });
+  deleteInvoice(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/invoice/${id}`);
   }
 }
