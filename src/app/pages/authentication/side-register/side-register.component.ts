@@ -175,6 +175,7 @@ export class AppSideRegisterComponent {
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
+                this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -224,6 +225,8 @@ export class AppSideRegisterComponent {
                 const lastName = loginResponse.last_name;
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
+                const id = loginResponse.id;
+                localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);

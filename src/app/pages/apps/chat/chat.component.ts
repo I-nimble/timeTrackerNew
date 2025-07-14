@@ -40,11 +40,6 @@ export class AppChatComponent implements OnInit {
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
-  public contactsConfiguration: ContactsConfiguration = new ContactsConfiguration({
-    usersConfiguration: new UsersConfiguration({
-      hideSeparator: true
-    })
-  });
   
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -136,9 +131,6 @@ export class AppChatComponent implements OnInit {
         });
       });
     }
-    else if (this.userRole === '1') {
-      this.getCompanies();
-    }
     this.configureTheme();
     this.observeAppTheme();
   }
@@ -161,6 +153,13 @@ export class AppChatComponent implements OnInit {
       messageHeaderConfiguration: new MessageHeaderConfiguration({
         menu: this.customMenu
       }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
+        })
+      })
     })
 
     this.essentialMessagesConfig = new MessagesConfiguration({
@@ -175,6 +174,13 @@ export class AppChatComponent implements OnInit {
       messageHeaderConfiguration: new MessageHeaderConfiguration({
         menu: this.customMenu
       }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
+        })
+      })
     })
 
     this.basicMessagesConfig = new MessagesConfiguration({ 
@@ -214,7 +220,10 @@ export class AppChatComponent implements OnInit {
                   });
               }
             });
-          }
+          },
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
         })
       })
     })
@@ -291,34 +300,8 @@ export class AppChatComponent implements OnInit {
         setTimeout(() => {
           this.chatService.isChatAvailable = true;
         }, 100);
-        this.getCompanies();
       }
     });
-  }
-  
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies: any) => {
-        this.companies = companies;
-      },
-    });
-  }
-
-  async handleCompanySelection(event: any) {
-    try {
-      await this.chatService.logout();
-  
-      this.selectedCompanyId = event?.value;
-      const selectedCompany = this.companies.find(c => c.id === this.selectedCompanyId);
-      this.plan = {
-        id: selectedCompany?.current_plan_id
-      };
-      this.chatService.initializeCometChat(this.selectedCompanyId);
-    }
-    catch (error) {
-      this.openSnackBar('Error initializing chat', 'Close');
-      console.error(error);
-    }
   }
 
   private configureTheme(): void {
