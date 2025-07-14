@@ -23,79 +23,25 @@
           <!-- --------------------------------------------------------------- -->
           <!--  Links -->
           <!-- --------------------------------------------------------------- -->
-          <button
+          <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [matMenuTriggerFor]="appsmenu"
-            aria-label="Notifications"
+            [routerLink]="['/landingpage/products']"
+            style="color: #818181"
+            >Products</a
           >
-            <div class="d-flex align-items-center" style="color: #818181">
-              Products
-              <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
-            </div>
-          </button>
-          <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
-            <div class="row">
-              <div class="col-sm-8 b-r-1 p-r-0">
-                <div class="p-32 p-b-0">
-                  <div class="row">
-                    @for(appdd of apps; track appdd.link) {
-                    <div class="col-sm-6 text-hover-primary">
-                      <a
-                        [routerLink]="[appdd.link]"
-                        class="d-flex align-items-center text-decoration-none m-b-24"
-                      >
-                        <button
-                          mat-mini-fab
-                          class="text-primary bg-light-primary shadow-none rounded"
-                        >
-                          <img [src]="appdd.img" width="20" />
-                        </button>
-
-                        <div class="m-l-16">
-                          <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                            {{ appdd.title }}
-                          </h5>
-                          <span class="text-body f-s-12">{{
-                            appdd.subtitle
-                          }}</span>
-                        </div>
-                      </a>
-                    </div>
-                    }
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-4">
-                <div class="p-x-16 p-y-32">
-                  <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">
-                    Quick Links
-                  </h4>
-                  @for(quicklink of quicklinks; track quicklink.title) {
-                  <div class="text-hover-primary">
-                    <a
-                      [routerLink]="[quicklink.link]"
-                      class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
-                      >{{ quicklink.title }}</a
-                    >
-                  </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </mat-menu>
 
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/industry']"
+            [routerLink]="['/landingpage/industry']"
             style="color: #818181"
             >Industry</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            href="/authentication/maintenance"
+            [routerLink]="['/landingpage/pricing']"
             style="color: #818181"
             >Pricing</a
           >

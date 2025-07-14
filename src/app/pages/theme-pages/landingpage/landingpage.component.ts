@@ -8,6 +8,7 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -49,7 +50,7 @@ interface features {
 @Component({
   selector: 'app-landingpage',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent],
   templateUrl: './landingpage.component.html',
 })
 export class AppLandingpageComponent {

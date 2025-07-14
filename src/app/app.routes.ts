@@ -102,16 +102,16 @@ export const routes: Routes = [
           ),
         canActivate: [notAuthGuard],
       },
+      // {
+      //   path: 'landingpage',
+      //   loadChildren: () =>
+      //     import('./pages/theme-pages/landingpage/landingpage.routes').then(
+      //       (m) => m.LandingPageRoutes
+      //     ),
+      //   canActivate: [notAuthGuard], 
+      // },
       {
         path: 'landingpage',
-        loadChildren: () =>
-          import('./pages/theme-pages/landingpage/landingpage.routes').then(
-            (m) => m.LandingPageRoutes
-          ),
-        canActivate: [notAuthGuard], 
-      },
-      {
-        path: 'industry',
         loadChildren: () =>
           import('./pages/theme-pages/front.routes').then(
             (m) => m.HomePageRoutes
