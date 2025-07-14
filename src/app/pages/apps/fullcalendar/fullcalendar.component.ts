@@ -255,7 +255,6 @@ export class AppFullcalendarComponent implements OnInit {
   loggedInUser: any = null;
 
   config: MatDialogConfig = {
-    disableClose: false,
     width: '',
     height: '',
     position: {
