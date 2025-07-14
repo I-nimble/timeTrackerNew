@@ -87,7 +87,6 @@ const colors: any = {
   providers: [provideNativeDateAdapter()],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
 export class CalendarDialogComponent implements OnInit {
   toDoForm: FormGroup = this.fb.group(
     {
@@ -121,15 +120,17 @@ export class CalendarDialogComponent implements OnInit {
     }
 
     if (this.data.action !== 'Deleted') {
-      this.toDoForm.get('recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
-        const dueDateControl = this.toDoForm.get('due_date');
-        if (recurrent) {
-          dueDateControl?.setValue(null);
-          dueDateControl?.disable();
-        } else {
-          dueDateControl?.enable();
-        }
-      });
+      this.toDoForm
+        .get('recurrent')
+        ?.valueChanges.subscribe((recurrent: boolean) => {
+          const dueDateControl = this.toDoForm.get('due_date');
+          if (recurrent) {
+            dueDateControl?.setValue(null);
+            dueDateControl?.disable();
+          } else {
+            dueDateControl?.enable();
+          }
+        });
     }
   }
 
@@ -218,7 +219,7 @@ export class CalendarDialogComponent implements OnInit {
 }
 
 interface CustomCalendarEvent extends CalendarEvent {
-  id?: string | number; // Acepta string o number
+  id?: string | number;
   priority?: number;
   employee_id?: number;
   company_id?: number;
@@ -226,7 +227,7 @@ interface CustomCalendarEvent extends CalendarEvent {
   comments?: string;
   task_attachments?: any[];
   recurrent?: boolean;
-} 
+}
 
 @Component({
   selector: 'app-fullcalendar',
@@ -265,7 +266,7 @@ export class AppFullcalendarComponent implements OnInit {
   companyId: number | null = null;
   companies: any[] = [];
   loggedInUser: any = null;
-    events = signal<CustomCalendarEvent[]>([]);
+  events = signal<CustomCalendarEvent[]>([]);
 
   config: MatDialogConfig = {
     disableClose: false,
@@ -285,7 +286,6 @@ export class AppFullcalendarComponent implements OnInit {
   numTemplateOpens = 0;
 
   refresh: Subject<any> = new Subject();
-
 
   constructor(
     public dialog: MatDialog,
@@ -435,7 +435,7 @@ export class AppFullcalendarComponent implements OnInit {
             recommendations: toDo.recommendations,
             comments: toDo.comments,
             task_attachments: toDo.task_attachments,
-            recurrent: toDo.recurrent
+            recurrent: toDo.recurrent,
           };
         });
     };
@@ -509,47 +509,65 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   handleTimeGridClick(date: Date): void {
-  if (!this.teamMemberId || !this.companyId) {
-    this.openSnackBar('Select a team member to create a task', 'Close');
-    return;
-  }
+    if (!this.companyId) {
+      this.openSnackBar('Please select a company to create a task', 'Close');
+      return;
+    }
 
-  const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
+    const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
       width: '600px',
       data: {
         action: 'Add',
         type: 'task',
         due_date: date,
-        employee_id: this.teamMemberId,
-        company_id: this.companyId
-      }
+        company_id: this.companyId,
+      },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.event === 'Add') {
-        const newEvent: CustomCalendarEvent = {
-          id: result.data.id,
-          title: result.data.goal,
-          start: result.data.due_date,
-          allDay: false,
-          color: this.getPriorityColor(result.data.priority),
-          priority: result.data.priority,
-          employee_id: result.data.employee_id,
-          company_id: result.data.company_id,
+        const taskData = {
+          goal: result.data.goal,
           recommendations: result.data.recommendations,
+          due_date: result.data.due_date,
+          priority: result.data.priority,
+          recurrent: result.data.recurrent,
+          company_id: result.data.company_id,
+          employee_id: result.data.employee_id,
           comments: result.data.comments,
           task_attachments: result.data.task_attachments,
-          recurrent: result.data.recurrent
         };
-        this.events.set([...this.events(), newEvent]);
-        this.refresh.next(newEvent);
+
+        this.ratingsService.submit(taskData).subscribe({
+          next: (response: any) => {
+            const newEvent: CustomCalendarEvent = {
+              id: response.id,
+              title: response.goal,
+              start: new Date(response.due_date),
+              allDay: false,
+              color: this.getPriorityColor(response.priority),
+              priority: response.priority,
+              employee_id: response.employee_id,
+              company_id: response.company_id,
+              recommendations: response.recommendations,
+              comments: response.comments,
+              task_attachments: response.task_attachments,
+              recurrent: response.recurrent,
+            };
+
+            this.events.set([...this.events(), newEvent]);
+            this.refresh.next(newEvent);
+            this.openSnackBar('Task created successfully!', 'Close');
+          },
+          error: (error) => {
+            this.openSnackBar('Error creating task: ' + error.message, 'Close');
+          },
+        });
       }
     });
-}
-
+  }
 
   handleEvent(action: string, event: CustomCalendarEvent): void {
-    console.log(event);
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
       width: '600px',
       data: {
@@ -565,32 +583,53 @@ export class AppFullcalendarComponent implements OnInit {
         recommendations: event.recommendations,
         comments: event.comments,
         task_attachments: event.task_attachments,
-        recurrent: event.recurrent
-      }
+        recurrent: event.recurrent,
+      },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.event === 'Edit') {
-        const updatedEvent: CustomCalendarEvent = {
-          ...event,
-          title: result.data.goal,
-          start: result.data.due_date,
-          color: this.getPriorityColor(result.data.priority),
-          priority: result.data.priority,
-          employee_id: result.data.employee_id,
-          company_id: result.data.company_id,
+        const taskData = {
+          id: event.id,
+          goal: result.data.goal,
           recommendations: result.data.recommendations,
+          due_date: result.data.due_date,
+          priority: result.data.priority,
+          recurrent: result.data.recurrent,
+          company_id: result.data.company_id,
+          employee_id: result.data.employee_id,
           comments: result.data.comments,
           task_attachments: result.data.task_attachments,
-          recurrent: result.data.recurrent
         };
 
-        this.events.set(
-          this.events().map((iEvent: CustomCalendarEvent) => {
-            return iEvent.id === updatedEvent.id ? updatedEvent : iEvent;
-          })
-        );
-        this.refresh.next(updatedEvent);
+        this.ratingsService.submit(taskData, taskData.id).subscribe({
+          next: (response: any) => {
+            const updatedEvent: CustomCalendarEvent = {
+              ...event,
+              title: response.goal,
+              start: new Date(response.due_date),
+              color: this.getPriorityColor(response.priority),
+              priority: response.priority,
+              employee_id: response.employee_id,
+              company_id: response.company_id,
+              recommendations: response.recommendations,
+              comments: response.comments,
+              task_attachments: response.task_attachments,
+              recurrent: response.recurrent,
+            };
+
+            this.events.set(
+              this.events().map((iEvent: CustomCalendarEvent) =>
+                iEvent.id === updatedEvent.id ? updatedEvent : iEvent
+              )
+            );
+            this.refresh.next(updatedEvent);
+            this.openSnackBar('Task updated successfully!', 'Close');
+          },
+          error: (error) => {
+            this.openSnackBar('Error updating task: ' + error.message, 'Close');
+          },
+        });
       }
     });
   }
@@ -628,14 +667,21 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   private getPriorityColor(priority: number): any {
-  switch (priority) {
-    case 1: return colors.red;
-    case 2: return colors.yellow;
-    case 4: return colors.green;
-    default: return colors.blue;
+    switch (priority) {
+      case 1:
+        return colors.red;
+      case 2:
+        return colors.yellow;
+      case 4:
+        return colors.green;
+      default:
+        return colors.blue;
+    }
   }
-}
-private formatTime(date: Date): string {
-    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  private formatTime(date: Date): string {
+    return `${date.getHours().toString().padStart(2, '0')}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`;
   }
 }
