@@ -49,6 +49,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { addWeeks, subWeeks } from 'date-fns';
+import { AppKanbanDialogComponent } from '../kanban/kanban-dialog.component';
 
 const colors: any = {
   red: {
@@ -216,6 +217,17 @@ export class CalendarDialogComponent implements OnInit {
   }
 }
 
+interface CustomCalendarEvent extends CalendarEvent {
+  id?: string | number; // Acepta string o number
+  priority?: number;
+  employee_id?: number;
+  company_id?: number;
+  recommendations?: string;
+  comments?: string;
+  task_attachments?: any[];
+  recurrent?: boolean;
+} 
+
 @Component({
   selector: 'app-fullcalendar',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -253,6 +265,7 @@ export class AppFullcalendarComponent implements OnInit {
   companyId: number | null = null;
   companies: any[] = [];
   loggedInUser: any = null;
+    events = signal<CustomCalendarEvent[]>([]);
 
   config: MatDialogConfig = {
     disableClose: false,
@@ -273,7 +286,6 @@ export class AppFullcalendarComponent implements OnInit {
 
   refresh: Subject<any> = new Subject();
 
-  events = signal<CalendarEvent[] | any>([]);
 
   constructor(
     public dialog: MatDialog,
@@ -416,13 +428,14 @@ export class AppFullcalendarComponent implements OnInit {
             color,
             start: dueDate,
             allDay: isAllDay,
-            due_date: dueDate,
-            recurrent: toDo.recurrent,
-            recommendations: toDo.recommendations,
-            priority: toDo.priority,
-            company_id: toDo.company_id,
-            employee_id: toDo.employee_id,
             id: toDo.id,
+            priority: toDo.priority,
+            employee_id: toDo.employee_id,
+            company_id: toDo.company_id,
+            recommendations: toDo.recommendations,
+            comments: toDo.comments,
+            task_attachments: toDo.task_attachments,
+            recurrent: toDo.recurrent
           };
         });
     };
@@ -496,60 +509,90 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   handleTimeGridClick(date: Date): void {
-    if (!this.teamMemberId || !this.companyId) {
-      this.openSnackBar('Select a team member to create a task', 'Close');
-      return;
-    }
-
-    this.config.data = {
-      event: {
-        start: date,
-        company_id: this.companyId,
-        employee_id: this.teamMemberId,
-      },
-      action: 'Create',
-    };
-
-    this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
-
-    this.dialogRef()
-      .afterClosed()
-      .subscribe((result: any) => {
-        if (!result) return;
-
-        const newEvent = this.formatEventFromDialogResult(result);
-        this.events.set([...this.events(), newEvent]);
-        this.lastCloseResult.set('Task created successfully');
-        this.calendarEventChange.emit();
-        this.dialogRef.set(null);
-        this.refresh.next(result);
-      });
+  if (!this.teamMemberId || !this.companyId) {
+    this.openSnackBar('Select a team member to create a task', 'Close');
+    return;
   }
 
+  const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
+      width: '600px',
+      data: {
+        action: 'Add',
+        type: 'task',
+        due_date: date,
+        employee_id: this.teamMemberId,
+        company_id: this.companyId
+      }
+    });
 
-  handleEvent(action: string, event: CalendarEvent): void {
-    this.config.data = { event, action };
-    this.dialogRef.set(this.dialog.open(CalendarDialogComponent, this.config));
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.event === 'Add') {
+        const newEvent: CustomCalendarEvent = {
+          id: result.data.id,
+          title: result.data.goal,
+          start: result.data.due_date,
+          allDay: false,
+          color: this.getPriorityColor(result.data.priority),
+          priority: result.data.priority,
+          employee_id: result.data.employee_id,
+          company_id: result.data.company_id,
+          recommendations: result.data.recommendations,
+          comments: result.data.comments,
+          task_attachments: result.data.task_attachments,
+          recurrent: result.data.recurrent
+        };
+        this.events.set([...this.events(), newEvent]);
+        this.refresh.next(newEvent);
+      }
+    });
+}
 
-    this.dialogRef()
-      .afterClosed()
-      .subscribe((result: any) => {
-        if (result && action === 'Edit') {
-          const updatedEvent = this.formatEventFromDialogResult(result);
 
-          this.events.set(
-            this.events().map((iEvent: CalendarEvent<any>) => {
-              return iEvent.id === updatedEvent.id ? updatedEvent : iEvent;
-            })
-          );
-          this.lastCloseResult.set('Task updated');
-        } else {
-          this.lastCloseResult.set('Dialog closed');
-        }
-        this.calendarEventChange.emit();
-        this.dialogRef.set(null);
-        this.refresh.next(result);
-      });
+  handleEvent(action: string, event: CustomCalendarEvent): void {
+    console.log(event);
+    const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
+      width: '600px',
+      data: {
+        action: 'Edit',
+        type: 'task',
+        id: event.id,
+        goal: event.title,
+        due_date: event.start,
+        dueTime: this.formatTime(event.start),
+        priority: event.priority,
+        employee_id: event.employee_id,
+        company_id: event.company_id,
+        recommendations: event.recommendations,
+        comments: event.comments,
+        task_attachments: event.task_attachments,
+        recurrent: event.recurrent
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.event === 'Edit') {
+        const updatedEvent: CustomCalendarEvent = {
+          ...event,
+          title: result.data.goal,
+          start: result.data.due_date,
+          color: this.getPriorityColor(result.data.priority),
+          priority: result.data.priority,
+          employee_id: result.data.employee_id,
+          company_id: result.data.company_id,
+          recommendations: result.data.recommendations,
+          comments: result.data.comments,
+          task_attachments: result.data.task_attachments,
+          recurrent: result.data.recurrent
+        };
+
+        this.events.set(
+          this.events().map((iEvent: CustomCalendarEvent) => {
+            return iEvent.id === updatedEvent.id ? updatedEvent : iEvent;
+          })
+        );
+        this.refresh.next(updatedEvent);
+      }
+    });
   }
 
   setView(view: CalendarView | any): void {
@@ -582,5 +625,17 @@ export class AppFullcalendarComponent implements OnInit {
     } else {
       this.viewDate.set(subMonths(this.viewDate(), 1));
     }
+  }
+
+  private getPriorityColor(priority: number): any {
+  switch (priority) {
+    case 1: return colors.red;
+    case 2: return colors.yellow;
+    case 4: return colors.green;
+    default: return colors.blue;
+  }
+}
+private formatTime(date: Date): string {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
   }
 }
