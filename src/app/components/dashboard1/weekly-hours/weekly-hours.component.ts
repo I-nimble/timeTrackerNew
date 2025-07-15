@@ -147,7 +147,7 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     this.getAllUsers();
     this.refreshInterval = setInterval(() => {
       this.getAllUsers();
-    }, 300000);
+    }, 60000);
   }
 
   ngOnDestroy() {
