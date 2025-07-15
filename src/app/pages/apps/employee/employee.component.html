@@ -38,7 +38,7 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive">
-         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource"></app-employee-table>
+         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource" (getEmployees)="getEmployees()"></app-employee-table>
       </div>
     </mat-card-content>
   </mat-card>
