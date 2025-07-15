@@ -36,20 +36,13 @@ import { CompaniesService } from 'src/app/services/companies.service';
 export class AppInvoiceListComponent implements AfterViewInit {
   role: any = localStorage.getItem('role');
   allComplete = signal<boolean>(false);
-  invoiceList = new MatTableDataSource<InvoiceList>([]);
+  invoiceList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('All');
-  paidInvoices = signal<InvoiceList[]>([]);
+  paidInvoices = signal<any[]>([]);
   searchQuery = signal<string>('');
-  displayedColumns: string[] = [
-    'id',
-    'paymentDate',
-    'client',
-    'amount',
-    'status',
-    'action',
-  ];
+  displayedColumns: string[] = [];
   companies: any[] = [];
-companyMap: { [key: number]: string } = {};
+  companyMap: { [key: number]: string } = {};
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -57,6 +50,24 @@ companyMap: { [key: number]: string } = {};
   constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService,private companiesService: CompaniesService,) {}
 
   ngOnInit(): void {
+  if (this.role == '3') {
+    this.displayedColumns = [
+      'id',
+      'paymentDate',
+      'amount',
+      'status',
+      'action',
+    ];
+  } else {
+    this.displayedColumns = [
+      'id',
+      'paymentDate',
+      'client',
+      'amount',
+      'status',
+      'action',
+    ];
+  }
   this.companiesService.getCompanies().subscribe({
     next: (companies: any[]) => {
       this.companies = companies;
@@ -65,20 +76,8 @@ companyMap: { [key: number]: string } = {};
     }
   });
 
-  this.stripeService.getPayments().subscribe((payments) => {
-    const mappedInvoices = payments.map((payment: any) => ({
-      id: payment.id,
-      billFrom: payment.currency?.description || payment.currency?.name || 'N/A',
-      billTo: payment.description?.replace(/\\r\\n/g, ' ').trim() || 'N/A',
-      totalCost: payment.amount,
-      status: this.mapStatus(payment.status?.id),
-      completed: false,
-      createdAt: payment.created_at,
-      client: payment.user_id,
-      user_id: payment.user_id
-    }));
-    this.paidInvoices.set(mappedInvoices);
-    this.invoiceList = new MatTableDataSource(this.paidInvoices());
+  this.invoiceService.getInvoiceList().subscribe((invoices) => {
+    this.invoiceList = new MatTableDataSource(invoices);
     this.invoiceList.paginator = this.paginator;
     this.invoiceList.sort = this.sort;
   });
@@ -149,7 +148,7 @@ companyMap: { [key: number]: string } = {};
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
         this.invoiceService.deleteInvoice(id);
-        this.paidInvoices.set(this.invoiceService.getInvoiceList()); 
+        // this.paidInvoices.set(this.invoiceService.getInvoiceList()); 
         this.filterInvoices(); 
         this.showSnackbar('Invoice deleted successfully!');
       }

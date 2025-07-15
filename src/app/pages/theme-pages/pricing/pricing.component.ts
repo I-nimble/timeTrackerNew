@@ -1,3 +1,4 @@
+import { ViewportScroller } from "@angular/common"
 import { Component } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { MatButtonModule } from "@angular/material/button"
@@ -5,6 +6,7 @@ import { MatCardModule } from "@angular/material/card"
 import { MatRadioModule } from "@angular/material/radio"
 import { TablerIconsModule } from "angular-tabler-icons"
 import { MaterialModule } from "src/app/material.module"
+import { CoreService } from "src/app/services/core.service"
 
 interface pricecards {
   id: number
@@ -24,7 +26,6 @@ export class AppPricingComponent {
 
   onPaymentMethodChange(method: string) {
     this.selectedPaymentMethod = method
-    console.log("Selected payment method:", method)
   }
 
   getPaymentMethod(cardId: number): string {
@@ -69,7 +70,7 @@ export class AppPricingComponent {
     this.scroller.scrollToAnchor('demos');
   }
 
-  apps: apps[] = [
+  apps: any[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -128,7 +129,7 @@ export class AppPricingComponent {
     },
   ];
 
-  demos: demos[] = [
+  demos: any[] = [
     {
       id: 1,
       imgSrc: '/assets/images/landingpage/demos/dashboard.png',
@@ -173,7 +174,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  appdemos: demos[] = [
+  appdemos: any[] = [
     // {
     //   id: 1,
     //   imgSrc: '/assets/images/landingpage/apps/app-calendar.jpg',
@@ -260,7 +261,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  testimonials: testimonials[] = [
+  testimonials: any[] = [
     {
       id: 1,
       imgSrc: '/assets/images/profile/user-1.jpg',
@@ -281,7 +282,7 @@ export class AppPricingComponent {
     },
   ];
 
-  features: features[] = [
+  features: any[] = [
     {
       id: 1,
       icon: 'wand',
@@ -385,7 +386,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  quicklinks: quicklinks[] = [
+  quicklinks: any[] = [
     {
       id: 1,
       title: 'Pricing Page',
