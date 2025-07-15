@@ -182,7 +182,12 @@ export class NotificationsService {
             const existingDialog = this.dialog.getDialogById(dialogId);
   
             if (!existingDialog) {
-              this.dialog.open(NotificationsPopupComponent, { id: dialogId });
+              this.dialog.open(NotificationsPopupComponent, {
+                id: dialogId,
+                data: {
+                  notifications: this.recentNotifications
+                }
+              });
             }
           }
         }
