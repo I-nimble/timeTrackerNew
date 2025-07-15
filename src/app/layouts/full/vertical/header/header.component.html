@@ -253,11 +253,9 @@
       >
         <div class="d-flex align-items-center gap-12">
           <img
-            [src]="profilePicture"
-            class="shadow rounded-circle logo"
+            src="/assets/images/profile/user5.jpg"
+            class="rounded-circle object-cover"
             width="40"
-            height="40"
-            style="object-fit: cover;"
           />
           <div class="d-none d-lg-flex text-left flex-col">
             <h5 class="f-s-16 f-w-600">{{userName}} </h5>
@@ -300,7 +298,7 @@
     }
 
     <div class="p-y-12 p-x-32">
-      <button [routerLink]="['/dashboards/notifications']" mat-flat-button color="primary" class="w-100">
+      <button (click)="seeAllNotifications()" mat-flat-button color="primary" class="w-100">
         See All Notifications
       </button>
     </div>
