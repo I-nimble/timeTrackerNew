@@ -1,13 +1,4 @@
 <mat-card class="mat-card-top cardWithShadow communication-container">
-  <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint m-b-20" id="company-select">
-    <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-    <mat-select (selectionChange)="handleCompanySelection($event)">
-      <mat-option *ngFor="let company of companies" [value]="company.id">
-        {{ company.name }}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
-
   <ng-template #customMenu>
     <div style="display: flex; gap: 12px; margin-right: 5px;">
       <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
@@ -30,6 +21,7 @@
     >
       Create Group
     </button>
+
     <!-- BASIC PLAN CHAT -->
     <cometchat-groups-with-messages 
       *ngIf="plan && plan.id == 1"
@@ -45,24 +37,22 @@
       *ngIf="plan && plan.id === 2"
       id="chat-container"
       [messagesConfiguration]="essentialMessagesConfig"
-      [StartConversationConfiguration]="contactsConfiguration"
+      [StartConversationConfiguration]="chatService.contactsConfiguration"
     >
     </cometchat-conversations-with-messages>
 
     <!-- PROFESSIONAL PLAN CHAT -->
     <cometchat-conversations-with-messages 
-      *ngIf="plan && plan.id === 3"
+      *ngIf="(plan && plan.id === 3) || userRole === '1'"
       id="chat-container"
       [messagesConfiguration]="professionalMessagesConfig"
-      [StartConversationConfiguration]="contactsConfiguration"
+      [StartConversationConfiguration]="chatService.contactsConfiguration"
     >
     </cometchat-conversations-with-messages>
   }
   @else {
     <div class="cta-message">
-      <h2>Welcome to the Inimble Chat!</h2>
-      <p *ngIf="userRole !== '1'">Communicate with support to activate your chat service.</p>
-      <p *ngIf="userRole === '1'">Please, select a company to start chatting.</p>
+      <p>There was an error initializing the chat.</p>
     </div>
   }
 </mat-card>
