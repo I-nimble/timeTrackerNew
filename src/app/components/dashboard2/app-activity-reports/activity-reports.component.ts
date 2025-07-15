@@ -129,6 +129,14 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
     this.formattedHoursLeft = this.formatHoursToHMS(this.hoursLeft);
     
     this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+
+    if (this.hoursWorked === 0) {
+      this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+      this.trafficChart.colors = ['#adb0bb', '#adb0bb'];
+    } else {
+      this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+      this.trafficChart.colors = ['#92b46c', '#adb0bb']; 
+    }
   }
 
   HHMMSSToDecimal(timeStr: string): number {

@@ -19,7 +19,7 @@
           [stroke]="trafficChart.stroke"
         ></apx-chart>
         <div class="donut-center-label" *ngIf="isChartLoaded">
-          <h2>{{ formattedHoursWorked }}</h2>
+          <h2>{{ hoursWorked === 0 ? '00:00:00' : formattedHoursWorked }}</h2>
         </div>
       </div>
       <div class="col-lg-12">
