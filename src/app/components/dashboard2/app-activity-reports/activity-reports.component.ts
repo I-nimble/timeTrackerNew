@@ -130,7 +130,7 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
     
     this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
 
-    if (this.hoursWorked === 0) {
+    if (this.hoursWorked === 0 && this.hoursLeft === 0) {
       this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
       this.trafficChart.colors = ['#adb0bb', '#adb0bb'];
     } else {
