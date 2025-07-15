@@ -4,8 +4,10 @@ import {
   Inject,
   Input,
   OnInit,
+  Output,
   Optional,
   ViewChild,
+  EventEmitter,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -56,7 +58,7 @@ import { SelectionModel } from '@angular/cdk/collections';
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
+export class AppEmployeeTableComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -96,6 +98,8 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     this.dataSourceTable.data = data;
   }
 
+  @Output() getEmployees = new EventEmitter<any>();
+
   dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
@@ -115,12 +119,6 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     private companiesService: CompaniesService,
   ) {}
 
-  ngOnInit(): void {
-    if (this.userRole === '3') {
-    }
-  }
-
-
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
       data: { action, employee },
@@ -128,71 +126,7 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.getEmployees();
-    });
-  }
-
-  getEmployees() {
-    this.employeesService.get().subscribe({
-      next: (employees: any) => {
-        this.employees = employees;
-        this.users = employees
-          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
-
-        this.schedulesService.get().subscribe({
-          next: (schedules: any) => {
-            schedules = schedules.schedules;
-            this.users = this.users.map((user: any) => {
-              const userSchedules = schedules.find(
-                (schedule: any) => schedule.employee_id === user.id
-              );
-              if (!userSchedules) {
-                return {
-                  id: user.user.id,
-                  company_id: user.company_id,
-                  name: user.user.name,
-                  last_name: user.user.last_name,
-                  email: user.user.email,
-                  position: user.position_id,
-                  projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered schedule',
-                  Salary: 0,
-                  imagePath: null,
-                };
-              }
-              
-              const workingDays = userSchedules.days
-                .map((day: any) => day.name)
-                .sort((a: string, b: string) => {
-                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  return weekDays.indexOf(a) - weekDays.indexOf(b);
-                });
-
-              const scheduleString = this.formatDaysRange(workingDays);
-
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
-                schedule: scheduleString,
-                Salary: 0, 
-                imagePath: null,
-              };
-            });
-            this.getUsersPictures();
-          },
-          error: (err) => {
-            console.error('Error fetching schedules:', err);
-          },
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching employees:', err);
-      },
+      this.getEmployees.emit();
     });
   }
 
@@ -373,12 +307,12 @@ export class AppEmployeeDialogContentComponent {
     this.action = data.action;
     this.local_data = { ...data.employee };
     this.editEmployeeForm.patchValue({ // Populate form data
-      name: this.local_data.name || '',
-      last_name: this.local_data.last_name || '',
+      name: this.local_data.profile.name || '',
+      last_name: this.local_data.profile.last_name || '',
       password: '',
-      email: this.local_data.email || '',
-      position: this.local_data.position || '',
-      projects: this.local_data.projects || [],
+      email: this.local_data.profile.email || '',
+      position: this.local_data.profile.position || '',
+      projects: this.local_data.profile.projects || [],
     });
 
     this.positionsService.get().subscribe((positions: any) => {
@@ -401,7 +335,7 @@ export class AppEmployeeDialogContentComponent {
         }
         else if (this.userRole === '1') {
           this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.companyId || ''
+            company_id: this.local_data.profile.companyId || ''
           });
         }
       });
@@ -442,11 +376,11 @@ export class AppEmployeeDialogContentComponent {
         }
       });
     } else if (this.action === 'Update') {
-      // this.employeesService.updateEmployee(this.local_data);
-      // this.dialogRef.close({ event: 'Update' });
-      // this.openSnackBar('Employee Updated successfully!', 'Close');
+      this.employeesService.updateEmployee(this.local_data.profile.id, this.local_data.profile, this.local_data.company_id, this.selectedImage);
+      this.dialogRef.close({ event: 'Update' });
+      this.openSnackBar('Employee Updated successfully!', 'Close');
     } else if (this.action === 'Delete') {
-      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+      this.employeesService.deleteEmployee(this.local_data.profile.id).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Delete' });
           this.openSnackBar('Employee Deleted successfully!', 'Close');
