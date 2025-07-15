@@ -40,7 +40,7 @@ import { MaterialModule } from './material.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
-
+import { dialogProviders } from './dialog.config';
 import { CometChatConversationsWithMessages } from '@cometchat/chat-uikit-angular'; //comet chat
 import { provideNativeDateAdapter } from '@angular/material/core';
 
@@ -89,6 +89,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([JwtInterceptor])
     ),
+    ...dialogProviders,
     provideClientHydration(),
     provideAnimationsAsync(),
     importProvidersFrom(
