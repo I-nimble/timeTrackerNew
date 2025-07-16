@@ -168,8 +168,12 @@
       <mwl-calendar-day-view
         *ngSwitchCase="'day'"
         [viewDate]="viewDate()"
+        [dayStartHour]="dayStartHour"
+        [dayEndHour]="dayEndHour"
         [events]="events()"
         [refresh]="refresh"
+        (eventClicked)="handleEvent('Edit', $event.event)"
+        (hourSegmentClicked)="handleTimeGridClick($event.date)"
       >
       </mwl-calendar-day-view>
     </div>
