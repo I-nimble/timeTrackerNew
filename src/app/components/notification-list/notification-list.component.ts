@@ -84,7 +84,7 @@ export class NotificationListComponent implements OnInit, AfterViewInit{
   }
 
   handleClick(notification: any) {
-    if(notification.type_id === 6) {
+    if(notification.type_id === 6) { 
       let dialogRef = this.dialog.open(this.applicationDetailsDialog, {
         height: '500px',
         width: '600px',
