@@ -21,11 +21,11 @@
             <td mat-cell *matCellDef="let element">
               <div class="d-flex align-items-center gap-16">
                 <img
+                  [src]="element.profile.image || 'assets/images/default-user-profile-pic.png'"
                   class="rounded-circle"
-                  [src]="element.imagePath ? element.imagePath : 'assets/images/default-user-profile-pic.png'"
                   width="45"
                   height="45"
-                  style="object-fit: cover;"
+                  style="object-fit: cover; aspect-ratio: 1 / 1;"
                 />
                 <div>
                   <a
@@ -48,9 +48,10 @@
                 <div class="d-flex align-items-center gap-16">
                     <img
                         class="rounded-circle"
-                        [src]="element.profile.imagePath"
+                        [src]="element.profile.image"
                         width="45"
                         height="45"
+                        style="object-fit: cover; aspect-ratio: 1 / 1;"
                     />
                     <div>
                       <h6 class="f-w-600 f-s-16 m-t-0">
