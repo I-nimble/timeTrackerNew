@@ -227,8 +227,7 @@ export class AppEmployeeComponent {
                 schedule: scheduleString,
               });
             });
-            this.dataSource = this.users;
-            this.loaded = true;
+            this.getUsersPictures();
           },
           error: (err) => {
             console.error('Error fetching schedules:', err);
@@ -239,6 +238,20 @@ export class AppEmployeeComponent {
         console.error('Error fetching employees:', err);
       },
     });
+  }
+
+  getUsersPictures() {
+    this.users.forEach((user: any) => {
+      this.userService.getProfilePic(user.profile.id).subscribe({
+        next: (image: any) => {
+          if(image) {
+            user.profile.imagePath = image;
+          }
+        }
+      });
+    });
+    this.dataSource = this.users;
+    this.loaded = true;
   }
 
   // Helper function to format days as a range "Monday to Friday"

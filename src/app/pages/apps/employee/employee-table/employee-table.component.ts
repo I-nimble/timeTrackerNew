@@ -130,20 +130,6 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     });
   }
 
-  getUsersPictures() {
-    this.users.forEach((user: any) => {
-      this.userService.getProfilePic(user.id).subscribe({
-        next: (image: any) => {
-          if(image) {
-            user.imagePath = image;
-          }
-        }
-      });
-    });
-    //this.dataSource.data = this.users;
-    this.loaded = true;
-  }
-
   // Helper function to format days as a range "Monday to Friday"
   formatDaysRange(days: string[]): string {
     const weekDays = [
