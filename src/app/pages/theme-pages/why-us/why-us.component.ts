@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -51,16 +51,13 @@ interface features {
   selector: 'app-products',
   standalone: true,
   imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent],
-  templateUrl: './products.component.html',
+  templateUrl: './why-us.component.html',
 })
-export class AppProductsComponent {
+export class AppWhyUsComponent {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
-
-  @ViewChild('carouselInner') carouselInner!: ElementRef;
-  currentSlide = 0;
 
   options = this.settings.getOptions();
 
@@ -72,33 +69,6 @@ export class AppProductsComponent {
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
-  }
-
-  prevSlide(): void {
-    this.currentSlide = this.currentSlide === 0 ? 2 : this.currentSlide - 1;
-    this.updateCarousel();
-  }
-
-  nextSlide(): void {
-    this.currentSlide = this.currentSlide === 2 ? 0 : this.currentSlide + 1;
-    this.updateCarousel();
-  }
-
-  goToSlide(index: number): void {
-    this.currentSlide = index;
-    this.updateCarousel();
-  }
-
-  private updateCarousel(): void {
-    const items = document.querySelectorAll('.carousel-item');
-    items.forEach(item => item.classList.remove('active'));
-    
-    setTimeout(() => {
-      items[this.currentSlide].classList.add('active');
-    }, 50);
-    
-    this.carouselInner.nativeElement.style.transform = 
-      `translateX(-${this.currentSlide * 100}%)`;
   }
 
   apps: apps[] = [
