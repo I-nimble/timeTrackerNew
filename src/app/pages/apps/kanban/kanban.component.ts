@@ -239,6 +239,12 @@ export class AppKanbanComponent implements OnInit {
   }
 
   saveTask(taskData: any): void {
+    if (!taskData.due_date) {
+      const now = new Date();
+      const dueDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      taskData.due_date = dueDate;
+    }
+
     const newTask = {
       company_id: this.boards[0].company_id,
       goal: taskData.goal,
@@ -288,7 +294,7 @@ export class AppKanbanComponent implements OnInit {
     const del = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        subject: 'task'
+        subject: 'task',
       },
     });
 

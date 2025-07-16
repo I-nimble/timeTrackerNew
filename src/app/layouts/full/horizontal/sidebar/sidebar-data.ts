@@ -75,7 +75,7 @@ export const navItems: NavItem[] = [
         route: 'apps/invoice',
       },
       {
-        displayName: 'ToDo',
+        displayName: 'To Do',
         iconName: 'point',
         route: 'apps/todo',
       },
