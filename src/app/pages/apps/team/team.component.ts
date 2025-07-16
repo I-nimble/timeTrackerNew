@@ -320,13 +320,13 @@ export class AppEmployeeDialogContentComponent {
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Invited successfully!', 'Close');
+          this.openSnackBar('Team Member Invited successfully!', 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         },
         error: (err: any) => {
-          console.error('Error adding employee:', err);
-          this.openSnackBar('Error inviting employee', 'Close');
+          console.error('Error adding Team Member:', err);
+          this.openSnackBar('Error inviting Team Member', 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }
@@ -342,11 +342,11 @@ export class AppEmployeeDialogContentComponent {
       ).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Update' });
-          this.openSnackBar('Employee Updated successfully!', 'Close');
+          this.openSnackBar('Team Member Updated successfully!', 'Close');
         },
         error: (err) => {
-          console.error('Error updating employee:', err);
-          this.openSnackBar('Error updating employee', 'Close');
+          console.error('Error updating Team Member:', err);
+          this.openSnackBar('Error updating Team Member', 'Close');
         },
         complete: () => {
           this.sendingData = false;
@@ -356,11 +356,11 @@ export class AppEmployeeDialogContentComponent {
       this.employeesService.deleteEmployee(this.local_data.id).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Delete' });
-          this.openSnackBar('Employee Deleted successfully!', 'Close');
+          this.openSnackBar('Team Member Deleted successfully!', 'Close');
         },
         error: (err:any) => {
-          console.error('Error deleting employee:', err);
-          this.openSnackBar('Error deleting employee', 'Close');
+          console.error('Error deleting Team Member:', err);
+          this.openSnackBar('Error deleting Team Member', 'Close');
         },
       });
     }
