@@ -180,10 +180,10 @@ export class TeamComponent {
 
   getProfilePics() {
     this.users.map((user: any) => {
-      this.userService.getProfilePic(user.id).subscribe({
+      this.userService.getProfilePic(user.profile.id).subscribe({
         next: (response: any) => {
           if(!response) return;
-          user.imagePath = response;
+          user.profile.imagePath = response;
         },
         error: (err) => {
           console.error('Error fetching profile picture:', err);
