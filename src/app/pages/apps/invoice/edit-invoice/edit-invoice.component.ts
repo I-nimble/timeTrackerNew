@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
-import { InvoiceList, order } from '../invoice';
+import { InvoiceList } from '../invoice';
 import {
   UntypedFormGroup,
   UntypedFormArray,
@@ -56,10 +56,10 @@ export class AppEditInvoiceComponent {
   }
 
   loadInvoice(): void {
-    const invoiceData = this.invoiceService
-      .getInvoiceList()
-      .find((x) => x.id === +this.id());
-    this.invoice.set(invoiceData); // Set the invoice signal
+    // const invoiceData = this.invoiceService
+    //   .getInvoiceList()
+    //   .find((x) => x.id === +this.id());
+    // this.invoice.set(invoiceData); // Set the invoice signal
   }
   itemControl(): UntypedFormGroup {
     return this.fb.group({
@@ -140,12 +140,12 @@ export class AppEditInvoiceComponent {
         t < (<UntypedFormArray>this.addForm.get('item')).length;
         t++
       ) {
-        const o: order = new order();
-        o.itemName = this.addForm.get('item')?.value[t].itemName;
-        o.unitPrice = this.addForm.get('item')?.value[t].itemCost;
-        o.units = this.addForm.get('item')?.value[t].itemSold;
-        o.unitTotalPrice = o.units * o.unitPrice;
-        currentInvoice.orders.push(o);
+        // const o: order = new order();
+        // o.itemName = this.addForm.get('item')?.value[t].itemName;
+        // o.unitPrice = this.addForm.get('item')?.value[t].itemCost;
+        // o.units = this.addForm.get('item')?.value[t].itemSold;
+        // o.unitTotalPrice = o.units * o.unitPrice;
+        // currentInvoice.orders.push(o);
       }
       this.dialog.open(OkDialogComponent);
       this.invoiceService.updateInvoice(currentInvoice.id, currentInvoice);

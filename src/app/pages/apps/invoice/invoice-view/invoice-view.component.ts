@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
 import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
-import { InvoiceList } from '../invoice';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
@@ -21,24 +20,39 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 })
 export class AppInvoiceViewComponent {
   id = signal<number>(0);
-  invoiceDetail = signal<InvoiceList | null>(null);
-  displayedColumns: string[] = ['itemName', 'unitPrice', 'unit', 'total'];
+  invoiceDetail = signal<any>(null);
+  displayedColumns: string[] = ['itemName', 'total'];
 
   constructor(
     private activatedRouter: ActivatedRoute,
     private invoiceService: InvoiceService
   ) {}
 
-  ngOnInit(): void {
+   ngOnInit(): void {
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
-
     this.loadInvoiceDetail();
   }
 
   private loadInvoiceDetail(): void {
-    const invoiceList = this.invoiceService.getInvoiceList(); // Get the list of invoices
-    const invoiceId = this.id();
-    const invoice = invoiceList.find((x) => x.id === invoiceId);
-    this.invoiceDetail.set(invoice || null);
+    this.invoiceService.getInvoiceDetail(this.id()).subscribe({
+      next: (data) => {
+        this.invoiceDetail.set(data);
+        this.transformDataForTable(data);
+      }
+    });
+  }
+
+  private transformDataForTable(invoiceData: any): void {
+    const tableData = [{
+      itemName: invoiceData.user?.company?.currentPlan?.name,
+      unitTotalPrice: invoiceData.user?.company?.currentPlan?.price
+    }];
+    
+    this.invoiceDetail.update((value) => {
+      return {
+        ...value,
+        tableItems: tableData
+      };
+    });
   }
 }

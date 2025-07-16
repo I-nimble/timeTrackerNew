@@ -22,6 +22,10 @@ export class InvoiceService {
     return this.http.put(`${this.apiUrl}/invoice/${id}`, invoiceData);
   }
 
+  getInvoiceDetail(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/invoice/${id}`);
+  }
+
   deleteInvoice(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/invoice/${id}`);
   }
