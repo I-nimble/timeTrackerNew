@@ -47,22 +47,22 @@
             {{ invoiceDetail()?.user?.company?.name }}
           </h6>
         </div>
-        <div class="col-sm-6 text-right">
+        <!-- <div class="col-sm-6 text-right">
           <span class="f-w-600 f-s-15"> Description: </span>
           <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
             {{ invoiceDetail()?.description }}
           </h6>
-        </div>
+        </div> -->
       </div>
 
       <div class="b-1 table-responsive">
         <table mat-table [dataSource]="invoiceDetail()?.tableItems || []" class="no-wrap v-middle">
           <ng-container matColumnDef="itemName">
             <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600">
-              Plan
+              Description
             </th>
             <td class="font-normal" mat-cell *matCellDef="let element">
-              {{ element.itemName }}
+              {{ element.description }}
             </td>
           </ng-container>
           <ng-container matColumnDef="total">
@@ -70,7 +70,7 @@
               Total
             </th>
             <td class="font-normal text-right" mat-cell *matCellDef="let element">
-              {{ element.unitTotalPrice }}
+              ${{ element.amount }}
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -80,7 +80,7 @@
 
       <div class="text-right m-t-30">
         <h3 class="m-b-0 b-t-1 p-t-20 f-s-18 m-t-24">
-          Total: {{ invoiceDetail()?.user?.company?.currentPlan?.price }}
+          Total ${{ invoiceDetail()?.amount }}
         </h3>
       </div>
     </span>

@@ -44,8 +44,8 @@ export class AppInvoiceViewComponent {
 
   private transformDataForTable(invoiceData: any): void {
     const tableData = [{
-      itemName: invoiceData.user?.company?.currentPlan?.name,
-      unitTotalPrice: invoiceData.user?.company?.currentPlan?.price
+      description: invoiceData.description,
+      amount: invoiceData.amount
     }];
     
     this.invoiceDetail.update((value) => {
