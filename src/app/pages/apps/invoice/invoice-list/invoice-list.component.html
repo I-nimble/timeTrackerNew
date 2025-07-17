@@ -36,7 +36,7 @@
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Pending</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ countInvoicesByStatus("Pending") }} invoices
+            {{ pendingInvoices().length }} invoices
           </h5>
         </div>
       </mat-card-content>
@@ -44,48 +44,32 @@
   </div>
 </div>
 
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow" *ngIf="role == '1'">
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
-      <div class="col-sm-4">
+      <div class="row m-b-16 col-lg-4">
+      <div>
         <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <input
-            matInput
-            placeholder="Search Invoice"
-            (keyup)="filter($any($event.target).value)"
-          />
-          <mat-icon matSuffix>
-            <i-tabler name="search" class="icon-20 d-flex m-t-4"></i-tabler>
-          </mat-icon>
+          <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+          <mat-select (selectionChange)="handleCompanySelection($event)" [value]="selectedCompanyId()">
+            <mat-option [value]="null">All</mat-option>
+            <mat-option
+              *ngFor="let company of companies"
+              [value]="company.id"
+            >
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
-
-      <div class="row m-b-16 col-lg-4" *ngIf="role == '1'">
-        <div>
-          <mat-form-field appearance="outline" class="w-100 hide-hint">
-            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
-              <mat-option
-                *ngFor="let company of companies"
-                [value]="company.id"
-              >
-                {{ company.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
       </div>
-      <div
-        class="col-sm-4 d-flex align-items-center justify-content-end"
-        *ngIf="role == '1'"
-      >
+      <div class="col-sm-4 d-flex align-items-center justify-content-end" >
         <a
           mat-button
           [routerLink]="['/apps/addInvoice']"
           mat-flat-button
           color="primary"
-          >Add Invoice</a
-        >
+          >Add Invoice</a>
       </div>
     </div>
   </mat-card-content>

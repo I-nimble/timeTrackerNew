@@ -39,10 +39,11 @@ export class AppInvoiceListComponent implements AfterViewInit {
   invoiceList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('All');
   paidInvoices = signal<any[]>([]);
-  searchQuery = signal<string>('');
   displayedColumns: string[] = [];
   companies: any[] = [];
   companyMap: { [key: number]: string } = {};
+  pendingInvoices = signal<any[]>([]);
+  selectedCompanyId = signal<number | null>(null);
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -76,11 +77,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
     }
   });
 
-  this.invoiceService.getInvoiceList().subscribe((invoices) => {
-    this.invoiceList = new MatTableDataSource(invoices);
-    this.invoiceList.paginator = this.paginator;
-    this.invoiceList.sort = this.sort;
-  });
+  this.loadInvoices();
 }
 
   ngAfterViewInit(): void {
@@ -90,37 +87,47 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
   handleTabClick(tab: string): void {
     this.activeTab.set(tab);
-    this.filterInvoices(); // Filter when tab is clicked
-  }
-
-  filter(filterValue: string): void {
-    this.searchQuery.set(filterValue);
     this.filterInvoices(); 
   }
+
   filterInvoices(): void {
     const currentTab = this.activeTab();
-    const filteredInvoices = this.paidInvoices().filter((invoice) => {
-      const matchesTab = currentTab === 'All' || invoice.status === currentTab;
+    let filteredInvoices: any[] = [];
 
-      // Search filtering
-      const matchesSearch =
-        invoice.billFrom
-          .toLowerCase()
-          .includes(this.searchQuery().toLowerCase()) ||
-        invoice.billTo.toLowerCase().includes(this.searchQuery().toLowerCase());
+    if (currentTab === 'All') {
+      filteredInvoices = [...this.paidInvoices(), ...this.pendingInvoices()];
+    } else if (currentTab === 'Paid') {
+      filteredInvoices = [...this.paidInvoices()];
+    } else if (currentTab === 'Pending') {
+      filteredInvoices = [...this.pendingInvoices()];
+    }
 
-      return matchesTab && matchesSearch; // Return true if both conditions are met
-    });
+    if (this.selectedCompanyId() !== null) {
+      filteredInvoices = filteredInvoices.filter(
+        invoice => invoice.user?.company?.id === this.selectedCompanyId()
+      );
+    }
 
-    this.invoiceList.data = filteredInvoices; // Update the data source
+    this.invoiceList.data = filteredInvoices;
     this.updateAllComplete();
+  }
+
+  private loadInvoices(): void {
+    this.invoiceService.getInvoiceList().subscribe((invoices) => {
+      this.paidInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Paid'));
+      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Pending'));
+      
+      this.invoiceList = new MatTableDataSource(invoices);
+      this.invoiceList.paginator = this.paginator;
+      this.invoiceList.sort = this.sort;
+    });
   }
 
   updateAllComplete(): void {
     const allInvoices = this.invoiceList.data;
     this.allComplete.set(
       allInvoices.length > 0 && allInvoices.every((t) => t.completed)
-    ); // Update the allComplete signal
+    );
   }
 
   someComplete(): boolean {
@@ -184,19 +191,18 @@ export class AppInvoiceListComponent implements AfterViewInit {
     });
   }
 
-  handleCompanySelection(event: any) {
-  const companyId = event.value;
-  //const filtered = this.paidInvoices().filter(inv => inv.user_id === companyId);
-  //this.invoiceList.data = filtered;
-}
+  handleCompanySelection(event: any): void {
+    const companyId = event.value;
+    this.selectedCompanyId.set(companyId);
+    this.filterInvoices();
+  }
 
-getCompanyName(userId: number): void {
-  // this.companiesService.getByUserId(userId).subscribe({
-  //   next: (company: any) => {
-  //     return company.name || 'N/A';
-  //   },
-  // });
-  
-}
+  getCompanyName(userId: number): void {
+    // this.companiesService.getByUserId(userId).subscribe({
+    //   next: (company: any) => {
+    //     return company.name || 'N/A';
+    //   },
+    // });
+  }
   
 }
