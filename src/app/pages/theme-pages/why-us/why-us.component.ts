@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller } from '@angular/common';
+import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
@@ -9,6 +9,7 @@ import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
 import { AppHeaderComponent } from '../header/header.component';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 interface apps {
   id: number;
@@ -50,14 +51,63 @@ interface features {
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent],
+  imports: [
+    MaterialModule,
+    TablerIconsModule,
+    RouterLink,
+    BrandingComponent,
+    AppBlogsComponent,
+    AppFooterComponent,
+    AppIntakeFormComponent,
+    AppHeaderComponent,
+    CommonModule,
+  ],
   templateUrl: './why-us.component.html',
+  animations: [
+  trigger('fadeAnimation', [
+    transition(':enter', [
+      style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
+      animate('300ms ease-in', style({ opacity: 1 }))
+    ]),
+    transition(':leave', [
+      animate('300ms ease-out', style({ opacity: 0 }))
+    ])
+  ])
+],
 })
 export class AppWhyUsComponent {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
+
+  currentSlide = 0;
+  testimonials = [
+    {
+      id: 1,
+      stars: 5,
+      text: "We didn’t realize how scattered our operations were until we moved everything into Inimble. One login changed everything—from tracking hours to managing projects.",
+      name: 'Steven R.',
+      role: 'CEO of a Healthcare Startup',
+      image: 'assets/images/profile/user-1.jpg',
+    },
+    {
+      id: 2,
+      stars: 5,
+      text: "The talent was great, but what really surprised us was the platform. It gave our firm structure we didn’t know we were missing.",
+      name: 'Luis G.',
+      role: 'CPA & Business Consultant',
+      image: 'assets/images/profile/user-2.jpg',
+    },
+    {
+      id: 3,
+      stars: 5,
+      text: "Our onboarding used to take weeks. With Inimble, new hires are set up and productive within days.",
+      name: 'Claudia T.',
+      role: 'Managing Partner, Law Firm',
+      image: 'assets/images/profile/user-3.jpg',
+    },
+  ];
 
   options = this.settings.getOptions();
 
@@ -69,6 +119,24 @@ export class AppWhyUsComponent {
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
+  }
+
+  prevSlide(): void {
+    this.currentSlide =
+      this.currentSlide === 0
+        ? this.testimonials.length - 1
+        : this.currentSlide - 1;
+  }
+
+  nextSlide(): void {
+    this.currentSlide =
+      this.currentSlide === this.testimonials.length - 1
+        ? 0
+        : this.currentSlide + 1;
+  }
+
+  goToSlide(index: number): void {
+    this.currentSlide = index;
   }
 
   apps: apps[] = [
@@ -262,27 +330,6 @@ export class AppWhyUsComponent {
     // },
   ];
 
-  testimonials: testimonials[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      name: 'Jenny Wilson',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      name: 'Minshan Cui',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      name: 'Eminson Mendoza',
-      subtext: 'Features avaibility',
-    },
-  ];
-
   features: features[] = [
     {
       id: 1,
@@ -305,14 +352,16 @@ export class AppWhyUsComponent {
       icon: 'archive',
       title: 'Dedicated performance and IT support',
       color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
+      subtext:
+        'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
     },
     {
       id: 4,
       icon: 'chart-pie',
       title: 'Integrate tools for remote work',
       color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
+      subtext:
+        'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
     // {
     //   id: 5,

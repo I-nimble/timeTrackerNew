@@ -44,7 +44,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AppSideRegisterComponent {
   options = this.settings.getOptions();
-  assetPath = environment.assets + '/resources/empleadossection.png';
+  assetPath = 'assets/images/login.png';
 
   constructor(
     private settings: CoreService, 

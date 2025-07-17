@@ -73,7 +73,8 @@ export class AppSideLoginComponent {
   includeLiveChat: boolean = false
   liveChatScript?: any
   liveChatBubble?: any
-  assetPath = environment.assets + '/resources/empleadossection.png';
+  //assetPath = environment.assets + '/resources/empleadossection.png';
+  assetPath = 'assets/images/login.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
   route: any = ''

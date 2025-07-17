@@ -351,11 +351,11 @@
       </div>
     </div>
 
-    <div class="spacer bg-white">
+    <!-- <div class="spacer bg-white">
       <div class="container">
         <h2 class="section-title f-w-700 m-y-30 text-center">
-          Platform vs. Traditional Tools
-        </h2>
+          Trusted by High-Growth Teams
+        </h2> -->
 
         <!-- <p class="text-center f-s-18 m-t-12 m-b-32">
           Track individual and team performance, monitor KPIs, and view project
@@ -364,11 +364,10 @@
         </p> -->
 
         <!-- Slider de testimonios -->
-        <div
+        <!-- <div
           class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
         >
           <div class="d-flex flex-row w-100">
-            <!-- Slide 1 -->
             <div class="slider-img testimonial-slide">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center justify-content-center">
@@ -413,7 +412,6 @@
               </div>
             </div>
 
-            <!-- Slide 2 -->
             <div class="slider-img testimonial-slide">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center justify-content-center">
@@ -458,7 +456,6 @@
               </div>
             </div>
 
-            <!-- Slide 3 -->
             <div class="slider-img testimonial-slide">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center justify-content-center">
@@ -503,7 +500,77 @@
               </div>
             </div>
 
-            <!-- ... más slides según sea necesario ... -->
+           
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+    <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title f-w-700 m-y-30 text-center">
+          Trusted by High-Growth Teams
+        </h2>
+
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
+            >
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  “{{ testimonial.text }}”
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
           </div>
         </div>
       </div>

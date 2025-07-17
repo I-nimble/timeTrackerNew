@@ -626,23 +626,22 @@
   max-width: 800px;
   margin: 0 auto;
   overflow: hidden;
+  padding: 0 40px;
+  overflow: visible;
+
+  @media (max-width: 767px) {
+    padding: 0 30px;
+  }
 }
 
 .carousel-inner {
-  display: flex;
-  transition: transform 0.5s ease;
+  min-height: 300px;
+  position: relative;
 }
 
 .carousel-item {
-  min-width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  
-  &.active {
-    opacity: 1;
-  }
+  width: 100%;
+  display: block !important;
 }
 
 .carousel-control {
@@ -668,14 +667,15 @@
   
   &:hover {
     background: #80974F;
+    transform: translateY(-50%) scale(1.1);
   }
   
   &.prev {
-    left: 15px;
+    left: -20px;
   }
   
   &.next {
-    right: 15px;
+    right: -20px;
   }
 }
 

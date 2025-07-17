@@ -133,13 +133,73 @@
           status all in one place. Our customizable dashboards help you stay in
           control and scale with confidence.
         </p>
-        <!-- slider -->
+        <!-- Carrusel -->
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
+            >
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  “{{ testimonial.text }}”
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
+          </div>
+        </div>
         <!-- Slider de testimonios -->
-        <div
+        <!-- <div
           class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
         >
           <div class="d-flex flex-row w-100">
-            <!-- Testimonio 1 -->
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -187,7 +247,6 @@
               </div>
             </div>
 
-            <!-- Testimonio 2 -->
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -234,7 +293,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 3 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -281,7 +340,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 4 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -327,7 +386,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 5 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -373,7 +432,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 6 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -420,7 +479,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 6 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -467,7 +526,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 7 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -511,7 +570,7 @@
               </div>
             </div>
 
-            <!-- Testimonio 8 -->
+            
             <div class="slider-img testimonial-slide2">
               <div class="testimonial-content">
                 <div class="d-flex align-items-center">
@@ -558,7 +617,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
     <!-- ------------------------------------------------------------------
@@ -814,101 +873,75 @@
       </div>
     </div>
 
-    <div class="spacer bg-white">
-  <div class="container">
-    <h2 class="section-title f-w-700 m-y-30 text-center">
-      What Our Clients Say
-    </h2>
-    
-    <div class="testimonial-carousel">
-      <div class="carousel-inner">
-        <!-- Testimonio 1 -->
-        <div class="carousel-item active">
-          <div class="p-24">
-            <div class="d-flex align-items-center justify-content-center">
-              <i-tabler name="star-filled" class="fill-warning icon-26"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-            </div>
-            <p class="m-t-24 review-subtext text-center f-w-500">
-              "This template is great, UI-rich and up-to-date. Although it is pretty much complete, I suggest to improve a bit of documentation. Thanks & Highly recomended!"
-            </p>
-            <div class="d-flex align-items-center justify-content-center m-t-24">
-              <img src="assets/images/profile/user-1.jpg" alt="profile" class="rounded-circle" width="64">
-              <div class="m-l-12">
-                <h6 class="mat-subtitle-1 f-s-16 f-w-600">Eminson Mendoza</h6>
-                <span class="f-s-14">Features avaibility</span>
+    <!-- <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title f-w-700 m-y-30 text-center">
+          What Our Clients Say
+        </h2>
+
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
+            >
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  "{{ testimonial.text }}"
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
               </div>
             </div>
+            }
           </div>
-        </div>
-        
-        <!-- Testimonio 2 -->
-        <div class="carousel-item">
-          <div class="p-24">
-            <div class="d-flex align-items-center justify-content-center">
-              <i-tabler name="star-filled" class="fill-warning icon-26"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-            </div>
-            <p class="m-t-24 review-subtext text-center f-w-500">
-              "Inimble has transformed how we manage remote teams. The dashboard gives us real-time insights we never had before. Highly recommended!"
-            </p>
-            <div class="d-flex align-items-center justify-content-center m-t-24">
-              <img src="assets/images/landingpage/logos/smith.png" alt="profile" class="rounded-circle" width="64">
-              <div class="m-l-12">
-                <h6 class="mat-subtitle-1 f-s-16 f-w-600">John Smith</h6>
-                <span class="f-s-14">Operations Director</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Testimonio 3 -->
-        <div class="carousel-item">
-          <div class="p-24">
-            <div class="d-flex align-items-center justify-content-center">
-              <i-tabler name="star-filled" class="fill-warning icon-26"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-              <i-tabler name="star-filled" class="fill-warning icon-26 m-l-4"></i-tabler>
-            </div>
-            <p class="m-t-24 review-subtext text-center f-w-500">
-              "The time tracking features alone have increased our productivity by 30%. The interface is intuitive and our team adopted it immediately."
-            </p>
-            <div class="d-flex align-items-center justify-content-center m-t-24">
-              <img src="assets/images/landingpage/logos/sandoval.png" alt="profile" class="rounded-circle" width="64">
-              <div class="m-l-12">
-                <h6 class="mat-subtitle-1 f-s-16 f-w-600">Jessica Sandoval</h6>
-                <span class="f-s-14">HR Manager</span>
-              </div>
-            </div>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
           </div>
         </div>
       </div>
-      
-      <!-- Controles del carrusel -->
-      <button class="carousel-control prev" (click)="prevSlide()">
-        <i-tabler name="chevron-left" class="icon-30"></i-tabler>
-      </button>
-      <button class="carousel-control next" (click)="nextSlide()">
-        <i-tabler name="chevron-right" class="icon-30"></i-tabler>
-      </button>
-      
-      <!-- Indicadores -->
-      <div class="carousel-indicators">
-        <span class="active" (click)="goToSlide(0)"></span>
-        <span (click)="goToSlide(1)"></span>
-        <span (click)="goToSlide(2)"></span>
-      </div>
-    </div>
-  </div>
-</div>
+    </div> -->
 
     <!-- ------------------------------------------------------------------
     footer
