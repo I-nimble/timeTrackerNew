@@ -1,0 +1,23 @@
+<div id="incoming-call-container"> 
+    <div class="d-flex justify-content-between">
+        <div>
+            <h2 class="f-s-16 f-w-600 m-b-2">{{ incomingCall.getSender().getName() }}</h2>
+            <p class="f-s-14 f-w-200 d-flex">
+                <img 
+                    id="call-type-icon"
+                    [src]="incomingCall.getType() === 'audio' ? './assets/images/Audio-Call2x.svg' : './assets/images/Video-call2x.svg'"
+                    width="20" 
+                    height="20"
+                    alt="Call Type"
+                >
+                Incoming Call
+            </p>
+        </div>
+        <img [src]="incomingCall.getSender().getAvatar()" alt="Avatar" id="avatar">
+    </div>
+    
+    <div style="display: flex; gap: 20px; margin-top: 20px;">
+        <button (click)="rejectIncomingCall()" id="reject-call">Reject</button>
+        <button (click)="acceptIncomingCall()" id="accept-call">Accept</button>
+    </div>
+</div>
