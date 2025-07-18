@@ -1,138 +1,98 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
-import { StripeService } from 'src/app/services/stripe.service';
-import { Router, ActivatedRoute } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { StripeFactoryService } from './stripe-factory.service';
+import { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
+import { MaterialModule } from 'src/app/material.module';
+import { CommonModule } from '@angular/common';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
   styleUrls: ['./stripe.component.scss'],
+  imports: [MaterialModule, CommonModule, FormsModule, ReactiveFormsModule, TablerIconsModule],
 })
-export class StripeComponent implements AfterViewInit {
-  @ViewChild('cardInfo') cardInfo?: ElementRef;
-  @ViewChild('emailElement') emailElement?: ElementRef;
-  cardError: any;
-  card: any;
-  email: any;
-  data: any;
+export class StripeComponent implements OnInit {
+  @Input() amount: number = 0; // Recibe el monto a pagar
+  paymentForm!: FormGroup;
+  stripe: Stripe | null = null;
+  elements: StripeElements | null = null;
+  cardElement: StripeCardElement | null = null;
+  cardError: string | null = null;
+  isLoading = false;
 
   constructor(
-    private stripeService: StripeService,
-    private router: ActivatedRoute
+    private fb: FormBuilder,
+    private stripeFactory: StripeFactoryService
   ) {}
-  ngAfterViewInit(): void {
-    this.router.queryParams.subscribe((params) => {
-      this.data = params;
+
+  async ngOnInit() {
+    this.paymentForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
     });
-    this.loadStripe();
+
+    this.stripe = await this.stripeFactory.getStripe();
+    if (this.stripe) {
+      this.elements = this.stripe.elements();
+      this.cardElement = this.elements.create('card', {
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#32325d',
+            '::placeholder': {
+              color: '#aab7c4'
+            },
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        }
+      });
+    }
   }
-  onChange({ error }: any) {
+
+  ngAfterViewInit() {
+    if (this.cardElement) {
+      this.cardElement.mount('#card-element');
+      this.cardElement.on('change', (event) => {
+        this.cardError = event.error ? event.error.message : null;
+      });
+    }
+  }
+
+  async handleSubmit() {
+    if (!this.stripe || !this.elements || !this.cardElement) {
+      return;
+    }
+
+    if (this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading = true;
+
+    const { paymentMethod, error } = await this.stripe.createPaymentMethod({
+      type: 'card',
+      card: this.cardElement,
+      billing_details: {
+        name: this.paymentForm.value.name,
+        email: this.paymentForm.value.email
+      }
+    });
+
+    this.isLoading = false;
+
     if (error) {
-      this.cardError = error.message;
-    } else {
-      this.cardError = null;
+      this.cardError = error.message || 'Error processing payment';
+      return;
     }
-  }
-  async loadStripe() {
-    // this.stripeService.charge(this.data).subscribe((next) => {
-    //   const { clientSecret } = next;
-    //   const appearance = {
-    //     theme: 'night',
-    //   };
-    //   // this.data = {
-    //   //   amount: 1000,
-    //   //   description: 'payment',
-    //   // };
-    //   elements = stripe.elements({ clientSecret, appearance });
 
-    //   this.card = elements.create('card');
-
-    //   this.card.mount(this.cardInfo?.nativeElement);
-    //   const emailAddress = '';
-    //   const linkAuthenticationElement = elements.create('linkAuthentication');
-    //   linkAuthenticationElement.mount('#link-authentication-element');
-    //   // const userIdElement = elements.create('#userRef');
-      
-    //   // linkAuthenticationElement.attr('placeholder', 'Email address')
-
-    //   linkAuthenticationElement.on('change', this.change.bind(this));
-
-    //   const paymentElementOptions = {
-    //     layout: 'tabs',
-    //   };
-
-    //   const paymentElement = elements.create('payment', paymentElementOptions);
-    //   paymentElement.mount('#payment-element');
-    // });
-    // }else{
-    //   this.cardError = null
-    // }
-  }
-  change($event: any) {
-    const field = document.getElementById('Field-emailInput');
-  }
-  ngOnInit(): void {
-    //     // This is a public sample test API key.
-    // // Don’t submit any personally identifiable information in requests made with this key.
-    // // Sign in to see your own test API key embedded in code samples.
-    // // The items the customer wants to buy
-  }
-  // // ------- UI helpers -------
-
-  // Show a spinner on payment submission
-  setLoading(isLoading: boolean) {
-    if (isLoading) {
-      // Disable the button and show a spinner
-      // document.querySelector("#submit")!.disabled = true;
-      document.querySelector('#spinner')!.classList.remove('hidden');
-      document.querySelector('#button-text')!.classList.add('hidden');
-    } else {
-      // document.querySelector("#submit")!.disabled = false;
-      document.querySelector('#spinner')!.classList.add('hidden');
-      document.querySelector('#button-text')!.classList.remove('hidden');
-    }
-  }
-  async handleSubmit(e: Event) {
-    // e.preventDefault();
-    // this.setLoading(true);
-
-    // const { error } = await stripe.confirmPayment({
-    //   elements,
-    //   confirmParams: {
-    //     // Make sure to change this to your payment completion page
-    //     return_url: environment.url + '/client',
-    //     receipt_email: 'crivas@i-nimble.com',
-    //   },
-    // });
-    // // This point will only be reached if there is an immediate error when
-    // // confirming the payment. Otherwise, your customer will be redirected to
-    // // your `return_url`. For some payment methods like iDEAL, your customer will
-    // // be redirected to an intermediate site first to authorize the payment, then
-    // // redirected to the `return_url`.
-    // if (error.type === 'card_error' || error.type === 'validation_error') {
-    //   this.showMessage(error.message);
-    // } else {
-    //   this.showMessage('An unexpected error occurred.');
-    // }
-    
-    // this.setLoading(false);
-  }
-  // // Fetches the payment intent status after payment submission
-  showMessage(messageText: string) {
-    const messageContainer = document.querySelector('#payment-message');
-
-    messageContainer!.classList.remove('hidden');
-    messageContainer!.textContent = messageText;
-
-    setTimeout(function () {
-      messageContainer!.classList.add('hidden');
-      messageContainer!.textContent = '';
-    }, 4000);
+    console.log('PaymentMethod:', paymentMethod);
+    // Aquí llamarías a tu backend para procesar el pago
+    // this.processPayment(paymentMethod.id);
   }
 }

@@ -20,6 +20,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { StripeService } from 'src/app/services/stripe.service';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 
 @Component({
     selector: 'app-invoice-list',
@@ -31,6 +32,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
         FormsModule,
         ReactiveFormsModule,
         TablerIconsModule,
+        StripeComponent,
     ]
 })
 export class AppInvoiceListComponent implements AfterViewInit {
