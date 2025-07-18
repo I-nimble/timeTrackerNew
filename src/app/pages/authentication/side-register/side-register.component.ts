@@ -48,7 +48,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AppSideRegisterComponent {
   options = this.settings.getOptions();
-  assetPath = environment.assets + '/resources/empleadossection.png';
+  assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]], // check if email is taken
     name: ['', [Validators.required]],
