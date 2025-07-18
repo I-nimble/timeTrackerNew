@@ -120,14 +120,14 @@ export class AppChatComponent implements OnInit {
     if(this.userRole === '3') {
       this.companiesService.getByOwner().subscribe((company: any) => {
         this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan; 
+          this.plan = companyPlan.plan || { id: companyPlan[0] }; 
         });
       });
     }
     else if (this.userRole === '2') {
       this.employeesService.getByEmployee().subscribe((employees: any) => {
         this.plansService.getCurrentPlan(employees.company_id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan;
+          this.plan = companyPlan.plan || { id: companyPlan[0] };
         });
       });
     }
