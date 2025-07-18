@@ -4,10 +4,11 @@ import { RouterModule } from '@angular/router';
 import { Router, NavigationEnd, ActivatedRoute, Data } from '@angular/router';
 import { filter, map, mergeMap } from 'rxjs/operators';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { GoBackComponent } from '../../../../components/go-back/go-back.component';
 
 @Component({
   selector: 'app-breadcrumb',
-  imports: [RouterModule, TablerIconsModule],
+  imports: [RouterModule, TablerIconsModule, GoBackComponent],
   templateUrl: './breadcrumb.component.html',
   styleUrls: [],
 })
@@ -36,8 +37,22 @@ export class AppBreadcrumbComponent {
       // tslint:disable-next-line - Disables all
       .subscribe((event) => {
         // tslint:disable-next-line - Disables all
-        this.titleService.setTitle(event['title'] + ' - Angular 19');
+        this.titleService.setTitle('I-nimble - Time Tracker');
         this.pageInfo = event;
+        if(this.pageInfo.title === 'Notifications') {
+          this.pageInfo = {
+            "title": "Notifications",
+            "urls": [
+              {
+                "title": "Dashboard",
+                "url": "/dashboards/dashboard1"
+              },
+              {
+                "title": "Notifications"
+              }
+            ]
+          }
+        }
       });
   }
 }

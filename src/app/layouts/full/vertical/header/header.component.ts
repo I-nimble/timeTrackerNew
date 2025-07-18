@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
-import { navItems } from '../sidebar/sidebar-data';
+import { getNavItems } from '../sidebar/sidebar-data';
 import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
@@ -18,8 +18,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
-import {CompaniesService} from 'src/app/services/companies.service';
-import {environment} from 'src/environments/environment';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { environment } from 'src/environments/environment';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { AuthService } from 'src/app/services/auth.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
+import { UsersService } from 'src/app/services/users.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { Router } from '@angular/router';
 
 interface notifications {
   id: number;
@@ -72,10 +78,17 @@ export class HeaderComponent implements OnInit {
 
   isCollapse: boolean = false; // Initially hidden
   company: any;
-  userName:any;
-  companyLogo:any = null;
-  userEmail: any;
+  userName: any;
+  userId: any;
+  // companyLogo: any = 'assets/images/default-logo.jpg';
+  profilePicture: any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
+  userEmail: any;
+  applications: any[] = [];
+  recentNotifications: any[] = [];
+  hasPendingNotifications: boolean = false;
+  hasNewTalentMatch: boolean = false;
+  role: any = localStorage.getItem('role');
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -122,6 +135,12 @@ export class HeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
+    private applicationsService: ApplicationsService,
+    private authService: AuthService,
+    public notificationsService: NotificationsService,
+    public webSocketService: WebSocketService,
+    private router: Router,
+    private usersService: UsersService
   ) {
     translate.setDefaultLang('en');
   }
@@ -129,27 +148,91 @@ export class HeaderComponent implements OnInit {
   options = this.settings.getOptions();
 
   ngOnInit(): void {
-    this.userData();
+    // this.companieService.logoUpdated$.subscribe(() => {
+    //   this.loadCompanyLogo();
+    // });
+    this.usersService.profilePicUpdated$.subscribe(() => {
+      this.loadProfilePicture();
+    });
+
+    this.getUserData();
+    this.getApplications();
+    this.loadNotifications();
+    this.webSocketService.getNotifications().subscribe((event) => {
+      if (event === 'update') {
+        this.loadNotifications();
+      }
+    });
+    this.webSocketService.getNotifications().subscribe((event) => {
+      if (event === 'new-talent-match') {
+        this.getApplications();
+      }
+    });
+    this.notificationsService.notificationsChanged.subscribe(() => {
+      this.loadNotifications();
+    });
+    this.applicationsService.applicationsSeen$.subscribe(() => {
+      this.hasNewTalentMatch = false;
+    });
   }
-  userData(){
+
+  getUserData() {
+    this.userId = localStorage.getItem('id');
     this.userName = localStorage.getItem('username');
     this.userEmail = localStorage.getItem('email');
     const role = localStorage.getItem('role');
-    if(role == '3'){
-      this.loadCompanyLogo();
+    if (role == '3') {
+      // this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
       });
     }
-    
+    // else {
+      this.loadProfilePicture();
+    // }
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
-        this.companyLogo = logo;
-      });
+  // loadCompanyLogo() {
+  //   this.companieService.getByOwner().subscribe((company) => {
+  //     this.companieService
+  //       .getCompanyLogo(company.company_id)
+  //       .subscribe((logo) => {
+  //         if (logo != null) this.companyLogo = logo;
+  //       });
+  //   });
+  // }
+
+  loadProfilePicture() {
+    this.usersService.getProfilePic(this.userId).subscribe({
+      next: (image: any) => {
+        if(image != null) this.profilePicture = image;
+      },
     });
+  }
+
+  getApplications() {
+    this.applicationsService.get().subscribe({
+      next: (apps) => {
+        this.applications = apps;
+        const role = localStorage.getItem('role');
+        
+        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(apps);
+        
+        if(role === '3' && filteredApplications.find((app: any) => app.status_id === 1)) {
+          this.hasNewTalentMatch = true;
+        } else {
+          this.hasNewTalentMatch = false;
+        }
+      },
+    });
+  }
+
+  clearTalentMatchNotification() {
+    this.hasNewTalentMatch = false;
+  }
+
+  formatMessage(message: string): string {
+    return message.replace(/\n/g, '<br>');
   }
 
   openDialog() {
@@ -174,36 +257,40 @@ export class HeaderComponent implements OnInit {
     this.optionsChange.emit(this.options);
   }
 
-  notifications: notifications[] = [
+  logout() {
+    this.authService.logout();
+  }
+
+  notificationIcons = [
     {
-      id: 1,
-      img: '/assets/images/profile/user-1.jpg',
-      title: 'Roman Joined the Team!',
-      subtitle: 'Congratulate him sf',
+      icon: 'fa-solid fa-circle-info',
+      color: '#92b46c',
+      type: 'Notification',
     },
     {
-      id: 2,
-      img: '/assets/images/profile/user-2.jpg',
-      title: 'New message received',
-      subtitle: 'Salma sent you new message',
+      icon: 'fa-solid fa-bell',
+      color: '#d0bf45',
+      type: 'Reminder',
     },
     {
-      id: 3,
-      img: '/assets/images/profile/user-3.jpg',
-      title: 'New Payment received',
-      subtitle: 'Check your earnings',
+      icon: 'fa-solid fa-envelope',
+      color: '#92b46c',
+      type: 'Message',
     },
     {
-      id: 4,
-      img: '/assets/images/profile/user-4.jpg',
-      title: 'Jolly completed tasks',
-      subtitle: 'Assign her new tasks',
+      icon: 'fa-solid fa-clock',
+      color: '#d0bf45',
+      type: 'Lateness alert',
     },
     {
-      id: 5,
-      img: '/assets/images/profile/user-5.jpg',
-      title: 'Hitesh Joined thed Team!',
-      subtitle: 'Congratulate him',
+      icon: 'fa-solid fa-calendar-check',
+      color: '#d0bf45',
+      type: 'Leave request',
+    },
+    {
+      icon: 'fa-solid fa-briefcase',
+      color: '#b54343',
+      type: 'Job application',
     },
   ];
 
@@ -214,24 +301,28 @@ export class HeaderComponent implements OnInit {
       color: 'primary',
       title: 'My Profile',
       subtitle: 'Account Settings',
-      link: '/',
+      link: 'apps/account-settings',
     },
     {
       id: 2,
       img: 'shield',
       color: 'success',
       title: 'My Inbox',
-      subtitle: 'Messages & Email',
-      link: '/',
+      subtitle: 'Notifications',
+      link: '/dashboards/notifications',
     },
-    {
-      id: 3,
-      img: 'credit-card',
-      color: 'error',
-      title: 'My Tasks',
-      subtitle: 'To-do and Daily Tasks',
-      link: '/',
-    },
+    ...(Number(this.role) !== 2
+      ? [
+          {
+            id: 3,
+            img: 'users',
+            color: 'error',
+            title: 'My Team',
+            subtitle: 'Team members',
+            link: '/apps/team',
+          },
+        ]
+      : []),
   ];
 
   apps: apps[] = [
@@ -335,6 +426,57 @@ export class HeaderComponent implements OnInit {
       link: '/theme-pages/treeview',
     },
   ];
+
+  loadNotifications() {
+    this.notificationsService.get().subscribe((notifications) => {
+      const unreadNotifications = notifications.filter(
+        (n: any) => n.users_notifications.status != 2
+      );
+      unreadNotifications.sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      this.recentNotifications = unreadNotifications.slice(0, 5);
+      this.hasPendingNotifications = this.recentNotifications?.some(
+        (n) => n.users_notifications.status === 4
+      );
+    });
+  }
+
+  seeAllNotifications() {
+    this.notificationsService
+      .update(this.recentNotifications, 2)
+      .subscribe(() => {
+        this.notificationsService.notificationsChanged.next();
+        this.router.navigate(['/dashboards/notifications']);
+      });
+  }
+
+  addNotification(notification: any) {
+    this.recentNotifications.push(notification);
+    this.recentNotifications = [...this.recentNotifications];
+  }
+
+  redirectNotification(notification: any) {
+    // const message = notification.message?.toLowerCase() || '';
+
+    // if (message.includes('clock') || message.includes('late')) {
+    //   this.router.navigate(['/apps/chat/support']);
+    // } else if (message.includes('board')) {
+    //   this.router.navigate(['/apps/kanban']);
+    // } else if (notification.type_id === 6) {
+    //   this.router.navigate(['/apps/talent-match']);
+    // }
+
+    // this.notificationsService.update([notification], 2).subscribe(() => {
+    //   this.loadNotifications();
+    // });
+    
+    this.notificationsService.update([notification], 2).subscribe(() => {
+      this.loadNotifications();
+      this.router.navigate(['/dashboards/notifications']);
+    });
+  }
 }
 
 @Component({
@@ -343,10 +485,13 @@ export class HeaderComponent implements OnInit {
   templateUrl: 'search-dialog.component.html',
 })
 export class AppSearchDialogComponent {
+  role: any = localStorage.getItem('role');
   searchText: string = '';
-  navItems = navItems;
+  navItems = getNavItems(this.role);
 
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter(
+    (navitem) => navitem.displayName
+  );
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;

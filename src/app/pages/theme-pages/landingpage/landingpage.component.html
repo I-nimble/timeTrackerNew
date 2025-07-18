@@ -6,8 +6,8 @@
     <mat-toolbar class="topbar topbar-xl m-auto">
       <div class="container full-width p-xs-6 justify-content-between">
         <!-- --------------------------------------------------------------- -->
-        <div class="branding p-x-0">
-          <app-branding></app-branding>
+        <div class="branding p-x-0 landingpage-logo">
+          <app-branding [fullLogoMaxWidth]="'200px'"></app-branding>
         </div>
 
         <!-- --------------------------------------------------------------- -->
@@ -23,89 +23,35 @@
           <!-- --------------------------------------------------------------- -->
           <!--  Links -->
           <!-- --------------------------------------------------------------- -->
-          <button
+          <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [matMenuTriggerFor]="appsmenu"
-            aria-label="Notifications"
+            [routerLink]="['/landingpage/products']"
+            style="color: #818181"
+            >Products</a
           >
-            <div class="d-flex align-items-center" style="color: #818181;">
-              Products
-              <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
-            </div>
-          </button>
-          <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
-            <div class="row">
-              <div class="col-sm-8 b-r-1 p-r-0">
-                <div class="p-32 p-b-0">
-                  <div class="row">
-                    @for(appdd of apps; track appdd.link) {
-                    <div class="col-sm-6 text-hover-primary">
-                      <a
-                        [routerLink]="[appdd.link]"
-                        class="d-flex align-items-center text-decoration-none m-b-24"
-                      >
-                        <button
-                          mat-mini-fab
-                          class="text-primary bg-light-primary shadow-none rounded"
-                        >
-                          <img [src]="appdd.img" width="20" />
-                        </button>
-
-                        <div class="m-l-16">
-                          <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                            {{ appdd.title }}
-                          </h5>
-                          <span class="text-body f-s-12">{{
-                            appdd.subtitle
-                          }}</span>
-                        </div>
-                      </a>
-                    </div>
-                    }
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-4">
-                <div class="p-x-16 p-y-32">
-                  <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">
-                    Quick Links
-                  </h4>
-                  @for(quicklink of quicklinks; track quicklink.title) {
-                  <div class="text-hover-primary">
-                    <a
-                      [routerLink]="[quicklink.link]"
-                      class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
-                      >{{ quicklink.title }}</a
-                    >
-                  </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </mat-menu>
 
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/industry']"
-            style="color: #818181;"
+            [routerLink]="['/landingpage/industry']"
+            style="color: #818181"
             >Industry</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            href="https://support.wrappixel.com/"
-            style="color: #818181;"
+            [routerLink]="['/landingpage/pricing']"
+            style="color: #818181"
             >Pricing</a
           >
           <a
-          mat-button
-          class="m-x-8 f-s-16 f-w-500"
-          hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
-          style="color: #818181;"
-          >Why us</a
-        >
+            mat-button
+            class="m-x-8 f-s-16 f-w-500"
+            href="/authentication/maintenance"
+            style="color: #818181"
+            >Why us</a
+          >
         </div>
 
         <div class="d-flex align-items-center gap-10">
@@ -113,7 +59,7 @@
             mat-flat-button
             color="primary"
             class="m-l-10"
-            [routerLink]="['/authentication/side-login']"
+            [routerLink]="['/authentication/login']"
             >Login</a
           >
 
@@ -142,11 +88,13 @@
           <div class="col-lg-11">
             <div class="text-center">
               <h1 class="banner-title m-0 f-w-700">
-                Build Your Remote Team. Save Money. Stay in Control.
+                Power your legal operations with one platform<br />
               </h1>
               <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
-                Inimble is the all-in-one platform to hire, train, and manage top talent from Latin America.
-                We handle the hard stuff — recruiting, onboarding, payroll, compliance, and IT — so you don’t have to.
+                Inimble is the all-in-one platform to hire, train, and manage
+                top talent from Latin America. We handle the hard stuff —
+                recruiting, onboarding, payroll, compliance, and IT — so you
+                don’t have to.
               </p>
               <div class="m-t-24 hstack justify-content-center">
                 <a
@@ -160,7 +108,7 @@
                   mat-stroked-button
                   color="primary"
                   target="_blank"
-                  href="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+                  href="tel:+1-706-478-5677"
                   class="btn-custom2 border-primary"
                   >Call us now</a
                 >
@@ -177,31 +125,31 @@
         <div class="d-flex flex-row w-100">
           <div class="slider-img">
             <img
-              src="assets/images/landingpage/slider-group.png"
+              src="assets/images/landingpage/slider.png"
               alt="bg-img"
             />
           </div>
           <div class="slider-img">
             <img
-              src="assets/images/landingpage/slider-group.png"
+              src="assets/images/landingpage/slider.png"
               alt="bg-img"
             />
           </div>
           <div class="slider-img">
             <img
-              src="assets/images/landingpage/slider-group.png"
+              src="assets/images/landingpage/slider.png"
               alt="bg-img"
             />
           </div>
           <div class="slider-img">
             <img
-              src="assets/images/landingpage/slider-group.png"
+              src="assets/images/landingpage/slider.png"
               alt="bg-img"
             />
           </div>
           <div class="slider-img">
             <img
-              src="assets/images/landingpage/slider-group.png"
+              src="assets/images/landingpage/slider.png"
               alt="bg-img"
             />
           </div>
@@ -211,30 +159,300 @@
     <!-- ------------------------------------------------------------------
     End Banner
     ------------------------------------------------------------------ -->
+    <!-- ...coloca esto después de la sección de banner y antes de Features... -->
 
+    <!-- What Is Inimble? Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title text-center m-t-16 f-w-700">Why Inimble?</h2>
+        <p class="text-center f-s-18 m-t-12 m-b-32">
+          Simple, secure, and scalable. More than just remote staffing. inimble
+          manages, supports, and optimizes your legal team
+        </p>
+        <div class="row m-t-40 justify-content-center">
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="user-plus"
+                  class="text-primary icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Real human supervision
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="users-group"
+                  class="text-success icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Legal compliance & payroll management
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-warning rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="sparkles"
+                  class="text-warning icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Seamless integration with Clio, Filevine & more
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-info rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="briefcase" class="text-info icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Bilingual, pre-vetted legal talent
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-secondary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="book" class="text-primary icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Remote IT onboarding & ongoing support
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card class="cardWithShadow h-100 text-center p-y-32 hover-card">
+              <span
+                class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="settings"
+                  class="text-success icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">Productivity Tools</h5>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Why Inimble? Section -->
+    <div class="spacer" style="background: #f4f8fb">
+      <div class="container">
+        <h2 class="section-title text-center m-t-16 f-w-700 m-b-32">
+          Why Choose Inimble Over Freelance Marketplaces?
+        </h2>
+        <div class="row m-t-40 justify-content-center">
+          <div class="col-lg-10">
+            <div class="why-bubble p-40 bg-white rounded shadow-sm">
+              <div class="table-responsive">
+                <table
+                  class="table table-borderless align-middle why-compare-table w-100 m-0 m-t-32"
+                >
+                  <thead class="spacer">
+                    <tr>
+                      <th
+                        class="f-s-18 f-w-600 text-start"
+                        style="width: 45%"
+                      ></th>
+                      <th class="f-s-18 f-w-600 text-center" style="width: 27%">
+                        Inimble
+                      </th>
+                      <th class="f-s-18 f-w-600 text-center" style="width: 28%">
+                        Upwork/Freelancers
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="f-s-18 d-flex align-items-center">
+                        <i-tabler
+                          name="scale"
+                          class="icon-20 m-r-12"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                        Bilingual legal staff
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-check"
+                          class="icon-24"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="alert-triangle"
+                          class="icon-24"
+                          style="color: #e6b97a"
+                        ></i-tabler>
+                        <span class="f-s-14 d-block">Sometimes</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="f-s-18 d-flex align-items-center">
+                        <i-tabler
+                          name="users-group"
+                          class="icon-20 m-r-12"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                        HR, IT, onboarding included
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-check"
+                          class="icon-24"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-x"
+                          class="icon-24"
+                          style="color: #e57373"
+                        ></i-tabler>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="f-s-18 d-flex align-items-center">
+                        <i-tabler
+                          name="certificate"
+                          class="icon-20 m-r-12"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                        U.S. legal compliance
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-check"
+                          class="icon-24"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-x"
+                          class="icon-24"
+                          style="color: #e57373"
+                        ></i-tabler>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="f-s-18 d-flex align-items-center">
+                        <i-tabler
+                          name="eye-check"
+                          class="icon-20 m-r-12"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                        Real-time supervision
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-check"
+                          class="icon-24"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-x"
+                          class="icon-24"
+                          style="color: #e57373"
+                        ></i-tabler>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="f-s-18 d-flex align-items-center">
+                        <i-tabler
+                          name="currency-dollar"
+                          class="icon-20 m-r-12"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                        Fixed pricing
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="circle-check"
+                          class="icon-24"
+                          style="color: #8bb97c"
+                        ></i-tabler>
+                      </td>
+                      <td class="text-center">
+                        <i-tabler
+                          name="alert-triangle"
+                          class="icon-24"
+                          style="color: #e6b97a"
+                        ></i-tabler>
+                        <span class="f-s-14 d-block">Variable</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="text-center">
+                <a
+                  mat-flat-button
+                  color="primary"
+                  class="btn-custom m-b-32"
+                  style="min-width: 220px"
+                  [routerLink]="['/compare']"
+                >
+                  See How We Compare
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- ------------------------------------------------------------------
     Template
     ------------------------------------------------------------------ -->
     <div class="spacer bg-white" id="demos">
       <div class="container">
-        <h2 class="section-title f-w-700 m-y-30">
-              Production Ready & Developer Friendly Material Angular Admin
-              Template
-            </h2>
-        
+        <h2 class="section-title f-w-700 m-y-30 text-center">
+          Inimble is a remote operations platform purpose-built for businesses
+        </h2>
+
+        <p class="text-center f-s-18 m-t-12 m-b-32">
+          It brings together staffing, IT, HR, productivity tools, and payroll —
+          all under one login. From hiring and onboarding to daily task tracking
+          and compliance, inimble is the only tool a modern legal team needs.
+        </p>
+
         <div class="text-center m-t-30 m-b-32">
           <a
-                  mat-flat-button
-                  color="primary"
-                  (click)="gotoDemos()"
-                  class="btn-custom"
-                  >Use Inimble for free</a
-                >
+            mat-flat-button
+            color="primary"
+            (click)="gotoDemos()"
+            class="btn-custom"
+            >Try Inimble for free</a
+          >
         </div>
         <!-- demos and apps -->
         <div class="row m-t-24 justify-content-center">
           @for(demo of demos; track demo.name) {
-          <div class="col-lg-4 col-sm-6 m-b-16">
+          <div class="col-lg-6 col-md-6 m-b-16">
             <div>
               <div class="demos-card overflow-hidden">
                 <div class="bg-light-primary p-16 p-b-0">
@@ -271,7 +489,7 @@
         <!-- apss -->
         <div class="row justify-content-center">
           @for(app of appdemos; track app.name) {
-          <div class="col-lg-4 col-sm-6 m-t-16">
+          <div class="col-lg-6 col-md-6 col-sm-12 m-t-16">
             <div>
               <div class="demos-card overflow-hidden">
                 <div class="bg-light-primary p-16 p-b-0">
@@ -298,37 +516,131 @@
           </div>
           }
         </div>
-        <div class="row justify-content-center">
-          <div class="col-lg-8 text-center">
-            <div class="d-sm-flex align-items-center justify-content-center">
-              <div
-                class="d-flex align-items-center justify-content-center social-chips"
-              >
+      </div>
+    </div>
+
+    <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title text-center f-w-700 m-b-32">
+          Trusted by growing businesses across the U.S
+        </h2>
+        <div class="row m-t-40 justify-content-center">
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
                 <img
-                  src="assets/images/profile/user-2.jpg"
-                  width="30"
-                  alt="social"
-                  class="rounded-circle"
-                />
-                <img
-                  src="assets/images/profile/user-3.jpg"
-                  width="30"
-                  alt="social"
-                  class="rounded-circle"
-                />
-                <img
-                  src="assets/images/profile/user-4.jpg"
-                  width="30"
-                  alt="social"
-                  class="rounded-circle"
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-4.webp"
+                  alt="Testimonial"
+                  class="testimonial-img"
                 />
               </div>
-              <span class="f-s-16 f-w-500 m-l-10"
-                ><span class="f-w-600">52,589+</span> developers & agencies
-                using our templates</span
-              >
-            </div>
-            
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-11-3.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-10-3.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-9-2.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-8-2.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-7-2.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-6-3.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-5-2.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+            >
+              <div class="testimonial-img-wrapper">
+                <img
+                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-2-1.png"
+                  alt="Testimonial"
+                  class="testimonial-img"
+                />
+              </div>
+            </mat-card>
           </div>
         </div>
       </div>
@@ -337,7 +649,7 @@
     End Template
     ------------------------------------------------------------------ -->
 
-      <!-- ------------------------------------------------------------------
+    <!-- ------------------------------------------------------------------
     buy section
     ------------------------------------------------------------------ -->
     <div class="bg-white">
@@ -345,7 +657,10 @@
         <div class="bg-green rounded p-32 position-relative">
           <div class="row justify-content-between">
             <div class="col-lg-6">
-              <h3 class="m-t-0 section-title2 text-white m-b-8">
+              <h3
+                class="m-t-0 section-title2 text-white m-b-8"
+                style="line-height: 1.1"
+              >
                 Haven't found an answer to your question?
               </h3>
               <span class="f-s-16 m-b-30 p-b-10 m-t-8 d-block text-white"
@@ -354,18 +669,22 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="https://discord.com/invite/eMzE8F6Wqs"
+                  href="/authentication/maintenance"
                   color="primary"
                   class="btn-custom sm"
-                  style="background-color: #C4E57F; font-weight:800; "
-                  >The #1 AI remote talent tool</a
+                  style="
+                    background-color: #c4e57f;
+                    font-weight: 800;
+                    color: #818181;
+                  "
+                  >Try Inimble for free</a
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  href="/authentication/maintenance"
                   color="primary"
-                  class="btn-custom sm border-accent"
-                  >Remote talent match</a
+                  class="btn-custom sm border-white text-white"
+                  >Book a free consultation</a
                 >
               </div>
             </div>
@@ -386,29 +705,49 @@
     buy section
     ------------------------------------------------------------------ -->
 
-        <!-- Social Section -->
-<div class="spacer bg-white">
-  <div class="container text-center">
-    <h3 class="section-title">Let's get social</h3>
-    <div class="social-icons d-flex justify-content-center gap-20 m-t-24">
-      <a href="https://www.linkedin.com/company/inimble/" target="_blank" aria-label="LinkedIn">
-        <i-tabler name="brand-linkedin" class="icon-34"></i-tabler>
-      </a>
-      <a href="https://www.facebook.com/inimble/" target="_blank" aria-label="Facebook">
-        <i-tabler name="brand-facebook" class="icon-34"></i-tabler>
-      </a>
-      <a href="https://www.tiktok.com/@inimbleteam" target="_blank" aria-label="Twitter">
-        <i-tabler name="brand-tiktok" class="icon-34"></i-tabler>
-      </a>
-      <a href="https://www.instagram.com/inimbleteam/" target="_blank" aria-label="Instagram">
-        <i-tabler name="brand-instagram" class="icon-34"></i-tabler>
-      </a>
-      <a href="https://www.youtube.com/@inimbleTeam" target="_blank" aria-label="YouTube">
-        <i-tabler name="brand-youtube" class="icon-34"></i-tabler>
-      </a>
+    <!-- Social Section -->
+    <div class="spacer bg-white">
+      <div class="container text-center">
+        <h3 class="section-title">Let's get social</h3>
+        <div class="social-icons d-flex justify-content-center gap-20 m-t-24">
+          <a
+            href="https://www.linkedin.com/company/inimble/"
+            target="_blank"
+            aria-label="LinkedIn"
+          >
+            <i-tabler name="brand-linkedin" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.facebook.com/inimble/"
+            target="_blank"
+            aria-label="Facebook"
+          >
+            <i-tabler name="brand-facebook" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.tiktok.com/@inimbleteam"
+            target="_blank"
+            aria-label="Twitter"
+          >
+            <i-tabler name="brand-tiktok" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.instagram.com/inimbleteam/"
+            target="_blank"
+            aria-label="Instagram"
+          >
+            <i-tabler name="brand-instagram" class="icon-34"></i-tabler>
+          </a>
+          <a
+            href="https://www.youtube.com/@inimbleTeam"
+            target="_blank"
+            aria-label="YouTube"
+          >
+            <i-tabler name="brand-youtube" class="icon-34"></i-tabler>
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
     <!-- ------------------------------------------------------------------
     Features
@@ -460,11 +799,10 @@
     End Features
     ------------------------------------------------------------------ -->
 
-
     <!-- ------------------------------------------------------------------
     Testimonial
     ------------------------------------------------------------------ -->
-    <div class="spacer bg-white">
+    <!-- <div class="spacer bg-white">
       <div class="container">
         <div class="row m-t-24">
           <div class="col-12">
@@ -492,9 +830,7 @@
                 ></i-tabler>
               </div>
               <p class="m-t-24 review-subtext text-center f-w-500">
-                This template is great, UI-rich and up-to-date. Although it is
-                pretty much complete, I suggest to improve a bit of
-                documentation. Thanks & Highly recomended!
+                “This is the first remote hire I didn’t have to babysit.” 
               </p>
               <div
                 class="d-flex align-items-center justify-content-center m-t-24"
@@ -506,8 +842,8 @@
                   width="64"
                 />
                 <div class="m-l-12">
-                  <h6 class="mat-subtitle-1 f-s-16 f-w-600">Eminson Mendoza</h6>
-                  <span class="f-s-14">Features avaibility</span>
+                  <h6 class="mat-subtitle-1 f-s-16 f-w-600">CPA</h6>
+                  <span class="f-s-14">Miami</span>
                 </div>
               </div>
             </div>
@@ -515,23 +851,218 @@
         </div>
       </div>
     </div>
+
+    Call to action-->
+    <div class="bg-white">
+      <div class="container">
+        <div class="bg-green rounded p-32 position-relative">
+          <div class="row justify-content-between">
+            <div class="col-lg-6">
+              <h3
+                class="m-t-0 section-title2 text-white m-b-8"
+                style="line-height: 1.1"
+              >
+                Let’s Make Remote Hiring Easy
+              </h3>
+              <span class="f-s-16 m-b-30 p-b-10 m-t-8 d-block text-white"
+                >Everything you need to hire and run your team — in one place.
+                No agencies. No fluff. Just results.</span
+              >
+              <div class="hstack">
+                <a
+                  mat-flat-button
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  color="primary"
+                  class="btn-custom sm"
+                  style="
+                    background-color: #c4e57f;
+                    font-weight: 800;
+                    color: #818181;
+                  "
+                  >Try Inimble for free</a
+                >
+                <a
+                  mat-stroked-button
+                  href="https://support.wrappixel.com/"
+                  color="primary"
+                  class="btn-custom sm border-white text-white"
+                  >Call us now</a
+                >
+                <a
+                  mat-stroked-button
+                  href="https://support.wrappixel.com/"
+                  color="primary"
+                  class="btn-custom sm border-white text-white"
+                  >More about our talent match</a
+                >
+              </div>
+            </div>
+            <div class="col-lg-5 text-right">
+              <!-- <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              /> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What’s Included Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40">
+              <h2 class="section-title m-b-16 f-w-700">What’s Included</h2>
+              <p class="f-s-18 m-b-0">
+                Everything is handled inside the platform
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <ul class="list-unstyled f-s-18 m-0 w-100">
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="sparkles"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  AI Matching (Olympia)
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="book-2"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  SOP-based onboarding &amp; training
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="clock"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Time tracking, task boards &amp; performance reviews
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="currency-dollar"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Built-in payroll, contracts &amp; compliance
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="device-laptop"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  IT setup &amp; secure support
+                </li>
+                <li class="d-flex align-items-center">
+                  <i-tabler
+                    name="building-skyscraper"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Coworking office access in major LATAM cities
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Who It’s For Section -->
+    <div class="spacer">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40">
+              <h2 class="section-title m-b-16 f-w-700 text-md-end text-center">
+                Who It’s For
+              </h2>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40">
+              <ul class="list-unstyled f-s-18 m-0 w-100">
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="briefcase"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  <span class="f-w-600">Law Firms:</span>&nbsp;Paralegals,
+                  Client intake, Document handling
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="calculator"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  <span class="f-w-600">CPAs:</span>&nbsp;Billing, Calendar
+                  management, Tax preparation
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="home"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  <span class="f-w-600">Real Estate:</span>&nbsp;CRM
+                  administrators, Showing assistants
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="stethoscope"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  <span class="f-w-600">Healthcare:</span>&nbsp;HIPAA-compliant
+                  administration, Schedulers
+                </li>
+                <li class="d-flex align-items-center">
+                  <i-tabler
+                    name="users-group"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  <span class="f-w-600">Any U.S. business:</span>&nbsp;Needs
+                  back office support without the overhead
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-intake-form></app-intake-form>
     <!-- ------------------------------------------------------------------
     End Testimonial
     ------------------------------------------------------------------ -->
 
-  
-
     <div class="container spacer">
       <div class="row justify-content-center spacer">
-          <div class="col-lg-6 col-sm-8">
-            <!-- <span class="d-block text-center f-w-500 f-s-16"
+        <div class="col-lg-6 col-sm-8">
+          <!-- <span class="d-block text-center f-w-500 f-s-16"
               >Almost Covered Everything</span
             > -->
-            <h2 class="section-title text-center m-t-16 f-w-700">
-              Resources
-            </h2>
-          </div>
+          <h2 class="section-title text-center m-t-16 f-w-700">Resources</h2>
         </div>
+      </div>
       <app-blogs></app-blogs>
     </div>
 
@@ -539,7 +1070,7 @@
     footer
     ------------------------------------------------------------------ -->
 
-      <app-footer></app-footer>
+    <app-footer></app-footer>
 
     <!-- ------------------------------------------------------------------
     end footer

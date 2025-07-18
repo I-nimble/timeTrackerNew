@@ -35,6 +35,15 @@ import {
 } from 'src/app/components/reports-filter/reports-filter.component';
 import moment from 'moment-timezone';
 import * as filesaver from 'file-saver';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TimerComponent } from 'src/app/components/timer-component/timer.component';
+import { AppActivityReportsComponent } from '../../../components/dashboard2/app-activity-reports/activity-reports.component';
+import { EmployeeDetailsComponent } from './employee-details/employee-details.component';
+import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
+import { SelectionModel } from '@angular/cdk/collections';
+import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
+import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
+import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 
 @Component({
   templateUrl: './employee.component.html',
@@ -45,16 +54,22 @@ import * as filesaver from 'file-saver';
     TablerIconsModule,
     CommonModule,
     RouterModule,
-  ],
+    TimerComponent,
+    TeamProductivityComponent,
+    AppEmployeesReportsComponent,
+    EmployeeDetailsComponent,
+    AppEmployeeTableComponent
+],
+  standalone: true,
 })
-export class AppEmployeeComponent implements AfterViewInit {
+export class AppEmployeeComponent {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
   employees: any[] = [];
   loaded: boolean = false;
   company: any;
-  companyTimezone: string = 'UTC';
+  companyTimezone: string = 'America/Los_Angeles';
   timeZone: string = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
@@ -63,52 +78,87 @@ export class AppEmployeeComponent implements AfterViewInit {
     project: 'all',
     byClient: false,
     useTimezone: false,
+    multipleUsers: false,
   };
+  userRole = localStorage.getItem('role');
+  companies: any[] = [];
+  companyId: number | null = null;
 
   searchText: any;
 
   displayedColumns: string[] = [
-    '#',
+    'select',
     'name',
     'schedule',
-    'date of joining',
     'salary',
     'projects',
     'action',
   ];
-
-  dataSource = new MatTableDataSource<Employee>([]);
-
-  @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
-    Object.create(null);
+  customColumns = [
+    'select',
+    'name',
+    'status',
+    'schedule',
+    'reports',
+    'action',
+  ];
+  dataSource: any[] = []
+  selection = new SelectionModel<any>(true, []);
 
   constructor(
     public dialog: MatDialog,
     private employeesService: EmployeesService,
     private userService: UsersService,
-    private companieService: CompaniesService,
     private positionsService: PositionsService,
     private schedulesService: SchedulesService,
-    private reportsService: ReportsService
+    private reportsService: ReportsService,
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit(): void {
-    this.loadCompany();
+    if (this.userRole === '3') {
+      this.loadCompany();
+    }
     this.getEmployees();
+    this.getCompanies();
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        this.companies = companies;
+      },
+    });
+  }
+
+  handleCompanySelection(event: any) {
+    this.companyId = event.value;
+    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
   }
 
   loadCompany(): void {
-    this.companieService.getByOwner().subscribe((company: any) => {
+    this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
-      this.companyTimezone = company.company.timezone || 'UTC';
+      if(company.company.timezone) {
+        this.companyTimezone = this.companyTimezone.split(':')[0];
+      }
     });
-  }
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
   }
 
   applyFilter(filterValue: string): void {
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+    filterValue = filterValue.trim()?.toLowerCase();
+    if (!filterValue) {
+      this.dataSource = [...this.users];
+      return;
+    }
+    
+    this.dataSource = this.users.filter(user => {
+      return (
+        user.profile.name?.toLowerCase().includes(filterValue) ||
+        user.profile.last_name?.toLowerCase().includes(filterValue) ||
+        user.email?.toLowerCase().includes(filterValue)
+      );
+    });
   }
 
   openDialog(action: string, employee: Employee | any): void {
@@ -118,69 +168,66 @@ export class AppEmployeeComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.dataSource.data = this.users;
+      this.getEmployees();
     });
   }
 
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.employees = employees;
         this.users = employees
-          .map((user: any) => user.user)
-          .filter((user: any) => user.active == 1);
+          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
 
         this.schedulesService.get().subscribe({
           next: (schedules: any) => {
             schedules = schedules.schedules;
             this.users = this.users.map((user: any) => {
-              
               const userSchedules = schedules.find(
                 (schedule: any) => schedule.employee_id === user.id
               );
               if (!userSchedules) {
-                return {
-                  id: user.id,
-                  Name: `${user.name} ${user.last_name}`,
-                  Position: 'Default Position',
-                  schedule: 'No registered hours',
-                  WorkingDays: 'N/A',
-                  Salary: 12000,
-                  Projects: 0,
-                  imagePath: this.assetsPath + '/default-profile-pic.png',
-                };
-              }
+                return ({
+                  profile: {
+                    id: user.user.id,
+                    company_id: user.company_id,
+                    name: user.user.name,
+                    last_name: user.user.last_name,
+                    email: user.user.email,
+                    position: user.position_id,
+                    projects: user.projects.map((project: any) => project.id),
+                    Salary: 0,
+                    imagePath: this.assetsPath + '/default-profile-pic.png',
+                  },
+                  schedule: 'No registered schedule',
+                });
+              };
               
               const workingDays = userSchedules.days
-                .map((day: any) => day.name.charAt(0).toUpperCase()) 
-                .join(', ');
+                .map((day: any) => day.name)
+                .sort((a: string, b: string) => {
+                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  return weekDays.indexOf(a) - weekDays.indexOf(b);
+                });
 
-              const start = moment.tz(
-                userSchedules.start_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              const end = moment.tz(
-                userSchedules.end_time,
-                'HH:mm',
-                this.companyTimezone
-              );
-              if (end.isBefore(start)) end.add(1, 'day');
-              const totalWorkHours = end.diff(start, 'hours', true);
+              const scheduleString = this.formatDaysRange(workingDays);
 
-              return {
-                id: user.id,
-                Name: `${user.name} ${user.last_name}`,
-                Position: 'Default Position', 
-                schedule: `${totalWorkHours.toFixed()} hours per day`,
-                WorkingDays: workingDays,
-                Salary: 12000, 
-                Projects: 0, 
-                imagePath: this.assetsPath + '/default-profile-pic.png',
-              };
+              return ({
+                profile : {
+                  id: user.user.id,
+                  company_id: user.company_id,
+                  name: user.user.name,
+                  last_name: user.user.last_name,
+                  email: user.user.email,
+                  position: user.position_id,
+                  projects: user.projects.map((project: any) => project.id),
+                  Salary: 0, 
+                  imagePath: this.assetsPath + '/default-profile-pic.png',
+                },
+                schedule: scheduleString,
+              });
             });
-            this.dataSource.data = this.users;
-            this.loaded = true;
+            this.getUsersPictures();
           },
           error: (err) => {
             console.error('Error fetching schedules:', err);
@@ -193,9 +240,44 @@ export class AppEmployeeComponent implements AfterViewInit {
     });
   }
 
-  setUser(user: any): void {
+  getUsersPictures() {
+    this.users.forEach((user: any) => {
+      this.userService.getProfilePic(user.profile.id).subscribe({
+        next: (image: any) => {
+          if(image) {
+            user.profile.imagePath = image;
+          }
+        }
+      });
+    });
+    this.dataSource = this.users;
+    this.loaded = true;
+  }
 
-        this.employees.map((employee: any) => {
+  // Helper function to format days as a range "Monday to Friday"
+  formatDaysRange(days: string[]): string {
+    const weekDays = [
+      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    ];
+    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
+    if (indices.length === 0) return '';
+    // Check if days are consecutive
+    let isConsecutive = true;
+    for (let i = 1; i < indices.length; i++) {
+      if (indices[i] !== indices[i - 1] + 1) {
+        isConsecutive = false;
+        break;
+      }
+    }
+    if (isConsecutive && indices.length > 1) {
+      return `${weekDays[indices[0]]} to ${weekDays[indices[indices.length - 1]]}`;
+    } else {
+      return days.join(', ');
+    }
+  }
+
+  setUser(user: any): void {
+    this.employees.map((employee: any) => {
       user.id == employee.user.id ? user = employee.user : null;
     });
 
@@ -203,41 +285,83 @@ export class AppEmployeeComponent implements AfterViewInit {
   }
 
   downloadReport(user: any): void {
+    let selectedIds = this.selection.selected.map(u => u.id);
+    if (!selectedIds.includes(user.id)) {
+      selectedIds.push(user.id);
+    }
     this.filters = {
-      user: user.id,
+      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
       company: 'all',
       project: 'all',
       byClient: false,
       useTimezone: false,
+      multipleUsers: selectedIds.length > 1,
     };
 
-    const datesRange = {
-      firstSelect: moment().startOf('week').toDate(),
-      lastSelect: moment().endOf('week').toDate(),
-    };
-
-    this.employees.map((employee: any) => {
-      user.id == employee.user.id ? user = employee.user : null;
+    const dialogRef = this.dialog.open(AppDateRangeDialogComponent, {
+      data: {},
+      autoFocus: false,
     });
-    this.reportsService
-      .getReport(datesRange, user, this.filters)
-      .subscribe((v) => {
-        let filename;
-        let display_name;
-        if (user.last_name) {
-          display_name = `${user.name}_${user.last_name}`;
-        } else {
-          display_name = user.name;
-        }
 
-        filename = `I-nimble_Report_${display_name}_${moment(
-          new Date(datesRange.firstSelect)
-        ).format('DD-MM-YYYY')}_${moment(
-          new Date(datesRange.lastSelect)
-        ).format('DD-MM-YYYY')}.xlsx`;
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        const datesRange = {
+          firstSelect: result.firstSelect,
+          lastSelect: result.lastSelect,
+        };
 
-        filesaver.saveAs(v, filename);
-      });
+        this.employees.map((employee: any) => {
+          user.id == employee.user.id ? user = employee.user : null;
+        });
+        this.reportsService
+          .getReport(datesRange, user, this.filters)
+          .subscribe((v) => {
+            let filename;
+            let display_name;
+            if (this.filters.multipleUsers) {
+              display_name = 'multiple_users';
+            }
+            else {
+              display_name = `${user.name}_${user.last_name}`;
+            }
+    
+            filename = `I-nimble_Report_${display_name}_${moment( 
+              new Date(datesRange.firstSelect)
+            ).format('DD-MM-YYYY')}_${moment(
+              new Date(datesRange.lastSelect)
+            ).format('DD-MM-YYYY')}.xlsx`;
+    
+            filesaver.saveAs(v, filename);
+          });
+      }
+    });
+  }
+
+  isAllSelected(): boolean {
+    if (!this.dataSource || !this.dataSource) {
+      return false;
+    }
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.length;
+    return numSelected === numRows;
+  }
+
+  masterToggle(): void {
+    if (!this.dataSource || !this.dataSource) {
+      return;
+    }
+    this.isAllSelected()
+      ? this.selection.clear()
+      : this.dataSource.forEach((row) => this.selection.select(row));
+  }
+
+  checkboxLabel(row?: any): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
+      row.position + 1
+    }`;
   }
 }
 
@@ -262,25 +386,54 @@ interface DialogData {
 export class AppEmployeeDialogContentComponent {
   action: string | any;
   // tslint:disable-next-line - Disables all
-  local_data: Employee;
+  local_data: any;
   selectedImage: any = '';
   joiningDate = new FormControl();
   positions: any[] = [];
   projects: any[] = [];
   selectedFile: File | null = null;
+  sendingData: boolean = false;
+  editEmployeeForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    last_name: ['', Validators.required],
+    password: [''],
+    email: ['', [Validators.required, Validators.email]],
+    position: ['', Validators.required],
+    projects: [[]],
+  });
+  inviteEmployeeForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    company_id: ['', Validators.required],
+  });
+  companies: any[] = [];
+  userRole = localStorage.getItem('role');
 
   constructor(
     public dialog: MatDialog,
     public dialogRef: MatDialogRef<AppEmployeeDialogContentComponent>,
     private employeesService: EmployeesService,
+    private usersService: UsersService,
     private snackBar: MatSnackBar,
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
+    private fb: FormBuilder,
+    private companiesService: CompaniesService,
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.action = data.action;
     this.local_data = { ...data.employee };
+    if(this.action === 'Update') {
+      this.editEmployeeForm.patchValue({ // Populate form data
+        name: this.local_data.name || '',
+        last_name: this.local_data.last_name || '',
+        password: '',
+        email: this.local_data.email || '',
+        position: this.local_data.position || '',
+        projects: this.local_data.projects || [],
+      });
+    }
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -290,6 +443,24 @@ export class AppEmployeeDialogContentComponent {
       this.projects = projects;
     });
 
+    if(this.action === 'Invite') {
+      this.companiesService.getCompanies().subscribe((companies: any) => {
+        this.companies = companies;
+        if(this.userRole === '3') {
+          this.companiesService.getByOwner().subscribe((company: any) => {
+            this.inviteEmployeeForm.patchValue({
+              company_id: company.company.id
+            });
+          });
+        }
+        else if (this.userRole === '1') {
+          this.inviteEmployeeForm.patchValue({
+            company_id: this.local_data.companyId || ''
+          });
+        }
+      });
+    }
+
     // Set default image path if not already set
     if (!this.local_data.image) {
       this.local_data.image = 'assets/images/default-user-profile-pic.png';
@@ -298,31 +469,47 @@ export class AppEmployeeDialogContentComponent {
 
   doAction(): void {
 
-    if (this.action === 'Add') {
-      this.employeesService.addEmployee(this.local_data, this.selectedFile || null).subscribe((employee: any) => {
-        this.dialogRef.close();
-
-        const successDialogRef = this.dialog.open(AppAddEmployeeComponent);
-        successDialogRef.afterClosed().subscribe(() => {
+    if (this.action === 'Invite') {
+      this.sendingData = true;
+      if(!this.inviteEmployeeForm.valid) {
+        this.openSnackBar('Please fill in all required fields', 'Close');
+        this.sendingData = false;
+        return;
+      }
+      const invitationData = {
+        name: this.inviteEmployeeForm.value.name,
+        email: this.inviteEmployeeForm.value.email,
+        company_id: this.inviteEmployeeForm.value.company_id,
+      };
+      this.employeesService.inviteEmployee(invitationData).subscribe({
+        next: () => {
           this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Added successfully!', 'Close');
-        });
+          this.openSnackBar('Employee Invited successfully!', 'Close');
+          this.sendingData = false;
+          this.inviteEmployeeForm.reset();
+        },
+        error: (err: any) => {
+          console.error('Error adding employee:', err);
+          this.openSnackBar('Error inviting employee', 'Close');
+          this.sendingData = false;
+          this.inviteEmployeeForm.reset();
+        }
       });
     } else if (this.action === 'Update') {
       // this.employeesService.updateEmployee(this.local_data);
       // this.dialogRef.close({ event: 'Update' });
       // this.openSnackBar('Employee Updated successfully!', 'Close');
     } else if (this.action === 'Delete') {
-      // this.employeesService.deleteEmployee(this.local_data.id).subscribe({
-      //   next: (data) => {
-      //     this.dialogRef.close({ event: 'Delete' });
-      //     this.openSnackBar('Employee Deleted successfully!', 'Close');
-      //   },
-      //   error: (err) => {
-      //     console.error('Error deleting employee:', err);
-      //     this.openSnackBar('Error deleting employee', 'Close');
-      //   },
-      // });
+      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Delete' });
+          this.openSnackBar('Employee Deleted successfully!', 'Close');
+        },
+        error: (err:any) => {
+          console.error('Error deleting employee:', err);
+          this.openSnackBar('Error deleting employee', 'Close');
+        },
+      });
     }
   }
 

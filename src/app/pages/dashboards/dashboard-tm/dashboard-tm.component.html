@@ -1,0 +1,137 @@
+<div class="card overflow-hidden">
+  <div class="card-body p-0">
+    <img
+      src="assets/images/backgrounds/profilebg.jpg"
+      alt="spike-img"
+      class="img-fluid"
+    />
+    <div class="row align-items-center">
+      <div class="col-lg-4 order-lg-1 order-2">
+        <!-- <div class="d-flex align-items-center justify-content-around m-4">
+              
+                  </div> -->
+      </div>
+      <div class="col-lg-4 mt-n3 order-lg-2 order-1">
+        <div class="mt-n5">
+          <div class="d-flex align-items-center justify-content-center mb-2">
+            <div
+              class="d-flex align-items-center justify-content-center round-110"
+            >
+              <div
+                class="border border-4 border-white d-flex align-items-center justify-content-center rounded-circle overflow-hidden round-100"
+              >
+                <img
+                  [src]="picture"
+                  alt="{{ user.name }} {{ user.last_name }}"
+                  width="100"
+                  height="100"
+                  style="object-fit: cover; aspect-ratio: 1 / 1;"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <h5 class="mb-0">{{ user.name }} {{ user.last_name }}</h5>
+            <p class="mb-0 position">{{ user.employee.position_name }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 order-last">
+        <div>
+          <app-entries-panel
+            [entryCheck]="entryCheck"
+            [currentEntryId]="currentEntryId"
+            [start_time]="start_time"
+            [entry]="startedEntry"
+            (cancel_entry)="cancelCurrentEntry($event)"
+            (end_entry)="endCurrentEntry($event)"
+            (start_entry)="addEntry($event)"
+            [timeZone]="timeZone"
+          ></app-entries-panel>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Company Information -->
+<div class="row mt-4 m-b-20">
+  <div class="col-md-5 m-b-20">
+    <div class="card shadow-none h-100">
+       <div class="card-body tasks">
+          <p class="mb-3">My Tasks for Today</p>
+            <div
+              class="list-group-item d-flex align-items-center justify-content-between"
+              *ngFor="let task of todayTasks"
+            >
+              <div class="d-flex align-items-center m-t-10">
+                <mat-icon color="primary" class="me-2">check</mat-icon>
+                <div>
+                  <div class="fw-semibold">{{ task.goal }}</div>
+                  <div class="text-muted small" *ngIf="task.due_date">
+                    <mat-icon class="me-1" style="font-size: 16px"
+                      >event</mat-icon
+                    >
+                    Due: {{ task.due_date | date: "mediumDate" }}
+                  </div>
+                </div>
+              </div>
+                <span class="rounded f-s-12 p-x-8 text-white bg-primary" *ngIf="task.priorityAssociation">
+                  {{ task.priorityAssociation.name }}
+                </span>
+            </div>
+            <p
+              *ngIf="!todayTasks || todayTasks.length === 0"
+              class="list-group-item text-center text-muted"
+            >
+              No tasks for Today
+          </p>
+          <div class="text-end btnTasks">
+            <button mat-stroked-button class="btn btn-primary" [routerLink]="['/apps/todo']">
+              See All Tasks
+            </button>
+          </div>
+      </div>
+    </div> 
+  </div>
+  <div class="col-md-7 m-b-20" *ngIf="employees.length > 0 || employer">
+  <div class="card shadow-none border">
+    <div class="card-body tm-photos">
+      <div class="row">
+        <!-- Employer -->
+        <div class="col-4" *ngIf="employer">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employer.picture || 'assets/images/default-logo.jpg'"
+              [alt]="employer.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+              style="object-fit: cover; aspect-ratio: 1 / 1;"
+            />
+          </div>
+          <p class="text-center tm fw-bold">
+            {{ employer.name }} {{ employer.last_name }}
+          </p>
+        </div>
+        <!-- Employees -->
+        <div class="col-4" *ngFor="let employee of employees">
+          <div style="display: flex; justify-content: center">
+            <img
+              [src]="employee.user.picture || 'assets/images/default-user-profile-pic.png'"
+              [alt]="employee.user.name"
+              width="100"
+              height="100"
+              class="rounded-circle"
+              style="object-fit: cover; aspect-ratio: 1 / 1;"
+            />
+          </div>
+          <p class="text-center tm">
+            {{ employee.user.name }} {{ employee.user.last_name }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

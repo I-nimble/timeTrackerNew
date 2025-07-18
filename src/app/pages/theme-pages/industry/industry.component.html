@@ -7,7 +7,7 @@
       <div class="container full-width p-xs-6 justify-content-between">
         <!-- --------------------------------------------------------------- -->
         <div class="branding p-x-0">
-          <app-branding></app-branding>
+          <app-branding [fullLogoMaxWidth]="'180px'"></app-branding>
         </div>
 
         <!-- --------------------------------------------------------------- -->
@@ -23,86 +23,32 @@
           <!-- --------------------------------------------------------------- -->
           <!--  Links -->
           <!-- --------------------------------------------------------------- -->
-          <button
+          <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [matMenuTriggerFor]="appsmenu"
-            aria-label="Notifications"
+            [routerLink]="['/landingpage/products']"
+            style="color: #818181"
+            >Products</a
           >
-            <div class="d-flex align-items-center" style="color: #818181">
-              Products
-              <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
-            </div>
-          </button>
-          <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
-            <div class="row">
-              <div class="col-sm-8 b-r-1 p-r-0">
-                <div class="p-32 p-b-0">
-                  <div class="row">
-                    @for(appdd of apps; track appdd.link) {
-                    <div class="col-sm-6 text-hover-primary">
-                      <a
-                        [routerLink]="[appdd.link]"
-                        class="d-flex align-items-center text-decoration-none m-b-24"
-                      >
-                        <button
-                          mat-mini-fab
-                          class="text-primary bg-light-primary shadow-none rounded"
-                        >
-                          <img [src]="appdd.img" width="20" />
-                        </button>
-
-                        <div class="m-l-16">
-                          <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                            {{ appdd.title }}
-                          </h5>
-                          <span class="text-body f-s-12">{{
-                            appdd.subtitle
-                          }}</span>
-                        </div>
-                      </a>
-                    </div>
-                    }
-                  </div>
-                </div>
-              </div>
-              <div class="col-sm-4">
-                <div class="p-x-16 p-y-32">
-                  <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">
-                    Quick Links
-                  </h4>
-                  @for(quicklink of quicklinks; track quicklink.title) {
-                  <div class="text-hover-primary">
-                    <a
-                      [routerLink]="[quicklink.link]"
-                      class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
-                      >{{ quicklink.title }}</a
-                    >
-                  </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </mat-menu>
 
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/industry']"
+            [routerLink]="['/landingpage/industry']"
             style="color: #818181"
             >Industry</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            href="https://support.wrappixel.com/"
+            [routerLink]="['/landingpage/pricing']"
             style="color: #818181"
             >Pricing</a
           >
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            hinref="https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html"
+            href="/authentication/maintenance"
             style="color: #818181"
             >Why us</a
           >
@@ -140,13 +86,13 @@
       <div class="container">
         <div class="row align-items-center">
           <!-- Columna izquierda: Título y botones -->
-          <div class="col-lg-6 text-left">
+          <div class="col-lg-6 text-center">
             <h1 class="industry-banner-title">
-              Build Your Remote Team. Save mon. Stay in Control.
+              Build Smarter Remote Teams—Across Every Industry
             </h1>
-            <div class="industry-banner-buttons m-t-24">
+            <div class="industry-banner-buttons m-t-24 justify-content-center">
               <a mat-flat-button color="primary" class="btn-custom"
-                >Use Inimble for free</a
+                >Try inimble</a
               >
               <a
                 mat-stroked-button
@@ -157,11 +103,10 @@
             </div>
           </div>
           <!-- Columna derecha: Subtítulo -->
-          <div class="col-lg-6 text-right">
+          <div class="col-lg-6 text-center">
             <p class="industry-banner-subtitle">
-              Inimble is the all-in-one platform to hire, train, and manage top
-              talent from Latin America. We handle the hard stuff — recruiting,
-              onboarding, payroll, compliance, and IT — so you don’t have to.
+              Inimble helps any kind of business scale efficiently with tailored
+              staffing, HR, IT, and productivity tools. All-in-one platform.
             </p>
           </div>
         </div>
@@ -231,17 +176,14 @@
         <div class="row align-items-center">
           <div class="col-lg-12 text-center">
             <h1 class="banner-title">
-              Focus on what truly matters—creating stunning, functional designs.
+              Optimize your legal operations with bilingual, pre-vetted talent
+              and compliance-first infrastructure.
             </h1>
-            <p class="banner-subtitle">
-              Designed for ease of use and customization, this template helps
-              you build professional dashboards faster.
-            </p>
-            <div class="banner-buttons m-t-24">
-              <a mat-flat-button color="primary" class="btn-custom border-white"
-                >Register</a
-              >
-            </div>
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
           </div>
         </div>
       </div>
@@ -264,24 +206,88 @@
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
                   <mat-panel-title class="f-w-600 f-s-16 text-primary">
-                    Specialized services
+                    What We Offer
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <p class="f-s-14 text-left">
-                  Legal staf, positions we offer to law firms in a variety of
-                  functions
-                </p>
+                <ul class="industry-list">
+                  <li>
+                    <i-tabler
+                      name="check"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Legal-ready virtual assistants and paralegals
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="check"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Integration with Clio, Filevine & legal tools
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="check"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Time tracking for billable hours
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="check"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Encrypted communication & secure access
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="check"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Real-time productivity & task management
+                  </li>
+                </ul>
               </mat-expansion-panel>
               <mat-expansion-panel>
                 <mat-expansion-panel-header>
                   <mat-panel-title class="f-w-600 f-s-16 text-primary">
-                    Dedicated industry
+                    Additional Industries We Serve
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <p class="f-s-14 text-left">
-                  HR management, Web development, Social media growth, IT
-                  management & support
-                </p>
+                <div class="industry-list-caption">
+                  inimble also works with clients in:
+                </div>
+                <ul class="industry-list">
+                  <li>
+                    <i-tabler
+                      name="building"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Tech Startups
+                  </li>
+                  <li>
+                    <i-tabler name="home" class="industry-list-icon"></i-tabler>
+                    Real estate
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="palette"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Marketing & Creative Agencies
+                  </li>
+                  <li>
+                    <i-tabler
+                      name="headset"
+                      class="industry-list-icon"
+                    ></i-tabler>
+                    Customer Support Teams
+                  </li>
+                  <li>
+                    <i-tabler name="dots" class="industry-list-icon"></i-tabler>
+                    And many more. Our platform adapts to your remote
+                    workflow—no matter the vertical.
+                  </li>
+                </ul>
               </mat-expansion-panel>
             </mat-accordion>
           </div>
@@ -301,30 +307,143 @@
     <!-- ------------------------------------------------------------------
     Template
     ------------------------------------------------------------------ -->
-    <!-- ------------------------------------------------------------------
-    End Template
-    ------------------------------------------------------------------ -->
+    <div class="bg-white">
+      <div class="container spacer">
+        <div class="bg-green rounded p-32 position-relative">
+          <div class="row justify-content-center align-items-center">
+            <div class="col-lg-8 text-center m-auto">
+              <h3
+                class="m-t-0 section-title2 text-white m-b-16"
+                style="line-height: 1.1"
+              >
+                Built for Every Stage of Growth
+              </h3>
+              <ul
+                class="industry-list industry-list-light m-b-24 d-inline-block text-start"
+              >
+                <li>
+                  <i-tabler name="user" class="industry-list-icon"></i-tabler>
+                  <span
+                    ><b>Solo Professionals:</b> Get the support you need to
+                    scale.</span
+                  >
+                </li>
+                <li>
+                  <i-tabler
+                    name="briefcase"
+                    class="industry-list-icon"
+                  ></i-tabler>
+                  <span
+                    ><b>Small Businesses:</b> Simplify hiring and
+                    operations.</span
+                  >
+                </li>
+                <li>
+                  <i-tabler name="users" class="industry-list-icon"></i-tabler>
+                  <span
+                    ><b>Mid-Size Teams:</b> Collaborate and grow with
+                    structure.</span
+                  >
+                </li>
+                <li>
+                  <i-tabler
+                    name="building-skyscraper"
+                    class="industry-list-icon"
+                  ></i-tabler>
+                  <span
+                    ><b>Enterprise Firms:</b> Integrate systems and manage
+                    complexity.</span
+                  >
+                </li>
+              </ul>
+              <div class="hstack gap-2 justify-content-center">
+                <a
+                  mat-flat-button
+                  href="/authentication/maintenance"
+                  color="primary"
+                  class="btn-custom sm"
+                  style="
+                    background-color: #c4e57f;
+                    font-weight: 800;
+                    color: #818181;
+                  "
+                  >Try Inimble for free</a
+                >
+                <a
+                  mat-stroked-button
+                  href="/authentication/maintenance"
+                  color="primary"
+                  class="btn-custom sm border-white text-white"
+                  >Book a free consultation</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- ------------------------------------------------------------------
-    buy section
-    ------------------------------------------------------------------ -->
-
-    <!-- ------------------------------------------------------------------
-    buy section
-    ------------------------------------------------------------------ -->
-
-    <!-- ------------------------------------------------------------------
-    Features
-    ------------------------------------------------------------------ -->
-
-    <!-- ------------------------------------------------------------------
-    End Features
-    ------------------------------------------------------------------ -->
+    <div class="bg-white">
+      <div class="container spacer">
+        <div class="bg-green rounded p-32 position-relative">
+          <div class="row justify-content-between">
+            <div class="col-lg-6">
+              <h3
+                class="m-t-0 section-title2 text-white m-b-8"
+                style="line-height: 1.1"
+              >
+                Let’s Make Remote Hiring Easy
+              </h3>
+              <span class="f-s-16 m-b-30 p-b-10 m-t-8 d-block text-white"
+                >Everything you need to hire and run your team — in one place.
+                No agencies. No fluff. Just results.</span
+              >
+              <div class="hstack">
+                <a
+                  mat-flat-button
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  color="primary"
+                  class="btn-custom sm"
+                  style="
+                    background-color: #c4e57f;
+                    font-weight: 800;
+                    color: #818181;
+                  "
+                  >Try Inimble for free</a
+                >
+                <a
+                  mat-stroked-button
+                  href="https://support.wrappixel.com/"
+                  color="primary"
+                  class="btn-custom sm border-white text-white"
+                  >Call us now</a
+                >
+                <a
+                  mat-stroked-button
+                  href="https://support.wrappixel.com/"
+                  color="primary"
+                  class="btn-custom sm border-white text-white"
+                  >More about our talent match</a
+                >
+              </div>
+            </div>
+            <div class="col-lg-5 text-right">
+              <!-- <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              /> -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ------------------------------------------------------------------
     Testimonial
     ------------------------------------------------------------------ -->
-    <div class="spacer bg-white">
+    <!-- <div class="spacer bg-white">
       <div class="container">
         <div class="row m-t-24">
           <div class="col-12">
@@ -374,12 +493,25 @@
           </div>
         </div>
       </div>
+    </div> -->
+
+    <div class="container spacer">
+      <div class="row justify-content-center spacer">
+        <div class="col-lg-6 col-sm-8">
+          <!-- <span class="d-block text-center f-w-500 f-s-16"
+              >Almost Covered Everything</span
+            > -->
+          <h2 class="section-title text-center m-t-16 f-w-700">Resources</h2>
+        </div>
+      </div>
+      <app-blogs></app-blogs>
     </div>
     <!-- ------------------------------------------------------------------
     End Testimonial
     ------------------------------------------------------------------ -->
 
-    <!-- -->
+    <!-- Contact Form-->
+    <app-intake-form></app-intake-form>
 
     <!-- ------------------------------------------------------------------
     footer

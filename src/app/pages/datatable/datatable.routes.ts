@@ -12,7 +12,7 @@ export const DatatablesRoutes: Routes = [
         data: {
           title: 'Datatable',
           urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Datatable' },
           ],
         },

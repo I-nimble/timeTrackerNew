@@ -151,7 +151,7 @@ export class ToDoComponent implements OnInit {
       });
     }
     if (this.role === '3') {
-      this.userService.getEmployees().subscribe({
+      this.employeesService.get().subscribe({
         next: (employees: any) => {
           this.usersList = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
           if (this.usersList.length > 0) { 

@@ -1,7 +1,11 @@
 import { NavItem } from './nav-item/nav-item';
 
-export const navItems: NavItem[] = [
-  {
+
+const role: any = localStorage.getItem('role');
+
+export function getNavItems(role: number): NavItem[] {
+  return [
+    {
     navCap: 'Home',
   },
   // {
@@ -11,17 +15,29 @@ export const navItems: NavItem[] = [
   //   route: '/dashboards/dashboard1',
   // },
   {
-    displayName: 'Dashboard',
-    iconName: 'layout-dashboard',
-    bgcolor: 'primary',
-    route: '/dashboards/dashboard2',
+  displayName: 'Dashboard',
+  iconName: 'layout-dashboard',
+  bgcolor: 'primary',
+  route:
+    Number(role) === 1
+      ? '/dashboards/admin'
+      : Number(role) === 2
+      ? '/dashboards/tm'
+      : '/dashboards/dashboard2'
   },
-  {
+
+    ...(Number(role) !== 2 ? [{
     displayName: 'Reports',
     iconName: 'chart-bar',
     bgcolor: 'primary',
-    route: '/dashboards/reports',
+    route: '/dashboards/reports',  
   },
+  {
+    displayName: 'Productivity',
+    iconName: 'chart-bar',
+    bgcolor: 'primary',
+    route: '/dashboards/productivity',
+  }] : []),
   {
     navCap: 'Apps',
   },
@@ -29,13 +45,13 @@ export const navItems: NavItem[] = [
     displayName: 'Chat',
     iconName: 'message-2',
     bgcolor: 'primary',
-    route: 'apps/chat',
+    route: '/apps/chat',
   },
   {
     displayName: 'Calendar',
     iconName: 'calendar-event',
     bgcolor: 'primary',
-    route: 'apps/calendar',
+    route: '/apps/calendar',
   },
   // {
   //   displayName: 'Email',
@@ -47,7 +63,7 @@ export const navItems: NavItem[] = [
     displayName: 'Kanban',
     iconName: 'checklist',
     bgcolor: 'primary',
-    route: 'apps/kanban',
+    route: '/apps/kanban',
   },
   // {
   //   displayName: 'Contacts',
@@ -74,13 +90,13 @@ export const navItems: NavItem[] = [
     displayName: 'Time tracker',
     iconName: 'brand-ctemplar',
     bgcolor: 'primary',
-    route: 'apps/employee',
+    route: 'apps/time-tracker',
   },
   {
     displayName: 'Notes',
     iconName: 'note',
     bgcolor: 'primary',
-    route: 'apps/notes',
+    route: '/apps/notes',
   },
   // {
   //   displayName: 'Tickets',
@@ -121,11 +137,23 @@ export const navItems: NavItem[] = [
   //   ],
   // },
   {
-    displayName: 'ToDo',
+    displayName: 'To Do',
     iconName: 'edit',
     bgcolor: 'primary',
-    route: 'apps/todo',
+    route: '/apps/todo',
   },
+  ...(Number(role) == 3 ? [{
+    displayName: 'History',
+    iconName: 'packages',
+    bgcolor: 'primary',
+    route: 'apps/history',
+  }] : []),
+  // {
+  //   displayName: 'Storage',
+  //   iconName: 'packages',
+  //   bgcolor: 'primary',
+  //   route: 'apps/storage',
+  // },
   // {
   //   displayName: 'Blog',
   //   iconName: 'chart-donut-3',
@@ -287,98 +315,98 @@ export const navItems: NavItem[] = [
   //   chipContent: 'New',
   // },
   // {
-  //   navCap: 'Tables',
+  //   navCap: 'Storage',
   // },
   // {
-  //   displayName: 'Tables',
-  //   iconName: 'layout',
+  //   displayName: 'Storage',
+  //   iconName: 'packages',
   //   bgcolor: 'secondary',
-  //   route: 'tables',
+  //   route: 'storage',
   //   children: [
   //     {
-  //       displayName: 'Basic Table',
+  //       displayName: 'Basic Storage',
   //       iconName: 'point',
   //       bgcolor: 'tranparent',
-  //       route: 'tables/basic-table',
+  //       route: 'storage/dynamic-storage',
   //     },
-  //     {
-  //       displayName: 'Dynamic Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/dynamic-table',
-  //     },
-  //     {
-  //       displayName: 'Expand Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/expand-table',
-  //     },
-  //     {
-  //       displayName: 'Filterable Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/filterable-table',
-  //     },
-  //     {
-  //       displayName: 'Footer Row Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/footer-row-table',
-  //     },
-  //     {
-  //       displayName: 'HTTP Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/http-table',
-  //     },
-  //     {
-  //       displayName: 'Mix Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/mix-table',
-  //     },
-  //     {
-  //       displayName: 'Multi Header Footer',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/multi-header-footer-table',
-  //     },
-  //     {
-  //       displayName: 'Pagination Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/pagination-table',
-  //     },
-  //     {
-  //       displayName: 'Row Context Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/row-context-table',
-  //     },
-  //     {
-  //       displayName: 'Selection Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/selection-table',
-  //     },
-  //     {
-  //       displayName: 'Sortable Table',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/sortable-table',
-  //     },
-  //     {
-  //       displayName: 'Sticky Column',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/sticky-column-table',
-  //     },
-  //     {
-  //       displayName: 'Sticky Header Footer',
-  //       iconName: 'point',
-  //       bgcolor: 'tranparent',
-  //       route: 'tables/sticky-header-footer-table',
-  //     },
+      // {
+      //   displayName: 'Dynamic Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/dynamic-table',
+      // },
+      // {
+      //   displayName: 'Expand Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/expand-table',
+      // },
+      // {
+      //   displayName: 'Filterable Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/filterable-table',
+      // },
+      // {
+      //   displayName: 'Footer Row Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/footer-row-table',
+      // },
+      // {
+      //   displayName: 'HTTP Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/http-table',
+      // },
+      // {
+      //   displayName: 'Mix Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/mix-table',
+      // },
+      // {
+      //   displayName: 'Multi Header Footer',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/multi-header-footer-table',
+      // },
+      // {
+      //   displayName: 'Pagination Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/pagination-table',
+      // },
+      // {
+      //   displayName: 'Row Context Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/row-context-table',
+      // },
+      // {
+      //   displayName: 'Selection Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/selection-table',
+      // },
+      // {
+      //   displayName: 'Sortable Table',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/sortable-table',
+      // },
+      // {
+      //   displayName: 'Sticky Column',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/sticky-column-table',
+      // },
+      // {
+      //   displayName: 'Sticky Header Footer',
+      //   iconName: 'point',
+      //   bgcolor: 'tranparent',
+      //   route: 'tables/sticky-header-footer-table',
+      // },
   //   ],
   // },
   // {
@@ -711,4 +739,7 @@ export const navItems: NavItem[] = [
   //   route: 'https://www.google.com/',
   //   external: true,
   // },
-];
+  ]
+};
+
+export const navItems: NavItem[] = getNavItems(Number(role));

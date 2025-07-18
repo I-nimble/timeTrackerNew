@@ -3,8 +3,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Company } from '../models/Company.model';
 import { PossibleClient } from '../models/Client';
-import { catchError, Observable, of, switchMap } from 'rxjs';
+import { Observable, of, forkJoin, Subject } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { switchMap, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,9 @@ export class CompaniesService {
   selectedCompany: any = { id: null, name: '' };
   constructor(private http: HttpClient, private sanitizer: DomSanitizer) {}
   API_URI = environment.apiUrl + '/companies';
+  logoUrl: any = null;
+  private logoUpdatedSource = new Subject<void>();
+  logoUpdated$ = this.logoUpdatedSource.asObservable();
 
   public getCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(this.API_URI);
@@ -31,41 +35,64 @@ export class CompaniesService {
   }
 
   public getCompanyLogo(id: number): Observable<SafeResourceUrl | null> {
-    if (!id) {
-      return of(null);
-    }
+    return this.http.post<{ logo: string }>(`${this.API_URI}/logo`, { id }).pipe(
+      map(response => {
+        if (!response.logo) return null;
+        const url = `${environment.upload}/company-logos/${response.logo}`;
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      })
+    );
+  }
 
-    const url = `${environment.upload}/company-logos/${id}.jpeg`;
-    const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-
-    return new Observable<SafeResourceUrl | null>((observer) => {
-      const img = new Image();
-      img.src = url;
-      img.onload = () => {
-        if (img.width === 0 && img.height === 0) {
-          observer.next(null);
-        } else {
-          observer.next(url);
-        }
-        observer.complete();
-      };
-  
-      img.onerror = () => {
-        observer.next(null);
-        observer.complete();
-      };
-    });
+  getUploadUrl(type: string) {
+    const escapedType = type.replace(/\//g, '%2F');
+    return this.http.get<any>(`${environment.apiUrl}/generate_upload_url/${escapedType}`);
   }
 
   public submit(data: any, id: any = null) {
-    let form = new FormData();
-    if (data.description) form.append('description', data.description);
-    if (data.logo) form.append('logo', data.logo);
-    if (data.name) form.append('name', data.name);
-    if (data.timezone) form.append('timezone', data.timezone);
+    let logoUpload$ = of(null);
+    if (data.logo instanceof File) {
+        logoUpload$ = this.getUploadUrl('uploads/company-logos').pipe(
+            switchMap((logoUrl: any) => {
+                this.logoUrl = logoUrl.url;
+                const imgFile = data.logo;
 
-    if (id) return this.http.put(`${this.API_URI}/${id}`, form);
-    return this.http.post(`${this.API_URI}`, form);
+                const headers = new HttpHeaders({
+                    'Content-Type': imgFile.type,
+                });
+                return this.http.put(`${this.logoUrl}`, imgFile, { headers }).pipe(
+                    map(() => {
+                        const urlParts = this.logoUrl.split('?')[0].split('/');
+                        return urlParts[urlParts.length - 1];
+                    })
+                );
+            })
+        );
+    } else {
+      const newLogo = data.logo ? data.logo.split('?')[0].split('/').pop() : null
+      logoUpload$ = of(newLogo);
+    }
+
+    return forkJoin([logoUpload$]).pipe(
+        switchMap(([logo]) => {
+            const body = {
+                ...data,
+                logo: logo,
+                id: data.id == -1 ? null : data.id,
+            };
+
+            const request$ = id
+              ? this.http.put(`${this.API_URI}/${id}`, body)
+              : this.http.post(`${this.API_URI}`, body);
+
+            return request$.pipe(
+              map((result) => {
+                this.logoUpdatedSource.next();
+                return result;
+              })
+            );
+        })
+    );
   }
 
   public delete(id: number) {
@@ -76,7 +103,7 @@ export class CompaniesService {
     return this.http.get(`${this.API_URI}/${company_id}/employees`);
   }
   
-  public createPossible(body: PossibleClient) {
+  public createPossible(body: any) {
     return this.http.post(`${this.API_URI}/create/possible`, body);
   }
 

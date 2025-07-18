@@ -1,0 +1,44 @@
+<mat-card class="cardWithShadow">
+  <mat-card-header>
+    <div class="d-flex align-items-center justify-content-start w-100">
+      <div>
+        <mat-card-title>Current Schedule</mat-card-title>
+        <mat-card-subtitle class="f-s-14">Last 7 days</mat-card-subtitle>
+      </div>
+    </div>
+  </mat-card-header>
+  <mat-card-content class="p-t-30">
+    <div class="rounded-bars">
+      <apx-chart
+        [series]="paymentsChart.series"
+        [dataLabels]="paymentsChart.dataLabels"
+        [chart]="paymentsChart.chart"
+        [legend]="paymentsChart.legend"
+        [colors]="paymentsChart.colors"
+        [stroke]="paymentsChart.stroke"
+        [tooltip]="paymentsChart.tooltip"
+        [grid]="paymentsChart.grid"
+        [xaxis]="paymentsChart.xaxis"
+        [yaxis]="paymentsChart.yaxis"
+        [plotOptions]="paymentsChart.plotOptions"
+      ></apx-chart>
+    </div>
+    <div class="d-flex align-items-center justify-content-between w-100">
+      <div class="d-flex align-items-center gap-6">
+        <i-tabler name="circle" class="icon-16 d-flex text-primary"></i-tabler>
+        <span class="f-s-14">Time worked</span>
+      </div>
+      <span class="f-s-14">{{ workedPercent }}%</span>
+    </div>
+    <div class="d-flex align-items-center justify-content-between w-100 m-t-10">
+      <div class="d-flex align-items-center gap-6">
+        <i-tabler
+          name="circle"
+          class="icon-16 d-flex text-light-secondary"
+        ></i-tabler>
+        <span class="f-s-14">Time not worked</span>
+      </div>
+      <span class="f-s-14">{{ notWorkedPercent }}%</span>
+    </div>
+  </mat-card-content>
+</mat-card>

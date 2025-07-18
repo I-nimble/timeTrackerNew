@@ -1,0 +1,25 @@
+.fullwidth {
+  width: 100%;
+}
+#create-group-button {
+  width: max-content;
+}
+#company-select {
+  max-width: 275px
+}
+#chat-container {
+  width: 100%;
+}
+.cta-message {
+  font-size: 14x;
+  color: #666;
+  text-align: center;
+  margin-top: 20px;
+}
+.communication-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: var(--bs-card-body-bg);
+}

@@ -16,14 +16,16 @@ import { Company } from 'src/app/models/Company.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import { UsersService } from 'src/app/services/users.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 //import { SharedModule } from '../shared.module';
 
 export interface ReportFilter {
-  user: User | string;
+  user: any;
   company: Company | string;
   project: Project | string;
   byClient: boolean;
   useTimezone: boolean;
+  multipleUsers?: boolean;
 }
 
 @Component({
@@ -44,6 +46,7 @@ export class ReportsFilterComponent implements OnInit {
   userService = inject(UsersService);
   companiesService = inject(CompaniesService);
   projectService = inject(ProjectsService);
+  employeesService = inject(EmployeesService);
   fb = inject(FormBuilder);
 
   @Output() onSelectedFilters: EventEmitter<any> = new EventEmitter<any>();
@@ -143,7 +146,7 @@ export class ReportsFilterComponent implements OnInit {
   }
 
   getEmployees() {
-    this.userService.getEmployees().subscribe({
+    this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.usersList = employees.map((user: any) => user.user);
         this.users = this.usersList.filter((user: any) => user.active == 1);

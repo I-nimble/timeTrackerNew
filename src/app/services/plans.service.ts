@@ -12,7 +12,7 @@ export class PlansService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl + '/plans';
 
-  public getCurrentPlan(companyId: number): Observable<Company[]> {
-    return this.http.get<Company[]>(`${this.API_URI}/${companyId}`);
+  public getCurrentPlan(companyId: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/${companyId}`);
   }
 }

@@ -574,11 +574,11 @@ export class UserFormComponent implements OnInit, OnChanges {
     if (img) {
       if(img.size > 1000000) {
         this.notificationStore.addNotifications("Image size should be 1 MB or less", "error")
-        return
+        return;
       }
-      if(img.type != 'image/jpeg') {
-        this.notificationStore.addNotifications("Only .jpeg files are allowed!", "error")
-        return
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+        this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
+        return;
       }
       this.previewImage(img);
       this.userForm.patchValue({ profile: img });

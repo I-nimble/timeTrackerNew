@@ -1,0 +1,56 @@
+<mat-card class="cardWithShadow h-100">
+  <mat-card-content>
+    <mat-form-field appearance="outline" class="me-3 min-w-200">
+  <mat-label>Select a Team Member</mat-label>
+  <mat-select
+    [(value)]="selectedMemberName"
+    (selectionChange)="onMemberNameChange($event.value)"
+  >
+    <mat-option [value]="null">All members</mat-option>
+    <mat-option *ngFor="let user of dataSource" [value]="user.profile.name">
+      {{ user.profile.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+    <mat-table [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
+      <ng-container matColumnDef="message">
+        <mat-header-cell *matHeaderCellDef> Message </mat-header-cell>
+        <mat-cell *matCellDef="let notification">
+          <i [ngClass]="notificationIcons[notification.type_id - 1]?.icon"
+             [ngStyle]="{'color': notification.users_notifications.status === 2 ? '#727272' : notificationIcons[notification.type_id - 1]?.color, 'margin-right': '0.5rem'}"></i>
+          <span [class.read-notification]="notification.users_notifications.status === 2"
+                [innerHTML]="formatMessage(notification.message)">
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="date">
+        <mat-header-cell *matHeaderCellDef> Date </mat-header-cell>
+        <mat-cell *matCellDef="let notification">
+          <span [class.read-notification]="notification.users_notifications.status === 2">
+            {{ notification.createdAt | date: 'MMM d, y' }}
+          </span>
+          <!-- <button *ngIf="notification.users_notifications.status !== 2"
+                  (click)="markAsRead(notification)"
+                  mat-button>Mark as read</button> -->
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumnsNotifications"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumnsNotifications;"></mat-row>
+    </mat-table>
+
+    <mat-paginator [length]="notificationsDataSource.data.length"
+                   [pageSize]="10"
+                   [pageSizeOptions]="[10, 20, 50]">
+    </mat-paginator>
+
+    <div *ngIf="notificationsDataSource.data.length === 0 && loaded">
+      <span>There are no notifications yet</span>
+    </div>
+
+    <div *ngIf="!loaded" class="d-flex justify-content-center">
+      <mat-spinner></mat-spinner>
+    </div>
+  </mat-card-content>
+</mat-card>

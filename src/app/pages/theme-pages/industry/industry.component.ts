@@ -8,6 +8,7 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
+import { AppIntakeFormComponent } from '../../intake/intake-form.component';
 
 interface apps {
   id: number;
@@ -49,7 +50,7 @@ interface features {
 @Component({
   selector: 'app-industry',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
   templateUrl: './industry.component.html',
 })
 export class AppIndustryComponent {

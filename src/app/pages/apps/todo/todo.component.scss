@@ -14,3 +14,20 @@
     padding: 1rem 4rem;
     align-self: end;
 }
+/*
+.text-muted {
+  color: rgba(0, 0, 0, 0.7);
+}
+*/
+
+.recommendations-textarea {
+  background: inherit !important;
+  color: inherit !important;
+  cursor: default;
+}
+
+@media (max-width: 767.98px) {
+  mat-form-field[appearance="outline"].m-l-20 {
+    margin-bottom: 0.5rem !important; 
+  }
+}

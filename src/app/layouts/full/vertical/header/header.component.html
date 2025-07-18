@@ -96,9 +96,39 @@
         </div>
       </div>
     </mat-menu> -->
-    <a mat-button [routerLink]="['/apps/chat']">Chat</a>
-    <a mat-button [routerLink]="['/apps/calendar']">Calendar</a>
-    <a mat-button [routerLink]="['/apps/email/inbox']">Email</a>
+    <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1'"
+    >Management</a>
+          <!-- --------------------------------------------------------------- -->
+      <!-- Messages Dropdown -->
+      <!-- --------------------------------------------------------------- -->
+      <button
+        mat-button
+        [matMenuTriggerFor]="msgMenu"
+        aria-label="Messages"
+      >
+        <a>Notifications</a>
+        <div class="pulse" *ngIf="hasPendingNotifications">
+          <span class="heartbit border-primary"></span>
+          <span
+            class="point bg-primary"
+          ></span>
+        </div>
+      </button>
+    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2'"
+     (click)="clearTalentMatchNotification()">
+        Talent Match
+        <div class="pulse" *ngIf="hasNewTalentMatch">
+          <span class="heartbit border-primary"></span>
+          <span class="point bg-primary"></span>
+        </div>
+    </a>
+    <mat-menu #invoiceMenu="matMenu">
+    <button mat-menu-item [routerLink]="['/dashboards/maintenance']">
+      Invoice
+    </button>
+    </mat-menu>
+    <!-- <a mat-button [matMenuTriggerFor]="invoiceMenu"
+      *ngIf="role != '2'">Payroll</a> -->
   </div>
 
   <span class="flex-1-auto"></span>
@@ -115,7 +145,7 @@
   <!-- --------------------------------------------------------------- -->
   <!--  Search -->
   <!-- --------------------------------------------------------------- -->
-  <button
+  <!-- <button
     mat-stroked-button
     class="d-none d-lg-flex custom-outline-btn"
     (click)="openDialog()"
@@ -124,7 +154,7 @@
       <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> Try to
       Searching...
     </div>
-  </button>
+  </button> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- langugage Dropdown -->
@@ -202,32 +232,13 @@
       <!-- --------------------------------------------------------------- -->
       <!-- shortcut Dropdown -->
       <!-- --------------------------------------------------------------- -->
-      <button
+      <!-- <button
         mat-icon-button
         [matMenuTriggerFor]="notificationMenu"
         aria-label="Notifications"
       >
         <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-success"></span>
-          <span class="point bg-success"></span>
-        </div>
-      </button>
-
-      <!-- --------------------------------------------------------------- -->
-      <!-- Messages Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="msgMenu"
-        aria-label="Messages"
-      >
-        <i-tabler class="d-flex" name="message-2"></i-tabler>
-        <div class="pulse">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
-        </div>
-      </button>
+      </button> -->
 
       <!-- --------------------------------------------------------------- -->
       <!-- Profile Dropdown -->
@@ -242,9 +253,11 @@
       >
         <div class="d-flex align-items-center gap-12">
           <img
-            src="/assets/images/profile/user5.jpg"
-            class="rounded-circle object-cover"
+            [src]="profilePicture"
+            class="shadow rounded-circle logo"
             width="40"
+            height="40"
+            style="object-fit: cover; aspect-ratio: 1 / 1;"
           />
           <div class="d-none d-lg-flex text-left flex-col">
             <h5 class="f-s-16 f-w-600">{{userName}} </h5>
@@ -259,49 +272,36 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Messages Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
-    mat-icon-button
-    [matMenuTriggerFor]="msgMenu"
-    aria-label="Messages"
-    class="d-none d-lg-block align-items-center justify-content-center"
-  >
-    <i-tabler class="d-flex" name="message-2"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-primary"></span>
-      <span class="point bg-primary"></span>
-    </div>
-  </button>
   <mat-menu
     #msgMenu="matMenu"
     xPosition="before"
     class="topbar-dd cardWithShadow"
   >
     <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Messages</h6>
-      <span class="m-l-16">
+      <h6 class="f-s-16 f-w-600 m-0">Notifications</h6>
+      <!-- <span class="m-l-16">
         <span class="bg-warning text-white p-x-8 p-y-4 f-w-500 rounded f-s-12"
           >5 new</span
         >
-      </span>
+      </span> -->
     </div>
 
-    @for(notification of notifications; track notification.title) {
-    <button mat-menu-item class="p-x-32 p-y-16">
+    @for(notification of recentNotifications; track notification.id) {
+    <button mat-menu-item class="p-x-32 p-y-16" (click)="redirectNotification(notification)">
       <div class="d-flex align-items-center">
-        <img [src]="notification.img" class="rounded-circle" width="48" />
+         <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
+             [ngStyle]="{'color': notificationIcons[notification.type_id-1].color}"></i>
         <div class="m-l-16">
-          <h5 class="f-s-14 f-w-600 m-0">
-            {{ notification.title }}
-          </h5>
-          <span>{{ notification.subtitle }}</span>
+          <p class="f-s-14 f-w-600 m-0" [innerHTML]="formatMessage(notification.message)"></p>
+          <span>{{ notification.createdAt | date: 'MMM d, y' }}</span>
         </div>
       </div>
     </button>
     }
 
     <div class="p-y-12 p-x-32">
-      <button mat-flat-button color="primary" class="w-100">
-        See All Messages
+      <button (click)="seeAllNotifications()" mat-flat-button color="primary" class="w-100">
+        See All Notifications
       </button>
     </div>
   </mat-menu>
@@ -309,17 +309,13 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Shortcuts Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
+  <!-- <button
     mat-icon-button
     [matMenuTriggerFor]="notificationMenu"
     aria-label="Notifications"
     class="d-none d-lg-block align-items-center justify-content-center"
   >
     <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-    <div class="pulse">
-      <span class="heartbit border-success"></span>
-      <span class="point bg-success"></span>
-    </div>
   </button>
   <mat-menu
     #notificationMenu="matMenu"
@@ -332,16 +328,19 @@
     <div class="row m-x-0">
       <div class="col-6 p-x-0">
         <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-t-1 b-b-1 b-r-1"
-          [routerLink]="['/apps/invoice']"
+          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1 b-r-1"
+          [routerLink]="['/apps/time-tracker']"
         >
           <div
-            class="icon-45 bg-light-success rounded-circle m-auto round d-flex align-items-center justify-content-center"
+            class="icon-45 bg-light-secondary rounded-circle m-auto round d-flex align-items-center justify-content-center"
           >
-            <i-tabler name="list-check" class="icon-20 text-success"></i-tabler>
+            <i-tabler
+              name="brand-ctemplar"
+              class="icon-20"
+              style="color: #141a2138"
+            ></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Invoice</h6>
-          <p class="d-block m-0 text-body f-w-500">Get latest invoice</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">Time Tracker</h6>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -355,38 +354,6 @@
             <i-tabler name="message-2" class="icon-20 text-primary"></i-tabler>
           </div>
           <h6 class="f-s-16 f-w-600 m-0 text-body">Chat</h6>
-          <p class="d-block m-0 text-body f-w-500">New messages</p>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1 b-r-1"
-          [routerLink]="['/apps/contact-list']"
-        >
-          <div
-            class="icon-45 bg-light-secondary rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler
-              name="phone-call"
-              class="icon-20 text-secondary"
-            ></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Contact</h6>
-          <p class="d-block m-0 text-body f-w-500">2 Unsaved Contacts</p>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1"
-          [routerLink]="['/apps/email/inbox']"
-        >
-          <div
-            class="icon-45 bg-light-error rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="mail" class="icon-20 text-error"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Email</h6>
-          <p class="d-block m-0 text-body f-w-500">Get new emails</p>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -399,8 +366,7 @@
           >
             <i-tabler name="edit" class="icon-20 text-warning"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">ToDo</h6>
-          <p class="d-block m-0 text-body f-w-500">Daily tasks</p>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">To Do</h6>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -414,11 +380,10 @@
             <i-tabler name="calendar" class="icon-20 text-success"></i-tabler>
           </div>
           <h6 class="f-s-16 f-w-600 m-0 text-body">Calendar</h6>
-          <p class="d-block m-0 text-body f-w-500">Get dates</p>
         </a>
       </div>
     </div>
-  </mat-menu>
+  </mat-menu> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- profile Dropdown -->
@@ -432,9 +397,22 @@
     class="profile-btn d-none d-lg-flex align-items-center justify-content-center"
   >
     <div class="d-flex align-items-center gap-12">
-      <img
-      [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+      <!-- <img
+        *ngIf="role === '3'"
+        [src]="companyLogo"
         class="shadow rounded-circle logo"
+        style="object-fit: contain;"
+      />
+      <img
+        *ngIf="role !== '3'"
+        [src]="profilePicture"
+        class="shadow rounded-circle logo"
+        style="object-fit: cover;"
+      /> -->
+      <img
+        [src]="profilePicture"
+        class="shadow rounded-circle logo"
+        style="object-fit: cover;"
       />
       <div class="d-none d-lg-flex text-left flex-col">
         <h5 class="f-s-16 f-w-600">{{userName}}</h5>
@@ -452,18 +430,26 @@
         <h6 class="f-s-16 f-w-600 m-0">User Profile</h6>
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
-          <img
-          [src]="companyLogo ? companyLogo : assetsPath + '/images/default-logo.jpg'"
+          <!-- <img
+            *ngIf="role === '3'"
+            [src]="companyLogo"
             class="shadow rounded-circle logo"
-            style="width:95px; height:95px;"
+            style="width:95px; height:95px;object-fit: contain;"
+          /> -->
+          <!-- <img
+            *ngIf="role !== '3'"
+            [src]="profilePicture"
+            class="shadow rounded-circle logo"
+            style="width:95px; height:95px; object-fit: cover;"
+          /> -->
+          <img
+            [src]="profilePicture"
+            class="shadow rounded-circle logo"
+            style="width:95px; height:95px; object-fit: cover;"
           />
           <div class="m-l-16">
             <h6 class="f-s-16 f-w-600 m-0">{{userName}}</h6>
             <span class="f-s-14 text-body d-block m-b-4">{{company}}</span>
-            <span class="d-flex align-items-center">
-              <i-tabler name="mail" class="icon-15 m-r-4"></i-tabler>
-              {{userEmail}}
-            </span>
           </div>
         </div>
       </div>
@@ -495,7 +481,7 @@
 
       <div class="p-y-12 p-x-32">
         <button
-          [routerLink]="['/authentication/login']"
+          (click)="logout()"
           mat-flat-button
           color="primary"
           class="w-100"

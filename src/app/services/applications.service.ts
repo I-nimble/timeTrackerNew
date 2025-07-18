@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable, forkJoin, of } from 'rxjs';
+import { Observable, forkJoin, of, Subject, tap } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 
 @Injectable({
@@ -11,9 +11,21 @@ export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
   selectedCards: any[] = [];
-  selectedApplicants: any = null;
+  selectedApplicants: any[] = [];
   resumeUrl: any = null;
   photoUrl: any = null;
+  private applicationsSeenSource = new Subject<void>();
+  applicationsSeen$ = this.applicationsSeenSource.asObservable();
+
+  reject(id: number): Observable<any[]> {
+    return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
+  }
+
+  markAsSeen() {
+    return this.http.put(`${this.API_URI}/applications/mark-as-seen`, {}).pipe(
+      tap(() => this.applicationsSeenSource.next())
+    );
+  }
 
   addSelectedCard(card: any): Observable<any[]> {
     return this.http.put<any[]>(`${this.API_URI}/applications/select/${card.id}`, card)
@@ -37,6 +49,14 @@ export class ApplicationsService {
 
   getSelectedApplicant() {
     return this.selectedApplicants;
+  }
+
+  clearSelectedApplicants() {
+    this.selectedApplicants = [];
+  }
+
+  public getLocations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
   public get(): Observable<any[]> {
@@ -121,5 +141,34 @@ export class ApplicationsService {
         return this.http.post(`${this.API_URI}/applications`, body);
       })
     );
+  }
+
+  getFilteredApplicationsByDay(applications: any[]): any[] {
+    let filteredApplications: any[] = [];
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    monday.setHours(0, 0, 0, 0);
+
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    friday.setHours(0, 0, 0, 0);
+    // Only show applications if today is Monday to Friday
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      filteredApplications = applications.filter((app: any) => {
+        if (!app.submission_date) return false;
+        const [year, month, day] = app.submission_date.split('-').map(Number);
+        const submission = new Date(year, month - 1, day);
+        submission.setHours(0, 0, 0, 0);
+        return submission >= monday && submission <= friday;
+      });
+    } else {
+      filteredApplications = [];
+    }
+    return filteredApplications;
   }
 }

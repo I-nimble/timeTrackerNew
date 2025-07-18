@@ -1,0 +1,185 @@
+<div class="row">
+  <div class="col-12">
+    <mat-card
+      class="mat-card-top cardWithShadow position-relative overflow-hidden p-16"
+    >
+      <!-- output view -->
+      <h4 Ctitle>
+        Talent match
+        <span class="f-s-14 f-w-400 d-block"
+          >select one or more candidate to schedule an interview</span
+        >
+      </h4>
+
+      <div output>
+        <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
+          <mat-form-field
+            appearance="outline"
+            class="flex-grow-1 hide-hint m-b-0"
+          >
+            <input matInput type="text" placeholder="Search Candidate" />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+          <button
+            mat-flat-button
+            class="m-r-8"
+            (click)="openAddCandidateDialog()"
+          >
+            New candidate
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table mat-table [dataSource]="dataSource" class="w-100">
+            
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Name
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <div class="d-flex align-items-center">
+                  <img
+                    style="width: 50px; height: 50px; border-radius: 50%"
+                    [src]="
+                      element.profile_pic_url && element.profile_pic_url !== ''
+                        ? picturesUrl + '/' + element.profile_pic_url
+                        : assetsPath
+                    "
+                    alt="Profile picture"
+                    (error)="handleImageError($event)"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="f-s-14 f-w-600">
+                      {{ element.name }}
+                    </h6>
+                    <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
+                      {{ element.current_position }}
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Position Column -->
+            <ng-container matColumnDef="position">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                    Position
+                </th>
+                <td mat-cell *matCellDef="let element">
+                    <p class="f-s-14 f-s-12 m-0">
+                        {{ getPositionTitle(element.position_id) }}
+                    </p>
+                </td>
+            </ng-container>
+
+            <!-- Skills Column -->
+            <ng-container matColumnDef="skills">
+              <th mat-header-cell *matHeaderCellDef>Skills</th>
+              <td mat-cell *matCellDef="let element">
+                {{ element.skills || "N/A" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="location">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                Location
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <p class="f-s-14 m-0">
+                    <span *ngIf="element.location">
+                        {{ element.location | titlecase }}
+                    </span>
+                </p>
+              </td>
+          </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let element">
+                @switch(element.status) {
+                  @case('Unread') {
+                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Posted
+                    </span>
+                  }
+                  @case('Read') {
+                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Seen by Client
+                    </span>
+                  }
+                  @case('Scheduled Interview') {
+                    <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Waiting for Interview
+                    </span>
+                  }
+                  @case('Rejected') {
+                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Rejected
+                    </span>
+                  }
+                  @case('Accepted') {
+                    <span class="bg-light-success text-success rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Hired
+                    </span>
+                  }
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="interviewing on">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
+                  Interviewing on
+              </th>
+              <td mat-cell *matCellDef="let element">
+                  {{ getInterviewDateTime(element.id) ? (getInterviewDateTime(element.id) | date: 'short')
+                  : 'No scheduled' }}
+              </td>
+            </ng-container>
+
+            <!-- company Column -->
+            <ng-container matColumnDef="company">
+              <th mat-header-cell *matHeaderCellDef>Company</th>
+              <td mat-cell *matCellDef="let element">
+                {{ getCompanyName(element.company_id) }}
+              </td>
+            </ng-container>
+
+            <!-- Edit Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button mat-menu-item (click)="openCandidateResume(element.resume_url)">
+                    <mat-icon>visibility</mat-icon>
+                      <span>View</span>
+                    </button>
+                  <button mat-menu-item (click)="openEditCandidateDialog(element)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteCandidate(element.id)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns"
+              (click)="selection.toggle(row)"
+            ></tr>
+          </table>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>

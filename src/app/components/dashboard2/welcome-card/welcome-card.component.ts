@@ -1,11 +1,12 @@
 import { Component, Inject } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
-import { UsersService } from '../../../services/users.service'
+import { UsersService } from '../../../services/users.service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-welcome-card',
   standalone: true,
-  imports: [MaterialModule],
+  imports: [MaterialModule, RouterModule],
   templateUrl: './welcome-card.component.html',
 })
 export class AppWelcomeCardComponent {

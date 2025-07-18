@@ -2,6 +2,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Observable } from 'rxjs';
+import { Company } from '../models/Company.model';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +11,17 @@ export class EmployeesService {
 
   constructor(private http: HttpClient) {}
   private API_URI = environment.apiUrl + '/employees';
+  private USERS_API_URI = environment.apiUrl + '/users';
 
   public get(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
-  public getById(id:number): Observable<any[]> {
+  public getCompanies(): Observable<Company[]> {
+    return this.http.get<Company[]>(this.API_URI);
+  }
+
+  public getById(id:any | string): Observable<any[]> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 
@@ -23,17 +29,33 @@ export class EmployeesService {
     return this.http.post<any[]>(`${this.API_URI}`, {});
   }
 
-  public addEmployee(employee: any, file: File | null) {
-    let formData = new FormData();
-    if(employee.Name) formData.append('name', employee.Name);
-    if(employee.LastName) formData.append('last_name', employee.LastName);
-    if(employee.Email) formData.append('email', employee.Email);
-    if(employee.Password) formData.append('password', employee.Password);
-    if(employee.Position) formData.append('position', employee.Position.toString());
-    if(employee.Projects && employee.Projects.length > 0) 
-      formData.append('projects', JSON.stringify(employee.Projects));
-    if(file) formData.append('image', file);
+  public inviteEmployee(data: any): Observable<HttpResponse<any>> {
+    return this.http.post<HttpResponse<any>>(`${this.API_URI}/invite`, data);
+  }
 
-    return this.http.post<any>(`${this.API_URI}/add`, formData);
+  public deleteEmployee(id: number) {
+    return this.http.delete(`${this.API_URI}/${id}`);
+  }
+
+  public registerEmployee(data: any): Observable<HttpResponse<any>> {
+    return this.http.post<HttpResponse<any>>(`${this.API_URI}/register`, data);
+  }
+
+  public updateEmployee(id: number, employee: any, companyId: number, file: File | null) {
+    const formData = new FormData();
+    formData.append('name', employee.name);
+    formData.append('last_name', employee.last_name);
+    formData.append('email', employee.email);
+    if (employee.password) formData.append('password', employee.password);
+    formData.append('role', '2');
+    formData.append('position', employee.position);
+    formData.append('projects', JSON.stringify(employee.projects));
+    formData.append('employee', JSON.stringify({ id: companyId, position: employee.position }));
+    if (file) formData.append('profile', file);
+    return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
+  }
+
+  public getLocations(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/locations`);
   }
 }

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, catchError, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,12 @@ export class UsersService {
   private teamMemberSource = new BehaviorSubject<number | null>(null);
   teamMember$ = this.teamMemberSource.asObservable();
   private API_URI = environment.apiUrl;
+  private profilePicUpdatedSource = new Subject<void>();
+  profilePicUpdated$ = this.profilePicUpdatedSource.asObservable();
 
+  public updatePassword(passwordData: any) {
+    return this.http.put(`${this.API_URI}/users/password`, passwordData);
+  }
 
   public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
@@ -78,6 +83,7 @@ export class UsersService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/users`, body, { headers });
   }
+
   createUser(userData: any) {
     let form = new FormData();
     if (userData.id) form.append('id', userData.id);
@@ -93,12 +99,40 @@ export class UsersService {
     if (userData.profile) form.append('profile', userData.profile);
     return this.http.post(`${this.API_URI}/users/create`, form);
   }
-  public update(user: any) {
-    return this.http.put(`${this.API_URI}/users/${user.id}`, user);
+
+  public update(userData: any) {
+    let form = new FormData();
+    if (userData.id) form.append('id', userData.id);
+    if (userData.name) form.append('name', userData.name);
+    if (userData.last_name) form.append('last_name', userData.last_name);
+    if (userData.password) form.append('password', userData.password);
+    if (userData.active) form.append('active', userData.active);
+    if (userData.email) form.append('email', userData.email);
+    if (userData.phone) form.append('phone', userData.phone);
+    if (userData.address) form.append('address', userData.address);
+    if (userData.employee) {
+      form.append('employee', JSON.stringify(userData.employee))
+      if (userData.employee.emergency_contact) form.append('emergency_contact', JSON.stringify(userData.employee.emergency_contact));
+      if (userData.employee.social_media) form.append('social_media', JSON.stringify(userData.employee.social_media));
+      if (userData.employee.insurance_data) form.append('insurance_data', JSON.stringify(userData.employee.insurance_data));
+    };
+    if (userData.role) form.append('role', userData.role);
+    if (userData.company) form.append('company', JSON.stringify(userData.company));
+    if (userData.profile) form.append('profile', userData.profile);
+
+    return this.http.patch(`${this.API_URI}/users/${userData.id}`, form).pipe(
+      map((result) => {
+        if (userData.profile) {
+          this.profilePicUpdatedSource.next();
+        }
+        return result;
+      })
+    );
   }
-  public delete(id: string) {
+  public delete(id: string | number) {
     return this.http.delete(`${this.API_URI}/users/${id}`);
   }
+
   public verifyUsername(email: any, userId: string) {
     const body = {
       email,
@@ -106,9 +140,7 @@ export class UsersService {
     };
     return this.http.post(`${this.API_URI}/users/verifyusername`, body);
   }
-  getEmployees() {
-    return this.http.get(environment.apiUrl + '/users/employees');
-  }
+  
   getRoles() {
     return this.http.get(`${this.API_URI}/roles`);
   }

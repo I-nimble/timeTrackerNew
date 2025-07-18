@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
-import { navItems } from '../../vertical/sidebar/sidebar-data';
+import { getNavItems } from '../../vertical/sidebar/sidebar-data';
 import { TranslateService } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { AuthService } from 'src/app/services/auth.service';
 
 interface notifications {
   id: number;
@@ -112,6 +113,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
     public dialog: MatDialog,
     private translate: TranslateService,
     private companieService: CompaniesService,
+    private authService: AuthService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -163,7 +165,9 @@ export class AppHorizontalHeaderComponent implements OnInit {
     this.emitOptions();
   }
 
-
+  logout() {
+    this.authService.logout();
+  }
 
   notifications: notifications[] = [
     {
@@ -205,23 +209,23 @@ export class AppHorizontalHeaderComponent implements OnInit {
       color: 'primary',
       title: 'My Profile',
       subtitle: 'Account Settings',
-      link: '/',
+      link: 'apps/account-settings',
     },
     {
       id: 2,
       img: 'shield',
       color: 'success',
       title: 'My Inbox',
-      subtitle: 'Messages & Email',
-      link: '/',
+      subtitle: 'Notifications',
+      link: '/dashboards/notifications',
     },
     {
       id: 3,
-      img: 'credit-card',
+      img: 'users',
       color: 'error',
-      title: 'My Tasks',
-      subtitle: 'To-do and Daily Tasks',
-      link: '/',
+      title: 'My Team',
+      subtitle: 'Team members',
+      link: '/apps/team',
     },
   ];
 
@@ -335,9 +339,10 @@ export class AppHorizontalHeaderComponent implements OnInit {
 })
 export class AppHorizontalSearchDialogComponent {
   searchText: string = '';
-  navItems = navItems;
+  role: any = localStorage.getItem('role');
+  navItems = getNavItems(this.role);
 
-  navItemsData = navItems.filter((navitem) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter((navitem:any) => navitem.displayName);
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;

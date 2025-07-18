@@ -7,6 +7,8 @@ import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
+import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -48,7 +50,7 @@ interface features {
 @Component({
   selector: 'app-landingpage',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent],
   templateUrl: './landingpage.component.html',
 })
 export class AppLandingpageComponent {
@@ -131,28 +133,28 @@ export class AppLandingpageComponent {
   demos: demos[] = [
     {
       id: 1,
-      imgSrc: '/assets/images/landingpage/demos/demo-main.jpg',
+      imgSrc: '/assets/images/landingpage/demos/dashboard.png',
       name: 'Performance',
       subtext: '',
       url: 'https://spike-angular-pro-main.netlify.app/dashboards/dashboard1',
     },
     {
       id: 2,
-      imgSrc: '/assets/images/landingpage/demos/demo-dark.jpg',
+      imgSrc: '/assets/images/landingpage/demos/productivity.png',
       name: 'Productivity',
       subtext: '',
       url: 'https://spike-angular-pro-dark.netlify.app/dashboards/dashboard2',
     },
     {
       id: 5,
-      imgSrc: '/assets/images/landingpage/demos/demo-horizontal.jpg',
+      imgSrc: '/assets/images/landingpage/demos/communication.png',
       name: 'Professional & Communication',
       subtext: '',
       url: 'https://spike-angular-pro-horizontal.netlify.app/dashboards/dashboard2',
     },
     {
       id: 3,
-      imgSrc: '/assets/images/landingpage/demos/demo-rtl.jpg',
+      imgSrc: '/assets/images/landingpage/demos/TimeTracker2.png',
       name: 'Premium remote management',
       subtext: '',
       url: 'https://spike-angular-pro-rtl.netlify.app/dashboards/dashboard1',

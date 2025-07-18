@@ -18,18 +18,31 @@
   </div>
 </div> -->
 
-<h2 mat-dialog-title style="text-align: center;">NOTIFICATIONS</h2>
-<mat-dialog-content style="text-align: center;">
-  You have new notifications
+<h2 mat-dialog-title class="text-center">NOTIFICATIONS</h2>
+<mat-dialog-content class="px-3">
+  <div *ngIf="(data?.notifications || []).length > 0; else noNotifications">
+    <div *ngFor="let notification of data.notifications | slice:0:5" class="d-flex align-items-center mb-3">
+      <i
+        class="{{ getIcon(notification.type_id) }} me-4 fs-5 d-flex align-items-center justify-content-center"
+        [style.color]="getColor(notification.type_id)"
+        style="min-width: 24px; height: 24px;"
+      ></i>
+      <div class="text-start">
+        <p class="mb-0">{{ notification.message }}</p>
+        <small class="text-muted">{{ notification.createdAt | date: 'short' }}</small>
+      </div>
+    </div>
+  </div>
+  <ng-template #noNotifications>
+    <p class="text-center my-3">No new notifications</p>
+  </ng-template>
 </mat-dialog-content>
-<mat-dialog-actions class="d-flex flex-end">
-  <div class="w-100 d-flex justify-content-center">
-    <button
+<mat-dialog-actions class="d-flex justify-content-center">
+  <button
     mat-button
     class="ms-2 rounded shadow px-4 py-1 btn btn-primary"
     [mat-dialog-close]="true"
   >
     OK
   </button>
-  </div>
 </mat-dialog-actions>

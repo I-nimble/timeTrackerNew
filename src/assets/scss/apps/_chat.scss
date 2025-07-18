@@ -1,3 +1,60 @@
+// Chat responsive
+@media screen and (max-width: 765px) {
+  cometchat-conversations-with-messages,
+  cometchat-groups-with-messages {
+    height: auto!important;
+  }
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper {
+    flex-direction: column;
+    height: auto!important;
+  }
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main,
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > .cc-decorator__message--empty,
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > .cc-with-messages__start-conversation,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > .cc-decorator__message--empty,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > .cc-with-messages__start-conversation {
+    width: 100%!important;
+  }
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main, 
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__start-conversation,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main, 
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__start-conversation {
+    height: 450px;
+  }
+  cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+  cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar {
+    min-height: 100px;
+    max-height: 190px!important;
+    overflow: auto;
+  }
+  cometchat-contacts .cc-contacts__wrapper,
+  cometchat-details .cc-details {
+    padding: 1rem!important;
+    position: relative;
+  }
+}
+
+cometchat-conversations-with-messages,
+cometchat-groups-with-messages {
+  height: 65vh;
+}
+
+#outgoingCall {
+  position: absolute;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgb(84 84 84 / 49%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .chat-list {
   overflow: hidden;
   box-sizing: border-box;

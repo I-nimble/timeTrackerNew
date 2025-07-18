@@ -14,11 +14,15 @@ export class InterviewsService {
     return this.http.post<any[]>(`${this.API_URI}`, data);
   }
 
+  public put(data: any, interviewId: number): Observable<any[]> {
+    return this.http.put<any[]>(`${this.API_URI}/${interviewId}`, data);
+  }
+
   public get(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
-  // public delete(id: number): Observable<any[]> {
-  //   return this.http.delete<any[]>(`${this.API_URI}${id}`);
-  // }
+  public cancel(id: number): Observable<any[]> {
+    return this.http.delete<any[]>(`${this.API_URI}/${id}`);
+  }
 }

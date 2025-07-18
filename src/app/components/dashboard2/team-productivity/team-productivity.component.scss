@@ -1,0 +1,41 @@
+.position-relative {
+  position: relative;
+}
+
+.donut-center-label {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none; 
+}
+
+.donut-center-label h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: #92b46c; 
+}
+
+.apx-chart, apx-chart {
+  width: 100% !important;
+  max-width: 350px;
+  margin: 0 auto;
+  display: block;
+}
+
+@media (max-width: 767.98px) {
+  .apx-chart, apx-chart {
+    max-width: 250px;
+    min-width: 180px;
+    height: auto !important;
+  }
+  .donut-center-label h2 {
+    font-size: 18px;
+  }
+  .mat-card-content {
+    padding: 8px !important;
+  }
+}
+

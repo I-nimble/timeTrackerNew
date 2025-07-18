@@ -20,7 +20,7 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
   @ViewChild('magnifier') magnifier!: ElementRef;
   @ViewChild('magnifierCanvas') magnifierCanvas!: ElementRef;
 
-  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/applications/resumes';
+  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   cards: any[] = [];
   private startX = 0;
   loading: boolean = true;

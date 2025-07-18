@@ -7,6 +7,9 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { UsersService } from 'src/app/services/users.service';
+import { NotesService } from 'src/app/services/notes.service';
+
 @Component({
     selector: 'app-notes',
     templateUrl: './notes.component.html',
@@ -44,17 +47,21 @@ export class AppNotesComponent implements OnInit {
   currentNoteTitle = signal<string>('');
   selectedColor = signal<string | null>(null);
 
-  constructor(public noteService: NoteService, private snackBar: MatSnackBar) {}
+  userInfo: any;
+  changedTitle: string = '';
+
+  constructor(public noteService: NoteService, private snackBar: MatSnackBar, private usersService: UsersService, private notesService: NotesService) {}
 
   ngOnInit(): void {
-    this.notes.set(this.noteService.getNotes());
-    this.selectedNote.set(this.notes()[0]);
-    const currentNote = this.selectedNote();
-    if (currentNote) {
-      this.selectedColor.set(currentNote.color);
-      this.clrName.set(currentNote.color);
-      this.currentNoteTitle.set(currentNote.title);
-    }
+    this.getUserInfo();
+    // this.notes.set(this.noteService.getNotes());
+    // this.selectedNote.set(this.notes()[0]);
+    // const currentNote = this.selectedNote();
+    // if (currentNote) {
+    //   this.selectedColor.set(currentNote.color);
+    //   this.clrName.set(currentNote.color);
+    //   this.currentNoteTitle.set(currentNote.content);
+    // }
   }
 
   get currentNote(): Note | null {
@@ -69,7 +76,7 @@ export class AppNotesComponent implements OnInit {
   filter(v: string): Note[] {
     return this.noteService
       .getNotes()
-      .filter((x) => x.title.toLowerCase().includes(v.toLowerCase()));
+      .filter((x) => x.content.toLowerCase().includes(v.toLowerCase()));
   }
 
   isOver(): boolean {
@@ -79,52 +86,123 @@ export class AppNotesComponent implements OnInit {
   onSelect(note: Note): void {
     this.selectedNote.set(note);
     this.clrName.set(note.color);
-    this.currentNoteTitle.set(note.title);
+    this.currentNoteTitle.set(note.content);
     this.selectedColor.set(note.color);
+    this.changedTitle = note.content;
   }
 
   onSelectColor(colorName: string): void {
     this.clrName.set(colorName);
     this.selectedColor.set(colorName);
+    if (this.selectedNote()) {
+      this.selectedNote()!.color = colorName;
+    }
     const currentNote = this.selectedNote();
     if (currentNote) {
-      currentNote.color = this.clrName();
-      this.noteService.updateNote(currentNote);
+      this.notesService
+        .updateNote(currentNote.id, {
+          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          content: this.changedTitle,
+          color: colorName,
+        })
+        .subscribe({
+          next: () => {
+            this.loadNotes(this.userInfo.id);
+          },
+          error: () => {
+            this.openSnackBar('Error updating note color', 'Close', 'delete');
+          },
+        });
     }
     this.active.set(!this.active());
   }
 
   removenote(note: Note): void {
-    this.noteService.removeNote(note);
-    this.notes.set(this.noteService.getNotes());
-
-    if (this.selectedNote() === note) {
-      this.selectedNote.set(null);
-      this.currentNoteTitle.set('');
-    }
-    this.openSnackBar('Note deleted successfully!');
+    this.notesService.deleteNote(note.id).subscribe({
+      next: () => {
+        this.loadNotes(this.userInfo.id);
+        if (this.selectedNote() && this.selectedNote()!.id === note.id) {
+          this.selectedNote.set(null);
+          this.currentNoteTitle.set('');
+        }
+        this.openSnackBar('Note deleted successfully!');
+      },
+      error: () => {
+        this.openSnackBar('Error deleting note', 'Close', 'delete');
+      },
+    });
   }
 
   addNoteClick(): void {
-    const newNote: Note = {
+    const newNote = {
+      user_id: this.userInfo.id,
+      date_time: new Date().toISOString(),
+      content: 'This is a new note',
       color: this.clrName(),
-      title: 'This is a new note',
-      datef: new Date(),
     };
-    this.noteService.addNote(newNote);
-    this.notes.set(this.noteService.getNotes());
-
-    this.openSnackBar('Note added successfully!');
+    this.notesService.createNote(newNote).subscribe({
+      next: () => {
+        this.loadNotes(this.userInfo.id);
+        this.openSnackBar('Note added successfully!');
+      },
+      error: () => {
+        this.openSnackBar('Error adding note', 'Close', 'delete');
+      },
+    });
   }
 
   updateNoteTitle(newTitle: string): void {
     const currentNote = this.selectedNote();
     if (currentNote) {
-      currentNote.title = newTitle;
-      this.noteService.updateNote(currentNote);
-      this.notes.set(this.noteService.getNotes());
+      this.notesService
+        .updateNote(currentNote.id, {
+          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          content: newTitle,
+          color: currentNote.color,
+        })
+        .subscribe({
+          next: () => {
+            this.loadNotes(this.userInfo.id);
+          },
+          error: () => {
+            this.openSnackBar('Error updating note', 'Close', 'delete');
+          },
+        });
     }
   }
+
+  changeNoteTitle(newTitle: string): void {
+    this.changedTitle = newTitle;
+  }
+
+  getUserInfo(){
+    this.usersService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe((user) => {
+      this.userInfo = user[0];
+      this.loadNotes(this.userInfo.id);
+    });
+  }
+
+  loadNotes(userId: number): void {
+  this.notesService.getNotesByUserId(userId).subscribe({
+    next: (notes: Note[]) => {
+      this.notes.set(notes);
+      if (!this.selectedNote()) {
+        this.selectedNote.set(this.notes()[0]);
+        const currentNote = this.selectedNote();
+      if (currentNote) {
+        this.selectedColor.set(currentNote.color);
+        this.clrName.set(currentNote.color);
+        this.currentNoteTitle.set(currentNote.content);
+        if (this.changedTitle == ''){this.changedTitle = currentNote.content;} 
+      }
+      }
+      
+    },
+    error: (error) => {
+      console.error('Error fetching notes:', error);
+    },
+  });
+}
 
   openSnackBar(
     message: string,

@@ -1,139 +1,143 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
-    <div>
-      <div class="d-flex align-items-center justify-content-between m-b-32">
-        <mat-card-title>Kanban</mat-card-title>
-        <button mat-flat-button (click)="openDialog('Add', {})">
-          Create Task
-        </button>
-      </div>
-
-      <div class="table-responsive">
-        <div class="task-list-section" cdkDropListGroup>
-          <div class="task-list-container">
-            <div class="connect-sorting bg-light-primary">
-              <div class="m-b-16">
-                <h5 class="f-s-16 m-b-0 f-w-600">Todo</h5>
-              </div>
-              <div class="connect-sorting-content">
-                <div
-                  class="connect-sorting-content"
-                  [cdkDropListData]="todos"
-                  cdkDropList
-                  (cdkDropListDropped)="drop($event)"
-                >
-                  @for(task of todos; track task.id) {
-                  <mat-card
-                    class="cardWithShadow img-task m-b-15 overflow-hidden"
-                    cdkDrag
-                  >
-                    <div
-                      class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
+    <div
+      *ngIf="isLoading"
+      class="d-flex justify-content-center align-items-center"
+      style="height: 200px"
+    >
+      <mat-spinner></mat-spinner>
+    </div>
+    <div *ngIf="!isLoading">
+      <div class="row align-items-center justify-content-between m-b-32 gap-16">
+        <div class="col-lg-12 col-12">
+          <div class="d-flex justify-content-start justify-content-md-end">
+            <div class="d-inline-block w-100 w-md-auto">
+              <div class="row g-0">
+                <div class="col-12 d-flex justify-content-end" style="max-width: 300px; margin-left: auto;">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Select Board</mat-label>
+                    <mat-select
+                      [(value)]="selectedBoardId"
+                      (selectionChange)="loadTasks(selectedBoardId)"
                     >
-                      <h5 class="f-s-14 f-w-600">{{ task.title }}</h5>
-                      <button
-                        class="d-flex align-items-center justify-content-center"
-                        mat-icon-button
-                        [matMenuTriggerFor]="menu"
-                      >
-                        <mat-icon>more_vert</mat-icon>
-                      </button>
-                      <mat-menu
-                        #menu="matMenu"
-                        xPosition="before"
-                        class="cardWithShadow"
-                      >
-                        <button
-                          mat-menu-item
-                          (click)="openDialog('Edit', task)"
-                          class="d-flex align-items-center"
-                        >
-                          <div class="d-flex align-items-center gap-8">
-                            <i-tabler
-                              name="edit"
-                              class="icon-20 d-flex"
-                            ></i-tabler>
-                            Edit
-                          </div>
-                        </button>
-                        <button
-                          mat-menu-item
-                          (click)="deleteTask(task)"
-                          class="d-flex align-items-center"
-                        >
-                          <div class="d-flex align-items-center gap-8">
-                            <i-tabler
-                              name="trash"
-                              class="icon-20 d-flex"
-                            ></i-tabler>
-                            Delete
-                          </div>
-                        </button>
-                      </mat-menu>
-                    </div>
-                    <div>
-                      @if(task.imageUrl){
-                      <img
-                        [src]="task.imageUrl"
-                        alt="{{ task.title }} image"
-                        class="w-100"
-                        height="106"
-                      />
-                      } @if(task.description){
-                      <span class="f-s-12 p-x-12 p-y-10 d-block">{{
-                        task.description
-                      }}</span>
-                      }
-                    </div>
-                    <div>
-                      <div
-                        class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
-                      >
-                        <div class="d-flex align-items-center gap-4">
-                          <i-tabler
-                            name="calendar"
-                            class="icon-16 d-flex"
-                          ></i-tabler>
-
-                          <span class="f-s-12 lh-base">{{ task.date }}</span>
-                        </div>
-                        <span
-                          class="rounded f-s-12 p-x-8 text-white"
-                          [ngClass]="getTaskClass(task.taskProperty)"
-                        >
-                          {{ task.taskProperty }}
-                        </span>
-                      </div>
-                    </div>
-                  </mat-card>
-                  }
+                      <mat-option [value]="null">All Boards</mat-option>
+                      <mat-option *ngFor="let board of boards" [value]="board.id">
+                        {{ board.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12 d-flex justify-content-end mt-3">
+                  <button
+                    mat-flat-button
+                    (click)="openDialog('Add', { type: 'board' })"
+                    *ngIf="role === '3' || role === '2'"
+                    color="primary"
+                    class="w-auto px-4 py-2"
+                  >
+                    Create Board
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-          <div class="task-list-container">
-            <div class="connect-sorting bg-light-secondary">
+        </div>
+      </div>
+
+      <div
+        class="board-heading m-b-20 d-flex align-items-center justify-content-between"
+      >
+        <div>
+          <h3 class="f-s-16 f-w-600">
+            {{ selectedBoardId === null ? "All Boards" : selectedBoard?.name }}
+          </h3>
+          @switch(selectedBoard.visibility) { @case ('public') {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
+            Public
+          </span>
+          } @case ('restricted') {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
+            Restricted
+          </span>
+          } @default {
+          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
+            Private
+          </span>
+          } }
+        </div>
+
+        <button mat-icon-button [matMenuTriggerFor]="boardMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #boardMenu="matMenu">
+          <button
+            mat-menu-item
+            (click)="openDialog('Edit', { 
+                type: 'board', 
+                id: selectedBoard.id,
+                company_id: selectedBoard.company_id,
+                name: selectedBoard.name,
+                visibility: selectedBoard.visibility,
+                restrictedUsers: selectedBoard.restrictedUsers,
+                task_attachments: selectedBoard.task_attachments,
+              })"
+          >
+            <mat-icon>edit</mat-icon>
+            <span>Edit</span>
+          </button>
+          <button
+            mat-menu-item
+            (click)="deleteBoard(selectedBoardId)"
+            [disabled]="selectedBoard.user_id != userId"
+          >
+            <mat-icon>delete</mat-icon>
+            <span>Delete</span>
+          </button>
+        </mat-menu>
+      </div>
+
+      <div class="table-responsive">
+        <div class="task-list-section" cdkDropListGroup>
+          <div
+            class="task-list-container"
+            *ngFor="let column of selectedBoardColumns; let i = index"
+          >
+            <div
+              class="connect-sorting"
+              [ngClass]="{
+                'bg-light-primary': i === 0,
+                'bg-light-secondary': i === 1,
+                'bg-light-warning': i === 2,
+                'bg-light-success': i === 3
+              }"
+            >
               <div class="m-b-16">
-                <h5 class="f-s-16 m-b-0 f-w-600">Inprogress</h5>
+                <h5 class="f-s-16 m-b-0 f-w-600">{{ column.name }}</h5>
               </div>
               <div
-                [cdkDropListData]="inprogress"
+                [cdkDropListData]="column.tasks"
                 cdkDropList
-                (cdkDropListDropped)="drop($event)"
+                (cdkDropListDropped)="drop($event, column.id)"
               >
-                @for(task of inprogress; track task.id){
                 <mat-card
-                  class="cardWithShadow img-task m-b-15 overflow-hidden"
+                  *ngFor="let task of column.tasks"
+                  class="cardWithShadow img-task m-b-15 overflow-hidden mb-4 kanban-task-card"
                   cdkDrag
+                  (click)="openDialog('Edit', task)"
                 >
                   <div
                     class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
                   >
-                    <h5 class="f-s-14 f-w-600">{{ task.title }}</h5>
+                    <h5 class="f-s-14 f-w-600">{{ task.goal }}</h5>
+                    <span class="text-muted f-s-12 m-l-8"
+                      >[SD-{{ task.id }}]</span
+                    >
+
                     <button
                       class="d-flex align-items-center justify-content-center"
                       mat-icon-button
                       [matMenuTriggerFor]="menu"
+                      (click)="$event.stopPropagation()"
                     >
                       <mat-icon>more_vert</mat-icon>
                     </button>
@@ -157,7 +161,7 @@
                       </button>
                       <button
                         mat-menu-item
-                        (click)="deleteTask(task)"
+                        (click)="deleteTask(task, selectedBoardId)"
                         class="d-flex align-items-center"
                       >
                         <div class="d-flex align-items-center gap-8">
@@ -170,19 +174,49 @@
                       </button>
                     </mat-menu>
                   </div>
-                  <div>
-                    @if(task.imageUrl){
+                  <div *ngIf="task.imageUrl">
                     <img
                       [src]="task.imageUrl"
                       alt="{{ task.title }} image"
                       class="w-100"
                       height="106"
                     />
-                    } @if(task.description){
+                  </div>
+                  <div *ngIf="task.recommendations">
                     <span class="f-s-12 p-x-12 p-y-10 d-block">{{
-                      task.description
+                      task.recommendations
                     }}</span>
-                    }
+                  </div>
+                  <div *ngIf="task.comments">
+                    <span class="f-s-12 p-x-12 p-y-10 d-block text-primary">
+                      <b>Comments:</b>
+                      <div class="m-t-8">
+                        <div
+                          *ngFor="let c of task.comments.split('\n')"
+                          class="comment-item m-b-4"
+                        >
+                          <ng-container
+                            *ngIf="c.includes(':'); else plainComment"
+                          >
+                            <b>{{ c.split(":")[0] }}:</b>
+                            {{ c.split(":").slice(1).join(":").trim() }}
+                          </ng-container>
+                          <ng-template #plainComment>
+                            {{ c }}
+                          </ng-template>
+                        </div>
+                      </div>
+                    </span>
+                  </div>
+                  <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
+                    <i-tabler name="user" class="icon-16 d-flex"></i-tabler>
+                    <span class="f-s-12 lh-base">
+                      {{
+                        task.user?.name
+                          ? task.user.name + " " + (task.user.last_name || "")
+                          : "Unassigned"
+                      }}
+                    </span>
                   </div>
                   <div>
                     <div
@@ -193,214 +227,52 @@
                           name="calendar"
                           class="icon-16 d-flex"
                         ></i-tabler>
-                        <span class="f-s-12 lh-base">{{ task.date }}</span>
+                        <span class="f-s-12 lh-base">{{
+                          task.due_date | date: "MM.dd.yyyy"
+                        }}</span>
                       </div>
-                      <span
-                        class="rounded f-s-12 p-x-8 text-white"
-                        [ngClass]="getTaskClass(task.taskProperty)"
-                      >
-                        {{ task.taskProperty }}
+                      @switch(task.priority || task.priorityAssociation?.id) {
+                      @case(4) {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-primary">
+                        {{ task.priorityAssociation?.name || "Low Priority" }}
                       </span>
+                      } @case(3) {
+                      <span
+                        class="rounded f-s-12 p-x-8 text-white bg-secondary"
+                      >
+                        {{ task.priorityAssociation?.name || "Normal" }}
+                      </span>
+                      } @case(2) {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-warning">
+                        {{ task.priorityAssociation?.name || "Important" }}
+                      </span>
+                      } @case(1) {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-error">
+                        {{ task.priorityAssociation?.name || "Urgent" }}
+                      </span>
+                      } @default {
+                      <span class="rounded f-s-12 p-x-8 text-white bg-primary">
+                        {{ task.priorityAssociation?.name || "Normal" }}
+                      </span>
+                      } }
                     </div>
                   </div>
                 </mat-card>
-                }
+                <div style="height: 10px"></div>
               </div>
-            </div>
-          </div>
-          <div class="task-list-container">
-            <div class="connect-sorting bg-light-warning">
-              <div class="m-b-16">
-                <h5 class="f-s-16 m-b-0 f-w-600">Onhold</h5>
-              </div>
-              <div
-                class="connect-sorting-content"
-                [cdkDropListData]="onhold"
-                cdkDropList
-                (cdkDropListDropped)="drop($event)"
+              <button
+                mat-stroked-button
+                class="w-100 text-start"
+                (click)="
+                  openDialog('Add', {
+                    columnId: column.id,
+                    columnName: column.name
+                  })
+                "
               >
-                @for(task of onhold; track task.id){
-                <mat-card
-                  class="cardWithShadow img-task m-b-15 overflow-hidden"
-                  cdkDrag
-                >
-                  <div
-                    class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
-                  >
-                    <h5 class="f-s-14 f-w-600">{{ task.title }}</h5>
-                    <button
-                      class="d-flex align-items-center justify-content-center"
-                      mat-icon-button
-                      [matMenuTriggerFor]="menu"
-                    >
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                    <mat-menu
-                      #menu="matMenu"
-                      xPosition="before"
-                      class="cardWithShadow"
-                    >
-                      <button
-                        mat-menu-item
-                        (click)="openDialog('Edit', task)"
-                        class="d-flex align-items-center"
-                      >
-                        <div class="d-flex align-items-center gap-8">
-                          <i-tabler
-                            name="edit"
-                            class="icon-20 d-flex"
-                          ></i-tabler>
-                          Edit
-                        </div>
-                      </button>
-                      <button
-                        mat-menu-item
-                        (click)="deleteTask(task)"
-                        class="d-flex align-items-center"
-                      >
-                        <div class="d-flex align-items-center gap-8">
-                          <i-tabler
-                            name="trash"
-                            class="icon-20 d-flex"
-                          ></i-tabler>
-                          Delete
-                        </div>
-                      </button>
-                    </mat-menu>
-                  </div>
-                  <div>
-                    @if(task.imageUrl){
-                    <img
-                      [src]="task.imageUrl"
-                      alt="{{ task.title }} image"
-                      class="w-100"
-                      height="106"
-                    />
-                    } @if(task.description){
-                    <span class="f-s-12 p-x-12 p-y-10 d-block">{{
-                      task.description
-                    }}</span>
-                    }
-                  </div>
-                  <div>
-                    <div
-                      class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
-                    >
-                      <div class="d-flex align-items-center gap-4">
-                        <i-tabler
-                          name="calendar"
-                          class="icon-16 d-flex"
-                        ></i-tabler>
-                        <span class="f-s-12 lh-base">{{ task.date }}</span>
-                      </div>
-                      <span
-                        class="rounded f-s-12 p-x-8 text-white"
-                        [ngClass]="getTaskClass(task.taskProperty)"
-                      >
-                        {{ task.taskProperty }}
-                      </span>
-                    </div>
-                  </div>
-                </mat-card>
-                }
-              </div>
-            </div>
-          </div>
-          <div class="task-list-container">
-            <div class="connect-sorting bg-light-success">
-              <div class="m-b-16">
-                <h5 class="f-s-16 m-b-0 f-w-600">Completed</h5>
-              </div>
-              <div
-                [cdkDropListData]="completed"
-                cdkDropList
-                (cdkDropListDropped)="drop($event)"
-              >
-                @for(task of completed; track task.id){
-                <mat-card
-                  class="cardWithShadow img-task m-b-15 overflow-hidden"
-                  cdkDrag
-                >
-                  <div
-                    class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
-                  >
-                    <h5 class="f-s-14 f-w-600">{{ task.title }}</h5>
-                    <button
-                      class="d-flex align-items-center justify-content-center"
-                      mat-icon-button
-                      [matMenuTriggerFor]="menu"
-                    >
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                    <mat-menu
-                      #menu="matMenu"
-                      xPosition="before"
-                      class="cardWithShadow"
-                    >
-                      <button
-                        mat-menu-item
-                        (click)="openDialog('Edit', task)"
-                        class="d-flex align-items-center"
-                      >
-                        <div class="d-flex align-items-center gap-8">
-                          <i-tabler
-                            name="edit"
-                            class="icon-20 d-flex"
-                          ></i-tabler>
-                          Edit
-                        </div>
-                      </button>
-                      <button
-                        mat-menu-item
-                        (click)="deleteTask(task)"
-                        class="d-flex align-items-center"
-                      >
-                        <div class="d-flex align-items-center gap-8">
-                          <i-tabler
-                            name="trash"
-                            class="icon-20 d-flex"
-                          ></i-tabler>
-                          Delete
-                        </div>
-                      </button>
-                    </mat-menu>
-                  </div>
-                  <div>
-                    @if(task.imageUrl){
-                    <img
-                      [src]="task.imageUrl"
-                      alt="{{ task.title }} image"
-                      class="w-100"
-                      height="106"
-                    />
-                    } @if(task.description){
-                    <span class="f-s-12 p-x-12 p-y-10 d-block">{{
-                      task.description
-                    }}</span>
-                    }
-                  </div>
-                  <div>
-                    <div
-                      class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
-                    >
-                      <div class="d-flex align-items-center gap-4">
-                        <i-tabler
-                          name="calendar"
-                          class="icon-16 d-flex"
-                        ></i-tabler>
-                        <span class="f-s-12 lh-base">{{ task.date }}</span>
-                      </div>
-                      <span
-                        class="rounded f-s-12 p-x-8 text-white"
-                        [ngClass]="getTaskClass(task.taskProperty)"
-                      >
-                        {{ task.taskProperty }}
-                      </span>
-                    </div>
-                  </div>
-                </mat-card>
-                }
-              </div>
+                <mat-icon>add</mat-icon>
+                Create Task
+              </button>
             </div>
           </div>
         </div>

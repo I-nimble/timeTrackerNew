@@ -24,6 +24,8 @@ import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -38,15 +40,14 @@ export function jwtOptionsFactory() {
   standalone: true,
   imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
   providers: [
-    JwtHelperService,
-    { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
     AuthService,
     WebSocketService,
     NotificationsService,
     EntriesService,
     SignupDataService,
     UsersService,
-    CompaniesService
+    CompaniesService,
+    MatSnackBar,
   ],
   templateUrl: './side-login.component.html',
 })
@@ -75,6 +76,7 @@ export class AppSideLoginComponent {
   assetPath = environment.assets + '/resources/empleadossection.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
+  route: any = ''
 
   constructor(
     private settings: CoreService,
@@ -86,6 +88,8 @@ export class AppSideLoginComponent {
      private employeeService: UsersService,
      private companieService: CompaniesService,
      private authService: AuthService,
+     private snackBar: MatSnackBar,
+     private chatService: CometChatService,
   ) {}
 
   form = new FormGroup({
@@ -106,19 +110,29 @@ export class AppSideLoginComponent {
           const last_name = v.last_name;
           const role = v.role_id;
           const email = v.email;
+          const id = v.id;
           localStorage.setItem('role', role);
+          if (Number(role) === 1) {
+            this.route = '/dashboards/admin';
+          } else if (Number(role) === 2) {
+            this.route = '/dashboards/tm';
+          } else {
+            this.route = '/dashboards/dashboard2';
+          }
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
+          localStorage.setItem('id', id);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.router.navigate(['/dashboards/dashboard2']);
+          this.router.navigate([this.route]);
           this.authService.updateLiveChatBubbleVisibility(role);
           this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
+          this.chatService.initializeCometChat();
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;
@@ -149,7 +163,7 @@ export class AppSideLoginComponent {
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;
-          this.notificationStore.addNotifications(error.message);
+          this.openSnackBar('Error al iniciar sesión: ' + (err.error?.message || ' Intenta de nuevo'));
         },
       });
     }
@@ -168,6 +182,14 @@ export class AppSideLoginComponent {
       this.message = null;
       this.passerror = false;
     }, 3000);
+  }
+
+  openSnackBar(message: string, action: string = 'Cerrar') {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 
   private validateEmail(email: string): boolean {

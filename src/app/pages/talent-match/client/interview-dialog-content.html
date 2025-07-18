@@ -1,0 +1,26 @@
+<mat-dialog-content>
+    <div *ngIf="!interviewScheduled">
+      <h2 class="m-b-20">Set up a date and time for the interview</h2>
+      <form [formGroup]="interviewForm" (ngSubmit)="onScheduleInterview()">
+        <mat-form-field appearance="outline" class="w-100 m-b-16">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="availableDaysFilter" formControlName="date" required>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100 m-b-16">
+            <mat-label>Time</mat-label>
+            <input matInput type="time" formControlName="time" required>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="interviewForm.invalid">
+          {{ local_data.action === 'Schedule' ? 'Schedule interview' : 'Reeschedule interview' }}
+        </button>
+      </form>
+    </div>
+    <div *ngIf="interviewScheduled" class="text-center">
+      <h2>Interview scheduled successfully</h2>
+      <p>HR will contact you soon to confirm the interview details</p>
+      <button mat-flat-button color="primary" (click)="closeDialog()">OK</button>
+    </div>
+</mat-dialog-content>

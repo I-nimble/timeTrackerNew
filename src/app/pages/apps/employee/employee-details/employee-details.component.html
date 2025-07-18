@@ -1,7 +1,7 @@
 
 <mat-card class="cardWithShadow">
     <mat-card-header>
-      <mat-card-title>Employee Details</mat-card-title>
+      <mat-card-title>Team Member Details</mat-card-title>
       <mat-card-subtitle>{{ user.name + ' ' + user.last_name }}</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
@@ -12,17 +12,19 @@
               <mat-card-title>Weekly Hours</mat-card-title>
             </mat-card-header>
             <mat-card-content>
-                <apx-chart
-                [series]="mostvisitChart.series"
-                [dataLabels]="mostvisitChart.dataLabels"
-                [chart]="mostvisitChart.chart"
-                [legend]="mostvisitChart.legend"
-                [colors]="mostvisitChart.colors"
-                [stroke]="mostvisitChart.stroke"
-                [tooltip]="mostvisitChart.tooltip"
-                [grid]="mostvisitChart.grid"
-                [plotOptions]="mostvisitChart.plotOptions"
-                [responsive]="mostvisitChart.responsive"
+              <apx-chart
+                [series]="weeklyHoursChart.series"
+                [dataLabels]="weeklyHoursChart.dataLabels"
+                [chart]="weeklyHoursChart.chart"
+                [legend]="weeklyHoursChart.legend"
+                [colors]="weeklyHoursChart.colors"
+                [stroke]="weeklyHoursChart.stroke"
+                [tooltip]="weeklyHoursChart.tooltip"
+                [grid]="weeklyHoursChart.grid"
+                [plotOptions]="weeklyHoursChart.plotOptions"
+                [responsive]="weeklyHoursChart.responsive"
+                [xaxis]="weeklyHoursChart.xaxis" 
+                [yaxis]="weeklyHoursChart.yaxis"
               ></apx-chart>
             </mat-card-content>
           </mat-card>
@@ -35,10 +37,10 @@
             </mat-card-header>
             <mat-card-content>
               <apx-chart
-                [series]="salesOverviewChart.series"
-                [chart]="salesOverviewChart.chart"
-                [labels]="salesOverviewChart.labels"
-                [colors]="salesOverviewChart.colors"
+                [series]="dailyHoursChart.series"
+                [chart]="dailyHoursChart.chart"
+                [labels]="dailyHoursChart.labels"
+                [colors]="dailyHoursChart.colors"
               ></apx-chart>
             </mat-card-content>
           </mat-card>

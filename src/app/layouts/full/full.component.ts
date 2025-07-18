@@ -6,7 +6,7 @@ import { CoreService } from 'src/app/services/core.service';
 import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
-import { navItems } from './vertical/sidebar/sidebar-data';
+import { getNavItems } from './vertical/sidebar/sidebar-data';
 import { NavService } from '../../services/nav.service';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
@@ -26,6 +26,8 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
+import { UsersService } from 'src/app/services/users.service';
+import { NotificationsComponent } from 'src/app/pages/dashboards/notifications/notifications.component';
 
 export function jwtOptionsFactory() {
   return {
@@ -77,14 +79,17 @@ interface quicklinks {
       { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },],
   standalone: true,
   templateUrl: './full.component.html',
-  styleUrls: [],
+  styleUrl: 'full.component.scss',
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {
-  navItems = navItems;
+  role: any = localStorage.getItem('role');
+  navItems = getNavItems(this.role);
   company: any;
   userName:any;
-  companyLogo:any = null;
+  userId:any;
+  // companyLogo:any = 'assets/images/default-logo.jpg';
+  profilePicture:any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
@@ -112,103 +117,110 @@ export class FullComponent implements OnInit {
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat Application',
-      subtitle: 'Messages & Emails',
+      title: 'Chat',
+      subtitle: 'Internal communication',
       link: '/apps/chat',
     },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'eCommerce App',
-      subtitle: 'Buy a Product',
-      link: '/apps/email/inbox',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Invoice App',
-      subtitle: 'Get latest invoice',
-      link: '/apps/invoice',
-    },
+    // {
+    //   id: 2,
+    //   img: '/assets/images/svgs/icon-dd-cart.svg',
+    //   title: 'eCommerce App',
+    //   subtitle: 'Buy a Product',
+    //   link: '/apps/email/inbox',
+    // },
+    // {
+    //   id: 3,
+    //   img: '/assets/images/svgs/icon-dd-invoice.svg',
+    //   title: 'Invoice App',
+    //   subtitle: 'Get latest invoice',
+    //   link: '/apps/invoice',
+    // },
     {
       id: 4,
       img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Calendar App',
-      subtitle: 'Get Dates',
+      title: 'Calendar',
+      subtitle: 'Manage tasks by date',
       link: '/apps/calendar',
     },
-    {
-      id: 5,
-      img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Contact Application',
-      subtitle: '2 Unsaved Contacts',
-      link: '/apps/contacts',
-    },
+    // {
+    //   id: 5,
+    //   img: '/assets/images/svgs/icon-dd-mobile.svg',
+    //   title: 'Contact Application',
+    //   subtitle: '2 Unsaved Contacts',
+    //   link: '/apps/contacts',
+    // },
     {
       id: 6,
       img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Tickets App',
-      subtitle: 'Create new ticket',
-      link: '/apps/tickets',
+      title: 'Kanban',
+      subtitle: 'Create tickets',
+      link: '/apps/kanban',
     },
     {
       id: 7,
-      img: '/assets/images/svgs/icon-dd-message-box.svg',
-      title: 'Email App',
-      subtitle: 'Get new emails',
-      link: '/apps/email/inbox',
+      img: '/assets/images/svgs/icon-dd-application.svg',
+      title: 'Time tracker',
+      subtitle: 'Track your team time',
+      link: 'apps/time-tracker',
     },
     {
       id: 8,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Courses',
-      subtitle: 'Create new course',
-      link: '/apps/courses',
-    },
-  ];
-
-  quicklinks: quicklinks[] = [
-    {
-      id: 1,
-      title: 'Pricing Page',
-      link: '/theme-pages/pricing',
-    },
-    {
-      id: 2,
-      title: 'Authentication Design',
-      link: '/authentication/login',
-    },
-    {
-      id: 3,
-      title: 'Register Now',
-      link: '/authentication/side-register',
-    },
-    {
-      id: 4,
-      title: '404 Error Page',
-      link: '/authentication/error',
-    },
-    {
-      id: 5,
-      title: 'Notes App',
+      img: '/assets/images/svgs/icon-dd-invoice.svg',
+      title: 'Notes',
+      subtitle: 'Keep personal notes',
       link: '/apps/notes',
     },
     {
-      id: 6,
-      title: 'Time tracker',
-      link: '/apps/employee',
-    },
-    {
-      id: 7,
-      title: 'Todo Application',
-      link: '/apps/todo',
-    },
-    {
-      id: 8,
-      title: 'Treeview',
-      link: '/theme-pages/treeview',
+      id: 9,
+      img: '/assets/images/svgs/icon-dd-application.svg',
+      title: 'Notifications',
+      subtitle: 'See your notifications',
+      link: '/apps/notifications',
     },
   ];
+
+  // quicklinks: quicklinks[] = [
+  //   {
+  //     id: 1,
+  //     title: 'Pricing Page',
+  //     link: '/theme-pages/pricing',
+  //   },
+  //   {
+  //     id: 2,
+  //     title: 'Authentication Design',
+  //     link: '/authentication/login',
+  //   },
+  //   {
+  //     id: 3,
+  //     title: 'Register Now',
+  //     link: '/authentication/side-register',
+  //   },
+  //   {
+  //     id: 4,
+  //     title: '404 Error Page',
+  //     link: '/authentication/error',
+  //   },
+  //   {
+  //     id: 5,
+  //     title: 'Notes App',
+  //     link: '/apps/notes',
+  //   },
+  //   {
+  //     id: 6,
+  //     title: 'Time tracker',
+  //     link: '/apps/employee',
+  //   },
+  //   {
+  //     id: 7,
+  //     title: 'Todo Application',
+  //     link: '/apps/todo',
+  //   },
+  //   {
+  //     id: 8,
+  //     title: 'Treeview',
+  //     link: '/theme-pages/treeview',
+  //   },
+  // ];
 
   constructor(
     private settings: CoreService,
@@ -218,6 +230,7 @@ export class FullComponent implements OnInit {
     private navService: NavService,
     private authService: AuthService,
     private companieService: CompaniesService,
+    private usersService: UsersService,
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -245,6 +258,16 @@ export class FullComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // this.companieService.logoUpdated$.subscribe(() => {
+    //   if (this.role == '3') {
+    //     this.companieService.getByOwner().subscribe((company: any) => {
+    //       this.loadCompanyLogo(company.company_id);
+    //     });
+    //   }
+    // });
+    this.usersService.profilePicUpdated$.subscribe(() => {
+      this.loadProfilePicture();
+    });
     this.userData();
   }
 
@@ -307,30 +330,39 @@ export class FullComponent implements OnInit {
 
   userData(){
     this.userName = localStorage.getItem('username');
-    const role = localStorage.getItem('role');
-    if(role == '3'){
-      this.loadCompanyLogo();
-      this.companieService.getByOwner().subscribe((company: any) => {
-        this.company = company.company.name;
-      });
-    }
-    
+    this.userId = localStorage.getItem('id');
+    // const role = localStorage.getItem('role');
+    // if(role == '3'){
+    //   this.companieService.getByOwner().subscribe((company: any) => {
+    //     this.company = company.company.name;
+    //     this.loadCompanyLogo(company.company_id);
+    //   });
+    // }
+    // else {
+      this.loadProfilePicture();
+    // }
   }
 
-  loadCompanyLogo() {
-    this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
-        this.companyLogo = logo;
-      });
-      // this.plansService.getCurrentPlan(company.company_id).subscribe({
-      //   next: (userPlan: any) => {
-      //     let plan = userPlan?.plan;
-      //     this.plan = (plan?.name === 'Basic') ? false : true;  
-      //   },
-      //   error: (error: any) => {
-      //     this.store.addNotifications('Error loading plan data', 'error');
-      //   },
-      // });
+  loadProfilePicture() {
+    this.usersService.getProfilePic(this.userId).subscribe({
+      next: (image: any) => {
+        if(image != null) this.profilePicture = image;
+      },
     });
   }
+
+  // loadCompanyLogo(companyId: number) {
+  //   this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
+  //     if (logo != null) this.companyLogo = logo;
+  //   });
+    // this.plansService.getCurrentPlan(company.company_id).subscribe({
+    //   next: (userPlan: any) => {
+    //     let plan = userPlan?.plan;
+    //     this.plan = (plan?.name === 'Basic') ? false : true;  
+    //   },
+    //   error: (error: any) => {
+    //     this.store.addNotifications('Error loading plan data', 'error');
+    //   },
+    // });
+  // }
 }

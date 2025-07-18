@@ -19,7 +19,9 @@ export class RatingsEntriesService {
 
   public getTeamReport(datesRange: any): Observable<any> {
     const body = { 
-      dateRange: [datesRange.firstSelect, datesRange.lastSelect]
+      dateRange: [datesRange.firstSelect, datesRange.lastSelect],
+      role: datesRange.role,
+      company_id: datesRange.company_id
     };
     return this.http.post(`${this.API_URI}/team-report`, body);
   }

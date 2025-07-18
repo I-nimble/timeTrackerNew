@@ -1,5 +1,5 @@
 <div class="d-flex align-items-center justify-content-between m-b-16 p-x-20 p-t-16">
-  <h3>{{action}} Employee</h3>
+  <h3>{{action}} Team Member</h3>
   <button
     mat-icon-button
     mat-dialog-close
@@ -15,7 +15,7 @@
 
 @if(action !== 'Delete') {
 <mat-dialog-content>
-  <form #userForm="ngForm">
+  <form [formGroup]="editEmployeeForm" *ngIf="action === 'Update'">
     <div class="d-flex align-items-center m-b-16">
       <img
         class="mat-card-avatar"
@@ -38,7 +38,7 @@
             required
             id="name"
             name="name"
-            [(ngModel)]="local_data.Name"
+            formControlName="name"
             placeholder="Name"
           />
         </mat-form-field>
@@ -52,7 +52,7 @@
             required
             id="lastName"
             name="last_name"
-            [(ngModel)]="local_data.LastName"
+            formControlName="last_name"
             placeholder="Last Name"
           />
         </mat-form-field>
@@ -63,11 +63,10 @@
           <input
             type="password"
             matInput
-            required
             id="password"
             name="password"
-            [(ngModel)]="local_data.Password"
-            placeholder="Employees password"
+            formControlName="password"
+            placeholder="Team member password"
           />
         </mat-form-field>
       </div>
@@ -80,7 +79,7 @@
             required
             id="email"
             name="email"
-            [(ngModel)]="local_data.Email"
+            formControlName="email"
             placeholder="Email"
           />
         </mat-form-field>
@@ -89,7 +88,7 @@
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Position</mat-label>
         <mat-form-field appearance="outline" class="w-100">          
-          <mat-select [(ngModel)]="local_data.Position" name="position" required>
+          <mat-select formControlName="position" name="position" required>
             <mat-option *ngFor="let position of positions" [value]="position.id">
               {{ position.title }}
             </mat-option>
@@ -100,7 +99,7 @@
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Projects</mat-label>
         <mat-form-field appearance="outline" class="w-100">
-          <mat-select [(ngModel)]="local_data.Projects" multiple name="projects">
+          <mat-select formControlName="projects" multiple name="projects">
             <mat-option *ngFor="let project of projects" [value]="project.id">
               {{ project.name }}
             </mat-option>
@@ -112,9 +111,68 @@
       mat-flat-button
       (click)="doAction()"
       mat-flat-button
-      [disabled]="!userForm.valid"
+      [disabled]="!editEmployeeForm.valid || sendingData"
     >
       {{action}}
+    </button>
+    <button
+      mat-flat-button
+      class="m-l-8 bg-error text-white"
+      (click)="closeDialog()"
+    >
+      Cancel
+    </button>
+  </form>
+
+  <form [formGroup]="inviteEmployeeForm" *ngIf="action === 'Invite'">
+    <div class="col-12">
+      <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Name</mat-label>
+      <mat-form-field appearance="outline" class="w-100">
+        <input
+          type="text"
+          matInput
+          required
+          id="name"
+          name="name"
+          formControlName="name"
+          placeholder="Name"
+        />
+      </mat-form-field>
+    </div>
+      
+    <div class="col-12">
+      <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Email</mat-label>
+      <mat-form-field appearance="outline" class="w-100">
+        <input
+          type="text"
+          matInput
+          required
+          id="email"
+          name="email"
+          formControlName="email"
+          placeholder="Email"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="col-12" *ngIf="userRole === '1'">
+      <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Company</mat-label>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select formControlName="company_id" name="company_id" required>
+          <mat-option *ngFor="let company of companies" [value]="company.id">
+            {{ company.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    
+    <button
+      mat-flat-button
+      (click)="doAction()"
+      mat-flat-button
+      [disabled]="!inviteEmployeeForm.valid || sendingData"
+    >
+      Send invitation
     </button>
     <button
       mat-flat-button
