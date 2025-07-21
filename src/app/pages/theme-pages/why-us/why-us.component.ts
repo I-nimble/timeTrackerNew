@@ -1,11 +1,4 @@
-import {
-  Component,
-  Output,
-  EventEmitter,
-  Input,
-  ViewChild,
-  ElementRef,
-} from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -69,20 +62,20 @@ interface features {
     AppHeaderComponent,
     CommonModule,
   ],
-  templateUrl: './products.component.html',
+  templateUrl: './why-us.component.html',
   animations: [
-    trigger('fadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
+  trigger('fadeAnimation', [
+    transition(':enter', [
+      style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
+      animate('300ms ease-in', style({ opacity: 1 }))
+    ]),
+    transition(':leave', [
+      animate('300ms ease-out', style({ opacity: 0 }))
     ])
-  ],
+  ])
+],
 })
-export class AppProductsComponent {
+export class AppWhyUsComponent {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
@@ -90,80 +83,31 @@ export class AppProductsComponent {
 
   currentSlide = 0;
   testimonials = [
-  
-  {
-    id: 1,
-    stars: 5,
-    text: "Wow! Our numbers have gone up recently. When we look at what's different, it's all the remote talent you've provided! They've made our law firm stand out these last couple of months. The office hasn't been this efficient in a while!",
-    name: "John Smith",
-    role: "Law Firm Owner",
-    image: "assets/images/landingpage/logos/smith.png"
-  },
-  {
-    id: 2,
-    stars: 5,
-    text: "Great team to work with! Even if you know nothing about remote work, they make it simple and easy to follow. Incredible how much they've helped my business grow. Thank you!",
-    name: "Jessica Sandoval",
-    role: "Business Owner",
-    image: "assets/images/landingpage/logos/sandoval.png"
-  },
-  {
-    id: 3,
-    stars: 5,
-    text: "Amazing virtual assistants! It's shocking how much impact a couple of talented people can have on your business. Rome Law Firm is more efficient than ever.",
-    name: "Hope Rothe",
-    role: "Law Firm Manager",
-    image: "assets/images/landingpage/logos/rothe.png"
-  },
-  {
-    id: 4,
-    stars: 5,
-    text: "We are so happy with our remote assistants! They are a tremendous asset for our firm. Their dedication and expertise have transformed our operations.",
-    name: "Robert White",
-    role: "CEO",
-    image: "assets/images/landingpage/logos/white.png"
-  },
-  {
-    id: 5,
-    stars: 5,
-    text: "Thank you Inimble! We're so happy since we started working with you. Our business has grown tremendously since we brought your team in. We can't believe how well everything worked out!",
-    name: "Sarah Thompson",
-    role: "Business Owner",
-    image: "assets/images/landingpage/logos/thompson.png"
-  },
-  {
-    id: 6,
-    stars: 5,
-    text: "Andrea's performance has been great. We are very happy with her. She follows direction and is organized. Her attention to detail and commitment are clearly reflected in her work. Andrea consistently demonstrates a deep understanding of her role.",
-    name: "Tania Valencia",
-    role: "Client",
-    image: "assets/images/landingpage/logos/5.jpeg"
-  },
-  {
-    id: 7,
-    stars: 5,
-    text: "Wasn't super into the whole 'remote work' trend before but thanks Inimble for proving me wrong! Can't believe how much we've grown in the last year, and it's all thanks to you, so congrats and thank you!",
-    name: "Albert Love",
-    role: "Client",
-    image: "assets/images/landingpage/logos/love.png"
-  },
-  {
-    id: 8,
-    stars: 5,
-    text: "Daniela has been the best assistant I've had. She is smart, kind, hardworking, and helpful. She takes initiative and is always on top of everything. We make a great team!",
-    name: "Selena",
-    role: "Client",
-    image: "assets/images/landingpage/logos/alexandroff.png"
-  },
-  {
-    id: 9,
-    stars: 5,
-    text: "Henry has truly exceeded our expectations. He has an amazing work ethic and discipline. We love his practicality and eagerness to learn. He has become part of our Venezuelan family.",
-    name: "Imelda Rodriguez",
-    role: "Client",
-    image: "assets/images/landingpage/logos/14.jpeg"
-  }
-];
+    {
+      id: 1,
+      stars: 5,
+      text: "We didn’t realize how scattered our operations were until we moved everything into Inimble. One login changed everything—from tracking hours to managing projects.",
+      name: 'Steven R.',
+      role: 'CEO of a Healthcare Startup',
+      image: 'assets/images/profile/user-1.jpg',
+    },
+    {
+      id: 2,
+      stars: 5,
+      text: "The talent was great, but what really surprised us was the platform. It gave our firm structure we didn’t know we were missing.",
+      name: 'Luis G.',
+      role: 'CPA & Business Consultant',
+      image: 'assets/images/profile/user-2.jpg',
+    },
+    {
+      id: 3,
+      stars: 5,
+      text: "Our onboarding used to take weeks. With Inimble, new hires are set up and productive within days.",
+      name: 'Claudia T.',
+      role: 'Managing Partner, Law Firm',
+      image: 'assets/images/profile/user-3.jpg',
+    },
+  ];
 
   options = this.settings.getOptions();
 
@@ -385,27 +329,6 @@ export class AppProductsComponent {
     //   url: 'https://spike-angular-pro-main.netlify.app/apps/blog/post',
     // },
   ];
-
-  // testimonials: testimonials[] = [
-  //   {
-  //     id: 1,
-  //     imgSrc: '/assets/images/profile/user-1.jpg',
-  //     name: 'Jenny Wilson',
-  //     subtext: 'Features avaibility',
-  //   },
-  //   {
-  //     id: 2,
-  //     imgSrc: '/assets/images/profile/user-2.jpg',
-  //     name: 'Minshan Cui',
-  //     subtext: 'Features avaibility',
-  //   },
-  //   {
-  //     id: 3,
-  //     imgSrc: '/assets/images/profile/user-3.jpg',
-  //     name: 'Eminson Mendoza',
-  //     subtext: 'Features avaibility',
-  //   },
-  // ];
 
   features: features[] = [
     {

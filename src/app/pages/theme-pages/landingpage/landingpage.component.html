@@ -48,7 +48,7 @@
           <a
             mat-button
             class="m-x-8 f-s-16 f-w-500"
-            href="/authentication/maintenance"
+            [routerLink]="['/landingpage/why-us']"
             style="color: #818181"
             >Why us</a
           >
@@ -521,126 +521,69 @@
 
     <div class="spacer bg-white">
       <div class="container">
-        <h2 class="section-title text-center f-w-700 m-b-32">
+        <h2 class="section-title f-w-700 m-y-30 text-center">
           Trusted by growing businesses across the U.S
         </h2>
-        <div class="row m-t-40 justify-content-center">
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
             >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-4.webp"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  “{{ testimonial.text }}”
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
               </div>
-            </mat-card>
+            </div>
+            }
           </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-11-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-10-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-9-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-8-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-7-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-6-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-5-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-2-1.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
           </div>
         </div>
       </div>
@@ -853,7 +796,7 @@
     </div>
 
     Call to action-->
-    <div class="bg-white">
+    <div class="bg-white spacer">
       <div class="container">
         <div class="bg-green rounded p-32 position-relative">
           <div class="row justify-content-between">
