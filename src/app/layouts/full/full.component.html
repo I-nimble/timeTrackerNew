@@ -227,7 +227,7 @@
         </mat-expansion-panel-header>
         <div>
           <div class="row">
-            @for(appdd of apps; track appdd.img) {
+            @for(appdd of apps; track appdd.id) {
             <div class="col-12 text-hover-primary">
               <a
                 [routerLink]="[appdd.link]"

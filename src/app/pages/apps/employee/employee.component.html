@@ -6,7 +6,7 @@
           <mat-form-field appearance="outline" class="w-100 hide-hint">
             <input
               matInput
-              placeholder="Search Employee"
+              placeholder="Search Team Member"
               (keyup)="applyFilter($any($event.target).value)"
             />
             <mat-icon matSuffix>
@@ -25,8 +25,11 @@
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
           <!-- add employee -->
-          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
-            Add Employee
+          <button 
+            mat-flat-button 
+            (click)="openDialog('Invite', {companyId})" color="primary"
+          >
+            Add Team Member
           </button>
         </div>
       </div>
@@ -35,7 +38,7 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive">
-         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource"></app-employee-table>
+         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource" (getEmployees)="getEmployees()"></app-employee-table>
       </div>
     </mat-card-content>
   </mat-card>

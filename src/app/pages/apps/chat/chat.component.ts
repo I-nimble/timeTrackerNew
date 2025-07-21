@@ -40,11 +40,6 @@ export class AppChatComponent implements OnInit {
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
-  public contactsConfiguration: ContactsConfiguration = new ContactsConfiguration({
-    usersConfiguration: new UsersConfiguration({
-      hideSeparator: true
-    })
-  });
   
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -86,72 +81,7 @@ export class AppChatComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private employeesService: EmployeesService
-  ) { 
-    const component = this;
-
-    this.professionalMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        templates: this.chatService.templates
-      }),
-    })
-
-    this.essentialMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.chatService.templates
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: this.customMenu
-      }),
-    })
-
-    this.basicMessagesConfig = new MessagesConfiguration({ 
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: [] 
-      }),
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.chatService.templates
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageComposerConfiguration: new MessageComposerConfiguration({
-        hideVoiceRecording: true
-      }),
-      detailsConfiguration: new DetailsConfiguration({
-        addMembersConfiguration: new AddMembersConfiguration({
-          onAddMembersButtonClick: function (guid: string, members: CometChat.User[]) {
-            const membersRequest = new CometChat.GroupMembersRequestBuilder(guid)
-              .setLimit(100)
-              .build();
-
-            membersRequest.fetchNext().then(response => {
-              const currentCount = response.length;
-              if (currentCount + members.length > 6) {
-                component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
-              } else {
-                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                  CometChat.addMembersToGroup(
-                    guid,
-                    groupMembers,
-                    [] // empty bannedMembersList
-                  ).then(() => {
-                    if (this.onClose) this.onClose(); 
-                  });
-              }
-            });
-          }
-        })
-      })
-    })
-  }
+  ) { }
 
   ngOnInit(): void {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
@@ -190,19 +120,16 @@ export class AppChatComponent implements OnInit {
     if(this.userRole === '3') {
       this.companiesService.getByOwner().subscribe((company: any) => {
         this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan; 
+          this.plan = companyPlan.plan || { id: companyPlan[0] }; 
         });
       });
     }
     else if (this.userRole === '2') {
       this.employeesService.getByEmployee().subscribe((employees: any) => {
         this.plansService.getCurrentPlan(employees.company_id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan;
+          this.plan = companyPlan.plan || { id: companyPlan[0] };
         });
       });
-    }
-    else if (this.userRole === '1') {
-      this.getCompanies();
     }
     this.configureTheme();
     this.observeAppTheme();
@@ -215,6 +142,91 @@ export class AppChatComponent implements OnInit {
         document.body.appendChild(viewer);
       }
     });
+
+    const component = this;
+
+    this.professionalMessagesConfig = new MessagesConfiguration({
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        templates: this.chatService.templates
+      }),
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: this.customMenu
+      }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
+        })
+      })
+    })
+
+    this.essentialMessagesConfig = new MessagesConfiguration({
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        disableReactions: true,
+        templates: this.chatService.templates
+      }),
+      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
+        hideMessageComposer: true,
+      }),
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: this.customMenu
+      }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
+        })
+      })
+    })
+
+    this.basicMessagesConfig = new MessagesConfiguration({ 
+      messageHeaderConfiguration: new MessageHeaderConfiguration({
+        menu: null
+      }),
+      disableSoundForMessages: true,
+      messageListConfiguration: new MessageListConfiguration({
+        disableReactions: true,
+        templates: this.chatService.templates
+      }),
+      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
+        hideMessageComposer: true,
+      }),
+      messageComposerConfiguration: new MessageComposerConfiguration({
+        hideVoiceRecording: true
+      }),
+      detailsConfiguration: new DetailsConfiguration({
+        addMembersConfiguration: new AddMembersConfiguration({
+          onAddMembersButtonClick: function (guid: string, members: CometChat.User[]) {
+            const membersRequest = new CometChat.GroupMembersRequestBuilder(guid)
+              .setLimit(100)
+              .build();
+
+            membersRequest.fetchNext().then(response => {
+              const currentCount = response.length;
+              if (currentCount + members.length > 6) {
+                component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
+              } else {
+                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
+                  CometChat.addMembersToGroup(
+                    guid,
+                    groupMembers,
+                    [] // empty bannedMembersList
+                  ).then(() => {
+                    if (this.onClose) this.onClose(); 
+                  });
+              }
+            });
+          },
+          usersRequestBuilder: new CometChat.UsersRequestBuilder()
+            .setLimit(100)
+            .friendsOnly(true)
+        })
+      })
+    })
   }
 
   startVoiceCall() {
@@ -288,34 +300,8 @@ export class AppChatComponent implements OnInit {
         setTimeout(() => {
           this.chatService.isChatAvailable = true;
         }, 100);
-        this.getCompanies();
       }
     });
-  }
-  
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies: any) => {
-        this.companies = companies;
-      },
-    });
-  }
-
-  async handleCompanySelection(event: any) {
-    try {
-      await this.chatService.logout();
-  
-      this.selectedCompanyId = event?.value;
-      const selectedCompany = this.companies.find(c => c.id === this.selectedCompanyId);
-      this.plan = {
-        id: selectedCompany?.current_plan_id
-      };
-      this.chatService.initializeCometChat(this.selectedCompanyId);
-    }
-    catch (error) {
-      this.openSnackBar('Error initializing chat', 'Close');
-      console.error(error);
-    }
   }
 
   private configureTheme(): void {

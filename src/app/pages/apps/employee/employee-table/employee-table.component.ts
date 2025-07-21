@@ -4,8 +4,10 @@ import {
   Inject,
   Input,
   OnInit,
+  Output,
   Optional,
   ViewChild,
+  EventEmitter,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -56,7 +58,7 @@ import { SelectionModel } from '@angular/cdk/collections';
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
+export class AppEmployeeTableComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -96,6 +98,8 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     this.dataSourceTable.data = data;
   }
 
+  @Output() getEmployees = new EventEmitter<any>();
+
   dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
@@ -115,12 +119,6 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     private companiesService: CompaniesService,
   ) {}
 
-  ngOnInit(): void {
-    if (this.userRole === '3') {
-    }
-  }
-
-
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
       data: { action, employee },
@@ -128,86 +126,8 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.getEmployees();
+      this.getEmployees.emit();
     });
-  }
-
-  getEmployees() {
-    this.employeesService.get().subscribe({
-      next: (employees: any) => {
-        this.employees = employees;
-        this.users = employees
-          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
-
-        this.schedulesService.get().subscribe({
-          next: (schedules: any) => {
-            schedules = schedules.schedules;
-            this.users = this.users.map((user: any) => {
-              const userSchedules = schedules.find(
-                (schedule: any) => schedule.employee_id === user.id
-              );
-              if (!userSchedules) {
-                return {
-                  id: user.user.id,
-                  company_id: user.company_id,
-                  name: user.user.name,
-                  last_name: user.user.last_name,
-                  email: user.user.email,
-                  position: user.position_id,
-                  projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered schedule',
-                  Salary: 0,
-                  imagePath: null,
-                };
-              }
-              
-              const workingDays = userSchedules.days
-                .map((day: any) => day.name)
-                .sort((a: string, b: string) => {
-                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  return weekDays.indexOf(a) - weekDays.indexOf(b);
-                });
-
-              const scheduleString = this.formatDaysRange(workingDays);
-
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
-                schedule: scheduleString,
-                Salary: 0, 
-                imagePath: null,
-              };
-            });
-            this.getUsersPictures();
-          },
-          error: (err) => {
-            console.error('Error fetching schedules:', err);
-          },
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching employees:', err);
-      },
-    });
-  }
-
-  getUsersPictures() {
-    this.users.forEach((user: any) => {
-      this.userService.getProfilePic(user.id).subscribe({
-        next: (image: any) => {
-          if(image) {
-            user.imagePath = image;
-          }
-        }
-      });
-    });
-    //this.dataSource.data = this.users;
-    this.loaded = true;
   }
 
   // Helper function to format days as a range "Monday to Friday"
@@ -341,7 +261,7 @@ export class AppEmployeeDialogContentComponent {
   projects: any[] = [];
   selectedFile: File | null = null;
   sendingData: boolean = false;
-  addEmployeeForm: FormGroup = this.fb.group({
+  editEmployeeForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     password: [''],
@@ -349,6 +269,13 @@ export class AppEmployeeDialogContentComponent {
     position: ['', Validators.required],
     projects: [[]],
   });
+  inviteEmployeeForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    company_id: ['', Validators.required],
+  });
+  companies: any[] = [];
+  userRole = localStorage.getItem('role');
 
   constructor(
     public dialog: MatDialog,
@@ -359,21 +286,19 @@ export class AppEmployeeDialogContentComponent {
     private positionsService: PositionsService,
     private projectsService: ProjectsService,
     private fb: FormBuilder,
+    private companiesService: CompaniesService,
     // @Optional() is used to prevent error if no data is passed
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.action = data.action;
-    if(this.action === 'Add') {
-      this.addEmployeeForm.get('password')?.setValidators([Validators.required, Validators.minLength(8)]);
-    }
     this.local_data = { ...data.employee };
-    this.addEmployeeForm.patchValue({ // Populate form data
-      name: this.local_data.name || '',
-      last_name: this.local_data.last_name || '',
+    this.editEmployeeForm.patchValue({ // Populate form data
+      name: this.local_data.profile.name || '',
+      last_name: this.local_data.profile.last_name || '',
       password: '',
-      email: this.local_data.email || '',
-      position: this.local_data.position || '',
-      projects: this.local_data.projects || [],
+      email: this.local_data.profile.email || '',
+      position: this.local_data.profile.position || '',
+      projects: this.local_data.profile.projects || [],
     });
 
     this.positionsService.get().subscribe((positions: any) => {
@@ -384,6 +309,24 @@ export class AppEmployeeDialogContentComponent {
       this.projects = projects;
     });
 
+    if(this.action === 'Invite') {
+      this.companiesService.getCompanies().subscribe((companies: any) => {
+        this.companies = companies;
+        if(this.userRole === '3') {
+          this.companiesService.getByOwner().subscribe((company: any) => {
+            this.inviteEmployeeForm.patchValue({
+              company_id: company.company.id
+            });
+          });
+        }
+        else if (this.userRole === '1') {
+          this.inviteEmployeeForm.patchValue({
+            company_id: this.local_data.profile.companyId || ''
+          });
+        }
+      });
+    }
+
     // Set default image path if not already set
     if (!this.local_data.image) {
       this.local_data.image = 'assets/images/default-user-profile-pic.png';
@@ -392,38 +335,45 @@ export class AppEmployeeDialogContentComponent {
 
   doAction(): void {
 
-    if (this.action === 'Add') {
+    if (this.action === 'Invite') {
       this.sendingData = true;
-      this.employeesService.addEmployee(this.addEmployeeForm.value, this.selectedFile || null).subscribe({
+      if(!this.inviteEmployeeForm.valid) {
+        this.openSnackBar('Please fill in all required fields', 'Close');
+        this.sendingData = false;
+        return;
+      }
+      const invitationData = {
+        name: this.inviteEmployeeForm.value.name,
+        email: this.inviteEmployeeForm.value.email,
+        company_id: this.inviteEmployeeForm.value.company_id,
+      };
+      this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
-          this.dialogRef.close();
-          const successDialogRef = this.dialog.open(AppAddEmployeeComponent);
-          successDialogRef.afterClosed().subscribe(() => {
-            this.dialogRef.close({ event: 'Refresh' });
-            this.openSnackBar('Employee Added successfully!', 'Close');
-          });
-        },
-        error: (err) => {
-          console.error('Error adding employee:', err);
-          this.openSnackBar('Error adding employee', 'Close');
-        },
-        complete: () => {
+          this.dialogRef.close({ event: 'Refresh' });
+          this.openSnackBar('Team Member Invited successfully!', 'Close');
           this.sendingData = false;
+          this.inviteEmployeeForm.reset();
         },
+        error: (err: any) => {
+          console.error('Error adding Team Member:', err);
+          this.openSnackBar('Error inviting Team Member', 'Close');
+          this.sendingData = false;
+          this.inviteEmployeeForm.reset();
+        }
       });
     } else if (this.action === 'Update') {
-      // this.employeesService.updateEmployee(this.local_data);
-      // this.dialogRef.close({ event: 'Update' });
-      // this.openSnackBar('Employee Updated successfully!', 'Close');
+      this.employeesService.updateEmployee(this.local_data.profile.id, this.local_data.profile, this.local_data.company_id, this.selectedImage);
+      this.dialogRef.close({ event: 'Update' });
+      this.openSnackBar('Team Member Updated successfully!', 'Close');
     } else if (this.action === 'Delete') {
-      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+      this.employeesService.deleteEmployee(this.local_data.profile.id).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Delete' });
-          this.openSnackBar('Employee Deleted successfully!', 'Close');
+          this.openSnackBar('Team Member Deleted successfully!', 'Close');
         },
         error: (err:any) => {
-          console.error('Error deleting employee:', err);
-          this.openSnackBar('Error deleting employee', 'Close');
+          console.error('Error deleting Team Member:', err);
+          this.openSnackBar('Error deleting Team Member', 'Close');
         },
       });
     }

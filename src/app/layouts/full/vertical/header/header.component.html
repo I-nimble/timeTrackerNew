@@ -145,7 +145,7 @@
   <!-- --------------------------------------------------------------- -->
   <!--  Search -->
   <!-- --------------------------------------------------------------- -->
-  <button
+  <!-- <button
     mat-stroked-button
     class="d-none d-lg-flex custom-outline-btn"
     (click)="openDialog()"
@@ -154,7 +154,7 @@
       <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> Try to
       Searching...
     </div>
-  </button>
+  </button> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- langugage Dropdown -->
@@ -232,13 +232,13 @@
       <!-- --------------------------------------------------------------- -->
       <!-- shortcut Dropdown -->
       <!-- --------------------------------------------------------------- -->
-      <button
+      <!-- <button
         mat-icon-button
         [matMenuTriggerFor]="notificationMenu"
         aria-label="Notifications"
       >
         <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-      </button>
+      </button> -->
 
       <!-- --------------------------------------------------------------- -->
       <!-- Profile Dropdown -->
@@ -253,9 +253,11 @@
       >
         <div class="d-flex align-items-center gap-12">
           <img
-            src="/assets/images/profile/user5.jpg"
-            class="rounded-circle object-cover"
+            [src]="profilePicture"
+            class="shadow rounded-circle logo"
             width="40"
+            height="40"
+            style="object-fit: cover; aspect-ratio: 1 / 1;"
           />
           <div class="d-none d-lg-flex text-left flex-col">
             <h5 class="f-s-16 f-w-600">{{userName}} </h5>
@@ -298,7 +300,7 @@
     }
 
     <div class="p-y-12 p-x-32">
-      <button [routerLink]="['/dashboards/notifications']" mat-flat-button color="primary" class="w-100">
+      <button (click)="seeAllNotifications()" mat-flat-button color="primary" class="w-100">
         See All Notifications
       </button>
     </div>
@@ -307,7 +309,7 @@
   <!-- --------------------------------------------------------------- -->
   <!-- Shortcuts Dropdown -->
   <!-- --------------------------------------------------------------- -->
-  <button
+  <!-- <button
     mat-icon-button
     [matMenuTriggerFor]="notificationMenu"
     aria-label="Notifications"
@@ -364,7 +366,7 @@
           >
             <i-tabler name="edit" class="icon-20 text-warning"></i-tabler>
           </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">ToDo</h6>
+          <h6 class="f-s-16 f-w-600 m-0 text-body">To Do</h6>
         </a>
       </div>
       <div class="col-6 p-x-0">
@@ -381,7 +383,7 @@
         </a>
       </div>
     </div>
-  </mat-menu>
+  </mat-menu> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- profile Dropdown -->

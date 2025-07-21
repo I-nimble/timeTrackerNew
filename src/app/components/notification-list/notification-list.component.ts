@@ -108,14 +108,8 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   }
 
   handleClick(notification: any) {
-    const message = notification.message?.toLowerCase() || '';
-
-    if (message.includes('clock') || message.includes('late')) {
-      this.router.navigate(['/apps/chat/support']);
-    } else if (message.includes('board')) {
-      this.router.navigate(['/apps/kanban']);
-    } else if (notification.type_id === 6) {
-      this.dialog.open(this.applicationDetailsDialog, {
+    if(notification.type_id === 6) { 
+      let dialogRef = this.dialog.open(this.applicationDetailsDialog, {
         height: '500px',
         width: '600px',
         position: { top: '75px' },

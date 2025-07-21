@@ -19,6 +19,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { UsersService } from 'src/app/services/users.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-kanban-dialog',
@@ -51,6 +52,7 @@ export class AppKanbanDialogComponent implements OnInit {
   mentionStartPos = 0;
   commentText: string = '';
   dueTime: string = '';
+  companies: any[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -60,7 +62,8 @@ export class AppKanbanDialogComponent implements OnInit {
     private companiesService: CompaniesService,
     private employeesService: EmployeesService,
     private usersService: UsersService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {
     this.getPriorities();
     this.local_data = { ...data };
@@ -91,15 +94,23 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-  if (this.local_data.due_date) {
-    const dueDate = new Date(this.local_data.due_date);
-    if (!isNaN(dueDate.getTime())) {
-      const hours = dueDate.getHours().toString().padStart(2, '0');
-      const minutes = dueDate.getMinutes().toString().padStart(2, '0');
-      this.dueTime = `${hours}:${minutes}`;
+    if (this.local_data.due_date) {
+      const dueDate = new Date(this.local_data.due_date);
+      if (!isNaN(dueDate.getTime())) {
+        const hours = dueDate.getHours().toString().padStart(2, '0');
+        const minutes = dueDate.getMinutes().toString().padStart(2, '0');
+        this.dueTime = `${hours}:${minutes}`;
+      }
     }
   }
-}
+
+  showSnackbar(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
+  }
 
   downloadAttachment(filename: string) {
     const url = this.attachmentsUrl + filename;
@@ -141,37 +152,70 @@ export class AppKanbanDialogComponent implements OnInit {
         this.getUsers(employee.company_id);
       });
     } else if (
-      localStorage.getItem('role') === '1' &&
-      this.local_data.company_id
+      localStorage.getItem('role') === '1'
     ) {
       this.companiesService.getCompanies().subscribe((companies: any) => {
-        const company = companies.find(
-          (c: any) => c.id === this.local_data.company_id
-        );
-        this.getUsers(company.id);
+        this.companies = companies;
+        if(this.local_data.company_id) {
+          const company = companies.find(
+            (c: any) => c.id === this.local_data.company_id
+          );
+          this.getUsers(company.id);
+        }
+        else {
+          this.getUsers();
+        }
       });
     }
   }
 
-  getUsers(companyId: number) {
-    this.companiesService
-      .getEmployees(companyId)
-      .subscribe((employees: any) => {
-        this.users = this.users.concat(employees.map((e: any) => e.user));
+  getUsers(companyId?: number) {
+    if(companyId) {
+      this.companiesService
+        .getEmployees(companyId)
+        .subscribe((employees: any) => {
+          this.users = this.users.concat(employees.map((e: any) => e.user));
+          this.companiesService
+            .getEmployer(companyId)
+            .subscribe((employer: any) => {
+              this.users.push(employer.user);
+              this.users = this.users.sort((a: any, b: any) =>
+                a.name.localeCompare(b.name)
+              );
+            });
+        });
+    }
+    else {
+      this.companies.forEach((company: any) => {
         this.companiesService
-          .getEmployer(companyId)
-          .subscribe((employer: any) => {
-            this.users.push(employer.user);
-            this.users = this.users.sort((a: any, b: any) =>
-              a.name.localeCompare(b.name)
-            );
+          .getEmployees(company.id)
+          .subscribe((employees: any) => {
+            this.users = this.users.concat(employees.map((e: any) => e.user));
+            this.companiesService
+              .getEmployer(company.id)
+              .subscribe((employer: any) => {
+                this.users.push(employer.user);
+                this.users = this.users.sort((a: any, b: any) =>
+                  a.name.localeCompare(b.name)
+                );
+              });
           });
       });
+    }
   }
 
   getPriorities() {
-    this.ratingsService.getPriorities().subscribe((priorities: any[]) => {
-      this.priorities = priorities;
+    this.ratingsService.getPriorities().subscribe({
+      next: (priorities: any[]) => {
+        this.priorities = priorities || [];
+        if (!this.priorities.length) {
+          this.showSnackbar("No priorities found.");
+        }
+      },
+      error: () => {
+        this.showSnackbar("Error getting priorities.")
+        this.priorities = [];
+      }
     });
   }
 

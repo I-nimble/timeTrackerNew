@@ -39,6 +39,8 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
   totalHours: number = 0;
   hoursWorked: number = 0;
   hoursLeft: number = 0;
+  formattedHoursWorked: string = '00:00:00';
+  formattedHoursLeft: string = '00:00:00';
   isChartLoaded: boolean = false;
 
   constructor() {
@@ -92,7 +94,10 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
         theme: 'dark',
         fillSeriesColor: false,
         y: {
-          formatter: (val: number) => val.toFixed(2)
+          formatter: (val: number) => {
+            const formatted = this.formatHoursToHMS(val);
+            return formatted;
+          }
         }
       },
     };
@@ -110,9 +115,57 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
   }
 
   updateWorkedAndLeftFromRatings(ratings: any[]) {
-    this.hoursWorked = ratings.reduce((sum, emp) => sum + (emp.workedHours ?? 0), 0);
-    this.hoursLeft = ratings.reduce((sum, emp) => sum + (emp.hoursLeft ?? 0), 0);
+    this.hoursWorked = ratings.reduce((sum, emp) => {
+      const workedDecimal = this.HHMMSSToDecimal(emp.workedHours);
+      return sum + workedDecimal;
+    }, 0);
+    
+    this.hoursLeft = ratings.reduce((sum, emp) => {
+      const leftDecimal = this.HHMMSSToDecimal(emp.hoursLeft);
+      return sum + leftDecimal;
+    }, 0);
+
+    this.formattedHoursWorked = this.formatHoursToHMS(this.hoursWorked);
+    this.formattedHoursLeft = this.formatHoursToHMS(this.hoursLeft);
+    
     this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+
+    if (this.hoursWorked === 0 && this.hoursLeft === 0) {
+      this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+      this.trafficChart.colors = ['#adb0bb', '#adb0bb'];
+    } else {
+      this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+      this.trafficChart.colors = ['#92b46c', '#adb0bb']; 
+    }
   }
 
+  HHMMSSToDecimal(timeStr: string): number {
+    if (!timeStr || timeStr === '00:00:00') return 0;
+    
+    const parts = timeStr.split(':');
+    if (parts.length !== 3) return 0;
+    
+    const hours = parseInt(parts[0], 10) || 0;
+    const minutes = parseInt(parts[1], 10) || 0;
+    const seconds = parseInt(parts[2], 10) || 0;
+    
+    return hours + (minutes / 60) + (seconds / 3600);
+  }
+
+  formatHoursToHMS(hoursDecimal: number): string {
+    if (isNaN(hoursDecimal)) return '00:00:00';
+    const hours = Math.abs(Number(hoursDecimal));
+    
+    const totalSeconds = Math.round(hours * 3600);
+    const hoursPart = Math.floor(totalSeconds / 3600);
+    const remainingSeconds = totalSeconds % 3600;
+    const minutesPart = Math.floor(remainingSeconds / 60);
+    const secondsPart = remainingSeconds % 60;
+
+    return [
+      String(hoursPart).padStart(2, '0'),
+      String(minutesPart).padStart(2, '0'),
+      String(secondsPart).padStart(2, '0')
+    ].join(':');
+  }
 }

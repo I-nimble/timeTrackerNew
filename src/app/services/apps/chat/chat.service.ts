@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
+import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
 import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -23,6 +23,7 @@ export class CometChatService {
   public outGoingCallObject!: CometChat.Call | null;
   templates: CometChatMessageTemplate[] = [];
   public unreadCountUpdated$ = new Subject<void>();
+  public contactsConfiguration: ContactsConfiguration;
 
   constructor(
     private http: HttpClient, 
@@ -30,12 +31,12 @@ export class CometChatService {
     private themeService: CometChatThemeService
   ) { }
 
-  async initializeCometChat(companyId?: number): Promise<void> {
+  async initializeCometChat(): Promise<void> {
     try {
       const chat_uid = localStorage.getItem('id');
       if (!chat_uid) return;
 
-      const credentials = await this.fetchChatCredentials(companyId);
+      const credentials = await this.fetchChatCredentials();
       if (!credentials) return;
 
       const initialized = await this.initCometChatUIKit(credentials);
@@ -45,6 +46,7 @@ export class CometChatService {
       if (!loggedIn) return;
 
       this.createCustomMessageTemplates();
+      this.setContactsConfiguration();
 
       this.isChatAvailable = true;
 
@@ -56,6 +58,19 @@ export class CometChatService {
     } catch (error) {
       console.error("Initialization failed with error:", error);
     }
+  }
+
+  setContactsConfiguration(): void {
+    const friendsRequestBuilder = new CometChat.UsersRequestBuilder()
+      .setLimit(100)
+      .friendsOnly(true);
+
+    this.contactsConfiguration = new ContactsConfiguration({
+      usersConfiguration: new UsersConfiguration({
+        usersRequestBuilder: friendsRequestBuilder,
+        hideSeparator: true
+      })
+    });
   }
 
   
@@ -76,9 +91,9 @@ export class CometChatService {
     }
   }
 
-  private async fetchChatCredentials(companyId?: number): Promise<any | null> {
+  private async fetchChatCredentials(): Promise<any | null> {
     try {
-      const credentials: any = await firstValueFrom(this.getChatCredentials(companyId));
+      const credentials: any = await firstValueFrom(this.getChatCredentials());
       if (!credentials) {
         console.error("No chat credentials found in the database.");
         return null;
@@ -168,8 +183,7 @@ export class CometChatService {
     }
   }
 
-  public getChatCredentials(companyId?: number): Observable<any[]> {
-    if(companyId) return this.http.get<any[]>(`${this.API_URI}/chat/${companyId}`);
+  public getChatCredentials(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 

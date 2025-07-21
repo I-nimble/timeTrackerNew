@@ -308,7 +308,7 @@ export class AppTodoComponent implements OnInit {
         next: (array: any) => {
           const activeArray = (array || []).filter((task: any) => task.active);
           this.toDoArray = array;
-           this.filteredArray = this.toDoArray.filter((todo: any) => {
+          this.filteredArray = this.toDoArray.filter((todo: any) => {
             if (this.selectedCategory() === 'all') return true;
             if (this.selectedCategory() === 'complete') return !todo.active;
             if (this.selectedCategory() === 'uncomplete') return todo.active;
@@ -328,7 +328,7 @@ export class AppTodoComponent implements OnInit {
             });
             this.toDoFormArray.push(toDoField);
           }
-          
+
           this.updateCounts();
           this.isLoading = false;
         },
@@ -358,13 +358,13 @@ export class AppTodoComponent implements OnInit {
 
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
-                  (re: any) => re.rating_id === todo.id 
-                  && re.date == this.selectedDateStr
+                  (re: any) =>
+                    re.rating_id === todo.id && re.date == this.selectedDateStr
                 );
                 if (entry) {
                   todo.achieved = entry.achieved;
                   todo.justification = entry.justification;
-                  todo.details = entry.justification
+                  todo.details = entry.justification;
                 } else {
                   todo.achieved = false;
                   todo.justification = null;
@@ -372,10 +372,9 @@ export class AppTodoComponent implements OnInit {
                 }
               });
 
-               this.filteredArray = this.toDoArray.filter((todo: any) => {
+              this.filteredArray = this.toDoArray.filter((todo: any) => {
                 if (this.selectedCategory() === 'all') return true;
-                if (this.selectedCategory() === 'complete')
-                  return !todo.active;
+                if (this.selectedCategory() === 'complete') return !todo.active;
                 if (this.selectedCategory() === 'uncomplete')
                   return todo.active;
                 return true;
@@ -417,8 +416,8 @@ export class AppTodoComponent implements OnInit {
         const wasAchieved = parent.get('wasAchieved')?.value;
         const details = control.value;
         if (achieved && !wasAchieved && (!details || details.trim() === '')) {
-        return { detailsRequired: true };
-      }
+          return { detailsRequired: true };
+        }
       }
       return null;
     };
@@ -447,16 +446,19 @@ export class AppTodoComponent implements OnInit {
     const userId = this.teamMemberId;
     // Only submit tasks that are marked achieved and were not already achieved (i.e., just completed now)
     const updatedToDoFormArray = this.toDoFormArray.value
-      .filter((todo: any, idx: number) => todo.achieved && !this.toDoFormArray.at(idx).get('wasAchieved')?.value)
+      .filter(
+        (todo: any, idx: number) =>
+          todo.achieved && !this.toDoFormArray.at(idx).get('wasAchieved')?.value
+      )
       .map((toDo: any) => ({
         rating_id: Number(toDo.rating_id),
         date: String(toDo.date),
         achieved: toDo.achieved === true || toDo.achieved === 1,
         user_id: Number(userId),
-        justification: toDo.details ? String(toDo.details) : null
+        justification: toDo.details ? String(toDo.details) : null,
       }));
 
-    if(!this.toDoToEdit){
+    if (!this.toDoToEdit) {
       this.ratingsEntriesService.submit(updatedToDoFormArray).subscribe({
         next: () => {
           this.selectedCategory.set('uncomplete');
@@ -495,6 +497,24 @@ export class AppTodoComponent implements OnInit {
     if (!this.newTaskForm.valid) {
       this.openSnackBar('Form is not valid', 'Close');
       return;
+    }
+
+    if (!this.newTaskForm.get('recurrent')?.value) {
+      const dueDateControl = this.newTaskForm.get('due_date');
+      const dueTime = this.dueTime;
+
+      if (!dueDateControl?.value && !dueTime) {
+        const now = new Date();
+        const dueDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        dueDateControl?.setValue(dueDate);
+        this.dueTime = `${dueDate
+          .getHours()
+          .toString()
+          .padStart(2, '0')}:${dueDate
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}`;
+      }
     }
 
     const taskData = {
@@ -555,29 +575,32 @@ export class AppTodoComponent implements OnInit {
   }
 
   editTodo(todoId: number): void {
-  this.toDoToEdit = this.toDoArray.find((todo: any) => todo.id === todoId);
-  this.newTaskForm.patchValue(this.toDoToEdit);
+    this.toDoToEdit = this.toDoArray.find((todo: any) => todo.id === todoId);
+    this.newTaskForm.patchValue(this.toDoToEdit);
 
-  const dueDate = this.toDoToEdit?.due_date ? new Date(this.toDoToEdit.due_date) : null;
-  if (dueDate && !isNaN(dueDate.getTime())) {
-    const hours = dueDate.getHours().toString().padStart(2, '0');
-    const minutes = dueDate.getMinutes().toString().padStart(2, '0');
-    this.dueTime = `${hours}:${minutes}`;
-  } else {
-    this.dueTime = '';
+    const dueDate = this.toDoToEdit?.due_date
+      ? new Date(this.toDoToEdit.due_date)
+      : null;
+    if (dueDate && !isNaN(dueDate.getTime())) {
+      const hours = dueDate.getHours().toString().padStart(2, '0');
+      const minutes = dueDate.getMinutes().toString().padStart(2, '0');
+      this.dueTime = `${hours}:${minutes}`;
+    } else {
+      this.dueTime = '';
+    }
   }
-}
 
   deleteTodo(id: number): void {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        subject: 'task'
+        subject: 'task',
       },
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
-      if (result === true) { // Only delete if user confirmed
+      if (result === true) {
+        // Only delete if user confirmed
         this.ratingsService.delete(id).subscribe({
           next: () => {
             this.toDoArray = this.toDoArray.filter(
@@ -596,31 +619,33 @@ export class AppTodoComponent implements OnInit {
   }
 
   hasAnyAchieved(): boolean {
-  return this.toDoFormArray.controls.some(ctrl => ctrl.get('achieved')?.value);
-}
+    return this.toDoFormArray.controls.some(
+      (ctrl) => ctrl.get('achieved')?.value
+    );
+  }
 
-onDueDateChange(event: any) {
-  const date = event.value;
-  let time = this.dueTime || '00:00';
-  this.setDueDateTime(date, time);
-}
+  onDueDateChange(event: any) {
+    const date = event.value;
+    let time = this.dueTime || '00:00';
+    this.setDueDateTime(date, time);
+  }
 
-onDueTimeChange(event: any) {
-  this.dueTime = event.target.value;
-  const date = this.newTaskForm.value.due_date;
-  this.setDueDateTime(date, this.dueTime);
-}
+  onDueTimeChange(event: any) {
+    this.dueTime = event.target.value;
+    const date = this.newTaskForm.value.due_date;
+    this.setDueDateTime(date, this.dueTime);
+  }
 
-setDueDateTime(date: Date | string, time: string) {
-  if (!date || !time) return;
-  // Si date es string, conviértelo a Date correctamente
-  let localDate = typeof date === 'string' ? new Date(date) : new Date(date);
-  const [hours, minutes] = time.split(':').map(Number);
+  setDueDateTime(date: Date | string, time: string) {
+    if (!date || !time) return;
+    // Si date es string, conviértelo a Date correctamente
+    let localDate = typeof date === 'string' ? new Date(date) : new Date(date);
+    const [hours, minutes] = time.split(':').map(Number);
 
-  // Ajusta la hora localmente
-  localDate.setHours(hours, minutes, 0, 0);
+    // Ajusta la hora localmente
+    localDate.setHours(hours, minutes, 0, 0);
 
-  // Actualiza el formControl con el nuevo Date (con hora local)
-  this.newTaskForm.patchValue({ due_date: localDate });
-}
+    // Actualiza el formControl con el nuevo Date (con hora local)
+    this.newTaskForm.patchValue({ due_date: localDate });
+  }
 }

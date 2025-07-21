@@ -2,6 +2,7 @@ import { Component, Inject, NgZone, OnInit, PLATFORM_ID, type AfterViewInit, typ
 import { TablerIconsModule } from "angular-tabler-icons"
 import { MaterialModule } from "src/app/material.module"
 import { isPlatformBrowser, NgFor } from "@angular/common"
+import moment from 'moment-timezone';
 
 // amCharts imports
 import * as am5 from "@amcharts/amcharts5"
@@ -36,12 +37,31 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.employeesService.getLocations().subscribe((locations: any[]) => {
-      this.locations = locations;
-      this.updateLocationTimes();
-      this.initMap();
+    this.fetchLocations();
+    this.timer = setInterval(() => this.updateDisplayedTime(), 60000);
+  }
 
-      this.timer = setInterval(() => this.updateLocationTimes(), 60000);
+  
+  fetchLocations() {
+    this.employeesService.getLocations().subscribe(
+      (locations: any[]) => {
+        this.locations = locations;
+        this.initMap();
+      },
+      (error) => {
+        console.error('Error fetching locations:', error);
+      }
+    );
+  }
+
+  updateDisplayedTime() {
+    this.locations = this.locations.map(loc => {
+      const timeMoment = moment(loc.time, 'hh:mm A');
+      timeMoment.add(1, 'minute');
+      return {
+        ...loc,
+        time: timeMoment.format('hh:mm A')
+      };
     });
   }
 
@@ -117,26 +137,5 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       chart.appear(1000, 100);
     });
-  }
-
-  getLocalTime(latitude: string, longitude: string): string {
-    const lng = parseFloat(longitude);
-    
-    const timeZoneOffset = Math.ceil(lng / 15);
-    const now = new Date();
-    
-    now.setHours(now.getUTCHours() + timeZoneOffset);
-    
-    return now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  updateLocationTimes() {
-    this.locations = this.locations.map(loc => ({
-      ...loc, 
-      time: this.getLocalTime(loc.latitude, loc.longitude)
-    }));
   }
 }

@@ -8,96 +8,82 @@
       <mat-spinner></mat-spinner>
     </div>
     <div *ngIf="!isLoading">
-      <div class="row align-items-center justify-content-between m-b-32 gap-16">
-        <div class="col-lg-4 col-md-6 col-12">
-          <mat-card-title>Kanban</mat-card-title>
-        </div>
-
-        <div class="col-lg-12 col-12">
-          <div class="d-flex justify-content-start justify-content-md-end">
-            <div class="d-inline-block w-100 w-md-auto">
-              <div class="row g-0">
-                <div class="col-12 d-flex justify-content-end" style="max-width: 300px; margin-left: auto;">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Select Board</mat-label>
-                    <mat-select
-                      [(value)]="selectedBoardId"
-                      (selectionChange)="loadTasks(selectedBoardId)"
-                    >
-                      <mat-option [value]="null">All Boards</mat-option>
-                      <mat-option *ngFor="let board of boards" [value]="board.id">
-                        {{ board.name }}
-                      </mat-option>
-                    </mat-select>
-                  </mat-form-field>
-                </div>
-                <div class="col-12 d-flex justify-content-end mt-3">
-                  <button
-                    mat-flat-button
-                    (click)="openDialog('Add', { type: 'board' })"
-                    *ngIf="role === '3' || role === '2'"
-                    color="primary"
-                    class="w-auto px-4 py-2"
-                  >
-                    Create Board
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="board-heading m-b-20 d-flex align-items-center justify-content-between"
-      >
+      <div class="col-12 d-flex flex-row justify-content-between">
         <div>
           <h3 class="f-s-16 f-w-600">
             {{ selectedBoardId === null ? "All Boards" : selectedBoard?.name }}
           </h3>
-          @switch(selectedBoard.visibility) { @case ('public') {
-          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
-            Public
-          </span>
-          } @case ('restricted') {
-          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
-            Restricted
-          </span>
-          } @default {
-          <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
-            Private
-          </span>
-          } }
+          @switch(selectedBoard.visibility) {
+            @case ('public') {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-success">
+                Public
+              </span>
+            } 
+            @case ('restricted') {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-warning">
+                Restricted
+              </span>
+            } 
+            @case ('private') {
+              <span class="f-s-12 p-x-8 text-white badge rounded-pill bg-error">
+                Private
+              </span>
+            } 
+          }
         </div>
+        <div
+          class="board-heading m-b-20 d-flex flex-row justify-content-between"
+        >
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select Board</mat-label>
+            <mat-select
+              [(value)]="selectedBoardId"
+              (selectionChange)="loadTasks(selectedBoardId)"
+            >
+              <mat-option [value]="null">All Boards</mat-option>
+              <mat-option *ngFor="let board of boards" [value]="board.id">
+                {{ board.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <button mat-icon-button [matMenuTriggerFor]="boardMenu">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #boardMenu="matMenu">
-          <button
-            mat-menu-item
-            (click)="openDialog('Edit', { 
-                type: 'board', 
-                id: selectedBoard.id,
-                company_id: selectedBoard.company_id,
-                name: selectedBoard.name,
-                visibility: selectedBoard.visibility,
-                restrictedUsers: selectedBoard.restrictedUsers,
-                task_attachments: selectedBoard.task_attachments,
-              })"
-          >
-            <mat-icon>edit</mat-icon>
-            <span>Edit</span>
+          <button mat-icon-button [matMenuTriggerFor]="boardMenu" class="m-l-10">
+            <mat-icon>more_vert</mat-icon>
           </button>
-          <button
-            mat-menu-item
-            (click)="deleteBoard(selectedBoardId)"
-            [disabled]="selectedBoard.user_id != userId"
-          >
-            <mat-icon>delete</mat-icon>
-            <span>Delete</span>
-          </button>
-        </mat-menu>
+          <mat-menu #boardMenu="matMenu">
+            <button
+              mat-menu-item
+              (click)="openDialog('Add', { type: 'board' })"
+            >
+              <mat-icon>add</mat-icon>
+              <span>New board</span>
+            </button>
+            <button
+              mat-menu-item
+              (click)="openDialog('Edit', { 
+                  type: 'board', 
+                  id: selectedBoard.id,
+                  company_id: selectedBoard.company_id,
+                  name: selectedBoard.name,
+                  visibility: selectedBoard.visibility,
+                  restrictedUsers: selectedBoard.restrictedUsers,
+                  task_attachments: selectedBoard.task_attachments,
+                })"
+              [disabled]="!selectedBoardId"
+            >
+              <mat-icon>edit</mat-icon>
+              <span>Edit</span>
+            </button>
+            <button
+              mat-menu-item
+              (click)="deleteBoard(selectedBoardId)"
+              [disabled]="selectedBoard.user_id != userId"
+            >
+              <mat-icon>delete</mat-icon>
+              <span>Delete</span>
+            </button>
+          </mat-menu>
+        </div>
       </div>
 
       <div class="table-responsive">
@@ -107,7 +93,7 @@
             *ngFor="let column of selectedBoardColumns; let i = index"
           >
             <div
-              class="connect-sorting"
+              class="connect-sorting d-flex flex-column justify-content-between"
               [ngClass]="{
                 'bg-light-primary': i === 0,
                 'bg-light-secondary': i === 1,
@@ -115,13 +101,12 @@
                 'bg-light-success': i === 3
               }"
             >
-              <div class="m-b-16">
-                <h5 class="f-s-16 m-b-0 f-w-600">{{ column.name }}</h5>
-              </div>
+              <h5 class="m-b-16 f-s-16 m-b-0 f-w-600">{{ column.name }}</h5>
               <div
                 [cdkDropListData]="column.tasks"
                 cdkDropList
                 (cdkDropListDropped)="drop($event, column.id)"
+                class="tasks-list"
               >
                 <mat-card
                   *ngFor="let task of column.tasks"
@@ -130,12 +115,43 @@
                   (click)="openDialog('Edit', task)"
                 >
                   <div
-                    class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
+                    class="d-flex flex-row justify-content-between p-x-12 p-y-10"
                   >
-                    <h5 class="f-s-14 f-w-600">{{ task.goal }}</h5>
-                    <span class="text-muted f-s-12 m-l-8"
-                      >[SD-{{ task.id }}]</span
-                    >
+                    <div class="d-flex flex-column">
+                      <h5 class="f-s-14 f-w-200">
+                        <strong class="m-r-5 f-w-600">{{ task.id }}</strong>
+                        {{ task.goal }}
+                      </h5>
+                      @switch(task.priority || task.priorityAssociation?.id) {
+                        @case(4) {
+                          <span class="rounded f-s-12 p-x-8 text-white bg-primary priority">
+                            {{ task.priorityAssociation?.name || "Low Priority" }}
+                          </span>
+                        } 
+                        @case(3) {
+                          <span
+                            class="rounded f-s-12 p-x-8 bg-secondary priority"
+                          >
+                            {{ task.priorityAssociation?.name || "Normal" }}
+                          </span>
+                        } 
+                        @case(2) {
+                          <span class="rounded f-s-12 p-x-8 text-white bg-warning priority">
+                            {{ task.priorityAssociation?.name || "Important" }}
+                          </span>
+                        } 
+                        @case(1) {
+                          <span class="rounded f-s-12 p-x-8 text-white bg-error priority">
+                            {{ task.priorityAssociation?.name || "Urgent" }}
+                          </span>
+                        } 
+                        @default {
+                          <span class="rounded f-s-12 p-x-8 text-white bg-primary priority">
+                            {{ task.priorityAssociation?.name || "Normal" }}
+                          </span>
+                        } 
+                      }
+                    </div>
 
                     <button
                       class="d-flex align-items-center justify-content-center"
@@ -186,79 +202,22 @@
                       height="106"
                     />
                   </div>
-                  <div *ngIf="task.recommendations">
-                    <span class="f-s-12 p-x-12 p-y-10 d-block">{{
-                      task.recommendations
-                    }}</span>
-                  </div>
-                  <div *ngIf="task.comments">
-                    <span class="f-s-12 p-x-12 p-y-10 d-block text-primary">
-                      <b>Comments:</b>
-                      <div class="m-t-8">
-                        <div
-                          *ngFor="let c of task.comments.split('\n')"
-                          class="comment-item m-b-4"
-                        >
-                          <ng-container
-                            *ngIf="c.includes(':'); else plainComment"
-                          >
-                            <b>{{ c.split(":")[0] }}:</b>
-                            {{ c.split(":").slice(1).join(":").trim() }}
-                          </ng-container>
-                          <ng-template #plainComment>
-                            {{ c }}
-                          </ng-template>
-                        </div>
-                      </div>
-                    </span>
-                  </div>
-                  <div class="d-flex align-items-center gap-4 p-x-12 p-y-6">
-                    <i-tabler name="user" class="icon-16 d-flex"></i-tabler>
-                    <span class="f-s-12 lh-base">
-                      {{
-                        task.user?.name
-                          ? task.user.name + " " + (task.user.last_name || "")
-                          : "Unassigned"
-                      }}
-                    </span>
-                  </div>
-                  <div>
-                    <div
-                      class="d-flex align-items-center justify-content-between p-x-12 p-y-10"
+                  <div class="d-flex flex-row justify-content-between gap-4 p-x-12 p-y-6">
+                    <div 
+                      *ngIf="task.due_date"
+                      [class]="isOverdue(task.due_date) ? 'd-flex flex-row align-items-start gap-4 due-date bg-error text-white' : 'd-flex flex-row align-items-start gap-4 due-date'"
                     >
-                      <div class="d-flex align-items-center gap-4">
-                        <i-tabler
-                          name="calendar"
-                          class="icon-16 d-flex"
-                        ></i-tabler>
-                        <span class="f-s-12 lh-base">{{
-                          task.due_date | date: "MM.dd.yyyy"
-                        }}</span>
-                      </div>
-                      @switch(task.priority || task.priorityAssociation?.id) {
-                      @case(4) {
-                      <span class="rounded f-s-12 p-x-8 text-white bg-primary">
-                        {{ task.priorityAssociation?.name || "Low Priority" }}
-                      </span>
-                      } @case(3) {
-                      <span
-                        class="rounded f-s-12 p-x-8 text-white bg-secondary"
-                      >
-                        {{ task.priorityAssociation?.name || "Normal" }}
-                      </span>
-                      } @case(2) {
-                      <span class="rounded f-s-12 p-x-8 text-white bg-warning">
-                        {{ task.priorityAssociation?.name || "Important" }}
-                      </span>
-                      } @case(1) {
-                      <span class="rounded f-s-12 p-x-8 text-white bg-error">
-                        {{ task.priorityAssociation?.name || "Urgent" }}
-                      </span>
-                      } @default {
-                      <span class="rounded f-s-12 p-x-8 text-white bg-primary">
-                        {{ task.priorityAssociation?.name || "Normal" }}
-                      </span>
-                      } }
+                      <i-tabler
+                        name="calendar"
+                        class="icon-16 d-flex"
+                      ></i-tabler>
+                      <span class="f-s-12 lh-base">{{
+                        task.due_date | date: "MMM d"
+                      }}</span>
+                    </div>
+
+                    <div *ngIf="task.user" class="assignee-avatar">
+                      {{ getInitials(task.user) }}
                     </div>
                   </div>
                 </mat-card>
@@ -266,12 +225,9 @@
               </div>
               <button
                 mat-stroked-button
-                class="w-100 text-start"
+                class="w-100 text-start p-20 m-t-16"
                 (click)="
-                  openDialog('Add', {
-                    columnId: column.id,
-                    columnName: column.name
-                  })
+                  handleCreateTaskClick(column)
                 "
               >
                 <mat-icon>add</mat-icon>

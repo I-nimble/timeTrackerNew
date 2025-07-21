@@ -6,7 +6,7 @@
           <mat-form-field appearance="outline" class="w-100 hide-hint">
             <input
               matInput
-              placeholder="Search Employee"
+              placeholder="Search Team Member"
               (keyup)="applyFilter($any($event.target).value)"
             />
             <mat-icon matSuffix>
@@ -24,8 +24,8 @@
           </mat-form-field>
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
-          <button mat-flat-button (click)="openDialog('Add', {})" color="primary">
-            Add Employee
+          <button mat-flat-button (click)="openDialog('Invite', {companyId})" color="primary">
+            Add Team Member
           </button>
         </div>
       </div>
