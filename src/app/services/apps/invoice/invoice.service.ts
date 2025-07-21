@@ -26,6 +26,10 @@ export class InvoiceService {
     return this.http.get(`${this.apiUrl}/invoice/${id}`);
   }
 
+  approveInvoice(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/invoice/${id}/approve`, {id});
+  }
+
   deleteInvoice(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/invoice/${id}`);
   }

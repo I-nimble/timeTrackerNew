@@ -15,6 +15,7 @@ import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-edit-invoice',
@@ -40,6 +41,7 @@ export class AppEditInvoiceComponent {
   });
   displayedColumns: string[] = ['itemName', 'total'];
   companies: any[] = [];
+  clients: any[] = [];
   statusOptions = [
     { id: 1, name: 'Paid' },
     { id: 2, name: 'Pending' },
@@ -54,12 +56,13 @@ export class AppEditInvoiceComponent {
     private companiesService: CompaniesService,
     private fb: UntypedFormBuilder,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private usersService: UsersService,
   ) {
     this.invoiceForm = this.fb.group({
       status_id: ['', Validators.required],
       due_date: ['', Validators.required],
-      company_id: ['', Validators.required],
+      user_id: ['', Validators.required],
       description: ['', Validators.required]
     });
   }
@@ -68,6 +71,10 @@ export class AppEditInvoiceComponent {
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
     this.loadCompanies();
     this.loadInvoiceDetail();
+    this.usersService.getUsers({}).subscribe(users => {
+      this.clients = users.filter((user:any) => user.role == 3 && user.active == 1);
+      console.log(this.clients)
+    })
   }
 
   private loadCompanies(): void {
@@ -86,7 +93,7 @@ export class AppEditInvoiceComponent {
         this.invoiceForm.patchValue({
           status_id: data.status?.id,
           due_date: new Date(data?.due_date),
-          company_id: data.user?.company?.id,
+          user_id: data.user?.company?.id,
           description: data.description
         });
       }

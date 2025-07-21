@@ -5,6 +5,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
     selector: 'app-invoice-view',
@@ -25,7 +26,8 @@ export class AppInvoiceViewComponent {
 
   constructor(
     private activatedRouter: ActivatedRoute,
-    private invoiceService: InvoiceService
+    private invoiceService: InvoiceService,
+    public snackBar: MatSnackBar
   ) {}
 
    ngOnInit(): void {
@@ -53,6 +55,20 @@ export class AppInvoiceViewComponent {
         ...value,
         tableItems: tableData
       };
+    });
+  }
+
+  approveInvoice() {
+    this.invoiceService.approveInvoice(this.id()).subscribe({
+      next: (response) => {
+        this.snackBar.open('Invoice approved successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadInvoiceDetail();
+      },
+      error: (error) => {
+        console.error('Error approving invoice:', error);
+      }
     });
   }
 }

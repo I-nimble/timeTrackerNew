@@ -23,12 +23,16 @@
         <div class="col-sm-6">
            <mat-form-field appearance="outline" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Client</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
+            <mat-select
+              [(ngModel)]="invoiceDetail().user_id"
+              name="user_id"
+              required
+              (selectionChange)="handleCompanySelection($event)">
               <mat-option
-                *ngFor="let company of companies"
-                [value]="company.id"
+                *ngFor="let client of clients"
+                [value]="client.id"
               >
-                {{ company.name }}
+                {{ client.name }} {{ client.last_name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
