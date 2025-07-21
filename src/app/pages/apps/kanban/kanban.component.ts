@@ -258,9 +258,14 @@ export class AppKanbanComponent implements OnInit {
       task_attachments: taskData.task_attachments,
     };
 
-    this.kanbanService.addTaskToBoard(newTask).subscribe(() => {
-      this.loadTasks(this.selectedBoardId);
-      this.showSnackbar('Task added to board successfully!');
+    this.kanbanService.addTaskToBoard(newTask).subscribe({
+      next: () => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Task added to board successfully!');
+      },
+      error: (error: any) => {
+        this.showSnackbar(error.error.message);
+      },
     });
   }
 
@@ -321,5 +326,27 @@ export class AppKanbanComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  getInitials(user: any) {
+    return user.name.charAt(0).toUpperCase().concat(user.last_name.charAt(0).toUpperCase());
+  }
+
+  isOverdue(date: any) {
+    const today = new Date();
+    const dueDate = new Date(date);
+    return dueDate < today;
+  }
+
+  handleCreateTaskClick(column: any) {
+    if(!this.selectedBoardId) {
+      this.showSnackbar('Please select a board to add a task');
+      return;
+    }
+    this.openDialog('Add', {
+      columnId: column.id,
+      columnName: column.name,
+      company_id: this.selectedBoard.company_id
+    })
   }
 }
