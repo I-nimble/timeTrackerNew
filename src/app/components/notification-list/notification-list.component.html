@@ -1,3 +1,12 @@
+<mat-card class="cardWithShadow mb-3">
+  <mat-card-content class="d-flex justify-content-between align-items-center">
+    <span class="f-w-600 f-s-16">Notifications</span>
+    <button mat-flat-button color="primary" (click)="markAsRead(notificationsDataSource.data)" class="f-s-14">
+      Mark all as read
+    </button>
+  </mat-card-content>
+</mat-card>
+
 <mat-card class="cardWithShadow">
   <mat-card-content class="p-t-0">
     <div class="table-responsive">
@@ -31,7 +40,7 @@
               {{ notification.createdAt | date: 'MMM d, y' }}
             </span>
             <button *ngIf="notification.users_notifications.status !== 2" 
-                    (click)="markAsRead(notification)" 
+                    (click)="markAsRead([notification])" 
                     mat-button>
               Mark as read
             </button>
@@ -60,7 +69,7 @@
                   {{ notification.createdAt | date: 'MMM d, y' }}
                 </div>
                 <button *ngIf="notification.users_notifications.status !== 2" 
-                        (click)="markAsRead(notification)" 
+                        (click)="markAsRead([notification])" 
                         mat-button
                         class="mt-1 m-l-0">
                   Mark as read

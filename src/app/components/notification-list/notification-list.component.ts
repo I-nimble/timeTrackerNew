@@ -11,6 +11,8 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatCommonModule } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { ChangeDetectorRef, HostListener } from '@angular/core';
+import { Notification } from '../../models/Notifications';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-notification-list',
@@ -43,7 +45,8 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
     private webSocketService: WebSocketService,
     private router: Router,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar
   ) {}
 
   @HostListener('window:resize', [])
@@ -139,21 +142,34 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  markAsRead(notification: any) {
-    notification.users_notifications.status = 2;
+  markAsRead(notifications: Notification[]) {
     this.notificationsService
-      .update([notification], 2)
-      .subscribe((response) => {
-        this.notificationsDataSource.data = [
-          ...this.notificationsDataSource.data,
-        ];
-        this.notificationsService.notificationsChanged.next();
+      .update(notifications, 2)
+      .subscribe({
+        next: () => {
+          this.notificationsDataSource.data = [
+            ...this.notificationsDataSource.data,
+          ];
+          this.notificationsService.notificationsChanged.next();
+          this.loadNotifications();
+        },
+        error: (err) => {
+          this.openSnackBar('Error marking notifications as read', 'Close');
+          console.error(err);
+        }
       });
-    this.loadNotifications();
   }
 
   addNotification(notification: any) {
     this.notificationsDataSource.data.push(notification);
     this.notificationsDataSource.data = [...this.notificationsDataSource.data];
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }
