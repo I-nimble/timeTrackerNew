@@ -164,7 +164,7 @@ export class AppSideLoginComponent {
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;
-          this.openSnackBar('Error al iniciar sesión: ' + (err.error?.message || ' Intenta de nuevo'));
+          this.openSnackBar('Login error: ' + (err.error?.message || ' Please, try again.'));
         },
       });
     }
