@@ -8,8 +8,6 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { OkDialogComponent } from './ok-dialog/ok-dialog.component';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -39,14 +37,8 @@ export class AppEditInvoiceComponent {
       company: {}
     }
   });
-  displayedColumns: string[] = ['itemName', 'total'];
   companies: any[] = [];
   clients: any[] = [];
-  statusOptions = [
-    { id: 1, name: 'Paid' },
-    { id: 2, name: 'Pending' },
-    { id: 3, name: 'Overdue' }
-  ];
   
   invoiceForm: UntypedFormGroup;
 
@@ -60,10 +52,10 @@ export class AppEditInvoiceComponent {
     private usersService: UsersService,
   ) {
     this.invoiceForm = this.fb.group({
-      status_id: ['', Validators.required],
-      due_date: ['', Validators.required],
-      user_id: ['', Validators.required],
-      description: ['', Validators.required]
+        user_id: ['', Validators.required],
+        due_date: ['', Validators.required],
+        description: ['', Validators.required],
+        amount: ['', Validators.required]
     });
   }
 
@@ -73,7 +65,6 @@ export class AppEditInvoiceComponent {
     this.loadInvoiceDetail();
     this.usersService.getUsers({}).subscribe(users => {
       this.clients = users.filter((user:any) => user.role == 3 && user.active == 1);
-      console.log(this.clients)
     })
   }
 
@@ -90,11 +81,12 @@ export class AppEditInvoiceComponent {
       next: (data) => {
         this.invoiceDetail.set(data);
         this.transformDataForTable(data);
+        
         this.invoiceForm.patchValue({
-          status_id: data.status?.id,
-          due_date: new Date(data?.due_date),
-          user_id: data.user?.company?.id,
-          description: data.description
+          user_id: data.user_id,
+          due_date: new Date(data.due_date),
+          description: data.description,
+          amount: data.amount
         });
       }
     });
@@ -114,41 +106,41 @@ export class AppEditInvoiceComponent {
     });
   }
 
-  onSubmit(): void {
-    if (this.invoiceForm.valid) {
-      const updatedInvoice = {
-        ...this.invoiceDetail(),
-        status_id: this.invoiceForm.value.status_id,
-        due_date: this.invoiceForm.value?.due_date,
-        user: {
-          ...this.invoiceDetail().user,
-          company: {
-            ...this.invoiceDetail().user.company,
-            id: this.invoiceForm.value.company_id
-          }
-        },
-        description: this.invoiceForm.value.description
-      };
+  saveDetail(event: Event): void {
+    event.preventDefault();
+    
+    this.invoiceForm.markAllAsTouched();
 
-      this.invoiceService.updateInvoice(this.id(), updatedInvoice).subscribe({
-        next: () => {
-          this.snackBar.open('Invoice updated successfully!', 'Close', {
-            duration: 3000,
-          });
-          this.router.navigate(['/apps/invoice']);
-        },
-        error: (err) => {
-          console.error('Error updating invoice:', err);
-          this.snackBar.open('Error updating invoice', 'Close', {
-            duration: 3000,
-          });
-        }
-      });
+    if (this.invoiceDetail()?.user_id == null || 
+        this.invoiceDetail()?.due_date == null || 
+        this.invoiceDetail()?.description == null || 
+        this.invoiceDetail()?.amount == null) {
+      this.snackBar.open('Please fill all required fields.', 'Close', { duration: 3000 });
+      return;
     }
-  }
 
-  saveDetail(event: any) {
+    const invoiceData = this.invoiceForm.value;
 
+    const selectedClient = this.clients.find((c: any) => c.id === invoiceData.user_id);
+
+    const company_id = selectedClient?.company?.id || null;
+
+
+    const updatedInvoice = {
+      ...this.invoiceDetail(),
+      company_id: company_id,
+    };
+
+    this.invoiceService.updateInvoice(this.id(), updatedInvoice).subscribe({
+      next: () => {
+        this.snackBar.open('Invoice updated successfully!', 'Close', { duration: 3000 });
+        this.router.navigate(['/apps/invoice']);
+      },
+      error: (err) => {
+        this.snackBar.open('Error updating invoice', 'Close', { duration: 3000 });
+        console.error(err);
+      }
+    });
   }
 
   handleCompanySelection(event: any) {
