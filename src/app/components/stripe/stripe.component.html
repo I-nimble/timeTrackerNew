@@ -1,3 +1,4 @@
+<!-- stripe.component.html -->
 <mat-card class="cardWithShadow">
   <mat-card-content>
     <div class="row m-b-24">
@@ -9,7 +10,50 @@
     </div>
     <mat-divider></mat-divider>
 
-    <form [formGroup]="paymentForm" (ngSubmit)="handleSubmit()" class="p-t-24">
+    <!-- Estado de pago exitoso -->
+    <div *ngIf="paymentStatus === 'succeeded'" class="p-t-24">
+      <div class="success-payment text-center">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <h3 class="f-s-18 f-w-600 m-t-16">Payment Successful!</h3>
+        <p class="m-t-8">Thank you for your payment. Your transaction has been completed successfully.</p>
+        
+        <div class="payment-details m-t-24">
+          <div class="detail-row">
+            <span>Amount:</span>
+            <strong>${{ amount | number:'1.2-2' }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Invoice ID:</span>
+            <strong>{{ invoiceId }}</strong>
+          </div>
+          <div class="detail-row">
+            <span>Transaction ID:</span>
+            <strong>{{ paymentIntentId }}</strong>
+          </div>
+        </div>
+        
+        <div class="m-t-32">
+          <button 
+            mat-flat-button
+            color="primary"
+            (click)="viewInvoice()"
+            class="m-r-16"
+          >
+            View Invoice
+          </button>
+          <button 
+            mat-stroked-button
+            color="primary"
+            (click)="retryPayment()"
+          >
+            New Payment
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de pago -->
+    <form *ngIf="paymentStatus !== 'succeeded'" [formGroup]="paymentForm" (ngSubmit)="handleSubmit()" class="p-t-24">
       <div class="row">
         <div class="col-sm-6">
           <div class="form-group">
@@ -21,6 +65,7 @@
               placeholder="John Doe"
               class="form-control p-12"
               [ngClass]="{ 'is-invalid': paymentForm.get('name')?.touched && paymentForm.get('name')?.invalid }"
+              [disabled]="isLoading"
             >
             <div *ngIf="paymentForm.get('name')?.touched && paymentForm.get('name')?.invalid" class="invalid-feedback">
               Please enter your full name
@@ -38,6 +83,7 @@
               placeholder="john@example.com"
               class="form-control p-12"
               [ngClass]="{ 'is-invalid': paymentForm.get('email')?.touched && paymentForm.get('email')?.invalid }"
+              [disabled]="isLoading"
             >
             <div *ngIf="paymentForm.get('email')?.touched && paymentForm.get('email')?.invalid" class="invalid-feedback">
               Please enter a valid email address
@@ -49,9 +95,12 @@
       <div class="row m-t-16">
         <div class="col-12">
           <div class="form-group">
-            <span class="f-w-600 f-s-15 d-block m-b-8">Card Details</span>
-            <div id="card-element" class="stripe-card-element"></div>
-            <div *ngIf="cardError" class="text-danger stripe-error m-t-8">{{ cardError }}</div>
+            <span class="f-w-600 f-s-15 d-block m-b-8">Payment Method</span>
+            <div id="payment-element" class="stripe-payment-element"></div>
+            <div *ngIf="errorMessage" class="text-danger stripe-error m-t-8">
+              <mat-icon class="error-icon">error</mat-icon>
+              {{ errorMessage }}
+            </div>
           </div>
         </div>
       </div>
@@ -59,14 +108,25 @@
       <div class="row m-t-24">
         <div class="col-12 text-right">
           <button 
-            type="submit" 
-            class="btn-primary"
-            [disabled]="isLoading"
+            *ngIf="paymentStatus !== 'failed'"
+            mat-flat-button
+            type="submit"
+            color="primary"
+            [disabled]="isLoading || paymentForm.invalid"
           >
             <span *ngIf="!isLoading">Pay ${{amount | number:'1.2-2'}}</span>
             <span *ngIf="isLoading">
-              <i class="fa fa-spinner fa-spin m-r-8"></i> Processing...
+              <mat-icon class="spinner-icon">autorenew</mat-icon> Processing...
             </span>
+          </button>
+
+          <button 
+            *ngIf="paymentStatus === 'failed'"
+            mat-flat-button
+            color="primary"
+            (click)="retryPayment()"
+          >
+            <mat-icon>refresh</mat-icon> Try Again
           </button>
         </div>
       </div>

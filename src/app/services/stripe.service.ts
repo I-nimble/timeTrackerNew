@@ -18,6 +18,16 @@ export class StripeService {
       return this.http.get(`${environment.apiUrl}/${id}`);
   }
 
+  createPaymentIntent(data: { amount: number; currency: string; invoiceId?: string }): Observable<any> {
+  const headers = new HttpHeaders({'content-type':'application/json'});
+  return this.http.post<any>(`${environment.apiUrl}/stripe/checkout`, data, { headers });
+}
+
+updateInvoiceStatus(invoiceId: string, status: 'paid' | 'unpaid'): Observable<any> {
+  const headers = new HttpHeaders({'content-type':'application/json'});
+  return this.http.patch<any>(`${environment.apiUrl}/stripe/invoices/${invoiceId}`, { status }, { headers });
+}
+
   // charge(body: any){
   //   const headers = new HttpHeaders({'content_type':'application/json'})
   //   return this.http.post<any>(environment.apiUrl+'/stripe/checkout', body, {headers})
