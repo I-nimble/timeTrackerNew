@@ -51,29 +51,54 @@ export class StripeComponent implements OnInit, AfterViewInit, OnDestroy {
   async ngAfterViewInit() {
     if (!this.stripe) return;
 
-    
-    // Crear elementos de pago
-    const appearance = {
-      theme: 'stripe' as const,
-      variables: {
-        colorPrimary: '#6772e5',
-        colorBackground: '#ffffff',
-        colorText: '#32325d',
-        colorDanger: '#df1b41',
-        fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        spacingUnit: '2px',
-        borderRadius: '4px'
-      }
-    };
+    if (!this.clientSecret) {
+    const response = await firstValueFrom(this.stripeService.createPaymentIntent({
+      amount: this.amount * 100,
+      currency: 'usd',
+      invoiceId: this.invoiceId,
+    }));
+    this.clientSecret = response.clientSecret;
+  }
+  
+  if (typeof this.clientSecret !== 'string') return;
 
-    this.elements = this.stripe.elements({ appearance });
-    this.paymentElement = this.elements.create('payment');
-    this.paymentElement.mount('#payment-element');
+    const appearance = {
+    theme: 'stripe' as const,
+    variables: {
+      colorPrimary: '#6772e5',
+      colorBackground: '#ffffff',
+      colorText: '#32325d',
+      colorDanger: '#df1b41',
+      fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+      spacingUnit: '2px',
+      borderRadius: '4px'
+    }
+  };
+
+  const options = {
+    layout: {
+      type: 'accordion',
+      defaultCollapsed: false,
+      radios: true,
+      spacedAccordionItems: false
+    }
+  };
+
+    this.elements = this.stripe.elements({
+    clientSecret: this.clientSecret,
+    appearance
+  });
+    this.paymentElement = (this.elements as any).create('payment', options);
+    this.paymentElement?.mount('#payment-element');
 
     // Escuchar cambios en el elemento de pago
-    this.paymentElement.on('change', (event: StripePaymentElementChangeEvent) => {
-    //this.errorMessage = event.error ? event.error.message : null;
-  });
+    this.paymentElement?.on('change', (event: any) => {
+  if (event.error) {
+    this.errorMessage = event.error.message;
+  } else {
+    this.errorMessage = null;
+  }
+});
   }
 
   ngOnDestroy() {
