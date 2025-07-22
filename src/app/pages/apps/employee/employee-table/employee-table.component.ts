@@ -126,7 +126,14 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.getEmployees.emit();
+      if (result?.event === 'Delete' && result?.id) {
+        this.dataSourceTable.data = this.dataSourceTable.data.filter(
+          (emp: any) => emp.profile.id !== result.id
+        );
+      }
+      else {
+        this.getEmployees.emit();
+      }
     });
   }
 
@@ -368,7 +375,7 @@ export class AppEmployeeDialogContentComponent {
     } else if (this.action === 'Delete') {
       this.employeesService.deleteEmployee(this.local_data.profile.id).subscribe({
         next: () => {
-          this.dialogRef.close({ event: 'Delete' });
+          this.dialogRef.close({ event: 'Delete', id: this.local_data.profile.id });
           this.openSnackBar('Team Member Deleted successfully!', 'Close');
         },
         error: (err:any) => {
