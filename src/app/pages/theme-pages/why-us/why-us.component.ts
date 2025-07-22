@@ -89,7 +89,7 @@ export class AppWhyUsComponent {
       text: "We didn’t realize how scattered our operations were until we moved everything into Inimble. One login changed everything—from tracking hours to managing projects.",
       name: 'Steven R.',
       role: 'CEO of a Healthcare Startup',
-      image: 'assets/images/profile/user-1.jpg',
+      image: 'assets/images/profile/testimonial1.png',
     },
     {
       id: 2,
@@ -97,7 +97,7 @@ export class AppWhyUsComponent {
       text: "The talent was great, but what really surprised us was the platform. It gave our firm structure we didn’t know we were missing.",
       name: 'Luis G.',
       role: 'CPA & Business Consultant',
-      image: 'assets/images/profile/user-2.jpg',
+      image: 'assets/images/profile/testimonial2.png',
     },
     {
       id: 3,
@@ -105,7 +105,7 @@ export class AppWhyUsComponent {
       text: "Our onboarding used to take weeks. With Inimble, new hires are set up and productive within days.",
       name: 'Claudia T.',
       role: 'Managing Partner, Law Firm',
-      image: 'assets/images/profile/user-3.jpg',
+      image: 'assets/images/profile/testimonial3.png',
     },
   ];
 

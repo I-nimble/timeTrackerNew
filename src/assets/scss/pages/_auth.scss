@@ -4,8 +4,10 @@
   min-height: 100vh;
   display: flex;
   background-size: cover;
+  background-position: center;
   align-items: center;
   overflow: hidden;
+  background-image: url("../../images/backgrounds/background-login-18.png");
 }
 
 .auth-title {
