@@ -183,7 +183,8 @@
             </a>
             <a
               mat-icon-button
-              [routerLink]="['/theme-pages/pricing']"
+              [routerLink]="['/apps/pricing']"
+              [queryParams]="{ invoiceId: element.id }"
               class="d-flex align-items-center justify-content-center"
               *ngIf="role == '3'"
             >

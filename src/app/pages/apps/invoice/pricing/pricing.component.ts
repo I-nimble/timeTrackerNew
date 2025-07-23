@@ -1,286 +1,86 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { RouterLink } from '@angular/router';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppIntakeFormComponent } from '../../intake/intake-form.component';
-import { AppHeaderComponent } from '../header/header.component';
-
-// card 1
-interface rules {
-  title: string;
-  limit: boolean;
-}
+import { ViewportScroller, CommonModule } from "@angular/common"
+import { Component } from "@angular/core"
+import { FormsModule } from "@angular/forms"
+import { MatButtonModule } from "@angular/material/button"
+import { MatCardModule } from "@angular/material/card"
+import { MatRadioModule } from "@angular/material/radio"
+import { TablerIconsModule } from "angular-tabler-icons"
+import { MaterialModule } from "src/app/material.module"
+import { CoreService } from "src/app/services/core.service"
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { ActivatedRoute } from '@angular/router';
+import { BankTransferComponent } from "src/app/components/stripe/bank-transfer/bank-transfer.component"
 
 interface pricecards {
-  id: number;
-  imgSrc: string;
-  plan: string;
-  btnText: string;
-  free: boolean;
-  planPrice?: Number;
-  popular?: boolean;
-  rules: rules[];
-}
-
-interface apps {
-  id: number;
-  img: string;
-  title: string;
-  subtitle: string;
-  link: string;
-}
-
-interface quicklinks {
-  id: number;
-  title: string;
-  link: string;
-}
-
-interface demos {
-  id: number;
-  name: string;
-  subtext?: string;
-  url: string;
-  imgSrc: string;
-}
-
-interface testimonials {
-  id: number;
-  name: string;
-  subtext: string;
-  imgSrc: string;
-}
-
-interface features {
-  id: number;
-  icon: string;
-  title: string;
-  subtext: string;
-  color: string;
+  id: number
+  plan: string
+  btnText: string
+  popular?: boolean
 }
 
 @Component({
-    selector: 'app-pricing',
-    imports: [MaterialModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
-    templateUrl: './pricing.component.html',
+  selector: "app-pricing-stripe",
+  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule, BankTransferComponent],
+  templateUrl: "./pricing.component.html",
+  styleUrl: './pricing.component.scss'
 })
-export class AppPricingComponent {
-  @Input() showToggle = true;
-    @Output() toggleMobileNav = new EventEmitter<void>();
-    @Output() toggleMobileFilterNav = new EventEmitter<void>();
-    @Output() toggleCollapsed = new EventEmitter<void>();
-  show = false;
-  options = this.settings.getOptions();
+export class AppPricingStripeComponent {
+  public selectedPaymentMethod = ""
+  selectedInvoiceId: string | null = null;
 
-  // yearlyPrice: any = (a: any, b: number) => ;
-
-  yearlyPrice(a: any) {
-    return a * 12;
+  onPaymentMethodChange(method: string) {
+    this.selectedPaymentMethod = method
   }
 
-  // card 1
+  getPaymentMethod(cardId: number): string {
+    switch (cardId) {
+      case 1:
+        return "card"
+      case 2:
+        return "transfer"
+      case 3:
+        return "check"
+      default:
+        return "card"
+    }
+  }
+
   pricecards: pricecards[] = [
     {
       id: 1,
-      plan: 'Silver',
-      imgSrc: '/assets/images/backgrounds/silver.png',
-      btnText: 'Choose Silver',
-      free: true,
-      rules: [
-        {
-          title: '3 Members',
-          limit: true,
-        },
-        {
-          title: 'Single Device',
-          limit: true,
-        },
-        {
-          title: '50GB Storage',
-          limit: false,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: false,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: false,
-        },
-      ],
+      plan: "Card",
+      btnText: "Choose Card Payment",
     },
     {
       id: 2,
-      plan: 'Bronze',
-      imgSrc: '/assets/images/backgrounds/bronze.png',
-      btnText: 'Choose Bronze',
-      free: false,
+      plan: "Transfer",
+      btnText: "Choose Transfer Payment",
       popular: true,
-      planPrice: 10.99,
-      rules: [
-        {
-          title: '5 Members',
-          limit: true,
-        },
-        {
-          title: 'Multiple Device',
-          limit: true,
-        },
-        {
-          title: '80GB Storage',
-          limit: false,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: false,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: false,
-        },
-      ],
     },
     {
       id: 3,
-      plan: 'Gold',
-      imgSrc: '/assets/images/backgrounds/gold.png',
-      btnText: 'Choose Gold ',
-      free: false,
-      planPrice: 22.99,
-      rules: [
-        {
-          title: 'Unlimited Members',
-          limit: true,
-        },
-        {
-          title: 'Multiple  Device',
-          limit: true,
-        },
-        {
-          title: '150GB  Storage',
-          limit: true,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: true,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: true,
-        },
-      ],
+      plan: "Check",
+      btnText: "Choose Check Payment",
     },
-    {
-      id: 4,
-      plan: 'Silver',
-      imgSrc: '/assets/images/backgrounds/silver.png',
-      btnText: 'Choose Silver',
-      free: true,
-      rules: [
-        {
-          title: '3 Members',
-          limit: true,
-        },
-        {
-          title: 'Single Device',
-          limit: true,
-        },
-        {
-          title: '50GB Storage',
-          limit: false,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: false,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: false,
-        },
-      ],
-    },
-    {
-      id: 5,
-      plan: 'Bronze',
-      imgSrc: '/assets/images/backgrounds/bronze.png',
-      btnText: 'Choose Bronze',
-      free: false,
-      popular: true,
-      planPrice: 10.99,
-      rules: [
-        {
-          title: '5 Members',
-          limit: true,
-        },
-        {
-          title: 'Multiple Device',
-          limit: true,
-        },
-        {
-          title: '80GB Storage',
-          limit: false,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: false,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: false,
-        },
-      ],
-    },
-    {
-      id: 6,
-      plan: 'Gold',
-      imgSrc: '/assets/images/backgrounds/gold.png',
-      btnText: 'Choose Gold ',
-      free: false,
-      planPrice: 22.99,
-      rules: [
-        {
-          title: 'Unlimited Members',
-          limit: true,
-        },
-        {
-          title: 'Multiple  Device',
-          limit: true,
-        },
-        {
-          title: '150GB  Storage',
-          limit: true,
-        },
-        {
-          title: 'Monthly Backups',
-          limit: true,
-        },
-        {
-          title: 'Permissions & workflows',
-          limit: true,
-        },
-      ],
-    },
-  ];
+  ]
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private route: ActivatedRoute
   ) {
+    this.route.queryParams.subscribe(params => {
+      if (params['invoiceId']) {
+        this.selectedInvoiceId = params['invoiceId'];
+      }
+    });
   }
 
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
 
-  apps: apps[] = [
+  apps: any[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -339,7 +139,7 @@ export class AppPricingComponent {
     },
   ];
 
-  demos: demos[] = [
+  demos: any[] = [
     {
       id: 1,
       imgSrc: '/assets/images/landingpage/demos/dashboard.png',
@@ -384,7 +184,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  appdemos: demos[] = [
+  appdemos: any[] = [
     // {
     //   id: 1,
     //   imgSrc: '/assets/images/landingpage/apps/app-calendar.jpg',
@@ -471,7 +271,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  testimonials: testimonials[] = [
+  testimonials: any[] = [
     {
       id: 1,
       imgSrc: '/assets/images/profile/user-1.jpg',
@@ -492,7 +292,7 @@ export class AppPricingComponent {
     },
   ];
 
-  features: features[] = [
+  features: any[] = [
     {
       id: 1,
       icon: 'wand',
@@ -596,7 +396,7 @@ export class AppPricingComponent {
     // },
   ];
 
-  quicklinks: quicklinks[] = [
+  quicklinks: any[] = [
     {
       id: 1,
       title: 'Pricing Page',
