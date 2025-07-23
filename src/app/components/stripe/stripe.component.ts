@@ -53,7 +53,7 @@ export class StripeComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (!this.clientSecret) {
     const response = await firstValueFrom(this.stripeService.createPaymentIntent({
-      amount: this.amount * 100,
+      amount: this.amount,
       currency: 'usd',
       invoiceId: this.invoiceId,
     }));

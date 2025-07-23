@@ -9,50 +9,62 @@
 <div class="row m-t-32 p-t-32">
   @for(pricecard of pricecards; track pricecard.plan) {
   <div class="col-sm-6 col-lg-4">
-    <mat-card class="cardWithShadow payment-card" [class.selected]="selectedPaymentMethod === getPaymentMethod(pricecard.id)">
+    <mat-card
+      class="cardWithShadow payment-card"
+      [class.selected]="
+        selectedPaymentMethod === getPaymentMethod(pricecard.id)
+      "
+    >
       <mat-card-content class="p-24 text-center">
-        
         <!-- Icon Badge at top -->
         <div class="icon-badge m-b-24">
           @if(pricecard.id === 1) {
-            <i-tabler name="credit-card" class="icon-48 text-primary"></i-tabler>
+          <i-tabler name="credit-card" class="icon-48 text-primary"></i-tabler>
           } @else if(pricecard.id === 2) {
-            <i-tabler name="building-bank" class="icon-48 text-primary"></i-tabler>
+          <i-tabler
+            name="building-bank"
+            class="icon-48 text-primary"
+          ></i-tabler>
           } @else if(pricecard.id === 3) {
-            <i-tabler name="file-check" class="icon-48 text-primary"></i-tabler>
+          <i-tabler name="file-check" class="icon-48 text-primary"></i-tabler>
           }
         </div>
 
         <!-- Payment Method Content -->
         <div class="payment-content m-b-32">
           @if(pricecard.id === 1) {
-            <!-- Card Payment Option -->
-            <div>
-              <div class="payment-info">
-                <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Card</h3>
-                <p class="f-s-14 text-muted m-0">Pay with Credit/Debit Card</p>
-              </div>
+          <!-- Card Payment Option -->
+          <div>
+            <div class="payment-info">
+              <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Card</h3>
+              <p class="f-s-14 text-muted m-0">Pay with Credit/Debit Card</p>
             </div>
+          </div>
           } @else if(pricecard.id === 2) {
-            <!-- Transfer Payment Option -->
-            <div>
-              <div class="payment-info">
-                <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Transfer</h3>
-                <p class="f-s-14 text-muted m-0">Pay with Bank Transfer</p>
-              </div>
+          <!-- Transfer Payment Option -->
+          <div>
+            <div class="payment-info">
+              <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Transfer</h3>
+              <p class="f-s-14 text-muted m-0">Pay with Bank Transfer</p>
             </div>
+          </div>
           } @else if(pricecard.id === 3) {
-            <!-- Check Payment Option -->
-            <div>
-              <div class="payment-info">
-                <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Check</h3>
-                <p class="f-s-14 text-muted m-0">Pay with Check</p>
-              </div>
+          <!-- Check Payment Option -->
+          <div>
+            <div class="payment-info">
+              <h3 class="f-s-24 f-w-700 m-b-8 text-dark">Check</h3>
+              <p class="f-s-14 text-muted m-0">Pay with Check</p>
             </div>
+          </div>
           }
         </div>
 
-        <button mat-flat-button color="primary" class="w-100 payment-button">
+        <button
+          mat-flat-button
+          color="primary"
+          class="w-100 payment-button"
+          (click)="onPaymentMethodChange(getPaymentMethod(pricecard.id))"
+        >
           {{ pricecard.btnText }}
           <i-tabler name="arrow-right" class="icon-16 m-l-8"></i-tabler>
         </button>
@@ -60,4 +72,11 @@
     </mat-card>
   </div>
   }
+</div>
+
+<div *ngIf="selectedPaymentMethod === 'card'" class="m-t-32">
+  <app-stripe
+    [amount]="selectedAmount"
+    [invoiceId]="selectedInvoiceId"
+  ></app-stripe>
 </div>

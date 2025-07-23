@@ -1,4 +1,4 @@
-import { ViewportScroller } from "@angular/common"
+import { ViewportScroller, CommonModule } from "@angular/common"
 import { Component } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { MatButtonModule } from "@angular/material/button"
@@ -7,6 +7,7 @@ import { MatRadioModule } from "@angular/material/radio"
 import { TablerIconsModule } from "angular-tabler-icons"
 import { MaterialModule } from "src/app/material.module"
 import { CoreService } from "src/app/services/core.service"
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 
 interface pricecards {
   id: number
@@ -17,16 +18,19 @@ interface pricecards {
 
 @Component({
   selector: "app-pricing",
-  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule],
+  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule],
   templateUrl: "./pricing.component.html",
   styleUrl: './pricing.component.scss'
 })
 export class AppPricingComponent {
-  public selectedPaymentMethod = "card"
+  public selectedPaymentMethod = ""
 
   onPaymentMethodChange(method: string) {
     this.selectedPaymentMethod = method
   }
+
+  selectedAmount = 1;
+  selectedInvoiceId = "12345";
 
   getPaymentMethod(cardId: number): string {
     switch (cardId) {
