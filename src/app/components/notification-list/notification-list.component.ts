@@ -127,18 +127,18 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   }
 
   loadNotifications() {
-    this.notificationsService.get().subscribe((notifications) => {
-      const allNotifications = [...notifications];
-      allNotifications.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      this.notificationsDataSource = new MatTableDataSource<any>(
-        allNotifications
-      );
-      this.notificationsDataSource.paginator = this.paginator;
-      this.loaded = true;
+    this.notificationsService.get().subscribe({
+      next: (notifications) => {
+        this.notificationsDataSource = new MatTableDataSource<any>(
+          notifications
+        );
+        this.notificationsDataSource.paginator = this.paginator;
+        this.loaded = true;
+      },
+      error: (err) => {
+        this.openSnackBar('Error loading notifications', 'Close');
+        console.error(err);
+      }
     });
   }
 
