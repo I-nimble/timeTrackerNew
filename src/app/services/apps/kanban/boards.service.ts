@@ -23,7 +23,8 @@ export class BoardsService {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 
-  getBoardWithTasks(id: number): Observable<any> {
+  getBoardWithTasks(id: number, days?: number): Observable<any> {
+    if(days) return this.http.get<any>(`${this.API_URI}/tasks/${id}/${days}`);
     return this.http.get<any>(`${this.API_URI}/tasks/${id}`);
   }
   
