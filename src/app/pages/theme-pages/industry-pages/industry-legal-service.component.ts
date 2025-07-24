@@ -9,7 +9,7 @@ import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
-import { MatSidenav } from '@angular/material/sidenav';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -49,18 +49,16 @@ interface features {
 }
 
 @Component({
-  selector: 'app-header',
+  selector: 'app-legal-services',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
-  templateUrl: './header.component.html',
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent, AppHeaderComponent],
+  templateUrl: './industry-legal-services.component.html',
 })
-export class AppHeaderComponent {
+export class AppIndustryLegalServicesComponent {
   @Input() showToggle = true;
-  @Input() showMenus: boolean = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
-  @Input() filterNavRight?: MatSidenav;
 
   options = this.settings.getOptions();
   panelOpenState = false;
@@ -109,63 +107,63 @@ export class AppHeaderComponent {
   ];
 
   apps: apps[] = [
-      {
-        id: 1,
-        img: 'https://cdn.prod.website-files.com/681e77695ed0fbc63d5d2ce6/685c3544cf55db0b722bc12f_Bookkeeper.svg',
-        title: 'Others',
-        subtitle: 'Tech Startups, Marketing Services, General Business Support',
-        link: '/landingpage/industry/other',
-      },
-      {
-        id: 2,
-        img: '/assets/images/svgs/icon-dd-cart.svg',
-        title: 'Other legal services',
-        subtitle: 'New task',
-        link: '/apps/todo',
-      },
-      {
-        id: 3,
-        img: '/assets/images/svgs/icon-dd-invoice.svg',
-        title: 'Personal Injury',
-        subtitle: 'Get latest invoice',
-        link: '/apps/invoice',
-      },
-      {
-        id: 4,
-        img: '/assets/images/svgs/icon-dd-date.svg',
-        title: 'Real estate',
-        subtitle: 'Get Dates',
-        link: '/apps/calendar',
-      },
-      {
-        id: 5,
-        img: '/assets/images/svgs/icon-dd-mobile.svg',
-        title: 'Workers',
-        subtitle: '2 Unsaved Contacts',
-        link: '/apps/contacts',
-      },
-      // {
-      //   id: 6,
-      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      //   title: 'Tickets App',
-      //   subtitle: 'Create new ticket',
-      //   link: '/apps/tickets',
-      // },
-      // {
-      //   id: 7,
-      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
-      //   title: 'Email App',
-      //   subtitle: 'Get new emails',
-      //   link: '/apps/email/inbox',
-      // },
-      // {
-      //   id: 8,
-      //   img: '/assets/images/svgs/icon-dd-application.svg',
-      //   title: 'Courses',
-      //   subtitle: 'Create new course',
-      //   link: '/apps/courses',
-      // },
-    ];
+    {
+      id: 1,
+      img: 'https://cdn.prod.website-files.com/681e77695ed0fbc63d5d2ce6/685c3544cf55db0b722bc12f_Bookkeeper.svg',
+      title: 'Others',
+      subtitle: 'Messages & Emails',
+      link: '/apps/chat',
+    },
+    {
+      id: 2,
+      img: '/assets/images/svgs/icon-dd-cart.svg',
+      title: 'Other legal services',
+      subtitle: 'New task',
+      link: '/apps/todo',
+    },
+    {
+      id: 3,
+      img: '/assets/images/svgs/icon-dd-invoice.svg',
+      title: 'Personal Injury',
+      subtitle: 'Get latest invoice',
+      link: '/apps/invoice',
+    },
+    {
+      id: 4,
+      img: '/assets/images/svgs/icon-dd-date.svg',
+      title: 'Real estate',
+      subtitle: 'Get Dates',
+      link: '/apps/calendar',
+    },
+    {
+      id: 5,
+      img: '/assets/images/svgs/icon-dd-mobile.svg',
+      title: 'Workers',
+      subtitle: '2 Unsaved Contacts',
+      link: '/apps/contacts',
+    },
+    // {
+    //   id: 6,
+    //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
+    //   title: 'Tickets App',
+    //   subtitle: 'Create new ticket',
+    //   link: '/apps/tickets',
+    // },
+    // {
+    //   id: 7,
+    //   img: '/assets/images/svgs/icon-dd-message-box.svg',
+    //   title: 'Email App',
+    //   subtitle: 'Get new emails',
+    //   link: '/apps/email/inbox',
+    // },
+    // {
+    //   id: 8,
+    //   img: '/assets/images/svgs/icon-dd-application.svg',
+    //   title: 'Courses',
+    //   subtitle: 'Create new course',
+    //   link: '/apps/courses',
+    // },
+  ];
 
   demos: demos[] = [
     {
@@ -321,108 +319,35 @@ export class AppHeaderComponent {
   ];
 
   features: features[] = [
-    {
-      id: 1,
-      icon: 'wand',
-      title: 'Expert recruitment services',
-      color: 'primary',
-      subtext:
-        'Our team of HR professionals recruit the best talent worldwide while also making sure they are the perfect fit for your business.',
-    },
-    {
-      id: 2,
-      icon: 'shield-lock',
-      title: 'HR integration and management',
-      color: 'primary',
-      subtext:
-        'Once recruited, new team members are smoothly integrated into your remote team through our specialized management tools, focusing on performance, engagement, and collaboration. ',
-    },
-    {
-      id: 3,
-      icon: 'archive',
-      title: 'Dedicated performance and IT support',
-      color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
-    },
-    {
-      id: 4,
-      icon: 'chart-pie',
-      title: 'Integrate tools for remote work',
-      color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
-    },
-    // {
-    //   id: 5,
-    //   icon: 'tag',
-    //   title: 'Material ',
-    //   color: 'success',
-    //   subtext: 'Its been made with Material and full responsive layout.',
-    // },
-    // {
-    //   id: 9,
-    //   icon: 'adjustments',
-    //   title: 'Lots of Chart Options',
-    //   color: 'error',
-    //   subtext: 'You name it and we have it, Yes lots of variations for Charts.',
-    // },
-    // {
-    //   id: 7,
-    //   icon: 'language-katakana',
-    //   title: 'i18 Angular',
-    //   color: 'secondary',
-    //   subtext: 'i18 is a powerful internationalization framework.',
-    // },
-    // {
-    //   id: 13,
-    //   icon: 'calendar',
-    //   title: 'Calendar Design',
-    //   color: 'warning',
-    //   subtext: 'Calendar is available with our package & in nice design.',
-    // },
-
-    // {
-    //   id: 6,
-    //   icon: 'diamond',
-    //   title: '3400+ Font Icons',
-    //   color: 'primary',
-    //   subtext: 'Lots of Icon Fonts are included here in the package of Admin.',
-    // },
-    // {
-    //   id: 11,
-    //   icon: 'refresh',
-    //   title: 'Regular Updates',
-    //   color: 'primary',
-    //   subtext: 'We are constantly updating our pack with new features..',
-    // },
-    // {
-    //   id: 8,
-    //   icon: 'arrows-shuffle',
-    //   title: 'Easy to Customize',
-    //   color: 'secondary',
-    //   subtext: 'Customization will be easy as we understand your pain.',
-    // },
-    // {
-    //   id: 10,
-    //   icon: 'layers-intersect',
-    //   title: 'Lots of Table Examples',
-    //   color: 'success',
-    //   subtext: 'Tables are initial requirement and we added them.',
-    // },
-    // {
-    //   id: 14,
-    //   icon: 'messages',
-    //   title: 'Dedicated Support',
-    //   color: 'error',
-    //   subtext: 'We believe in supreme support is key and we offer that.',
-    // },
-    // {
-    //   id: 12,
-    //   icon: 'book',
-    //   title: 'Detailed Documentation',
-    //   color: 'warning',
-    //   subtext: 'Our Detailed Documentation Ensures Ease of Use',
-    // },
-  ];
+  {
+    id: 1,
+    icon: 'user-plus',
+    title: 'Dedicated remote assistants',
+    color: 'primary',
+    subtext: 'Get bilingual professionals trained specifically for your industry needs. Available full-time or part-time.'
+  },
+  {
+    id: 2,
+    icon: 'school',
+    title: 'Custom training & onboarding',
+    color: 'primary',
+    subtext: 'Personalized training programs to ensure seamless integration with your workflows and tools.'
+  },
+  {
+    id: 3,
+    icon: 'file-invoice',  
+    title: 'Legal-compliant payroll & contracts',
+    color: 'primary',
+    subtext: 'Full compliance with international labor laws and secure contract management.'
+  },
+  {
+    id: 4,
+    icon: 'brand-teams', 
+    title: 'Built-in task management & communication tools',
+    color: 'primary',
+    subtext: 'All-in-one platform for task assignment, progress tracking and team collaboration.'
+  },
+];
 
   quicklinks: quicklinks[] = [
     {

@@ -9,6 +9,7 @@ import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -50,7 +51,7 @@ interface features {
 @Component({
   selector: 'app-industry',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent, AppHeaderComponent],
   templateUrl: './industry.component.html',
 })
 export class AppIndustryComponent {
@@ -108,60 +109,60 @@ export class AppIndustryComponent {
   apps: apps[] = [
     {
       id: 1,
-      img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat Application',
+      img: 'https://cdn.prod.website-files.com/681e77695ed0fbc63d5d2ce6/685c3544cf55db0b722bc12f_Bookkeeper.svg',
+      title: 'Others',
       subtitle: 'Messages & Emails',
       link: '/apps/chat',
     },
     {
       id: 2,
       img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'Todo App',
+      title: 'Other legal services',
       subtitle: 'New task',
       link: '/apps/todo',
     },
     {
       id: 3,
       img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Invoice App',
+      title: 'Personal Injury',
       subtitle: 'Get latest invoice',
       link: '/apps/invoice',
     },
     {
       id: 4,
       img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Calendar App',
+      title: 'Real estate',
       subtitle: 'Get Dates',
       link: '/apps/calendar',
     },
     {
       id: 5,
       img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Contact Application',
+      title: 'Workers',
       subtitle: '2 Unsaved Contacts',
       link: '/apps/contacts',
     },
-    {
-      id: 6,
-      img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Tickets App',
-      subtitle: 'Create new ticket',
-      link: '/apps/tickets',
-    },
-    {
-      id: 7,
-      img: '/assets/images/svgs/icon-dd-message-box.svg',
-      title: 'Email App',
-      subtitle: 'Get new emails',
-      link: '/apps/email/inbox',
-    },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Courses',
-      subtitle: 'Create new course',
-      link: '/apps/courses',
-    },
+    // {
+    //   id: 6,
+    //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
+    //   title: 'Tickets App',
+    //   subtitle: 'Create new ticket',
+    //   link: '/apps/tickets',
+    // },
+    // {
+    //   id: 7,
+    //   img: '/assets/images/svgs/icon-dd-message-box.svg',
+    //   title: 'Email App',
+    //   subtitle: 'Get new emails',
+    //   link: '/apps/email/inbox',
+    // },
+    // {
+    //   id: 8,
+    //   img: '/assets/images/svgs/icon-dd-application.svg',
+    //   title: 'Courses',
+    //   subtitle: 'Create new course',
+    //   link: '/apps/courses',
+    // },
   ];
 
   demos: demos[] = [
