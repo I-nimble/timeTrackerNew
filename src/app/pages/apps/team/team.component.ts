@@ -113,7 +113,7 @@ export class TeamComponent {
 
   handleCompanySelection(event: any) {
     this.companyId = event.value;
-    this.dataSource = this.users.filter((user: any) => user.company_id === this.companyId);
+    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
   }
 
   loadCompany(): void {
@@ -131,9 +131,10 @@ export class TeamComponent {
     
     this.dataSource = this.users.filter(user => {
       return (
-        user.profile.name.toLowerCase().includes(filterValue) ||
+        (user.profile.name.toLowerCase().includes(filterValue) ||
         user.profile.last_name.toLowerCase().includes(filterValue) ||
-        user.email.toLowerCase().includes(filterValue)
+        user.email.toLowerCase().includes(filterValue))
+        && (this.companyId ? user.profile.company_id === this.companyId : true)
       );
     });
   }
