@@ -364,7 +364,8 @@ export class AppEmployeeDialogContentComponent {
         },
         error: (err: any) => {
           console.error('Error adding Team Member:', err);
-          this.openSnackBar('Error inviting Team Member', 'Close');
+          const errorMsg = err?.error?.message || 'Error inviting Team Member';
+          this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }
