@@ -8,8 +8,7 @@
     >
       <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
       <mat-select
-        [(ngModel)]="teamMemberId"
-        (selectionChange)="handleCompanySelection($event)"
+        [(ngModel)]="companyId" (selectionChange)="this.getTeamMembers(); getToDos()"
       >
         <mat-option *ngFor="let company of companies" [value]="company.id">
           {{ company.name }}
@@ -20,8 +19,7 @@
     <mat-form-field appearance="outline" style="width: max-content">
       <mat-label class="f-s-14 m-b-8">Select a Team Member</mat-label>
       <mat-select
-        [(ngModel)]="teamMemberId"
-        (selectionChange)="handleTeamMemberSelection($event)"
+        [(ngModel)]="teamMemberId" (selectionChange)="getToDos()"
       >
         <mat-option [value]="null">All</mat-option>
         <mat-option *ngIf="loggedInUser" [value]="loggedInUser.id">
