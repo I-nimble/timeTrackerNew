@@ -148,8 +148,6 @@ export class CalendarDialogComponent implements OnInit {
       company_id: eventData.company_id || null,
       employee_id: eventData.employee_id || null,
     });
-
-    console.log('Form patched with:', this.toDoForm.value);
   }
 
   formatDateToInput(date: Date): string {
@@ -370,19 +368,6 @@ export class AppFullcalendarComponent implements OnInit {
     });
   }
 
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.getTeamMembers();
-  }
-
-  handleTeamMemberSelection(event: any) {
-    if (!this.companyId) {
-      this.openSnackBar('Please select a company first', 'Close');
-      return;
-    }
-    this.getToDos();
-  }
-
   openSnackBar(message: string, action: string): void {
     this.snackBar.open(message, action, {
       duration: 2000,
@@ -392,11 +377,17 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   getToDos() {
-    const filterByPriority = (toDos: any[]) => {
+    const filterTasks = (toDos: any[]) => {
       return toDos
         .filter((toDo: any) => toDo.due_date)
         .filter((toDo: any) =>
           this.selectedPriority ? toDo.priority === this.selectedPriority : true
+        )
+        .filter((toDo: any) =>
+          this.companyId ? toDo.company_id === this.companyId : true
+        )
+        .filter((toDo: any) =>
+          this.teamMemberId ? toDo.employee_id === this.teamMemberId : true
         )
         .map((toDo: any) => {
           const priority = toDo.priority;
@@ -439,19 +430,11 @@ export class AppFullcalendarComponent implements OnInit {
         });
     };
 
-    if (this.teamMemberId === null) {
-      this.ratingsService.get().subscribe({
-        next: (toDos: any) => {
-          this.events.set(filterByPriority(toDos));
-        },
-      });
-    } else {
-      this.ratingsService.getByUser(this.teamMemberId).subscribe({
-        next: (toDos: any) => {
-          this.events.set(filterByPriority(toDos));
-        },
-      });
-    }
+    this.ratingsService.get().subscribe({
+      next: (toDos: any) => {
+        this.events.set(filterTasks(toDos));
+      },
+    });
   }
 
   private formatEventFromDialogResult(result: any): CalendarEvent {
