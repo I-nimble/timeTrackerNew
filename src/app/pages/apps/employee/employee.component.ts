@@ -131,9 +131,8 @@ export class AppEmployeeComponent {
     });
   }
 
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
+  handleCompanySelection() {
+    this.applyCombinedFilters();
   }
 
   loadCompany(): void {
@@ -146,18 +145,19 @@ export class AppEmployeeComponent {
   }
 
   applyFilter(filterValue: string): void {
-    filterValue = filterValue.trim()?.toLowerCase();
-    if (!filterValue) {
-      this.dataSource = [...this.users];
-      return;
-    }
-    
-    this.dataSource = this.users.filter(user => {
-      return (
-        user.profile.name?.toLowerCase().includes(filterValue) ||
-        user.profile.last_name?.toLowerCase().includes(filterValue) ||
-        user.email?.toLowerCase().includes(filterValue)
-      );
+    this.searchText = filterValue;
+    this.applyCombinedFilters();
+  }
+
+  applyCombinedFilters(): void {
+    const value = this.searchText.trim().toLowerCase();
+    this.dataSource = this.users.filter((user: any) => {
+      const matchesSearch =
+        (user.profile.name && user.profile.name.toLowerCase().includes(value)) ||
+        (user.profile.last_name && user.profile.last_name.toLowerCase().includes(value)) ||
+        (user.profile.email && user.profile.email.toLowerCase().includes(value));
+      const matchesCompany = this.companyId ? user.profile.company_id === this.companyId : true;
+      return matchesSearch && matchesCompany;
     });
   }
 
