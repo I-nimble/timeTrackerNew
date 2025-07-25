@@ -113,17 +113,24 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   downloadAttachment(filename: string) {
+    const attachment = this.attachments.find(
+      (att: any) => att.s3_filename === filename
+    );
+    const originalFileName = attachment?.file_name || filename;
     const url = this.attachmentsUrl + filename;
     fetch(url)
-      .then((response) => response.blob())
+      .then((response) => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.blob();
+      })
       .then((blob) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = filename;
+        a.download = originalFileName;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        URL.revokeObjectURL(a.href);
+        setTimeout(() => URL.revokeObjectURL(a.href), 100);
       })
       .catch((error) => {
         console.error('Download failed:', error);
