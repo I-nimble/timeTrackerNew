@@ -18,30 +18,13 @@
           <div class="col-lg-11">
             <div class="text-center">
               <h1 class="banner-title m-0 f-w-700">
-                Build Smarter Remote Teams—Across Every Industry<br />
+                Remote Talent That Understands the Nuances of Workers’ Comp<br />
               </h1>
               <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
-                Inimble helps any kind of business scale efficiently with
-                tailored staffing, HR, IT, and productivity tools. All-in-one
-                platform.
+                From case coordination to documentation, Inimble helps workers’
+                compensation law firms streamline operations with trained legal
+                support and smart remote tools.
               </p>
-              <div class="m-t-24 hstack justify-content-center">
-                <a
-                  mat-flat-button
-                  color="primary"
-                  (click)="gotoDemos()"
-                  class="btn-custom"
-                  >Try Inimble</a
-                >
-                <a
-                  mat-stroked-button
-                  color="primary"
-                  target="_blank"
-                  href="tel:+1-706-478-5677"
-                  class="btn-custom2 border-primary"
-                  >Call us now</a
-                >
-              </div>
             </div>
           </div>
         </div>
@@ -50,191 +33,127 @@
     <!-- ------------------------------------------------------------------
     End Banner
     ------------------------------------------------------------------ -->
-    <!-- ------------------------------------------------------------------
-    Carousel
-    ------------------------------------------------------------------ -->
-    <!-- <div class="spacer bg-white">
-      <div class="container text-center">
-        <h2 class="section-title">Your work, elevated</h2>
-        <p class="section-subtitle">
-          One platform built for every team—what will you run?
-        </p>
-        <div
-          id="carouselExampleAutoplaying"
-          class="carousel slide"
-          data-bs-ride="carousel"
-        >
-          <div class="carousel-inner">
-            <div
-              class="carousel-item"
-              *ngFor="let card of cards; let i = index"
-              [ngClass]="{ active: i === 0 }"
-            >
-              <div class="card-carousel">
-                <h3 class="card-title">{{ card.title }}</h3>
-                <p class="card-subtitle">{{ card.subtitle }}</p>
-                <div class="card-footer">
-                  <span>{{ card.footer }}</span>
-                </div>
-              </div>
+    <div class="bg-white">
+      <div class="container">
+        <div class="rounded p-32 position-relative">
+          <div class="row justify-content-center align-items-center">
+            <div class="col-lg-8 text-center m-auto">
+              <h3
+                class="m-t-0 section-title2 m-b-16 banner-title"
+                style="line-height: 1.1"
+              >
+                Roles We Support
+              </h3>
             </div>
-          </div>
-          <button
-            class="carousel-control-prev"
-            type="button"
-            data-bs-target="#carouselExampleAutoplaying"
-            data-bs-slide="prev"
-          >
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button
-            class="carousel-control-next"
-            type="button"
-            data-bs-target="#carouselExampleAutoplaying"
-            data-bs-slide="next"
-          >
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
-        </div>
-      </div>
-    </div> -->
-    <!-- ------------------------------------------------------------------
-    End Carousel
-    ------------------------------------------------------------------ -->
-    <!-- ------------------------------------------------------------------
-    other banner
-    ------------------------------------------------------------------ -->
-    <!-- <div class="banner-section bg-green text-white">
-      <div class="container">
-        <div class="row align-items-center">
-          <div class="col-lg-12 text-center">
-            <h1 class="banner-title">
-              Optimize your legal operations with bilingual, pre-vetted talent
-              and compliance-first infrastructure.
-            </h1>
-            <div
-        class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
-      >
-        <div class="d-flex flex-row w-100">
-          <div class="slider-img">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
-          </div>
-          <div class="slider-img">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
-          </div>
-          <div class="slider-img">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
-          </div>
-          <div class="slider-img">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
-          </div>
-          <div class="slider-img">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
-          </div>
-        </div>
-      </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
-        <div class="spacer bg-white">
-      <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-lg-6 col-sm-8">
-            <h2 class="section-title text-center m-t-16 f-w-700">
-              Our Services are designed to be simple and effective
-            </h2>
-          </div>
-        </div>
-        <div class="row align-items-center">
-          <div class="col-lg-6">
-            <mat-accordion>
-              <mat-expansion-panel  [expanded]="true">
-                <mat-expansion-panel-header>
-                  <mat-panel-title class="f-w-600 f-s-16 text-primary">
-                    Additional Industries We Serve
-                  </mat-panel-title>
-                </mat-expansion-panel-header>
-                <!-- <div class="industry-list-caption">
-                  inimble also works with clients in:
-                </div> -->
-                <ul class="industry-list">
-                  <li>
-                    <img
-                      src="/assets/images/svgs/injury.svg"
-                      >
-                    Personal Injury
-                  </li>
-                  <li>
-                    <img
-                      src="/assets/images/svgs/workers-compensation.svg"
-                      >
-                    Workers' Compensation
-                  </li>
-                  <li>
-                    <img
-                      src="/assets/images/svgs/Case-Manager.svg"
-                      >
-                    Other Legal Services
-                  </li>
-                  <li>
-                    <img
-                      src="/assets/images/svgs/real-state.svg"
-                      >
-                    Real Estate
-                  </li>
-                  <li>
-                    <img
-                      src="/assets/images/svgs/Bookkeeper.svg"
-                      >
-                    Others (Tech Startups, Marketing, and General Business Support)
-                  </li>
-                  <li>
-                    <i-tabler name="dots" class="industry-list-icon"></i-tabler>
-                    And many more. Our platform adapts to your remote
-                    workflow—no matter the vertical.
-                  </li>
-                </ul>
-              </mat-expansion-panel>
-            </mat-accordion>
-          </div>
-
-          <!-- Columna derecha: Imagen -->
-          <div class="col-lg-6 text-center">
-            <img
-              src="assets/images/landingpage/background/c2a.png"
-              alt="C2A"
-              class="img-fluid rounded"
-            />
           </div>
         </div>
       </div>
     </div>
-    <!-- ------------------------------------------------------------------
-    End other banner
-    ------------------------------------------------------------------ -->
+
+    <!-- Legal-ready Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <ul class="list-unstyled f-s-18 m-0 w-100">
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="file-description"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Legal assistants familiar with WCAB procedures and form filing
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="calendar-event"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Calendar managers and claims intake professionals
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="folder-lock"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Assistants trained in case logging and secure document sharing
+                </li>
+                <li class="d-flex align-items-center m-b-20">
+                  <i-tabler
+                    name="user-check"
+                    class="text-primary icon-24 m-r-12"
+                  ></i-tabler>
+                  Remote-ready talent onboarded with full IT and HR support
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center">
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="check" class="text-primary icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">Save time.</h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="check" class="text-primary icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">Reduce costs.</h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="check" class="text-primary icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Focus on growing your business
+              </h5>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="bg-white">
       <div class="container spacer">
         <div class="rounded p-32 position-relative">
@@ -437,9 +356,6 @@
       </div>
     </div>
 
-    <!-- ------------------------------------------------------------------
-    Template
-    ------------------------------------------------------------------ -->
     <div class="bg-white">
       <div class="container spacer">
         <div class="rounded p-32 position-relative">
@@ -501,6 +417,103 @@
       </div>
     </div>
 
+    <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title text-center m-t-16 f-w-700">
+          One Platform. All the Tools. No Chaos.
+        </h2>
+        <div class="row m-t-40 justify-content-center">
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="layout-dashboard"
+                  class="text-primary icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">All-in-one dashboard</h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="clock" class="text-success icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">Time & task tracking</h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-warning rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="headset"
+                  class="text-warning icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                IT and HR support included
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-info rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="users" class="text-info icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Flexible staffing tailored to your business
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-secondary rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler name="tool" class="text-primary icon-30"></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">
+                Remote IT onboarding & ongoing support
+              </h5>
+            </mat-card>
+          </div>
+          <div class="col-md-6 col-lg-4 m-b-24">
+            <mat-card
+              class="cardWithShadow h-100 text-center p-y-32 hover-card"
+            >
+              <span
+                class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-auto m-b-16"
+              >
+                <i-tabler
+                  name="brand-teams"
+                  class="text-success icon-30"
+                ></i-tabler>
+              </span>
+              <h5 class="f-s-18 f-w-600 m-b-8 m-t-16">Productivity Tools</h5>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="bg-white">
       <div class="container spacer">
         <div class="bg-green rounded p-32 position-relative">
@@ -557,61 +570,6 @@
         </div>
       </div>
     </div>
-
-    <!-- ------------------------------------------------------------------
-    Testimonial
-    ------------------------------------------------------------------ -->
-    <!-- <div class="spacer bg-white">
-      <div class="container">
-        <div class="row m-t-24">
-          <div class="col-12">
-            <div class="p-24">
-              <div class="d-flex align-items-center justify-content-center">
-                <i-tabler
-                  name="star-filled"
-                  class="fill-warning icon-26"
-                ></i-tabler>
-                <i-tabler
-                  name="star-filled"
-                  class="fill-warning icon-26 m-l-4"
-                ></i-tabler>
-                <i-tabler
-                  name="star-filled"
-                  class="fill-warning icon-26 m-l-4"
-                ></i-tabler>
-                <i-tabler
-                  name="star-filled"
-                  class="fill-warning icon-26 m-l-4"
-                ></i-tabler>
-                <i-tabler
-                  name="star-filled"
-                  class="fill-warning icon-26 m-l-4"
-                ></i-tabler>
-              </div>
-              <p class="m-t-24 review-subtext text-center f-w-500">
-                This template is great, UI-rich and up-to-date. Although it is
-                pretty much complete, I suggest to improve a bit of
-                documentation. Thanks & Highly recomended!
-              </p>
-              <div
-                class="d-flex align-items-center justify-content-center m-t-24"
-              >
-                <img
-                  src="assets/images/profile/user-1.jpg"
-                  alt="profile"
-                  class="rounded-circle"
-                  width="64"
-                />
-                <div class="m-l-12">
-                  <h6 class="mat-subtitle-1 f-s-16 f-w-600">Eminson Mendoza</h6>
-                  <span class="f-s-14">Features avaibility</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div> -->
 
     <div class="container spacer">
       <div class="row justify-content-center spacer">
