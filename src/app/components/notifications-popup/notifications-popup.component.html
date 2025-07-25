@@ -1,24 +1,4 @@
-<!-- <div class="modal fade" id="exampleModal" #exampleModal tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div> -->
-
-<h2 mat-dialog-title class="text-center">NOTIFICATIONS</h2>
+<h2 mat-dialog-title class="text-center">Notifications</h2>
 <mat-dialog-content class="px-3">
   <div *ngIf="(data?.notifications || []).length > 0; else noNotifications">
     <div *ngFor="let notification of data.notifications | slice:0:5" class="d-flex align-items-center mb-3">
@@ -37,12 +17,20 @@
     <p class="text-center my-3">No new notifications</p>
   </ng-template>
 </mat-dialog-content>
-<mat-dialog-actions class="d-flex justify-content-center">
+<mat-dialog-actions class="d-flex justify-content-center b-t-0">
   <button
-    mat-button
-    class="ms-2 rounded shadow px-4 py-1 btn btn-primary"
+    mat-stroked-button
+    color="primary"
+    routerLink="/dashboards/notifications"
     [mat-dialog-close]="true"
   >
-    OK
+    See all
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    [mat-dialog-close]="true"
+  >
+    Ok
   </button>
 </mat-dialog-actions>

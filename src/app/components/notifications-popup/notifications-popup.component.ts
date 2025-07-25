@@ -1,13 +1,15 @@
-import { Component, EventEmitter, Inject, Output } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { Notification } from 'src/app/models/Notifications';
+import { MaterialModule } from 'src/app/material.module';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-notifications-popup',
   templateUrl: './notifications-popup.component.html',
   standalone: true,
-  imports: [MatDialogModule, CommonModule],
+  imports: [MatDialogModule, CommonModule, MaterialModule, RouterModule],
   styleUrls: ['./notifications-popup.component.scss'],
 })
 export class NotificationsPopupComponent {
