@@ -107,63 +107,63 @@ export class AppIndustryComponent {
   ];
 
   apps: apps[] = [
-    {
-      id: 1,
-      img: 'https://cdn.prod.website-files.com/681e77695ed0fbc63d5d2ce6/685c3544cf55db0b722bc12f_Bookkeeper.svg',
-      title: 'Others',
-      subtitle: 'Messages & Emails',
-      link: '/apps/chat',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'Other legal services',
-      subtitle: 'New task',
-      link: '/apps/todo',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Personal Injury',
-      subtitle: 'Get latest invoice',
-      link: '/apps/invoice',
-    },
-    {
-      id: 4,
-      img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Real estate',
-      subtitle: 'Get Dates',
-      link: '/apps/calendar',
-    },
-    {
-      id: 5,
-      img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Workers',
-      subtitle: '2 Unsaved Contacts',
-      link: '/apps/contacts',
-    },
-    // {
-    //   id: 6,
-    //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-    //   title: 'Tickets App',
-    //   subtitle: 'Create new ticket',
-    //   link: '/apps/tickets',
-    // },
-    // {
-    //   id: 7,
-    //   img: '/assets/images/svgs/icon-dd-message-box.svg',
-    //   title: 'Email App',
-    //   subtitle: 'Get new emails',
-    //   link: '/apps/email/inbox',
-    // },
-    // {
-    //   id: 8,
-    //   img: '/assets/images/svgs/icon-dd-application.svg',
-    //   title: 'Courses',
-    //   subtitle: 'Create new course',
-    //   link: '/apps/courses',
-    // },
-  ];
+      {
+        id: 1,
+        img: '/assets/images/svgs/Bookkeeper.svg',
+        title: 'Others',
+        subtitle: 'Tech Startups, Marketing Services, General Business Support',
+        link: '/landingpage/industry/other',
+      },
+      {
+        id: 2,
+        img: '/assets/images/svgs/Case-Manager.svg',
+        title: 'Other legal services',
+        subtitle: 'Specialized legal services for companies and individuals. Access case management, consulting, and legal documentation.',
+        link: '/landingpage/industry/legal-services',
+      },
+      {
+        id: 3,
+        img: '/assets/images/svgs/injury.svg',
+        title: 'Personal Injury',
+        subtitle: 'Manage personal injury cases, track files, and communicate with affected clients.',
+        link: '/landingpage/industry/personal-injury',
+      },
+      {
+        id: 4,
+        img: '/assets/images/svgs/real-state.svg',
+        title: 'Real estate',
+        subtitle: 'Tools for real estate agents: property management, contracts, and client tracking.',
+        link: '/landingpage/industry/real-state',
+      },
+      {
+        id: 5,
+        img: '/assets/images/svgs/workers-compensation.svg',
+        title: 'Workers compensation',
+        subtitle: 'Solutions for managing workers compensation cases, file handling, and employee communication.',
+        link: '/landingpage/industry/workers-compensation',
+      },
+      // {
+      //   id: 6,
+      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
+      //   title: 'Tickets App',
+      //   subtitle: 'Create new ticket',
+      //   link: '/apps/tickets',
+      // },
+      // {
+      //   id: 7,
+      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
+      //   title: 'Email App',
+      //   subtitle: 'Get new emails',
+      //   link: '/apps/email/inbox',
+      // },
+      // {
+      //   id: 8,
+      //   img: '/assets/images/svgs/icon-dd-application.svg',
+      //   title: 'Courses',
+      //   subtitle: 'Create new course',
+      //   link: '/apps/courses',
+      // },
+    ];
 
   demos: demos[] = [
     {

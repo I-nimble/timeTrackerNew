@@ -52,7 +52,7 @@ interface features {
   selector: 'app-legal-services',
   standalone: true,
   imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent, AppHeaderComponent],
-  templateUrl: './industry-legal-services.component.html',
+  templateUrl: './industry-legal-service.component.html',
 })
 export class AppIndustryLegalServicesComponent {
   @Input() showToggle = true;
