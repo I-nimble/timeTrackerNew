@@ -155,11 +155,18 @@ export class AppInvoiceListComponent implements AfterViewInit {
     const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
   
     dialogRef.afterClosed().subscribe((result: any) => {
+      this.loadInvoices();
       if (result) {
-        this.invoiceService.deleteInvoice(id);
-        // this.paidInvoices.set(this.invoiceService.getInvoiceList()); 
-        this.filterInvoices(); 
-        this.showSnackbar('Invoice deleted successfully!');
+        this.invoiceService.deleteInvoice(id).subscribe({
+          next: () => {
+            this.loadInvoices();
+            this.filterInvoices();
+            this.showSnackbar('Invoice deleted successfully!');
+          },
+          error: () => {
+            this.showSnackbar('Error deleting invoice.');
+          }
+        });
       }
     });
   }

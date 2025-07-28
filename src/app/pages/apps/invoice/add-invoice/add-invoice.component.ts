@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
     selector: 'app-add-invoice',
@@ -42,40 +43,68 @@ export class AppAddInvoiceComponent implements OnInit {
   plans: any[] = [];
   users: any[] = [];
   companies: any[] = [];
+  clients: any[] = [];
   companyMap: { [key: number]: string } = {};
   role: string = localStorage.getItem('role') || '3';
 
   constructor(
     private fb: UntypedFormBuilder,
-    private invoiceService: InvoiceService,
-    private router: Router,
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
     private companiesService: CompaniesService,
+    private usersService: UsersService,
+    public invoiceService: InvoiceService
   ) {
     this.addForm = this.fb.group({
       description: ['', Validators.required],
-      plan_id: ['', Validators.required],
       amount: ['', Validators.required],
-      currency_id: ['', Validators.required],
       due_date: ['', Validators.required],
-      user_id: ['']
+      user_id: [null, Validators.required]
     });
   }
 
   ngOnInit(): void {
     this.companiesService.getCompanies().subscribe({
-    next: (companies: any[]) => {
-      this.companies = companies;
-      this.companyMap = {};
-      companies.forEach(c => this.companyMap[c.id] = c.name);
-    }
-  });
+      next: (companies: any[]) => {
+        this.companies = companies;
+        this.companyMap = {};
+        companies.forEach(c => this.companyMap[c.id] = c.name);
+      }
+    });
+    this.usersService.getUsers({}).subscribe(users => {
+      this.clients = users.filter((user:any) => user.role == 3 && user.active == 1);
+    })
   }
 
 
   saveDetail(event: Event): void {
+    event.preventDefault();
+    if (this.addForm.invalid) {
+      this.showSnackbar('Please fill all required fields.');
+      return;
+    }
 
+    const invoiceData = this.addForm.value;
+
+    const selectedClient = this.clients.find((c: any) => c.id === invoiceData.user_id);
+
+    const company_id = selectedClient?.company?.id || null;
+
+    const payload = {
+      ...invoiceData,
+      company_id
+    };
+
+    this.invoiceService.createInvoice(payload).subscribe({
+      next: () => {
+        this.showSnackbar('Invoice created successfully!');
+        this.addForm.reset();
+      },
+      error: (err) => {
+        this.showSnackbar('Error creating invoice.');
+        console.error(err);
+      }
+    });
   }
 
   showSnackbar(message: string): void {

@@ -84,6 +84,11 @@
         </h3>
       </div>
     </span>
+    <div class="p-t-24 text-right" *ngIf="!invoiceDetail()?.approved">
+      <button mat-flat-button color="primary" (click)="approveInvoice()">
+        Approve Invoice
+      </button>
+    </div>
     }
   </mat-card-content>
 </mat-card>

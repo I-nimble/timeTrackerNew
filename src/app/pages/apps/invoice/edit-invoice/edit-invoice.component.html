@@ -11,7 +11,7 @@
           <a routerLink="/apps/invoice" mat-flat-button class="bg-error text-white m-r-10">
             Cancel
           </a>
-          <button mat-flat-button color="primary" (click)="saveDetail($event)" [disabled]="invoiceForm.invalid">
+          <button mat-flat-button color="primary" (click)="saveDetail($event)" [disabled]="invoiceDetail()?.user_id == null || invoiceDetail()?.due_date == null || invoiceDetail()?.description == '' || invoiceDetail()?.amount == null">
             Save Invoice
           </button>
         </div>
@@ -21,14 +21,18 @@
 
       <div class="row p-y-24">
         <div class="col-sm-6">
-           <mat-form-field appearance="outline" class="w-100 hide-hint">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Client</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
+            <mat-select
+              [(ngModel)]="invoiceDetail().user_id"
+              name="user_id"
+              required
+              (selectionChange)="handleCompanySelection($event)">
               <mat-option
-                *ngFor="let company of companies"
-                [value]="company.id"
+                *ngFor="let client of clients"
+                [value]="client.id"
               >
-                {{ company.name }}
+                {{ client.name }} {{ client.last_name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
