@@ -117,7 +117,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   private loadInvoices(): void {
     this.invoiceService.getInvoiceList().subscribe((invoices) => {
       this.paidInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Paid'));
-      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Pending'));
+      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Overdue'));
       
       this.invoiceList = new MatTableDataSource(invoices);
       this.invoiceList.paginator = this.paginator;
