@@ -1,0 +1,363 @@
+<mat-sidenav-container class="mainWrapper">
+  <mat-sidenav-content>
+    <!-- ------------------------------------------------------------------
+    Header
+    ------------------------------------------------------------------ -->
+    <app-header [filterNavRight]="filterNavRight"></app-header>
+<!-- ----------------------------------------------------------------------------------------------------- -->
+<!-- Form wizard -->
+<!-- ----------------------------------------------------------------------------------------------------- -->
+    <div class="container justify-content-center">
+    <div class="row">
+        <div class="col-12">
+        <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
+            <img src="assets/images/inimble.png" id="logo" class="m-t-20 m-b-20">
+            <h1 class="m-b-20">Let's connect you with <span class="highlight-green">the right talent</span></h1>
+        </mat-card>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+        <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-16">
+            <mat-stepper #stepper *ngIf="!formSubmitted">
+            <mat-step [stepControl]="contactInfo">
+                <form class="m-t-24" [formGroup]="contactInfo">
+                <ng-template matStepLabel>Contact information</ng-template>
+                <div>
+                    <!-- company name -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Company name</mat-label>
+                    <mat-form-field appearance="outline" class="w-100">
+                    <input matInput formControlName="companyName" required type="text" />
+                    </mat-form-field>
+                    <!-- contact name -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Your name</mat-label>
+                    <mat-form-field appearance="outline" class="w-100">
+                    <input matInput formControlName="name" required type="text" />
+                    </mat-form-field>
+                    <!-- email -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Email address</mat-label>
+                    <mat-form-field appearance="outline" class="w-100">
+                    <input matInput formControlName="email" required type="email" />
+                    </mat-form-field>
+                    <!-- phone -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Phone number</mat-label>
+                    <div class="d-flex flex-row">
+                    <mat-form-field appearance="outline" style="width: max-content;" class="m-r-16">
+                        <mat-select formControlName="countryCode">
+                        <mat-option value="+1">+1 (US)</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" style="flex-grow: 1;">
+                        <input matInput formControlName="phone" required type="phone" />
+                    </mat-form-field>
+                    </div>
+                    <div *ngIf="contactInfo.get('phone')?.touched && contactInfo.get('phone')?.errors">
+                    <p class="text-danger f-s-12 m-t-0" *ngIf="contactInfo.get('phone')?.errors?.['pattern']">Please enter a valid phone number (e.g., +1 1234567890)</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <button mat-flat-button matStepperNext [disabled]="!contactInfo.valid">Next</button>
+                </div>
+                </form>
+            </mat-step>
+            <mat-step [stepControl]="roleInfo">
+                <form class="m-t-24" [formGroup]="roleInfo">
+                <ng-template matStepLabel>About the talent you are looking for</ng-template>
+                    <!-- job name and description -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Job name and description</mat-label>
+                    <mat-form-field appearance="outline" class="w-100">
+                    <textarea colspan="3" matInput formControlName="jobNameAndDescription" required></textarea>
+                    </mat-form-field>
+                    <!-- required skills -->
+                    <div class="row">
+                    <div class="col-12 m-b-16">
+                        <mat-label class="f-s-14 f-w-600 d-block m-b-16">Skill category</mat-label>
+                        <mat-button-toggle-group formControlName="requiredSkillsCategory" class="button-toggle-group">
+                        <mat-button-toggle value="technology">Technology skills</mat-button-toggle>
+                        <mat-button-toggle value="administrative">Administrative skills</mat-button-toggle>
+                        <mat-button-toggle value="real estate">Real estate skills</mat-button-toggle>
+                        <mat-button-toggle value="other">Other</mat-button-toggle>
+                        </mat-button-toggle-group>
+
+                        @if(otherSkillset) {
+                        <mat-form-field appearance="outline" class="w-100 m-t-16">
+                            <input matInput formControlName="otherSkillsCategory" type="text" placeholder="What skill set are you looking for?" />
+                        </mat-form-field>
+                        }
+                    </div>
+                    <div class="col-12">
+                        <mat-label class="f-s-14 f-w-600 d-block m-b-16">Required skills</mat-label>
+                        <mat-button-toggle-group multiple formControlName="requiredSkills" class="button-toggle-group m-b-16 d-flex flex-wrap">
+                        @for (skill of skills; track $index) {
+                            <mat-button-toggle [value]="skill.name" class="m-b-10">{{ skill.name }}</mat-button-toggle>
+                        }
+                        </mat-button-toggle-group>
+                    </div>
+                    </div>
+                    <!-- routine oriented -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Is routine, steady-paced work important for this role?</mat-label>
+                    <mat-button-toggle-group formControlName="routineOriented" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="not important">Not important</mat-button-toggle>
+                    <mat-button-toggle value="somewhat">Somewhat</mat-button-toggle>
+                    <mat-button-toggle value="very">Very</mat-button-toggle>
+                    </mat-button-toggle-group>
+                    <!-- social oriented -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Should the candidate easily connect and persuade others?</mat-label>
+                    <mat-button-toggle-group formControlName="socialOriented" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="not important">Not important</mat-button-toggle>
+                    <mat-button-toggle value="somewhat">Somewhat</mat-button-toggle>
+                    <mat-button-toggle value="very">Very</mat-button-toggle>
+                    </mat-button-toggle-group>
+                    <!-- decision making -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Will the role require independent or unpopular decisions?</mat-label>
+                    <mat-button-toggle-group formControlName="decisionMaking" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="not important">Not important</mat-button-toggle>
+                    <mat-button-toggle value="somewhat">Somewhat</mat-button-toggle>
+                    <mat-button-toggle value="very">Very</mat-button-toggle>
+                    </mat-button-toggle-group>
+                    <!-- attention to detail -->
+                    <mat-label class="f-s-14 f-w-600 d-block m-b-16">Does the job need high attention to detail and rule-following?</mat-label>
+                    <mat-button-toggle-group formControlName="attentionToDetail" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="not important">Not important</mat-button-toggle>
+                    <mat-button-toggle value="somewhat">Somewhat</mat-button-toggle>
+                    <mat-button-toggle value="very">Very</mat-button-toggle>
+                    </mat-button-toggle-group>
+                <div class="d-flex align-items-center justify-content-between">
+                    <button
+                    mat-flat-button
+                    class="bg-error text-white"
+                    matStepperPrevious
+                    >
+                    Back
+                    </button>
+                    <button mat-flat-button matStepperNext [disabled]="!roleInfo.valid">Next</button>
+                </div>
+                </form>
+            </mat-step>
+            <mat-step [stepControl]="personalInfo">
+                <form class="m-t-24" [formGroup]="personalInfo">
+                <ng-template matStepLabel>About you</ng-template>
+                <!-- management style -->
+                <mat-label class="f-s-14 f-w-600 d-block m-b-16">
+                    How would you describe your management style?
+                </mat-label>
+                <mat-button-toggle-group formControlName="managementStyle" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="hands-on and directive">Hands-on and directive</mat-button-toggle>
+                    <mat-button-toggle value="supportive and collaborative">Supportive and collaborative</mat-button-toggle>
+                    <mat-button-toggle value="delegative and independent">Delegative and independent</mat-button-toggle>
+                </mat-button-toggle-group>
+                <!-- feedback style -->
+                <mat-label class="f-s-14 f-w-600 d-block m-b-16">
+                    How do you prefer to give feedback?
+                </mat-label>
+                <mat-button-toggle-group formControlName="feedbackStyle" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="direct and inmediate">Direct and inmediate</mat-button-toggle>
+                    <mat-button-toggle value="tactful and encouraging">Tactful and encouraging</mat-button-toggle>
+                    <mat-button-toggle value="structured and formal">Structured and formal</mat-button-toggle>
+                </mat-button-toggle-group>
+                <!-- communication style -->
+                <mat-label class="f-s-14 f-w-600 d-block m-b-16">
+                    What type of communication do you value most in your team?
+                </mat-label>
+                <mat-button-toggle-group formControlName="communicationStyle" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="clear and to the point">Clear and to the point</mat-button-toggle>
+                    <mat-button-toggle value="open and friendly">Open and friendly</mat-button-toggle>
+                    <mat-button-toggle value="detailed and precise">Detailed and precise</mat-button-toggle>
+                </mat-button-toggle-group>
+                <!-- conflict handling -->
+                <mat-label class="f-s-14 f-w-600 d-block m-b-16">
+                    How do you typically handle conflict at work?
+                </mat-label>
+                <mat-button-toggle-group formControlName="conflictHandling" class="button-toggle-group m-b-16">
+                    <mat-button-toggle value="address it directly">Address it directly</mat-button-toggle>
+                    <mat-button-toggle value="seek consensus">Seek consensus</mat-button-toggle>
+                    <mat-button-toggle value="avoid it if possible">Avoid it if possible</mat-button-toggle>
+                </mat-button-toggle-group>
+
+                <h4 class="mat-headline-6 m-t-24">Terms and condition</h4>
+                <p class="m-t-8 f-s-14">
+                    Inimble is committed to protecting and respecting your privacy, and we'll only use your personal information to administer your account and to provide the products and services you requested from us. From time to time, we would like to contact you about our products and services, as well as other content that may be of interest to you. If you consent to us contacting you for this purpose, please tick below to say how you would like us to contact you:
+                </p>
+                <mat-checkbox checked color="primary" formControlName="acceptOtherCommunications">
+                    I agree to receive other communications from Inimble.
+                </mat-checkbox>
+                <p class="m-t-8 f-s-14">
+                    In order to provide you the content requested, we need to store and process your personal data. If you consent to us storing your personal data for this purpose, please tick the checkbox below.
+                </p>
+                <mat-checkbox checked color="primary" required formControlName="acceptPersonalData">
+                    I agree to allow Inimble to store and process my personal data.
+                </mat-checkbox>
+                <p class="m-t-8 f-s-14">
+                    You can unsubscribe from these communications at any time. For more information on how to unsubscribe, our privacy practices, and how we are committed to protecting and respecting your privacy, please review our Privacy Policy.
+                </p>
+
+                <div class="d-flex justify-content-between m-t-16">
+                    <button
+                    mat-flat-button
+                    class="bg-error text-white"
+                    matStepperPrevious
+                    >
+                    Back
+                    </button>
+                    <button mat-flat-button (click)="sendForm()" [disabled]="!personalInfo.valid || !roleInfo.valid || !contactInfo.valid">Finish</button>
+                </div>
+                </form>
+            </mat-step>
+            </mat-stepper>
+            
+            <div class="d-flex flex-column justify-content-center align-items-center" *ngIf="formSubmitted">
+            <h2>Thanks for your submission!</h2>
+            <p>We will get in touch with you shortly.</p>
+            </div>
+        </mat-card>
+        </div>
+    </div>
+    </div>
+
+    <!-- ------------------------------------------------------------------
+    footer
+    ------------------------------------------------------------------ -->
+
+    <app-footer></app-footer>
+
+    <!-- ------------------------------------------------------------------
+    end footer
+    ------------------------------------------------------------------ -->
+  </mat-sidenav-content>
+
+  <!-- ------------------------------------------------------------------
+    Mobile Sidebar
+    ------------------------------------------------------------------ -->
+  <mat-sidenav
+    #filterNavRight
+    mode="over"
+    position="end"
+    class="filter-sidebar"
+  >
+    <div>
+      <div class="branding">
+        <app-branding></app-branding>
+      </div>
+
+      <mat-accordion>
+        <mat-expansion-panel class="shadow-none">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="f-s-16 f-w-500"> Demos </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <h5 class="f-s-18 mat-subtitle-1 f-w-600">Different Demos</h5>
+            <span>Included with the package</span>
+            <div class="row m-t-24">
+              @for(demo of demos; track demo.url) {
+              <div class="col-lg-3 m-b-16">
+                <div>
+                  <div class="img-overlay rounded">
+                    <img
+                      [src]="demo.imgSrc"
+                      alt="demos"
+                      class="rounded w-100"
+                    />
+                    <div class="overlay-content">
+                      <a href="{{ demo.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="f-s-14 d-block text-center m-t-8">{{
+                    demo.name
+                  }}</span>
+                </div>
+              </div>
+              }
+            </div>
+            <!-- apps -->
+            <h5 class="f-s-18 mat-subtitle-1 f-w-600 m-t-24">Different Apps</h5>
+            <div class="row m-t-24">
+              @for(app of appdemos; track app.name) {
+              <div class="col-lg-3 m-t-16">
+                <div>
+                  <div class="img-overlay rounded">
+                    <img [src]="app.imgSrc" alt="apps" class="rounded w-100" />
+                    <div class="overlay-content">
+                      <a href="{{ app.url }}" mat-flat-button color="primary">
+                        Live preview
+                      </a>
+                    </div>
+                  </div>
+                  <span class="f-s-14 d-block text-center m-t-8">{{
+                    app.name
+                  }}</span>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+        </mat-expansion-panel>
+        <mat-expansion-panel class="shadow-none">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="f-s-16 f-w-500"> Pages </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div>
+            <div class="row">
+              @for(appdd of apps; track appdd.title) {
+              <div class="col-12 text-hover-primary">
+                <a
+                  [routerLink]="[appdd.link]"
+                  class="d-flex align-items-center text-decoration-none m-b-24"
+                >
+                  <button
+                    mat-mini-fab
+                    class="text-primary bg-light-primary shadow-none rounded"
+                  >
+                    <img [src]="appdd.img" width="20" />
+                  </button>
+
+                  <div class="m-l-16">
+                    <h5
+                      class="f-s-14 f-w-600 m-0 textprimary mat-body-1 hover-text"
+                    >
+                      {{ appdd.title }}
+                    </h5>
+                    <span class="mat-body-1 f-s-12">{{ appdd.subtitle }}</span>
+                  </div>
+                </a>
+              </div>
+              }
+            </div>
+            <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">Quick Links</h4>
+            @for(quicklink of quicklinks; track quicklink.title) {
+            <div class="text-hover-primary">
+              <a
+                [routerLink]="['quicklink.link']"
+                class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
+                >{{ quicklink.title }}</a
+              >
+            </div>
+            }
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <div class="p-x-16">
+        <a
+          href="
+            https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html
+          "
+          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
+        >
+          <span class="f-s-15 f-w-500 m-l-8">Documentation</span>
+        </a>
+        <a
+          [routerLink]="['https://support.wrappixel.com/']"
+          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
+        >
+          <span class="f-s-15 f-w-500 m-l-8">Support</span>
+        </a>
+        <a mat-flat-button color="primary" class="w-100" [routerLink]="['/']"
+          >Buy Now</a
+        >
+      </div>
+    </div>
+  </mat-sidenav>
+</mat-sidenav-container>
