@@ -10,7 +10,7 @@ import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
-import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 
 // card 1
@@ -69,7 +69,7 @@ interface features {
 
 @Component({
     selector: 'app-pricing',
-    imports: [MaterialModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppIntakeFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
+    imports: [MaterialModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
     templateUrl: './pricing.component.html',
 })
 export class AppPricingComponent {

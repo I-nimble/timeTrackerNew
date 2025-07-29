@@ -8,7 +8,7 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
-import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
@@ -51,7 +51,7 @@ interface features {
 @Component({
   selector: 'app-real-state',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent, AppHeaderComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
   templateUrl: './industry-real-state.component.html',
 })
 export class AppIndustryRealStateComponent {
