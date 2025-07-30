@@ -2,22 +2,34 @@ import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormsModule,
+  FormGroup,
+  FormArray,
+  FormControl,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 import { MaterialModule } from '../../../material.module';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { allSkills } from '../../intake/skills';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { IntakeService } from 'src/app/services/intake.service';
 import { AppHeaderComponent } from '../header/header.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
+import { CareersService } from 'src/app/services/careers.service';
+import { ViewChild } from '@angular/core';
+import { MatStepper } from '@angular/material/stepper';
+import { ChangeDetectorRef } from '@angular/core';
+import {
+    Department,
+    FormQuestion,
+    Location,
+    Position,
+    SubmitApplicationPayload
+  } from 'src/app/models/Careers';
 
 interface apps {
   id: number;
@@ -65,30 +77,16 @@ interface features {
     RouterLink,
     BrandingComponent,
     AppBlogsComponent,
-    CommonModule
+    CommonModule,
+  ],
+  providers: [
+    CareersService
   ],
   templateUrl: './careers.component.html',
   styleUrl: './careers.component.scss',
 })
 export class AppCareersComponent implements OnInit {
-  contactInfo = this.fb.group({
-    companyName: ['', Validators.required],
-    name: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]
-    ],
-  });
-  roleInfo = this.fb.group({
-    jobNameAndDescription: ['', Validators.required],
-    requiredSkillsCategory: ['', Validators.required],
-    otherSkillsCategory: [''],
-    requiredSkills: [[], Validators.required],
-    routineOriented: ['', Validators.required],
-    socialOriented: ['', Validators.required],
-    decisionMaking: ['', Validators.required],
-    attentionToDetail: ['', Validators.required],
-  });
+  @ViewChild('stepperRef') stepperRef!: MatStepper;
   personalInfo = this.fb.group({
     managementStyle: ['', Validators.required],
     feedbackStyle: ['', Validators.required],
@@ -97,83 +95,249 @@ export class AppCareersComponent implements OnInit {
     acceptOtherCommunications: [true, Validators.requiredTrue],
     acceptPersonalData: [true, Validators.requiredTrue],
   });
-  skills: any[] = [];
   formSubmitted = false;
-  otherSkillset = false;
+  options = {
+    locations: [] as Location[],
+    positions: [] as Position[],
+    departments: [] as Department[],
+  };
+  questions: FormQuestion[] = [];
+  paginatedQuestions: FormQuestion[][] = [];
+  answersForm: FormGroup = this.fb.group({});
+  careerForm: FormGroup;
+  combinedApplyOptions: { id: number; name: string; type: 'position' | 'department' }[] = [];
+  selectedLocationId: number | null = null;
+  selectedPositionId: number | null = null;
+  selectedDepartmentId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
-    private intakeService: IntakeService,
-  ) {}
+    private careersService: CareersService,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.careerForm = this.fb.group({
+      location_id: [null, Validators.required],
+      apply_to: [null, Validators.required],
+    });
+  }
 
-  ngOnInit(): void {
-    this.roleInfo.get('requiredSkillsCategory')?.valueChanges.subscribe((value) => {
-      this.roleInfo.get('requiredSkills')?.enable();
-      this.roleInfo.get('requiredSkills')?.reset();
-      if(value === 'other') {
-        this.otherSkillset = true;
-        this.filterSkillsByCategory()
-      }
-      else {
-        this.otherSkillset = false;
-        this.roleInfo.get('otherSkillsCategory')?.reset();
-        this.filterSkillsByCategory(value as string)
+  ngOnInit() {
+    this.careersService.getApplicationOptions().subscribe(data => {
+      this.options.locations = data.locations;
+      this.options.positions = data.roles.positions;
+      this.options.departments = data.roles.departments;
+
+      this.combinedApplyOptions = [
+      ...this.options.positions.map(pos => ({
+        id: pos.id,
+        name: pos.title,
+        type: 'position' as const,
+      })),
+      ...this.options.departments.map(dep => ({
+        id: dep.id,
+        name: dep.name,
+        type: 'department' as const,
+      })),
+    ];
+
+    this.filteredLocations = [...this.options.locations];
+    this.filteredApplyOptions = [...this.combinedApplyOptions];
+    });
+
+  }
+
+  filteredLocations: Location[] = [];
+  filteredApplyOptions: { id: number; name: string; type: 'position' | 'department' }[] = [];
+
+  getFormControl(questionId: number): FormControl {
+    return this.answersForm.get('question_' + questionId) as FormControl;
+  }
+
+  onLocationChange() {
+    const locationId = this.careerForm.get('location_id')?.value;
+
+    if (!locationId) {
+      this.filteredApplyOptions = [...this.combinedApplyOptions];
+      this.careerForm.get('apply_to')?.setValue(null);
+      return;
+    }
+
+    this.careersService.getFilteredApplicationOptions(locationId).subscribe(data => {
+      const positions = data.roles?.positions || [];
+      const departments = data.roles?.departments || [];
+
+      this.filteredApplyOptions = [
+        ...positions.map((pos: Position) => ({
+          id: pos.id,
+          name: pos.title,
+          type: 'position' as const,
+        })),
+        ...departments.map((dep: Department) => ({
+          id: dep.id,
+          name: dep.name,
+          type: 'department' as const,
+        })),
+      ];
+
+      const currentApplyTo = this.careerForm.get('apply_to')?.value;
+      if (!this.filteredApplyOptions.find(o => o.id === currentApplyTo)) {
+        this.careerForm.get('apply_to')?.setValue(null);
+        this.questions = [];
+        this.paginatedQuestions = [];
       }
     });
   }
 
-  filterSkillsByCategory(category?: string) {
-    if(category) {
-      this.skills = allSkills.filter((skill) => skill.category === category);
+  onRoleChange() {
+    const applyToId = this.careerForm.get('apply_to')?.value;
+    if (!applyToId) {
+      this.filteredLocations = [...this.options.locations];
+      this.careerForm.get('location_id')?.setValue(null);
+      this.questions = [];
+      this.paginatedQuestions = [];
+      return;
     }
-    else {
-      this.skills = allSkills;
+
+    const selectedOption = this.combinedApplyOptions.find(o => o.id === applyToId);
+    if (!selectedOption) return;
+
+    this.careersService.getFilteredApplicationOptions(undefined, selectedOption.type, selectedOption.id).subscribe(data => {
+      this.filteredLocations = data.locations || [];
+
+      // If current location is no longer in filtered list, reset it
+      const currentLocation = this.careerForm.get('location_id')?.value;
+      if (!this.filteredLocations.find(l => l.id === currentLocation)) {
+        this.careerForm.get('location_id')?.setValue(null);
+        this.questions = [];
+        this.paginatedQuestions = [];
+      }
+    });
+  }
+
+  loadQuestionsIfReady() {
+    const locationId = this.careerForm.get('location_id')?.value;
+    const applyToId = this.careerForm.get('apply_to')?.value;
+    if (!locationId || !applyToId) {
+      this.questions = [];
+      this.paginatedQuestions = [];
+      return;
+    }
+    const selectedOption = this.combinedApplyOptions.find(o => o.id === applyToId);
+    if (!selectedOption) return;
+
+    if (selectedOption.type === 'position') {
+      this.careersService.getFormQuestions(locationId, selectedOption.id, undefined)
+        .subscribe(questions => this.processQuestions(questions));
+    } else if (selectedOption.type === 'department') {
+      this.careersService.getFormQuestions(locationId, undefined, selectedOption.id)
+        .subscribe(questions => this.processQuestions(questions));
     }
   }
 
-  sendForm() {
-    // check if the email is valid
-    if (!this.contactInfo.get('email')?.valid) {
-      this.openSnackBar('Please enter a valid email address', 'Close');
-      return;
+
+  onSelectionChange(): void {
+    const locationId = this.careerForm.get('location_id')?.value;
+    const applyToId = this.careerForm.get('apply_to')?.value;
+
+    if (!locationId || !applyToId) return;
+
+    const selectedOption = this.combinedApplyOptions.find(o => o.id === applyToId);
+    if (!selectedOption) return;
+
+    if (selectedOption.type === 'position') {
+      this.careersService
+        .getFormQuestions(locationId, selectedOption.id, undefined)
+        .subscribe(questions => this.processQuestions(questions));
+    } else if (selectedOption.type === 'department') {
+      this.careersService
+        .getFormQuestions(locationId, undefined, selectedOption.id)
+        .subscribe(questions => this.processQuestions(questions));
     }
-    // check if the phone number is valid
-    if (!this.contactInfo.get('phone')?.valid) {
-      this.openSnackBar('Please enter a valid phone number', 'Close');
-      return;
-    }
-    // check if all required fields are filled
-    if (
-      !this.contactInfo.valid ||
-      !this.roleInfo.valid ||
-      !this.personalInfo.valid
-    ) {
-      this.openSnackBar('Fill all the required fields', 'Close');
-      return;
-    }
-    // check if the terms and conditions are checked
-    if (!this.personalInfo.get('acceptOtherCommunications')?.valid || !this.personalInfo.get('acceptPersonalData')?.valid) {
-      this.openSnackBar('Please accept the terms and conditions', 'Close');
+  }
+
+  processQuestions(questions: FormQuestion[]): void {
+    if (!questions || questions.length === 0) {
+      this.questions = [];
+      this.answersForm = this.fb.group({});
       return;
     }
 
-    const data = {
-      ...this.contactInfo.value,
-      ...this.roleInfo.value,
-      ...this.personalInfo.value,
+    this.questions = questions;
+
+    this.answersForm = this.fb.group({});
+    questions.forEach(q => {
+      this.answersForm.addControl('question_' + q.id, this.fb.control('', Validators.required));
+    });
+
+    if(this.stepperRef) {
+      setTimeout(() => this.stepperRef.reset());
+    }
+    this.cdr.detectChanges();
+  }
+
+
+  loadQuestions(): void {
+    if (!this.selectedLocationId || (!this.selectedPositionId && !this.selectedDepartmentId)) return;
+
+    this.careersService.getFormQuestions(
+      this.selectedLocationId,
+      this.selectedPositionId || undefined,
+      this.selectedDepartmentId || undefined
+    ).subscribe((questions: FormQuestion[]) => {
+      console.log('Fetched questions:', questions);
+      this.processQuestions(questions);
+      this.questions = questions;
+      this.answersForm = this.fb.group({});
+      questions.forEach(q => {
+        this.answersForm.addControl('question_' + q.id, this.fb.control('', Validators.required));
+      });
+
+      //this.paginatedQuestions = this.paginateQuestions(questions); 
+    });
+    console.log('Questions received:', this.questions);
+    console.log('Paginated:', this.paginatedQuestions);
+  }
+
+  submitCareerApplication(): void {
+    if (this.careerForm.invalid || this.answersForm.invalid) {
+      this.snackBar.open('Please fill out all required fields', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const answers = this.questions.map(q => ({
+      question_id: q.id,
+      answer: this.answersForm.get('question_' + q.id)?.value || '',
+    }));
+
+    const location_id = this.careerForm.get('location_id')?.value;
+    const apply_to = this.careerForm.get('apply_to')?.value;
+
+    const selectedOption = this.combinedApplyOptions.find(o => o.id === apply_to);
+
+    if (!selectedOption) {
+      this.snackBar.open('Please select a valid role', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const payload: SubmitApplicationPayload = {
+      location_id,
+      answers,
+      position_id: selectedOption.type === 'position' ? selectedOption.id : null,
+      department_id: selectedOption.type === 'department' ? selectedOption.id : null,
     };
-    this.intakeService.submit(data).subscribe({
+
+
+    this.careersService.submitApplication(payload).subscribe({
       next: () => {
-        this.openSnackBar('Form submitted successfully', 'Close');
+        this.snackBar.open('Application submitted successfully!', 'Close', { duration: 3000 });
+        this.careerForm.reset();
+        this.answersForm.reset();
         this.formSubmitted = true;
-        this.contactInfo.reset();
-        this.roleInfo.reset();
-        this.personalInfo.reset();
       },
       error: () => {
-        this.openSnackBar('Error submitting form', 'Close');
-      },
+        this.snackBar.open('Error submitting application', 'Close', { duration: 3000 });
+      }
     });
   }
 
