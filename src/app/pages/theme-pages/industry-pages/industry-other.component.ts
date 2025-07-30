@@ -10,6 +10,8 @@ import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
 import { AppHeaderComponent } from '../header/header.component';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface apps {
   id: number;
@@ -65,13 +67,24 @@ export class AppIndustryOtherComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private dialog: MatDialog
   ) {}
 
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
+
+  openQuickContact() {
+        this.dialog.open(QuickContactModalComponent, {
+          width: '520px', 
+          maxHeight: '90vh', 
+          disableClose: false,
+          autoFocus: false,
+          restoreFocus: false,
+        });
+      }
 
   cards = [
     {

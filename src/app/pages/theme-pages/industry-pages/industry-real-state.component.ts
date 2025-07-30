@@ -10,6 +10,8 @@ import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
 import { AppIntakeFormComponent } from '../../intake/intake-form.component';
 import { AppHeaderComponent } from '../header/header.component';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface apps {
   id: number;
@@ -51,7 +53,18 @@ interface features {
 @Component({
   selector: 'app-real-state',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent, AppHeaderComponent],
+  imports: [
+    MaterialModule,
+    TablerIconsModule,
+    RouterLink,
+    BrandingComponent,
+    AppBlogsComponent,
+    AppFooterComponent,
+    CommonModule,
+    AppFaqComponent,
+    AppIntakeFormComponent,
+    AppHeaderComponent,
+  ],
   templateUrl: './industry-real-state.component.html',
 })
 export class AppIndustryRealStateComponent {
@@ -65,12 +78,23 @@ export class AppIndustryRealStateComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private dialog: MatDialog
   ) {}
 
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
+  }
+
+  openQuickContact() {
+    this.dialog.open(QuickContactModalComponent, {
+      width: '520px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      restoreFocus: false,
+    });
   }
 
   cards = [
@@ -319,35 +343,39 @@ export class AppIndustryRealStateComponent {
   ];
 
   features: features[] = [
-  {
-    id: 1,
-    icon: 'user-plus',
-    title: 'Dedicated remote assistants',
-    color: 'primary',
-    subtext: 'Get bilingual professionals trained specifically for your industry needs. Available full-time or part-time.'
-  },
-  {
-    id: 2,
-    icon: 'school',
-    title: 'Custom training & onboarding',
-    color: 'primary',
-    subtext: 'Personalized training programs to ensure seamless integration with your workflows and tools.'
-  },
-  {
-    id: 3,
-    icon: 'file-invoice',  
-    title: 'Legal-compliant payroll & contracts',
-    color: 'primary',
-    subtext: 'Full compliance with international labor laws and secure contract management.'
-  },
-  {
-    id: 4,
-    icon: 'brand-teams', 
-    title: 'Built-in task management & communication tools',
-    color: 'primary',
-    subtext: 'All-in-one platform for task assignment, progress tracking and team collaboration.'
-  },
-];
+    {
+      id: 1,
+      icon: 'user-plus',
+      title: 'Dedicated remote assistants',
+      color: 'primary',
+      subtext:
+        'Get bilingual professionals trained specifically for your industry needs. Available full-time or part-time.',
+    },
+    {
+      id: 2,
+      icon: 'school',
+      title: 'Custom training & onboarding',
+      color: 'primary',
+      subtext:
+        'Personalized training programs to ensure seamless integration with your workflows and tools.',
+    },
+    {
+      id: 3,
+      icon: 'file-invoice',
+      title: 'Legal-compliant payroll & contracts',
+      color: 'primary',
+      subtext:
+        'Full compliance with international labor laws and secure contract management.',
+    },
+    {
+      id: 4,
+      icon: 'brand-teams',
+      title: 'Built-in task management & communication tools',
+      color: 'primary',
+      subtext:
+        'All-in-one platform for task assignment, progress tracking and team collaboration.',
+    },
+  ];
 
   quicklinks: quicklinks[] = [
     {
