@@ -232,7 +232,7 @@
   <button mat-flat-button (click)="doAction()" class="primary-btn">
     {{ action === "Edit" ? "Save" : "Add" }}
   </button>
-  <button mat-stroked-button (click)="closeDialog()" class="cancel-btn">
+  <button mat-flat-button (click)="closeDialog()" class="bg-error text-white">
     Cancel
   </button>
 </mat-dialog-actions>
