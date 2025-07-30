@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Optional, OnInit, } from '@angular/core';
+import { Component, Inject, Optional, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
@@ -53,6 +53,8 @@ export class AppKanbanDialogComponent implements OnInit {
   commentText: string = '';
   dueTime: string = '';
   companies: any[] = [];
+  firstAttachmentImage: any = null;
+  @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -102,6 +104,7 @@ export class AppKanbanDialogComponent implements OnInit {
         this.dueTime = `${hours}:${minutes}`;
       }
     }
+    this.updateFirstAttachmentImage();
   }
 
   showSnackbar(message: string): void {
@@ -137,16 +140,46 @@ export class AppKanbanDialogComponent implements OnInit {
       });
   }
 
+  updateFirstAttachmentImage() {
+    this.firstAttachmentImage = this.attachments.find(att => 
+      att.file_type?.startsWith('image/') || 
+      (att instanceof File && att.type.startsWith('image/'))
+    );
+  }
+
+
+  getImageUrl(attachment: any): string {
+    if (attachment instanceof File) {
+      return URL.createObjectURL(attachment);
+    } else if (attachment.s3_filename) {
+      return this.attachmentsUrl + attachment.s3_filename;
+    }
+    return '';
+  }
+
+  isImage(file: any): boolean {
+    if (file instanceof File) {
+      return file.type.startsWith('image/');
+    } else if (file.file_type) {
+      return file.file_type.startsWith('image/');
+    }
+    return false;
+  }
+
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
     for (let i = 0; i < files.length; i++) {
       this.attachments.push(files.item(i)!);
     }
     event.target.value = '';
+    this.updateFirstAttachmentImage(); 
   }
 
   removeAttachment(index: number): void {
-    this.attachments.splice(index, 1);
+    const removed = this.attachments.splice(index, 1)[0];
+    if (removed === this.firstAttachmentImage) {
+      this.updateFirstAttachmentImage();
+    }
   }
 
   getCompany() {
@@ -263,67 +296,70 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   onCommentInput(event: any) {
-    const textarea = event.target;
-    const value = textarea.value;
-    const pos = textarea.selectionStart;
-    const textUpToCursor = value.slice(0, pos);
-    const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
-
-    if (atMatch) {
-      this.mentionQuery = atMatch[1];
-      this.filteredUsers = this.users.filter((u) =>
-        `${u.name} ${u.last_name}`
-          .toLowerCase()
-          .includes(this.mentionQuery.toLowerCase())
-      );
-      this.showMentionList = this.filteredUsers.length > 0;
-      this.mentionStartPos = pos - this.mentionQuery.length - 1;
-      this.mentionIndex = 0;
-    } else {
-      this.showMentionList = false;
-    }
+  const textarea = event.target;
+  const value = textarea.value;
+  const pos = textarea.selectionStart;
+  const textUpToCursor = value.slice(0, pos);
+  
+  const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
+  
+  if (atMatch) {
+    this.mentionQuery = atMatch[1];
+    this.filteredUsers = this.users.filter(u => 
+      `${u.name} ${u.last_name}`
+        .toLowerCase()
+        .includes(this.mentionQuery.toLowerCase())
+    );
+    this.showMentionList = this.filteredUsers.length > 0;
+    this.mentionStartPos = pos - this.mentionQuery.length - 1;
+    this.mentionIndex = 0;
+  } else {
+    this.showMentionList = false;
   }
+}
 
   onCommentKeydown(event: KeyboardEvent) {
-    if (!this.showMentionList) return;
+  if (!this.showMentionList) return;
 
-    if (event.key === 'ArrowDown') {
-      event.preventDefault();
-      this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
-    } else if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      this.mentionIndex =
-        (this.mentionIndex - 1 + this.filteredUsers.length) %
-        this.filteredUsers.length;
-    } else if (event.key === 'Enter') {
-      event.preventDefault();
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    this.mentionIndex = 
+      (this.mentionIndex - 1 + this.filteredUsers.length) % 
+      this.filteredUsers.length;
+  } else if (event.key === 'Enter') {
+    event.preventDefault();
+    if (this.filteredUsers[this.mentionIndex]) {
       this.selectMention(this.filteredUsers[this.mentionIndex]);
-    } else if (event.key === 'Escape') {
-      this.showMentionList = false;
     }
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    this.showMentionList = false;
   }
+}
 
   selectMention(user: any) {
-    const textarea: HTMLTextAreaElement | null = document.querySelector(
-      'textarea[name="comments"]'
-    );
-    if (!textarea) return;
-    const value = this.local_data.comments || '';
-    const before = value.slice(0, this.mentionStartPos);
-    const after = value.slice(textarea.selectionStart);
-    const mentionText = `@${user.name} ${user.last_name}`;
-    this.local_data.comments =
-      before + this.getMentionMarkup(user) + ' ' + after;
-    this.showMentionList = false;
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = (
-        before +
-        this.getMentionMarkup(user) +
-        ' '
-      ).length;
-    });
-  }
+  const textarea = this.commentTextarea?.nativeElement;
+  if (!textarea) return;
+  
+  const value = this.commentText || '';
+  const before = value.substring(0, this.mentionStartPos);
+  const after = value.substring(textarea.selectionStart);
+  
+  const mentionText = `@${user.name} ${user.last_name}`;
+  this.commentText = before + mentionText + ' ' + after;
+  
+  this.showMentionList = false;
+  
+  setTimeout(() => {
+    textarea.focus();
+    const newPosition = before.length + mentionText.length + 1;
+    textarea.selectionStart = newPosition;
+    textarea.selectionEnd = newPosition;
+  });
+}
 
   getMentionMarkup(user: any): string {
     return `@${user.name}${user.last_name}`;
@@ -358,7 +394,6 @@ setDueDateTime(date: Date | string, time: string) {
 
   let localDate: Date;
   if (typeof date === 'string') {
-    // Si es formato ISO, extrae solo la fecha y crea Date en local
     const dateOnly = date.split('T')[0];
     const [year, month, day] = dateOnly.split('-').map(Number);
     localDate = new Date(year, month - 1, day);
@@ -371,4 +406,5 @@ setDueDateTime(date: Date | string, time: string) {
 
   this.local_data.due_date = localDate;
 }
+
 }

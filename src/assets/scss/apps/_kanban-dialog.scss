@@ -1,17 +1,223 @@
+.trello-style {
+  min-width: 800px;
+  max-width: 900px;
+
+  .dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e0e4e8;
+
+    .dialog-title {
+      margin: 0;
+      flex-grow: 1;
+
+      .title-textarea {
+        width: 100%;
+        border: none;
+        font-size: 20px;
+        font-weight: 600;
+        resize: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-family: inherit;
+
+        &:focus {
+          outline: none;
+          background-color: #fafbfc;
+          box-shadow: inset 0 0 0 2px #dfe1e6;
+        }
+      }
+    }
+
+    .close-btn {
+      margin-top: 8px;
+    }
+  }
+
+  .properties-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .property-item {
+      flex: 1;
+
+      .property-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #5e6c84;
+      }
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
+  }
+
+  .dialog-body {
+    display: flex;
+    gap: 24px;
+
+    .left-content {
+      flex: 1;
+    }
+
+    .right-content {
+      flex: 1;
+    }
+
+    .section {
+      margin-bottom: 32px;
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #5e6c84;
+        display: flex;
+        align-items: center;
+
+        &::after {
+          content: "";
+          flex-grow: 1;
+          height: 1px;
+          background: #e0e4e8;
+          margin-left: 12px;
+        }
+      }
+
+      .attachments-list {
+        margin-top: 12px;
+
+        .attachment-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px;
+          background-color: #fafbfc;
+          border-radius: 4px;
+          margin-bottom: 8px;
+
+          .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 80%;
+
+            span {
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+
+          .attachment-actions {
+            display: flex;
+            gap: 4px;
+          }
+        }
+      }
+
+      .comment-input-container {
+        position: relative;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+
+        mat-form-field {
+          flex-grow: 1;
+        }
+
+        .save-btn {
+          height: 42px;
+          margin-top: 4px;
+        }
+      }
+
+      .comment-history {
+        margin-top: 24px;
+
+        .comment-item {
+          padding: 16px;
+          background-color: #fafbfc;
+          border-radius: 8px;
+          margin-bottom: 12px;
+
+          .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+
+            .user-name {
+              font-weight: 600;
+            }
+
+            .comment-date {
+              color: #5e6c84;
+              font-size: 12px;
+            }
+          }
+
+          .comment-text {
+            line-height: 1.5;
+          }
+        }
+      }
+    }
+  }
+
+  .sidebar {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e4e8;
+
+    .property-section {
+      margin-bottom: 24px;
+
+      .property-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #5e6c84;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  .dialog-actions {
+    justify-content: flex-end;
+    padding: 16px 0;
+    border-top: 1px solid #e0e4e8;
+
+    .primary-btn {
+      background-color: #0079bf;
+      color: white;
+    }
+
+    .cancel-btn {
+      margin-left: 12px;
+    }
+  }
+}
+
 .mention-list {
   position: absolute;
   left: 0;
-  top: 100%;
-  margin-top: 4px;
+  top: calc(100% + 4px);
+  width: 100%;
   background: #fff;
   border: 1px solid #e0e4e8;
   border-radius: 8px;
   z-index: 1200;
-  min-width: 220px;
-  max-width: 320px;
   max-height: 220px;
   overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(60, 72, 88, 0.10), 0 1.5px 6px rgba(60, 72, 88, 0.06);
+  box-shadow: 0 4px 16px rgba(60, 72, 88, 0.1),
+    0 1.5px 6px rgba(60, 72, 88, 0.06);
   padding: 4px 0;
   font-family: inherit;
 }
@@ -28,7 +234,6 @@
   border: none;
   background: none;
 
-  // Separador sutil entre items
   &:not(:last-child) {
     border-bottom: 1px solid #f3f4f6;
   }
@@ -40,8 +245,87 @@
   color: #388e3c;
 }
 
-
-::ng-deep mention, mention, .mention-blue {
+::ng-deep mention,
+mention,
+.mention-blue {
   color: #1976d2;
   font-weight: 600;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 300px;
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 16px;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .header-image {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+  }
+}
+
+.attachments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+
+  .attachment-item {
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #fafbfc;
+    border: 1px solid #e0e4e8;
+
+    .attachment-thumbnail {
+      width: 100%;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .attachment-info {
+      width: 100%;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f0f0;
+    }
+
+    .attachment-details {
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .file-name {
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-grow: 1;
+      }
+
+      .attachment-actions {
+        display: flex;
+        gap: 4px;
+      }
+    }
+  }
 }

@@ -19,6 +19,7 @@ import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
 
 @Component({
   selector: 'app-kanban',
@@ -177,7 +178,8 @@ export class AppKanbanComponent implements OnInit {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '600px',
+      width: '900px', 
+      maxWidth: '98vw',
       data: {
         action,
         ...data,
@@ -349,4 +351,49 @@ export class AppKanbanComponent implements OnInit {
       company_id: this.selectedBoard.company_id
     })
   }
+
+  createColumn(): void {
+  const dialogRef = this.dialog.open(ColumnDialogComponent, {
+    width: '400px',
+    data: { 
+      action: 'Add', 
+      name: '', 
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.kanbanService.createColumn(this.selectedBoardId, {
+        name: result.name,
+        position: this.selectedBoardColumns.length + 1,
+      }).subscribe(() => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Column created!');
+      });
+    }
+  });
+}
+
+editColumn(column: any): void {
+  const dialogRef = this.dialog.open(ColumnDialogComponent, {
+    width: '400px',
+    data: { 
+      action: 'Edit', 
+      name: column.name, 
+      position: column.position 
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.kanbanService.updateColumn(column.id, {
+        name: result.name,
+        position: result.position
+      }).subscribe(() => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Column updated!');
+      });
+    }
+  });
+}
 }

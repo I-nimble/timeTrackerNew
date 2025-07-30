@@ -101,4 +101,15 @@ export class BoardsService {
   removeTaskFromBoard(task: any): Observable<any> {
     return this.http.post<any>(`${this.API_URI}/remove-task`, task);
   }
+
+  createColumn(boardId: number, column: any): Observable<any> {
+  return this.http.post<any>(`${this.API_URI}/columns`, {
+    ...column,
+    board_id: boardId
+  });
+}
+
+updateColumn(columnId: number, column: any): Observable<any> {
+  return this.http.put<any>(`${this.API_URI}/columns/${columnId}`, column);
+}
 }

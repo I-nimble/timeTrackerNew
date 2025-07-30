@@ -1,182 +1,101 @@
-<mat-dialog-content class="mat-typography">
-  <div class="d-flex align-items-center justify-content-between m-b-16">
-    <h4 class="f-s-16 f-w-600">
-      {{ action }} {{ local_data.type === "board" ? "Board" : "Task" }}
-    </h4>
-    <button mat-icon-button mat-dialog-close>
+<mat-dialog-content class="mat-typography trello-style">
+  <div class="image-preview" *ngIf="firstAttachmentImage">
+    <img
+      [src]="getImageUrl(firstAttachmentImage)"
+      alt="Preview"
+      class="header-image"
+    />
+  </div>
+
+  <div class="dialog-header">
+    <h2 class="dialog-title">
+      <textarea
+        class="title-textarea"
+        matInput
+        [(ngModel)]="local_data.goal"
+        name="goal"
+        placeholder="{{
+          local_data.type === 'board' ? 'Board Name' : 'Task Title'
+        }}"
+      >
+      </textarea>
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-btn">
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
     </button>
   </div>
 
-  <form #form="ngForm">
-    <div class="row">
-      <div class="col-12">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label class="f-w-600 m-b-8 d-block">{{
-            local_data.type === "board" ? "Board Name" : "Task Name"
-          }}</mat-label>
-          <input
-            type="text"
-            matInput
-            required
-            name="goal"
-            [(ngModel)]="local_data.goal"
-            placeholder="{{
-              local_data.type === 'board'
-                ? 'Enter board name'
-                : 'Enter task name'
-            }}"
-          />
-        </mat-form-field>
-      </div>
-
-      <div class="col-12" *ngIf="local_data.type === 'board'">
-        <mat-form-field appearance="outline" class="mt-4 w-100">
-          <mat-label>Visibility</mat-label>
-          <mat-select
-            (selectionChange)="handleVisibilityChange($event)"
-            required
-            [(value)]="local_data.selectedVisibility"
-          >
-            <mat-option
-              *ngFor="let visibility of visibilities"
-              [value]="visibility"
-            >
-              {{ visibility }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field
-          appearance="outline"
-          class="w-100"
-          *ngIf="local_data.selectedVisibility === 'restricted'"
+  <div class="properties-row" *ngIf="local_data.type !== 'board'">
+    <div class="property-item">
+      <h3 class="property-title">Members</h3>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select
+          [(ngModel)]="local_data.employee_id"
+          name="employee_id"
+          required
         >
-          <mat-label>Allowed users</mat-label>
-          <mat-select multiple [(value)]="local_data.restrictedUsers" required>
-            <mat-option *ngFor="let user of users" [value]="user.id">
-              {{ user.name }} {{ user.last_name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+          <mat-option *ngFor="let user of users" [value]="user.id">
+            {{ user.name }} {{ user.last_name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
-        <mat-label class="f-w-600 m-b-8 d-block">Description</mat-label>
+    <div class="property-item">
+      <h3 class="property-title">Priority</h3>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select [(ngModel)]="local_data.priority" name="priority" required>
+          <mat-option *ngFor="let priority of priorities" [value]="priority.id">
+            {{ priority.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="property-item">
+      <h3 class="property-title">Due Date</h3>
+      <mat-form-field appearance="outline" class="w-100">
+        <input
+          matInput
+          [matDatepicker]="picker"
+          placeholder="Select a date"
+          name="due_date"
+          [(ngModel)]="local_data.due_date"
+          (dateChange)="onDueDateChange($event)"
+        />
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100 mt-2">
+        <input
+          matInput
+          type="time"
+          placeholder="Due Time"
+          [(ngModel)]="dueTime"
+          name="due_time"
+          (change)="onDueTimeChange($event)"
+        />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="dialog-body">
+    <div class="left-content">
+      <div class="section" *ngIf="local_data.type !== 'board'">
+        <h3 class="section-title">Description</h3>
         <mat-form-field appearance="outline" class="w-100">
           <textarea
             matInput
             name="recommendations"
             [(ngModel)]="local_data.recommendations"
-            placeholder="Enter task description"
-            rows="5"
+            placeholder="Add a more detailed description..."
+            rows="3"
           ></textarea>
         </mat-form-field>
       </div>
 
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
-  <mat-label class="f-w-600 m-b-8 d-block">Due Date</mat-label>
-  <mat-form-field appearance="outline" class="w-100">
-    <input
-      matInput
-      [matDatepicker]="picker"
-      placeholder="Choose a date"
-      name="due_date"
-      [(ngModel)]="local_data.due_date"
-      (dateChange)="onDueDateChange($event)"
-    />
-    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-datepicker #picker></mat-datepicker>
-  </mat-form-field>
-  <mat-form-field appearance="outline" class="w-100 mt-2">
-    <input
-      matInput
-      type="time"
-      placeholder="Due Time"
-      [(ngModel)]="dueTime"
-      name="due_time"
-      (change)="onDueTimeChange($event)"
-    />
-  </mat-form-field>
-</div>
-
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
-        <mat-label class="f-w-600 m-b-8 d-block">Priority</mat-label>
-        <mat-form-field appearance="outline" class="w-100 mt-2">
-          <mat-select
-            [(ngModel)]="local_data.priority"
-            name="priority"
-            required
-          >
-            <mat-option
-              *ngFor="let priority of priorities"
-              [value]="priority.id"
-            >
-              {{ priority.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
-        <mat-label class="f-w-600 m-b-8 d-block">Assign to</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-select
-            [(ngModel)]="local_data.employee_id"
-            name="employee_id"
-            required
-          >
-            <mat-option *ngFor="let user of users" [value]="user.id">
-              {{ user.name }} {{ user.last_name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
-        <mat-label class="f-w-600 m-b-8 d-block">Comments</mat-label>
-        <mat-form-field appearance="outline" class="w-100">
-          <textarea
-            matInput
-            name="commentText"
-            [(ngModel)]="commentText"
-            placeholder="Add comments"
-            rows="2"
-            (input)="onCommentInput($event)"
-            (keydown)="onCommentKeydown($event)"
-            #commentTextarea
-          ></textarea>
-        </mat-form-field>
-        <button
-          mat-flat-button
-          color="primary"
-          (click)="addComment()"
-          [disabled]="!commentText.trim()"
-          class="m-b-8"
-        >
-          Add Comment
-        </button>
-        <div *ngIf="showMentionList" class="mention-list">
-          <div
-            *ngFor="let user of filteredUsers; let i = index"
-            [class.selected]="i === mentionIndex"
-            (mousedown)="selectMention(user)"
-            class="mention-item"
-          >
-            &#64;{{ user.name }} {{ user.last_name }}
-          </div>
-        </div>
-        <div class="comment-list m-t-16" *ngIf="local_data.comments">
-          <div
-            *ngFor="let c of local_data.comments.split('\n')"
-            class="comment-item m-b-8"
-          >
-            {{ c }}
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12" *ngIf="local_data.type !== 'board'">
+      <div class="section" *ngIf="local_data.type !== 'board'">
+        <h3 class="section-title">Attachments</h3>
         <input
           #fileInput
           type="file"
@@ -184,62 +103,136 @@
           (change)="onFileSelected($event)"
           style="display: none"
         />
-        <button
-          mat-raised-button
-          type="button"
-          style="
-            background-color: #92b46c;
-            color: #fff;
-            margin-right: 8px;
-            margin-bottom: 8px;
-          "
-          (click)="fileInput.click()"
-        >
-          <mat-icon>upload</mat-icon>
-          Upload files
+        <button mat-stroked-button class="w-100" (click)="fileInput.click()">
+          <mat-icon>attach_file</mat-icon> Add Attachment
         </button>
 
-        <div *ngIf="attachments.length > 0">
-          <mat-list>
-            <mat-list-item *ngFor="let file of attachments; let i = index">
-              <span>{{ file.name || file.file_name }}</span>
-              <button
-                mat-icon-button
-                (click)="downloadAttachment(file.s3_filename)"
-              >
-                <i-tabler name="download"></i-tabler>
-              </button>
-              <button mat-icon-button (click)="removeAttachment(i)">
-                <i-tabler name="x"></i-tabler>
-              </button>
-            </mat-list-item>
-          </mat-list>
-          <div class="m-t-16" *ngFor="let file of attachments">
-            <img
-              *ngIf="file.file_type && file.file_type.startsWith('image/')"
-              [src]="attachmentsUrl + file.s3_filename"
-              alt="Attachment Preview"
-              style="
-                max-width: 100%;
-                max-height: 220px;
-                display: block;
-                margin: 0 auto 12px auto;
-                border-radius: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-              "
-            />
+        <div class="attachments-grid" *ngIf="attachments.length > 0">
+          <div
+            *ngFor="let file of attachments; let i = index"
+            class="attachment-item"
+          >
+            <div class="attachment-thumbnail" *ngIf="isImage(file)">
+              <img [src]="getImageUrl(file)" alt="Thumbnail" />
+            </div>
+            <div class="attachment-info" *ngIf="!isImage(file)">
+              <mat-icon>insert_drive_file</mat-icon>
+            </div>
+            <div class="attachment-details">
+              <span class="file-name">{{ file.name || file.file_name }}</span>
+              <div class="attachment-actions">
+                <button
+                  mat-icon-button
+                  (click)="downloadAttachment(file.s3_filename)"
+                >
+                  <mat-icon>download</mat-icon>
+                </button>
+                <button mat-icon-button (click)="removeAttachment(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </form>
+
+    <div class="right-content">
+      <div class="section" *ngIf="local_data.type !== 'board'">
+        <h3 class="section-title">Comments & Activity</h3>
+        <div class="comment-input-container">
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              name="commentText"
+              [(ngModel)]="commentText"
+              placeholder="Write a comment..."
+              rows="2"
+              #commentTextarea
+              (input)="onCommentInput($event)"
+              (keydown)="onCommentKeydown($event)"
+            ></textarea>
+          </mat-form-field>
+
+          <button
+            mat-flat-button
+            color="primary"
+            (click)="addComment()"
+            [disabled]="!commentText.trim()"
+            class="save-btn"
+          >
+            Save
+          </button>
+
+          <div *ngIf="showMentionList" class="mention-list">
+            <div
+              *ngFor="let user of filteredUsers; let i = index"
+              [class.selected]="i === mentionIndex"
+              (mousedown)="selectMention(user)"
+              class="mention-item"
+            >
+              &#64;{{ user.name }} {{ user.last_name }}
+            </div>
+          </div>
+        </div>
+
+        <div class="comment-history" *ngIf="local_data.comments">
+          <div
+            *ngFor="let c of local_data.comments.split('\n')"
+            class="comment-item"
+          >
+            <div class="comment-header">
+              <span class="user-name">{{ c.split(":")[0] }}</span>
+              <span class="comment-date">23 jun 2025, 14:44</span>
+            </div>
+            <div class="comment-text">
+              {{ c.split(":").slice(1).join(":") }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar" *ngIf="local_data.type === 'board'">
+    <div class="property-section">
+      <h3 class="property-title">Visibility</h3>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select
+          (selectionChange)="handleVisibilityChange($event)"
+          required
+          [(value)]="local_data.selectedVisibility"
+        >
+          <mat-option
+            *ngFor="let visibility of visibilities"
+            [value]="visibility"
+          >
+            {{ visibility }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field
+        appearance="outline"
+        class="w-100"
+        *ngIf="local_data.selectedVisibility === 'restricted'"
+      >
+        <mat-label>Allowed users</mat-label>
+        <mat-select multiple [(value)]="local_data.restrictedUsers" required>
+          <mat-option *ngFor="let user of users" [value]="user.id">
+            {{ user.name }} {{ user.last_name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
 </mat-dialog-content>
 
-<mat-dialog-actions>
-  <button mat-flat-button (click)="doAction()" [disabled]="form.invalid">
+<mat-dialog-actions class="dialog-actions">
+  <button mat-flat-button (click)="doAction()" class="primary-btn">
     {{ action === "Edit" ? "Save" : "Add" }}
   </button>
-  <button mat-flat-button class="bg-error text-white" (click)="closeDialog()">
+  <button mat-flat-button (click)="closeDialog()" class="bg-error text-white">
     Cancel
   </button>
 </mat-dialog-actions>
