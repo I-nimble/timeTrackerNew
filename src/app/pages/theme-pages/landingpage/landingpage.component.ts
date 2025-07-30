@@ -10,6 +10,8 @@ import { AppFooterComponent } from '../footer/footer.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { MatDialog } from '@angular/material/dialog';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
 
 interface apps {
   id: number;
@@ -161,13 +163,24 @@ export class AppLandingpageComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private dialog: MatDialog
   ) {}
 
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
+  
+  openQuickContact() {
+  this.dialog.open(QuickContactModalComponent, {
+    width: '520px', 
+    maxHeight: '90vh', 
+    disableClose: false,
+    autoFocus: false,
+    restoreFocus: false,
+  });
+}
 
   prevSlide(): void {
     this.currentSlide =

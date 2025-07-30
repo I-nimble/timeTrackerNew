@@ -541,7 +541,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -553,14 +553,15 @@
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  target="_blank"
                   color="primary"
                   class="btn-custom sm border-white text-white"
-                  >Call us now</a
+                  >Book a demo</a
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >More about our talent match</a

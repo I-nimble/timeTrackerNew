@@ -29,7 +29,7 @@
                 <a
                   mat-flat-button
                   color="primary"
-                  (click)="gotoDemos()"
+                  [routerLink]="['/authentication/login']"
                   class="btn-custom"
                   >Try Inimble</a
                 >
@@ -37,9 +37,9 @@
                   mat-stroked-button
                   color="primary"
                   target="_blank"
-                  href="tel:+1-706-478-5677"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
                   class="btn-custom2 border-primary"
-                  >Call us now</a
+                  >Book a demo</a
                 >
               </div>
             </div>
@@ -519,7 +519,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -531,14 +531,15 @@
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  target="_blank"
                   color="primary"
                   class="btn-custom sm border-white text-white"
-                  >Call us now</a
+                  >Book a demo</a
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >More about our talent match</a

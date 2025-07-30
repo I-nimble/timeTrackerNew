@@ -10,6 +10,8 @@ import { AppFooterComponent } from '../footer/footer.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface apps {
   id: number;
@@ -64,16 +66,14 @@ interface features {
   ],
   templateUrl: './why-us.component.html',
   animations: [
-  trigger('fadeAnimation', [
-    transition(':enter', [
-      style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-      animate('300ms ease-in', style({ opacity: 1 }))
+    trigger('fadeAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
+        animate('300ms ease-in', style({ opacity: 1 })),
+      ]),
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
     ]),
-    transition(':leave', [
-      animate('300ms ease-out', style({ opacity: 0 }))
-    ])
-  ])
-],
+  ],
 })
 export class AppWhyUsComponent {
   @Input() showToggle = true;
@@ -86,7 +86,7 @@ export class AppWhyUsComponent {
     {
       id: 1,
       stars: 5,
-      text: "We didn’t realize how scattered our operations were until we moved everything into Inimble. One login changed everything—from tracking hours to managing projects.",
+      text: 'We didn’t realize how scattered our operations were until we moved everything into Inimble. One login changed everything—from tracking hours to managing projects.',
       name: 'Steven R.',
       role: 'CEO of a Healthcare Startup',
       image: 'assets/images/profile/testimonial1.png',
@@ -94,7 +94,7 @@ export class AppWhyUsComponent {
     {
       id: 2,
       stars: 5,
-      text: "The talent was great, but what really surprised us was the platform. It gave our firm structure we didn’t know we were missing.",
+      text: 'The talent was great, but what really surprised us was the platform. It gave our firm structure we didn’t know we were missing.',
       name: 'Luis G.',
       role: 'CPA & Business Consultant',
       image: 'assets/images/profile/testimonial2.png',
@@ -102,7 +102,7 @@ export class AppWhyUsComponent {
     {
       id: 3,
       stars: 5,
-      text: "Our onboarding used to take weeks. With Inimble, new hires are set up and productive within days.",
+      text: 'Our onboarding used to take weeks. With Inimble, new hires are set up and productive within days.',
       name: 'Claudia T.',
       role: 'Managing Partner, Law Firm',
       image: 'assets/images/profile/testimonial3.png',
@@ -113,12 +113,23 @@ export class AppWhyUsComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private dialog: MatDialog
   ) {}
 
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
+  }
+
+  openQuickContact() {
+    this.dialog.open(QuickContactModalComponent, {
+      width: '520px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      restoreFocus: false,
+    });
   }
 
   prevSlide(): void {
