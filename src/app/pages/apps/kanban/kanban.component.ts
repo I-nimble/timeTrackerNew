@@ -178,8 +178,8 @@ export class AppKanbanComponent implements OnInit {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '5000px',
-      height: 'auto',
+      width: '900px', 
+      maxWidth: '98vw',
       data: {
         action,
         ...data,

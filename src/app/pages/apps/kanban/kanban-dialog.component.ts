@@ -53,6 +53,7 @@ export class AppKanbanDialogComponent implements OnInit {
   commentText: string = '';
   dueTime: string = '';
   companies: any[] = [];
+  firstAttachmentImage: any = null;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -102,6 +103,7 @@ export class AppKanbanDialogComponent implements OnInit {
         this.dueTime = `${hours}:${minutes}`;
       }
     }
+    this.updateFirstAttachmentImage();
   }
 
   showSnackbar(message: string): void {
@@ -137,16 +139,46 @@ export class AppKanbanDialogComponent implements OnInit {
       });
   }
 
+  updateFirstAttachmentImage() {
+    this.firstAttachmentImage = this.attachments.find(att => 
+      att.file_type?.startsWith('image/') || 
+      (att instanceof File && att.type.startsWith('image/'))
+    );
+  }
+
+
+  getImageUrl(attachment: any): string {
+    if (attachment instanceof File) {
+      return URL.createObjectURL(attachment);
+    } else if (attachment.s3_filename) {
+      return this.attachmentsUrl + attachment.s3_filename;
+    }
+    return '';
+  }
+
+  isImage(file: any): boolean {
+    if (file instanceof File) {
+      return file.type.startsWith('image/');
+    } else if (file.file_type) {
+      return file.file_type.startsWith('image/');
+    }
+    return false;
+  }
+
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
     for (let i = 0; i < files.length; i++) {
       this.attachments.push(files.item(i)!);
     }
     event.target.value = '';
+    this.updateFirstAttachmentImage(); // Actualizar la vista previa
   }
 
   removeAttachment(index: number): void {
-    this.attachments.splice(index, 1);
+    const removed = this.attachments.splice(index, 1)[0];
+    if (removed === this.firstAttachmentImage) {
+      this.updateFirstAttachmentImage();
+    }
   }
 
   getCompany() {
@@ -371,4 +403,5 @@ setDueDateTime(date: Date | string, time: string) {
 
   this.local_data.due_date = localDate;
 }
+
 }
