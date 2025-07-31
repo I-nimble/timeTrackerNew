@@ -61,7 +61,7 @@
                     <mat-form-field *ngSwitchCase="'email'" appearance="outline" class="w-100">
                       <input matInput [formControl]="getFormControl(q.id)" type="email" [required]="q.required" />
                     </mat-form-field>
-
+                    
                     <!-- Textarea -->
                     <mat-form-field *ngSwitchCase="'textarea'" appearance="outline" class="w-100">
                       <textarea matInput [formControl]="getFormControl(q.id)" rows="4" [required]="q.required"></textarea>
@@ -86,8 +86,29 @@
                     </div>
 
                     <!-- File Upload -->
-                    <div *ngSwitchCase="'file'">
-                      <input type="file" (change)="onFileChange($event, q.id)" [required]="q.required" />
+                    <div *ngSwitchCase="'file'" class="col-12 mb-3">
+                      <input
+                        #fileInput
+                        type="file"
+                        accept="application/pdf,image/png,image/jpeg,video/mp4"
+                        (change)="onFileChange($event, q.id)"
+                        [required]="q.required"
+                        style="display: none"
+                      />
+                      <button
+                        mat-raised-button
+                        type="button"
+                        style="background-color: #92b46c; color: #fff; margin-right: 8px; margin-bottom: 8px"
+                        (click)="fileInput.click()"
+                      >
+                        <mat-icon>upload</mat-icon>
+                        Upload File
+                      </button>
+                      <span *ngIf="fileAnswers[q.id]">{{ fileAnswers[q.id]?.name }}
+                      </span>
+                      <small *ngIf="!fileAnswers[q.id]" class="text-danger">
+                        Maximum file size is 10GB
+                      </small>
                     </div>
 
                   </ng-container>

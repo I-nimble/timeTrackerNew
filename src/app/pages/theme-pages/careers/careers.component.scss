@@ -18,9 +18,9 @@ mat-card {
   }
 }
 
-mat-label {
+.mat-label {
   font-family: 'Montserrat', sans-serif;
-  font-weight: 600; /* keep labels a bit bolder */
+  font-weight: 600;
   font-size: 1rem;
   color: #333;
 }
@@ -49,7 +49,7 @@ mat-label {
   font-weight: 500;
   font-size: 15px;
   color: #333;
-  white-space: pre-line; // preserves line breaks from backend
+  white-space: pre-line;
 }
 
 .submit-btn {
@@ -72,7 +72,6 @@ mat-label {
   }
 }
 
-// Utility classes
 .d-flex {
   &.flex-column {
     flex-direction: column;
