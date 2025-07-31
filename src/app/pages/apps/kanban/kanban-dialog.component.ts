@@ -20,6 +20,10 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { UsersService } from 'src/app/services/users.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DomSanitizer } from '@angular/platform-browser';
+import { lastValueFrom } from 'rxjs';
+import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { SafeHtmlPipe } from './safe-html.pipe';
 
 @Component({
   selector: 'app-kanban-dialog',
@@ -33,6 +37,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ReactiveFormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    SafeHtmlPipe,
   ],
   providers: [DatePipe, provideNativeDateAdapter()],
 })
@@ -54,7 +59,9 @@ export class AppKanbanDialogComponent implements OnInit {
   dueTime: string = '';
   companies: any[] = [];
   firstAttachmentImage: any = null;
+  pastedAttachments: any[] = [];
   @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -65,7 +72,9 @@ export class AppKanbanDialogComponent implements OnInit {
     private employeesService: EmployeesService,
     private usersService: UsersService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private sanitizer: DomSanitizer,
+    private kanbanService: BoardsService
   ) {
     this.getPriorities();
     this.local_data = { ...data };
@@ -105,6 +114,12 @@ export class AppKanbanDialogComponent implements OnInit {
       }
     }
     this.updateFirstAttachmentImage();
+
+    setTimeout(() => {
+    if (this.descriptionEditor && this.local_data.recommendations) {
+      this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
+    }
+  });
   }
 
   showSnackbar(message: string): void {
@@ -407,4 +422,80 @@ setDueDateTime(date: Date | string, time: string) {
   this.local_data.due_date = localDate;
 }
 
+async onPaste(event: ClipboardEvent) {
+    const clipboardData = event.clipboardData;
+    if (!clipboardData) return;
+    
+    if (clipboardData.files.length > 0 && clipboardData.files[0].type.startsWith('image/')) {
+      event.preventDefault();
+      
+      const file = clipboardData.files[0];
+      try {
+        const upload$ = this.kanbanService.uploadTaskAttachments([file]);
+        const uploadedFiles = await lastValueFrom(upload$);
+        
+        if (uploadedFiles.length > 0) {
+          const uploadedFile = uploadedFiles[0];
+          this.pastedAttachments.push(uploadedFile);
+          
+          this.insertImageInEditor(uploadedFile);
+        }
+      } catch (error) {
+        console.error('Error uploading pasted image:', error);
+        this.showSnackbar('Error uploading image');
+      }
+    }
+  }
+  
+  insertImageInEditor(file: any) {
+    const editor = this.descriptionEditor.nativeElement;
+    const img = document.createElement('img');
+    img.src = this.attachmentsUrl + file.s3_filename;
+    img.style.maxWidth = '100%';
+    
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.insertNode(img);
+      range.collapse(false);
+    
+      this.updateRecommendationsValue();
+    }
+  }
+  
+  updateRecommendationsValue() {
+    this.local_data.recommendations = this.descriptionEditor.nativeElement.innerHTML;
+  }
+
+  onEditorInput() {
+    this.updateRecommendationsValue();
+  }
+  
+  
+  insertImage() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        try {
+          const upload$ = this.kanbanService.uploadTaskAttachments([file]);
+          const uploadedFiles = await lastValueFrom(upload$);
+          
+          if (uploadedFiles.length > 0) {
+            this.insertImageInEditor(uploadedFiles[0]);
+          }
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          this.showSnackbar('Error uploading image');
+        }
+      }
+    };
+    input.click();
+  }
+
+  safeHtmlPipe = this.sanitizer.bypassSecurityTrustHtml;
 }
+
+
