@@ -1,23 +1,11 @@
 <div class="blank-layout-container justify-content-center">
   <div class="auth-wrapper">
-    <div class="position-relative shaper-wrapper">
+    <div class="position-relative">
       <div class="w-100 position-relative rounded bg-white auth-card">
-        <div class="auth-body">
-          <div class="m-t-20">
-            <app-branding [fullLogoMaxWidth]="'180px'"></app-branding>
-          </div>
-
-          <div class="row">
-            <div class="col-lg-6">
-              <div
-                class="align-items-center justify-content-center d-none d-lg-flex"
-              >
-                <img
-                  src="{{assetPath}}"
-                  alt="login"
-                  style="max-width: 500px; margin-top: 70px;"
-                />
-              </div>
+        <div class="auth-body h-100 p-0">
+          <div class="row g-0 h-100">
+            <div class="col-lg-6 position-relative auth-bg-container">
+              <div class="auth-bg-image" [style.background-image]="'url(' + assetPath + ')'"></div>
             </div>
             <div class="col-lg-6">
               <div
@@ -25,7 +13,7 @@
               >
                 <div class="row justify-content-center w-100">
                   <div class="col-lg-11">
-                    <h4 class="f-w-700 f-s-30 lh-base m-0">
+                    <h4 class="f-w-700 f-s-30 lh-base m-0 m-t-32">
                       Welcome to Inimble
                     </h4>
                     <span class="f-s-14 d-block mat-body-1 m-t-8"
@@ -166,7 +154,7 @@
                               <input matInput [value]="getCompanyName" required type="text" readonly />
                             </mat-form-field>
 
-                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('company_name')?.valid">Next</button>
+                            <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('company')?.valid">Next</button>
                           </form>
                         </div>
                       </mat-step>
@@ -202,7 +190,7 @@
                       </mat-step>
                     </mat-stepper>
 
-                    <span class="d-block f-w-500 d-block m-t-24"
+                    <span class="d-block f-w-500 d-block m-t-24 m-b-32"
                       >Already have an Account?
 
                       <a

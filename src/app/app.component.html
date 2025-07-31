@@ -10,6 +10,7 @@
         </cometchat-outgoing-call>
     </div>
 }
+
 @if (cometChatService.isCallOngoing) {
     <cometchat-ongoing-call
         id="callScreen"
@@ -18,4 +19,12 @@
     >
     </cometchat-ongoing-call>
 }
-<cometchat-incoming-call></cometchat-incoming-call>
+
+@if (incomingCall) {
+    <app-custom-incoming-call 
+        [incomingCall]="incomingCall" 
+        (incomingCallAccepted)="acceptIncomingCall()" 
+        (incomingCallRejected)="rejectIncomingCall()"
+    >
+    </app-custom-incoming-call>
+}

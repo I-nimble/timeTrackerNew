@@ -1,5 +1,5 @@
 <div class="d-flex align-items-center justify-content-between m-b-16 p-x-20 p-t-16">
-  <h3>{{action}} Employee</h3>
+  <h3>{{action}} Team Member</h3>
   <button
     mat-icon-button
     mat-dialog-close
@@ -19,13 +19,26 @@
     <div class="d-flex align-items-center m-b-16">
       <img
         class="mat-card-avatar"
-        [src]="local_data.image"
+        [src]="local_data.profile.imagePath"
         class="rounded-circle"
         width="50"
         height="50"
       />
-      <button mat-flat-button class="m-l-16 input-file-button">
-        <input type="file" (change)="selectFile($event)" #fileInput />
+      <button mat-flat-button color="primary" class="m-l-10 file" style='cursor: pointer;'>
+        Upload picture
+        <input
+          type="file"
+          (change)="selectFile($event)"
+          accept="image/jpeg, image/jpg, image/png"
+          style="
+            position: absolute;
+            display: block;
+            width: 100%;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            cursor: pointer;"
+        />
       </button>
     </div>
     <div class="row">
@@ -66,7 +79,7 @@
             id="password"
             name="password"
             formControlName="password"
-            placeholder="Employees password"
+            placeholder="Team member password"
           />
         </mat-form-field>
       </div>
@@ -77,6 +90,7 @@
             type="text"
             matInput
             required
+            readonly
             id="email"
             name="email"
             formControlName="email"

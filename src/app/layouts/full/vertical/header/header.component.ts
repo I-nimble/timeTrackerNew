@@ -443,6 +443,15 @@ export class HeaderComponent implements OnInit {
     });
   }
 
+  seeAllNotifications() {
+    this.notificationsService
+      .update(this.recentNotifications, 2)
+      .subscribe(() => {
+        this.notificationsService.notificationsChanged.next();
+        this.router.navigate(['/dashboards/notifications']);
+      });
+  }
+
   addNotification(notification: any) {
     this.recentNotifications.push(notification);
     this.recentNotifications = [...this.recentNotifications];
@@ -462,7 +471,11 @@ export class HeaderComponent implements OnInit {
     // this.notificationsService.update([notification], 2).subscribe(() => {
     //   this.loadNotifications();
     // });
-    this.router.navigate(['/dashboards/notifications']);
+    
+    this.notificationsService.update([notification], 2).subscribe(() => {
+      this.loadNotifications();
+      this.router.navigate(['/dashboards/notifications']);
+    });
   }
 }
 

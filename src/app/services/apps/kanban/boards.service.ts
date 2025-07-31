@@ -23,7 +23,8 @@ export class BoardsService {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
 
-  getBoardWithTasks(id: number): Observable<any> {
+  getBoardWithTasks(id: number, days?: number): Observable<any> {
+    if(days) return this.http.get<any>(`${this.API_URI}/tasks/${id}/${days}`);
     return this.http.get<any>(`${this.API_URI}/tasks/${id}`);
   }
   
@@ -39,14 +40,18 @@ export class BoardsService {
     return this.http.delete<any>(`${this.API_URI}/${id}`);
   }
   
-  private uploadTaskAttachments(files: File[]): Observable<any[]> {
+   uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);
     // For each file, get upload URL and upload
-    const uploads$ = files.map(file =>
-      this.http.get<any>(`${environment.apiUrl}/generate_upload_url/task_attachments`).pipe(
+    const uploads$ = files.map(file => {
+      let contentType = file.type;
+      if (!contentType || file.name.endsWith('.rar')) {
+        contentType = 'application/x-rar-compressed';
+      }
+      return this.http.get<any>(`${environment.apiUrl}/generate_upload_url/task_attachments`).pipe(
         switchMap((uploadUrlRes: any) => {
           const uploadUrl = uploadUrlRes.url;
-          const headers = new HttpHeaders({ 'Content-Type': file.type });
+          const headers = new HttpHeaders({ 'Content-Type': contentType });
           return this.http.put(uploadUrl, file, { headers }).pipe(
             map(() => {
               const urlParts = uploadUrl.split('?')[0].split('/');
@@ -54,14 +59,14 @@ export class BoardsService {
               return {
                 s3_filename,
                 file_name: file.name,
-                file_type: file.type,
+                file_type: contentType,
                 file_size: file.size,
               };
             })
           );
         })
-      )
-    );
+      );
+    });
     return forkJoin(uploads$);
   }
 
@@ -96,4 +101,15 @@ export class BoardsService {
   removeTaskFromBoard(task: any): Observable<any> {
     return this.http.post<any>(`${this.API_URI}/remove-task`, task);
   }
+
+  createColumn(boardId: number, column: any): Observable<any> {
+  return this.http.post<any>(`${this.API_URI}/columns`, {
+    ...column,
+    board_id: boardId
+  });
+}
+
+updateColumn(columnId: number, column: any): Observable<any> {
+  return this.http.put<any>(`${this.API_URI}/columns/${columnId}`, column);
+}
 }

@@ -4,8 +4,10 @@ import {
   Inject,
   Input,
   OnInit,
+  Output,
   Optional,
   ViewChild,
+  EventEmitter,
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -41,6 +43,7 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 
+
 @Component({
   templateUrl: './employee-table.component.html',
   imports: [
@@ -56,7 +59,7 @@ import { SelectionModel } from '@angular/cdk/collections';
   selector: 'app-employee-table',
   standalone: true,
 })
-export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
+export class AppEmployeeTableComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
 
@@ -96,6 +99,8 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     this.dataSourceTable.data = data;
   }
 
+  @Output() getEmployees = new EventEmitter<any>();
+
   dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
@@ -115,12 +120,6 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     private companiesService: CompaniesService,
   ) {}
 
-  ngOnInit(): void {
-    if (this.userRole === '3') {
-    }
-  }
-
-
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
       data: { action, employee },
@@ -128,86 +127,15 @@ export class AppEmployeeTableComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.getEmployees();
+      if (result?.event === 'Delete' && result?.id) {
+        this.dataSourceTable.data = this.dataSourceTable.data.filter(
+          (emp: any) => emp.profile.id !== result.id
+        );
+      }
+      else {
+        this.getEmployees.emit();
+      }
     });
-  }
-
-  getEmployees() {
-    this.employeesService.get().subscribe({
-      next: (employees: any) => {
-        this.employees = employees;
-        this.users = employees
-          .filter((user: any) => user.user.active == 1 && user.user.role == 2);
-
-        this.schedulesService.get().subscribe({
-          next: (schedules: any) => {
-            schedules = schedules.schedules;
-            this.users = this.users.map((user: any) => {
-              const userSchedules = schedules.find(
-                (schedule: any) => schedule.employee_id === user.id
-              );
-              if (!userSchedules) {
-                return {
-                  id: user.user.id,
-                  company_id: user.company_id,
-                  name: user.user.name,
-                  last_name: user.user.last_name,
-                  email: user.user.email,
-                  position: user.position_id,
-                  projects: user.projects.map((project: any) => project.id),
-                  schedule: 'No registered schedule',
-                  Salary: 0,
-                  imagePath: null,
-                };
-              }
-              
-              const workingDays = userSchedules.days
-                .map((day: any) => day.name)
-                .sort((a: string, b: string) => {
-                  const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                  return weekDays.indexOf(a) - weekDays.indexOf(b);
-                });
-
-              const scheduleString = this.formatDaysRange(workingDays);
-
-              return {
-                id: user.user.id,
-                company_id: user.company_id,
-                name: user.user.name,
-                last_name: user.user.last_name,
-                email: user.user.email,
-                position: user.position_id,
-                projects: user.projects.map((project: any) => project.id),
-                schedule: scheduleString,
-                Salary: 0, 
-                imagePath: null,
-              };
-            });
-            this.getUsersPictures();
-          },
-          error: (err) => {
-            console.error('Error fetching schedules:', err);
-          },
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching employees:', err);
-      },
-    });
-  }
-
-  getUsersPictures() {
-    this.users.forEach((user: any) => {
-      this.userService.getProfilePic(user.id).subscribe({
-        next: (image: any) => {
-          if(image) {
-            user.imagePath = image;
-          }
-        }
-      });
-    });
-    //this.dataSource.data = this.users;
-    this.loaded = true;
   }
 
   // Helper function to format days as a range "Monday to Friday"
@@ -335,7 +263,6 @@ export class AppEmployeeDialogContentComponent {
   action: string | any;
   // tslint:disable-next-line - Disables all
   local_data: any;
-  selectedImage: any = '';
   joiningDate = new FormControl();
   positions: any[] = [];
   projects: any[] = [];
@@ -372,14 +299,16 @@ export class AppEmployeeDialogContentComponent {
   ) {
     this.action = data.action;
     this.local_data = { ...data.employee };
-    this.editEmployeeForm.patchValue({ // Populate form data
-      name: this.local_data.name || '',
-      last_name: this.local_data.last_name || '',
-      password: '',
-      email: this.local_data.email || '',
-      position: this.local_data.position || '',
-      projects: this.local_data.projects || [],
-    });
+    if(this.action === 'Update') {
+      this.editEmployeeForm.patchValue({ // Populate form data
+        name: this.local_data.profile.name,
+        last_name: this.local_data.profile.last_name,
+        password: null,
+        email: this.local_data.profile.email,
+        position: this.local_data.profile.position,
+        projects: this.local_data.profile.projects || [],
+      });
+    }
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -401,20 +330,19 @@ export class AppEmployeeDialogContentComponent {
         }
         else if (this.userRole === '1') {
           this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.companyId || ''
+            company_id: this.local_data.profile.companyId || ''
           });
         }
       });
     }
 
     // Set default image path if not already set
-    if (!this.local_data.image) {
-      this.local_data.image = 'assets/images/default-user-profile-pic.png';
+    if (!this.local_data.profile.imagePath) {
+      this.local_data.profile.imagePath = 'assets/images/default-user-profile-pic.png';
     }
   }
 
   doAction(): void {
-
     if (this.action === 'Invite') {
       this.sendingData = true;
       if(!this.inviteEmployeeForm.valid) {
@@ -430,30 +358,44 @@ export class AppEmployeeDialogContentComponent {
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Invited successfully!', 'Close');
+          this.openSnackBar('Team Member Invited successfully!', 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         },
         error: (err: any) => {
-          console.error('Error adding employee:', err);
-          this.openSnackBar('Error inviting employee', 'Close');
+          console.error('Error adding Team Member:', err);
+          const errorMsg = err?.error?.message || 'Error inviting Team Member';
+          this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }
       });
     } else if (this.action === 'Update') {
-      // this.employeesService.updateEmployee(this.local_data);
-      // this.dialogRef.close({ event: 'Update' });
-      // this.openSnackBar('Employee Updated successfully!', 'Close');
-    } else if (this.action === 'Delete') {
-      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
+      if(!this.editEmployeeForm.valid) {
+        this.openSnackBar('Please fill in all required fields', 'Close');
+        this.sendingData = false;
+        return;
+      }
+
+      this.employeesService.updateEmployee(this.local_data.profile.id, this.editEmployeeForm.value, this.local_data.profile.company_id, this.selectedFile).subscribe({
         next: () => {
-          this.dialogRef.close({ event: 'Delete' });
-          this.openSnackBar('Employee Deleted successfully!', 'Close');
+          this.dialogRef.close({ event: 'Update' });
+          this.openSnackBar('Team Member Updated successfully!', 'Close');
         },
         error: (err:any) => {
-          console.error('Error deleting employee:', err);
-          this.openSnackBar('Error deleting employee', 'Close');
+          console.error('Error updating Team Member:', err);
+          this.openSnackBar('Error updating Team Member', 'Close');
+        }
+      });
+    } else if (this.action === 'Delete') {
+      this.employeesService.deleteEmployee(this.local_data.profile.id).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Delete', id: this.local_data.profile.id });
+          this.openSnackBar('Team Member Deleted successfully!', 'Close');
+        },
+        error: (err:any) => {
+          console.error('Error deleting Team Member:', err);
+          this.openSnackBar('Error deleting Team Member', 'Close');
         },
       });
     }
@@ -472,24 +414,27 @@ export class AppEmployeeDialogContentComponent {
   }
 
   selectFile(event: any): void {
-    if (!event.target.files[0] || event.target.files[0].length === 0) {
+    const img = event.target.files[0];
+
+    if (!img || img.length === 0) {
       this.openSnackBar('Please select an image', 'Close');
       return;
     }
-
-    const mimeType = event.target.files[0].type;
-    if (mimeType.match(/image\/jpeg/) == null) {
-      this.openSnackBar('The image must be a JPEG file', 'Close');
+    if(img.size > 1000000) {
+      this.openSnackBar('Image size should be 1 MB or less', 'Close')
+      return
+    }
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+      this.openSnackBar('Only JPG or PNG files are allowed!', 'Close');
       return;
     }
 
-    this.selectedFile = event.target.files[0];
+    this.selectedFile = img;
     if(this.selectedFile) {
       const reader = new FileReader();
       reader.readAsDataURL(this.selectedFile);
-  
       reader.onload = (_event) => {
-        this.local_data.image = reader.result; // Set selected image for preview
+        this.local_data.profile.imagePath = reader.result;
       };
     }
   }

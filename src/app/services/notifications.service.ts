@@ -72,7 +72,8 @@ export class NotificationsService {
               private dialog: MatDialog,
               private sanitizer: DomSanitizer) {}
 
-  get() {
+  get(days?: number) {
+    if(days) return this.http.get<any>(`${this.API_URI}/${days}`);
     return this.http.get<any>(`${this.API_URI}`);
   }
 
@@ -182,7 +183,12 @@ export class NotificationsService {
             const existingDialog = this.dialog.getDialogById(dialogId);
   
             if (!existingDialog) {
-              this.dialog.open(NotificationsPopupComponent, { id: dialogId });
+              this.dialog.open(NotificationsPopupComponent, {
+                id: dialogId,
+                data: {
+                  notifications: this.recentNotifications
+                }
+              });
             }
           }
         }

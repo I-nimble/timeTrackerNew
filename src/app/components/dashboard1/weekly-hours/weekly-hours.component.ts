@@ -64,6 +64,7 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     Thu: 0,
     Fri: 0,
   };
+  private employeeIds: number[] = []; 
 
   constructor(
     private usersService: UsersService,
@@ -133,9 +134,20 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
         },
       },
       yaxis: {
+        show: true,
+        min: 0,
+        tickAmount: 5,
         labels: {
-          show: false,
-        },
+          show: true,
+          style: {
+            colors: '#adb0bb',
+            fontSize: '11px',
+            fontFamily: 'inherit',
+          },
+          formatter: function(value: number) {
+            return value.toFixed(0) + 'h';
+          }
+        }
       },
       tooltip: {
         enabled: false,
@@ -144,41 +156,115 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.getAllUsers();
-    this.refreshInterval = setInterval(() => {
-      this.getAllUsers();
-    }, 300000);
+    this.loadInitialData();
   }
 
-  ngOnDestroy() {
+  private loadInitialData() {
+    this.employeeService.get().subscribe({
+      next: (employees: any) => {
+        this.processInitialEmployeeData(employees);
+      },
+      error: (err) => {
+        console.error('Error loading initial data:', err);
+        this.setupDataRefresh();
+      }
+    });
+  }
+
+  private processInitialEmployeeData(employees: any) {
+    const filteredEmployees = employees.filter(
+      (user: any) => user.user.active == 1 && user.user.role == 2
+    );
+    this.employeeIds = filteredEmployees.map((emp: any) => emp.user.id);
+    this.totalUsers = this.employeeIds.length;
+
+    if (this.employeeIds.length === 0) {
+      this.setupDataRefresh();
+      return;
+    }
+
+    const today = new Date();
+    this.datesRange = {
+      firstSelect: moment(today).isoWeekday(1).format('YYYY-MM-DD'),
+      lastSelect: moment(today).isoWeekday(7).format('YYYY-MM-DD')
+    };
+
+    forkJoin(
+      this.employeeIds.map(userId => 
+        forkJoin([
+          this.schedulesService.getById(userId),
+          this.reportsService.getRange(
+            this.datesRange, 
+            { id: userId }, 
+            { ...this.filters, user: { id: userId } }
+          )
+        ])
+      )
+    ).subscribe({
+      next: (results: any[]) => {
+        this.schedules = [];
+        this.entries = [];
+        
+        results.forEach(([schedules, entries]) => {
+          this.schedules = [...this.schedules, ...(schedules.schedules || [])];
+          this.entries = [...this.entries, ...(entries || [])];
+        });
+
+        this.processEntries(this.entries);
+        this.setupDataRefresh();
+      },
+      error: (err) => {
+        console.error('Error loading initial detailed data:', err);
+        this.setupDataRefresh();
+      }
+    });
+  }
+
+  private setupDataRefresh() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    
+    this.refreshInterval = setInterval(() => {
+      this.refreshEntriesOnly();
+    }, 60000);
   }
 
-  private updateBarColors() {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    const currentDay = moment().tz(this.companyTimezone).format('ddd');
-    const gray = '#e7ecf0';
-    const green = 'var(--mat-sys-primary)';
-    const lightGreen = '#bdd99b'; 
-    const workedColors = days.map(day => (day === currentDay ? green : gray));
-    const notWorkedColors = days.map(day => (day === currentDay ? lightGreen : gray));
+  private refreshEntriesOnly() {
+    if (this.employeeIds.length === 0) return;
 
-    this.paymentsChart.colors = [
-      ({ dataPointIndex, seriesIndex }: any) => {
-        if (seriesIndex === 0) return workedColors[dataPointIndex] || gray;
-        return notWorkedColors[dataPointIndex] || gray;
+    forkJoin(
+      this.employeeIds.map(userId => 
+        this.reportsService.getRange(
+          this.datesRange,
+          { id: userId },
+          { ...this.filters, user: { id: userId } }
+        )
+      )
+    ).subscribe({
+      next: (entriesResults: any[]) => {
+        this.entries = [];
+        entriesResults.forEach(entries => {
+          this.entries = [...this.entries, ...(entries || [])];
+        });
+        this.processEntries(this.entries);
+      },
+      error: (err) => {
+        console.error('Error refreshing entries:', err);
       }
-    ];
+    });
   }
 
   private processEntries(entries: any[]): void {
+    this.totalWorkedHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+    this.totalScheduledHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
+
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     let workedData = [];
     let notWorkedData = [];
     let workedPercent = 0;
     let notWorkedPercent = 0;
+
     // Calculate worked hours per day
     const workedHoursPerDay = entries.reduce((acc, entry) => {
       const date = moment(entry.start_time)
@@ -237,9 +323,13 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       {}
     );
 
-    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].forEach((day) => {
-      this.totalWorkedHoursAll[day] += workedHoursPerDay[day] || 0;
-      this.totalScheduledHoursAll[day] += totalHoursPerDay[day] || 0;
+    const schedulesCount = this.schedules.length || 1;
+    days.forEach((day) => {
+      const scheduledHours = (totalHoursPerDay[day] || 0) / schedulesCount;
+      const workedHours = (workedHoursPerDay[day] || 0) / schedulesCount;
+      
+      this.totalScheduledHoursAll[day] = scheduledHours;
+      this.totalWorkedHoursAll[day] = Math.min(workedHours, scheduledHours);
     });
 
     workedData = days.map((day) =>
@@ -251,6 +341,27 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       return Number(Math.max(total - worked, 0).toFixed(2));
     });
 
+    const maxScheduledHours = Math.max(...Object.values(this.totalScheduledHoursAll));
+    const yAxisMax = Math.ceil(maxScheduledHours);
+
+    this.paymentsChart.yaxis = {
+      show: true,
+      min: 0,
+      max: yAxisMax,
+      tickAmount: Math.ceil(yAxisMax / 2),
+      labels: {
+          show: true,
+          style: {
+              colors: '#adb0bb',
+              fontSize: '11px',
+              fontFamily: 'inherit',
+          },
+          formatter: function(value: number) {
+              return value.toFixed(0) + 'h';
+          }
+      }
+    };
+
     let totalWorked = workedData.reduce((acc, val) => acc + Number(val), 0);
     let totalScheduled = days.reduce(
       (acc, day) => acc + (this.totalScheduledHoursAll[day] || 0),
@@ -259,7 +370,7 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
 
     if (totalScheduled > 0) {
       workedPercent = Math.round((totalWorked / totalScheduled) * 100);
-      notWorkedPercent = 100 - workedPercent;
+      notWorkedPercent = Math.max(100 - workedPercent, 0);
       this.workedPercent = workedPercent;
       this.notWorkedPercent = notWorkedPercent;
     }
@@ -278,43 +389,27 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     this.updateBarColors();
   }
 
-  getAllUsers() {
-    this.totalWorkedHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
-    this.totalScheduledHoursAll = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0 };
-    this.employeeService.get().subscribe({
-      next: (employees: any) => {
-        const filteredEmployees = employees.filter(
-          (user: any) => user.user.active == 1 && user.user.role == 2
-        );
-        const employeeIds = filteredEmployees.map((emp: any) => emp.user.id);
+  private updateBarColors() {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const currentDay = moment().tz(this.companyTimezone).format('ddd');
+    const gray = '#e7ecf0';
+    const darkGray = '#b6b6b6';
+    const green = 'var(--mat-sys-primary)';
+    const lightGreen = '#bdd99b'; 
+    const workedColors = days.map(day => (day === currentDay ? green : darkGray));
+    const notWorkedColors = days.map(day => (day === currentDay ? lightGreen : gray));
 
-        const today = new Date();
-        const firstday = moment(today).isoWeekday(1).format('YYYY-MM-DD');
-        const lastday = moment(today).isoWeekday(7).format('YYYY-MM-DD');
-        this.datesRange = { firstSelect: firstday, lastSelect: lastday };
-        this.totalUsers = employeeIds.length;
+    this.paymentsChart.colors = [
+      ({ dataPointIndex, seriesIndex }: any) => {
+        if (seriesIndex === 0) return workedColors[dataPointIndex] || gray;
+        return notWorkedColors[dataPointIndex] || gray;
+      }
+    ];
+  }
 
-        employeeIds.forEach((userId: number, idx: number) => {
-          this.schedulesService.getById(userId).subscribe({
-            next: (schedules: any) => {
-              this.schedules = this.schedules.concat(schedules.schedules);
-              this.filters.user.id = userId;
-              const userParams = { id: userId };
-              this.reportsService
-                .getRange(this.datesRange, userParams, this.filters)
-                .subscribe((entries) => {
-                  this.entries = this.entries.concat(entries);
-                  if (idx === employeeIds.length - 1) {
-                    this.processEntries(this.entries);
-                  }
-                });
-            },
-          });
-        });
-      },
-      error: (err: any) => {
-        console.error('Error fetching employees:', err);
-      },
-    });
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
   }
 }

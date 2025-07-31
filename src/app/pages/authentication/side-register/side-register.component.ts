@@ -48,7 +48,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AppSideRegisterComponent {
   options = this.settings.getOptions();
-  assetPath = environment.assets + '/resources/empleadossection.png';
+  assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]], // check if email is taken
     name: ['', [Validators.required]],
@@ -160,11 +160,13 @@ export class AppSideRegisterComponent {
             .login(clientData.email as string, clientData.password as string)
             .subscribe({
               next: (loginResponse: any) => {
+                const id = loginResponse.id;
                 const jwt = loginResponse.token;
                 const name = loginResponse.username;
                 const lastName = loginResponse.last_name;
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
+                localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
@@ -175,6 +177,7 @@ export class AppSideRegisterComponent {
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
+                this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -224,6 +227,8 @@ export class AppSideRegisterComponent {
                 const lastName = loginResponse.last_name;
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
+                const id = loginResponse.id;
+                localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);

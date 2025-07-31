@@ -1,19 +1,55 @@
 @use "../variables" as *;
 
+.flex-column {
+  flex-direction: column;
+}
+.priority {
+  min-width: 75px;
+  max-width: max-content;
+  text-align: center;
+  margin-top: 5px;
+}
+.tasks-list {
+  overflow-y: scroll;     
+  flex: 1;
+  scrollbar-width: none;
+  border-radius: 16px;
+}
 .task-list-section {
   display: flex;
   gap: 24px;
   flex-wrap: nowrap;
+  margin-bottom: 1rem;
 }
 
 .task-list-container {
   width: 258px;
   flex-shrink: 0;
 }
-
+.assignee-avatar {
+  border-radius: 50%;
+  background-color: #92b46c;
+  color: #ffffff;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: .8rem;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.due-date {
+  background: #f5f5f5;
+  border-radius: 5px;
+  padding: .25rem;
+  height: max-content;
+}
 .connect-sorting {
   padding: 20px;
   border-radius: $border-radius;
+  height: auto;
+  max-height: 500px;
+  flex-direction: column;
 }
 
 .img-task {
@@ -34,9 +70,7 @@
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.kanban-task-card {
-  max-width: 320px;     
-  min-width: 220px;      
+.kanban-task-card {  
   word-break: break-word; 
   white-space: normal;    
 }
@@ -51,7 +85,6 @@
 
 .kanban-task-card .f-s-12 {
   display: block;
-  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }

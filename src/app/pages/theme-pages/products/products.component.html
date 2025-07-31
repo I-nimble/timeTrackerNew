@@ -3,77 +3,7 @@
     <!-- ------------------------------------------------------------------
     Header
     ------------------------------------------------------------------ -->
-    <mat-toolbar class="topbar topbar-xl m-auto">
-      <div class="container full-width p-xs-6 justify-content-between">
-        <!-- --------------------------------------------------------------- -->
-        <div class="branding p-x-0 landingpage-logo">
-          <app-branding [fullLogoMaxWidth]="'200px'"></app-branding>
-        </div>
-
-        <!-- --------------------------------------------------------------- -->
-
-        <div class="d-none d-lg-flex">
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <!-- <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
-            Demos
-          </button> -->
-
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/products']"
-            style="color: #818181"
-            >Products</a
-          >
-
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/industry']"
-            style="color: #818181"
-            >Industry</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/pricing']"
-            style="color: #818181"
-            >Pricing</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            href="/authentication/maintenance"
-            style="color: #818181"
-            >Why us</a
-          >
-        </div>
-
-        <div class="d-flex align-items-center gap-10">
-          <a
-            mat-flat-button
-            color="primary"
-            class="m-l-10"
-            [routerLink]="['/authentication/login']"
-            >Login</a
-          >
-
-          <!-- Mobile Menu -->
-          <button
-            mat-icon-button
-            (click)="filterNavRight.toggle()"
-            class="d-flex d-lg-none"
-          >
-            <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
-          </button>
-        </div>
-      </div>
-    </mat-toolbar>
+    <app-header [filterNavRight]="filterNavRight"></app-header>
 
     <!-- ------------------------------------------------------------------
    End Header
@@ -82,15 +12,15 @@
     <!-- ------------------------------------------------------------------
     Banner
     ------------------------------------------------------------------ -->
-    <div class="overflow-hidden banner-section">
+    <div class="overflow-hidden banner-section bg-green">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-11">
             <div class="text-center">
-              <h1 class="banner-title m-0 f-w-700">
+              <h1 class="banner-title m-0 f-w-700 text-white">
                 Everything You Need to Manage Your Remote Team<br />
               </h1>
-              <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
+              <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle text-white">
                 Your Command Center for remote work. Get a complete overview of
                 your team’s activity, progress, and performance. Inimble’s Home
                 dashboard centralizes your key metrics and updates in real time,
@@ -100,7 +30,7 @@
                 <a
                   mat-flat-button
                   color="primary"
-                  (click)="gotoDemos()"
+                  [routerLink]="['/authentication/login']"
                   class="btn-custom"
                   >Use Inimble for free</a
                 >
@@ -108,45 +38,19 @@
                   mat-stroked-button
                   color="primary"
                   target="_blank"
-                  href="tel:+1-706-478-5677"
-                  class="btn-custom2 border-primary"
-                  >Call us now</a
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  class="btn-custom2 border-primary text-white"
+                  >Book a demo</a
                 >
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- slider -->
-      <!-- <div
-        class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
-      >
-        <div class="d-flex flex-row w-100">
-          <div class="slider-img">
-            <img src="assets/images/landingpage/slider.png" alt="bg-img" />
-          </div>
-          <div class="slider-img">
-            <img src="assets/images/landingpage/slider.png" alt="bg-img" />
-          </div>
-          <div class="slider-img">
-            <img src="assets/images/landingpage/slider.png" alt="bg-img" />
-          </div>
-          <div class="slider-img">
-            <img src="assets/images/landingpage/slider.png" alt="bg-img" />
-          </div>
-          <div class="slider-img">
-            <img src="assets/images/landingpage/slider.png" alt="bg-img" />
-          </div>
-        </div>
-      </div> -->
     </div>
     <!-- ------------------------------------------------------------------
     End Banner
     ------------------------------------------------------------------ -->
-
-
-   
 
     <div class="spacer bg-white">
       <div class="container">
@@ -159,125 +63,491 @@
           status all in one place. Our customizable dashboards help you stay in
           control and scale with confidence.
         </p>
-        <div class="row m-t-40 justify-content-center">
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+        <!-- Carrusel -->
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
             >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-4.webp"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  “{{ testimonial.text }}”
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
               </div>
-            </mat-card>
+            </div>
+            }
           </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-11-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-10-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-9-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-8-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-7-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-6-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-5-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-2-1.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
           </div>
         </div>
+        <!-- Slider de testimonios -->
+        <!-- <div
+          class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
+        >
+          <div class="d-flex flex-row w-100">
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/5.jpeg"
+                    alt="Tania Valencia"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Tania Valencia
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Andrea's performance has been great. We are very happy with
+                  her. She follows direction and is organized. Her attention to
+                  detail and commitment are clearly reflected in her work.
+                  Andrea consistently demonstrates a deep understanding of her
+                  role."
+                </p>
+              </div>
+            </div>
+
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/smith.png"
+                    alt="John Smith"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      John Smith
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Wow! Our numbers have gone up recently. When we look at
+                  what's different, it's all the remote talent you've provided!
+                  They've made our law firm stand out these last couple of
+                  months. The office hasn't been this efficient in a while!"
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/sandoval.png"
+                    alt="Jessica Sandoval"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Jessica Sandoval
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Great team to work with! Even if you know nothing about
+                  remote work, they make it simple and easy to follow.
+                  Incredible how much they've helped my business grow. Thank
+                  you!"
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/rothe.png"
+                    alt="Hope Rothe"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Hope Rothe
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Amazing virtual assistants! It's shocking how much impact a
+                  couple of talented people can have on your business. Rome Law
+                  Firm is more efficient than ever."
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/white.png"
+                    alt="Robert White"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Robert White
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "We are so happy with our remote assistants! They are a
+                  tremendous asset for our firm. Their dedication and expertise
+                  have transformed our operations."
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/love.png"
+                    alt="Sarah Thompson"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Sarah Thompson
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Thank you Inimble! We're so happy since we started working
+                  with you. Our business has grown tremendously since we brought
+                  your team in. We can't believe how well everything worked
+                  out!"
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/thompson.png"
+                    alt="Sarah Thompson"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Sarah Thompson
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Thank you Inimble! We're so happy since we started working
+                  with you. Our business has grown tremendously since we brought
+                  your team in. We can't believe how well everything worked
+                  out!"
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/alexandroff.png"
+                    alt="Selena"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">Selena</h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Daniels has been the best assistant I've had. She is smart,
+                  kind, hardworking, and helpful. She takes initiative and is
+                  always on top of everything. We make a great team!"
+                </p>
+              </div>
+            </div>
+
+            
+            <div class="slider-img testimonial-slide2">
+              <div class="testimonial-content">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="assets/images/landingpage/logos/14.jpeg"
+                    alt="Imelsia Rodriguez"
+                    class="rounded-circle"
+                    width="60"
+                  />
+                  <div class="m-l-16">
+                    <h6 class="mat-subtitle-1 f-s-18 f-w-600 m-b-4">
+                      Imelsia Rodriguez
+                    </h6>
+                    <div class="d-flex">
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                      <i-tabler
+                        name="star-filled"
+                        class="fill-warning icon-16 m-l-2"
+                      ></i-tabler>
+                    </div>
+                  </div>
+                </div>
+                <p class="m-t-16 testimonial-text">
+                  "Henry has truly exceeded our expectations. He has an amazing
+                  work ethic and discipline. We love his practicality and
+                  eagerness to learn. He has become part of our Venezuelan
+                  family."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div> -->
       </div>
     </div>
     <!-- ------------------------------------------------------------------
@@ -316,7 +586,9 @@
             <div class="h-100 p-40 text-center">
               <h2 class="section-title m-b-16 f-w-700">Chat</h2>
               <p class="f-s-18 m-b-0">
-                Professional Team Communication Integrated team messaging with organized channels, direct messages, and file sharing. Keep your communication secure, searchable, and productive.
+                Professional Team Communication Integrated team messaging with
+                organized channels, direct messages, and file sharing. Keep your
+                communication secure, searchable, and productive.
               </p>
             </div>
           </div>
@@ -327,12 +599,12 @@
             class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 bg-white">
-            <img
+              <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              /> 
+              />
             </div>
           </div>
         </div>
@@ -343,16 +615,16 @@
     <div class="spacer">
       <div class="container">
         <div class="row m-t-40 justify-content-center align-items-stretch">
-            <div
+          <div
             class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 bg-white">
-            <img
+              <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              /> 
+              />
             </div>
           </div>
           <div
@@ -361,14 +633,15 @@
             <div class="h-100 p-40 m-l-32 text-center">
               <h2 class="section-title m-b-16 f-w-700">Calendar</h2>
               <p class="f-s-18 m-b-0">
-                Plan, Sync, Execute Schedule tasks, team meetings, and key deadlines. Sync with your preferred tools and keep everyone aligned with shared visibility.
+                Plan, Sync, Execute Schedule tasks, team meetings, and key
+                deadlines. Sync with your preferred tools and keep everyone
+                aligned with shared visibility.
               </p>
             </div>
           </div>
           <div
             class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
           ></div>
-          
         </div>
       </div>
     </div>
@@ -383,7 +656,9 @@
             <div class="h-100 p-40 text-center">
               <h2 class="section-title m-b-16 f-w-700">Kanban</h2>
               <p class="f-s-18 m-b-0">
-                Visual Project Management Use our drag-and-drop Kanban boards to assign tasks, track stages, and manage workflows with ease. Built for remote collaboration and visibility.
+                Visual Project Management Use our drag-and-drop Kanban boards to
+                assign tasks, track stages, and manage workflows with ease.
+                Built for remote collaboration and visibility.
               </p>
             </div>
           </div>
@@ -394,12 +669,12 @@
             class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 bg-white">
-            <img
+              <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              /> 
+              />
             </div>
           </div>
         </div>
@@ -410,16 +685,16 @@
     <div class="spacer">
       <div class="container">
         <div class="row m-t-40 justify-content-center align-items-stretch">
-            <div
+          <div
             class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 bg-white">
-            <img
+              <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              /> 
+              />
             </div>
           </div>
           <div
@@ -428,14 +703,16 @@
             <div class="h-100 p-40 m-l-32 text-center">
               <h2 class="section-title m-b-16 f-w-700">Time Tracker</h2>
               <p class="f-s-18 m-b-0">
-                Time is Money—Track It Right Log work hours, monitor activity levels, and generate productivity reports. Our built-in time tracker helps you optimize performance and manage payroll accurately.
+                Time is Money—Track It Right Log work hours, monitor activity
+                levels, and generate productivity reports. Our built-in time
+                tracker helps you optimize performance and manage payroll
+                accurately.
               </p>
             </div>
           </div>
           <div
             class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
           ></div>
-          
         </div>
       </div>
     </div>
@@ -448,9 +725,11 @@
             class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 text-center">
-              <h2 class="section-title m-b-16 f-w-700">ToDo</h2>
+              <h2 class="section-title m-b-16 f-w-700">To Do</h2>
               <p class="f-s-18 m-b-0">
-                Stay Focused with Clear Priorities Personal and team-wide task management. Break down bigger goals into actionable items and ensure nothing falls through the cracks.
+                Stay Focused with Clear Priorities Personal and team-wide task
+                management. Break down bigger goals into actionable items and
+                ensure nothing falls through the cracks.
               </p>
             </div>
           </div>
@@ -461,12 +740,12 @@
             class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
           >
             <div class="h-100 p-40 bg-white">
-            <img
+              <img
                 src="assets/images/landingpage/background/c2a.png"
                 alt="img"
                 width="596"
                 class="c2a-img d-none d-lg-flex"
-              /> 
+              />
             </div>
           </div>
         </div>
@@ -492,7 +771,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="/authentication/maintenance"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -504,7 +783,7 @@
                 >
                 <a
                   mat-stroked-button
-                  href="/authentication/maintenance"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >Book a free consultation</a
@@ -524,7 +803,75 @@
       </div>
     </div>
 
-    
+    <!-- <div class="spacer bg-white">
+      <div class="container">
+        <h2 class="section-title f-w-700 m-y-30 text-center">
+          What Our Clients Say
+        </h2>
+
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
+            >
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  "{{ testimonial.text }}"
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
+          </div>
+        </div>
+      </div>
+    </div> -->
 
     <!-- ------------------------------------------------------------------
     footer

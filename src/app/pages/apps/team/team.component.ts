@@ -113,7 +113,7 @@ export class TeamComponent {
 
   handleCompanySelection(event: any) {
     this.companyId = event.value;
-    this.dataSource = this.users.filter((user: any) => user.company_id === this.companyId);
+    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
   }
 
   loadCompany(): void {
@@ -131,9 +131,10 @@ export class TeamComponent {
     
     this.dataSource = this.users.filter(user => {
       return (
-        user.profile.name.toLowerCase().includes(filterValue) ||
+        (user.profile.name.toLowerCase().includes(filterValue) ||
         user.profile.last_name.toLowerCase().includes(filterValue) ||
-        user.email.toLowerCase().includes(filterValue)
+        user.email.toLowerCase().includes(filterValue))
+        && (this.companyId ? user.profile.company_id === this.companyId : true)
       );
     });
   }
@@ -180,10 +181,10 @@ export class TeamComponent {
 
   getProfilePics() {
     this.users.map((user: any) => {
-      this.userService.getProfilePic(user.id).subscribe({
+      this.userService.getProfilePic(user.profile.id).subscribe({
         next: (response: any) => {
           if(!response) return;
-          user.imagePath = response;
+          user.profile.imagePath = response;
         },
         error: (err) => {
           console.error('Error fetching profile picture:', err);
@@ -320,13 +321,14 @@ export class AppEmployeeDialogContentComponent {
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Invited successfully!', 'Close');
+          this.openSnackBar('Team Member Invited successfully!', 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         },
         error: (err: any) => {
-          console.error('Error adding employee:', err);
-          this.openSnackBar('Error inviting employee', 'Close');
+          console.error('Error adding Team Member:', err);
+          const errorMsg = err?.error?.message || 'Error inviting Team Member';
+          this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }
@@ -342,11 +344,11 @@ export class AppEmployeeDialogContentComponent {
       ).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Update' });
-          this.openSnackBar('Employee Updated successfully!', 'Close');
+          this.openSnackBar('Team Member Updated successfully!', 'Close');
         },
         error: (err) => {
-          console.error('Error updating employee:', err);
-          this.openSnackBar('Error updating employee', 'Close');
+          console.error('Error updating Team Member:', err);
+          this.openSnackBar('Error updating Team Member', 'Close');
         },
         complete: () => {
           this.sendingData = false;
@@ -356,11 +358,11 @@ export class AppEmployeeDialogContentComponent {
       this.employeesService.deleteEmployee(this.local_data.id).subscribe({
         next: () => {
           this.dialogRef.close({ event: 'Delete' });
-          this.openSnackBar('Employee Deleted successfully!', 'Close');
+          this.openSnackBar('Team Member Deleted successfully!', 'Close');
         },
         error: (err:any) => {
-          console.error('Error deleting employee:', err);
-          this.openSnackBar('Error deleting employee', 'Close');
+          console.error('Error deleting Team Member:', err);
+          this.openSnackBar('Error deleting Team Member', 'Close');
         },
       });
     }

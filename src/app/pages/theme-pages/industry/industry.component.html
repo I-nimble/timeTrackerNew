@@ -3,77 +3,7 @@
     <!-- ------------------------------------------------------------------
     Header
     ------------------------------------------------------------------ -->
-    <mat-toolbar class="topbar topbar-xl m-auto">
-      <div class="container full-width p-xs-6 justify-content-between">
-        <!-- --------------------------------------------------------------- -->
-        <div class="branding p-x-0">
-          <app-branding [fullLogoMaxWidth]="'180px'"></app-branding>
-        </div>
-
-        <!-- --------------------------------------------------------------- -->
-
-        <div class="d-none d-lg-flex">
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <!-- <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
-            Demos
-          </button> -->
-
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/products']"
-            style="color: #818181"
-            >Products</a
-          >
-
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/industry']"
-            style="color: #818181"
-            >Industry</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/pricing']"
-            style="color: #818181"
-            >Pricing</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            href="/authentication/maintenance"
-            style="color: #818181"
-            >Why us</a
-          >
-        </div>
-
-        <div class="d-flex align-items-center gap-10">
-          <a
-            mat-flat-button
-            color="primary"
-            class="m-l-10"
-            [routerLink]="['/authentication/side-login']"
-            >Login</a
-          >
-
-          <!-- Mobile Menu -->
-          <button
-            mat-icon-button
-            (click)="filterNavRight.toggle()"
-            class="d-flex d-lg-none"
-          >
-            <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
-          </button>
-        </div>
-      </div>
-    </mat-toolbar>
+    <app-header [filterNavRight]="filterNavRight"></app-header>
 
     <!-- ------------------------------------------------------------------
    End Header
@@ -82,32 +12,37 @@
     <!-- ------------------------------------------------------------------
     Banner
     ------------------------------------------------------------------ -->
-    <div class="industry-banner-section overflow-hidden">
+    <div class="overflow-hidden banner-section">
       <div class="container">
-        <div class="row align-items-center">
-          <!-- Columna izquierda: Título y botones -->
-          <div class="col-lg-6 text-center">
-            <h1 class="industry-banner-title">
-              Build Smarter Remote Teams—Across Every Industry
-            </h1>
-            <div class="industry-banner-buttons m-t-24 justify-content-center">
-              <a mat-flat-button color="primary" class="btn-custom"
-                >Try inimble</a
-              >
-              <a
-                mat-stroked-button
-                color="primary"
-                class="btn-custom2 border-primary"
-                >Call us now</a
-              >
+        <div class="row justify-content-center">
+          <div class="col-lg-11">
+            <div class="text-center">
+              <h1 class="banner-title m-0 f-w-700">
+                Build Smarter Remote Teams—Across Every Industry<br />
+              </h1>
+              <p class="f-s-18 p-y-24 m-t-12 m-0 banner-subtitle">
+                Inimble helps any kind of business scale efficiently with
+                tailored staffing, HR, IT, and productivity tools. All-in-one
+                platform.
+              </p>
+              <div class="m-t-24 hstack justify-content-center">
+                <a
+                  mat-flat-button
+                  color="primary"
+                  [routerLink]="['/authentication/login']"
+                  class="btn-custom"
+                  >Try Inimble</a
+                >
+                <a
+                  mat-stroked-button
+                  color="primary"
+                  target="_blank"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  class="btn-custom2 border-primary"
+                  >Book a demo</a
+                >
+              </div>
             </div>
-          </div>
-          <!-- Columna derecha: Subtítulo -->
-          <div class="col-lg-6 text-center">
-            <p class="industry-banner-subtitle">
-              Inimble helps any kind of business scale efficiently with tailored
-              staffing, HR, IT, and productivity tools. All-in-one platform.
-            </p>
           </div>
         </div>
       </div>
@@ -171,7 +106,7 @@
     <!-- ------------------------------------------------------------------
     other banner
     ------------------------------------------------------------------ -->
-    <div class="banner-section bg-green text-white">
+    <!-- <div class="banner-section bg-green text-white">
       <div class="container">
         <div class="row align-items-center">
           <div class="col-lg-12 text-center">
@@ -179,6 +114,39 @@
               Optimize your legal operations with bilingual, pre-vetted talent
               and compliance-first infrastructure.
             </h1>
+            <div
+        class="slider-wrapper overflow-hidden position-relative m-t-40 p-t-30 p-b-10"
+      >
+        <div class="d-flex flex-row w-100">
+          <div class="slider-img">
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
+          </div>
+          <div class="slider-img">
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
+          </div>
+          <div class="slider-img">
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
+          </div>
+          <div class="slider-img">
+            <img
+              src="assets/images/landingpage/background/c2a.png"
+              alt="C2A"
+              class="img-fluid rounded"
+            />
+          </div>
+          <div class="slider-img">
             <img
               src="assets/images/landingpage/background/c2a.png"
               alt="C2A"
@@ -187,11 +155,11 @@
           </div>
         </div>
       </div>
-    </div>
-    <!-- ------------------------------------------------------------------
-    End other banner
-    ------------------------------------------------------------------ -->
-    <div class="spacer bg-white">
+          </div>
+        </div>
+      </div>
+    </div> -->
+        <div class="spacer bg-white">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-6 col-sm-8">
@@ -203,84 +171,45 @@
         <div class="row align-items-center">
           <div class="col-lg-6">
             <mat-accordion>
-              <mat-expansion-panel>
-                <mat-expansion-panel-header>
-                  <mat-panel-title class="f-w-600 f-s-16 text-primary">
-                    What We Offer
-                  </mat-panel-title>
-                </mat-expansion-panel-header>
-                <ul class="industry-list">
-                  <li>
-                    <i-tabler
-                      name="check"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Legal-ready virtual assistants and paralegals
-                  </li>
-                  <li>
-                    <i-tabler
-                      name="check"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Integration with Clio, Filevine & legal tools
-                  </li>
-                  <li>
-                    <i-tabler
-                      name="check"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Time tracking for billable hours
-                  </li>
-                  <li>
-                    <i-tabler
-                      name="check"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Encrypted communication & secure access
-                  </li>
-                  <li>
-                    <i-tabler
-                      name="check"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Real-time productivity & task management
-                  </li>
-                </ul>
-              </mat-expansion-panel>
-              <mat-expansion-panel>
+              <mat-expansion-panel  [expanded]="true">
                 <mat-expansion-panel-header>
                   <mat-panel-title class="f-w-600 f-s-16 text-primary">
                     Additional Industries We Serve
                   </mat-panel-title>
                 </mat-expansion-panel-header>
-                <div class="industry-list-caption">
+                <!-- <div class="industry-list-caption">
                   inimble also works with clients in:
-                </div>
+                </div> -->
                 <ul class="industry-list">
                   <li>
-                    <i-tabler
-                      name="building"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Tech Startups
+                    <img
+                      src="/assets/images/svgs/injury.svg"
+                      >
+                    Personal Injury
                   </li>
                   <li>
-                    <i-tabler name="home" class="industry-list-icon"></i-tabler>
-                    Real estate
+                    <img
+                      src="/assets/images/svgs/workers-compensation.svg"
+                      >
+                    Workers' Compensation
                   </li>
                   <li>
-                    <i-tabler
-                      name="palette"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Marketing & Creative Agencies
+                    <img
+                      src="/assets/images/svgs/Case-Manager.svg"
+                      >
+                    Other Legal Services
                   </li>
                   <li>
-                    <i-tabler
-                      name="headset"
-                      class="industry-list-icon"
-                    ></i-tabler>
-                    Customer Support Teams
+                    <img
+                      src="/assets/images/svgs/real-state.svg"
+                      >
+                    Real Estate
+                  </li>
+                  <li>
+                    <img
+                      src="/assets/images/svgs/Bookkeeper.svg"
+                      >
+                    Others (Tech Startups, Marketing, and General Business Support)
                   </li>
                   <li>
                     <i-tabler name="dots" class="industry-list-icon"></i-tabler>
@@ -303,17 +232,221 @@
         </div>
       </div>
     </div>
+    <!-- ------------------------------------------------------------------
+    End other banner
+    ------------------------------------------------------------------ -->
+    <div class="bg-white">
+      <div class="container spacer">
+        <div class="rounded p-32 position-relative">
+          <div class="row justify-content-center align-items-center">
+            <div class="col-lg-8 text-center m-auto">
+              <h3
+                class="m-t-0 section-title2 m-b-32 banner-title"
+                style="line-height: 1.1"
+              >
+                What we offer
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal-ready Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 text-center">
+              <h2 class="section-title m-b-16 f-w-700">
+                Legal-ready virtual assistants and paralegals
+              </h2>
+              <p class="f-s-18 m-b-0">
+                Access bilingual professionals pre-vetted for legal workflows.
+                From document drafting to case management, our talent handles
+                sensitive tasks with confidentiality and precision.
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--Integration with Clio Section -->
+    <div class="spacer">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 m-l-32 text-center">
+              <h2 class="section-title m-b-16 f-w-700">
+                Integration with Clio, Filevine & legal tools
+              </h2>
+              <p class="f-s-18 m-b-0">
+                Connect seamlessly with your existing legal software ecosystem.
+                Sync case data, automate workflows, and maintain continuity
+                across all platforms without manual transfers.
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time tracking Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 text-center">
+              <h2 class="section-title m-b-16 f-w-700">
+                Time tracking for billable hours
+              </h2>
+              <p class="f-s-18 m-b-0">
+                Automatically capture billable hours with court-admissible audit
+                trails. Generate client-ready reports and ensure compliance with
+                legal billing standards.
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--Encrypted communication Section -->
+    <div class="spacer">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 m-l-32 text-center">
+              <h2 class="section-title m-b-16 f-w-700">
+                Encrypted communication & secure access
+              </h2>
+              <p class="f-s-18 m-b-0">
+                Enterprise-grade security protecting privileged communications.
+                End-to-end encryption, role-based permissions, and compliance
+                with legal confidentiality requirements.
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real-time productivity Section -->
+    <div class="spacer bg-white">
+      <div class="container">
+        <div class="row m-t-40 justify-content-center align-items-stretch">
+          <div
+            class="col-md-5 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 text-center">
+              <h2 class="section-title m-b-16 f-w-700">
+                Real-time productivity & task management
+              </h2>
+              <p class="f-s-18 m-b-0">
+                Monitor case progress through visualized workflows. Assign
+                tasks, track deadlines, and maintain accountability across
+                distributed legal teams.
+              </p>
+            </div>
+          </div>
+          <div
+            class="col-md-1 d-none d-md-flex align-items-center justify-content-center"
+          ></div>
+          <div
+            class="col-md-6 m-t-md-0 m-t-32 m-b-24 d-flex flex-column justify-content-center"
+          >
+            <div class="h-100 p-40 bg-white">
+              <img
+                src="assets/images/landingpage/background/c2a.png"
+                alt="img"
+                width="596"
+                class="c2a-img d-none d-lg-flex"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ------------------------------------------------------------------
     Template
     ------------------------------------------------------------------ -->
     <div class="bg-white">
       <div class="container spacer">
-        <div class="bg-green rounded p-32 position-relative">
+        <div class="rounded p-32 position-relative">
           <div class="row justify-content-center align-items-center">
             <div class="col-lg-8 text-center m-auto">
               <h3
-                class="m-t-0 section-title2 text-white m-b-16"
+                class="m-t-0 section-title2 m-b-32 banner-title"
                 style="line-height: 1.1"
               >
                 Built for Every Stage of Growth
@@ -322,7 +455,10 @@
                 class="industry-list industry-list-light m-b-24 d-inline-block text-start"
               >
                 <li>
-                  <i-tabler name="user" class="industry-list-icon"></i-tabler>
+                  <i-tabler
+                    name="user"
+                    class="industry-list-icon m-b-6"
+                  ></i-tabler>
                   <span
                     ><b>Solo Professionals:</b> Get the support you need to
                     scale.</span
@@ -330,8 +466,8 @@
                 </li>
                 <li>
                   <i-tabler
-                    name="briefcase"
-                    class="industry-list-icon"
+                    name="users"
+                    class="industry-list-icon m-b-6"
                   ></i-tabler>
                   <span
                     ><b>Small Businesses:</b> Simplify hiring and
@@ -339,7 +475,10 @@
                   >
                 </li>
                 <li>
-                  <i-tabler name="users" class="industry-list-icon"></i-tabler>
+                  <i-tabler
+                    name="building"
+                    class="industry-list-icon m-b-6"
+                  ></i-tabler>
                   <span
                     ><b>Mid-Size Teams:</b> Collaborate and grow with
                     structure.</span
@@ -348,7 +487,7 @@
                 <li>
                   <i-tabler
                     name="building-skyscraper"
-                    class="industry-list-icon"
+                    class="industry-list-icon m-b-6"
                   ></i-tabler>
                   <span
                     ><b>Enterprise Firms:</b> Integrate systems and manage
@@ -356,27 +495,6 @@
                   >
                 </li>
               </ul>
-              <div class="hstack gap-2 justify-content-center">
-                <a
-                  mat-flat-button
-                  href="/authentication/maintenance"
-                  color="primary"
-                  class="btn-custom sm"
-                  style="
-                    background-color: #c4e57f;
-                    font-weight: 800;
-                    color: #818181;
-                  "
-                  >Try Inimble for free</a
-                >
-                <a
-                  mat-stroked-button
-                  href="/authentication/maintenance"
-                  color="primary"
-                  class="btn-custom sm border-white text-white"
-                  >Book a free consultation</a
-                >
-              </div>
             </div>
           </div>
         </div>
@@ -401,7 +519,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -413,14 +531,15 @@
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  target="_blank"
                   color="primary"
                   class="btn-custom sm border-white text-white"
-                  >Call us now</a
+                  >Book a demo</a
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >More about our talent match</a

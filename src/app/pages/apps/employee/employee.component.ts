@@ -131,9 +131,8 @@ export class AppEmployeeComponent {
     });
   }
 
-  handleCompanySelection(event: any) {
-    this.companyId = event.value;
-    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
+  handleCompanySelection() {
+    this.applyCombinedFilters();
   }
 
   loadCompany(): void {
@@ -146,18 +145,19 @@ export class AppEmployeeComponent {
   }
 
   applyFilter(filterValue: string): void {
-    filterValue = filterValue.trim()?.toLowerCase();
-    if (!filterValue) {
-      this.dataSource = [...this.users];
-      return;
-    }
-    
-    this.dataSource = this.users.filter(user => {
-      return (
-        user.profile.name?.toLowerCase().includes(filterValue) ||
-        user.profile.last_name?.toLowerCase().includes(filterValue) ||
-        user.email?.toLowerCase().includes(filterValue)
-      );
+    this.searchText = filterValue;
+    this.applyCombinedFilters();
+  }
+
+  applyCombinedFilters(): void {
+    const value = this.searchText.trim().toLowerCase();
+    this.dataSource = this.users.filter((user: any) => {
+      const matchesSearch =
+        (user.profile.name && user.profile.name.toLowerCase().includes(value)) ||
+        (user.profile.last_name && user.profile.last_name.toLowerCase().includes(value)) ||
+        (user.profile.email && user.profile.email.toLowerCase().includes(value));
+      const matchesCompany = this.companyId ? user.profile.company_id === this.companyId : true;
+      return matchesSearch && matchesCompany;
     });
   }
 
@@ -227,8 +227,7 @@ export class AppEmployeeComponent {
                 schedule: scheduleString,
               });
             });
-            this.dataSource = this.users;
-            this.loaded = true;
+            this.getUsersPictures();
           },
           error: (err) => {
             console.error('Error fetching schedules:', err);
@@ -239,6 +238,20 @@ export class AppEmployeeComponent {
         console.error('Error fetching employees:', err);
       },
     });
+  }
+
+  getUsersPictures() {
+    this.users.forEach((user: any) => {
+      this.userService.getProfilePic(user.profile.id).subscribe({
+        next: (image: any) => {
+          if(image) {
+            user.profile.imagePath = image;
+          }
+        }
+      });
+    });
+    this.dataSource = this.users;
+    this.loaded = true;
   }
 
   // Helper function to format days as a range "Monday to Friday"
@@ -477,7 +490,8 @@ export class AppEmployeeDialogContentComponent {
         },
         error: (err: any) => {
           console.error('Error adding employee:', err);
-          this.openSnackBar('Error inviting employee', 'Close');
+          const errorMsg = err?.error?.message || 'Error inviting Team Member';
+          this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }

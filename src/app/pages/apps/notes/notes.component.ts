@@ -11,17 +11,18 @@ import { UsersService } from 'src/app/services/users.service';
 import { NotesService } from 'src/app/services/notes.service';
 
 @Component({
-    selector: 'app-notes',
-    templateUrl: './notes.component.html',
-    styleUrls: ['./notes.component.scss'],
-    imports: [
-        CommonModule,
-        NgScrollbarModule,
-        TablerIconsModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MaterialModule,
-    ]
+  standalone: true,
+  selector: 'app-notes',
+  templateUrl: './notes.component.html',
+  styleUrls: ['./notes.component.scss'],
+  imports: [
+    CommonModule,
+    NgScrollbarModule,
+    TablerIconsModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MaterialModule,
+  ]
 })
 export class AppNotesComponent implements OnInit {
   sidePanelOpened = signal(true);
@@ -50,18 +51,15 @@ export class AppNotesComponent implements OnInit {
   userInfo: any;
   changedTitle: string = '';
 
-  constructor(public noteService: NoteService, private snackBar: MatSnackBar, private usersService: UsersService, private notesService: NotesService) {}
+  constructor(
+    public noteService: NoteService, 
+    private snackBar: MatSnackBar, 
+    private usersService: UsersService, 
+    private notesService: NotesService
+  ) { }
 
   ngOnInit(): void {
     this.getUserInfo();
-    // this.notes.set(this.noteService.getNotes());
-    // this.selectedNote.set(this.notes()[0]);
-    // const currentNote = this.selectedNote();
-    // if (currentNote) {
-    //   this.selectedColor.set(currentNote.color);
-    //   this.clrName.set(currentNote.color);
-    //   this.currentNoteTitle.set(currentNote.content);
-    // }
   }
 
   get currentNote(): Note | null {
@@ -175,34 +173,39 @@ export class AppNotesComponent implements OnInit {
     this.changedTitle = newTitle;
   }
 
-  getUserInfo(){
-    this.usersService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe((user) => {
+  getUserInfo() {
+    this.usersService.getUsers({
+      searchField: "",
+      filter: {
+        currentUser: true,
+        includeAdmins: true
+      }
+    }).subscribe((user) => {
       this.userInfo = user[0];
       this.loadNotes(this.userInfo.id);
     });
   }
 
   loadNotes(userId: number): void {
-  this.notesService.getNotesByUserId(userId).subscribe({
-    next: (notes: Note[]) => {
-      this.notes.set(notes);
-      if (!this.selectedNote()) {
-        this.selectedNote.set(this.notes()[0]);
-        const currentNote = this.selectedNote();
-      if (currentNote) {
-        this.selectedColor.set(currentNote.color);
-        this.clrName.set(currentNote.color);
-        this.currentNoteTitle.set(currentNote.content);
-        if (this.changedTitle == ''){this.changedTitle = currentNote.content;} 
-      }
-      }
-      
-    },
-    error: (error) => {
-      console.error('Error fetching notes:', error);
-    },
-  });
-}
+    this.notesService.getNotesByUserId(userId).subscribe({
+      next: (notes: Note[]) => {
+        this.notes.set(notes);
+        if (!this.selectedNote()) {
+          this.selectedNote.set(this.notes()[0]);
+          const currentNote = this.selectedNote();
+          if (currentNote) {
+            this.selectedColor.set(currentNote.color);
+            this.clrName.set(currentNote.color);
+            this.currentNoteTitle.set(currentNote.content);
+            if (this.changedTitle == '') { this.changedTitle = currentNote.content; }
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching notes:', error);
+      },
+    });
+  }
 
   openSnackBar(
     message: string,

@@ -98,7 +98,7 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
       .subscribe(({ profilePics }) => {
         // Update the dataSource with profile pictures and status
         this.dataSource.forEach((task, index) => {
-          task.profile.image = profilePics[index];
+          task.profile.imagePath = profilePics[index];
         });
       });
   }

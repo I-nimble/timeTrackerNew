@@ -137,7 +137,7 @@ export function getNavItems(role: number): NavItem[] {
   //   ],
   // },
   {
-    displayName: 'ToDo',
+    displayName: 'To Do',
     iconName: 'edit',
     bgcolor: 'primary',
     route: '/apps/todo',
