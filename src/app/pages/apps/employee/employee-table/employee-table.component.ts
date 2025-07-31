@@ -169,12 +169,12 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   }
 
   downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map((u:any) => u.id);
-    if (!selectedIds.includes(user.id)) {
-      selectedIds.push(user.id);
+    let selectedIds = this.selection.selected.map((u:any) => u.profile.id);
+    if (!selectedIds.includes(user.profile.id)) {
+      selectedIds.push(user.profile.id);
     }
     this.filters = {
-      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
+      user: { id: selectedIds.length > 1 ? selectedIds : user.profile.id },
       company: 'all',
       project: 'all',
       byClient: false,
