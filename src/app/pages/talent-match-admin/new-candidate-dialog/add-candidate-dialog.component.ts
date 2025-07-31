@@ -72,21 +72,6 @@ export class AddCandidateDialogComponent implements OnInit {
       this.locations = locations;
     });
 
-    const today = new Date().getDay();
-    if (today !== 1 && today !== 2) {
-      this.isCreationAllowed = false;
-      this.restrictionMessage =
-        'Talent registration is restricted to Mondays and Tuesdays only.';
-    }
-
-    if (!this.isCreationAllowed) {
-      this.snackBar.open(this.restrictionMessage, 'Close', {
-        duration: 3000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-      });
-    }
-
     if (this.data.candidate) {
       this.candidateForm.patchValue({
         name: this.data.candidate.name,

@@ -148,9 +148,6 @@
       </div>
     </div>
   </form>
-  <mat-error *ngIf="!isCreationAllowed" class="text-danger m-t-8">
-    {{ restrictionMessage }}
-  </mat-error>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <button mat-button (click)="onCancel()" class="bg-error text-white">
