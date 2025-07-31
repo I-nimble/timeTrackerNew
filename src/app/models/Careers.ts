@@ -18,6 +18,8 @@ export interface FormQuestion {
   question_text: string;
   input_type: string;
   required: boolean;
+  select_options?: string | null;
+  options?: string[];
 }
 
 export interface ApplicationAnswer {

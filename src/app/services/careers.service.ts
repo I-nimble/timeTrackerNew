@@ -22,7 +22,6 @@ export class CareersService {
     return this.http.get(`${this.API_URI}/application`);
   }
 
-  // GET /application with optional filters
   getFilteredApplicationOptions(
     location_id?: number,
     role_type?: 'position' | 'department',
@@ -55,14 +54,19 @@ export class CareersService {
 
     return this.http
       .get<{ questions: FormQuestion[] }>(`${this.API_URI}/questions`, { params })
-      .pipe(map(res => res.questions)); // <-- this line extracts just the array
+      .pipe(map(res => res.questions)); 
   }
 
-  submitApplication(data: SubmitApplicationPayload): Observable<any> {
+/*  submitApplication(data: SubmitApplicationPayload): Observable<any> {
     return this.http.post(`${this.API_URI}/application`, data);
-  }
+  } */
 
   getApplicationById(id: number): Observable<ApplicationDetails> {
     return this.http.get<ApplicationDetails>(`${this.API_URI}/application/${id}`);
   }
+
+  submitApplicationFormData(formData: FormData): Observable<any> {
+    return this.http.post(`${this.API_URI}/application`, formData);
+  }
+
 }

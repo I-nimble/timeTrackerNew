@@ -109,6 +109,7 @@ export class AppCareersComponent implements OnInit {
   selectedLocationId: number | null = null;
   selectedPositionId: number | null = null;
   selectedDepartmentId: number | null = null;
+  fileAnswers: { [key: number]: File } = {};
 
   constructor(
     private fb: FormBuilder,
@@ -129,22 +130,21 @@ export class AppCareersComponent implements OnInit {
       this.options.departments = data.roles.departments;
 
       this.combinedApplyOptions = [
-      ...this.options.positions.map(pos => ({
-        id: pos.id,
-        name: pos.title,
-        type: 'position' as const,
-      })),
-      ...this.options.departments.map(dep => ({
-        id: dep.id,
-        name: dep.name,
-        type: 'department' as const,
-      })),
-    ];
+        ...this.options.positions.map(pos => ({
+          id: pos.id,
+          name: pos.title,
+          type: 'position' as const,
+        })),
+        ...this.options.departments.map(dep => ({
+          id: dep.id,
+          name: dep.name,
+          type: 'department' as const,
+        })),
+      ];
 
-    this.filteredLocations = [...this.options.locations];
-    this.filteredApplyOptions = [...this.combinedApplyOptions];
+      this.filteredLocations = [...this.options.locations];
+      this.filteredApplyOptions = [...this.combinedApplyOptions];
     });
-
   }
 
   filteredLocations: Location[] = [];
@@ -205,7 +205,6 @@ export class AppCareersComponent implements OnInit {
     this.careersService.getFilteredApplicationOptions(undefined, selectedOption.type, selectedOption.id).subscribe(data => {
       this.filteredLocations = data.locations || [];
 
-      // If current location is no longer in filtered list, reset it
       const currentLocation = this.careerForm.get('location_id')?.value;
       if (!this.filteredLocations.find(l => l.id === currentLocation)) {
         this.careerForm.get('location_id')?.setValue(null);
@@ -235,7 +234,6 @@ export class AppCareersComponent implements OnInit {
     }
   }
 
-
   onSelectionChange(): void {
     const locationId = this.careerForm.get('location_id')?.value;
     const applyToId = this.careerForm.get('apply_to')?.value;
@@ -256,6 +254,14 @@ export class AppCareersComponent implements OnInit {
     }
   }
 
+  onFileChange(event: Event, questionId: number): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.fileAnswers[questionId] = file;
+  }
+
   processQuestions(questions: FormQuestion[]): void {
     if (!questions || questions.length === 0) {
       this.questions = [];
@@ -263,19 +269,31 @@ export class AppCareersComponent implements OnInit {
       return;
     }
 
-    this.questions = questions;
+    const parsedQuestions = questions.map(q => ({
+      ...q,
+      options: (q.input_type === 'select' || q.input_type === 'radio') && q.select_options
+        ? JSON.parse(q.select_options)
+        : []
+    }));
 
-    this.answersForm = this.fb.group({});
-    questions.forEach(q => {
-      this.answersForm.addControl('question_' + q.id, this.fb.control('', Validators.required));
+    
+  this.questions = parsedQuestions;
+  const group: { [key: string]: any } = {};
+
+  parsedQuestions.forEach(q => {
+    const controlName = 'question_' + q.id;
+
+    const validators = q.required ? [Validators.required] : [];
+      group[controlName] = this.fb.control('', validators);
     });
 
-    if(this.stepperRef) {
+    this.answersForm = this.fb.group(group);
+
+    if (this.stepperRef) {
       setTimeout(() => this.stepperRef.reset());
     }
     this.cdr.detectChanges();
   }
-
 
   loadQuestions(): void {
     if (!this.selectedLocationId || (!this.selectedPositionId && !this.selectedDepartmentId)) return;
@@ -285,50 +303,48 @@ export class AppCareersComponent implements OnInit {
       this.selectedPositionId || undefined,
       this.selectedDepartmentId || undefined
     ).subscribe((questions: FormQuestion[]) => {
-      console.log('Fetched questions:', questions);
       this.processQuestions(questions);
       this.questions = questions;
       this.answersForm = this.fb.group({});
       questions.forEach(q => {
         this.answersForm.addControl('question_' + q.id, this.fb.control('', Validators.required));
       });
-
-      //this.paginatedQuestions = this.paginateQuestions(questions); 
     });
-    console.log('Questions received:', this.questions);
-    console.log('Paginated:', this.paginatedQuestions);
   }
 
   submitCareerApplication(): void {
-    if (this.careerForm.invalid || this.answersForm.invalid) {
+/*    if (this.careerForm.invalid || this.answersForm.invalid) {
       this.snackBar.open('Please fill out all required fields', 'Close', { duration: 3000 });
       return;
+    } */
+     const formData = new FormData();
+
+  // Obteniendo valores directamente del careerForm
+    const applyToId = this.careerForm.get('apply_to')?.value;
+    const locationId = this.careerForm.get('location_id')?.value;
+
+    const selectedOption = this.combinedApplyOptions.find(o => o.id === applyToId);
+    if (selectedOption?.type === 'position') {
+      formData.append('position_id', applyToId.toString());
+    } else if (selectedOption?.type === 'department') {
+      formData.append('department_id', applyToId.toString());
     }
 
-    const answers = this.questions.map(q => ({
-      question_id: q.id,
-      answer: this.answersForm.get('question_' + q.id)?.value || '',
-    }));
+    formData.append('location_id', locationId.toString());
 
-    const location_id = this.careerForm.get('location_id')?.value;
-    const apply_to = this.careerForm.get('apply_to')?.value;
+    this.questions.forEach(q => {
+      const value = this.answersForm.get('question_' + q.id)?.value;
 
-    const selectedOption = this.combinedApplyOptions.find(o => o.id === apply_to);
-
-    if (!selectedOption) {
-      this.snackBar.open('Please select a valid role', 'Close', { duration: 3000 });
-      return;
-    }
-
-    const payload: SubmitApplicationPayload = {
-      location_id,
-      answers,
-      position_id: selectedOption.type === 'position' ? selectedOption.id : null,
-      department_id: selectedOption.type === 'department' ? selectedOption.id : null,
-    };
-
-
-    this.careersService.submitApplication(payload).subscribe({
+      if (q.input_type === 'file') {
+        const file = this.fileAnswers[q.id];
+        if (file) {
+          formData.append(`files[${q.id}]`, file);
+        }
+      } else {
+        formData.append(`question_${q.id}`, value || '');
+      }
+    });
+    this.careersService.submitApplicationFormData(formData).subscribe({
       next: () => {
         this.snackBar.open('Application submitted successfully!', 'Close', { duration: 3000 });
         this.careerForm.reset();

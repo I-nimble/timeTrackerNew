@@ -11,7 +11,9 @@
         <div class="row">
           <div class="col-12">
             <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24">
-              <h1 class="m-b-24 text-center">Apply for a <span class="highlight-green">Career Opportunity</span></h1>
+              <h1 class="m-b-24 text-center">
+                Apply for a <span class="highlight-green">Career Opportunity</span>
+              </h1>
 
               <form [formGroup]="careerForm" class="mb-4">
                 <div class="col-12">
@@ -39,10 +41,56 @@
 
               <form [formGroup]="answersForm" *ngIf="questions.length > 0 && !formSubmitted" class="m-t-24">
                 <div *ngFor="let q of questions" class="m-b-24">
-                  <mat-label class="question-text f-s-15 d-block m-b-12" [innerText]="q.question_text"></mat-label>
-                  <mat-form-field appearance="outline" class="w-100">
-                    <input matInput [formControl]="getFormControl(q.id)" />
-                  </mat-form-field>
+                  <mat-label class="question-text f-s-15 d-block m-b-12">
+                    {{ q.question_text }} <span *ngIf="q.required" class="text-danger">*</span>
+                  </mat-label>
+
+                  <ng-container [ngSwitch]="q.input_type">
+
+                    <!-- Text -->
+                    <mat-form-field *ngSwitchCase="'text'" appearance="outline" class="w-100">
+                      <input matInput [formControl]="getFormControl(q.id)" type="text" [required]="q.required" />
+                    </mat-form-field>
+
+                    <!-- Number -->
+                    <mat-form-field *ngSwitchCase="'number'" appearance="outline" class="w-100">
+                      <input matInput [formControl]="getFormControl(q.id)" type="number" [required]="q.required" />
+                    </mat-form-field>
+
+                    <!-- Email -->
+                    <mat-form-field *ngSwitchCase="'email'" appearance="outline" class="w-100">
+                      <input matInput [formControl]="getFormControl(q.id)" type="email" [required]="q.required" />
+                    </mat-form-field>
+
+                    <!-- Textarea -->
+                    <mat-form-field *ngSwitchCase="'textarea'" appearance="outline" class="w-100">
+                      <textarea matInput [formControl]="getFormControl(q.id)" rows="4" [required]="q.required"></textarea>
+                    </mat-form-field>
+
+                    <!-- Select -->
+                    <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="w-100">
+                      <mat-select [formControl]="getFormControl(q.id)" [required]="q.required">
+                        <mat-option *ngFor="let opt of q.options" [value]="opt">
+                          {{ opt }}
+                        </mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <!-- Radio -->
+                    <div *ngSwitchCase="'radio'">
+                      <mat-radio-group [formControl]="getFormControl(q.id)" [required]="q.required">
+                        <mat-radio-button *ngFor="let opt of q.options" [value]="opt" class="d-block m-b-8">
+                          {{ opt }}
+                        </mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div *ngSwitchCase="'file'">
+                      <input type="file" (change)="onFileChange($event, q.id)" [required]="q.required" />
+                    </div>
+
+                  </ng-container>
                 </div>
 
                 <button
@@ -50,7 +98,6 @@
                   color="primary"
                   class="submit-btn"
                   (click)="submitCareerApplication()"
-                  [disabled]="careerForm.invalid || answersForm.invalid"
                 >
                   Submit Application
                 </button>
