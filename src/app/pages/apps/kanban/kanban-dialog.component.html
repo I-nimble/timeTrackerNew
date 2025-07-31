@@ -83,15 +83,22 @@
     <div class="left-content">
       <div class="section" *ngIf="local_data.type !== 'board'">
         <h3 class="section-title">Description</h3>
-        <mat-form-field appearance="outline" class="w-100">
-          <textarea
-            matInput
-            name="recommendations"
-            [(ngModel)]="local_data.recommendations"
-            placeholder="Add a more detailed description..."
-            rows="3"
-          ></textarea>
-        </mat-form-field>
+        <div
+          class="editor-content custom-description"
+          contenteditable="true"
+          (input)="onEditorInput()"
+          (paste)="onPaste($event)"
+          #descriptionEditor
+          style="
+            min-height: 120px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #e0e4e8;
+            padding: 12px;
+            background: #fff;
+          "
+        ></div>
       </div>
 
       <div class="section" *ngIf="local_data.type !== 'board'">

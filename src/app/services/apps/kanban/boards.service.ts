@@ -40,7 +40,7 @@ export class BoardsService {
     return this.http.delete<any>(`${this.API_URI}/${id}`);
   }
   
-  private uploadTaskAttachments(files: File[]): Observable<any[]> {
+   uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);
     // For each file, get upload URL and upload
     const uploads$ = files.map(file => {
