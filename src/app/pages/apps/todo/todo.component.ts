@@ -284,16 +284,35 @@ export class AppTodoComponent implements OnInit {
     this.selectedDate = event.value ? new Date(event.value) : new Date();
     this.selectedDateStr = this.formatDate(this.selectedDate);
     this.isDateFuture = this.selectedDate.getTime() > today.getTime();
-    this.toDoFormArray.clear();
     this.buildToDoForm();
   }
 
   private formatDate(date: Date): string {
+    if (!date || isNaN(date.getTime())) return '';
+    
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
+    
     return `${year}-${month}-${day}`;
   }
+
+  formatDateForComparison = (dateString: string | Date | null) => {
+    if (!dateString) return null;
+    
+    const date = dateString instanceof Date ? dateString : new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', dateString);
+      return null;
+    }
+    
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  };
 
   async buildToDoForm() {
     this.isLoading = true;
@@ -306,14 +325,25 @@ export class AppTodoComponent implements OnInit {
     ) {
       this.ratingsService.get().subscribe({
         next: (array: any) => {
-          const activeArray = (array || []).filter((task: any) => task.active);
-          this.toDoArray = array;
-          this.filteredArray = this.toDoArray.filter((todo: any) => {
+          const activeArray = (array || []).filter((task: any) => {
+            if (!task.active) return false;
+            
+            if (!task.due_date) return true;
+            
+            const taskDueDate = this.formatDateForComparison(task.due_date);
+            if (!taskDueDate) return false;
+            
+            return taskDueDate === this.selectedDateStr;
+          });
+
+          this.toDoArray = activeArray;
+          this.filteredArray = activeArray.filter((todo: any) => {
             if (this.selectedCategory() === 'all') return true;
             if (this.selectedCategory() === 'complete') return !todo.active;
             if (this.selectedCategory() === 'uncomplete') return todo.active;
             return true;
           });
+
           for (let toDo of this.filteredArray) {
             let toDoField = this.fb.group({
               rating_id: [toDo.id],
@@ -342,7 +372,11 @@ export class AppTodoComponent implements OnInit {
 
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
-        const activeArray = (array || []).filter((task: any) => task.active);
+        const activeArray = (array || []).filter((task: any) => 
+          task.active && 
+          (!task.due_date || this.formatDateForComparison(task.due_date) === this.selectedDateStr)
+        );
+      
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
           .subscribe({
