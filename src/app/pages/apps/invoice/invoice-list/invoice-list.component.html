@@ -1,5 +1,27 @@
 <div class="row">
-  <div class="col-sm-6 col-lg-6">
+  <div class="col-sm-4 col-lg-4">
+    <mat-card
+      class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Pending' }"
+      (click)="handleTabClick('Pending')"
+    >
+      <mat-card-content class="d-flex align-items-center gap-16">
+        <div
+          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-warning text-white"
+        >
+          <i-tabler name="receipt-dollar" class="icon-24 d-flex"></i-tabler>
+        </div>
+        <div class="info">
+          <h5 class="f-w-400 lh-sm f-s-14">Pending</h5>
+          <h5 class="f-w-500 lh-sm f-s-14">
+            {{ pendingInvoices().length }} invoices
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-sm-4 col-lg-4">
     <mat-card
       class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
       [ngClass]="{ 'active-tab': activeTab() === 'Paid' }"
@@ -21,22 +43,22 @@
     </mat-card>
   </div>
 
-  <div class="col-sm-6 col-lg-6">
+  <div class="col-sm-4 col-lg-4">
     <mat-card
-      class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Pending' }"
-      (click)="handleTabClick('Pending')"
+      class="cardWithShadow cursor-pointer bg-light-error shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Overdue' }"
+      (click)="handleTabClick('Overdue')"
     >
       <mat-card-content class="d-flex align-items-center gap-16">
         <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-warning text-white"
+          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-error text-white"
         >
           <i-tabler name="sort-ascending" class="icon-24 d-flex"></i-tabler>
         </div>
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Overdue</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ pendingInvoices().length }} invoices
+            {{ overdueInvoices().length }} invoices
           </h5>
         </div>
       </mat-card-content>

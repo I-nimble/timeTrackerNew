@@ -40,11 +40,12 @@ export class AppInvoiceListComponent implements AfterViewInit {
   allComplete = signal<boolean>(false);
   invoiceList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('All');
-  paidInvoices = signal<any[]>([]);
   displayedColumns: string[] = [];
   companies: any[] = [];
   companyMap: { [key: number]: string } = {};
+  paidInvoices = signal<any[]>([]);
   pendingInvoices = signal<any[]>([]);
+  overdueInvoices = signal<any[]>([]);
   selectedCompanyId = signal<number | null>(null);
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
@@ -97,11 +98,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
     let filteredInvoices: any[] = [];
 
     if (currentTab === 'All') {
-      filteredInvoices = [...this.paidInvoices(), ...this.pendingInvoices()];
+      filteredInvoices = [...this.paidInvoices(), ...this.pendingInvoices(), ...this.overdueInvoices()];
     } else if (currentTab === 'Paid') {
       filteredInvoices = [...this.paidInvoices()];
     } else if (currentTab === 'Pending') {
       filteredInvoices = [...this.pendingInvoices()];
+    }
+    else if (currentTab === 'Overdue') {
+      filteredInvoices = [...this.overdueInvoices()];
     }
 
     if (this.selectedCompanyId() !== null) {
@@ -117,8 +121,9 @@ export class AppInvoiceListComponent implements AfterViewInit {
   private loadInvoices(): void {
     this.invoiceService.getInvoiceList().subscribe((invoices) => {
       this.paidInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Paid'));
-      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Overdue'));
-      
+      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Pending'));
+      this.overdueInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Overdue'));
+
       this.invoiceList = new MatTableDataSource(invoices);
       this.invoiceList.paginator = this.paginator;
       this.invoiceList.sort = this.sort;
