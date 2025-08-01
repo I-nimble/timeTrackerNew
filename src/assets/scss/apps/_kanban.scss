@@ -21,6 +21,12 @@
   flex-wrap: nowrap;
   margin-bottom: 1rem;
 }
+.add-column {
+  min-width: 258px;
+}
+.add-column button {
+  width: 100%;
+}
 
 .task-list-container {
   width: 258px;
