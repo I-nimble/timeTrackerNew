@@ -11,11 +11,11 @@
         <div class="row">
           <div class="col-12">
             <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24">
-              <h1 class="m-b-24 text-center">
+              <h1 class="m-b-24 text-center" *ngIf="!formSubmitted">
                 Apply for a <span class="highlight-green">Career Opportunity</span>
               </h1>
 
-              <form [formGroup]="careerForm" class="mb-4">
+              <form [formGroup]="careerForm" *ngIf="!formSubmitted" class="mb-4">
                 <div class="col-12">
                   <mat-label class="f-w-600 m-b-8 d-block">Location</mat-label>
                   <mat-form-field appearance="outline" class="w-100">
@@ -87,6 +87,7 @@
 
                     <!-- File Upload -->
                     <div *ngSwitchCase="'file'" class="col-12 mb-3">
+                      <!-- Hidden File Input -->
                       <input
                         #fileInput
                         type="file"
@@ -95,33 +96,51 @@
                         [required]="q.required"
                         style="display: none"
                       />
-                      <button
-                        mat-raised-button
-                        type="button"
-                        style="background-color: #92b46c; color: #fff; margin-right: 8px; margin-bottom: 8px"
-                        (click)="fileInput.click()"
-                      >
-                        <mat-icon>upload</mat-icon>
-                        Upload File
-                      </button>
-                      <span *ngIf="fileAnswers[q.id]">{{ fileAnswers[q.id]?.name }}
-                      </span>
-                      <small *ngIf="!fileAnswers[q.id]" class="text-danger">
-                        Maximum file size is 10GB
-                      </small>
+
+                      <!-- Upload Button and File Name -->
+                      <div class="d-flex flex-wrap align-items-center">
+                        <button
+                          mat-raised-button
+                          type="button"
+                          style="background-color: #92b46c; color: #fff; margin-right: 12px; margin-bottom: 8px"
+                          (click)="fileInput.click()"
+                        >
+                          <mat-icon>upload</mat-icon>
+                          Upload File
+                        </button>
+
+                        <span *ngIf="fileAnswers[q.id]" class="f-s-16">
+                          {{ fileAnswers[q.id]?.name }}
+                        </span>
+                      </div>
+
+                      <!-- Helper Text -->
+                      <div style="margin-top: 4px">
+                        <small
+                          *ngIf="!fileAnswers[q.id]"
+                          class="text-danger"
+                          style="display: block; max-width: 100%; word-wrap: break-word;"
+                        >
+                          Maximum file size is 10GB
+                        </small>
+                      </div>
                     </div>
 
                   </ng-container>
                 </div>
 
-                <button
-                  mat-flat-button
-                  color="primary"
-                  class="submit-btn"
-                  (click)="submitCareerApplication()"
-                >
-                  Submit Application
-                </button>
+                <div class="d-flex justify-content-end">
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="answersForm.invalid"
+                    class="submit-btn"
+                    style="background-color: #92b46c; color: #fff; margin-right: 8px; margin-bottom: 8px"
+                    (click)="submitCareerApplication()"
+                  >
+                    Submit Application
+                  </button>
+                </div>
               </form>
 
               <div

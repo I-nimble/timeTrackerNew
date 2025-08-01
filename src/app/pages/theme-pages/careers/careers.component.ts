@@ -260,6 +260,13 @@ export class AppCareersComponent implements OnInit {
 
     const file = input.files[0];
     this.fileAnswers[questionId] = file;
+  
+    const control = this.answersForm.get('question_' + questionId);
+    if (control) {
+      control.setValue(file.name);
+      control.markAsTouched();
+      control.updateValueAndValidity();
+    }
   }
 
   processQuestions(questions: FormQuestion[]): void {
@@ -317,9 +324,8 @@ export class AppCareersComponent implements OnInit {
       this.snackBar.open('Please fill out all required fields', 'Close', { duration: 3000 });
       return;
     } */
-     const formData = new FormData();
+    const formData = new FormData();
 
-  // Obteniendo valores directamente del careerForm
     const applyToId = this.careerForm.get('apply_to')?.value;
     const locationId = this.careerForm.get('location_id')?.value;
 
