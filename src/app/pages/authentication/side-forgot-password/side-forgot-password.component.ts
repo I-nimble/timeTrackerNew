@@ -27,7 +27,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class AppSideForgotPasswordComponent {
   options = this.settings.getOptions();
-
+  assetPath = '/assets/images/backgrounds/password-bg.png';
   constructor(
     private settings: CoreService, 
     private router: Router, 
