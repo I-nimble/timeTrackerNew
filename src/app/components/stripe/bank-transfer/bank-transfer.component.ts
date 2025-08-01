@@ -146,7 +146,6 @@ export class BankTransferComponent implements OnInit, OnDestroy {
       // Verificar el estado del pago
       if (paymentIntent?.status === 'succeeded') {
         this.paymentStatus = 'succeeded';
-        await this.stripeService.updateInvoiceStatus(this.invoiceId, 'paid').toPromise();
         this.snackBar.open('Payment succeeded!', 'Close', {
           duration: 5000,
           panelClass: ['success-snackbar']

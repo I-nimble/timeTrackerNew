@@ -27,11 +27,6 @@ export class StripeService {
   );
 }
 
-updateInvoiceStatus(invoiceId: string, status: 'paid' | 'unpaid'): Observable<any> {
-  const headers = new HttpHeaders({'content-type':'application/json'});
-  return this.http.patch<any>(`${environment.apiUrl}/stripe/invoice/${invoiceId}`, { status }, { headers });
-}
-
   // charge(body: any){
   //   const headers = new HttpHeaders({'content_type':'application/json'})
   //   return this.http.post<any>(environment.apiUrl+'/stripe/checkout', body, {headers})
