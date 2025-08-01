@@ -29,7 +29,7 @@ export class StripeService {
 
 updateInvoiceStatus(invoiceId: string, status: 'paid' | 'unpaid'): Observable<any> {
   const headers = new HttpHeaders({'content-type':'application/json'});
-  return this.http.patch<any>(`${environment.apiUrl}/stripe/invoices/${invoiceId}`, { status }, { headers });
+  return this.http.patch<any>(`${environment.apiUrl}/stripe/invoice/${invoiceId}`, { status }, { headers });
 }
 
   // charge(body: any){
