@@ -8,93 +8,69 @@
             #{{ invoiceDetail()?.id }}
           </h4>
         </div>
-        <div class="col-sm-8 text-right">
-          <a routerLink="/apps/invoice" mat-stroked-button class="m-r-10">Back to Invoice</a>
-
-          <a [routerLink]="['/apps/editinvoice/', invoiceDetail()?.id]" mat-flat-button>Edit Invoice</a>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="row p-y-24">
+        <div class="col-sm-6">
+          <span class="f-w-600 f-s-15"> Invoice Status: </span>
+          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
+            <span
+              class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12"
+              [ngStyle]="{
+                'background-color':
+                  invoiceDetail()?.status?.name === 'Paid'
+                    ? 'var(--mat-sys-primary)'
+                    : invoiceDetail()?.status?.name === 'Overdue'
+                    ? '#c9c8c8'
+                    : invoiceDetail()?.status?.name === 'Pending'
+                    ? 'rgb(248 192 118)'
+                    : 'transparent',
+                color: 'white'
+              }"
+              >
+              {{ invoiceDetail()?.status?.name }}
+            </span>
+          </h6>
+        </div>
+        <div class="col-sm-6 text-right">
+          <span class="f-w-600 f-s-15"> Due Date: </span>
+          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
+            {{ invoiceDetail()?.due_date | date : "fullDate" }}
+          </h6>
         </div>
       </div>
       <mat-divider></mat-divider>
       <div class="row p-y-24">
         <div class="col-sm-6">
-          <span class="f-w-600 f-s-15"> Order Status: </span>
+          <span class="f-w-600 f-s-15"> Company: </span>
           <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.status }}
+            {{ invoiceDetail()?.user?.company?.name }}
           </h6>
         </div>
-        <div class="col-sm-6 text-right">
-          <span class="f-w-600 f-s-15"> Order Date: </span>
+        <!-- <div class="col-sm-6 text-right">
+          <span class="f-w-600 f-s-15"> Description: </span>
           <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.orderDate | date : "fullDate" }}
+            {{ invoiceDetail()?.description }}
           </h6>
-        </div>
-      </div>
-      <mat-divider></mat-divider>
-      <div class="row p-y-24">
-        <div class="col-sm-6">
-          <span class="f-w-600 f-s-15"> Bill From: </span>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billFrom }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billFromEmail }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billFromAddress }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billFromPhone }}
-          </h6>
-        </div>
-        <div class="col-sm-6 text-right">
-          <span class="f-w-600 f-s-15"> Bill To: </span>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billTo }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billToEmail }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billToAddress }}
-          </h6>
-          <h6 class="m-t-5 m-b-0 f-w-500 f-s-14">
-            {{ invoiceDetail()?.billToPhone }}
-          </h6>
-        </div>
+        </div> -->
       </div>
 
       <div class="b-1 table-responsive">
-        <table mat-table [dataSource]="invoiceDetail()?.orders || []" class="no-wrap v-middle">
+        <table mat-table [dataSource]="invoiceDetail()?.tableItems || []" class="no-wrap v-middle">
           <ng-container matColumnDef="itemName">
             <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600">
-              Item Name
+              Description
             </th>
             <td class="font-normal" mat-cell *matCellDef="let element">
-              {{ element.itemName }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="unitPrice">
-            <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600">
-              Unit Price
-            </th>
-            <td class="font-normal" mat-cell *matCellDef="let element">
-              {{ element.unitPrice }}
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="unit">
-            <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600">
-              Unit
-            </th>
-            <td class="font-normal" mat-cell *matCellDef="let element">
-              {{ element.units }}
+              {{ element.description }}
             </td>
           </ng-container>
           <ng-container matColumnDef="total">
-            <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600">
-              Total Cost
+            <th mat-header-cell *matHeaderCellDef class="f-s-15 f-w-600 text-right">
+              Total
             </th>
-            <td class="font-normal" mat-cell *matCellDef="let element">
-              {{ element.unitTotalPrice }}
+            <td class="font-normal text-right" mat-cell *matCellDef="let element">
+              ${{ element.amount }}
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -103,15 +79,16 @@
       </div>
 
       <div class="text-right m-t-30">
-        <h5 class="m-b-5 f-w-600 f-s-16">
-          Sub total: {{ invoiceDetail()?.totalCost }}
-        </h5>
-        <span class="f-w-600 f-s-16">Vat: 10%</span>
         <h3 class="m-b-0 b-t-1 p-t-20 f-s-18 m-t-24">
-          Grand Total: {{ invoiceDetail()?.grandTotal }}
+          Total ${{ invoiceDetail()?.amount }}
         </h3>
       </div>
     </span>
+    <div class="p-t-24 text-right" *ngIf="!invoiceDetail()?.approved">
+      <button mat-flat-button color="primary" (click)="approveInvoice()">
+        Approve Invoice
+      </button>
+    </div>
     }
   </mat-card-content>
 </mat-card>
