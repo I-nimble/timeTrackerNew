@@ -43,15 +43,11 @@ export class BoardsService {
    uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);
     // For each file, get upload URL and upload
-    const uploads$ = files.map(file => {
-      let contentType = file.type;
-      if (!contentType || file.name.endsWith('.rar')) {
-        contentType = 'application/x-rar-compressed';
-      }
-      return this.http.get<any>(`${environment.apiUrl}/generate_upload_url/task_attachments`).pipe(
+    const uploads$ = files.map(file =>
+      this.http.get<any>(`${environment.apiUrl}/generate_upload_url/task_attachments`).pipe(
         switchMap((uploadUrlRes: any) => {
           const uploadUrl = uploadUrlRes.url;
-          const headers = new HttpHeaders({ 'Content-Type': contentType });
+          const headers = new HttpHeaders({ 'Content-Type': file.type });
           return this.http.put(uploadUrl, file, { headers }).pipe(
             map(() => {
               const urlParts = uploadUrl.split('?')[0].split('/');
@@ -59,14 +55,14 @@ export class BoardsService {
               return {
                 s3_filename,
                 file_name: file.name,
-                file_type: contentType,
+                file_type: file.type,
                 file_size: file.size,
               };
             })
           );
         })
-      );
-    });
+      )
+    );
     return forkJoin(uploads$);
   }
 
