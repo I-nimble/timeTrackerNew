@@ -73,7 +73,8 @@ export class AppSideLoginComponent {
   includeLiveChat: boolean = false
   liveChatScript?: any
   liveChatBubble?: any
-  assetPath = environment.assets + '/resources/empleadossection.png';
+  //assetPath = environment.assets + '/resources/empleadossection.png';
+  assetPath = 'assets/images/login.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
   route: any = ''
@@ -163,7 +164,7 @@ export class AppSideLoginComponent {
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;
-          this.openSnackBar('Error al iniciar sesión: ' + (err.error?.message || ' Intenta de nuevo'));
+          this.openSnackBar('Login error: ' + (err.error?.message || ' Please, try again.'));
         },
       });
     }

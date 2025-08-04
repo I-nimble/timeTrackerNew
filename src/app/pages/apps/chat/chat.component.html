@@ -9,50 +9,59 @@
       </button>
     </div>
   </ng-template>
-  
-  @if(chatService.isChatAvailable) {
-    <button
-      mat-flat-button 
-      color="primary" 
-      *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))"
-      class="m-b-16 m-t-16" 
-      (click)="openDialog()" 
-      id="create-group-button"
-    >
-      Create Group
-    </button>
 
-    <!-- BASIC PLAN CHAT -->
-    <cometchat-groups-with-messages 
-      *ngIf="plan && plan.id == 1"
-      id="chat-container"
-      [backdropStyle]="backdropStyle"
-      [hideCreateGroup]="true"
-      [messagesConfiguration]="basicMessagesConfig"
-    >
-    </cometchat-groups-with-messages>
-  
-    <!-- ESSENTIAL PLAN CHAT -->
-    <cometchat-conversations-with-messages 
-      *ngIf="plan && plan.id === 2"
-      id="chat-container"
-      [messagesConfiguration]="essentialMessagesConfig"
-      [StartConversationConfiguration]="chatService.contactsConfiguration"
-    >
-    </cometchat-conversations-with-messages>
+  <app-loader 
+    *ngIf="loader.started && !loader.complete && !loader.error" 
+    [loader]="loader"
+    style="margin: 0 auto;"
+  >
+  </app-loader>
 
-    <!-- PROFESSIONAL PLAN CHAT -->
-    <cometchat-conversations-with-messages 
-      *ngIf="(plan && plan.id === 3) || userRole === '1'"
-      id="chat-container"
-      [messagesConfiguration]="professionalMessagesConfig"
-      [StartConversationConfiguration]="chatService.contactsConfiguration"
-    >
-    </cometchat-conversations-with-messages>
-  }
-  @else {
-    <div class="cta-message">
-      <p>There was an error initializing the chat.</p>
-    </div>
-  }
+  <ng-container *ngIf="loader.complete"> 
+    @if(chatService.isChatAvailable && !chatInitError) {
+      <button
+        mat-flat-button 
+        color="primary" 
+        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))"
+        class="m-b-16 m-t-16" 
+        (click)="openDialog()" 
+        id="create-group-button"
+      >
+        Create Group
+      </button>
+
+      <!-- BASIC PLAN CHAT -->
+      <cometchat-groups-with-messages 
+        *ngIf="plan && plan.id == 1"
+        id="chat-container"
+        [backdropStyle]="backdropStyle"
+        [hideCreateGroup]="true"
+        [messagesConfiguration]="basicMessagesConfig"
+      >
+      </cometchat-groups-with-messages>
+    
+      <!-- ESSENTIAL PLAN CHAT -->
+      <cometchat-conversations-with-messages 
+        *ngIf="plan && plan.id === 2"
+        id="chat-container"
+        [messagesConfiguration]="essentialMessagesConfig"
+        [StartConversationConfiguration]="chatService.contactsConfiguration"
+      >
+      </cometchat-conversations-with-messages>
+
+      <!-- PROFESSIONAL PLAN CHAT -->
+      <cometchat-conversations-with-messages 
+        *ngIf="(plan && plan.id === 3) || userRole === '1'"
+        id="chat-container"
+        [messagesConfiguration]="professionalMessagesConfig"
+        [StartConversationConfiguration]="chatService.contactsConfiguration"
+      >
+      </cometchat-conversations-with-messages>
+    }
+    @else if (loader.complete && chatInitError) {
+      <div class="cta-message">
+        <p>{{ chatInitError }}</p>
+      </div>
+    }
+  </ng-container>
 </mat-card>

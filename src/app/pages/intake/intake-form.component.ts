@@ -8,126 +8,236 @@ import {
 import { MaterialModule } from '../../material.module';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { allSkills } from './skills';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import { Positions } from '../../models/Position.model';
+import { FormGroup, FormArray, FormControl } from '@angular/forms';
+import { startWith, map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-intake-form',
   imports: [
     MaterialModule,
-    FormsModule,
-    ReactiveFormsModule,
     HighlightLineNumbers,
     Highlight,
     HighlightAuto,
-    CommonModule
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatChipsModule,
+    MatAutocompleteModule,
+    RouterLink,
   ],
   templateUrl: './intake-form.component.html',
   styleUrl: './intake-form.component.scss',
 })
 export class AppIntakeFormComponent implements OnInit {
-  contactInfo = this.fb.group({
-    companyName: ['', Validators.required],
-    name: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]
-    ],
+  positionsList: Positions[] = [];
+  industries = [
+    'Personal Injury',
+    'Workers compensation',
+    'Other legal services',
+    'Real estate',
+    'Tech Startup',
+    'Marketing Agency',
+    'Small Own Business',
+    'Other'
+  ];
+  weekDays = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  ];
+  lunchTimes = [
+    { label: '30 minutes', value: 30 },
+    { label: '45 minutes', value: 45 },
+    { label: '1 hour', value: 60 }
+  ];
+
+  holidaysList = [
+    'New Year\'s Day',
+    'Martin Luther King Jr. Day',
+    'Presidents\' Day',
+    'Memorial Day',
+    'Independence Day',
+    'Labor Day',
+    'Thanksgiving Day',
+    'Christmas Day'
+  ];
+  predefinedCompetencies = [
+    'Leadership',
+    'Communication',
+    'Problem Solving',
+    'Teamwork',
+    'Technical Writing'
+  ];
+
+  selectedCompetencies: string[] = [];
+  competencyCtrl = new FormControl('');
+  filteredCompetencies: Observable<string[]>;
+
+  intakeForm = this.fb.group({
+    contactInfo: this.fb.group({
+      client: ['', Validators.required],
+      contactPerson: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      countryCode: ['+1', Validators.required],
+      phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]],
+      website: [''],
+      industry: ['', Validators.required],
+      numberOfEmployees: [1, [Validators.required, Validators.min(1)]],
+    }),
+    positionInfo: this.fb.group({
+      jobTitle: ['', Validators.required],
+      jobDescription: ['', Validators.required],
+      kpi: ['', Validators.required],
+      competencies: this.fb.control<string[]>([], [Validators.required]),
+      trainingContact: [''],
+      itContact: [''],
+      techNeeds: [''],
+      additionalInfo: ['']
+    }),
+    scheduleInfo: this.fb.group({
+      scheduleDays: [[], Validators.required],
+      scheduleStart: ['', Validators.required],
+      scheduleEnd: ['', Validators.required],
+      lunchTime: [30, Validators.required],
+      holidaysObserved: [[]],
+    }),
+    termsInfo: this.fb.group({
+      acceptOtherCommunications: [false, Validators.requiredTrue],
+      acceptPersonalData: [false, Validators.requiredTrue]
+    })
   });
-  roleInfo = this.fb.group({
-    jobNameAndDescription: ['', Validators.required],
-    requiredSkillsCategory: ['', Validators.required],
-    otherSkillsCategory: [''],
-    requiredSkills: [[], Validators.required],
-    routineOriented: ['', Validators.required],
-    socialOriented: ['', Validators.required],
-    decisionMaking: ['', Validators.required],
-    attentionToDetail: ['', Validators.required],
-  });
-  personalInfo = this.fb.group({
-    managementStyle: ['', Validators.required],
-    feedbackStyle: ['', Validators.required],
-    communicationStyle: ['', Validators.required],
-    conflictHandling: ['', Validators.required],
-    acceptOtherCommunications: [true, Validators.requiredTrue],
-    acceptPersonalData: [true, Validators.requiredTrue],
-  });
-  skills: any[] = [];
+
   formSubmitted = false;
-  otherSkillset = false;
 
   constructor(
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
     private intakeService: IntakeService,
-  ) {}
-
-  ngOnInit(): void {
-    this.roleInfo.get('requiredSkillsCategory')?.valueChanges.subscribe((value) => {
-      this.roleInfo.get('requiredSkills')?.enable();
-      this.roleInfo.get('requiredSkills')?.reset();
-      if(value === 'other') {
-        this.otherSkillset = true;
-        this.filterSkillsByCategory()
-      }
-      else {
-        this.otherSkillset = false;
-        this.roleInfo.get('otherSkillsCategory')?.reset();
-        this.filterSkillsByCategory(value as string)
-      }
-    });
+    private positionsService: PositionsService
+  ) {
+    this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || ''))
+    );
   }
 
-  filterSkillsByCategory(category?: string) {
-    if(category) {
-      this.skills = allSkills.filter((skill) => skill.category === category);
+  ngOnInit(): void {
+    this.positionsService.get().subscribe({
+      next: (positions) => {
+        this.positionsList = positions;
+      },
+      error: () => {
+        this.openSnackBar('Error loading positions', 'Close');
+      }
+    });
+    const competencies = this.intakeForm.get('positionInfo.competencies')?.value;
+    if (Array.isArray(competencies)) {
+      this.selectedCompetencies = competencies;
     }
-    else {
-      this.skills = allSkills;
+  }
+
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.predefinedCompetencies.filter(comp =>
+      comp.toLowerCase().includes(filterValue) &&
+      !this.selectedCompetencies.includes(comp)
+    );
+  }
+
+  isInList(competency: string): boolean {
+    return this.predefinedCompetencies.includes(competency);
+  }
+
+  addFromDropdown(event: any): void {
+    if (this.predefinedCompetencies.includes(event.option.value)) {
+      const value = event.option.value;
+      if (this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+        this.selectedCompetencies.push(value);
+        this._updateCompetenciesForm();
+        this.clearInput();
+      }
+    }
+  }
+
+  addCustomCompetency(): void {    
+    const value = (this.competencyCtrl.value || '').trim();
+    if (value && this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+      this.selectedCompetencies.push(value);
+      this._updateCompetenciesForm();
+      
+      this.competencyCtrl.reset('');
+      this.competencyCtrl.markAsPristine();
+      this.competencyCtrl.updateValueAndValidity();
+      
+      setTimeout(() => {
+        const inputElement = document.querySelector('[matChipInputFor] input') as HTMLInputElement;
+        if (inputElement) {
+          inputElement.value = '';
+        }
+      });
+    }
+  }
+
+  private clearInput(): void {
+    this.competencyCtrl.setValue('');
+    this.competencyCtrl.updateValueAndValidity();
+  }
+
+  removeCompetency(competency: string): void {
+    const index = this.selectedCompetencies.indexOf(competency);
+    if (index >= 0) {
+      this.selectedCompetencies.splice(index, 1);
+      this._updateCompetenciesForm();
+    }
+  }
+
+  private _updateCompetenciesForm() {
+    const competenciesControl = this.intakeForm.get('positionInfo.competencies');
+    if (competenciesControl) {
+      competenciesControl.setValue(this.selectedCompetencies || []);
+      competenciesControl.markAsDirty();
+      competenciesControl.updateValueAndValidity();
     }
   }
 
   sendForm() {
-    // check if the email is valid
-    if (!this.contactInfo.get('email')?.valid) {
-      this.openSnackBar('Please enter a valid email address', 'Close');
-      return;
-    }
-    // check if the phone number is valid
-    if (!this.contactInfo.get('phone')?.valid) {
+    if (!this.intakeForm.get('contactInfo.phone')?.valid) {
       this.openSnackBar('Please enter a valid phone number', 'Close');
       return;
     }
-    // check if all required fields are filled
-    if (
-      !this.contactInfo.valid ||
-      !this.roleInfo.valid ||
-      !this.personalInfo.valid
-    ) {
+    if (!this.intakeForm.get('contactInfo.email')?.valid) {
+      this.openSnackBar('Please enter a valid email address', 'Close');
+      return;
+    }
+    if (!this.intakeForm.valid) {
       this.openSnackBar('Fill all the required fields', 'Close');
       return;
     }
-    // check if the terms and conditions are checked
-    if (!this.personalInfo.get('acceptOtherCommunications')?.valid || !this.personalInfo.get('acceptPersonalData')?.valid) {
+    if (!this.intakeForm.get('termsInfo.acceptOtherCommunications')?.valid || !this.intakeForm.get('termsInfo.acceptPersonalData')?.valid) {
       this.openSnackBar('Please accept the terms and conditions', 'Close');
       return;
     }
 
+    const formValue = this.intakeForm.value;
     const data = {
-      ...this.contactInfo.value,
-      ...this.roleInfo.value,
-      ...this.personalInfo.value,
+      ...formValue.contactInfo,
+      ...formValue.positionInfo,
+      ...formValue.scheduleInfo,
+      ...formValue.termsInfo
     };
-    this.intakeService.submit(data).subscribe({
+    this.intakeService.submitIntake(data).subscribe({
       next: () => {
         this.openSnackBar('Form submitted successfully', 'Close');
         this.formSubmitted = true;
-        this.contactInfo.reset();
-        this.roleInfo.reset();
-        this.personalInfo.reset();
+        this.intakeForm.reset();
       },
       error: () => {
         this.openSnackBar('Error submitting form', 'Close');
@@ -141,5 +251,18 @@ export class AppIntakeFormComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  get contactInfoGroup(): FormGroup {
+    return this.intakeForm.get('contactInfo') as FormGroup;
+  }
+  get positionInfoGroup(): FormGroup {
+    return this.intakeForm.get('positionInfo') as FormGroup;
+  }
+  get scheduleInfoGroup(): FormGroup {
+    return this.intakeForm.get('scheduleInfo') as FormGroup;
+  }
+  get termsInfoGroup(): FormGroup {
+    return this.intakeForm.get('termsInfo') as FormGroup;
   }
 }

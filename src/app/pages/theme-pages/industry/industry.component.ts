@@ -8,7 +8,10 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
-import { AppIntakeFormComponent } from '../../intake/intake-form.component';
+import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
+import { AppHeaderComponent } from '../header/header.component';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface apps {
   id: number;
@@ -50,7 +53,7 @@ interface features {
 @Component({
   selector: 'app-industry',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppIntakeFormComponent],
+  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
   templateUrl: './industry.component.html',
 })
 export class AppIndustryComponent {
@@ -64,13 +67,24 @@ export class AppIndustryComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
+    private scroller: ViewportScroller,
+    private dialog: MatDialog
   ) {}
 
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
+
+  openQuickContact() {
+      this.dialog.open(QuickContactModalComponent, {
+        width: '520px', 
+        maxHeight: '90vh', 
+        disableClose: false,
+        autoFocus: false,
+        restoreFocus: false,
+      });
+    }
 
   cards = [
     {
@@ -106,63 +120,63 @@ export class AppIndustryComponent {
   ];
 
   apps: apps[] = [
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat Application',
-      subtitle: 'Messages & Emails',
-      link: '/apps/chat',
-    },
-    {
-      id: 2,
-      img: '/assets/images/svgs/icon-dd-cart.svg',
-      title: 'Todo App',
-      subtitle: 'New task',
-      link: '/apps/todo',
-    },
-    {
-      id: 3,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Invoice App',
-      subtitle: 'Get latest invoice',
-      link: '/apps/invoice',
-    },
-    {
-      id: 4,
-      img: '/assets/images/svgs/icon-dd-date.svg',
-      title: 'Calendar App',
-      subtitle: 'Get Dates',
-      link: '/apps/calendar',
-    },
-    {
-      id: 5,
-      img: '/assets/images/svgs/icon-dd-mobile.svg',
-      title: 'Contact Application',
-      subtitle: '2 Unsaved Contacts',
-      link: '/apps/contacts',
-    },
-    {
-      id: 6,
-      img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Tickets App',
-      subtitle: 'Create new ticket',
-      link: '/apps/tickets',
-    },
-    {
-      id: 7,
-      img: '/assets/images/svgs/icon-dd-message-box.svg',
-      title: 'Email App',
-      subtitle: 'Get new emails',
-      link: '/apps/email/inbox',
-    },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Courses',
-      subtitle: 'Create new course',
-      link: '/apps/courses',
-    },
-  ];
+      {
+        id: 1,
+        img: '/assets/images/svgs/Bookkeeper.svg',
+        title: 'Others',
+        subtitle: 'Tech Startups, Marketing Services, General Business Support',
+        link: '/landingpage/industry/other',
+      },
+      {
+        id: 2,
+        img: '/assets/images/svgs/Case-Manager.svg',
+        title: 'Other legal services',
+        subtitle: 'Specialized legal services for companies and individuals. Access case management, consulting, and legal documentation.',
+        link: '/landingpage/industry/legal-services',
+      },
+      {
+        id: 3,
+        img: '/assets/images/svgs/injury.svg',
+        title: 'Personal Injury',
+        subtitle: 'Manage personal injury cases, track files, and communicate with affected clients.',
+        link: '/landingpage/industry/personal-injury',
+      },
+      {
+        id: 4,
+        img: '/assets/images/svgs/real-state.svg',
+        title: 'Real estate',
+        subtitle: 'Tools for real estate agents: property management, contracts, and client tracking.',
+        link: '/landingpage/industry/real-state',
+      },
+      {
+        id: 5,
+        img: '/assets/images/svgs/workers-compensation.svg',
+        title: 'Workers compensation',
+        subtitle: 'Solutions for managing workers compensation cases, file handling, and employee communication.',
+        link: '/landingpage/industry/workers-compensation',
+      },
+      // {
+      //   id: 6,
+      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
+      //   title: 'Tickets App',
+      //   subtitle: 'Create new ticket',
+      //   link: '/apps/tickets',
+      // },
+      // {
+      //   id: 7,
+      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
+      //   title: 'Email App',
+      //   subtitle: 'Get new emails',
+      //   link: '/apps/email/inbox',
+      // },
+      // {
+      //   id: 8,
+      //   img: '/assets/images/svgs/icon-dd-application.svg',
+      //   title: 'Courses',
+      //   subtitle: 'Create new course',
+      //   link: '/apps/courses',
+      // },
+    ];
 
   demos: demos[] = [
     {

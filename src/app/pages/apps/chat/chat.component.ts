@@ -16,6 +16,8 @@ import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, M
 import { BackdropStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
 import { CometChatUIEvents } from "@cometchat/uikit-resources"
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { Loader } from 'src/app/app.models';
 
 @Component({
   standalone: true,
@@ -24,7 +26,8 @@ import { CometChatUIEvents } from "@cometchat/uikit-resources"
     CometChatConversationsWithMessages,
     CometChatGroupsWithMessages,
     CommonModule,
-    MaterialModule
+    MaterialModule,
+    LoaderComponent
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -40,6 +43,8 @@ export class AppChatComponent implements OnInit {
   selectedCompanyId!: number;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
+  public loader: Loader = new Loader(true, false, false);
+  public chatInitError: string | null = null;
   
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -84,6 +89,18 @@ export class AppChatComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    try {
+      this.configureTheme();
+      this.observeAppTheme();
+      this.initPlanLogic();
+    } catch (err) {
+      this.loader = new Loader(true, true, true);
+      this.chatInitError = 'There was an error initializing the chat.';
+      console.error('Chat initialization error:', err);
+    }
+  }
+
+  private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
       this.currentChatContext = event;
       if (event.group) {
@@ -117,22 +134,58 @@ export class AppChatComponent implements OnInit {
       }
     });
 
-    if(this.userRole === '3') {
-      this.companiesService.getByOwner().subscribe((company: any) => {
-        this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan || { id: companyPlan[0] }; 
+    try {
+      if(this.userRole === '3') {
+        this.companiesService.getByOwner().subscribe({
+          next: (company: any) => {
+            this.plansService.getCurrentPlan(company.company.id).subscribe({
+              next: (companyPlan: any) => {
+                this.plan = companyPlan.plan || { id: companyPlan[0] };
+                this.loader = new Loader(true, true, false);
+              },
+              error: (err) => {
+                this.loader = new Loader(true, true, true);
+                this.chatInitError = 'There was an error loading the plan.';
+                console.error('Plan loading error:', err);
+              }
+            });
+          },
+          error: (err) => {
+            this.loader = new Loader(true, true, true);
+            this.chatInitError = 'There was an error loading the company.';
+            console.error('Company loading error:', err);
+          }
         });
-      });
-    }
-    else if (this.userRole === '2') {
-      this.employeesService.getByEmployee().subscribe((employees: any) => {
-        this.plansService.getCurrentPlan(employees.company_id).subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan || { id: companyPlan[0] };
+      }
+      else if (this.userRole === '2') {
+        this.employeesService.getByEmployee().subscribe({
+          next: (employees: any) => {
+            this.plansService.getCurrentPlan(employees.company_id).subscribe({
+              next: (companyPlan: any) => {
+                this.plan = companyPlan.plan || { id: companyPlan[0] };
+                this.loader = new Loader(true, true, false);
+              },
+              error: (err) => {
+                this.loader = new Loader(true, true, true);
+                this.chatInitError = 'There was an error loading the plan.';
+                console.error('Plan loading error:', err);
+              }
+            });
+          },
+          error: (err) => {
+            this.loader = new Loader(true, true, true);
+            this.chatInitError = 'There was an error loading the employee.';
+            console.error('Employee loading error:', err);
+          }
         });
-      });
+      } else {
+        this.loader = new Loader(true, true, false);
+      }
+    } catch (err) {
+      this.loader = new Loader(true, true, true);
+      this.chatInitError = 'There was an error initializing the chat.';
+      console.error('Chat initialization error:', err);
     }
-    this.configureTheme();
-    this.observeAppTheme();
   }
 
   ngAfterViewInit() {

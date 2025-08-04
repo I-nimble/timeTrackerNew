@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
@@ -9,7 +10,8 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { AuthService } from 'src/app/services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-side-forgot-password',
@@ -19,25 +21,52 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    BrandingComponent,
+    CommonModule
   ],
   templateUrl: './side-forgot-password.component.html',
 })
 export class AppSideForgotPasswordComponent {
   options = this.settings.getOptions();
-
-  constructor(private settings: CoreService, private router: Router) {}
+  assetPath = '/assets/images/backgrounds/password-bg.png';
+  constructor(
+    private settings: CoreService, 
+    private router: Router, 
+    private authService: AuthService,
+    private snackBar: MatSnackBar
+  ) {}
 
   form = new FormGroup({
-    email: new FormControl('', [Validators.required]),
+    email: new FormControl('', [Validators.required, Validators.email]),
   });
 
   get f() {
     return this.form.controls;
   }
 
+  showCheckEmail = false;
+  submittedEmail = '';
+
   submit() {
-    // console.log(this.form.value);
-    this.router.navigate(['/dashboards/dashboard2']);
+    if (this.form.valid && this.form.value.email) {
+      this.authService.forgotPassword(this.form.value.email).subscribe({
+        next: () => {
+          this.submittedEmail = this.form.value.email!;
+          this.showCheckEmail = true;
+          this.openSnackBar('Password reset email sent', 'Close');
+        },
+        error: (res:any) => {
+          console.error(res.error.message, res.error);
+          this.openSnackBar(res.error.message, 'Close');
+        },
+      });
+    }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 }

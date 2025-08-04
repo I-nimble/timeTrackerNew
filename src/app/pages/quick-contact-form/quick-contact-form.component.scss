@@ -1,0 +1,48 @@
+
+.flex-column {
+    flex-direction: column;
+}
+h1 {
+    font-size: 32px;
+    color: #818181;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+}
+h2 {
+    color: #818181;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+}
+.highlight-green {
+    color: #9cb764;
+}
+
+
+.button-toggle-group {
+    border: none;
+
+    mat-button-toggle {
+        background: white;
+        color: #333;
+        border: 1px solid #ccc;
+        margin-right: 1rem;
+        border-radius: 50px;
+
+        &.mat-button-toggle-checked {
+            background-color: #9cb764;
+            color: white;
+        }
+    }
+}
+
+.mat-dialog-container {
+  padding: 40px 32px !important;
+  border-radius: 16px;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 8px 32px rgba(60,72,88,0.18);
+}
+form.p-2 {
+  padding-bottom: 32px;
+}

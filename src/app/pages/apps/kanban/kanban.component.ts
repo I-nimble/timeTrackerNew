@@ -19,6 +19,7 @@ import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
 
 @Component({
   selector: 'app-kanban',
@@ -177,7 +178,8 @@ export class AppKanbanComponent implements OnInit {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '600px',
+      width: '900px', 
+      maxWidth: '98vw',
       data: {
         action,
         ...data,
@@ -258,9 +260,14 @@ export class AppKanbanComponent implements OnInit {
       task_attachments: taskData.task_attachments,
     };
 
-    this.kanbanService.addTaskToBoard(newTask).subscribe(() => {
-      this.loadTasks(this.selectedBoardId);
-      this.showSnackbar('Task added to board successfully!');
+    this.kanbanService.addTaskToBoard(newTask).subscribe({
+      next: () => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Task added to board successfully!');
+      },
+      error: (error: any) => {
+        this.showSnackbar(error.error.message);
+      },
     });
   }
 
@@ -322,4 +329,71 @@ export class AppKanbanComponent implements OnInit {
       verticalPosition: 'top',
     });
   }
+
+  getInitials(user: any) {
+    return user.name.charAt(0).toUpperCase().concat(user.last_name.charAt(0).toUpperCase());
+  }
+
+  isOverdue(date: any) {
+    const today = new Date();
+    const dueDate = new Date(date);
+    return dueDate < today;
+  }
+
+  handleCreateTaskClick(column: any) {
+    if(!this.selectedBoardId) {
+      this.showSnackbar('Please select a board to add a task');
+      return;
+    }
+    this.openDialog('Add', {
+      columnId: column.id,
+      columnName: column.name,
+      company_id: this.selectedBoard.company_id
+    })
+  }
+
+  createColumn(): void {
+  const dialogRef = this.dialog.open(ColumnDialogComponent, {
+    width: '400px',
+    data: { 
+      action: 'Add', 
+      name: '', 
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.kanbanService.createColumn(this.selectedBoardId, {
+        name: result.name,
+        position: this.selectedBoardColumns.length + 1,
+      }).subscribe(() => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Column created!');
+      });
+    }
+  });
+}
+
+editColumn(column: any): void {
+  const dialogRef = this.dialog.open(ColumnDialogComponent, {
+    width: '400px',
+    data: { 
+      action: 'Edit', 
+      name: column.name, 
+      position: column.position 
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result) {
+      this.kanbanService.updateColumn(column.id, {
+        name: result.name,
+        position: result.position
+      }).subscribe(() => {
+        this.loadTasks(this.selectedBoardId);
+        this.showSnackbar('Column updated!');
+      });
+    }
+  });
+}
 }

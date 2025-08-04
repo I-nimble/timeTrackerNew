@@ -164,6 +164,17 @@ export class AuthService {
     });
   }
 
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URI}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, email: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URI}/reset-password`,
+      { token, email, newPassword }
+    );
+  }
+
   //signInWithGoogle(): Promise<{ name: string; email: string }> {
   //  const provider = new GoogleAuthProvider();
   //  return signInWithPopup(this.auth, provider).then((result) => {

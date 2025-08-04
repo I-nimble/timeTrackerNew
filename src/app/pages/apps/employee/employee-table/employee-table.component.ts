@@ -43,6 +43,7 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 
+
 @Component({
   templateUrl: './employee-table.component.html',
   imports: [
@@ -126,7 +127,14 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      this.getEmployees.emit();
+      if (result?.event === 'Delete' && result?.id) {
+        this.dataSourceTable.data = this.dataSourceTable.data.filter(
+          (emp: any) => emp.profile.id !== result.id
+        );
+      }
+      else {
+        this.getEmployees.emit();
+      }
     });
   }
 
@@ -161,12 +169,12 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   }
 
   downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map((u:any) => u.id);
-    if (!selectedIds.includes(user.id)) {
-      selectedIds.push(user.id);
+    let selectedIds = this.selection.selected.map((u:any) => u.profile.id);
+    if (!selectedIds.includes(user.profile.id)) {
+      selectedIds.push(user.profile.id);
     }
     this.filters = {
-      user: { id: selectedIds.length > 1 ? selectedIds : user.id },
+      user: { id: selectedIds.length > 1 ? selectedIds : user.profile.id },
       company: 'all',
       project: 'all',
       byClient: false,
@@ -255,7 +263,6 @@ export class AppEmployeeDialogContentComponent {
   action: string | any;
   // tslint:disable-next-line - Disables all
   local_data: any;
-  selectedImage: any = '';
   joiningDate = new FormControl();
   positions: any[] = [];
   projects: any[] = [];
@@ -292,14 +299,16 @@ export class AppEmployeeDialogContentComponent {
   ) {
     this.action = data.action;
     this.local_data = { ...data.employee };
-    this.editEmployeeForm.patchValue({ // Populate form data
-      name: this.local_data.profile.name || '',
-      last_name: this.local_data.profile.last_name || '',
-      password: '',
-      email: this.local_data.profile.email || '',
-      position: this.local_data.profile.position || '',
-      projects: this.local_data.profile.projects || [],
-    });
+    if(this.action === 'Update') {
+      this.editEmployeeForm.patchValue({ // Populate form data
+        name: this.local_data.profile.name,
+        last_name: this.local_data.profile.last_name,
+        password: null,
+        email: this.local_data.profile.email,
+        position: this.local_data.profile.position,
+        projects: this.local_data.profile.projects || [],
+      });
+    }
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
@@ -328,13 +337,12 @@ export class AppEmployeeDialogContentComponent {
     }
 
     // Set default image path if not already set
-    if (!this.local_data.image) {
-      this.local_data.image = 'assets/images/default-user-profile-pic.png';
+    if (!this.local_data.profile.imagePath) {
+      this.local_data.profile.imagePath = 'assets/images/default-user-profile-pic.png';
     }
   }
 
   doAction(): void {
-
     if (this.action === 'Invite') {
       this.sendingData = true;
       if(!this.inviteEmployeeForm.valid) {
@@ -356,19 +364,33 @@ export class AppEmployeeDialogContentComponent {
         },
         error: (err: any) => {
           console.error('Error adding Team Member:', err);
-          this.openSnackBar('Error inviting Team Member', 'Close');
+          const errorMsg = err?.error?.message || 'Error inviting Team Member';
+          this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
           this.inviteEmployeeForm.reset();
         }
       });
     } else if (this.action === 'Update') {
-      this.employeesService.updateEmployee(this.local_data.profile.id, this.local_data.profile, this.local_data.company_id, this.selectedImage);
-      this.dialogRef.close({ event: 'Update' });
-      this.openSnackBar('Team Member Updated successfully!', 'Close');
+      if(!this.editEmployeeForm.valid) {
+        this.openSnackBar('Please fill in all required fields', 'Close');
+        this.sendingData = false;
+        return;
+      }
+
+      this.employeesService.updateEmployee(this.local_data.profile.id, this.editEmployeeForm.value, this.local_data.profile.company_id, this.selectedFile).subscribe({
+        next: () => {
+          this.dialogRef.close({ event: 'Update' });
+          this.openSnackBar('Team Member Updated successfully!', 'Close');
+        },
+        error: (err:any) => {
+          console.error('Error updating Team Member:', err);
+          this.openSnackBar('Error updating Team Member', 'Close');
+        }
+      });
     } else if (this.action === 'Delete') {
       this.employeesService.deleteEmployee(this.local_data.profile.id).subscribe({
         next: () => {
-          this.dialogRef.close({ event: 'Delete' });
+          this.dialogRef.close({ event: 'Delete', id: this.local_data.profile.id });
           this.openSnackBar('Team Member Deleted successfully!', 'Close');
         },
         error: (err:any) => {
@@ -392,24 +414,27 @@ export class AppEmployeeDialogContentComponent {
   }
 
   selectFile(event: any): void {
-    if (!event.target.files[0] || event.target.files[0].length === 0) {
+    const img = event.target.files[0];
+
+    if (!img || img.length === 0) {
       this.openSnackBar('Please select an image', 'Close');
       return;
     }
-
-    const mimeType = event.target.files[0].type;
-    if (mimeType.match(/image\/jpeg/) == null) {
-      this.openSnackBar('The image must be a JPEG file', 'Close');
+    if(img.size > 1000000) {
+      this.openSnackBar('Image size should be 1 MB or less', 'Close')
+      return
+    }
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+      this.openSnackBar('Only JPG or PNG files are allowed!', 'Close');
       return;
     }
 
-    this.selectedFile = event.target.files[0];
+    this.selectedFile = img;
     if(this.selectedFile) {
       const reader = new FileReader();
       reader.readAsDataURL(this.selectedFile);
-  
       reader.onload = (_event) => {
-        this.local_data.image = reader.result; // Set selected image for preview
+        this.local_data.profile.imagePath = reader.result;
       };
     }
   }

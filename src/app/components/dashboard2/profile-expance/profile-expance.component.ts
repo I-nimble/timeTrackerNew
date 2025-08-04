@@ -264,7 +264,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
       }
 
       const boardTasksObservables = boards.map((board: any) =>
-        this.boardsService.getBoardWithTasks(board.id)
+        this.boardsService.getBoardWithTasks(board.id, 7)
       );
 
       forkJoin<any[]>(boardTasksObservables).subscribe((boardsData) => {

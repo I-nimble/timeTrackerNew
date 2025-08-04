@@ -3,77 +3,7 @@
     <!-- ------------------------------------------------------------------
     Header
     ------------------------------------------------------------------ -->
-    <mat-toolbar class="topbar topbar-xl m-auto">
-      <div class="container full-width p-xs-6 justify-content-between">
-        <!-- --------------------------------------------------------------- -->
-        <div class="branding p-x-0 landingpage-logo">
-          <app-branding [fullLogoMaxWidth]="'200px'"></app-branding>
-        </div>
-
-        <!-- --------------------------------------------------------------- -->
-
-        <div class="d-none d-lg-flex">
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <!-- <button mat-button class="m-x-8 f-s-16 f-w-500" (click)="gotoDemos()">
-            Demos
-          </button> -->
-
-          <!-- --------------------------------------------------------------- -->
-          <!--  Links -->
-          <!-- --------------------------------------------------------------- -->
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/products']"
-            style="color: #818181"
-            >Products</a
-          >
-
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/industry']"
-            style="color: #818181"
-            >Industry</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            [routerLink]="['/landingpage/pricing']"
-            style="color: #818181"
-            >Pricing</a
-          >
-          <a
-            mat-button
-            class="m-x-8 f-s-16 f-w-500"
-            href="/authentication/maintenance"
-            style="color: #818181"
-            >Why us</a
-          >
-        </div>
-
-        <div class="d-flex align-items-center gap-10">
-          <a
-            mat-flat-button
-            color="primary"
-            class="m-l-10"
-            [routerLink]="['/authentication/login']"
-            >Login</a
-          >
-
-          <!-- Mobile Menu -->
-          <button
-            mat-icon-button
-            (click)="filterNavRight.toggle()"
-            class="d-flex d-lg-none"
-          >
-            <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
-          </button>
-        </div>
-      </div>
-    </mat-toolbar>
+    <app-header [filterNavRight]="filterNavRight"></app-header>
 
     <!-- ------------------------------------------------------------------
    End Header
@@ -100,7 +30,7 @@
                 <a
                   mat-flat-button
                   color="primary"
-                  (click)="gotoDemos()"
+                  [routerLink]="['/authentication/login']"
                   class="btn-custom"
                   >Use Inimble for free</a
                 >
@@ -108,9 +38,9 @@
                   mat-stroked-button
                   color="primary"
                   target="_blank"
-                  href="tel:+1-706-478-5677"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
                   class="btn-custom2 border-primary"
-                  >Call us now</a
+                  >Book a demo</a
                 >
               </div>
             </div>
@@ -415,7 +345,7 @@
                   color="primary"
                   class="btn-custom m-b-32"
                   style="min-width: 220px"
-                  [routerLink]="['/compare']"
+                  (click)="openQuickContact()"
                 >
                   See How We Compare
                 </a>
@@ -444,7 +374,7 @@
           <a
             mat-flat-button
             color="primary"
-            (click)="gotoDemos()"
+            [routerLink]="['/authentication/login']"
             class="btn-custom"
             >Try Inimble for free</a
           >
@@ -521,126 +451,69 @@
 
     <div class="spacer bg-white">
       <div class="container">
-        <h2 class="section-title text-center f-w-700 m-b-32">
+        <h2 class="section-title f-w-700 m-y-30 text-center">
           Trusted by growing businesses across the U.S
         </h2>
-        <div class="row m-t-40 justify-content-center">
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
+
+        <div class="testimonial-carousel">
+          <div class="carousel-inner">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <div
+              class="carousel-item"
+              *ngIf="currentSlide === i"
+              @fadeAnimation
             >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-4.webp"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
+              <div class="p-24">
+                <div class="d-flex align-items-center justify-content-center">
+                  @for (star of [].constructor(testimonial.stars); track $index)
+                  {
+                  <i-tabler
+                    name="star-filled"
+                    class="fill-warning icon-26"
+                    [class.m-l-4]="!$first"
+                  ></i-tabler>
+                  }
+                </div>
+                <p class="m-t-24 review-subtext text-center f-w-500">
+                  “{{ testimonial.text }}”
+                </p>
+                <div
+                  class="d-flex align-items-center justify-content-center m-t-24"
+                >
+                  <img
+                    [src]="testimonial.image"
+                    alt="profile"
+                    class="rounded-circle"
+                    width="64"
+                  />
+                  <div class="m-l-12">
+                    <h6 class="mat-subtitle-1 f-s-16 f-w-600">
+                      {{ testimonial.name }}
+                    </h6>
+                    <span class="f-s-14">{{ testimonial.role }}</span>
+                  </div>
+                </div>
               </div>
-            </mat-card>
+            </div>
+            }
           </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-11-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-10-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-9-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-8-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-7-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-6-3.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-5-2.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
-          </div>
-          <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card
-              class="cardWithShadow h-100 testimonial-card overflow-hidden p-0"
-            >
-              <div class="testimonial-img-wrapper">
-                <img
-                  src="https://i-nimble.com/wp-content/uploads/2024/10/Review-2-1.png"
-                  alt="Testimonial"
-                  class="testimonial-img"
-                />
-              </div>
-            </mat-card>
+
+          <button class="carousel-control prev" (click)="prevSlide()">
+            <i-tabler name="chevron-left" class="icon-30"></i-tabler>
+          </button>
+          <button class="carousel-control next" (click)="nextSlide()">
+            <i-tabler name="chevron-right" class="icon-30"></i-tabler>
+          </button>
+
+          <div class="carousel-indicators">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span
+              [class.active]="currentSlide === i"
+              (click)="goToSlide(i)"
+            ></span>
+            }
           </div>
         </div>
       </div>
@@ -669,7 +542,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="/authentication/maintenance"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -681,7 +554,7 @@
                 >
                 <a
                   mat-stroked-button
-                  href="/authentication/maintenance"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >Book a free consultation</a
@@ -853,7 +726,7 @@
     </div>
 
     Call to action-->
-    <div class="bg-white">
+    <div class="bg-white spacer">
       <div class="container">
         <div class="bg-green rounded p-32 position-relative">
           <div class="row justify-content-between">
@@ -871,7 +744,7 @@
               <div class="hstack">
                 <a
                   mat-flat-button
-                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                  [routerLink]="['/authentication/login']"
                   color="primary"
                   class="btn-custom sm"
                   style="
@@ -883,14 +756,14 @@
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
                   color="primary"
                   class="btn-custom sm border-white text-white"
-                  >Call us now</a
+                  >Book a demo</a
                 >
                 <a
                   mat-stroked-button
-                  href="https://support.wrappixel.com/"
+                  (click)="openQuickContact()"
                   color="primary"
                   class="btn-custom sm border-white text-white"
                   >More about our talent match</a

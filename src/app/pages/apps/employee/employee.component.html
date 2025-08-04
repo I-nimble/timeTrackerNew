@@ -16,7 +16,7 @@
   
           <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
+            <mat-select [(ngModel)]="companyId" (selectionChange)="handleCompanySelection()">
               <mat-option *ngFor="let company of companies" [value]="company.id">
                 {{ company.name }}
               </mat-option>

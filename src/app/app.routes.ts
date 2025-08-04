@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
+import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
 import { AppIntakeFormComponent } from './pages/intake/intake-form.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
@@ -121,7 +122,7 @@ export const routes: Routes = [
       {
         path: 'discovery',
         pathMatch: 'full',
-        component: AppIntakeFormComponent,
+        component: AppDiscoveryFormComponent,
         data: {
           title: 'Intake form',
           urls: [
@@ -131,6 +132,18 @@ export const routes: Routes = [
         },
         canActivate: [notAuthGuard],
       },
+      {
+        path: 'intake',
+        pathMatch: 'full',
+        component: AppIntakeFormComponent,
+        data: {
+          title: 'Intake form',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Intake form' },
+          ],
+        },
+      }
     ],
   },
   {
