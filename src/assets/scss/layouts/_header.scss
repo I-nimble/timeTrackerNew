@@ -1,12 +1,11 @@
 @use "../variables" as *;
 
 html .topbar {
-  background-color: var(--mat-sys-surface);
-  position: sticky;
+  background-color: $soft-gray;
+  position: fixed;
   top: 0;
   z-index: 9;
   height: $header-height;
-  border-radius: $border-radius;
   box-shadow: var(--mat-sys-level2);
 }
 
@@ -125,4 +124,27 @@ html .topbar {
   left: 0;
   box-shadow: var(--mat-sys-level2);
   border-radius: $border-radius;
+}
+
+#menu-links > a {
+  color: $black-shark;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  height: 40px;
+  border-radius: 100px;
+  padding: 6px 15px;
+  min-width: 64px;
+  width: auto;
+}
+
+.industry-button {
+  .button-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .aligned-icon {
+    position: relative;
+    top: 5px;
+  }
 }

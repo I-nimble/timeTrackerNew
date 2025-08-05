@@ -1,0 +1,29 @@
+@use "../../../../assets/scss/variables" as *;
+
+.b-r-white {
+    border-right: 1px solid white
+}
+.p-x-40 {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 18.7px;
+    line-height: 28px;
+}
+ul > li {
+    text-align: left;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 26px;
+    margin-top: .5rem;
+}
+.copyright p {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 26px;
+}
