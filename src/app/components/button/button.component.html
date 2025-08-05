@@ -1,0 +1,6 @@
+<button *ngIf="!href">
+  <p>{{ text }}</p>
+</button>
+<a *ngIf="href" [href]="href" target="_blank">
+  <p>{{ text }}</p>
+</a>

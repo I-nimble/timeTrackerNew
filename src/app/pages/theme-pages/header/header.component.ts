@@ -10,6 +10,7 @@ import { AppFooterComponent } from '../footer/footer.component';
 import { AppFaqComponent } from '../faq/faq.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { MatSidenav } from '@angular/material/sidenav';
+import { ButtonComponent } from 'src/app/components/button/button.component';
 
 interface apps {
   id: number;
@@ -51,7 +52,7 @@ interface features {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent],
+  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent],
   templateUrl: './header.component.html',
 })
 export class AppHeaderComponent {
