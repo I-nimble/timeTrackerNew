@@ -12,6 +12,9 @@ import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 interface apps {
   id: number;
@@ -63,19 +66,10 @@ interface features {
     AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
+    HeroButtonComponent,
+    ButtonComponent
   ],
-  templateUrl: './landingpage.component.html',
-  animations: [
-    trigger('fadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
-  ],
+  templateUrl: './landingpage.component.html'
 })
 export class AppLandingpageComponent {
   @Input() showToggle = true;
@@ -158,14 +152,37 @@ export class AppLandingpageComponent {
       image: 'assets/images/landingpage/logos/14.jpeg',
     },
   ];
+  isMobileScreen = false;
 
   options = this.settings.getOptions();
 
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private breakpointObserver: BreakpointObserver
+  ) {
+    this.breakpointObserver.observe([
+      '(max-width: 767px)'
+    ]).subscribe(result => {
+      this.isMobileScreen = result.matches;
+    });
+  }
+
+  getVisibleTestimonials() {
+    const length = this.testimonials.length;
+    
+    if (this.isMobileScreen) {
+      return [this.testimonials[this.currentSlide % length]];
+    } else {
+      if (length <= 3) return this.testimonials;
+      return [
+        this.testimonials[(this.currentSlide - 1 + length) % length],
+        this.testimonials[this.currentSlide % length],
+        this.testimonials[(this.currentSlide + 1) % length]
+      ];
+    }
+  }
 
   // scroll to demos
   gotoDemos() {

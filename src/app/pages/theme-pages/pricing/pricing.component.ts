@@ -12,6 +12,7 @@ import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
+import { ButtonComponent } from 'src/app/components/button/button.component';
 
 // card 1
 interface rules {
@@ -69,7 +70,7 @@ interface features {
 
 @Component({
     selector: 'app-pricing',
-    imports: [MaterialModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
+    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
     templateUrl: './pricing.component.html',
 })
 export class AppPricingComponent {

@@ -1,0 +1,49 @@
+@use "../../../../assets/scss/variables" as *;
+
+.b-r-white {
+    border-right: 1px solid white
+}
+.p-x-40 {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+h3 {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 700;
+    font-size: 18.7px;
+    line-height: 28px;
+}
+ul > li {
+    text-align: left;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 26px;
+    margin-top: .5rem;
+}
+.copyright p {
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 26px;
+}
+@media (max-width: 960px) {
+    #footer-logo {
+        align-items: center!important;
+        border: none;
+        margin-bottom: 2rem;
+        p.footer-description {
+            text-align: center!important;
+        }
+    }
+    #footer-contact {
+        align-items: center!important;
+        margin-bottom: 2rem;
+        ul {
+            align-items: center!important;
+            li {
+                text-align: center!important;
+            }
+        }
+    }
+}

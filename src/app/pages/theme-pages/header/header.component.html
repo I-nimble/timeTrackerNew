@@ -4,41 +4,34 @@
       <app-branding [fullLogoMaxWidth]="'180px'"></app-branding>
     </div>
 
-    <div class="d-none d-lg-flex">
+    <div class="d-none d-lg-flex" id="menu-links">
       <a
         mat-button
-        class="m-x-8 f-s-16 f-w-500"
+        class="f-s-16 f-w-500"
         [routerLink]="['/landingpage/products']"
-        style="color: #818181"
         >Products</a
       >
 
       <a
         mat-button
-        class="m-x-8 f-s-16 f-w-500"
+        class="f-s-16 f-w-500"
         [routerLink]="['/landingpage/careers']"
-        style="color: #818181"
         >Careers</a
       >
 
-      <div class="d-flex align-items-center gap-0" style="color: #818181">
-        <a
-          mat-button
-          class="f-s-16 f-w-500 p-l-32"
-          [routerLink]="['/landingpage/industry']"
-          style="color: #818181"
-        >
-          Industry
+      <div 
+        class="d-flex align-items-center gap-0" 
+        style="color: #818181"
+      >
+        <a mat-button class="f-s-16 f-w-500 industry-button">
+          <span
+            [routerLink]="['/landingpage/industry']"
+            class="button-content"
+          >
+            Industry
+          </span>
+          <i-tabler name="chevron-down" class="icon-20 aligned-icon" [matMenuTriggerFor]="appsmenu"></i-tabler>
         </a>
-        <button
-          mat-icon-button
-          [matMenuTriggerFor]="appsmenu"
-          aria-label="Industry options"
-          style="vertical-align: middle; margin-left: 2px"
-          class="p-r-32"
-        >
-          <i-tabler name="chevron-down" class="icon-16"></i-tabler>
-        </button>
       </div>
       <mat-menu
         #appsmenu="matMenu"
@@ -77,28 +70,21 @@
       </mat-menu>
       <a
         mat-button
-        class="m-x-8 f-s-16 f-w-500"
+        class="f-s-16 f-w-500"
         [routerLink]="['/landingpage/pricing']"
-        style="color: #818181"
         >Pricing</a
       >
       <a
         mat-button
-        class="m-x-8 f-s-16 f-w-500"
+        class="f-s-16 f-w-500"
         [routerLink]="['/landingpage/why-us']"
-        style="color: #818181"
         >Why us</a
       >
     </div>
 
     <div class="d-flex align-items-center gap-10">
-      <a
-        mat-flat-button
-        color="primary"
-        class="m-l-10"
-        [routerLink]="['/authentication/login']"
-        >Login</a
-      >
+      <app-button id="login-button" text="Login" variant="ghost" size="small" [routerLink]="['/authentication/login']"></app-button>
+      <app-button id="get-started-button" text="Get Started" variant="filled" size="small"></app-button>
 
       <!-- Mobile Menu -->
       <button

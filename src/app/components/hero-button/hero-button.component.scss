@@ -1,0 +1,105 @@
+@use "../../../assets/scss/variables" as *;
+
+:host {
+  display: inline-block;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 66px;
+    padding: 0 48px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s ease;
+    position: relative;
+    border: none;
+    overflow: hidden;
+    transform: translateZ(0);
+    z-index: 1;
+
+    p {
+      font-family: "Fustat", sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 28px;
+      letter-spacing: 0.5;
+      color: $black-shark;
+      text-decoration: underline;
+      margin-right: 0px;
+      position: relative;
+      z-index: 2;
+    }
+
+    mat-icon {
+      font-size: 2rem;
+      line-height: 1.25rem;
+      color: $black-shark;
+      position: relative;
+      z-index: 2;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      border-radius: 100px;
+      transition: opacity 0.3s ease;
+    }
+  }
+
+  &.filled button {
+    &::before {
+      background: $hero-gradient;
+      opacity: 1;
+    }
+    
+    &:hover::before {
+      background: $hero-gradient-hover;
+    }
+  }
+
+  &.ghost button {
+    background: transparent;
+    border: 2px solid $black-shark;
+    
+    &:hover {
+      background: rgba($black-shark, 0.1);
+    }
+  }
+
+  &.transparent button {
+    background: transparent;
+    
+    &:hover {
+      background: rgba($black-shark, 0.05);
+    }
+  }
+
+  &.pulse button {
+    animation: pulse 2s infinite;
+    
+    &::before {
+      background: $hero-gradient;
+    }
+    
+    &:hover {
+      animation: none;
+      
+      &::before {
+        background: $hero-gradient-hover;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
