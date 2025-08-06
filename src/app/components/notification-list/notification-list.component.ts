@@ -143,8 +143,11 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   }
 
   markAsRead(notifications: Notification[]) {
+    const unreadNotifications = notifications.filter(notification => notification.users_notifications.status != 2);
+    if(unreadNotifications.length === 0) return;
+    
     this.notificationsService
-      .update(notifications, 2)
+      .update(unreadNotifications, 2)
       .subscribe({
         next: () => {
           this.notificationsDataSource.data = [
