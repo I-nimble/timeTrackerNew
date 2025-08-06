@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { environment } from 'src/environments/environment';
@@ -39,12 +39,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     ReactiveFormsModule,
     BrandingComponent,
     NgIf,
+    RouterLink
   ],
   providers: [
     AuthService,
     WebSocketService
   ],
   templateUrl: './side-register.component.html',
+  styleUrls: ['./side-register.component.scss']
 })
 export class AppSideRegisterComponent {
   options = this.settings.getOptions();
@@ -70,6 +72,7 @@ export class AppSideRegisterComponent {
   companyId: string = '';
   companies: any[] = [];
   positions: any[] = [];
+  isRegisterFormVisible: boolean = false;
 
   constructor(
     private settings: CoreService, 
@@ -90,7 +93,7 @@ export class AppSideRegisterComponent {
     this.getPositions();
 
     this.route.queryParams.subscribe((params:any) => {
-      this.companyId = params['company_id'];
+      if(params['company_id']) this.companyId = params['company_id'];
       if(params['user_role']) this.userRole = params['user_role'];
       if(this.userRole == '2') {
         this.registerTeamMemberForm.patchValue({
@@ -99,8 +102,14 @@ export class AppSideRegisterComponent {
           name: params['name'].split(' ')[0],
           last_name: params['name'].split(' ')[1] || '',
         });
+        this.showRegisterForm(this.userRole);
       }
     });
+  }
+
+  showRegisterForm(userRole: string) {
+    this.isRegisterFormVisible = true;
+    this.userRole = userRole;
   }
 
   getCompanies() {
