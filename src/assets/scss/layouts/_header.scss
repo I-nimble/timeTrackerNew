@@ -154,3 +154,8 @@ html .topbar {
     top: 5px;
   }
 }
+@media (max-width: 475px) {
+  #login-button, #get-started-button {
+    display: none;
+  }
+}

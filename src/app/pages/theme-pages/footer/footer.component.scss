@@ -27,3 +27,23 @@ ul > li {
     font-size: 16px;
     line-height: 26px;
 }
+@media (max-width: 960px) {
+    #footer-logo {
+        align-items: center!important;
+        border: none;
+        margin-bottom: 2rem;
+        p.footer-description {
+            text-align: center!important;
+        }
+    }
+    #footer-contact {
+        align-items: center!important;
+        margin-bottom: 2rem;
+        ul {
+            align-items: center!important;
+            li {
+                text-align: center!important;
+            }
+        }
+    }
+}
