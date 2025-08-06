@@ -29,6 +29,7 @@ import { NotificationsComponent } from '../dashboards/notifications/notification
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { TeamComponent } from './team/team.component';
 import { AppHistoryComponent } from './history/history.component';
+import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -345,6 +346,17 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
+      {
+        path: 'pricing',
+        component: AppPricingStripeComponent,
+        data: {
+          title: 'Pricing',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Pricing' },
+          ],
+        },
+      }
     ],
   },
 ];

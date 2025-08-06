@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { StripeFactoryService } from './stripe-factory.service';
+import { StripeFactoryService } from '../stripe-factory.service';
 import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { StripeService } from 'src/app/services/stripe.service';
@@ -11,12 +11,13 @@ import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
-  selector: 'app-stripe',
-  templateUrl: './stripe.component.html',
-  styleUrls: ['./stripe.component.scss'],
-  imports: [MaterialModule, CommonModule, FormsModule, ReactiveFormsModule, TablerIconsModule],
+  selector: 'app-bank-transfer',
+  templateUrl: './bank-transfer.component.html',
+  styleUrls: ['./bank-transfer.component.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MaterialModule]
 })
-export class StripeComponent implements OnInit, OnDestroy {
+export class BankTransferComponent implements OnInit, OnDestroy {
   @Input() invoiceId: string = '';
   @ViewChild('paymentElementContainer') paymentElementContainer!: ElementRef;
   amount: number = 0;
@@ -79,6 +80,7 @@ export class StripeComponent implements OnInit, OnDestroy {
     };
 
     const options = {
+    paymentMethodOrder: ['us_bank_account'],
       layout: {
         type: 'accordion',
         defaultCollapsed: false,
