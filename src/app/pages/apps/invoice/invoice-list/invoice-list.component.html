@@ -1,70 +1,5 @@
 <div class="row">
-  <div class="col-sm-6 col-lg-3">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'All' }"
-      (click)="handleTabClick('All')"
-    >
-      <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-primary text-white"
-        >
-          <i-tabler name="list-details" class="icon-24 d-flex"></i-tabler>
-        </div>
-        <div class="info">
-          <h5 class="f-w-400 lh-sm f-s-14">Total</h5>
-          <h5 class="f-w-500 lh-sm f-s-14">
-            {{ allInvoices().length }} invoices
-          </h5>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  <div class="col-sm-6 col-lg-3">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-secondary shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Shipped' }"
-      (click)="handleTabClick('Shipped')"
-    >
-      <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-secondary text-white"
-        >
-          <i-tabler name="shopping-bag" class="icon-24 d-flex"></i-tabler>
-        </div>
-        <div class="info">
-          <h5 class="f-w-400 lh-sm f-s-14">Shipped</h5>
-          <h5 class="f-w-500 lh-sm f-s-14">
-            {{ countInvoicesByStatus("Shipped") }} invoices
-          </h5>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <div class="col-sm-6 col-lg-3">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-success shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Delivered' }"
-      (click)="handleTabClick('Delivered')"
-    >
-      <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-success text-white"
-        >
-          <i-tabler name="truck" class="icon-24 d-flex"></i-tabler>
-        </div>
-        <div class="info">
-          <h5 class="f-w-400 lh-sm f-s-14">Delivered</h5>
-          <h5 class="f-w-500 lh-sm f-s-14">
-            {{ countInvoicesByStatus("Delivered") }} invoices
-          </h5>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <div class="col-sm-6 col-lg-3">
+  <div class="col-sm-4 col-lg-4">
     <mat-card
       class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
       [ngClass]="{ 'active-tab': activeTab() === 'Pending' }"
@@ -74,12 +9,56 @@
         <div
           class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-warning text-white"
         >
-          <i-tabler name="sort-ascending" class="icon-24 d-flex"></i-tabler>
+          <i-tabler name="receipt-dollar" class="icon-24 d-flex"></i-tabler>
         </div>
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Pending</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ countInvoicesByStatus("Pending") }} invoices
+            {{ pendingInvoices().length }} invoices
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-sm-4 col-lg-4">
+    <mat-card
+      class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Paid' }"
+      (click)="handleTabClick('Paid')"
+    >
+      <mat-card-content class="d-flex align-items-center gap-16">
+        <div
+          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-primary text-white"
+        >
+          <i-tabler name="list-details" class="icon-24 d-flex"></i-tabler>
+        </div>
+        <div class="info">
+          <h5 class="f-w-400 lh-sm f-s-14">Paid</h5>
+          <h5 class="f-w-500 lh-sm f-s-14">
+            {{ paidInvoices().length }} invoices
+          </h5>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="col-sm-4 col-lg-4">
+    <mat-card
+      class="cardWithShadow cursor-pointer bg-light-error shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Overdue' }"
+      (click)="handleTabClick('Overdue')"
+    >
+      <mat-card-content class="d-flex align-items-center gap-16">
+        <div
+          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-error text-white"
+        >
+          <i-tabler name="sort-ascending" class="icon-24 d-flex"></i-tabler>
+        </div>
+        <div class="info">
+          <h5 class="f-w-400 lh-sm f-s-14">Overdue</h5>
+          <h5 class="f-w-500 lh-sm f-s-14">
+            {{ overdueInvoices().length }} invoices
           </h5>
         </div>
       </mat-card-content>
@@ -87,29 +66,32 @@
   </div>
 </div>
 
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow" *ngIf="role == '1'">
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
-      <div class="col-sm-4">
+      <div class="row m-b-16 col-lg-4">
+      <div>
         <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <input
-            matInput
-            placeholder="Search Invoice"
-            (keyup)="filter($any($event.target).value)"
-          />
-          <mat-icon matSuffix>
-            <i-tabler name="search" class="icon-20 d-flex m-t-4"></i-tabler>
-          </mat-icon>
+          <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+          <mat-select (selectionChange)="handleCompanySelection($event)" [value]="selectedCompanyId()">
+            <mat-option [value]="null">All</mat-option>
+            <mat-option
+              *ngFor="let company of companies"
+              [value]="company.id"
+            >
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
-      <div class="col-sm-4 d-flex align-items-center justify-content-end">
+      </div>
+      <div class="col-sm-4 d-flex align-items-center justify-content-end" >
         <a
           mat-button
           [routerLink]="['/apps/addInvoice']"
           mat-flat-button
           color="primary"
-          >Add Invoice</a
-        >
+          >Add Invoice</a>
       </div>
     </div>
   </mat-card-content>
@@ -124,26 +106,6 @@
         matSort
         class="no-wrap m-t-0 v-middle w-100"
       >
-        <ng-container matColumnDef="chk">
-          <th mat-header-cell *matHeaderCellDef>
-            <mat-checkbox
-              [checked]="allComplete()"
-              [indeterminate]="someComplete()"
-              (change)="setAll($event.checked)"
-              color="primary"
-            >
-            </mat-checkbox>
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            <mat-checkbox
-              [(ngModel)]="element.completed"
-              (ngModelChange)="updateAllComplete()"
-              color="primary"
-            >
-            </mat-checkbox>
-          </td>
-        </ng-container>
-
         <ng-container matColumnDef="id">
           <th
             mat-header-cell
@@ -151,52 +113,47 @@
             mat-sort-header
             class="f-w-600 f-s-15"
           >
-            Id
+            ID
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
             {{ element.id }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="billFrom">
+        <ng-container matColumnDef="paymentDate">
           <th
             mat-header-cell
             *matHeaderCellDef
             mat-sort-header
             class="f-w-600 f-s-15"
           >
-            Bill From
+            Payment Date
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.billFrom }}
+            {{ element.created_at | date: "MM/dd/yyyy" }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="billTo">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            mat-sort-header
-            class="f-w-600 f-s-15"
-          >
-            Bill To
+        <ng-container matColumnDef="client" *ngIf="role == '1'">
+          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15">
+            Client
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.billTo }}
+            {{ element.user?.company?.name }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="totalCost">
+        <ng-container matColumnDef="amount">
           <th
             mat-header-cell
             *matHeaderCellDef
             mat-sort-header
             class="f-w-600 f-s-15"
           >
-            Total Cost
+            Amount
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.totalCost }}
+            $ {{ element.amount }}
           </td>
         </ng-container>
 
@@ -215,17 +172,17 @@
               class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12"
               [ngStyle]="{
                 'background-color':
-                  element.status === 'Shipped'
+                  element.status.name === 'Paid'
                     ? 'var(--mat-sys-primary)'
-                    : element.status === 'Delivered'
-                    ? 'rgb(75 208 139)'
-                    : element.status === 'Pending'
+                    : element.status.name === 'Overdue'
+                    ? '#c9c8c8'
+                    : element.status.name === 'Pending'
                     ? 'rgb(248 192 118)'
                     : 'transparent',
                 color: 'white'
               }"
             >
-              {{ element.status }}
+              {{ element.status.name }}
             </span>
           </td>
         </ng-container>
@@ -239,9 +196,22 @@
               mat-icon-button
               [routerLink]="['/apps/editinvoice/', element.id]"
               class="d-flex align-items-center justify-content-center"
+              *ngIf="role == '1'"
             >
               <i-tabler
                 name="pencil"
+                class="icon-18 d-flex align-items-center"
+              ></i-tabler>
+            </a>
+            <a
+              mat-icon-button
+              [routerLink]="['/apps/pricing']"
+              [queryParams]="{ invoiceId: element.id }"
+              class="d-flex align-items-center justify-content-center"
+              *ngIf="role == '3'"
+            >
+              <i-tabler
+                name="credit-card-pay"
                 class="icon-18 d-flex align-items-center"
               ></i-tabler>
             </a>
@@ -258,8 +228,20 @@
 
             <a
               mat-icon-button
+              class="d-flex align-items-center justify-content-center"
+              *ngIf="role == '3'"
+            >
+              <i-tabler
+                name="download"
+                class="icon-18 d-flex align-items-center"
+              ></i-tabler>
+            </a>
+
+            <a
+              mat-icon-button
               (click)="deleteInvoice(element.id)"
               class="d-flex align-items-center justify-content-center"
+              *ngIf="role == '1'"
             >
               <i-tabler
                 name="trash"
@@ -273,9 +255,11 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
       <mat-paginator
-        [pageSizeOptions]="[5, 8, 10]"
+        [pageSizeOptions]="[5, 10, 20]"
         showFirstLastButtons
       ></mat-paginator>
     </div>
   </mat-card-content>
 </mat-card>
+
+

@@ -20,6 +20,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-kanban',
@@ -116,6 +117,16 @@ export class AppKanbanComponent implements OnInit {
         });
       });
     }
+  }
+
+  dropColumn(event: CdkDragDrop<any[]>): void {
+    moveItemInArray(
+      event.container.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+  
+    this.updateColumnPositions();
   }
 
   drop(event: CdkDragDrop<any[]>, newColumnId: number): void {
@@ -396,4 +407,31 @@ editColumn(column: any): void {
     }
   });
 }
+
+updateColumnPositions(): void {
+  this.selectedBoardColumns.forEach((column, index) => {
+    column.position = index + 1;
+  });
+
+  const updates = this.selectedBoardColumns.map(column => ({
+    id: column.id,
+    position: column.position
+  }));
+
+  const updateObservables = updates.map(update => 
+    this.kanbanService.updateColumn(update.id, { position: update.position })
+  );
+
+  forkJoin(updateObservables).subscribe({
+    next: () => {
+      this.showSnackbar('Columns reordered successfully');
+    },
+    error: (error) => {
+      console.error('Error updating column positions:', error);
+      this.showSnackbar('Error updating some column positions');
+      this.loadTasks(this.selectedBoardId);
+    }
+  });
+}
+
 }
