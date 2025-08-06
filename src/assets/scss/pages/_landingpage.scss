@@ -6,13 +6,13 @@
 // ----------------------------------------------
 
 // HEADINGS
-h1 {
+h1.landingpage {
   font-family: "Gabarito", sans-serif;
   font-size: 64px;
   line-height: 78px;
   font-weight: bold;
 }
-h2 {
+h2.landingpage {
   font-family: "Gabarito", sans-serif;
   font-size: 48px;
   line-height: 58px;
@@ -22,7 +22,7 @@ h2 {
   font-weight: 700;
 }
 // CONTENT
-p {
+p.landingpage {
   font-family: "Fustat", sans-serif;
   font-weight: 400;
   font-size: 20px;
@@ -852,6 +852,16 @@ p.small {
   
   &.next {
     right: -65px;
+  }
+}
+@media (max-width: 1300px) {
+  .carousel-control {
+    &.next {
+      right: -20px;
+    }
+    &.prev {
+      left: -20px;
+    }
   }
 }
 

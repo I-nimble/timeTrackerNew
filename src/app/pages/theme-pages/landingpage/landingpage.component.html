@@ -17,15 +17,15 @@
         <div class="row justify-content-center">
           <div class="col-lg-11">
             <div class="text-center">
-              <h1 class="banner-title m-0 f-w-700">
+              <h1 class="banner-title m-0 f-w-700 landingpage">
                 POWER your legal operations with 
                 <br />
                 <span class="underline">ONE platform</span>
               </h1>
-              <p class="p-y-24 m-t-12 m-0">
+              <p class="p-y-24 m-t-12 m-0 landingpage">
                 <strong>We handle the hard stuff</strong> — recruiting, onboarding, payroll, compliance, and IT — <strong>so you don’t have to.</strong>
               </p>
-              <div class="m-t-24 hstack justify-content-center">
+              <div class="m-t-24 hstack align-items-center justify-content-center">
                 <app-hero-button 
                   variant="pulse" 
                   text="Start today for free"
@@ -86,8 +86,8 @@
     <!-- What Is Inimble? Section -->
     <div class="spacer p-b-0 bg-white">
       <div class="container">
-        <h2 class="section-title text-center f-w-700">Why Inimble?</h2>
-        <p class="text-center m-t-12 m-b-32">
+        <h2 class="section-title text-center f-w-700 landingpage">Why Inimble?</h2>
+        <p class="text-center m-t-12 m-b-32 landingpage">
           Simple, secure, and scalable. More than just remote staffing. inimble
           manages, supports, and optimizes your legal team
         </p>
@@ -199,11 +199,11 @@
     ------------------------------------------------------------------ -->
     <div class="spacer p-b-0 bg-gray" id="demos">
       <div class="container">
-        <h2 class="f-w-700 text-center text-white">
+        <h2 class="f-w-700 text-center text-white landingpage">
           Inimble is a remote operations platform purpose-built for businesses
         </h2>
 
-        <p class="text-center m-t-12 m-b-32 text-white">
+        <p class="text-center m-t-12 m-b-32 text-white landingpage">
           It brings together staffing, IT, HR, productivity tools, and payroll —
           all under one login. From hiring and onboarding to daily task tracking
           and compliance, inimble is the only tool a modern legal team needs.
@@ -239,8 +239,8 @@
                   </div>
                 </div>
                 <div class="p-16">
-                  <p class="d-block f-w-600">{{ demo.name }}</p>
-                  <p class="d-block m-t-8">{{ demo.subtext }}</p>
+                  <p class="d-block f-w-600 landingpage">{{ demo.name }}</p>
+                  <p class="d-block m-t-8 landingpage">{{ demo.subtext }}</p>
                 </div>
               </div>
             </div>
@@ -292,7 +292,7 @@
     <!-- Why Inimble? Section -->
     <div class="spacer p-b-0" style="background: #E5E7E9">
       <div class="container">
-        <h2 class="text-center m-t-16 m-b-32">
+        <h2 class="text-center m-t-16 m-b-32 landingpage">
           Why Choose Inimble Over Freelance Marketplaces?
         </h2>
         <div class="row m-t-40 justify-content-center">
@@ -454,7 +454,7 @@
      <!-- Testimonials -->
     <div class="spacer p-b-0" style="background: #E5E7E9">
       <div class="container">
-        <h2 class="m-b-40 text-center">
+        <h2 class="m-b-40 text-center landingpage">
           Trusted by growing businesses across the U.S
         </h2>
 
@@ -471,16 +471,16 @@
                     class="color-success icon-42 filled-quote"
                   ></i-tabler>
                 </span>
-                <p class="m-t-24 l-h-26 text-left flex-grow-1">
+                <p class="m-t-24 l-h-26 text-left flex-grow-1 landingpage">
                   {{ testimonial.text }}
                 </p>
                 <div
                   class="d-flex flex-column align-items-end justify-content-end m-t-10 b-t-green"
                 >
-                  <p class="extra-bold m-t-10">
+                  <p class="extra-bold m-t-10 landingpage">
                     {{ testimonial.name }}
                   </p>
-                  <p class="small">{{ testimonial.role }}</p>
+                  <p class="small landingpage">{{ testimonial.role }}</p>
                 </div>
               </div>
             </div>
@@ -502,7 +502,7 @@
       <div class="container">
         <div class="bg-green rounded p-32 position-relative">
             <h2
-              class="m-t-0 m-b-8"
+              class="m-t-0 m-b-8 landingpage"
               style="line-height: 1.1"
             >
               Let’s Make Remote Hiring Easy
@@ -517,13 +517,15 @@
                 variant="ghost" 
                 size="large" 
                 [routerLink]="['/authentication/login']"
+                [fullWidth]="isMobileScreen"
               >
               </app-button>
               <app-button 
                 text="CALL US NOW" 
                 variant="ghost" 
                 size="large" 
-                href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
+                href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting" 
+                [fullWidth]="isMobileScreen"
               >
               </app-button>
               <app-button 
@@ -531,6 +533,7 @@
                 variant="ghost" 
                 size="large" 
                 (click)="openQuickContact()"
+                [fullWidth]="isMobileScreen"
               >
               </app-button>
           </div>
@@ -593,8 +596,8 @@
 
     <!-- Social Section -->
     <div class="p-t-16" style="background: #E5E7E9">
-      <div class="container text-center gap-30 d-flex justify-content-end">
-        <p class="extra-bold l-h-36">Let's get social</p>
+      <div class="container text-center gap-30 d-flex justify-content-end flex-wrap">
+        <p class="extra-bold l-h-36 landingpage">Let's get social</p>
         <div class="social-icons d-flex justify-content-center gap-20">
           <a
             href="https://www.linkedin.com/company/inimble/"
@@ -968,9 +971,8 @@
         >
           <span class="f-s-15 f-w-500 m-l-8">Support</span>
         </a>
-        <a mat-flat-button color="primary" class="w-100" [routerLink]="['/']"
-          >Buy Now</a
-        >
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Login" variant="ghost" size="small" [routerLink]="['/authentication/login']"></app-button>
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Get Started" variant="filled" size="small"></app-button>
       </div>
     </div>
   </mat-sidenav>

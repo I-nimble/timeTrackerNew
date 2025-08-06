@@ -19,6 +19,7 @@ import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ButtonComponent } from 'src/app/components/button/button.component';
 
 interface apps {
   id: number;
@@ -70,6 +71,7 @@ interface features {
     AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
+    ButtonComponent
   ],
   templateUrl: './products.component.html',
   animations: [
