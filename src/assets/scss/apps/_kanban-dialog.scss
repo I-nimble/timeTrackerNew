@@ -1,7 +1,4 @@
 .trello-style {
-  min-width: 800px;
-  max-width: 900px;
-
   .dialog-header {
     display: flex;
     justify-content: space-between;
@@ -167,6 +164,15 @@
           }
         }
       }
+    }
+  }
+
+  @media (max-width: 900px) {
+    .properties-row {
+      flex-direction: column;
+    }
+    .dialog-body {
+      flex-direction: column;
     }
   }
 
