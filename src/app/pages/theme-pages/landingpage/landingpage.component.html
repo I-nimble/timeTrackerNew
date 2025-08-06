@@ -1,9 +1,9 @@
-<mat-sidenav-container class="mainWrapper">
+<mat-sidenav-container class="mainWrapper" id="landingpage">
   <mat-sidenav-content>
     <!-- ------------------------------------------------------------------
     Header
     ------------------------------------------------------------------ -->
-    <app-header [filterNavRight]="filterNavRight"></app-header>
+    <app-header [filterNavRight]="filterNavRight" class="landing-header"></app-header>
 
     <!-- ------------------------------------------------------------------
    End Header
@@ -93,7 +93,7 @@
         </p>
         <div class="row m-t-40 justify-content-center">
           <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card class="cardWithShadow h-100">
+            <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-primary rounded d-flex align-items-center justify-content-center m-b-16"
@@ -110,7 +110,7 @@
             </mat-card>
           </div>
           <div class="col-md-6 col-lg-4 m-b-24">
-              <mat-card class="cardWithShadow h-100">
+              <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-error rounded d-flex align-items-center justify-content-center m-b-16"
@@ -124,7 +124,7 @@
             </mat-card>
           </div>
           <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card class="cardWithShadow h-100">
+            <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-b-16"
@@ -141,7 +141,7 @@
             </mat-card>
           </div>
           <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card class="cardWithShadow h-100">
+            <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-secondary rounded d-flex align-items-center justify-content-center m-b-16"
@@ -155,7 +155,7 @@
             </mat-card>
           </div>
           <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card class="cardWithShadow h-100">
+            <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-success rounded d-flex align-items-center justify-content-center m-b-16"
@@ -172,7 +172,7 @@
             </mat-card>
           </div>
           <div class="col-md-6 col-lg-4 m-b-24">
-            <mat-card class="cardWithShadow h-100">
+            <mat-card class="card-shadow h-100">
               <div class="d-flex flex-column justify-content-start align-items-start">
                 <span
                   class="icon-50 bg-light-warning rounded d-flex align-items-center justify-content-center m-b-16"
@@ -653,7 +653,7 @@
         <div class="row m-t-24">
           @for(feature of features; track feature.title) {
           <div class="col-sm-6 col-lg-3">
-            <mat-card class="cardWithShadow">
+            <mat-card class="card-shadow">
               <mat-card-content>
                 <span
                   class="icon-50 bg-light-{{
