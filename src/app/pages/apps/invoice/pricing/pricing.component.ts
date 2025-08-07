@@ -1,5 +1,5 @@
 import { ViewportScroller, CommonModule } from "@angular/common"
-import { Component } from "@angular/core"
+import { Component, ViewChild, ElementRef } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { MatButtonModule } from "@angular/material/button"
 import { MatCardModule } from "@angular/material/card"
@@ -27,9 +27,16 @@ interface pricecards {
 export class AppPricingStripeComponent {
   public selectedPaymentMethod = ""
   selectedInvoiceId: string | null = null;
+  @ViewChild('paymentForm') paymentForm!: ElementRef;
 
   onPaymentMethodChange(method: string) {
     this.selectedPaymentMethod = method
+
+    setTimeout(() => {
+      if (this.paymentForm) {
+        this.paymentForm.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 1000);
   }
 
   getPaymentMethod(cardId: number): string {
