@@ -170,6 +170,10 @@ export class StripeComponent implements OnInit, OnDestroy {
   }
 
   viewInvoice() {
-    this.router.navigate(['/invoices', this.invoiceId]);
+    this.router.navigate(['/apps/viewInvoice', this.invoiceId]);
+  }
+  
+  newPayment() {
+    this.router.navigate(['/apps/invoice']);
   }
 }
