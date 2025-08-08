@@ -170,9 +170,28 @@ export class StripeComponent implements OnInit, OnDestroy {
   }
 
   viewInvoice() {
-    this.router.navigate(['/apps/viewInvoice', this.invoiceId]);
+    if (!this.invoiceId) {
+      this.snackBar.open('Invoice ID not available', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.stripeService.getPaymentByInvoiceId(this.invoiceId).subscribe({
+      next: ({ paymentId }) => {
+        this.stripeService.getReceiptUrl(paymentId).subscribe({
+          next: ({ receiptUrl }) => {
+            window.open(receiptUrl, '_blank');
+          },
+          error: () => {
+            this.snackBar.open('Failed to load receipt URL', 'Close', { duration: 3000 });
+          }
+        });
+      },
+      error: () => {
+        this.snackBar.open('No payment found for this invoice', 'Close', { duration: 3000 });
+      }
+    });
   }
-  
+
   newPayment() {
     this.router.navigate(['/apps/invoice']);
   }
