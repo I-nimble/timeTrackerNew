@@ -509,4 +509,3 @@ async onPaste(event: ClipboardEvent) {
   safeHtmlPipe = this.sanitizer.bypassSecurityTrustHtml;
 }
 
-
