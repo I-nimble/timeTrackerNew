@@ -10,6 +10,7 @@ import { CoreService } from "src/app/services/core.service"
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { ActivatedRoute } from '@angular/router';
 import { BankTransferComponent } from "src/app/components/stripe/bank-transfer/bank-transfer.component"
+import { CheckComponent } from "src/app/components/stripe/check/check.component"
 
 interface pricecards {
   id: number
@@ -20,7 +21,7 @@ interface pricecards {
 
 @Component({
   selector: "app-pricing-stripe",
-  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule, BankTransferComponent],
+  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule, BankTransferComponent, CheckComponent],
   templateUrl: "./pricing.component.html",
   styleUrl: './pricing.component.scss'
 })

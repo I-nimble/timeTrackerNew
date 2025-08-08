@@ -1,177 +1,51 @@
-import { Component, Input, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { StripeFactoryService } from '../stripe-factory.service';
-import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { StripeService } from 'src/app/services/stripe.service';
-import { firstValueFrom } from 'rxjs';
+import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { trigger, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-bank-transfer',
   templateUrl: './bank-transfer.component.html',
   styleUrls: ['./bank-transfer.component.scss'],
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MaterialModule]
+    imports: [
+    CommonModule,
+    MatCardModule,
+    MatDividerModule,
+    MatButtonModule,
+    MatIconModule,
+  ],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+  ]
 })
-export class BankTransferComponent implements OnInit, OnDestroy {
+export class BankTransferComponent {
   @Input() invoiceId: string = '';
-  @ViewChild('paymentElementContainer') paymentElementContainer!: ElementRef;
-  amount: number = 0;
+  @Input() amount: number = 0;
+  @Input() bankName: string = '';
+  @Input() accountNumber: string = '';
 
-  paymentForm!: FormGroup;
-  stripe: Stripe | null = null;
-  elements: StripeElements | null = null;
-  paymentElement: StripePaymentElement | null = null;
-  isLoading = false;
-  paymentStatus: 'initial' | 'processing' | 'succeeded' | 'failed' = 'initial';
-  errorMessage: string | null = null;
-  clientSecret: string | null = null;
+  constructor(private router: Router, private snackBar: MatSnackBar) {}
 
-  constructor(
-    private fb: FormBuilder,
-    private stripeFactory: StripeFactoryService,
-    private snackBar: MatSnackBar,
-    private stripeService: StripeService,
-    private router: Router
-  ) {}
-
-  async ngOnInit() {
-    this.paymentForm = this.fb.group({
-      name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+  confirmTransfer() {
+    this.showSnackbar('Thank you! We will verify your transfer shortly.');
+    this.router.navigate(['/apps/invoice']);
+  }
+  
+  showSnackbar(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
     });
-
-    // Inicializar Stripe
-    this.stripe = await this.stripeFactory.getStripe();
-    
-    // Crear PaymentIntent
-    try {
-      const response = await firstValueFrom(
-        this.stripeService.createPaymentIntent(this.invoiceId)
-      );
-      this.clientSecret = response.clientSecret;
-      this.amount = response.amount;
-
-      await this.initializeStripeElements();
-    } catch (error) {
-      console.error('Error creating PaymentIntent:', error);
-      this.errorMessage = 'Failed to initialize payment. Please try again.';
-    }
-  }
-
-  async initializeStripeElements() {
-    if (!this.stripe || !this.clientSecret) return;
-
-    const appearance = {
-      theme: 'stripe' as const,
-      variables: {
-        colorPrimary: '#6772e5',
-        colorBackground: '#ffffff',
-        colorText: '#32325d',
-        colorDanger: '#df1b41',
-        fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        spacingUnit: '2px',
-        borderRadius: '4px'
-      }
-    };
-
-    const options = {
-    paymentMethodOrder: ['us_bank_account'],
-      layout: {
-        type: 'accordion',
-        defaultCollapsed: false,
-        radios: true,
-        spacedAccordionItems: false
-      },
-    };
-
-    // Crear elementos de Stripe
-    this.elements = this.stripe.elements({
-      clientSecret: this.clientSecret,
-      appearance
-    });
-
-    // Crear y montar el elemento de pago
-    this.paymentElement = (this.elements as any).create('payment', options);
-    this.paymentElement?.mount(this.paymentElementContainer.nativeElement);
-
-    // Escuchar cambios en el elemento de pago
-    this.paymentElement?.on('change', (event: any) => {
-      this.errorMessage = event.error?.message || null;
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.paymentElement) {
-      this.paymentElement.destroy();
-    }
-  }
-
-  async handleSubmit() {
-    if (!this.stripe || !this.elements || !this.clientSecret) {
-      return;
-    }
-
-    if (this.paymentForm.invalid) {
-      this.paymentForm.markAllAsTouched();
-      return;
-    }
-
-    this.isLoading = true;
-    this.paymentStatus = 'processing';
-
-    try {
-      const { error, paymentIntent } = await this.stripe.confirmPayment({
-        elements: this.elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/payment-success`,
-          payment_method_data: {
-            billing_details: {
-              name: this.paymentForm.value.name,
-              email: this.paymentForm.value.email
-            }
-          }
-        },
-        redirect: 'if_required'
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Verificar el estado del pago
-      if (paymentIntent?.status === 'succeeded') {
-        this.paymentStatus = 'succeeded';
-        this.snackBar.open('Payment succeeded!', 'Close', {
-          duration: 5000,
-          panelClass: ['success-snackbar']
-        });
-      } else {
-        throw new Error('Payment not completed');
-      }
-    } catch (error: any) {
-      this.paymentStatus = 'failed';
-      this.errorMessage = error.message || 'An unexpected error occurred.';
-      this.snackBar.open(this.errorMessage ?? 'An unexpected error occurred.', 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  retryPayment() {
-    this.paymentStatus = 'initial';
-    this.errorMessage = null;
-    window.location.reload(); 
-  }
-
-  viewInvoice() {
-    this.router.navigate(['/invoices', this.invoiceId]);
   }
 }
