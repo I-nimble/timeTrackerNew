@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -176,6 +176,94 @@ export class UsersService {
     if (userData.token) form.append('token', userData.token);
     if (userData.positionId) form.append('positionId', userData.positionId);
     return this.http.post(`${this.API_URI}/users/register/invited`, userData);
+  }
+
+  getUploadUrl(type: string) {
+    return this.http.get<any>(`${this.API_URI}/generate_upload_url/${type}`);
+  }
+
+  public registerOrphanTeamMember(data: any) {
+    let resumeUpload$ = of(null);
+    let pictureUpload$ = of(null);
+    let introVideoUpload$ = of(null);
+    let portfolioUpload$ = of(null);
+
+    const form = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        form.append(key, data[key]);
+      }
+    });
+
+    if (data.resume instanceof File) {
+      resumeUpload$ = this.getUploadUrl('applications').pipe(
+        switchMap((resumeUrl: any) => {
+          const file = data.resume;
+          const headers = new HttpHeaders({ 'Content-Type': file.type });
+          return this.http.put(resumeUrl.url, file, { headers }).pipe(
+            map(() => {
+              const urlParts = resumeUrl.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
+          );
+        })
+      );
+    }
+
+    if (data.picture instanceof File) {
+      pictureUpload$ = this.getUploadUrl('applications').pipe(
+        switchMap((photoUrl: any) => {
+          const imgFile = data.picture;
+          const headers = new HttpHeaders({ 'Content-Type': imgFile.type });
+          return this.http.put(photoUrl.url, imgFile, { headers }).pipe(
+            map(() => {
+              const urlParts = photoUrl.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
+          );
+        })
+      );
+    }
+
+    if (data.introduction_video instanceof File) {
+      introVideoUpload$ = this.getUploadUrl('applications').pipe(
+        switchMap((videoUrl: any) => {
+          const videoFile = data.introduction_video;
+          const headers = new HttpHeaders({ 'Content-Type': videoFile.type });
+          return this.http.put(videoUrl.url, videoFile, { headers }).pipe(
+            map(() => {
+              const urlParts = videoUrl.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
+          );
+        })
+      );
+    }
+
+    if (data.portfolio instanceof File) {
+      portfolioUpload$ = this.getUploadUrl('applications').pipe(
+        switchMap((portfolioUrl: any) => {
+          const portfolioFile = data.portfolio;
+          const headers = new HttpHeaders({ 'Content-Type': portfolioFile.type });
+          return this.http.put(portfolioUrl.url, portfolioFile, { headers }).pipe(
+            map(() => {
+              const urlParts = portfolioUrl.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
+          );
+        })
+      );
+    }
+
+    return forkJoin([resumeUpload$, pictureUpload$, introVideoUpload$, portfolioUpload$]).pipe(
+      switchMap(([resumeFileName, pictureFileName, introVideoFileName, portfolioFileName]) => {
+        form.append('resume_file_name', resumeFileName ?? '');
+        form.append('picture_file_name', pictureFileName ?? '');
+        form.append('introduction_video_file_name', introVideoFileName ?? '');
+        form.append('portfolio_file_name', portfolioFileName ?? '');
+        return this.http.post(`${this.API_URI}/users/register/orphan`, form);
+      })
+    );
   }
 
   checkEmailExists(email: string): Observable<{ exists: boolean }> {

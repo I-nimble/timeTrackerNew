@@ -82,6 +82,7 @@ export class AppDashboardTMComponent implements OnInit {
   todayTasks: any[] = [];
   employer: any = {};
   companyLogo!: SafeResourceUrl;
+  isOrphan: boolean;
 
   constructor(
     private usersService: UsersService,
@@ -97,6 +98,7 @@ export class AppDashboardTMComponent implements OnInit {
   ngOnInit(): void {
     this.getUser();
     this.getEntries();
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
 
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
@@ -111,6 +113,8 @@ export class AppDashboardTMComponent implements OnInit {
 
     if (localStorage.getItem('role') === '2') {
       this.employeesService.getByEmployee().subscribe((employee: any) => {
+        if(!employee) return;
+
         const company_id = employee.company_id;
         this.companiesService.getCompanies().subscribe((companies: any) => {
           const company = companies.filter(
@@ -152,8 +156,10 @@ export class AppDashboardTMComponent implements OnInit {
   }
 
   getEmployees() {
+    if(!this.user?.employee?.id) return;
+
     this.companiesService
-      .getEmployees(this.user.employee.id)
+      .getEmployees(this.user?.employee?.id)
       .subscribe((employees: any) => {
         this.employees = employees.filter(
           (employee: any) =>
