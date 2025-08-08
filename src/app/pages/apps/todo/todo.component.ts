@@ -442,6 +442,11 @@ export class AppTodoComponent implements OnInit {
     });
   }
 
+  onRecommendationsChange(event: any) {
+    const rawValue = event.target.value;
+    this.newTaskForm.get('recommendations')?.setValue(rawValue);
+  }
+
   detailsRequiredValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       const parent = control.parent;
@@ -681,5 +686,24 @@ export class AppTodoComponent implements OnInit {
 
     // Actualiza el formControl con el nuevo Date (con hora local)
     this.newTaskForm.patchValue({ due_date: localDate });
+  }
+
+  stripHtml(html: string): string {
+    if (!html) return '';
+    const imgMatch = html.match(/<img[^>]+src="([^">]+)"/);
+    let imgUrl = '';
+    if (imgMatch && imgMatch[1]) {
+      imgUrl = imgMatch[1];
+    }
+    let text = html
+      .replace(/<\/?(div|p|br|li|ul|ol)[^>]*>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n{2,}/g, '\n')
+      .trim();
+    if (imgUrl) {
+      text = text ? `${text} ${imgUrl}` : imgUrl;
+    }
+    return text;
   }
 }

@@ -6,6 +6,7 @@ import { AppLandingpageComponent } from './landingpage/landingpage.component';
 import { AppPricingComponent } from './pricing/pricing.component';
 import { AppProductsComponent } from './products/products.component';
 import { AppWhyUsComponent } from './why-us/why-us.component';
+import { AppCareersComponent } from './careers/careers.component';
 import { AppIndustryOtherComponent } from './industry-pages/industry-other.component';
 import { AppIndustryLegalServicesComponent } from './industry-pages/industry-legal-service.component';
 import { AppIndustryPersonalInjuryComponent } from './industry-pages/industry-personal-injury.component';
@@ -28,6 +29,10 @@ export const HomePageRoutes: Routes = [
   {
     path: 'products',
     component: AppProductsComponent,
+  },
+  {
+    path: 'careers',
+    component: AppCareersComponent,
   },
   {
     path: 'why-us',
