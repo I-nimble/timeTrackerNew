@@ -37,7 +37,7 @@ export class BankTransferComponent {
   constructor(private router: Router, private snackBar: MatSnackBar) {}
 
   confirmTransfer() {
-    this.showSnackbar('Thank you! We will verify your transfer shortly.');
+    this.showSnackbar('Thank you! We will process your payment once we receive your transfer.');
     this.router.navigate(['/apps/invoice']);
   }
   
