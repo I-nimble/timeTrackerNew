@@ -112,7 +112,12 @@ export class AppKanbanDialogComponent implements OnInit {
         const minutes = dueDate.getMinutes().toString().padStart(2, '0');
         this.dueTime = `${hours}:${minutes}`;
       }
-    }
+    } else {
+    const defaultDate = new Date();
+    defaultDate.setHours(defaultDate.getHours() + 24);
+    this.dueTime = defaultDate.toTimeString().substring(0, 5);
+    this.local_data.due_date = defaultDate;
+  }
     this.updateFirstAttachmentImage();
 
     setTimeout(() => {
@@ -392,9 +397,22 @@ export class AppKanbanDialogComponent implements OnInit {
 }
 
 onDueTimeChange(event: any) {
-  this.dueTime = event.target.value;
-  const date = this.local_data.due_date;
-  this.setDueDateTime(date, this.dueTime);
+  const time = event.target?.value || event;
+  const [hoursStr, minutesStr] = time.split(':');
+  const hours = parseInt(hoursStr, 10);
+  const minutes = parseInt(minutesStr, 10);
+
+  if (hours < 8) {
+    this.dueTime = '08:00';
+  } else if (hours > 20 || (hours === 20 && minutes > 0)) {
+    this.dueTime = '20:00';
+  } else {
+    this.dueTime = time;
+  }
+
+  const currentDueDate = new Date(this.local_data.due_date || new Date());
+  currentDueDate.setHours(parseInt(this.dueTime.split(':')[0]), parseInt(this.dueTime.split(':')[1]), 0, 0);
+  this.local_data.due_date = currentDueDate;
 }
 
 setDueDateTime(date: Date | string, time: string) {
