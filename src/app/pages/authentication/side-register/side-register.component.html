@@ -204,7 +204,7 @@
                       </mat-stepper>
 
                       <!-- Team Member registration form without invitation -->
-                      <mat-stepper #stepper>
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && !hasInvitation">
                         <!-- Step 1: Location and Role Selection -->
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
