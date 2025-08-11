@@ -1,5 +1,5 @@
 @use "../variables" as *;
-
+@use '@angular/material' as mat;
 
 // ----------------------------------------------
 // LANDINGPAGE STYLES
@@ -7,23 +7,23 @@
 
 // HEADINGS
 h1.landingpage {
-  font-family: "Gabarito", sans-serif;
-  font-size: 64px;
-  line-height: 78px;
-  font-weight: bold;
+  font-family: "Montserrat", sans-serif;
+  font-size: 56px;
+  line-height: 74px;
+  font-weight: 800;
 }
 h2.landingpage {
-  font-family: "Gabarito", sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 48px;
   line-height: 58px;
-  font-weight: bold;
+  font-weight: 700;
 }
 .extra-bold {
-  font-weight: 700;
+  font-weight: 700!important;
 }
 // CONTENT
 p.landingpage {
-  font-family: "Fustat", sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-size: 20px;
   line-height: 28px;
@@ -35,6 +35,9 @@ p.big {
 p.small {
   font-size: 18px;
   line-height: 28px;
+}
+.text-start {
+  text-align: start;
 }
 .m-b-75 {
   margin-bottom: 75px;
@@ -54,6 +57,10 @@ p.small {
 .l-h-36 {
   line-height: 36px;
 }
+.f-s-25 {
+  font-size: 25px;
+  line-height: 30px;
+}
 
 .flex-grow-1 {
   flex-grow: 1;
@@ -70,6 +77,13 @@ p.small {
   width: 100%;
   height: 50px;
 
+  &.white-lightgray {
+    background: linear-gradient(
+      to bottom,
+      $secondary-landing 0%, 
+      $soft-gray 100%
+    );
+  }
   &.lightgray-white {
     background: linear-gradient(
       to bottom,
@@ -98,12 +112,184 @@ p.small {
       #656E7C 100%,
     );
   }
+  &.lightgray-darkgray {
+    background: linear-gradient(
+      to bottom,
+      #E5E7E9 0%,        
+      #454545 100%,
+    );
+  }
+  &.darkgray-white {
+    background: linear-gradient(
+      to bottom,
+      #454545 0%,
+      #fff 100%,        
+    );
+  }
 }
+.bg-dark-gray { 
+  background: #454545;
+}
+.bg-light-gray { 
+  background: $soft-gray;
+}
+
+// HERO
+
+#hero {
+  background-image: url("../../images/landingpage/hero.png");
+  height: 600px;
+  overflow: hidden;
+  background-size: contain;
+}
+
+// FEATURES - PRODUCTS
+mat-tab-header {
+  width: max-content;
+  margin: 0 auto;
+  margin-bottom: 2rem;
+}
+:root {
+  @include mat.tabs-overrides((
+    active-indicator-color: $black-shark,
+    active-focus-indicator-color: $black-shark,
+    active-hover-indicator-color: $black-shark,
+    active-ripple-color: $black-shark,
+    inactive-ripple-color: $black-shark,
+    disabled-ripple-color: $black-shark,
+    active-indicator-height: 4px,
+    divider-height: 0px
+  ));
+}
+.tab-icon {
+  margin-right: 1rem;
+}
+
+.feature-card {
+  border-radius: 32px;
+  height: 450px;
+  padding: 48px;
+  position: relative;
+  img {
+    position: absolute;
+    max-width: 100%;
+    bottom: 0px;
+    right: 0px;
+  }
+  h3 {
+    font-family: "Gabarito", sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    line-height: 40px;
+    padding-left: 1rem;
+  }
+  &.gray {
+    background:  linear-gradient(to bottom, #2E3238 0%, #656E7C 100%);
+    h3 {
+      border-left: 4px solid white;
+      color: white;
+    }
+  }
+  &.green {
+    background: linear-gradient(to bottom, #B7DF68 0%, #7A8B77 100%);
+    h3 {
+      border-left: 4px solid $black-shark;
+      color: $black-shark;
+    }
+  }
+  &.white {
+    background: linear-gradient(to bottom, #FFFFFF 0%, #C6CBD0 100%);
+    h3 {
+      border-left: 4px solid $black-shark;
+      color: $black-shark;
+    }
+  }
+}
+
+// END FEATURES - PRODUCTS
+
+// BUILT FOR BUSSINESS
+
+#inimble-tablet {
+  height: 394px;
+  width: 677px;
+  padding: 12px;
+  background: #eaeaea;
+  border-radius: 32px;
+  background: linear-gradient(transparent, transparent) padding-box, linear-gradient(to bottom, #CCC7C7 0%, #A39C9C 100%) border-box;
+  border: 12px solid transparent;
+  box-shadow: rgba(0, 0, 0, 0.2509803922) 2px 6px 0px 0px inset;
+  position: relative;
+
+  video {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    border-radius: 22px;
+  }
+}
+
+// END BUILT FOR BUSINESS
+
+// WHY COMPARE TABLE
+.why-compare-table td {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+// INVOICES IMAGE
+
+#invoices-img {
+  background-image: url("../../images/landingpage/invoices.png");
+  height: 600px;
+  overflow: hidden;
+  background-size: contain;
+}
+
+// END INVOICES IMAGE
+
+// CONTACT FORM
+#contact-form {
+  #send-btn {
+    background: $dark-gray!important;
+  }
+}
+.white-bg-field {
+  .mdc-text-field--outlined {
+    background-color: white !important;
+    border-radius: var(--mat-sys-corner-medium) !important;
+    overflow: hidden;
+
+    .mat-mdc-input-element.mdc-text-field__input {
+      color: #000000 !important;
+      -webkit-text-fill-color: #000000 !important;
+    }
+
+    .mdc-text-field__input::placeholder {
+      color: rgba(0, 0, 0, 0.5) !important;
+      -webkit-text-fill-color: rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .mat-mdc-input-element {
+      caret-color: #000000 !important;
+    }
+  }
+
+  .mdc-floating-label {
+    color: rgba(0, 0, 0, 0.6) !important;
+    background-color: white !important;
+    padding: 0 4px;
+    
+    &.mdc-floating-label--float-above {
+      color: rgba(0, 0, 0, 0.87) !important;
+    }
+  }
+}
+
 
 .bg-gray {
   background: #656E7C;
 }
-
 .card-shadow {
   background: #F4F4F4!important;
   border: 1px solid #BFBFBF!important;
@@ -214,7 +400,7 @@ p.small {
 
 @media (min-width: 900px) {
   .banner-title {
-    font-size: 54px !important;
+    font-size: 52px !important;
     line-height: 60px !important;
   }
 }
@@ -226,7 +412,7 @@ p.small {
 }
 
 .banner-title {
-  font-size: 36px;
+  font-size: 52px;
   line-height: 44px;
 }
 
@@ -350,7 +536,7 @@ p.small {
 }
 
 .bg-green {
-  background-color: #B7DF68;
+  background-color: #9CB764;
 }
 
 .lh-base {
@@ -548,7 +734,7 @@ p.small {
   text-align: center;
 
   .banner-title {
-    font-size: 36px;
+    font-size: 52px!important;
     font-weight: 700;
     line-height: 1.4;
     margin-bottom: 20px;
@@ -809,15 +995,6 @@ p.small {
   .quote-icon {
     width: 80px;
     height: 80px;
-
-    i-tabler {
-      font-size: 40px;
-      line-height: 1.25;
-      color: $black-shark;
-      &.filled-quote {
-        fill: currentColor;
-      }
-    }
   }
 }
 
