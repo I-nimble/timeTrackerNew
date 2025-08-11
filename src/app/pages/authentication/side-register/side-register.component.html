@@ -26,7 +26,7 @@
 
                       <p class="text-center m-t-16 m-b-16">or</p>
   
-                      <button mat-stroked-button class="w-100 m-b-45" [routerLink]="['/landingpage/careers']">
+                      <button mat-stroked-button class="w-100 m-b-45" (click)="showRegisterForm('2')">
                         Apply for a Career Opportunity
                       </button>
                     </div>
@@ -130,23 +130,23 @@
                         </mat-step>
                       </mat-stepper>
   
-                      <!-- Team Member registration form -->
-                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2'">
-                        <mat-step [stepControl]="registerTeamMemberForm">
+                      <!-- Invited Team Member registration form -->
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && hasInvitation">
+                        <mat-step [stepControl]="registerInvitedTeamMemberForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerTeamMemberForm">
+                            <form [formGroup]="registerInvitedTeamMemberForm">
                               <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
                               <mat-form-field appearance="outline" class="w-100">
                                 <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('email')?.valid">Next</button>
+                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('email')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
-                        <mat-step [stepControl]="registerTeamMemberForm">
+                        <mat-step [stepControl]="registerInvitedTeamMemberForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerTeamMemberForm">
+                            <form [formGroup]="registerInvitedTeamMemberForm">
                               <h2 class="text-center m-b-24 label-title">Enter your full name</h2>
                               <mat-form-field appearance="outline" class="w-100">
                                 <input matInput formControlName="name" required type="text" placeholder="First name" />
@@ -155,26 +155,26 @@
                                 <input matInput formControlName="last_name" required type="text" placeholder="Last name" />
                               </mat-form-field>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('name')?.valid || !registerTeamMemberForm.get('last_name')?.valid">Next</button>
+                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('name')?.valid || !registerInvitedTeamMemberForm.get('last_name')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
-                        <mat-step [stepControl]="registerTeamMemberForm">
+                        <mat-step [stepControl]="registerInvitedTeamMemberForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerTeamMemberForm">
+                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
                               <h2 class="text-center m-b-24 label-title">Company</h2>
                               <mat-form-field appearance="outline" class="w-100">
                                 <input matInput [value]="getCompanyName" required type="text" readonly />
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('company')?.valid">Next</button>
+                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('company')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
   
-                        <mat-step [stepControl]="registerTeamMemberForm">
+                        <mat-step [stepControl]="registerInvitedTeamMemberForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerTeamMemberForm">
+                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
                               <h2 class="text-center m-b-24 label-title">Select your position</h2>
                               <mat-form-field appearance="outline" class="w-100">
                                 <mat-select formControlName="position" required>
@@ -184,22 +184,305 @@
                                 </mat-select>
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerTeamMemberForm.get('position')?.valid">Next</button>
+                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('position')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         
-                        <mat-step [stepControl]="registerTeamMemberForm">
+                        <mat-step [stepControl]="registerInvitedTeamMemberForm">
                             <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                              <form class="m-t-24" [formGroup]="registerTeamMemberForm">
+                              <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
                                 <h2 class="text-center m-b-24 label-title">Enter your password</h2>
                                 <mat-form-field appearance="outline" class="w-100">
                                   <input matInput formControlName="password" required type="password" />
                                 </mat-form-field>
   
-                                <button class="w-100" mat-flat-button (click)="submit()" [disabled]="!registerTeamMemberForm.valid">Finish</button>
+                                <button class="w-100" mat-flat-button (click)="submit()" [disabled]="!registerInvitedTeamMemberForm.valid">Finish</button>
                               </form>
                             </div>
+                        </mat-step>
+                      </mat-stepper>
+
+                      <!-- Team Member registration form without invitation -->
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && !hasInvitation">
+                        <!-- Step 1: Location and Role Selection -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Location</mat-label>
+                              <mat-select formControlName="location" required>
+                                <mat-option *ngFor="let loc of locations" [value]="loc.city">{{loc.city}}</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Role</mat-label>
+                              <mat-select formControlName="role" required>
+                                <mat-option *ngFor="let role of careerRoles" [value]="role">{{role}}</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('location')?.valid || !registerTeamMemberForm.get('role')?.valid ||
+                                    (registerTeamMemberForm.get('location')?.value === 'Medellin' && registerTeamMemberForm.get('role')?.value === 'IT and Technology')">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 2: Personal Information -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Email</mat-label>
+                              <input matInput formControlName="email" type="email" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Password</mat-label>
+                              <input matInput formControlName="password" type="password" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Full Name</mat-label>
+                              <input matInput formControlName="fullName" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Age</mat-label>
+                              <input matInput formControlName="age" type="number" min="18" required>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('email')?.valid || 
+                                    !registerTeamMemberForm.get('password')?.valid || 
+                                    !registerTeamMemberForm.get('fullName')?.valid || 
+                                    !registerTeamMemberForm.get('age')?.valid">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Referer Information -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Where did you apply?</mat-label>
+                              <input matInput formControlName="appliedWhere" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Are you referred by someone?</mat-label>
+                              <mat-select formControlName="referred" required>
+                                <mat-option value="no">No</mat-option>
+                                <mat-option value="yes">Yes</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100" *ngIf="registerTeamMemberForm.get('referred')?.value === 'yes'">
+                              <mat-label>Who referred you?</mat-label>
+                              <input matInput formControlName="referredName" required>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('appliedWhere')?.valid
+                                    || !registerTeamMemberForm.get('referred')?.valid
+                                    || (registerTeamMemberForm.get('referred')?.value === 'yes' && !registerTeamMemberForm.get('referredName')?.valid)">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 3: Contact Details -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Contact Phone</mat-label>
+                              <input matInput formControlName="contactPhone" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Additional Phone</mat-label>
+                              <input matInput formControlName="additionalPhone">
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Current Residence</mat-label>
+                              <input matInput formControlName="currentResidence" required>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Address (with reference)</mat-label>
+                              <textarea matInput formControlName="address" required></textarea>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('contactPhone')?.valid || !registerTeamMemberForm.get('currentResidence')?.valid || !registerTeamMemberForm.get('address')?.valid">  
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 4: Family & Language -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>English Level</mat-label>
+                              <mat-select formControlName="englishLevel" required>
+                                <mat-option *ngFor="let level of englishLevels" [value]="level">{{level}}</mat-option>
+                              </mat-select>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Do you have children? How many?</mat-label>
+                              <input matInput formControlName="children" type="number" min="0">
+                            </mat-form-field>
+
+                            <!-- Conditional Availability Field -->
+                            <ng-container *ngIf="registerTeamMemberForm.contains('availability')">
+                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'Virtual Assistant'">
+                                <p>Are you available to work Pacific Time hours (11:30am-8:00pm, Mon-Fri)?</p>
+                                <mat-radio-group formControlName="availability" required>
+                                  <mat-radio-button value="yes">Yes</mat-radio-button>
+                                  <mat-radio-button value="no">No</mat-radio-button>
+                                </mat-radio-group>
+                              </div>
+
+                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'IT and Technology'">
+                                <mat-form-field appearance="outline" class="w-100">
+                                  <mat-label>Availability Details</mat-label>
+                                  <textarea matInput formControlName="availability" required></textarea>
+                                </mat-form-field>
+                              </div>
+                            </ng-container>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('englishLevel')?.valid || (registerTeamMemberForm.contains('availability') && !registerTeamMemberForm.get('availability')?.valid)">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 5: Salary & Skills -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <!-- Dynamic Salary Question -->
+                            <div *ngIf="registerTeamMemberForm.contains('salaryRange')">
+                              <p class="fs-12 f-w-600">Are you willing to accept a monthly salary range between {{getSalaryRangeText()}}?</p>
+                              <mat-radio-group formControlName="salaryRange" required>
+                                <mat-radio-button value="yes">Yes</mat-radio-button>
+                                <mat-radio-button value="no">No</mat-radio-button>
+                              </mat-radio-group>
+                            </div>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Competencies (Teamwork, Adaptability, etc.)</mat-label>
+                              <textarea matInput formControlName="competencies" required></textarea>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Technical Skills</mat-label>
+                              <textarea matInput formControlName="technicalSkills" required></textarea>
+                            </mat-form-field>
+
+                            <!-- Programming Languages (IT only) -->
+                            <div *ngIf="registerTeamMemberForm.contains('programmingLanguages')">
+                              <mat-form-field appearance="outline" class="w-100">
+                                <mat-label>Programming Languages & Experience</mat-label>
+                                <textarea matInput formControlName="programmingLanguages" required></textarea>
+                              </mat-form-field>
+                            </div>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Technology Proficiency (1-10)</mat-label>
+                              <input matInput formControlName="techProficiency" type="number" min="1" max="10" required>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('competencies')?.valid || !registerTeamMemberForm.get('technicalSkills')?.valid || 
+                                    !registerTeamMemberForm.get('techProficiency')?.valid || (registerTeamMemberForm.contains('salaryRange') && !registerTeamMemberForm.get('salaryRange')?.valid)">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 6: Education & Experience -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Education History</mat-label>
+                              <textarea matInput formControlName="educationHistory"></textarea>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Work Experience</mat-label>
+                              <textarea matInput formControlName="workExperience"></textarea>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Work References</mat-label>
+                              <textarea matInput formControlName="workReferences" required></textarea>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="w-100">
+                              <mat-label>Hobbies</mat-label>
+                              <textarea matInput formControlName="hobbies"></textarea>
+                            </mat-form-field>
+
+                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
+                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid">
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <!-- Step 7: Media Uploads -->
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
+                            <p>Introduction Video (English)</p>
+                            <input type="file" accept="video/*" (change)="onFileChange($event, 'introductionVideo')" #videoInput>
+                            <mat-error *ngIf="registerTeamMemberForm.get('introductionVideo')?.hasError('required')">
+                              Video is required
+                            </mat-error>
+                            <mat-error *ngIf="registerTeamMemberForm.get('introductionVideo')?.hasError('maxFileSize')">
+                              File too large (max 10GB)
+                            </mat-error>
+
+                            <p>Resume (PDF)</p>
+                            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')">
+                            <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')">
+                              Resume is required
+                            </mat-error>
+                            <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('maxFileSize')">
+                              File too large (max 10GB)
+                            </mat-error>
+
+                            <!-- Portfolio (VA only) -->
+                            <div *ngIf="registerTeamMemberForm.contains('portfolio')">
+                              <p>Portfolio (Graphic Design)</p>
+                              <input type="file" (change)="onFileChange($event, 'portfolio')">
+                              <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('required')">
+                                Portfolio is required
+                              </mat-error>
+                              <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('maxFileSize')">
+                                File too large (max 10GB)
+                              </mat-error>
+                            </div>
+
+                            <p>Profile Picture</p>
+                            <input type="file" accept="image/*" (change)="onFileChange($event, 'picture')">
+                            <mat-error *ngIf="registerTeamMemberForm.get('picture')?.hasError('required')">
+                                Picture is required
+                            </mat-error>
+                            <mat-error *ngIf="registerTeamMemberForm.get('picture')?.hasError('maxFileSize')">
+                              File too large (max 10GB)
+                            </mat-error>
+
+                            <button mat-flat-button color="primary" class="w-100" (click)="submit()" 
+                                    [disabled]="!registerTeamMemberForm.valid">
+                              Submit Application
+                            </button>
+                          </form>
                         </mat-step>
                       </mat-stepper>
                     </ng-template>
