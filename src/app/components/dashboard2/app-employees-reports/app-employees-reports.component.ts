@@ -39,7 +39,6 @@ import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-
   ],
   providers: [
     provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
   ],
   templateUrl: './app-employees-reports.component.html',
 })
