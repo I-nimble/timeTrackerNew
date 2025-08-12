@@ -16,7 +16,7 @@
       <div class="container" id="hero">
         <div class="row justify-content-center h-100">
           <div class="col-12 col-md-5">
-            <div class="text-left d-flex flex-column justify-content-center h-100">
+            <div class="d-flex flex-column justify-content-center align-items-start h-100">
               <h1 class="banner-title m-0 f-w-700 landingpage">
                 <strong>THE FIRST</strong> operating platform
                 <br />
@@ -25,14 +25,13 @@
               <p class="p-y-24 m-t-12 m-0 landingpage">
                 POWER all your legal operations with one platform
               </p>
-              <div class="m-t-24 hstack">
-                <app-hero-button 
-                  variant="pulse" 
-                  text="Start today for free"
-                  [routerLink]="['/authentication/login']"  
-                >
-                </app-hero-button>
-              </div>
+              <app-hero-button 
+                variant="pulse" 
+                text="Start today for free"
+                [routerLink]="['/authentication/login']"  
+                class="m-t-24"
+              >
+              </app-hero-button>
             </div>
           </div>
           <div class="col-12 col-md-7">
@@ -57,32 +56,32 @@
           </ng-template>
 
           <div class="container">
-            <div class="d-flex gap-20 m-b-20">
-              <div class="col-12 col-md-7 feature-card gray">
+            <div class="features-row">
+              <div class="feature-card gray">
                 <h3 class="feature-heading">Time tracking, Task boards & Performance reviews</h3>
                 <img src="assets/images/landingpage/features/Features-01.png" alt="Feature 1" />
               </div>
-              <div class="col-12 col-md-5 feature-card green">
+              <div class="feature-card green">
                 <h3 class="feature-heading">SOP Based Onboarding & Training</h3>
                 <img src="assets/images/landingpage/features/Features-02.png" alt="Feature 2" />
               </div>
             </div>
-            <div class="d-flex gap-20 m-b-20">
-              <div class="col-12 col-md-5 feature-card green">
+            <div class="features-row">
+              <div class="feature-card green">
                 <h3 class="feature-heading">AI Matching (Olympia)</h3>
                 <img src="assets/images/landingpage/features/Features-03.png" alt="Feature 3" />
               </div>
-              <div class="col-12 col-md-7 feature-card gray">
+              <div class="feature-card gray">
                 <h3 class="feature-heading">Built-in payroll, Contracts & Compliance</h3>
                 <img src="assets/images/landingpage/features/Features-04.png" alt="Feature 4" />
               </div>
             </div>
-            <div class="d-flex gap-20 m-b-20">
-              <div class="col-12 col-md-7 feature-card gray">
+            <div class="features-row">
+              <div class="feature-card gray">
                 <h3 class="feature-heading">IT Setup & Secure Support</h3>
                 <img src="assets/images/landingpage/features/Features-05.png" alt="Feature 5" />
               </div>
-              <div class="col-12 col-md-5 feature-card white">
+              <div class="feature-card white">
                 <h3 class="feature-heading">Coworking office access in major LATAM cities</h3>
                 <img src="assets/images/landingpage/features/Features-06.png" alt="Feature 2" />
               </div>
@@ -108,7 +107,7 @@
     <div class="spacer p-b-0 bg-dark-gray">
       <div class="container">
         <div class="row m-b-75">
-          <div class="col-12 col-md-5 d-flex flex-column justify-content-center">
+          <div class="col-12 col-md-5 d-flex flex-column justify-content-center" id="business-section">
             <h2 class="f-w-700 text-white m-b-30">
               Specially built for businesses
             </h2>
@@ -124,7 +123,6 @@
           </div>
           <div class="col-12 col-md-7">
             <div controls id="inimble-tablet">
-              <!-- Inimble video here -->
               <video class="w-100 h-100" #inimbleVideo>
                 <source [src]="inimbleVideoUrl" type="video/mp4">
                 Your browser does not support the video tag.
@@ -382,15 +380,14 @@
     <div class="spacer p-b-0" style="background: #E5E7E9">
       <div class="container">
         <div class="row bg-green rounded p-32 position-relative">
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-6 m-b-20">
             <h2
               class="m-t-0 m-b-8 landingpage"
               style="line-height: 1.1"
             >
               Want to know more? Don't be shy
             </h2>
-            <span class="m-b-30"
-              >Feel free to ask any questions below. We're here to help!</span
+            <span>Feel free to ask any questions below. We're here to help!</span
             >
           </div>
           <div class="col-12 col-md-6">

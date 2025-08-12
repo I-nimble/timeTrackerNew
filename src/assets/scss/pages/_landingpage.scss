@@ -206,14 +206,40 @@ mat-tab-header {
   }
 }
 
+.features-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.feature-card {
+  flex: 1 1 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+@media (min-width: 768px) {
+  .feature-card.gray {
+    flex: 0 1 calc(58.3333% - 10px);
+    max-width: calc(58.3333% - 10px);
+  }
+  .feature-card.green,
+  .feature-card.white {
+    flex: 0 1 calc(41.6667% - 10px);
+    max-width: calc(41.6667% - 10px);
+  }
+}
+
 // END FEATURES - PRODUCTS
 
 // BUILT FOR BUSSINESS
 
 #inimble-tablet {
-  height: 394px;
-  width: 677px;
+  aspect-ratio: 677 / 394;
+  width: 100%;
+  max-width: 677px;
+  height: auto;
   padding: 12px;
+  margin: 0 auto;
   background: #eaeaea;
   border-radius: 32px;
   background: linear-gradient(transparent, transparent) padding-box, linear-gradient(to bottom, #CCC7C7 0%, #A39C9C 100%) border-box;
@@ -226,6 +252,12 @@ mat-tab-header {
     top: 0px;
     left: 0px;
     border-radius: 22px;
+  }
+}
+@media (max-width: 960px) {
+  #business-section {
+    align-items: center;
+    margin-bottom: 2rem;
   }
 }
 
@@ -244,6 +276,13 @@ mat-tab-header {
   height: 600px;
   overflow: hidden;
   background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+@media (max-width: 960px) {
+  #invoices-img {
+    height: 300px;
+  }
 }
 
 // END INVOICES IMAGE
@@ -1063,3 +1102,11 @@ mat-tab-header {
   }
 }
 
+
+
+@media (max-width: 767px) {
+  #hero > div > div > div {
+    align-items: center!important;
+    text-align: center!important;
+  }
+}
