@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
+ @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
 // font
 $font-family: "Plus Jakarta Sans", sans-serif;
@@ -32,17 +32,18 @@ $light-warning: rgba(248, 192, 118, 0.15);
 $light-success: rgba(75, 208, 139, 0.15);
 
 // Landing Page colors
-$hero-gradient: linear-gradient(90deg, #A6D175 0%, #BBED5A 100%);
-$hero-gradient-hover: #B7DF68;
-$primary-landing: #B7DF68;
-$primary-hover: #A6D175;
+$hero-gradient: linear-gradient(90deg, #A6D175 0%, #BBED5A 40%, #BBED5A 100%);
+$hero-gradient-hover: #D7E2C0;
+$primary-landing: #9CB764;
+$primary-hover: #D7E2C0;
 $secondary-landing: #fff;
-$secondary-hover: #1A1B1F33;
-$terciary: #1A1B1F33;
-$terciary-hover: #7E8795;
+$secondary-hover: #D7E2C0;
+$terciary: #D7E2C0;
+$terciary-hover: #808080; 
 $black-shark: #1A1B1F;
-$strong-gray: #656E7C;
-$soft-gray: #E5E7E9; 
+$dark-gray: #454545;
+$strong-gray: #808080;
+$soft-gray: #EAEAEA; 
 
 // layout
 $boxedWidth: 1200px;

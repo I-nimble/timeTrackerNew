@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -71,11 +71,12 @@ interface features {
   ],
   templateUrl: './landingpage.component.html'
 })
-export class AppLandingpageComponent {
+export class AppLandingpageComponent implements AfterViewInit {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
+  @ViewChild('inimbleVideo') inimbleVideoRef!: ElementRef<HTMLVideoElement>;
 
   currentSlide = 0;
   testimonials = [
@@ -153,6 +154,7 @@ export class AppLandingpageComponent {
     },
   ];
   isMobileScreen = false;
+  inimbleVideoUrl = "https://inimble-app.s3.us-east-1.amazonaws.com/Inimble+Platform.mp4";
 
   options = this.settings.getOptions();
 
@@ -167,6 +169,24 @@ export class AppLandingpageComponent {
     ]).subscribe(result => {
       this.isMobileScreen = result.matches;
     });
+  }
+
+  ngAfterViewInit() {
+    if (this.inimbleVideoRef) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              this.inimbleVideoRef.nativeElement.play();
+            } else {
+              this.inimbleVideoRef.nativeElement.pause();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      observer.observe(this.inimbleVideoRef.nativeElement);
+    }
   }
 
   getVisibleTestimonials() {
