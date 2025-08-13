@@ -203,14 +203,22 @@
   }
 
   <!-- --------------------------------------------------------------- -->
-  <!-- Collpase bar -->
+  <!-- Collapse bar -->
   <!-- --------------------------------------------------------------- -->
   <button
     mat-icon-button
-    (click)="toggleCollpase()"
-    class="d-flex d-lg-none justify-content-center"
+    [matMenuTriggerFor]="profileMenu"
+    aria-label="User Profile"
+    class="d-flex d-lg-none justify-content-center align-items-center"
+    style="padding: 0; width: 40px; height: 40px;"
   >
-    <i-tabler name="dots" class="icon-20 d-flex"></i-tabler>
+    <img
+      [src]="profilePicture"
+      class="shadow rounded-circle"
+      width="36"
+      height="36"
+      style="display: block; object-fit: cover; aspect-ratio: 1 / 1;"
+    />
   </button>
   @if(isCollapse){
   <div class="header-collpase p-y-10 p-x-15">
