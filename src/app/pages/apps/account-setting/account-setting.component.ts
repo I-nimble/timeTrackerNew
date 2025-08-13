@@ -181,8 +181,9 @@ export class AppAccountSettingComponent implements OnInit {
       const userFilter = {
         searchField: '',
         filter: {
-          currentUser: this.role == '2' ? true : false,
-          email: userEmail
+          currentUser: true,
+          email: userEmail,
+          includeAdmins: true
         }
       };
       this.usersService.getUsers(userFilter).subscribe({
@@ -307,16 +308,19 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   saveProfile() {
+    this.isSubmitting = true;
+
     if(this.role === '3') {
       if (!this.profileForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
+        this.isSubmitting = false;
         return;
       }
   
       const userData = {
         ...this.user,
         ...this.profileForm.value,
-        role: localStorage.getItem('role'),
+        role: this.role,
         company: {
           id: this.user.company.id
         },
@@ -332,14 +336,19 @@ export class AppAccountSettingComponent implements OnInit {
         bussiness_segment: this.profileForm.value.bussiness_segment
       };
   
-      this.usersService.update(userData).subscribe({
+      this.usersService.updateProfile(userData).subscribe({
         next: () => {
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
                   this.openSnackBar('Profile updated successfully', 'Close');
+                  this.isSubmitting = false;
                   this.getUser();
                 }
             });
+        },
+        error: (res: any) => {
+          this.openSnackBar('Error updating profile.', 'Close');
+          this.isSubmitting = false;
         }
       });
   
@@ -350,7 +359,8 @@ export class AppAccountSettingComponent implements OnInit {
           };
           this.usersService.updatePassword(passwordData).subscribe({
               error: (res: any) => {
-                  this.notificationStore.addNotifications(res.error.message, 'error');
+                this.isSubmitting = false;
+                this.notificationStore.addNotifications(res.error.message, 'error');
               }
           });
       }
@@ -358,6 +368,7 @@ export class AppAccountSettingComponent implements OnInit {
     else {
       if(!this.personalForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
+        this.isSubmitting = false;
         return;
       }
   
@@ -388,16 +399,18 @@ export class AppAccountSettingComponent implements OnInit {
         }
       };
     
-      this.usersService.update(userData)
+      this.usersService.updateProfile(userData)
         .pipe(
           catchError(error => {
             this.openSnackBar(error.error.message, 'Close');
+            this.isSubmitting = false;
             return of(null);
           })
         )
         .subscribe(response => {
           this.openSnackBar('User data updated successfully!', 'Close');
           this.user = response;
+          this.isSubmitting = false;
           this.getUser();
         });
     }
