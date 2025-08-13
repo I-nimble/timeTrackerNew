@@ -26,8 +26,9 @@
                 POWER all your legal operations with one platform
               </p>
               <app-hero-button 
-                variant="pulse" 
+                variant="filled" 
                 text="Start today for free"
+                [fullWidth]="isMobileScreen"
                 [routerLink]="['/authentication/login']"  
                 class="m-t-24"
               >
@@ -47,36 +48,28 @@
     Products & features tabs
     ------------------------------------------------------------------ -->
 
-    <div class="overflow-hidden p-b-0" style="margin-top:70px">
-      <mat-tab-group>
+    <div class="overflow-hidden p-b-0" style="margin-top:30px">
+      <!-- <mat-tab-group>
         <mat-tab>
           <ng-template mat-tab-label style="width: 50px;" class="tab-label">
             <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#1A1B1F"><path d="M331-651 211-771l57-57 120 120-57 57Zm149-95v-170h80v170h-80Zm291 535L651-331l57-57 120 120-57 57Zm-63-440-57-57 120-120 57 57-120 120Zm38 171v-80h170v80H746ZM205-92 92-205q-12-12-12-28t12-28l363-364q35-35 85-35t85 35q35 35 35 85t-35 85L261-92q-12 12-28 12t-28-12Zm279-335-14.5-14-14.5-14-14-14-14-14 28 28 29 28ZM233-176l251-251-57-56-250 250 56 57Z"/></svg>
             <p class="f-s-25 extra-bold">Features</p>
-          </ng-template>
+          </ng-template> -->
 
           <div class="container">
             <div class="features-row">
-              <div class="feature-card gray">
+              <div class="feature-card green">
                 <h3 class="feature-heading">Time tracking, Task boards & Performance reviews</h3>
                 <img src="assets/images/landingpage/features/Features-01.png" alt="Feature 1" />
               </div>
-              <div class="feature-card green">
+              <div class="feature-card gray">
                 <h3 class="feature-heading">SOP Based Onboarding & Training</h3>
                 <img src="assets/images/landingpage/features/Features-02.png" alt="Feature 2" />
               </div>
-            </div>
-            <div class="features-row">
               <div class="feature-card green">
                 <h3 class="feature-heading">AI Matching (Olympia)</h3>
                 <img src="assets/images/landingpage/features/Features-03.png" alt="Feature 3" />
               </div>
-              <div class="feature-card gray">
-                <h3 class="feature-heading">Built-in payroll, Contracts & Compliance</h3>
-                <img src="assets/images/landingpage/features/Features-04.png" alt="Feature 4" />
-              </div>
-            </div>
-            <div class="features-row">
               <div class="feature-card gray">
                 <h3 class="feature-heading">IT Setup & Secure Support</h3>
                 <img src="assets/images/landingpage/features/Features-05.png" alt="Feature 5" />
@@ -85,9 +78,13 @@
                 <h3 class="feature-heading">Coworking office access in major LATAM cities</h3>
                 <img src="assets/images/landingpage/features/Features-06.png" alt="Feature 2" />
               </div>
+              <div class="feature-card gray">
+                <h3 class="feature-heading">Built-in payroll, Contracts & Compliance</h3>
+                <img src="assets/images/landingpage/features/Features-04.png" alt="Feature 4" />
+              </div>
             </div>
           </div>  
-        </mat-tab>
+        <!-- </mat-tab>
         <mat-tab>
           <ng-template mat-tab-label style="width: 50px;" class="tab-label">
             <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#1A1B1F"><path d="M580-120q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T620-240q0-17-11.5-28.5T580-280q-17 0-28.5 11.5T540-240q0 17 11.5 28.5T580-200Zm80-200q-92 0-156-64t-64-156q0-92 64-156t156-64q92 0 156 64t64 156q0 92-64 156t-156 64Zm0-80q59 0 99.5-40.5T800-620q0-59-40.5-99.5T660-760q-59 0-99.5 40.5T520-620q0 59 40.5 99.5T660-480ZM280-240q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T360-400q0-33-23.5-56.5T280-480q-33 0-56.5 23.5T200-400q0 33 23.5 56.5T280-320Zm300 80Zm80-380ZM280-400Z"/></svg>
@@ -95,7 +92,7 @@
           </ng-template>
           
         </mat-tab>
-      </mat-tab-group>
+      </mat-tab-group> -->
 
       <div class="gradient-transition lightgray-darkgray m-t-75"></div>
     </div>
@@ -108,10 +105,10 @@
       <div class="container">
         <div class="row m-b-75">
           <div class="col-12 col-md-5 d-flex flex-column justify-content-center" id="business-section">
-            <h2 class="f-w-700 text-white m-b-30">
+            <h2 class="f-w-700 text-white m-b-20 f-s-36 l-h-42 landingpage">
               Specially built for businesses
             </h2>
-            <p class="text-white small m-b-40">
+            <p class="text-white m-b-40 l-h-26 landingpage">
               It brings together staffing, IT, HR, productivity tools, and payroll — all under one login. From hiring and onboarding compliance, inimble is the only tool a modern legal team needs.
             </p>
             <app-button 
@@ -145,85 +142,52 @@
           <div class="col-lg-10">
             <div class="why-bubble p-24 bg-white rounded shadow-sm">
               <div class="table-responsive">
-                <table
-                  class="table table-borderless align-middle why-compare-table w-100 m-0 m-t-32"
-                >
+                <table class="table table-borderless align-middle why-compare-table w-100 m-0 m-t-32">
                   <thead class="spacer p-b-0">
                     <tr>
-                      <th
-                        class="f-s-18 f-w-600 text-start"
-                        style="width: 45%"
-                      ></th>
-                      <th class="f-s-18 f-w-600 text-start" style="width: 27%">
-                        Inimble
-                      </th>
-                      <th class="f-s-18 f-w-600 text-start" style="width: 28%">
-                        Upwork/Freelancers
-                      </th>
+                      <th class="f-s-18 f-w-600 text-start" style="width: 45%"></th>
+                      <th class="f-s-18 f-w-600 text-start" style="width: 27%">Inimble</th>
+                      <th class="f-s-18 f-w-600 text-start" style="width: 28%">Upwork/Freelancers</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td class="f-s-18 d-flex align-items-center">
-                        <i-tabler
-                          name="scale"
-                          class="icon-24 m-r-12"
-                          style="color: #1A1B1F"
-                        ></i-tabler>
+                        <i-tabler name="scale" class="icon-24 m-r-12" style="color: #1A1B1F"></i-tabler>
                         Bilingual legal staff
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
-                          <i-tabler
-                            name="circle-check"
-                            class="icon-24 m-r-10"
-                            style="color: #8bb97c"
-                          ></i-tabler>
+                          <i-tabler name="circle-check" class="icon-24 m-r-10" style="color: #8bb97c"></i-tabler>
                           <p class="extra-bold">Always</p>
                         </div>
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
-                          <i-tabler
-                            name="alert-triangle"
-                            class="icon-24 m-r-10"
-                            style="color: #e6b97a"
-                          ></i-tabler>
+                          <i-tabler name="alert-triangle" class="icon-24 m-r-10" style="color: #e6b97a"></i-tabler>
                           <p class="extra-bold">Sometimes</p>
                         </div>
                       </td>
                     </tr>
                     <tr>
                       <td class="f-s-18 d-flex align-items-center">
-                        <i-tabler
-                          name="users-group"
-                          class="icon-24 m-r-12"
-                          style="color: #1A1B1F"
-                        ></i-tabler>
+                        <i-tabler name="users-group" class="icon-24 m-r-12" style="color: #1A1B1F"></i-tabler>
                         HR, IT, onboarding included
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
-                          <i-tabler
-                            name="circle-check"
-                            class="icon-24 m-r-10"
-                            style="color: #8bb97c"
-                          ></i-tabler>
+                          <i-tabler name="circle-check" class="icon-24 m-r-10" style="color: #8bb97c"></i-tabler>
                           <p class="extra-bold">Always</p>
                         </div>
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
-                          <i-tabler
-                            name="circle-x"
-                            class="icon-24 m-r-10"
-                            style="color: #e57373"
-                          ></i-tabler>
+                          <i-tabler name="circle-x" class="icon-24 m-r-10" style="color: #e57373"></i-tabler>
                           <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
-                    <tr>
+                    <tr *ngIf="!isMobileScreen">
                       <td class="f-s-18 d-flex align-items-center">
                         <i-tabler
                           name="certificate"
@@ -232,7 +196,7 @@
                         ></i-tabler>
                         U.S. legal compliance
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="circle-check"
@@ -242,7 +206,7 @@
                           <p class="extra-bold">Always</p>
                         </div>
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="circle-x"
@@ -253,7 +217,7 @@
                         </div>
                       </td>
                     </tr>
-                    <tr>
+                    <tr *ngIf="!isMobileScreen">
                       <td class="f-s-18 d-flex align-items-center">
                         <i-tabler
                           name="eye-check"
@@ -262,7 +226,7 @@
                         ></i-tabler>
                         Real-time supervision
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="circle-check"
@@ -272,7 +236,7 @@
                           <p class="extra-bold">Always</p>
                         </div>
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="circle-x"
@@ -283,7 +247,7 @@
                         </div>
                       </td>
                     </tr>
-                    <tr>
+                    <tr *ngIf="!isMobileScreen">
                       <td class="f-s-18 d-flex align-items-center">
                         <i-tabler
                           name="currency-dollar"
@@ -292,7 +256,7 @@
                         ></i-tabler>
                         Fixed pricing
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="circle-check"
@@ -302,7 +266,7 @@
                           <p class="extra-bold">Always</p>
                         </div>
                       </td>
-                      <td class="text-center">
+                      <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
                           <i-tabler
                             name="alert-triangle"
@@ -329,8 +293,14 @@
 
     <!-- Invoices image -->
     <div class="spacer p-b-0 bg-light-gray">
-      <div class="container" id="invoices-img">
+      <div class="container" id="invoices-img" *ngIf="!isMobileScreen; else invoicesImgMobile">
       </div>
+      <ng-template #invoicesImgMobile>
+        <div class="container" id="invoices-img-mobile-1">
+        </div>
+        <div class="container" id="invoices-img-mobile-2">
+        </div>
+      </ng-template>
     </div>
 
      <!-- Testimonials -->
@@ -347,7 +317,7 @@
               class="carousel-item d-flex flex-column"
             >
               <div class="p-24 flex-grow-1 d-flex flex-column"> 
-                <span class="quote-icon d-flex align-items-center justify-content-center rounded-circle bg-light-success">
+                <span class="quote-icon d-flex align-items-center justify-content-center rounded-circle">
                   <img src="assets/images/svgs/quote.svg" width="40" height="40" alt="Quote Icon" />
                 </span>
                 <p class="m-t-24 l-h-26 text-left flex-grow-1 landingpage">
@@ -378,11 +348,11 @@
 
     <!-- Call to action -->
     <div class="spacer p-b-0" style="background: #E5E7E9">
-      <div class="container">
+      <div class="container p-t-30">
         <div class="row bg-green rounded p-32 position-relative">
-          <div class="col-12 col-md-6 m-b-20">
+          <div class="col-12 col-md-6 m-b-40">
             <h2
-              class="m-t-0 m-b-8 landingpage"
+              class="m-t-0 m-b-8 landingpage extra-bold f-s-36 l-h-42"
               style="line-height: 1.1"
             >
               Want to know more? Don't be shy
@@ -392,16 +362,16 @@
           </div>
           <div class="col-12 col-md-6">
             <form class="d-flex flex-column" id="contact-form">
-              <mat-form-field appearance="outline" class="w-100 white-bg-field">
+              <mat-form-field appearance="fill" class="w-100 white-bg-field">
                 <mat-label>Your email</mat-label>
                 <input matInput type="email" placeholder="Enter your email" />
               </mat-form-field>
-              <mat-form-field appearance="outline" class="w-100 white-bg-field">
+              <mat-form-field appearance="fill" class="w-100 white-bg-field">
                 <mat-label>Ask your questions here</mat-label>
-                <textarea matInput rows="3" placeholder="Type your question"></textarea>
+                <textarea matInput rows="3" resize="none" placeholder="Type your question"></textarea>
               </mat-form-field>
               <div class="d-flex justify-content-end">
-                <button mat-flat-button id="send-btn" type="submit">SEND</button>
+                <button mat-flat-button id="send-btn" [class]="isMobileScreen ? 'w-100 p-16' : ''" type="submit">SEND</button>
               </div>
             </form>
           </div>
@@ -412,7 +382,7 @@
     <!-- Social Section -->
     <div class="p-t-16" style="background: #E5E7E9">
       <div class="container text-center gap-30 d-flex justify-content-center flex-wrap">
-        <p class="extra-bold l-h-36 landingpage">Let's get social</p>
+        <p class="extra-bold l-h-36 landingpage big">Let's get social</p>
         <div class="social-icons d-flex justify-content-center gap-20">
           <a
             href="https://www.linkedin.com/company/inimble/"
@@ -431,7 +401,7 @@
           <a
             href="https://www.tiktok.com/@inimbleteam"
             target="_blank"
-            aria-label="Twitter"
+            aria-label="TikTok"
           >
             <i-tabler name="brand-tiktok" class="icon-34"></i-tabler>
           </a>
