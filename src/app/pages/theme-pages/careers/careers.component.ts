@@ -30,7 +30,6 @@ import {
     Position,
     SubmitApplicationPayload
   } from 'src/app/models/Careers';
-import { ButtonComponent } from 'src/app/components/button/button.component';
 
 interface apps {
   id: number;
@@ -79,7 +78,6 @@ interface features {
     BrandingComponent,
     AppBlogsComponent,
     CommonModule,
-    ButtonComponent
   ],
   providers: [
     CareersService

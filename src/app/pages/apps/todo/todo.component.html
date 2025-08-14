@@ -224,6 +224,8 @@
                       matInput
                       rows="5"
                       formControlName="recommendations"
+                      [value]="stripHtml(newTaskForm.get('recommendations')?.value || '')"
+                      (input)="onRecommendationsChange($event)"
                     ></textarea>
                   </mat-form-field>
 
@@ -321,7 +323,7 @@
                           [readonly]="true"
                           tabindex="-1"
                           class="recommendations-textarea"
-                          [value]="filteredArray[i].recommendations?.trim()"
+                          [value]="stripHtml(filteredArray[i].recommendations)"
                         ></textarea>
                       </mat-form-field>
                       <div style="height: 1rem"></div>

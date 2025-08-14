@@ -1,17 +1,6 @@
-#register-form form {
-    width: 50%;
+.m-t-45 {
+    margin-top: 45px;
 }
-.form-container {
-   height: 250px;
-}
-.label-title {
-    font-size: 24px;
-    color: #818181;
-    font-family: Montserrat, sans-serif;
-    font-weight: 800;
-}
-@media screen and (max-width: 768px) {
-    #register-form form {
-        width: 100%;
-    }
+.m-b-45 {
+    margin-bottom: 45px;
 }

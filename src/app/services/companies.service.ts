@@ -33,6 +33,10 @@ export class CompaniesService {
   public getByOwner(): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/owner`);
   }
+  
+  public getByUserId(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/owner/${userId}`);
+  }
 
   public getCompanyLogo(id: number): Observable<SafeResourceUrl | null> {
     return this.http.post<{ logo: string }>(`${this.API_URI}/logo`, { id }).pipe(

@@ -18,6 +18,9 @@ import { RouterModule } from '@angular/router';
 import { AppConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { StripeService } from 'src/app/services/stripe.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 
 @Component({
     selector: 'app-invoice-list',
@@ -29,34 +32,56 @@ import { MatSnackBar } from '@angular/material/snack-bar';
         FormsModule,
         ReactiveFormsModule,
         TablerIconsModule,
+        StripeComponent,
     ]
 })
 export class AppInvoiceListComponent implements AfterViewInit {
+  role: any = localStorage.getItem('role');
   allComplete = signal<boolean>(false);
-  invoiceList = new MatTableDataSource<InvoiceList>([]);
+  invoiceList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('All');
-  allInvoices = signal<InvoiceList[]>([]);
-  searchQuery = signal<string>('');
-  displayedColumns: string[] = [
-    'chk',
-    'id',
-    'billFrom',
-    'billTo',
-    'totalCost',
-    'status',
-    'action',
-  ];
+  displayedColumns: string[] = [];
+  companies: any[] = [];
+  companyMap: { [key: number]: string } = {};
+  paidInvoices = signal<any[]>([]);
+  pendingInvoices = signal<any[]>([]);
+  overdueInvoices = signal<any[]>([]);
+  selectedCompanyId = signal<number | null>(null);
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
 
-  constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar) {}
+  constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService,private companiesService: CompaniesService,) {}
 
   ngOnInit(): void {
-    // Fetch all invoices and initialize the data source
-    this.allInvoices.set(this.invoiceService.getInvoiceList());
-    this.invoiceList = new MatTableDataSource(this.allInvoices());
+  if (this.role == '3') {
+    this.displayedColumns = [
+      'id',
+      'paymentDate',
+      'amount',
+      'status',
+      'action',
+    ];
+  } else {
+    this.displayedColumns = [
+      'id',
+      'paymentDate',
+      'client',
+      'amount',
+      'status',
+      'action',
+    ];
   }
+  this.companiesService.getCompanies().subscribe({
+    next: (companies: any[]) => {
+      this.companies = companies;
+      this.companyMap = {};
+      companies.forEach(c => this.companyMap[c.id] = c.name);
+    }
+  });
+
+  this.loadInvoices();
+}
 
   ngAfterViewInit(): void {
     this.invoiceList.paginator = this.paginator;
@@ -65,37 +90,51 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
   handleTabClick(tab: string): void {
     this.activeTab.set(tab);
-    this.filterInvoices(); // Filter when tab is clicked
-  }
-
-  filter(filterValue: string): void {
-    this.searchQuery.set(filterValue);
     this.filterInvoices(); 
   }
+
   filterInvoices(): void {
     const currentTab = this.activeTab();
-    const filteredInvoices = this.allInvoices().filter((invoice) => {
-      const matchesTab = currentTab === 'All' || invoice.status === currentTab;
+    let filteredInvoices: any[] = [];
 
-      // Search filtering
-      const matchesSearch =
-        invoice.billFrom
-          .toLowerCase()
-          .includes(this.searchQuery().toLowerCase()) ||
-        invoice.billTo.toLowerCase().includes(this.searchQuery().toLowerCase());
+    if (currentTab === 'All') {
+      filteredInvoices = [...this.paidInvoices(), ...this.pendingInvoices(), ...this.overdueInvoices()];
+    } else if (currentTab === 'Paid') {
+      filteredInvoices = [...this.paidInvoices()];
+    } else if (currentTab === 'Pending') {
+      filteredInvoices = [...this.pendingInvoices()];
+    }
+    else if (currentTab === 'Overdue') {
+      filteredInvoices = [...this.overdueInvoices()];
+    }
 
-      return matchesTab && matchesSearch; // Return true if both conditions are met
-    });
+    if (this.selectedCompanyId() !== null) {
+      filteredInvoices = filteredInvoices.filter(
+        invoice => invoice.user?.company?.id === this.selectedCompanyId()
+      );
+    }
 
-    this.invoiceList.data = filteredInvoices; // Update the data source
+    this.invoiceList.data = filteredInvoices;
     this.updateAllComplete();
+  }
+
+  private loadInvoices(): void {
+    this.invoiceService.getInvoiceList().subscribe((invoices) => {
+      this.paidInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Paid'));
+      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Pending'));
+      this.overdueInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Overdue'));
+
+      this.invoiceList = new MatTableDataSource(invoices);
+      this.invoiceList.paginator = this.paginator;
+      this.invoiceList.sort = this.sort;
+    });
   }
 
   updateAllComplete(): void {
     const allInvoices = this.invoiceList.data;
     this.allComplete.set(
       allInvoices.length > 0 && allInvoices.every((t) => t.completed)
-    ); // Update the allComplete signal
+    );
   }
 
   someComplete(): boolean {
@@ -112,7 +151,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
 
   countInvoicesByStatus(status: string): number {
-    return this.allInvoices().filter((invoice) => invoice.status === status)
+    return this.paidInvoices().filter((invoice) => invoice.status === status)
       .length;
   }
 
@@ -121,11 +160,18 @@ export class AppInvoiceListComponent implements AfterViewInit {
     const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
   
     dialogRef.afterClosed().subscribe((result: any) => {
+      this.loadInvoices();
       if (result) {
-        this.invoiceService.deleteInvoice(id);
-        this.allInvoices.set(this.invoiceService.getInvoiceList()); 
-        this.filterInvoices(); 
-        this.showSnackbar('Invoice deleted successfully!');
+        this.invoiceService.deleteInvoice(id).subscribe({
+          next: () => {
+            this.loadInvoices();
+            this.filterInvoices();
+            this.showSnackbar('Invoice deleted successfully!');
+          },
+          error: () => {
+            this.showSnackbar('Error deleting invoice.');
+          }
+        });
       }
     });
   }
@@ -136,6 +182,41 @@ export class AppInvoiceListComponent implements AfterViewInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  mapStatus(statusId: number): string {
+    switch (statusId) {
+      case 1:
+        return 'Paid';
+      case 2:
+        return 'Pending';
+      case 3:
+        return 'Shipped';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        console.log(companies)
+      },
+    });
+  }
+
+  handleCompanySelection(event: any): void {
+    const companyId = event.value;
+    this.selectedCompanyId.set(companyId);
+    this.filterInvoices();
+  }
+
+  getCompanyName(userId: number): void {
+    // this.companiesService.getByUserId(userId).subscribe({
+    //   next: (company: any) => {
+    //     return company.name || 'N/A';
+    //   },
+    // });
   }
   
 }
