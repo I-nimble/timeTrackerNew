@@ -421,7 +421,7 @@
     xPosition="before"
     class="topbar-dd cardWithShadow"
   >
-    <ng-scrollbar class="position-relative" style="height: 495px">
+    <ng-scrollbar class="position-relative" [ngStyle]="{ height: role == '2' ? '420px' : '500px' }">
       <div class="p-x-32 p-y-16">
         <h6 class="f-s-16 f-w-600 m-0">User Profile</h6>
 
