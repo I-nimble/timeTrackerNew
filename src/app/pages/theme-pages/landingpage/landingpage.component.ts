@@ -86,6 +86,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Wow! Our numbers have gone up recently. When we look at what's different, it's all the remote talent you've provided! They've made our law firm stand out these last couple of months. The office hasn't been this efficient in a while!",
       name: 'John Smith',
       role: 'Law Firm Owner',
+      clientType: 'Managing Partner, PI Firm',
       image: 'assets/images/landingpage/logos/smith.png',
     },
     {
@@ -94,6 +95,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Great team to work with! Even if you know nothing about remote work, they make it simple and easy to follow. Incredible how much they've helped my business grow. Thank you!",
       name: 'Jessica Sandoval',
       role: 'Business Owner',
+      clientType: 'Founder, Tech Startup',
       image: 'assets/images/landingpage/logos/sandoval.png',
     },
     {
@@ -102,6 +104,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Amazing virtual assistants! It's shocking how much impact a couple of talented people can have on your business. Rome Law Firm is more efficient than ever.",
       name: 'Hope Rothe',
       role: 'Law Firm Manager',
+      clientType: 'Managing Partner, Corporate Law',
       image: 'assets/images/landingpage/logos/rothe.png',
     },
     {
@@ -110,6 +113,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: 'We are so happy with our remote assistants! They are a tremendous asset for our firm. Their dedication and expertise have transformed our operations.',
       name: 'Robert White',
       role: 'CEO',
+      clientType: 'Owner, Family Law Firm',
       image: 'assets/images/landingpage/logos/white.png',
     },
     {
@@ -118,6 +122,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Thank you Inimble! We're so happy since we started working with you. Our business has grown tremendously since we brought your team in. We can't believe how well everything worked out!",
       name: 'Sarah Thompson',
       role: 'Business Owner',
+      clientType: 'Founder, Consulting Firm',
       image: 'assets/images/landingpage/logos/thompson.png',
     },
     {
@@ -126,6 +131,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Andrea's performance has been great. We are very happy with her. She follows direction and is organized. Her attention to detail and commitment are clearly reflected in her work. Andrea consistently demonstrates a deep understanding of her role.",
       name: 'Tania Valencia',
       role: 'Client',
+      clientType: 'HR Manager, Marketing Agency',
       image: 'assets/images/landingpage/logos/5.jpeg',
     },
     {
@@ -134,6 +140,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Wasn't super into the whole 'remote work' trend before but thanks Inimble for proving me wrong! Can't believe how much we've grown in the last year, and it's all thanks to you, so congrats and thank you!",
       name: 'Albert Love',
       role: 'Client',
+      clientType: 'Operations Manager, Real Estate Firm',
       image: 'assets/images/landingpage/logos/love.png',
     },
     {
@@ -142,6 +149,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: "Daniela has been the best assistant I've had. She is smart, kind, hardworking, and helpful. She takes initiative and is always on top of everything. We make a great team!",
       name: 'Selena',
       role: 'Client',
+      clientType: 'Managing Director, PR Agency',
       image: 'assets/images/landingpage/logos/alexandroff.png',
     },
     {
@@ -150,6 +158,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       text: 'Henry has truly exceeded our expectations. He has an amazing work ethic and discipline. We love his practicality and eagerness to learn. He has become part of our Venezuelan family.',
       name: 'Imelda Rodriguez',
       role: 'Client',
+      clientType: 'CEO, Investment Firm',
       image: 'assets/images/landingpage/logos/14.jpeg',
     },
   ];
