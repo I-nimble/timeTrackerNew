@@ -40,7 +40,6 @@ import { ViewChild } from '@angular/core';
   ],
   providers: [
     provideNativeDateAdapter(),
-    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
   ],
   templateUrl: './history.component.html',
 })
