@@ -219,7 +219,34 @@
         <i-tabler name="x" class="icon-18 d-flex"></i-tabler>
       </button>
     </div>
-
+    <div class="p-x-24">
+      <a
+        [routerLink]="
+          role === '1'
+            ? ['/dashboards/admin']
+            : role === '2'
+            ? ['/dashboards/tm']
+            : ['/dashboards/dashboard2']
+        "
+        class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
+      >
+        <span class="f-s-15 f-w-500 m-l-8">Dashboard</span>
+      </a>
+      @if(role !== '2') {
+      <a
+        [routerLink]="['/dashboards/reports']"
+        class="d-flex align-items-center text-decoration-none p-y-16"
+      >
+        <span class="f-s-15 f-w-500 m-l-8">Reports</span>
+      </a>
+      <a
+        [routerLink]="['/dashboards/productivity']"
+        class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
+      >
+        <span class="f-s-15 f-w-500 m-l-8">Productivity</span>
+      </a>
+      }
+    </div>
     <mat-accordion>
       <mat-expansion-panel class="shadow-none">
         <mat-expansion-panel-header>
@@ -266,18 +293,6 @@
 
     <div class="p-x-24">
       <a
-        [routerLink]="
-          role === '1'
-            ? ['/dashboards/admin']
-            : role === '2'
-            ? ['/dashboards/tm']
-            : ['/dashboards/dashboard2']
-        "
-        class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
-      >
-        <span class="f-s-15 f-w-500 m-l-8">Dashboard</span>
-      </a>
-      <a
         [routerLink]="['/apps/notifications']"
         class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
       >
@@ -285,16 +300,10 @@
       </a>
       @if(role !== '2') {
       <a
-        [routerLink]="['/dashboards/reports']"
+        [routerLink]="['/apps/invoice']"
         class="d-flex align-items-center text-decoration-none p-y-16"
       >
-        <span class="f-s-15 f-w-500 m-l-8">Reports</span>
-      </a>
-      <a
-        [routerLink]="['/dashboards/productivity']"
-        class="d-flex align-items-center text-decoration-none p-y-16 gap-8"
-      >
-        <span class="f-s-15 f-w-500 m-l-8">Productivity</span>
+        <span class="f-s-15 f-w-500 m-l-8">Invoice</span>
       </a>
       }
     </div>
