@@ -4,13 +4,13 @@
 <div class="container justify-content-center">
   <div class="row">
     <div class="col-12">
-      <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
+      <mat-card *ngIf="!formSubmitted" class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
         <img src="assets/images/inimble.png" id="logo" class="m-t-20 m-b-20">
         <video controls id="introduction-video">
           <source src="assets/videos/intake-presentation.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
-        <h1 class="m-b-20">Let's connect you with <span class="highlight-green">the right talent</span></h1>
+        <h1 class="m-b-20 intake-title">Let's connect you with <span class="highlight-green">the right talent</span></h1>
       </mat-card>
     </div>
   </div>
@@ -42,14 +42,16 @@
                     <mat-error *ngIf="intakeForm.get('contactInfo.email')?.hasError('email')">Invalid email</mat-error>
                   </mat-form-field>
                 </div>
-                <div class="col-12 d-flex flex-row">
-                  <mat-form-field appearance="outline" style="width: max-content;" class="m-r-16">
+                <div class="col-12 col-md-4">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Country Code</mat-label>
                     <mat-select formControlName="countryCode">
                       <mat-option value="+1">+1 (US)</mat-option>
                     </mat-select>
                   </mat-form-field>
-                  <mat-form-field appearance="outline" style="flex-grow: 1;">
+                </div>
+                <div class="col-12 col-md-8">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Phone Number</mat-label>
                     <input matInput formControlName="phone" required type="tel" />
                     <mat-error *ngIf="intakeForm.get('contactInfo.phone')?.hasError('pattern')">Invalid phone number</mat-error>
@@ -258,7 +260,7 @@
           </mat-step>
         </mat-stepper>
         <div class="d-flex flex-column justify-content-center align-items-center p-24" *ngIf="formSubmitted">
-          <h2 class="m-b-16 color-primary">Thanks for your submission!</h2>
+          <h2 class="m-b-16 color-primary text-center">Thanks for your submission!</h2>
           <p>We will get in touch with you shortly.</p>
           <button mat-flat-button routerLink="/landingpage" class="m-t-16">Go back</button>
         </div>
