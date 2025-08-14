@@ -40,6 +40,14 @@ h2 {
     #logo {
         width: 80%;
     }
+    ::ng-deep .mat-horizontal-stepper-header .mat-step-label {
+        display: none;
+    }
+    
+    ::ng-deep .mat-horizontal-stepper-header {
+        min-height: 0;
+        margin-bottom: 0;
+    }
 }
 
 #introduction-video {
