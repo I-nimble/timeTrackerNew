@@ -14,7 +14,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
 import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
 import { ButtonComponent } from 'src/app/components/button/button.component';
-import { BreakpointObserver } from '@angular/cdk/layout';
+import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
+import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 interface apps {
   id: number;
