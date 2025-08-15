@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
         [class]="
-          this.collapsed
+          (this.collapsed && !(this.opened && this.isMobileScreen))
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         [class]="
-          this.collapsed
+          (this.collapsed && !(this.opened && this.isMobileScreen))
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "
@@ -37,7 +37,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
         [class]="
-          this.collapsed
+          (this.collapsed && !(this.opened && this.isMobileScreen))
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
@@ -48,7 +48,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         [class]="
-          this.collapsed
+          (this.collapsed && !(this.opened && this.isMobileScreen))
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "
@@ -80,6 +80,8 @@ import { CommonModule } from '@angular/common';
 })
 export class BrandingComponent {
   @Input() collapsed = false;
+  @Input() opened = true;
+  @Input() isMobileScreen = false;
   @Input() fullLogoMaxWidth: string | null = null;
   options = this.settings.getOptions();
   constructor(private settings: CoreService) {}
