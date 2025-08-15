@@ -2,11 +2,173 @@
   <ng-template #customMenu>
     <div style="display: flex; gap: 12px; margin-right: 5px;">
       <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
-        <img src="assets/images/Audio-Call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
+        <img src="assets/images/svgs/Audio-Call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
       </button>
       <button [ngStyle]="getButtonStyle()" (click)="startVideoCall()">
-        <img src="assets/images/Video-call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
+        <img src="assets/images/svgs/Video-call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
       </button>
+    </div>
+  </ng-template>
+
+  <ng-template #customMessageComposerView>
+    <div class="custom-message-composer">
+      <!-- Inline Images Preview -->
+      <div class="inline-images-preview" *ngIf="inlineImages.length > 0">
+        <div class="image-item" *ngFor="let image of inlineImages">
+          <img [src]="image.dataUrl" [alt]="'Inline image'" class="preview-image" />
+          <button 
+            mat-icon-button 
+            class="remove-image-btn"
+            (click)="removeImage(image.id)"
+            matTooltip="Remove image"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Text Input Area (Top Section) -->
+      <div 
+        class="text-input-section"
+        (dragover)="handleDragOver($event)"
+        (dragleave)="handleDragLeave($event)"
+        (drop)="handleDrop($event)"
+      >
+        <textarea
+          #textArea
+          class="message-textarea"
+          [placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
+          [value]="messageText"
+          (input)="onTextChange($event)"
+          (keydown)="onKeyDown($event)"
+          (focus)="onFocus()"
+          (blur)="onBlur()"
+          rows="1"
+          autosize
+        ></textarea>
+        
+        <!-- Drag Overlay -->
+        <div class="drag-overlay" *ngIf="isDragOver">
+          <mat-icon>cloud_upload</mat-icon>
+          <span>Drop image here</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons Section (Bottom Section) -->
+      <div class="action-buttons-section">
+        <!-- Left Side - Attachment Button with Dropdown -->
+        <div class="attachment-dropdown-container">
+          <button 
+            mat-icon-button 
+            class="attachment-btn"
+            (click)="toggleAttachmentDropdown()"
+            matTooltip="Add to Chat"
+          >
+            <img src="assets/images/svgs/Plus.svg" alt="Add attachment" class="icon" />
+          </button>
+          
+          <!-- Attachment Dropdown -->
+          <div class="attachment-dropdown" *ngIf="showAttachmentDropdown">
+            <div class="dropdown-item" (click)="selectAttachmentType('image')">
+              <img src="assets/images/svgs/photolibrary.svg" alt="Image" class="dropdown-icon" />
+              <span>Image</span>
+            </div>
+            <div class="dropdown-item" (click)="selectAttachmentType('video')">
+              <img src="assets/images/svgs/video.svg" alt="Video" class="dropdown-icon" />
+              <span>Video</span>
+            </div>
+            <div class="dropdown-item" (click)="selectAttachmentType('audio')">
+              <img src="assets/images/svgs/audio-file.svg" alt="Audio" class="dropdown-icon" />
+              <span>Audio</span>
+            </div>
+            <div class="dropdown-item" (click)="selectAttachmentType('file')">
+              <img src="assets/images/svgs/attachment-file.svg" alt="File" class="dropdown-icon" />
+              <span>File</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side - Action Buttons -->
+        <div class="right-buttons">
+          <!-- Emoji Button with Dropdown -->
+          <div class="emoji-dropdown-container">
+            <button 
+              mat-icon-button 
+              class="emoji-btn"
+              (click)="toggleEmojiDropdown()"
+              matTooltip="Emoji"
+            >
+              <img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
+            </button>
+            
+            <!-- Emoji Dropdown -->
+            <div class="emoji-dropdown" *ngIf="showEmojiDropdown">
+              <div class="emoji-grid">
+                <div 
+                  class="emoji-item" 
+                  *ngFor="let emoji of emojiList" 
+                  (click)="selectEmoji(emoji)"
+                  [title]="emoji"
+                >
+                  {{ emoji }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Voice Recording Button -->
+          <button 
+            *ngIf="!hideVoiceRecording"
+            mat-icon-button 
+            class="voice-btn"
+            (click)="openVoiceRecorder()"
+            matTooltip="Voice message"
+          >
+            <img src="assets/images/svgs/mic.svg" alt="Voice recording" class="icon" />
+          </button>
+
+          <!-- Send Button -->
+          <button 
+            mat-icon-button 
+            class="send-btn"
+            [disabled]="!messageText.trim() && inlineImages.length === 0"
+            (click)="sendMessage()"
+            matTooltip="Send message"
+          >
+            <img src="assets/images/svgs/Send.svg" alt="Send" class="icon" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Hidden File Inputs -->
+      <input 
+        #imageInput
+        type="file" 
+        accept="image/*" 
+        style="display: none;" 
+        (change)="onFileSelected($event)"
+      />
+      <input 
+        #videoInput
+        type="file" 
+        accept="video/*" 
+        style="display: none;" 
+        (change)="onFileSelected($event)"
+      />
+      <input 
+        #audioInput
+        type="file" 
+        accept="audio/*" 
+        style="display: none;" 
+        (change)="onFileSelected($event)"
+      />
+      <input 
+        #fileInput
+        type="file" 
+        accept="*/*" 
+        style="display: none;" 
+        (change)="onFileSelected($event)"
+      />
     </div>
   </ng-template>
 

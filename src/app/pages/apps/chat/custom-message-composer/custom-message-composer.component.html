@@ -1,0 +1,100 @@
+<div class="custom-message-composer">
+  <!-- Inline Images Preview -->
+  <div class="inline-images-preview" *ngIf="inlineImages.length > 0">
+    <div class="image-item" *ngFor="let image of inlineImages">
+      <img [src]="image.dataUrl" [alt]="'Inline image'" class="preview-image" />
+      <button 
+        mat-icon-button 
+        class="remove-image-btn"
+        (click)="removeImage(image.id)"
+        matTooltip="Remove image"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Text Input Area (Top Section) -->
+  <div 
+    class="text-input-section"
+    (dragover)="handleDragOver($event)"
+    (dragleave)="handleDragLeave($event)"
+    (drop)="handleDrop($event)"
+  >
+    <textarea
+      #textArea
+      class="message-textarea"
+      [placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
+      [value]="messageText"
+      (input)="onTextChange($event)"
+      (keydown)="onKeyDown($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      rows="1"
+      autosize
+    ></textarea>
+    
+    <!-- Drag Overlay -->
+    <div class="drag-overlay" *ngIf="isDragOver">
+      <mat-icon>cloud_upload</mat-icon>
+      <span>Drop image here</span>
+    </div>
+  </div>
+
+  <!-- Action Buttons Section (Bottom Section) -->
+  <div class="action-buttons-section">
+    <!-- Left Side - Attachment Button -->
+    <button 
+      mat-icon-button 
+      class="attachment-btn"
+      (click)="triggerFileInput()"
+      matTooltip="Add to Chat"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- Right Side - Action Buttons -->
+    <div class="right-buttons">
+      <!-- Emoji Button -->
+      <button 
+        mat-icon-button 
+        class="emoji-btn"
+        (click)="openEmojiPicker()"
+        matTooltip="Emoji"
+      >
+        <mat-icon>emoji_emotions</mat-icon>
+      </button>
+
+      <!-- Voice Recording Button -->
+      <button 
+        *ngIf="!hideVoiceRecording"
+        mat-icon-button 
+        class="voice-btn"
+        (click)="openVoiceRecorder()"
+        matTooltip="Voice message"
+      >
+        <mat-icon>mic</mat-icon>
+      </button>
+
+      <!-- Send Button -->
+      <button 
+        mat-icon-button 
+        class="send-btn"
+        [disabled]="!messageText.trim() && inlineImages.length === 0"
+        (click)="sendMessage()"
+        matTooltip="Send message"
+      >
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Hidden File Input -->
+  <input 
+    #fileInput
+    type="file" 
+    accept="image/*,video/*,audio/*,*/*" 
+    style="display: none;" 
+    (change)="onFileSelected($event)"
+  />
+</div> 

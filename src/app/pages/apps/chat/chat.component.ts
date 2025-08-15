@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener } from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
@@ -19,6 +19,13 @@ import { CometChatUIEvents } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 
+interface InlineImage {
+  id: string;
+  file: File;
+  dataUrl: string;
+  position: number;
+}
+
 @Component({
   standalone: true,
   selector: 'app-chat',
@@ -27,7 +34,7 @@ import { Loader } from 'src/app/app.models';
     CometChatGroupsWithMessages,
     CommonModule,
     MaterialModule,
-    LoaderComponent
+    LoaderComponent,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -46,6 +53,14 @@ export class AppChatComponent implements OnInit {
   public loader: Loader = new Loader(true, false, false);
   public chatInitError: string | null = null;
   
+  // Custom message composer properties
+  messageText: string = '';
+  inlineImages: InlineImage[] = [];
+  isComposing: boolean = false;
+  cursorPosition: number = 0;
+  isDragOver: boolean = false;
+  hideVoiceRecording: boolean = false;
+  
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
   public backdropStyle = new BackdropStyle({
@@ -57,7 +72,67 @@ export class AppChatComponent implements OnInit {
   public professionalMessagesConfig: MessagesConfiguration;
 
   @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
+  @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
+  @ViewChild('textArea', { static: false }) textArea!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('imageInput', { static: false }) imageInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('videoInput', { static: false }) videoInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('audioInput', { static: false }) audioInput!: ElementRef<HTMLInputElement>;
   currentChatContext: any = null;
+
+  // Dropdown states
+  showAttachmentDropdown: boolean = false;
+  showEmojiDropdown: boolean = false;
+
+  // Emoji list
+  emojiList: string[] = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+    '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+    '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
+    '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+    '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😯', '😦', '😧',
+    '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢',
+    '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '💀',
+    '☠️', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽',
+    '🙀', '😿', '😾', '🙈', '🙉', '🙊', '👶', '👧', '🧒', '👦',
+    '👩', '🧑', '👨', '👵', '🧓', '👴', '👮‍♀️', '👮', '👮‍♂️', '🕵️‍♀️',
+    '🕵️', '🕵️‍♂️', '💂‍♀️', '💂', '💂‍♂️', '👷‍♀️', '👷', '👷‍♂️', '🤴', '👸',
+    '👳‍♀️', '👳', '👳‍♂️', '👲', '🧕', '🤵', '👰', '🤰', '🤱', '👼',
+    '🎅', '🤶', '🧙‍♀️', '🧙', '🧙‍♂️', '🧝‍♀️', '🧝', '🧝‍♂️', '🧛‍♀️', '🧛',
+    '🧛‍♂️', '🧟‍♀️', '🧟', '🧟‍♂️', '🧞‍♀️', '🧞', '🧞‍♂️', '🧜‍♀️', '🧜', '🧜‍♂️',
+    '🧚‍♀️', '🧚', '🧚‍♂️', '👼', '🤰', '🤱', '👼', '🎅', '🤶', '🧙‍♀️',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
+    '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐',
+    '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐',
+    '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳',
+    '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️',
+    '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️',
+    '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️',
+    '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓',
+    '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️',
+    '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠',
+    'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🛂', '🛃',
+    '🛄', '🛅', '🚹', '🚺', '🚼', '🚻', '🚮', '🎦', '📶', '🈁',
+    '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕',
+    '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣',
+    '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️',
+    '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽',
+    '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️',
+    '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵',
+    '🎶', '➕', '➖', '➗', '✖️', '♾️', '💲', '💱', '™️', '©️',
+    '®️', '👁️‍🗨️', '🔚', '🔙', '🔛', '🔝', '🔜', '〰️', '➰', '➿',
+    '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫',
+    '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲',
+    '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩',
+    '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔',
+    '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️',
+    '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖',
+    '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠',
+    '🕡', '🕢', '🕣', '🕤', '🕦', '🕧'
+  ];
 
   getButtonStyle() {
     return {
@@ -77,6 +152,349 @@ export class AppChatComponent implements OnInit {
     return {
       filter: 'invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%)'
     };
+  }
+
+  // Custom message composer methods
+  onTextChange(event: any) {
+    this.messageText = event.target.value;
+    this.cursorPosition = event.target.selectionStart;
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  onFocus() {
+    this.isComposing = true;
+  }
+
+  onBlur() {
+    this.isComposing = false;
+  }
+
+  handlePaste(event: ClipboardEvent) {
+    // Only handle paste if the composer is focused
+    if (!this.isComposing) return;
+    
+    if (event.clipboardData?.files && event.clipboardData.files.length > 0) {
+      event.preventDefault();
+      const file = event.clipboardData.files[0];
+      this.processImageFile(file);
+    }
+  }
+
+  handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver = true;
+  }
+
+  handleDragLeave(event: DragEvent) {
+    this.isDragOver = false;
+  }
+
+  handleDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragOver = false;
+    
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      this.processImageFile(file);
+    }
+  }
+
+  private processImageFile(file: File) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.openSnackBar('Only image files are supported.', 'Close');
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.openSnackBar('Image size must be less than 10MB.', 'Close');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const inlineImage: InlineImage = {
+        id: imageId,
+        file: file,
+        dataUrl: e.target.result,
+        position: this.cursorPosition
+      };
+      
+      this.inlineImages.push(inlineImage);
+      
+      // Insert image placeholder in text
+      // const placeholder = `[${imageId}]`;
+      const beforeCursor = this.messageText.substring(0, this.cursorPosition);
+      const afterCursor = this.messageText.substring(this.cursorPosition);
+      // this.messageText = beforeCursor + placeholder + afterCursor;
+      
+      // Update cursor position
+      // this.cursorPosition += placeholder.length;
+      
+      // Focus back to textarea and set cursor position
+      setTimeout(() => {
+        if (this.textArea) {
+          this.textArea.nativeElement.focus();
+          this.textArea.nativeElement.setSelectionRange(this.cursorPosition, this.cursorPosition);
+        }
+      }, 0);
+    };
+    
+    reader.onerror = () => {
+      this.openSnackBar('Error reading the image file.', 'Close');
+    };
+    
+    reader.readAsDataURL(file);
+  }
+
+  removeImage(imageId: string) {
+    const imageIndex = this.inlineImages.findIndex(img => img.id === imageId);
+    if (imageIndex !== -1) {
+      // const image = this.inlineImages[imageIndex];
+      
+      // Remove image placeholder from text
+      // const placeholder = `[${imageId}]`;
+      // this.messageText = this.messageText.replace(placeholder, '');
+      
+      // Remove image from array
+      this.inlineImages.splice(imageIndex, 1);
+      
+      // Update positions for remaining images
+      // this.inlineImages.forEach(img => {
+      //   if (img.position > image.position) {
+      //     img.position -= placeholder.length;
+      //   }
+      // });
+    }
+  }
+
+  triggerFileInput() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  // Dropdown methods
+  toggleAttachmentDropdown() {
+    this.showAttachmentDropdown = !this.showAttachmentDropdown;
+    this.showEmojiDropdown = false; // Close emoji dropdown if open
+  }
+
+  toggleEmojiDropdown() {
+    this.showEmojiDropdown = !this.showEmojiDropdown;
+    this.showAttachmentDropdown = false; // Close attachment dropdown if open
+  }
+
+  selectAttachmentType(type: string) {
+    this.showAttachmentDropdown = false;
+    
+    switch (type) {
+      case 'image':
+        if (this.imageInput) {
+          this.imageInput.nativeElement.click();
+        }
+        break;
+      case 'video':
+        if (this.videoInput) {
+          this.videoInput.nativeElement.click();
+        }
+        break;
+      case 'audio':
+        if (this.audioInput) {
+          this.audioInput.nativeElement.click();
+        }
+        break;
+      case 'file':
+        if (this.fileInput) {
+          this.fileInput.nativeElement.click();
+        }
+        break;
+    }
+  }
+
+  selectEmoji(emoji: string) {
+    this.showEmojiDropdown = false;
+    
+    // Insert emoji at cursor position
+    const beforeCursor = this.messageText.substring(0, this.cursorPosition);
+    const afterCursor = this.messageText.substring(this.cursorPosition);
+    this.messageText = beforeCursor + emoji + afterCursor;
+    
+    // Update cursor position
+    this.cursorPosition += emoji.length;
+    
+    // Focus back to textarea and set cursor position
+    setTimeout(() => {
+      if (this.textArea) {
+        this.textArea.nativeElement.focus();
+        this.textArea.nativeElement.setSelectionRange(this.cursorPosition, this.cursorPosition);
+      }
+    }, 0);
+  }
+
+  // Close dropdowns when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    
+    // Close attachment dropdown if clicking outside
+    if (!target.closest('.attachment-dropdown-container')) {
+      this.showAttachmentDropdown = false;
+    }
+    
+    // Close emoji dropdown if clicking outside
+    if (!target.closest('.emoji-dropdown-container')) {
+      this.showEmojiDropdown = false;
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Handle different file types
+      if (file.type.startsWith('image/')) {
+        this.processImageFile(file);
+      } else if (file.type.startsWith('video/')) {
+        this.processVideoFile(file);
+      } else if (file.type.startsWith('audio/')) {
+        this.processAudioFile(file);
+      } else {
+        this.processGenericFile(file);
+      }
+    }
+    // Reset the input value
+    event.target.value = '';
+  }
+
+  private processVideoFile(file: File) {
+    this.sendMediaMessage(file, CometChat.MESSAGE_TYPE.VIDEO);
+  }
+
+  private processAudioFile(file: File) {
+    this.sendMediaMessage(file, CometChat.MESSAGE_TYPE.AUDIO);
+  }
+
+  private processGenericFile(file: File) {
+    this.sendMediaMessage(file, CometChat.MESSAGE_TYPE.FILE);
+  }
+
+  openVoiceRecorder() {
+    this.openSnackBar('Implement this functionality', 'Close');
+  }
+
+  sendMessage() {
+    if (!this.messageText.trim() && this.inlineImages.length === 0) {
+      return;
+    }
+
+    if (this.inlineImages.length > 0) {
+      // Send images first, then text message
+      this.sendImagesWithText();
+    } else {
+      // Send text message only
+      this.sendTextMessage();
+    }
+  }
+
+  private sendImagesWithText() {
+    const promises = this.inlineImages.map(image => this.sendImageMessage(image.file));
+    
+    Promise.all(promises).then(() => {
+      // After all images are sent, send the text message if there's any text
+      if (this.messageText.trim()) {
+        this.sendTextMessage();
+      }
+      
+      // Clear the composer
+      this.clearComposer();
+    }).catch((error) => {
+      this.openSnackBar('Error sending images: ' + error.message, 'Close');
+    });
+  }
+
+  private sendImageMessage(file: File) {
+    return this.sendMediaMessage(file, CometChat.MESSAGE_TYPE.IMAGE);
+  }
+
+  private sendMediaMessage(file: File, messageType: string) {
+    if (!this.currentChatContext) {
+      this.openSnackBar('No active chat context', 'Close');
+      return Promise.reject('No active chat context');
+    }
+
+    let receiverId: string;
+    let receiverType: string;
+    
+    if (this.currentChatContext.user) {
+      receiverId = this.currentChatContext.user.getUid();
+      receiverType = CometChat.RECEIVER_TYPE.USER;
+    } else if (this.currentChatContext.group) {
+      receiverId = this.currentChatContext.group.getGuid();
+      receiverType = CometChat.RECEIVER_TYPE.GROUP;
+    } else {
+      this.openSnackBar('No valid chat context found', 'Close');
+      return Promise.reject('No valid chat context found');
+    }
+
+    const mediaMessage = new CometChat.MediaMessage(
+      receiverId,
+      file,
+      messageType,
+      receiverType
+    );
+
+    return CometChat.sendMediaMessage(mediaMessage).then((message) => {
+      this.openSnackBar('Media sent successfully!', 'Close');
+    });
+  }
+
+  private sendTextMessage() {
+    if (!this.messageText.trim()) return;
+
+    if (!this.currentChatContext) {
+      this.openSnackBar('No active chat context', 'Close');
+      return;
+    }
+
+    let receiverId: string;
+    let receiverType: string;
+    
+    if (this.currentChatContext.user) {
+      receiverId = this.currentChatContext.user.getUid();
+      receiverType = CometChat.RECEIVER_TYPE.USER;
+    } else if (this.currentChatContext.group) {
+      receiverId = this.currentChatContext.group.getGuid();
+      receiverType = CometChat.RECEIVER_TYPE.GROUP;
+    } else {
+      this.openSnackBar('No valid chat context found', 'Close');
+      return;
+    }
+
+    const textMessage = new CometChat.TextMessage(
+      receiverId,
+      this.messageText,
+      receiverType
+    );
+
+    CometChat.sendMessage(textMessage).then((message) => {
+      this.clearComposer();
+    }).catch((error) => {
+      this.openSnackBar('Error sending message: ' + error.message, 'Close');
+    });
+  }
+
+  private clearComposer() {
+    this.messageText = '';
+    this.inlineImages = [];
+    this.cursorPosition = 0;
   }
 
   constructor(
@@ -103,6 +521,7 @@ export class AppChatComponent implements OnInit {
   private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
       this.currentChatContext = event;
+      
       if (event.group) {
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
@@ -196,10 +615,14 @@ export class AppChatComponent implements OnInit {
       }
     });
 
+    // Add paste event listener to the document
+    document.addEventListener('paste', this.handlePaste.bind(this));
+
     const component = this;
 
     this.professionalMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
+      messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         templates: this.chatService.templates
       }),
@@ -217,6 +640,7 @@ export class AppChatComponent implements OnInit {
 
     this.essentialMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
+      messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
         templates: this.chatService.templates
@@ -237,6 +661,7 @@ export class AppChatComponent implements OnInit {
     })
 
     this.basicMessagesConfig = new MessagesConfiguration({ 
+      messageComposerView: this.customMessageComposerView,
       messageHeaderConfiguration: new MessageHeaderConfiguration({
         menu: null
       }),
@@ -394,5 +819,16 @@ export class AppChatComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  ngOnDestroy() {
+    if (this.themeMutationObserver) {
+      this.themeMutationObserver.disconnect();
+    }
+    if (this.ccActiveChatChanged) {
+      this.ccActiveChatChanged.unsubscribe();
+    }
+    // Remove paste event listener
+    document.removeEventListener('paste', this.handlePaste.bind(this));
   }
 }
