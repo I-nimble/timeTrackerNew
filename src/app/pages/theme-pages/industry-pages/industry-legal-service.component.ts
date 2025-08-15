@@ -12,6 +12,7 @@ import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.compon
 import { AppHeaderComponent } from '../header/header.component';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ButtonComponent } from 'src/app/components/button/button.component';
 
 interface apps {
   id: number;
@@ -64,6 +65,7 @@ interface features {
     AppFaqComponent,
     AppDiscoveryFormComponent,
     AppHeaderComponent,
+    ButtonComponent
   ],
   templateUrl: './industry-legal-service.component.html',
 })

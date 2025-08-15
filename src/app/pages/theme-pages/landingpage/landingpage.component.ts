@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -12,6 +12,11 @@ import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
+import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 interface apps {
   id: number;
@@ -63,25 +68,17 @@ interface features {
     AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
+    HeroButtonComponent,
+    ButtonComponent
   ],
-  templateUrl: './landingpage.component.html',
-  animations: [
-    trigger('fadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
-  ],
+  templateUrl: './landingpage.component.html'
 })
-export class AppLandingpageComponent {
+export class AppLandingpageComponent implements AfterViewInit {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
+  @ViewChild('inimbleVideo') inimbleVideoRef!: ElementRef<HTMLVideoElement>;
 
   currentSlide = 0;
   testimonials = [
@@ -158,14 +155,56 @@ export class AppLandingpageComponent {
       image: 'assets/images/landingpage/logos/14.jpeg',
     },
   ];
+  isMobileScreen = false;
+  inimbleVideoUrl = "https://inimble-app.s3.us-east-1.amazonaws.com/Inimble+Platform.mp4";
 
   options = this.settings.getOptions();
 
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private breakpointObserver: BreakpointObserver
+  ) {
+    this.breakpointObserver.observe([
+      '(max-width: 767px)'
+    ]).subscribe(result => {
+      this.isMobileScreen = result.matches;
+    });
+  }
+
+  ngAfterViewInit() {
+    if (this.inimbleVideoRef) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              this.inimbleVideoRef.nativeElement.play();
+            } else {
+              this.inimbleVideoRef.nativeElement.pause();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      observer.observe(this.inimbleVideoRef.nativeElement);
+    }
+  }
+
+  getVisibleTestimonials() {
+    const length = this.testimonials.length;
+    
+    if (this.isMobileScreen) {
+      return [this.testimonials[this.currentSlide % length]];
+    } else {
+      if (length <= 3) return this.testimonials;
+      return [
+        this.testimonials[(this.currentSlide - 1 + length) % length],
+        this.testimonials[this.currentSlide % length],
+        this.testimonials[(this.currentSlide + 1) % length]
+      ];
+    }
+  }
 
   // scroll to demos
   gotoDemos() {

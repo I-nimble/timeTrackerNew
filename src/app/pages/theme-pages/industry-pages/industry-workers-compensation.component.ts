@@ -12,6 +12,7 @@ import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.compon
 import { AppHeaderComponent } from '../header/header.component';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
 import { MatDialog } from '@angular/material/dialog';
+import { ButtonComponent } from 'src/app/components/button/button.component';
 
 interface apps {
   id: number;
@@ -53,7 +54,7 @@ interface features {
 @Component({
   selector: 'app-workers-compensation',
   standalone: true,
-  imports: [MaterialModule, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
+  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
   templateUrl: './industry-workers-compensation.component.html',
 })
 export class AppIndustryWorkersCompensationComponent {

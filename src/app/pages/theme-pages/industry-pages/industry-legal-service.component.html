@@ -12,7 +12,7 @@
     <!-- ------------------------------------------------------------------
     Banner
     ------------------------------------------------------------------ -->
-    <div class="overflow-hidden banner-section">
+    <div class="overflow-hidden banner-section" style="margin-top:70px">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-11">
@@ -579,9 +579,8 @@
         >
           <span class="f-s-15 f-w-500 m-l-8">Support</span>
         </a>
-        <a mat-flat-button color="primary" class="w-100" [routerLink]="['/']"
-          >Buy Now</a
-        >
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Login" variant="ghost" size="small" [routerLink]="['/authentication/login']"></app-button>
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Get Started" variant="filled" size="small"></app-button>
       </div>
     </div>
   </mat-sidenav>
