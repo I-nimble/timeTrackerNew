@@ -1,0 +1,15 @@
+<mat-dialog-content class="d-flex flex-column justify-content-center align-items-center p-t-0">
+  <h2 mat-dialog-title class="text-center m-t-2 m-b-20">
+    Confirm Clock-Out Time
+  </h2>
+ 
+  <mat-form-field appearance="outline">
+    <input matInput type="datetime-local" [(ngModel)]="editableStopTimeString" />
+  </mat-form-field>
+</mat-dialog-content>
+ 
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" (click)="confirmClockout()">
+    Confirm Clock-Out
+  </button>
+</mat-dialog-actions>

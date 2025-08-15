@@ -1,4 +1,5 @@
 export interface Entries {
+  id?: any;
   status?: number;
   task?: string;
   start_time?: any;

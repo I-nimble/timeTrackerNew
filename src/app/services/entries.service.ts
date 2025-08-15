@@ -44,8 +44,13 @@ export class EntriesService {
   cancelEntry(id: number) {
     return this.http.delete(`${this.API_URI}/entries/cancel/${id}`);
   }
-  closeCurrentEntry(entry: any) {
-    return this.http.put(`${this.API_URI}/entries/closeEntry/${entry.id}`, entry);
+  closeCurrentEntry(entry: any, customEndTime?: Date) {
+    const payload = {
+      ...entry,
+      end_time: customEndTime ? customEndTime.toISOString() : entry.end_time
+    };
+
+    return this.http.put(`${this.API_URI}/entries/closeEntry/${entry.id}`, payload);
   }
   updateEntry(id: number, updatedEntry: Entries): Observable<Entries> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
