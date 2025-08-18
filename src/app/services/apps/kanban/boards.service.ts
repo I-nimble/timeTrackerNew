@@ -39,15 +39,28 @@ export class BoardsService {
   deleteBoard(id: number): Observable<any> {
     return this.http.delete<any>(`${this.API_URI}/${id}`);
   }
+
+  deleteColumn(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_URI}/columns/${id}`);
+  }
   
-   uploadTaskAttachments(files: File[]): Observable<any[]> {
+  uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);
-    // For each file, get upload URL and upload
+
     const uploads$ = files.map(file =>
-      this.http.get<any>(`${environment.apiUrl}/generate_upload_url/task_attachments`).pipe(
+      this.http.post<any>(
+        `${environment.apiUrl}/generate_upload_url/task_attachments`,
+          {
+            contentType: file.type || 'application/octet-stream',
+            originalFileName: file.name
+          }
+      ).pipe(
         switchMap((uploadUrlRes: any) => {
           const uploadUrl = uploadUrlRes.url;
-          const headers = new HttpHeaders({ 'Content-Type': file.type });
+          const headers = new HttpHeaders({
+            'Content-Type': file.type || 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${file.name}"`
+          });
           return this.http.put(uploadUrl, file, { headers }).pipe(
             map(() => {
               const urlParts = uploadUrl.split('?')[0].split('/');
@@ -65,6 +78,19 @@ export class BoardsService {
     );
     return forkJoin(uploads$);
   }
+
+/*   downloadTaskAttachment(s3Key: string): void {
+    const encodedKey = encodeURIComponent(s3Key);
+    this.http.get<{ url: string }>(`${environment.apiUrl}/generate_download_url/task_attachments${encodedKey}`)
+      .subscribe({
+        next: (res) => {
+          window.open(res.url, '_blank');
+        },
+        error: (err) => {
+          console.error('Download error:', err);
+        }
+      });
+  } */
 
   addTaskToBoard(task: any): Observable<any> {
     // If there are files to upload, handle them first
