@@ -13,7 +13,9 @@ type ButtonVariant = 'filled' | 'pulse' | 'ghost' | 'transparent';
 export class HeroButtonComponent {
   @Input() text = '';
   @Input() variant: ButtonVariant = 'filled';
+  @Input() fullWidth: boolean = false;
 
+  @HostBinding('class.full-width') get isFullWidth() { return this.fullWidth; }
   @HostBinding('class.filled') get isFilled() { return this.variant === 'filled'; }
   @HostBinding('class.pulse') get isPulse() { return this.variant === 'pulse'; }
   @HostBinding('class.ghost') get isGhost() { return this.variant === 'ghost'; }

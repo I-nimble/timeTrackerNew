@@ -203,14 +203,14 @@ export class AppHorizontalHeaderComponent implements OnInit {
   ];
 
   profiledd: profiledd[] = [
-    {
-      id: 1,
-      img: 'wallet',
-      color: 'primary',
-      title: 'My Profile',
-      subtitle: 'Account Settings',
-      link: 'apps/account-settings',
-    },
+    // {
+    //   id: 1,
+    //   img: 'wallet',
+    //   color: 'primary',
+    //   title: 'My Profile',
+    //   subtitle: 'Account Settings',
+    //   link: 'apps/account-settings',
+    // },
     {
       id: 2,
       img: 'shield',

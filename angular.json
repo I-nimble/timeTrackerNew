@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Spike": {
+    "inimbleapp": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -19,7 +19,7 @@
           "options": {
             "allowedCommonJsDependencies": ["apexcharts", "bezier-easing"],
             "outputPath": {
-              "base": "dist/Spike"
+              "base": "dist/"
             },
             "index": "src/index.html",
             "polyfills": ["zone.js"],
@@ -76,10 +76,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Spike:build:production"
+              "buildTarget": "inimbleapp:build:production"
             },
             "development": {
-              "buildTarget": "Spike:build:development"
+              "buildTarget": "inimbleapp:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -87,7 +87,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "Spike:build"
+            "buildTarget": "inimbleapp:build"
           }
         },
         "test": {
