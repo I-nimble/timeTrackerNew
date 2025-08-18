@@ -112,6 +112,7 @@ export class AppSideLoginComponent {
           const role = v.role_id;
           const email = v.email;
           const id = v.id;
+          const isOrphan = v.isOrphan;
           localStorage.setItem('role', role);
           if (Number(role) === 1) {
             this.route = '/dashboards/admin';
@@ -124,6 +125,7 @@ export class AppSideLoginComponent {
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
+          localStorage.setItem('isOrphan', isOrphan);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);
