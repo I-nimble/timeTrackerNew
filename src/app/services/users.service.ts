@@ -114,7 +114,11 @@ export class UsersService {
       if (userData.employee.insurance_data) form.append('insurance_data', JSON.stringify(userData.employee.insurance_data));
     };
     if (userData.company) form.append('company', JSON.stringify(userData.company));
-    if (userData.profile) form.append('profile', userData.profile);
+    if (userData.profile instanceof File) {
+      form.append('profile', userData.profile);
+    } else if (userData.profile === null) {
+      form.append('remove_picture', 'true');
+    }
 
     return this.http.patch(`${this.API_URI}/users`, form).pipe(
       map((result) => {
