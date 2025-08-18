@@ -327,9 +327,38 @@ export class AppKanbanComponent implements OnInit {
   }
 
   deleteBoard(id: number): void {
-    this.kanbanService.deleteBoard(id).subscribe(() => {
-      this.loadBoards();
-      this.showSnackbar('Board deleted!');
+    const del = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'board',
+      },
+    });
+
+    del.afterClosed().subscribe((result) => {
+      if (result) {
+        this.kanbanService.deleteBoard(id).subscribe(() => {
+          this.loadBoards();
+          this.showSnackbar('Board deleted!');
+        });
+      }
+    });
+  }
+
+  deleteColumn(id: number): void {
+    const del = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'column',
+      },
+    });
+
+    del.afterClosed().subscribe((result) => {
+      if (result) {
+        this.kanbanService.deleteColumn(id).subscribe(() => {
+          this.loadBoards();
+          this.showSnackbar('Column deleted successfully!');
+        });
+      }
     });
   }
 

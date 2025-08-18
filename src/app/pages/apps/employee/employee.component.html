@@ -7,7 +7,8 @@
             <input
               matInput
               placeholder="Search Team Member"
-              (keyup)="applyFilter($any($event.target).value)"
+              [(ngModel)]="searchText"
+              (keyup)="applyCombinedFilters()"
             />
             <mat-icon matSuffix>
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
@@ -16,7 +17,7 @@
   
           <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-            <mat-select [(ngModel)]="companyId" (selectionChange)="handleCompanySelection()">
+            <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
               <mat-option *ngFor="let company of companies" [value]="company.id">
                 {{ company.name }}
               </mat-option>
