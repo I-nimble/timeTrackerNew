@@ -84,7 +84,7 @@ export class AppEmployeeComponent {
   companies: any[] = [];
   companyId: number | null = null;
 
-  searchText: any;
+  searchText: string = '';
 
   displayedColumns: string[] = [
     'select',
@@ -131,10 +131,6 @@ export class AppEmployeeComponent {
     });
   }
 
-  handleCompanySelection() {
-    this.applyCombinedFilters();
-  }
-
   loadCompany(): void {
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.company = company.company.name;
@@ -142,11 +138,6 @@ export class AppEmployeeComponent {
         this.companyTimezone = this.companyTimezone.split(':')[0];
       }
     });
-  }
-
-  applyFilter(filterValue: string): void {
-    this.searchText = filterValue;
-    this.applyCombinedFilters();
   }
 
   applyCombinedFilters(): void {
