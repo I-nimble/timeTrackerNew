@@ -122,7 +122,7 @@ export class UsersService {
 
     return this.http.patch(`${this.API_URI}/users`, form).pipe(
       map((result) => {
-        if (userData.profile) {
+        if (userData.profile || userData.profile === null) {
           this.profilePicUpdatedSource.next();
         }
         return result;

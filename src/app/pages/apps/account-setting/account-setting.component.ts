@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -123,6 +123,7 @@ export class AppAccountSettingComponent implements OnInit {
   logo: string = 'assets/images/default-logo.jpg';
   picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
   originalLogo: string = '';
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
@@ -269,21 +270,20 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    const img = event.target.files[0];
-    if (img) {
-      if(img.size > 1000000) {
+    const file = event.target.files[0];
+    if (!file) return;
+      if (file.size > 1000000) {
         this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
         return
       }
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
         this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
         return;
       }
-      this.previewImage(img);
+      this.previewImage(file);
       // if(this.role === '3') this.profileForm.patchValue({ logo: img })
       // else this.personalForm.patchValue({ profile: img });
-      this.personalForm.patchValue({ profile: img });
-    }
+      this.personalForm.patchValue({ profile: file });
   }
 
   previewImage(file: File) {
@@ -304,9 +304,16 @@ export class AppAccountSettingComponent implements OnInit {
     // else {
       this.picture = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
       this.personalForm.patchValue({ profile: null });
+      this.resetFileInput();
     // }
   }
 
+  resetFileInput() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+  
   saveProfile() {
     this.isSubmitting = true;
 

@@ -81,7 +81,7 @@ export class HeaderComponent implements OnInit {
   userName: any;
   userId: any;
   // companyLogo: any = 'assets/images/default-logo.jpg';
-  profilePicture: any = 'assets/images/default-user-profile-pic.png';
+  profilePicture: any | string | null = null;
   assetsPath: string = environment.assets;
   userEmail: any;
   applications: any[] = [];
@@ -203,10 +203,12 @@ export class HeaderComponent implements OnInit {
   // }
 
   loadProfilePicture() {
-    this.usersService.getProfilePic(this.userId).subscribe({
-      next: (image: any) => {
-        if(image != null) this.profilePicture = image;
-      },
+    this.usersService.getProfilePic(this.userId).subscribe((pic) => {
+      if (pic) {
+        this.profilePicture = pic;
+      } else {
+        this.profilePicture = 'assets/images/default-user-profile-pic.png';
+      }
     });
   }
 

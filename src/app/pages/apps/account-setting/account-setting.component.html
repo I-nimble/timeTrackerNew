@@ -100,6 +100,7 @@
                       <button mat-flat-button color="primary" class="m-r-8 file">
                         Upload
                         <input
+                          #fileInput
                           type="file"
                           name="logo"
                           (change)="onFileSelected($event)"
