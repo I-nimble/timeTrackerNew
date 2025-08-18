@@ -39,6 +39,10 @@ export class BoardsService {
   deleteBoard(id: number): Observable<any> {
     return this.http.delete<any>(`${this.API_URI}/${id}`);
   }
+
+  deleteColumn(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_URI}/columns/${id}`);
+  }
   
   uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);

@@ -114,9 +114,27 @@
               >
                 <div class="d-flex justify-content-between align-items-center">
                   <h5 class="m-b-16 f-s-16 m-b-0 f-w-600">{{ column.name }}</h5>
-                  <button mat-icon-button (click)="editColumn(column)" [disabled]="!selectedBoardId">
+                  <button mat-icon-button [matMenuTriggerFor]="columnMenu" [disabled]="!selectedBoardId">
                     <mat-icon>more_horiz</mat-icon>
                   </button>
+                   <mat-menu #columnMenu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="editColumn(column)"
+                      [disabled]="!selectedBoardId"
+                    >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    mat-menu-item
+                    (click)="deleteColumn(column.id)"
+                    [disabled]="selectedBoard.user_id != userId"
+                  >
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
                 </div>
                 <div
                   cdkDropListGroup
