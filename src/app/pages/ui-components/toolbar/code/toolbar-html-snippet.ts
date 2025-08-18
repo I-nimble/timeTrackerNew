@@ -43,6 +43,6 @@ export const MULTI_ROW_TOOLBAR_HTML_SNIPPET = `  <mat-toolbar color="primary">
 `;
 
 export const ONLY_BRAND_TOOLBAR_HTML_SNIPPET = `  <mat-toolbar>
-          <span>Spike</span>
+          <span>Inimble</span>
         </mat-toolbar>
 `;
