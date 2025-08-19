@@ -122,6 +122,9 @@
           <span class="point bg-primary"></span>
         </div>
     </a>
+    <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
+      Expert
+    </a>
     <a mat-button [routerLink]="['/apps/invoice']" *ngIf="role != '2'">
       Invoice
     </a>
