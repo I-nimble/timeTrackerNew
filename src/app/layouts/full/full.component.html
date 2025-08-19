@@ -29,6 +29,8 @@
         (toggleMobileNav)="sidenav.toggle()"
         [showToggle]="isOver"
         [collapsed]="options.sidenavCollapsed"
+        [opened]="options.sidenavOpened"
+        [isMobileScreen]="isMobileScreen"
       ></app-sidebar>
       <ng-scrollbar class="position-relative" style="height: 100%">
         <mat-nav-list class="sidebar-list">

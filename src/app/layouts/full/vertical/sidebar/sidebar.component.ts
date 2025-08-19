@@ -22,6 +22,8 @@ export class SidebarComponent implements OnInit {
   constructor() { }
   @Input() showToggle = true;
   @Input() collapsed = false;
+  @Input() opened = true;
+  @Input() isMobileScreen = false;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
   navItems: NavItem[] = [];
