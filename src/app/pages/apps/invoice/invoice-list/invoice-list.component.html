@@ -208,7 +208,7 @@
               [routerLink]="['/apps/pricing']"
               [queryParams]="{ invoiceId: element.id }"
               class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '3'"
+              *ngIf="role == '3' && element.status.name != 'Paid'"
             >
               <i-tabler
                 name="credit-card-pay"
