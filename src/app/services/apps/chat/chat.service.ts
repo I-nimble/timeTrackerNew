@@ -155,7 +155,6 @@ export class CometChatService {
         { vapidKey: environment.vapidKey }
       );
       if (pushToken) {
-        console.log('there is a push token', pushToken)
         await CometChatNotifications.registerPushToken(
           pushToken,
           CometChatNotifications.PushPlatforms.FCM_WEB,

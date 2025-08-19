@@ -1,3 +1,185 @@
+// Voice Recorder Dropdown Styles
+.voice-recorder-dropdown-container {
+  position: relative;
+}
+.voice-recorder-dropdown {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  z-index: 1200;
+  min-width: 260px;
+  padding: 18px 24px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.voice-recorder-dropdown-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.voice-recorder-timer {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.voice-recorder-record-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  margin-top: 8px;
+}
+.voice-recorder-actions {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+.voice-recorder-stop-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #92b46c;
+  transition: color 0.2s;
+}
+.voice-recorder-stop-btn:hover {
+  color: #388E3C;
+}
+.voice-recorder-audio-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.voice-recorder-send-btn,
+.voice-recorder-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #92b46c;
+  transition: color 0.2s;
+}
+.voice-recorder-close-btn {
+  color: #ff4444;
+}
+.voice-recorder-close-btn:hover {
+  color: #cc0000;
+}
+.voice-recorder-send-btn:hover {
+  color: #388E3C;
+}
+// Voice Recorder Popup Styles
+.voice-recorder-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.voice-recorder-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 32px 32px 24px 32px;
+  min-width: 320px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2100;
+}
+.voice-recorder-header {
+  font-size: 22px;
+  font-weight: 600;
+  color: #92b46c;
+  margin-bottom: 18px;
+}
+.voice-recorder-timer {
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: 2px;
+}
+.voice-recorder-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+.voice-recorder-mic-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  margin-top: 12px;
+}
+.voice-recorder-actions {
+  display: flex;
+  gap: 32px;
+  margin-top: 12px;
+}
+.voice-recorder-discard-btn,
+.voice-recorder-stop-btn,
+.voice-recorder-send-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #ff4444;
+  transition: color 0.2s;
+}
+.voice-recorder-stop-btn {
+  color: #92b46c;
+}
+.voice-recorder-send-btn {
+  color: #92b46c;
+}
+.voice-recorder-discard-btn:hover {
+  color: #cc0000;
+}
+.voice-recorder-stop-btn:hover,
+.voice-recorder-send-btn:hover {
+  color: #388E3C;
+}
+.voice-recorder-audio-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.voice-recorder-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.18);
+  z-index: 2001;
+}
+
+
+// Custom message composer styles
 .custom-message-composer {
   display: flex;
   flex-direction: column;
@@ -33,21 +215,23 @@
 
       .remove-image-btn {
         position: absolute;
-        top: -8px;
-        right: -8px;
+        top: 0px;
+        right: 0px;
         background: #ff4444;
         color: white;
         border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        line-height: 24px;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        line-height: 12px;
 
         mat-icon {
           font-size: 16px;
           width: 16px;
           height: 16px;
-          line-height: 16px;
+          line-height: 10px;
+          left: -6px;
+          top: -2px;
         }
 
         &:hover {
@@ -121,18 +305,130 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.02);
 
-    .attachment-btn {
-      color: #666;
-      transition: color 0.2s ease;
+    .attachment-dropdown-container {
+      position: relative;
 
-      &:hover {
-        color: #92b46c;
+      .attachment-btn {
+        color: #666;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #92b46c;
+        }
+
+        .icon {
+          width: 20px;
+          height: 20px;
+          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        &:hover .icon {
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+        }
       }
 
-      mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+      .attachment-dropdown {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        min-width: 120px;
+        margin-bottom: 8px;
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          &:hover {
+            background-color: rgba(146, 180, 108, 0.1);
+          }
+
+          .dropdown-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+          }
+
+          span {
+            font-size: 14px;
+            color: #333;
+          }
+        }
+      }
+    }
+
+    .emoji-dropdown-container {
+      position: relative;
+
+      .emoji-btn {
+        color: #666;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #92b46c;
+        }
+
+        .icon {
+          width: 20px;
+          height: 20px;
+          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        &:hover .icon {
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+        }
+      }
+
+      .emoji-dropdown {
+        position: absolute;
+        bottom: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        width: max-content;
+        max-height: max-content;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin-bottom: 8px;
+
+        .emoji-grid {
+          display: grid;
+          grid-template-columns: repeat(8, 1fr);
+          gap: 4px;
+          padding: 12px;
+
+          .emoji-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            font-size: 18px;
+
+            &:hover {
+              background-color: rgba(146, 180, 108, 0.1);
+            }
+          }
+        }
       }
     }
 
@@ -141,7 +437,6 @@
       align-items: center;
       gap: 4px;
 
-      .emoji-btn,
       .voice-btn {
         color: #666;
         transition: color 0.2s ease;
@@ -150,10 +445,14 @@
           color: #92b46c;
         }
 
-        mat-icon {
-          font-size: 20px;
+        .icon {
           width: 20px;
           height: 20px;
+          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        &:hover .icon {
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
         }
       }
 
@@ -170,15 +469,20 @@
           color: #ccc;
         }
 
-        mat-icon {
-          font-size: 20px;
+        .icon {
           width: 20px;
           height: 20px;
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+        }
+
+        &:disabled .icon {
+          filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
         }
       }
     }
   }
 }
+
 
 // Dark theme support
 :host-context(.dark-theme) {
@@ -205,13 +509,73 @@
       border-top-color: rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.02);
 
-      .attachment-btn,
-      .emoji-btn,
-      .voice-btn {
-        color: #aaa;
+      .attachment-dropdown-container {
+        .attachment-btn {
+          .icon {
+            filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+          }
 
-        &:hover {
-          color: #92b46c;
+          &:hover .icon {
+            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+          }
+        }
+
+        .attachment-dropdown {
+          background: #2d3748;
+          border-color: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+          .dropdown-item {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+
+            &:hover {
+              background-color: rgba(146, 180, 108, 0.2);
+            }
+
+            .dropdown-icon {
+              filter: invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+            }
+
+            span {
+              color: #e2e8f0;
+            }
+          }
+        }
+      }
+
+      .emoji-dropdown-container {
+        .emoji-btn {
+          .icon {
+            filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+          }
+
+          &:hover .icon {
+            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+          }
+        }
+
+        .emoji-dropdown {
+          background: #2d3748;
+          border-color: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+          .emoji-grid {
+            .emoji-item {
+              &:hover {
+                background-color: rgba(146, 180, 108, 0.2);
+              }
+            }
+          }
+        }
+      }
+
+      .voice-btn {
+        .icon {
+          filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        }
+
+        &:hover .icon {
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
         }
       }
     }
@@ -244,4 +608,33 @@
       padding: 6px 8px;
     }
   }
-} 
+}
+
+// Drop area styles
+.drop-area {
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    border-color: #92b46c !important;
+    background-color: rgba(146, 180, 108, 0.1) !important;
+  }
+  
+  &.drag-over {
+    border-color: #92b46c !important;
+    background-color: rgba(146, 180, 108, 0.2) !important;
+    transform: scale(1.02);
+  }
+}
+
+// Dark theme support
+:host-context(.dark-theme) {
+  .drop-area {
+    border-color: #555 !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    
+    &:hover {
+      border-color: #92b46c !important;
+      background-color: rgba(146, 180, 108, 0.15) !important;
+    }
+  }
+}
