@@ -95,7 +95,7 @@ export class FullComponent implements OnInit {
   //get options from service
   options = this.settings.getOptions();
   private layoutChangesSubscription = Subscription.EMPTY;
-  private isMobileScreen = false;
+  public isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
