@@ -142,6 +142,7 @@ export class AppChatComponent implements OnInit {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
       if (event.group) {
         this.group = event.group;
+        this.user = null;
 
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
@@ -158,6 +159,7 @@ export class AppChatComponent implements OnInit {
         });
       } else {
         this.user = event.user;
+        this.group = null;
 
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
