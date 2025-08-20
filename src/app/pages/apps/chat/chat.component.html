@@ -37,6 +37,10 @@
         [backdropStyle]="backdropStyle"
         [hideCreateGroup]="true"
         [messagesConfiguration]="basicMessagesConfig"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [groupsConfiguration]="groupsConfiguration"
+        [user]="user"
+        [group]="group"
       >
       </cometchat-groups-with-messages>
     
@@ -45,7 +49,10 @@
         *ngIf="plan && plan.id === 2"
         id="chat-container"
         [messagesConfiguration]="essentialMessagesConfig"
-        [StartConversationConfiguration]="chatService.contactsConfiguration"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [conversationConfiguration]="conversationConfiguration"
+        [user]="user"
+        [group]="group"
       >
       </cometchat-conversations-with-messages>
 
@@ -54,7 +61,10 @@
         *ngIf="(plan && plan.id === 3) || userRole === '1'"
         id="chat-container"
         [messagesConfiguration]="professionalMessagesConfig"
-        [StartConversationConfiguration]="chatService.contactsConfiguration"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [conversationConfiguration]="conversationConfiguration"
+        [user]="user"
+        [group]="group"
       >
       </cometchat-conversations-with-messages>
     }
