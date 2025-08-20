@@ -30,6 +30,7 @@ import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match
 import { TeamComponent } from './team/team.component';
 import { AppHistoryComponent } from './history/history.component';
 import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
+import { AppExpertComponent } from './expert/expert.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -170,7 +171,7 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
-            {
+      {
         path: 'talent-match',
         component: AppTalentMatchComponent,
         data: {
@@ -178,6 +179,17 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'talent match' },
+          ],
+        },
+      },
+      {
+        path: 'expert',
+        component: AppExpertComponent,
+        data: {
+          title: 'Expert',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Expert' },
           ],
         },
       },
