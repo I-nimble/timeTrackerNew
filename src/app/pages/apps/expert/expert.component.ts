@@ -5,6 +5,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { UsersService } from 'src/app/services/users.service';
 import { ClientTableComponent } from './client-table/client-table.component';
+import { ClientDetailsComponent } from './client-detail/client-details.component';
 
 @Component({
   selector: 'app-expert',
@@ -16,6 +17,7 @@ import { ClientTableComponent } from './client-table/client-table.component';
     MaterialModule,
     TablerIconsModule,
     ClientTableComponent,
+    ClientDetailsComponent
   ]
 })
 export class AppExpertComponent implements OnInit {

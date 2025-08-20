@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, OnChanges, EventEmitter, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -24,6 +24,7 @@ interface Department {
 })
 export class ClientTableComponent implements OnChanges, AfterViewInit {
   @Input() clients: any[] = [];
+  @Output() selectClient = new EventEmitter<any>();
   displayedColumns: string[] = ['name', 'email', 'phone', 'company', 'departments'];
   dataSourceTable = new MatTableDataSource<any>([]);
 
@@ -50,5 +51,9 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
 
   ngAfterViewInit() {
     this.dataSourceTable.paginator = this.paginator;
+  }
+
+  onRowClick(client: any) {
+    this.selectClient.emit(client);
   }
 }
