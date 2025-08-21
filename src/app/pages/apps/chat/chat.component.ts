@@ -4,7 +4,7 @@ import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
@@ -68,18 +68,26 @@ export class AppChatComponent implements OnInit {
 
   public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
     ...this.chatService.contactsConfiguration,
-    // usersConfiguration: new UsersConfiguration({
-    //   onItemClick: (user) => {
-    //     this.user = user as CometChat.User;
-    //     this.group = null;
-    //   },
-    // }),
-    // groupsConfiguration: new GroupsConfiguration({
-    //   onItemClick: (group) => {
-    //     this.user = null;
-    //     this.group = group as CometChat.Group;
-    //   },
-    // }),
+    usersConfiguration: new UsersConfiguration({
+      onItemClick: (user) => {
+        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        if (btn) btn.click();
+
+        this.user = user as CometChat.User;
+        this.group = null;
+      },
+    }),
+    groupsConfiguration: new GroupsConfiguration({
+      onItemClick: (group) => {
+        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        if (btn) btn.click();
+
+        this.user = null;
+        this.group = group as CometChat.Group;
+      },
+    }),
   });
 
   public conversationConfiguration = new ConversationsConfiguration({
