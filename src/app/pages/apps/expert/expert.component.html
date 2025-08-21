@@ -5,9 +5,9 @@
         <mat-form-field appearance="outline" class="w-100 hide-hint">
           <input
             matInput
-            placeholder="Search"
-            [(ngModel)]="searchText"
-            (keyup)="applyCombinedFilters()"
+            placeholder="Select a Department"
+            [(ngModel)]="departmentFilter"
+            (keyup)="applyDepartmentFilter()"
           />
           <mat-icon matSuffix>
             <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
@@ -21,7 +21,7 @@
 <mat-card class="cardWithShadow mt-16">
   <mat-card-content>
     <div class="table-responsive">
-      <app-client-table [clients]="clients"></app-client-table>
+      <app-client-table [clients]="filteredClients"></app-client-table>
     </div>
   </mat-card-content>
 </mat-card>
