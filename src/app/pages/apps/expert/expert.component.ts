@@ -22,7 +22,6 @@ export class AppExpertComponent implements OnInit {
   clients: any[] = [];
   filteredClients: any[] = [];
   departmentFilter: string = '';
-  departments: string[] = [];
 
   constructor(private usersService: UsersService) {}
 
@@ -30,25 +29,17 @@ export class AppExpertComponent implements OnInit {
     this.usersService.getUsers({}).subscribe((users) => {
       this.clients = users.filter((u: any) => u.role == 3 && u.active == 1);
       this.filteredClients = [...this.clients];
-
-      const deptSet = new Set<string>();
-      this.clients.forEach(client => {
-        client.company?.departments?.forEach((d: any) => deptSet.add(d.name));
-      });
-      this.departments = Array.from(deptSet).sort();
     });
   }
 
   applyDepartmentFilter() {
-    if (!this.departmentFilter) {
+    const filter = this.departmentFilter.trim().toLowerCase();
+    if (!filter) {
       this.filteredClients = [...this.clients];
       return;
     }
-
-    const filter = this.departmentFilter.toLowerCase();
-
     this.filteredClients = this.clients.filter(client => {
-      const departments = client.company?.departments?.map((d: any) => d.name.toLowerCase()) || [];
+      const departments = client.company?.departmentsString?.toLowerCase() || '';
       return departments.includes(filter);
     });
   }
