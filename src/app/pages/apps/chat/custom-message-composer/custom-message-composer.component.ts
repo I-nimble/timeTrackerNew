@@ -4,6 +4,7 @@ import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { CometChatUIKit } from '@cometchat/chat-uikit-angular';
 
 @Component({
 	selector: 'app-custom-message-composer',
@@ -12,7 +13,8 @@ import { CommonModule } from '@angular/common';
 	styleUrls: ['./custom-message-composer.component.scss']
 })
 export class CustomMessageComposerComponent implements OnInit, OnDestroy {
-	@Input() currentChatContext: any;
+	@Input() user: CometChat.User | null = null;
+    @Input() group: CometChat.Group | null = null;
     @Input() hideVoiceRecording: boolean = false;
 
 	messageText: string = '';
@@ -20,6 +22,7 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	isComposing: boolean = false;
 	cursorPosition: number = 0;
 	isDragOver: boolean = false;
+	private dragLeaveTimeout: any = null;
 
 	showAttachmentDropdown: boolean = false;
 	showEmojiDropdown: boolean = false;
@@ -78,11 +81,31 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 
 	handleDragOver(event: DragEvent) {
 		event.preventDefault();
+		if (this.dragLeaveTimeout) {
+			clearTimeout(this.dragLeaveTimeout);
+			this.dragLeaveTimeout = null;
+		}
+		this.isDragOver = true;
+	}
+
+	handleDragEnter(event: DragEvent) {
+		event.preventDefault();
+		if (this.dragLeaveTimeout) {
+			clearTimeout(this.dragLeaveTimeout);
+			this.dragLeaveTimeout = null;
+		}
 		this.isDragOver = true;
 	}
 
 	handleDragLeave(event: DragEvent) {
-		this.isDragOver = false;
+		event.preventDefault();
+		if (this.dragLeaveTimeout) {
+			clearTimeout(this.dragLeaveTimeout);
+		}
+		this.dragLeaveTimeout = setTimeout(() => {
+			this.isDragOver = false;
+			this.dragLeaveTimeout = null;
+		}, 80); // 80ms delay to avoid flicker
 	}
 
 	handleDrop(event: DragEvent) {
@@ -336,7 +359,7 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	}
 
     private async sendMediaMessage(file: File, messageType: string) {
-        if (!this.currentChatContext) {
+        if (!this.user && !this.group) {
             this.openSnackBar('No active chat context', 'Close');
             return Promise.reject('No active chat context');
         }
@@ -344,11 +367,11 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
         let receiverId: string;
         let receiverType: string;
 
-        if (this.currentChatContext.user) {
-            receiverId = this.currentChatContext.user.getUid();
+        if (this.user) {
+            receiverId = this.user.getUid();
             receiverType = CometChat.RECEIVER_TYPE.USER;
-        } else if (this.currentChatContext.group) {
-            receiverId = this.currentChatContext.group.getGuid();
+        } else if (this.group) {
+            receiverId = this.group.getGuid();
             receiverType = CometChat.RECEIVER_TYPE.GROUP;
         } else {
             this.openSnackBar('No valid chat context found', 'Close');
@@ -362,20 +385,20 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
             receiverType
         );
 
-        return CometChat.sendMediaMessage(mediaMessage);
+		return CometChatUIKit.sendMediaMessage(mediaMessage);
     }
 
 
 	private sendTextMessage() {
 		if (!this.messageText.trim()) return;
-		if (!this.currentChatContext) return;
+		if (!this.user && !this.group) return;
 		let receiverId: string;
 		let receiverType: string;
-		if (this.currentChatContext.user) {
-			receiverId = this.currentChatContext.user.getUid();
+		if (this.user) {
+			receiverId = this.user.getUid();
 			receiverType = CometChat.RECEIVER_TYPE.USER;
-		} else if (this.currentChatContext.group) {
-			receiverId = this.currentChatContext.group.getGuid();
+		} else if (this.group) {
+			receiverId = this.group.getGuid();
 			receiverType = CometChat.RECEIVER_TYPE.GROUP;
 		} else {
 			this.openSnackBar('No valid chat context found', 'Close');
@@ -387,11 +410,10 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
             receiverType
         );
     
-        CometChat.sendMessage(textMessage).then((message) => {
-            this.clearComposer();
-        }).catch((error) => {
-            this.openSnackBar('Error sending message: ' + error.message, 'Close');
-        });
+		this.clearComposer();
+		CometChatUIKit.sendTextMessage(textMessage).catch((error) => {
+			this.openSnackBar('Error sending message: ' + error.message, 'Close');
+		});
 	}
 
 	private clearComposer() {
@@ -410,6 +432,10 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 
 	ngOnDestroy() {
 		this.stopVoiceRecorderTimer();
+		if (this.dragLeaveTimeout) {
+			clearTimeout(this.dragLeaveTimeout);
+			this.dragLeaveTimeout = null;
+		}
         document.removeEventListener('paste', this.handlePaste.bind(this));
 	}
 }

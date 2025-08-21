@@ -20,6 +20,7 @@
 		(dragover)="handleDragOver($event)"
 		(dragleave)="handleDragLeave($event)"
 		(drop)="handleDrop($event)"
+		(dragenter)="handleDragEnter($event)"
 	>
 		<textarea
 			#textArea
@@ -32,9 +33,18 @@
 			(blur)="onBlur()"
 			rows="1"
 			autosize
+			(dragenter)="handleDragEnter($event)"
+			(dragleave)="handleDragLeave($event)"
+			(dragover)="handleDragOver($event)"
 		></textarea>
 		<!-- Drag Overlay -->
-		<div class="drag-overlay" *ngIf="isDragOver">
+		<div 
+			class="drag-overlay" 
+			*ngIf="isDragOver"
+			(dragenter)="handleDragEnter($event)"
+			(dragleave)="handleDragLeave($event)"
+			(dragover)="handleDragOver($event)"
+		>
 			<mat-icon>cloud_upload</mat-icon>
 			<span>Drop image here</span>
 		</div>
