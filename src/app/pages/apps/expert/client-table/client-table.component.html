@@ -22,6 +22,12 @@
     </td>
   </ng-container>
 
+  <!-- Departments -->
+  <ng-container matColumnDef="departments">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Departments</th>
+    <td mat-cell *matCellDef="let client">{{ client.company?.departmentsString }}</td>
+  </ng-container>
+
   <!-- Email -->
   <ng-container matColumnDef="email">
     <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Email</th>
