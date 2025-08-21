@@ -3,11 +3,15 @@
     <div class="row justify-content-between gap-16">
       <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
         <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <mat-label>Select a Department</mat-label>
-          <mat-select [(value)]="departmentFilter" (selectionChange)="applyDepartmentFilter()">
-            <mat-option value="">All Departments</mat-option>
-            <mat-option *ngFor="let dept of departments" [value]="dept">{{ dept }}</mat-option>
-          </mat-select>
+          <input
+            matInput
+            placeholder="Select a Department"
+            [(ngModel)]="departmentFilter"
+            (keyup)="applyDepartmentFilter()"
+          />
+          <mat-icon matSuffix>
+            <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+          </mat-icon>
         </mat-form-field>
       </div>
     </div>
