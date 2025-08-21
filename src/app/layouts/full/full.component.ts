@@ -1,4 +1,4 @@
-import { BreakpointObserver, MediaMatcher } from '@angular/cdk/layout';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
@@ -7,7 +7,6 @@ import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
 import { getNavItems } from './vertical/sidebar/sidebar-data';
-import { NavService } from '../../services/nav.service';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
@@ -24,10 +23,8 @@ import { BrandingComponent } from './vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
-import {CompaniesService} from 'src/app/services/companies.service';
-import {environment} from 'src/environments/environment';
+import { environment } from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
-import { NotificationsComponent } from 'src/app/pages/dashboards/notifications/notifications.component';
 
 export function jwtOptionsFactory() {
   return {
@@ -88,7 +85,6 @@ export class FullComponent implements OnInit {
   company: any;
   userName:any;
   userId:any;
-  // companyLogo:any = 'assets/images/default-logo.jpg';
   profilePicture:any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
 
@@ -99,7 +95,7 @@ export class FullComponent implements OnInit {
   //get options from service
   options = this.settings.getOptions();
   private layoutChangesSubscription = Subscription.EMPTY;
-  private isMobileScreen = false;
+  public isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
@@ -121,20 +117,6 @@ export class FullComponent implements OnInit {
       subtitle: 'Internal communication',
       link: '/apps/chat',
     },
-    // {
-    //   id: 2,
-    //   img: '/assets/images/svgs/icon-dd-cart.svg',
-    //   title: 'eCommerce App',
-    //   subtitle: 'Buy a Product',
-    //   link: '/apps/email/inbox',
-    // },
-    // {
-    //   id: 3,
-    //   img: '/assets/images/svgs/icon-dd-invoice.svg',
-    //   title: 'Invoice App',
-    //   subtitle: 'Get latest invoice',
-    //   link: '/apps/invoice',
-    // },
     {
       id: 4,
       img: '/assets/images/svgs/icon-dd-date.svg',
@@ -142,13 +124,6 @@ export class FullComponent implements OnInit {
       subtitle: 'Manage tasks by date',
       link: '/apps/calendar',
     },
-    // {
-    //   id: 5,
-    //   img: '/assets/images/svgs/icon-dd-mobile.svg',
-    //   title: 'Contact Application',
-    //   subtitle: '2 Unsaved Contacts',
-    //   link: '/apps/contacts',
-    // },
     {
       id: 6,
       img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
@@ -171,65 +146,28 @@ export class FullComponent implements OnInit {
       link: '/apps/notes',
     },
     {
-      id: 9,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Notifications',
-      subtitle: 'See your notifications',
-      link: '/apps/notifications',
+      id: 10,
+      img: '/assets/images/svgs/icon-tasks.svg',
+      title: 'To Do',
+      subtitle: 'Manage your daily to-dos',
+      link: '/apps/todo',
     },
+    ...(localStorage.getItem('role') == '3'
+    ? [{
+        id: 11,
+        img: '/assets/images/svgs/icon-inbox.svg',
+        title: 'History',
+        subtitle: 'Monitor your team’s actions',
+        link: '/apps/history',
+      }]
+    : [])
   ];
-
-  // quicklinks: quicklinks[] = [
-  //   {
-  //     id: 1,
-  //     title: 'Pricing Page',
-  //     link: '/theme-pages/pricing',
-  //   },
-  //   {
-  //     id: 2,
-  //     title: 'Authentication Design',
-  //     link: '/authentication/login',
-  //   },
-  //   {
-  //     id: 3,
-  //     title: 'Register Now',
-  //     link: '/authentication/side-register',
-  //   },
-  //   {
-  //     id: 4,
-  //     title: '404 Error Page',
-  //     link: '/authentication/error',
-  //   },
-  //   {
-  //     id: 5,
-  //     title: 'Notes App',
-  //     link: '/apps/notes',
-  //   },
-  //   {
-  //     id: 6,
-  //     title: 'Time tracker',
-  //     link: '/apps/employee',
-  //   },
-  //   {
-  //     id: 7,
-  //     title: 'Todo Application',
-  //     link: '/apps/todo',
-  //   },
-  //   {
-  //     id: 8,
-  //     title: 'Treeview',
-  //     link: '/theme-pages/treeview',
-  //   },
-  // ];
 
   constructor(
     private settings: CoreService,
-    private mediaMatcher: MediaMatcher,
     private router: Router,
     private breakpointObserver: BreakpointObserver,
-    private navService: NavService,
     private authService: AuthService,
-    private companieService: CompaniesService,
     private usersService: UsersService,
   ) {
     this.htmlElement = document.querySelector('html')!;
@@ -258,13 +196,6 @@ export class FullComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // this.companieService.logoUpdated$.subscribe(() => {
-    //   if (this.role == '3') {
-    //     this.companieService.getByOwner().subscribe((company: any) => {
-    //       this.loadCompanyLogo(company.company_id);
-    //     });
-    //   }
-    // });
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
@@ -296,8 +227,6 @@ export class FullComponent implements OnInit {
   }
 
   receiveOptions(options: AppSettings): void {
-    //this.options = options;
-
     this.toggleDarkTheme(options);
     this.toggleColorsTheme(options);
   }
@@ -331,16 +260,7 @@ export class FullComponent implements OnInit {
   userData(){
     this.userName = localStorage.getItem('username');
     this.userId = localStorage.getItem('id');
-    // const role = localStorage.getItem('role');
-    // if(role == '3'){
-    //   this.companieService.getByOwner().subscribe((company: any) => {
-    //     this.company = company.company.name;
-    //     this.loadCompanyLogo(company.company_id);
-    //   });
-    // }
-    // else {
-      this.loadProfilePicture();
-    // }
+    this.loadProfilePicture();
   }
 
   loadProfilePicture() {
@@ -350,19 +270,4 @@ export class FullComponent implements OnInit {
       },
     });
   }
-
-  // loadCompanyLogo(companyId: number) {
-  //   this.companieService.getCompanyLogo(companyId).subscribe((logo) => {
-  //     if (logo != null) this.companyLogo = logo;
-  //   });
-    // this.plansService.getCurrentPlan(company.company_id).subscribe({
-    //   next: (userPlan: any) => {
-    //     let plan = userPlan?.plan;
-    //     this.plan = (plan?.name === 'Basic') ? false : true;  
-    //   },
-    //   error: (error: any) => {
-    //     this.store.addNotifications('Error loading plan data', 'error');
-    //   },
-    // });
-  // }
 }

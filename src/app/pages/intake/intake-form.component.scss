@@ -1,3 +1,6 @@
+.intake-title {
+    line-height: 40px;
+}
 .form-container {
     min-height: 100vh;
     display: flex;
@@ -36,6 +39,14 @@ h2 {
 @media screen and (max-width: 768px) {
     #logo {
         width: 80%;
+    }
+    ::ng-deep .mat-horizontal-stepper-header .mat-step-label {
+        display: none;
+    }
+    
+    ::ng-deep .mat-horizontal-stepper-header {
+        min-height: 0;
+        margin-bottom: 0;
     }
 }
 

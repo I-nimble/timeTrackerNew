@@ -12,7 +12,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration } from '@cometchat/uikit-shared';
+import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration } from '@cometchat/uikit-shared';
 import { BackdropStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
 import { CometChatUIEvents } from "@cometchat/uikit-resources"
@@ -66,9 +66,47 @@ export class AppChatComponent implements OnInit {
   // PROFESSIONAL PLAN CONFIGURATION
   public professionalMessagesConfig: MessagesConfiguration;
 
+  public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
+    ...this.chatService.contactsConfiguration,
+    // usersConfiguration: new UsersConfiguration({
+    //   onItemClick: (user) => {
+    //     this.user = user as CometChat.User;
+    //     this.group = null;
+    //   },
+    // }),
+    // groupsConfiguration: new GroupsConfiguration({
+    //   onItemClick: (group) => {
+    //     this.user = null;
+    //     this.group = group as CometChat.Group;
+    //   },
+    // }),
+  });
+
+  public conversationConfiguration = new ConversationsConfiguration({
+    onItemClick: async (conversation) => {
+      const conv = conversation.getConversationWith();
+      const convType = conversation.getConversationType();
+
+      if (convType === 'user') {
+        this.user = conv as CometChat.User;
+        this.group = null;
+      } else if (convType === 'group') {
+        this.group = conv as CometChat.Group;
+        this.user = null;
+      }
+    },
+  });
+  public groupsConfiguration = new GroupsConfiguration({
+    onItemClick: async (group) => {
+      this.group = group as CometChat.Group;
+      this.user = null;
+    },
+  });
+
   @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
   @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
-  currentChatContext: any = null;
+  user: CometChat.User | null = null;
+  group: CometChat.Group | null = null;
 
   getButtonStyle() {
     return {
@@ -113,9 +151,10 @@ export class AppChatComponent implements OnInit {
 
   private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
-      this.currentChatContext = event;
-
       if (event.group) {
+        this.group = event.group;
+        this.user = null;
+
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
@@ -130,6 +169,9 @@ export class AppChatComponent implements OnInit {
           })
         });
       } else {
+        this.user = event.user;
+        this.group = null;
+
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
@@ -298,9 +340,8 @@ export class AppChatComponent implements OnInit {
   }
 
   startVoiceCall() {
-    const context = this.currentChatContext;
-    if (context.user) {
-      const receiverID = context.user.uid;
+    if (this.user) {
+      const receiverID = this.user.getUid();
       const callType = CometChat.CALL_TYPE.AUDIO;
       const receiverType = CometChat.RECEIVER_TYPE.USER;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -311,8 +352,8 @@ export class AppChatComponent implements OnInit {
         },
         (error: any) => console.error("Voice call initiation failed:", error)
       );
-    } else if (context.group) {
-      const receiverID = context.group.guid;
+    } else if (this.group) {
+      const receiverID = this.group.getGuid();
       const callType = CometChat.CALL_TYPE.AUDIO;
       const receiverType = CometChat.RECEIVER_TYPE.GROUP;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -327,9 +368,8 @@ export class AppChatComponent implements OnInit {
   }
 
   startVideoCall() {
-    const context = this.currentChatContext;
-    if (context.user) {
-      const receiverID = context.user.uid;
+    if (this.user) {
+      const receiverID = this.user.getUid();
       const callType = CometChat.CALL_TYPE.VIDEO;
       const receiverType = CometChat.RECEIVER_TYPE.USER;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -340,8 +380,8 @@ export class AppChatComponent implements OnInit {
         },
         (error: any) => console.error("Video call initiation failed:", error)
       );
-    } else if (context.group) {
-      const receiverID = context.group.guid;
+    } else if (this.group) {
+      const receiverID = this.group.getGuid();
       const callType = CometChat.CALL_TYPE.VIDEO;
       const receiverType = CometChat.RECEIVER_TYPE.GROUP;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);

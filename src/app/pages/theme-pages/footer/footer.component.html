@@ -1,23 +1,22 @@
 <footer
   class="footer text-white p-y-30"
-  style="background: #1a1a1a; padding: 50px 0 0 0"
+  style="background: #454545; padding: 50px 0 0 0"
 >
   <div class="container">
-    <div class="row justify-content-between align-items-center">
-      <div class="col-lg-4 mb-4 mb-lg-0">
+    <div class="row d-flex justify-content-between align-items-center">
+      <div id="footer-logo" class="col-md-4 p-x-40 mb-4 mb-lg-0 d-flex flex-column align-items-end flex-grow-1">
         <img
-          src="https://i-nimble.com/wp-content/uploads/2020/11/logo-blanco.png"
-          width="350"
+          src="assets/images/inimble_white.png"
+          width="296"
           alt="Inimble Logo"
         />
-        <p class="footer-description">
-          Inimble is a Staffing Agency based in United States with highly
-          skilled motivated professionals in Latin America.
+        <p class="footer-description text-right f-s-14">
+          Inimble is the first Remote Operating Platform for Lawyers — combining AI-powered talent matching, secure legal workflows, global payments, and compliance-ready coworking hubs in Latin America.
         </p>
       </div>
-      <div class="col-lg-4 mb-4 mb-lg-0 text-center">
-        <h3 style="margin-bottom: 20px">Contact Info</h3>
-        <ul class="list-unstyled p-0 m-0" style="list-style: none; padding: 0">
+      <div id="footer-contact" class="col-md-4 p-x-40 mb-4 mb-lg-0 text-center d-flex flex-column align-items-start flex-grow-1">
+        <h3 style="margin-bottom: 20px">Contact Info</h3> 
+        <ul class="list-unstyled p-0 m-0 d-flex flex-column align-items-start" style="list-style: none; padding: 0">
           <li>
             <i-tabler name="phone" class="icon-16"></i-tabler> +1 (706) 478-5677
           </li>
@@ -30,46 +29,26 @@
             Norcross Road, Suite 100, Lawrenceville, Georgia, 30044
           </li>
         </ul>
-        <a
-          href="https://meetings.hubspot.com/tretsky/inimble-intro-meeting"
-          target="_blank"
-          class="btn btn-custom btn-hired"
-          style="text-decoration: none; margin-top: 24px; display: inline-block"
-          >Book a demo</a
-        >
       </div>
-      <div class="col-lg-4 text-center text-lg-right">
-        <a
+      <div class="col-md-4 p-x-40 d-flex flex-column align-items-center text-lg-right flex-grow-1">
+        <app-button
+          text="Call Us Now"
+          variant="filled"
+          size="medium"
+          [fullWidth]="true"
+          style="margin-bottom: 20px"
+        >
+        </app-button>
+        <app-button 
+          text="Free for Your First 5 Users — Start Today" 
+          variant="filled" 
+          size="medium"
           [routerLink]="['/authentication/login']"
-          class="btn btn-custom btn-hired"
-          style="text-decoration: none"
-          >Try Inimble for free</a
+          [fullWidth]="true"
+          style="margin-bottom: 20px"
         >
-        <div>
-          <p class="footer-description m-t-32">Visit our blog</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</footer>
-<div
-  style="
-    background: #808080;
-    color: #222;
-    padding: 6px 0;
-    width: 100%;
-    overflow: hidden;
-    z-index: 1000;
-    bottom: 0;
-  "
->
-  <div class="container">
-    <div class="row justify-content-between align-items-center m-t-20">
-      <div class="col-lg-6">
-        <p class="m-0">I-Nimble © 2023 - Privacy Policy</p>
-      </div>
-      <div class="col-lg-5 text-right">
-        <div class="footer-icons d-flex justify-content-end gap-10">
+        </app-button>
+         <div class="footer-icons d-flex justify-content-center align-items-center text-white gap-10">
           <a
             href="https://www.linkedin.com/company/inimble/"
             target="_blank"
@@ -77,26 +56,7 @@
           >
             <i-tabler
               name="brand-linkedin"
-              class="icon-20"
-              style="color: #222"
-            ></i-tabler>
-          </a>
-          <a
-            href="https://www.instagram.com/inimbleteam/"
-            target="_blank"
-            aria-label="Instagram"
-          >
-            <i-tabler
-              name="brand-instagram"
-              class="icon-20"
-              style="color: #222"
-            ></i-tabler>
-          </a>
-          <a href="https://www.tumblr.com/" target="_blank" aria-label="Tumblr">
-            <i-tabler
-              name="brand-tumblr"
-              class="icon-20"
-              style="color: #222"
+              class="icon-32"
             ></i-tabler>
           </a>
           <a
@@ -106,12 +66,53 @@
           >
             <i-tabler
               name="brand-facebook"
-              class="icon-20"
-              style="color: #222"
+              class="icon-32"
             ></i-tabler>
           </a>
+          <a
+            href="https://www.tiktok.com/@inimbleteam"
+            target="_blank"
+            aria-label="TikTok"
+          >
+            <i-tabler name="brand-tiktok" class="icon-32"></i-tabler>
+          </a>
+          <a
+            href="https://www.instagram.com/inimbleteam/"
+            target="_blank"
+            aria-label="Instagram"
+          >
+            <i-tabler
+              name="brand-instagram"
+              class="icon-32"
+            ></i-tabler>
+          </a>
+          <a
+            href="https://www.youtube.com/@inimbleTeam"
+            target="_blank"
+            aria-label="YouTube"
+          >
+            <i-tabler name="brand-youtube" class="icon-32"></i-tabler>
+          </a>          
         </div>
       </div>
+    </div>
+  </div>
+</footer>
+<div
+  style="
+    background: #454545;
+    border-top: 1px solid #808080; 
+    color: #fff;
+    padding: 6px 0;
+    width: 100%;
+    overflow: hidden;
+    z-index: 1000;
+    bottom: 0;
+  "
+>
+  <div class="container">
+    <div class="text-center m-t-20 m-b-20 copyright">
+      <p class="m-0">I-Nimble © 2023 - Privacy Policy</p>
     </div>
   </div>
 </div>

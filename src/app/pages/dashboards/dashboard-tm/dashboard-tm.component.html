@@ -2,7 +2,7 @@
   <div class="card-body p-0">
     <img
       src="assets/images/backgrounds/profilebg.png"
-      alt="spike-img"
+      alt="Profile background"
       class="img-fluid"
     />
     <div class="row align-items-center">
@@ -32,13 +32,14 @@
           </div>
           <div class="text-center">
             <h5 class="mb-0">{{ user.name }} {{ user.last_name }}</h5>
-            <p class="mb-0 position">{{ user.employee.position_name }}</p>
+            <p class="mb-0 position" *ngIf="!isOrphan">{{ user.employee.position_name }}</p>
           </div>
         </div>
       </div>
       <div class="col-lg-4 order-last">
         <div>
           <app-entries-panel
+            *ngIf="!isOrphan"
             [entryCheck]="entryCheck"
             [currentEntryId]="currentEntryId"
             [start_time]="start_time"
@@ -55,7 +56,7 @@
 </div>
 
 <!-- Company Information -->
-<div class="row mt-4 m-b-20">
+<div class="row mt-4 m-b-20" *ngIf="!isOrphan">
   <div class="col-md-5 m-b-20">
     <div class="card shadow-none h-100">
        <div class="card-body tasks">

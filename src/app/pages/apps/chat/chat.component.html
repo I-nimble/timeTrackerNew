@@ -26,22 +26,43 @@
       Create Group
     </button>
 
-    <!-- BASIC PLAN CHAT -->
-    <cometchat-groups-with-messages *ngIf="plan && plan.id == 1" id="chat-container" [backdropStyle]="backdropStyle"
-      [hideCreateGroup]="true" [messagesConfiguration]="basicMessagesConfig">
-    </cometchat-groups-with-messages>
+      <!-- BASIC PLAN CHAT -->
+      <cometchat-groups-with-messages 
+        *ngIf="plan && plan.id == 1"
+        id="chat-container"
+        [backdropStyle]="backdropStyle"
+        [hideCreateGroup]="true"
+        [messagesConfiguration]="basicMessagesConfig"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [groupsConfiguration]="groupsConfiguration"
+        [user]="user"
+        [group]="group"
+      >
+      </cometchat-groups-with-messages>
+    
+      <!-- ESSENTIAL PLAN CHAT -->
+      <cometchat-conversations-with-messages 
+        *ngIf="plan && plan.id === 2"
+        id="chat-container"
+        [messagesConfiguration]="essentialMessagesConfig"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [conversationConfiguration]="conversationConfiguration"
+        [user]="user"
+        [group]="group"
+      >
+      </cometchat-conversations-with-messages>
 
-    <!-- ESSENTIAL PLAN CHAT -->
-    <cometchat-conversations-with-messages *ngIf="plan && plan.id === 2" id="chat-container"
-      [messagesConfiguration]="essentialMessagesConfig"
-      [StartConversationConfiguration]="chatService.contactsConfiguration">
-    </cometchat-conversations-with-messages>
-
-    <!-- PROFESSIONAL PLAN CHAT -->
-    <cometchat-conversations-with-messages *ngIf="(plan && plan.id === 3) || userRole === '1'" id="chat-container"
-      [messagesConfiguration]="professionalMessagesConfig"
-      [StartConversationConfiguration]="chatService.contactsConfiguration">
-    </cometchat-conversations-with-messages>
+      <!-- PROFESSIONAL PLAN CHAT -->
+      <cometchat-conversations-with-messages 
+        *ngIf="(plan && plan.id === 3) || userRole === '1'"
+        id="chat-container"
+        [messagesConfiguration]="professionalMessagesConfig"
+        [StartConversationConfiguration]="StartConversationConfiguration"
+        [conversationConfiguration]="conversationConfiguration"
+        [user]="user"
+        [group]="group"
+      >
+      </cometchat-conversations-with-messages>
     }
     @else if (loader.complete && chatInitError) {
     <div class="cta-message">

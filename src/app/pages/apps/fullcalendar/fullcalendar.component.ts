@@ -497,7 +497,8 @@ export class AppFullcalendarComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '600px',
+      width: '900px', 
+      maxWidth: '90vw',
       data: {
         action: 'Add',
         type: 'task',
@@ -551,7 +552,8 @@ export class AppFullcalendarComponent implements OnInit {
 
   handleEvent(action: string, event: CustomCalendarEvent): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '600px',
+      width: '900px', 
+      maxWidth: '90vw',
       data: {
         action: 'Edit',
         type: 'task',

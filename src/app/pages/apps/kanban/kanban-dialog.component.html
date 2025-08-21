@@ -91,15 +91,6 @@
           (input)="onEditorInput()"
           (paste)="onPaste($event)"
           #descriptionEditor
-          style="
-            min-height: 120px;
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: 8px;
-            border: 1px solid #e0e4e8;
-            padding: 12px;
-            background: #fff;
-          "
         ></div>
       </div>
 
@@ -173,7 +164,7 @@
             Save
           </button>
 
-          <div *ngIf="showMentionList" class="mention-list">
+          <div *ngIf="showMentionList" class="mention-list mat-mdc-menu-panel b-1">
             <div
               *ngFor="let user of filteredUsers; let i = index"
               [class.selected]="i === mentionIndex"
@@ -188,7 +179,7 @@
         <div class="comment-history" *ngIf="local_data.comments">
           <div
             *ngFor="let c of local_data.comments.split('\n')"
-            class="comment-item"
+            class="comment-item bg-secondary"
           >
             <div class="comment-header">
               <span class="user-name">{{ c.split(":")[0] }}</span>

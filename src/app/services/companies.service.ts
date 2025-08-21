@@ -48,9 +48,12 @@ export class CompaniesService {
     );
   }
 
-  getUploadUrl(type: string) {
+  getUploadUrl(type: string, file?: File) {
     const escapedType = type.replace(/\//g, '%2F');
-    return this.http.get<any>(`${environment.apiUrl}/generate_upload_url/${escapedType}`);
+    return this.http.post<any>(
+      `${environment.apiUrl}/generate_upload_url/${escapedType}`,
+      { contentType: file?.type || 'application/octet-stream' }
+    );
   }
 
   public submit(data: any, id: any = null) {

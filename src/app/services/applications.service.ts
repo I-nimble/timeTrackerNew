@@ -75,8 +75,11 @@ export class ApplicationsService {
     return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
   }
 
-  getUploadUrl(type: string) {
-    return this.http.get<any>(`${this.API_URI}/generate_upload_url/${type}`);
+  getUploadUrl(type: string, file?: File) {
+    return this.http.post<any>(
+      `${this.API_URI}/generate_upload_url/${type}`,
+      { contentType: file?.type || 'application/octet-stream' }
+    );
   }
 
   public submit(data: any, id: any = null): Observable<any> {
@@ -84,7 +87,7 @@ export class ApplicationsService {
     let photoUpload$ = of(null);
 
     if(data.cv instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes').pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.cv).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
           const file = data.cv
@@ -105,7 +108,7 @@ export class ApplicationsService {
     }
     if(data.profile_pic instanceof File) {
       photoUpload$ = data.profile_pic
-        ? this.getUploadUrl('photos').pipe(
+        ? this.getUploadUrl('photos', data.profile_pic).pipe(
             switchMap((photoUrl: any) => {
               this.photoUrl = photoUrl.url;
               const imgFile = data.profile_pic

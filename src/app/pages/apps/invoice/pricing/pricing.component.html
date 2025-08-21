@@ -74,10 +74,10 @@
   }
 </div>
 
-<div *ngIf="selectedPaymentMethod === 'card' && selectedInvoiceId" class="m-t-32">
+<div *ngIf="selectedPaymentMethod === 'card' && selectedInvoiceId" class="m-t-32" #paymentForm>
   <app-stripe [invoiceId]="selectedInvoiceId"></app-stripe>
 </div>
 
-<div *ngIf="selectedPaymentMethod === 'transfer' && selectedInvoiceId" class="m-t-32">
+<div *ngIf="selectedPaymentMethod === 'transfer' && selectedInvoiceId" class="m-t-32" #paymentForm>
   <app-bank-transfer [invoiceId]="selectedInvoiceId"></app-bank-transfer>
 </div>

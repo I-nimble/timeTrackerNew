@@ -29,7 +29,7 @@ import { RouterModule } from '@angular/router';
     FormsModule,
     RouterModule,
   ],
-  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'en-GB' }],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './dashboard-admin.component.html',
   styleUrl: './dashboard-admin.component.scss',
 })

@@ -12,7 +12,7 @@
     <!-- ------------------------------------------------------------------
     Banner
     ------------------------------------------------------------------ -->
-    <div class="overflow-hidden banner-section">
+    <div class="overflow-hidden banner-section" style="margin-top:70px">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-11">
@@ -618,59 +618,6 @@
       <mat-accordion>
         <mat-expansion-panel class="shadow-none">
           <mat-expansion-panel-header>
-            <mat-panel-title class="f-s-16 f-w-500"> Demos </mat-panel-title>
-          </mat-expansion-panel-header>
-          <div>
-            <h5 class="f-s-18 mat-subtitle-1 f-w-600">Different Demos</h5>
-            <span>Included with the package</span>
-            <div class="row m-t-24">
-              @for(demo of demos; track demo.url) {
-              <div class="col-lg-3 m-b-16">
-                <div>
-                  <div class="img-overlay rounded">
-                    <img
-                      [src]="demo.imgSrc"
-                      alt="demos"
-                      class="rounded w-100"
-                    />
-                    <div class="overlay-content">
-                      <a href="{{ demo.url }}" mat-flat-button color="primary">
-                        Live preview
-                      </a>
-                    </div>
-                  </div>
-                  <span class="f-s-14 d-block text-center m-t-8">{{
-                    demo.name
-                  }}</span>
-                </div>
-              </div>
-              }
-            </div>
-            <!-- apps -->
-            <h5 class="f-s-18 mat-subtitle-1 f-w-600 m-t-24">Different Apps</h5>
-            <div class="row m-t-24">
-              @for(app of appdemos; track app.name) {
-              <div class="col-lg-3 m-t-16">
-                <div>
-                  <div class="img-overlay rounded">
-                    <img [src]="app.imgSrc" alt="apps" class="rounded w-100" />
-                    <div class="overlay-content">
-                      <a href="{{ app.url }}" mat-flat-button color="primary">
-                        Live preview
-                      </a>
-                    </div>
-                  </div>
-                  <span class="f-s-14 d-block text-center m-t-8">{{
-                    app.name
-                  }}</span>
-                </div>
-              </div>
-              }
-            </div>
-          </div>
-        </mat-expansion-panel>
-        <mat-expansion-panel class="shadow-none">
-          <mat-expansion-panel-header>
             <mat-panel-title class="f-s-16 f-w-500"> Pages </mat-panel-title>
           </mat-expansion-panel-header>
           <div>
@@ -700,38 +647,13 @@
               </div>
               }
             </div>
-            <h4 class="f-s-18 f-w-600 mat-subtitle-1 m-b-16">Quick Links</h4>
-            @for(quicklink of quicklinks; track quicklink.title) {
-            <div class="text-hover-primary">
-              <a
-                [routerLink]="['quicklink.link']"
-                class="hover-text text-decoration-none mat-body-1 f-w-600 d-block p-y-8"
-                >{{ quicklink.title }}</a
-              >
-            </div>
-            }
           </div>
         </mat-expansion-panel>
       </mat-accordion>
 
       <div class="p-x-16">
-        <a
-          href="
-            https://demos.wrappixel.com/premium-admin-templates/angular/spike-angular/docs/index.html
-          "
-          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
-        >
-          <span class="f-s-15 f-w-500 m-l-8">Documentation</span>
-        </a>
-        <a
-          [routerLink]="['https://support.wrappixel.com/']"
-          class="d-flex align-items-center text-decoration-none mat-body-1 p-y-16"
-        >
-          <span class="f-s-15 f-w-500 m-l-8">Support</span>
-        </a>
-        <a mat-flat-button color="primary" class="w-100" [routerLink]="['/']"
-          >Buy Now</a
-        >
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Login" variant="ghost" size="small" [routerLink]="['/authentication/login']"></app-button>
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Get Started" variant="filled" size="small"></app-button>
       </div>
     </div>
   </mat-sidenav>

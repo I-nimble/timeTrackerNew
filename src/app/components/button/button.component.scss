@@ -1,0 +1,118 @@
+@use "../../../assets/scss/variables" as *;
+
+:host {
+  display: inline-block;
+
+  a, button {
+    display: flex;
+    text-decoration: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    border: none;
+    overflow: hidden;
+    transform: translateZ(0);
+    z-index: 1;
+
+    p {
+      font-family: "Montserrat", sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 21px;
+      letter-spacing: 0.1;
+      color: $black-shark;
+      margin-right: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    mat-icon {
+      font-size: 2rem;
+      line-height: 1.25rem;
+      color: $black-shark;
+      position: relative;
+      z-index: 2;
+    }
+
+  }
+
+  &.small a, &.small button {
+    padding: 12px 16px;
+    height: 45px;
+    min-width: 64px;
+
+    p {
+      font-size: 14px;
+      line-height: 21px;
+      letter-spacing: 0.1;
+    }
+  }
+
+  &.medium a, &.medium button {
+    padding: 12px 32px;
+    height: 52px;
+    min-width: 64px;
+
+    p {
+      font-size: 16px;
+      line-height: 28px;
+      letter-spacing: 0%;
+    }
+  }
+
+  &.large a, &.large button {
+    padding: 16px 32px;
+    height: 60px;
+    min-width: 64px;
+
+    p {
+      font-size: 16px;
+      line-height: 28px;
+      letter-spacing: 0.5;
+    }
+  }
+
+  &.filled a, &.filled button {
+    background: $primary-landing;
+  
+    &:hover {
+      background: $primary-hover;
+    }
+  }
+
+  &.ghost a, &.ghost button {
+    background: transparent;
+    border: 2px solid $black-shark;
+    
+    &:hover {
+      background: $secondary-hover;
+    }
+  }
+
+  &.transparent a, &.transparent button {
+    background: transparent;
+    
+    &:hover p {
+      text-decoration: underline;
+    }
+  }
+
+  &.disabled {
+    a, button {
+      cursor: not-allowed;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+
+  &.full-width {
+    width: 100%;
+    a, button {
+      width: 100%;
+    }
+  }
+}

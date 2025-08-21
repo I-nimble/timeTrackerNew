@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -12,6 +12,11 @@ import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { MatDialog } from '@angular/material/dialog';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
+import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
 interface apps {
   id: number;
@@ -63,25 +68,17 @@ interface features {
     AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
+    HeroButtonComponent,
+    ButtonComponent
   ],
-  templateUrl: './landingpage.component.html',
-  animations: [
-    trigger('fadeAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
-      ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
-  ],
+  templateUrl: './landingpage.component.html'
 })
-export class AppLandingpageComponent {
+export class AppLandingpageComponent implements AfterViewInit {
   @Input() showToggle = true;
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
+  @ViewChild('inimbleVideo') inimbleVideoRef!: ElementRef<HTMLVideoElement>;
 
   currentSlide = 0;
   testimonials = [
@@ -158,14 +155,56 @@ export class AppLandingpageComponent {
       image: 'assets/images/landingpage/logos/14.jpeg',
     },
   ];
+  isMobileScreen = false;
+  inimbleVideoUrl = "https://inimble-app.s3.us-east-1.amazonaws.com/Inimble+Platform.mp4";
 
   options = this.settings.getOptions();
 
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private breakpointObserver: BreakpointObserver
+  ) {
+    this.breakpointObserver.observe([
+      '(max-width: 767px)'
+    ]).subscribe(result => {
+      this.isMobileScreen = result.matches;
+    });
+  }
+
+  ngAfterViewInit() {
+    if (this.inimbleVideoRef) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              this.inimbleVideoRef.nativeElement.play();
+            } else {
+              this.inimbleVideoRef.nativeElement.pause();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      observer.observe(this.inimbleVideoRef.nativeElement);
+    }
+  }
+
+  getVisibleTestimonials() {
+    const length = this.testimonials.length;
+    
+    if (this.isMobileScreen) {
+      return [this.testimonials[this.currentSlide % length]];
+    } else {
+      if (length <= 3) return this.testimonials;
+      return [
+        this.testimonials[(this.currentSlide - 1 + length) % length],
+        this.testimonials[this.currentSlide % length],
+        this.testimonials[(this.currentSlide + 1) % length]
+      ];
+    }
+  }
 
   // scroll to demos
   gotoDemos() {
@@ -259,137 +298,9 @@ export class AppLandingpageComponent {
     },
   ];
 
-  demos: demos[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/landingpage/demos/dashboard.png',
-      name: 'Performance',
-      subtext: '',
-      url: 'https://spike-angular-pro-main.netlify.app/dashboards/dashboard1',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/landingpage/demos/productivity.png',
-      name: 'Productivity',
-      subtext: '',
-      url: 'https://spike-angular-pro-dark.netlify.app/dashboards/dashboard2',
-    },
-    {
-      id: 5,
-      imgSrc: '/assets/images/landingpage/demos/communication.png',
-      name: 'Professional & Communication',
-      subtext: '',
-      url: 'https://spike-angular-pro-horizontal.netlify.app/dashboards/dashboard2',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/landingpage/demos/TimeTracker2.png',
-      name: 'Premium remote management',
-      subtext: '',
-      url: 'https://spike-angular-pro-rtl.netlify.app/dashboards/dashboard1',
-    },
-    // {
-    //   id: 4,
-    //   imgSrc: '/assets/images/landingpage/demos/demo-minisidebar.jpg',
-    //   name: 'Performance',
-    //   subtext: '',
-    //   url: 'https://spike-angular-pro-minisidebar.netlify.app/dashboards/dashboard1',
-    // },
-    // {
-    //   id: 5,
-    //   imgSrc: '/assets/images/landingpage/demos/demo-authguard.jpg',
-    //   name: 'Authguard',
-    //   subtext: 'Demo',
-    //   url: 'https://spike-angular-pro-authguard.netlify.app/authentication/login',
-    // },
-  ];
+  demos: demos[] = [];
 
-  appdemos: demos[] = [
-    // {
-    //   id: 1,
-    //   imgSrc: '/assets/images/landingpage/apps/app-calendar.jpg',
-    //   name: 'Calendar',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/calendar',
-    // },
-    // {
-    //   id: 2,
-    //   imgSrc: '/assets/images/landingpage/apps/app-chat.jpg',
-    //   name: 'Chat',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/chat',
-    // },
-    // {
-    //   id: 3,
-    //   imgSrc: '/assets/images/landingpage/apps/app-contact.jpg',
-    //   name: 'Contact',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/contacts',
-    // },
-    // {
-    //   id: 4,
-    //   imgSrc: '/assets/images/landingpage/apps/app-email.jpg',
-    //   name: 'Email',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/email/inbox',
-    // },
-    // {
-    //   id: 5,
-    //   imgSrc: '/assets/images/landingpage/apps/app-courses.jpg',
-    //   name: 'Courses',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/courses',
-    // },
-    // {
-    //   id: 6,
-    //   imgSrc: '/assets/images/landingpage/apps/app-employee.jpg',
-    //   name: 'Employee',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/employee',
-    // },
-    // {
-    //   id: 7,
-    //   imgSrc: '/assets/images/landingpage/apps/app-note.jpg',
-    //   name: 'Notes',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/notes',
-    // },
-    // {
-    //   id: 8,
-    //   imgSrc: '/assets/images/landingpage/apps/app-ticket.jpg',
-    //   name: 'Tickets',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/tickets',
-    // },
-    // {
-    //   id: 9,
-    //   imgSrc: '/assets/images/landingpage/apps/app-invoice.jpg',
-    //   name: 'Invoice',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/invoice',
-    // },
-    // {
-    //   id: 10,
-    //   imgSrc: '/assets/images/landingpage/apps/app-todo.jpg',
-    //   name: 'Todo',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/todo',
-    // },
-    // {
-    //   id: 11,
-    //   imgSrc: '/assets/images/landingpage/apps/app-taskboard.jpg',
-    //   name: 'Taskboard',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/taskboard',
-    // },
-    // {
-    //   id: 12,
-    //   imgSrc: '/assets/images/landingpage/apps/app-blog.jpg',
-    //   name: 'Blog List',
-    //   subtext: 'Application',
-    //   url: 'https://spike-angular-pro-main.netlify.app/apps/blog/post',
-    // },
-  ];
+  appdemos: demos[] = [];
 
   features: features[] = [
     {
