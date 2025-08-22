@@ -1,14 +1,84 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UsersService } from 'src/app/services/users.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-client-details',
+  styleUrls: ['./client-details.component.scss'],
   standalone: true,
   imports: [CommonModule, MatCardModule],
   templateUrl: './client-details.component.html',
 })
-export class ClientDetailsComponent {
-  @Input() client: any;
+export class ClientDetailsComponent implements OnInit {
   @Output() back = new EventEmitter<void>();
+  private _client: any;
+  departmentsList: string = '';
+  @Input()
+  set client(value: any) {
+    this._client = value;
+    if (value?.company?.departments?.length) {
+      this.departmentsList = value.company.departments.map((d: any) => d.name).join(', ');
+    } else {
+      this.departmentsList = '';
+    }
+  }
+
+  get client() {
+    return this._client;
+  }
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private usersService: UsersService,
+    private companiesService: CompaniesService
+  ) {}
+
+  ngOnInit() {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (!id) return;
+
+    const preselected = this.usersService.getSelectedUser();
+    if (preselected?.id === id) {
+      this.client = preselected;
+      this.loadCompany(id);
+      return;
+    }
+
+    this.usersService.getUsers({ filter: { id } }).subscribe(users => {
+      const found = Array.isArray(users) ? users.find((u: any) => u.id === id) : null;
+      if (found) {
+        this.client = found;
+        this.loadCompany(id);
+      } else {
+        this.router.navigate(['/apps/expert']);
+      }
+    });
+  }
+
+  private loadCompany(userId: number) {
+    this.companiesService.getByUserId(userId).subscribe((ownerResp: any) => {
+      const fullCompany = ownerResp?.company || this.client?.company;
+      if (fullCompany) {
+        this.client.company = { ...this.client.company, ...fullCompany };
+        if (this.client.company.id) {
+          this.companiesService.getCompanyLogo(this.client.company.id).subscribe(logoUrl => {
+            (this.client.company as any).logoUrl = logoUrl;
+          });
+        }
+      }
+    });
+  }
+
+  ngOnChanges(): void {
+    if (this.client?.company?.departments) {
+      this.departmentsList = this.client.company.departments
+        .map((d: any) => d.name)
+        .join(', ');
+    } else {
+      this.departmentsList = '';
+    }
+  }
 }

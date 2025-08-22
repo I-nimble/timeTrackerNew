@@ -1,27 +1,36 @@
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <div class="row justify-content-between gap-16">
-      <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
-        <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <input
-            matInput
-            placeholder="Select a Department"
-            [(ngModel)]="departmentFilter"
-            (keyup)="applyDepartmentFilter()"
-          />
-          <mat-icon matSuffix>
-            <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-          </mat-icon>
-        </mat-form-field>
+<ng-container *ngIf="!selectedClient">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row justify-content-between gap-16">
+        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Select a Department"
+              [(ngModel)]="departmentFilter"
+              (keyup)="applyDepartmentFilter()"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+        </div>
       </div>
-    </div>
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
 
-<mat-card class="cardWithShadow mt-16">
-  <mat-card-content>
-    <div class="table-responsive">
-      <app-client-table [clients]="filteredClients"></app-client-table>
-    </div>
-  </mat-card-content>
-</mat-card>
+  <mat-card class="cardWithShadow mt-16">
+    <mat-card-content>
+      <div class="table-responsive">
+        <app-client-table [clients]="filteredClients"></app-client-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
+
+<ng-container *ngIf="selectedClient">
+  <app-client-details
+    [client]="selectedClient"
+    (back)="onBackFromDetails()">
+  </app-client-details>
+</ng-container>

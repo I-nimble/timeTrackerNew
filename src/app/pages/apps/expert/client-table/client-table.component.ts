@@ -4,6 +4,8 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { RouterModule, Router } from '@angular/router';
+import { UsersService } from 'src/app/services/users.service';
 
 interface Department {
   id: number;
@@ -18,7 +20,8 @@ interface Department {
     MatTableModule,
     MatPaginatorModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    RouterModule
   ],
   templateUrl: './client-table.component.html',
 })
@@ -30,22 +33,17 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  constructor(private router: Router, private usersService: UsersService) {}
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clients']) {
       this.clients.forEach(client => {
-        if (client.company?.departments) {
-          client.company.departmentsString = (client.company.departments as Department[])
-            .map((d: Department) => d.name)
-            .join(', ');
-        } else {
-          client.company.departmentsString = '';
-        }
+        const d = client.company?.departments as Department[] | undefined;
+        client.company = client.company || {};
+        client.company.departmentsString = d?.map(x => x.name).join(', ') || '';
       });
-
       this.dataSourceTable = new MatTableDataSource(this.clients);
-      if (this.paginator) {
-        this.dataSourceTable.paginator = this.paginator;
-      }
+      if (this.paginator) this.dataSourceTable.paginator = this.paginator;
     }
   }
 
@@ -53,7 +51,8 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
     this.dataSourceTable.paginator = this.paginator;
   }
 
-  onRowClick(client: any) {
-    this.selectClient.emit(client);
+  viewClient(client: any) {
+    this.usersService.setUserInformation(client);
+    this.router.navigate(['/apps/expert/client', client.id]);
   }
 }

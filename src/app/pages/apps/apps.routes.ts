@@ -31,6 +31,7 @@ import { TeamComponent } from './team/team.component';
 import { AppHistoryComponent } from './history/history.component';
 import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
 import { AppExpertComponent } from './expert/expert.component';
+import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -184,14 +185,30 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'expert',
-        component: AppExpertComponent,
-        data: {
-          title: 'Expert',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Expert' },
-          ],
-        },
+        children: [
+          {
+            path: '',
+            component: AppExpertComponent,
+            data: {
+              title: 'Expert',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Expert' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: ClientDetailsComponent,
+            data: {
+              title: 'Client Details',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Client Details' },
+              ],
+            },
+          },
+        ],
       },
       {
         path: 'kanban',

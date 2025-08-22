@@ -24,6 +24,7 @@ export class AppExpertComponent implements OnInit {
   clients: any[] = [];
   filteredClients: any[] = [];
   departmentFilter: string = '';
+  selectedClient: any = null;
 
   constructor(private usersService: UsersService) {}
 
@@ -44,5 +45,13 @@ export class AppExpertComponent implements OnInit {
       const departments = client.company?.departmentsString?.toLowerCase() || '';
       return departments.includes(filter);
     });
+  }
+
+  onClientSelected(client: any) {
+    this.selectedClient = client;
+  }
+
+  onBackFromDetails() {
+    this.selectedClient = null;
   }
 }

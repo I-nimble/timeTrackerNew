@@ -1,37 +1,45 @@
 <mat-card class="cardWithShadow">
-  <mat-card-header>
-    <mat-card-title>Client Details</mat-card-title>
-    <mat-card-subtitle>
-      {{ client?.name }} {{ client?.last_name }}
-    </mat-card-subtitle>
-  </mat-card-header>
   <mat-card-content>
-    <div class="row">
-      <div class="col-lg-6">
-        <h3>Client Info</h3>
-        <p><strong>Email:</strong> {{ client?.email }}</p>
-        <p><strong>Phone:</strong> {{ client?.phone }}</p>
+    <div class="client-details-container">
+      <div class="left-column">
+        <h2>{{ client?.company?.name || '' }}</h2>
+        <p>{{ client?.company?.description || '' }}</p>
       </div>
 
-      <div class="col-lg-6">
-        <h3>Company Info</h3>
-        <img
-          [src]="client?.company?.logo || 'assets/images/default-company-logo.png'"
-          alt="Company Logo"
-          width="80"
-          height="80"
-          style="object-fit: contain;"
-        />
-        <p><strong>Name:</strong> {{ client?.company?.name }}</p>
-        <p><strong>Website:</strong>
-          <a [href]="client?.company?.website" target="_blank">{{ client?.company?.website }}</a>
-        </p>
-        <p><strong>Location:</strong> {{ client?.company?.location }}</p>
+      <div class="right-column">
+        <div class="field-row">
+          <div class="field-block">
+            <p class="field">Departments</p>
+            <p class="info">{{ departmentsList }}</p>
+          </div>
+          <div class="field-block">
+            <p class="field">Phone</p>
+            <p class="info">{{ client?.phone || '' }}</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-block">
+            <p class="field">Email</p>
+            <p class="info">{{ client?.email || '' }}</p>
+          </div>
+          <div class="field-block">
+            <p class="field">Website</p>
+            <p class="info">
+              <a *ngIf="client?.company?.website" [href]="client.company.website" target="_blank">
+                {{ client.company.website }}
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-block">
+            <p class="field">Location</p>
+            <p class="info">{{ client?.company?.location || '' }}</p>
+          </div>
+        </div>
       </div>
     </div>
   </mat-card-content>
-
-  <mat-card-actions>
-    <button mat-button (click)="back.emit()">Back</button>
-  </mat-card-actions>
 </mat-card>
