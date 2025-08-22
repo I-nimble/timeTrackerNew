@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule, Router } from '@angular/router';
 import { UsersService } from 'src/app/services/users.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface Department {
   id: number;
@@ -33,7 +34,7 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private router: Router, private usersService: UsersService) {}
+  constructor(private router: Router, private usersService: UsersService, private sanitizer: DomSanitizer) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clients']) {
@@ -41,6 +42,10 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
         const d = client.company?.departments as Department[] | undefined;
         client.company = client.company || {};
         client.company.departmentsString = d?.map(x => x.name).join(', ') || '';
+
+        this.usersService.getProfilePic(client.id).subscribe((url: SafeResourceUrl | null) => {
+          client.imagePath = url;
+        });
       });
       this.dataSourceTable = new MatTableDataSource(this.clients);
       if (this.paginator) this.dataSourceTable.paginator = this.paginator;

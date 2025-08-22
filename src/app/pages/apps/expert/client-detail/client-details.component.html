@@ -1,11 +1,13 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
-    <div class="client-details-container">
+    <div class="client-details-container d-flex flex-wrap gap-4">
       <div class="left-column">
-        <h2>{{ client?.company?.name || '' }}</h2>
-        <p>{{ client?.company?.description || '' }}</p>
+        <ng-container *ngIf="client?.company?.logoUrl as logoUrl">
+          <img [src]="logoUrl" class="company-logo-large" alt="Company Logo"/>
+        </ng-container>
+        <h2 class="company-name">{{ client?.company?.name }}</h2>
+        <p class="company-description">{{ client?.company?.description }}</p>
       </div>
-
       <div class="right-column">
         <div class="field-row">
           <div class="field-block">

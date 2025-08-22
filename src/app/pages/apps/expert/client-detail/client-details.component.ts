@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-client-details',
@@ -16,6 +17,8 @@ export class ClientDetailsComponent implements OnInit {
   @Output() back = new EventEmitter<void>();
   private _client: any;
   departmentsList: string = '';
+  defaultLogo = 'assets/inimble.png';
+
   @Input()
   set client(value: any) {
     this._client = value;
@@ -29,11 +32,12 @@ export class ClientDetailsComponent implements OnInit {
   get client() {
     return this._client;
   }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private usersService: UsersService,
-    private companiesService: CompaniesService
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit() {
@@ -64,9 +68,16 @@ export class ClientDetailsComponent implements OnInit {
       if (fullCompany) {
         this.client.company = { ...this.client.company, ...fullCompany };
         if (this.client.company.id) {
-          this.companiesService.getCompanyLogo(this.client.company.id).subscribe(logoUrl => {
-            (this.client.company as any).logoUrl = logoUrl;
-          });
+          this.companiesService.getCompanyLogo(this.client.company.id)
+            .subscribe((safeUrl: any) => {
+              try {
+                this.client.company.logoUrl = safeUrl?.changingThisBreaksApplicationSecurity || this.defaultLogo;
+              } catch {
+                this.client.company.logoUrl = this.defaultLogo;
+              }
+            });
+        } else {
+          this.client.company.logoUrl = this.defaultLogo;
         }
       }
     });
