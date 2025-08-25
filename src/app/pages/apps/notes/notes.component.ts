@@ -135,7 +135,7 @@ export class AppNotesComponent implements OnInit {
     const newNote = {
       user_id: this.userInfo.id,
       date_time: new Date().toISOString(),
-      content: 'This is a new note',
+      content: '',
       color: this.clrName(),
     };
     this.notesService.createNote(newNote).subscribe({

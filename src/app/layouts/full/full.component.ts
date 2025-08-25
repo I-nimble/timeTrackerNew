@@ -266,7 +266,11 @@ export class FullComponent implements OnInit {
   loadProfilePicture() {
     this.usersService.getProfilePic(this.userId).subscribe({
       next: (image: any) => {
-        if(image != null) this.profilePicture = image;
+        if (image != null) {
+          this.profilePicture = image;
+        } else {
+          this.profilePicture = 'assets/images/default-user-profile-pic.png';
+        }
       },
     });
   }
