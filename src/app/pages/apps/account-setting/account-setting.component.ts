@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -123,6 +123,7 @@ export class AppAccountSettingComponent implements OnInit {
   logo: string = 'assets/images/default-logo.jpg';
   picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
   originalLogo: string = '';
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
@@ -181,8 +182,9 @@ export class AppAccountSettingComponent implements OnInit {
       const userFilter = {
         searchField: '',
         filter: {
-          currentUser: this.role == '2' ? true : false,
-          email: userEmail
+          currentUser: true,
+          email: userEmail,
+          includeAdmins: true
         }
       };
       this.usersService.getUsers(userFilter).subscribe({
@@ -268,21 +270,20 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    const img = event.target.files[0];
-    if (img) {
-      if(img.size > 1000000) {
+    const file = event.target.files[0];
+    if (!file) return;
+      if (file.size > 1000000) {
         this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
         return
       }
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
         this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
         return;
       }
-      this.previewImage(img);
+      this.previewImage(file);
       // if(this.role === '3') this.profileForm.patchValue({ logo: img })
       // else this.personalForm.patchValue({ profile: img });
-      this.personalForm.patchValue({ profile: img });
-    }
+      this.personalForm.patchValue({ profile: file });
   }
 
   previewImage(file: File) {
@@ -303,20 +304,30 @@ export class AppAccountSettingComponent implements OnInit {
     // else {
       this.picture = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
       this.personalForm.patchValue({ profile: null });
+      this.resetFileInput();
     // }
   }
 
+  resetFileInput() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+  
   saveProfile() {
+    this.isSubmitting = true;
+
     if(this.role === '3') {
       if (!this.profileForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
+        this.isSubmitting = false;
         return;
       }
   
       const userData = {
         ...this.user,
         ...this.profileForm.value,
-        role: localStorage.getItem('role'),
+        role: this.role,
         company: {
           id: this.user.company.id
         },
@@ -332,14 +343,19 @@ export class AppAccountSettingComponent implements OnInit {
         bussiness_segment: this.profileForm.value.bussiness_segment
       };
   
-      this.usersService.update(userData).subscribe({
+      this.usersService.updateProfile(userData).subscribe({
         next: () => {
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
                   this.openSnackBar('Profile updated successfully', 'Close');
+                  this.isSubmitting = false;
                   this.getUser();
                 }
             });
+        },
+        error: (res: any) => {
+          this.openSnackBar('Error updating profile.', 'Close');
+          this.isSubmitting = false;
         }
       });
   
@@ -350,7 +366,8 @@ export class AppAccountSettingComponent implements OnInit {
           };
           this.usersService.updatePassword(passwordData).subscribe({
               error: (res: any) => {
-                  this.notificationStore.addNotifications(res.error.message, 'error');
+                this.isSubmitting = false;
+                this.notificationStore.addNotifications(res.error.message, 'error');
               }
           });
       }
@@ -358,6 +375,7 @@ export class AppAccountSettingComponent implements OnInit {
     else {
       if(!this.personalForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
+        this.isSubmitting = false;
         return;
       }
   
@@ -388,16 +406,18 @@ export class AppAccountSettingComponent implements OnInit {
         }
       };
     
-      this.usersService.update(userData)
+      this.usersService.updateProfile(userData)
         .pipe(
           catchError(error => {
             this.openSnackBar(error.error.message, 'Close');
+            this.isSubmitting = false;
             return of(null);
           })
         )
         .subscribe(response => {
           this.openSnackBar('User data updated successfully!', 'Close');
           this.user = response;
+          this.isSubmitting = false;
           this.getUser();
         });
     }
