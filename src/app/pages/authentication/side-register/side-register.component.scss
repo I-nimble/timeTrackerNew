@@ -4,3 +4,6 @@
 .m-b-45 {
     margin-bottom: 45px;
 }
+::ng-deep .mat-horizontal-content-container {
+    overflow: visible !important;
+}
