@@ -8,7 +8,7 @@ import {
 import { MaterialModule } from '../../material.module';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -34,6 +34,7 @@ import { RouterLink } from '@angular/router';
     MatChipsModule,
     MatAutocompleteModule,
     RouterLink,
+    NgIf
   ],
   templateUrl: './intake-form.component.html',
   styleUrl: './intake-form.component.scss',
