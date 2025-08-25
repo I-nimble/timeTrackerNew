@@ -9,12 +9,21 @@ import { Router } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { trigger, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
   styleUrls: ['./stripe.component.scss'],
   imports: [MaterialModule, CommonModule, FormsModule, ReactiveFormsModule, TablerIconsModule],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+  ]
 })
 export class StripeComponent implements OnInit, OnDestroy {
   @Input() invoiceId: string = '';
