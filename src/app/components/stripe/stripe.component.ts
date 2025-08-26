@@ -9,12 +9,21 @@ import { Router } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { trigger, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
   styleUrls: ['./stripe.component.scss'],
   imports: [MaterialModule, CommonModule, FormsModule, ReactiveFormsModule, TablerIconsModule],
+  animations: [
+    trigger('fadeInUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+      ]),
+    ]),
+  ]
 })
 export class StripeComponent implements OnInit, OnDestroy {
   @Input() invoiceId: string = '';
@@ -170,6 +179,29 @@ export class StripeComponent implements OnInit, OnDestroy {
   }
 
   viewInvoice() {
-    this.router.navigate(['/invoices', this.invoiceId]);
+    if (!this.invoiceId) {
+      this.snackBar.open('Invoice ID not available', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.stripeService.getPaymentByInvoiceId(this.invoiceId).subscribe({
+      next: ({ paymentId }) => {
+        this.stripeService.getReceiptUrl(paymentId).subscribe({
+          next: ({ receiptUrl }) => {
+            window.open(receiptUrl, '_blank');
+          },
+          error: () => {
+            this.snackBar.open('Failed to load receipt URL', 'Close', { duration: 3000 });
+          }
+        });
+      },
+      error: () => {
+        this.snackBar.open('No payment found for this invoice', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  newPayment() {
+    this.router.navigate(['/apps/invoice']);
   }
 }

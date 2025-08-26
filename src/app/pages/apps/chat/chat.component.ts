@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener } from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
@@ -12,12 +12,21 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration } from '@cometchat/uikit-shared';
+import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration } from '@cometchat/uikit-shared';
 import { BackdropStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
 import { CometChatUIEvents } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { emojisByCategory } from './emojisByCategory';
+import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
+
+interface InlineImage {
+  id: string;
+  file: File;
+  dataUrl: string;
+  position: number;
+}
 
 @Component({
   standalone: true,
@@ -27,7 +36,8 @@ import { Loader } from 'src/app/app.models';
     CometChatGroupsWithMessages,
     CommonModule,
     MaterialModule,
-    LoaderComponent
+    LoaderComponent,
+    CustomMessageComposerComponent
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -45,7 +55,7 @@ export class AppChatComponent implements OnInit {
   private themeMutationObserver: MutationObserver;
   public loader: Loader = new Loader(true, false, false);
   public chatInitError: string | null = null;
-  
+
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
   public backdropStyle = new BackdropStyle({
@@ -56,8 +66,55 @@ export class AppChatComponent implements OnInit {
   // PROFESSIONAL PLAN CONFIGURATION
   public professionalMessagesConfig: MessagesConfiguration;
 
+  public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
+    ...this.chatService.contactsConfiguration,
+    usersConfiguration: new UsersConfiguration({
+      onItemClick: (user) => {
+        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        if (btn) btn.click();
+
+        this.user = user as CometChat.User;
+        this.group = null;
+      },
+    }),
+    groupsConfiguration: new GroupsConfiguration({
+      onItemClick: (group) => {
+        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        if (btn) btn.click();
+
+        this.user = null;
+        this.group = group as CometChat.Group;
+      },
+    }),
+  });
+
+  public conversationConfiguration = new ConversationsConfiguration({
+    onItemClick: async (conversation) => {
+      const conv = conversation.getConversationWith();
+      const convType = conversation.getConversationType();
+
+      if (convType === 'user') {
+        this.user = conv as CometChat.User;
+        this.group = null;
+      } else if (convType === 'group') {
+        this.group = conv as CometChat.Group;
+        this.user = null;
+      }
+    },
+  });
+  public groupsConfiguration = new GroupsConfiguration({
+    onItemClick: async (group) => {
+      this.group = group as CometChat.Group;
+      this.user = null;
+    },
+  });
+
   @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
-  currentChatContext: any = null;
+  @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
+  user: CometChat.User | null = null;
+  group: CometChat.Group | null = null;
 
   getButtonStyle() {
     return {
@@ -102,8 +159,10 @@ export class AppChatComponent implements OnInit {
 
   private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
-      this.currentChatContext = event;
       if (event.group) {
+        this.group = event.group;
+        this.user = null;
+
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
@@ -118,6 +177,9 @@ export class AppChatComponent implements OnInit {
           })
         });
       } else {
+        this.user = event.user;
+        this.group = null;
+
         this.essentialMessagesConfig = new MessagesConfiguration({
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
@@ -200,6 +262,7 @@ export class AppChatComponent implements OnInit {
 
     this.professionalMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
+      messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         templates: this.chatService.templates
       }),
@@ -217,6 +280,7 @@ export class AppChatComponent implements OnInit {
 
     this.essentialMessagesConfig = new MessagesConfiguration({
       disableSoundForMessages: true,
+      messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
         templates: this.chatService.templates
@@ -236,7 +300,8 @@ export class AppChatComponent implements OnInit {
       })
     })
 
-    this.basicMessagesConfig = new MessagesConfiguration({ 
+    this.basicMessagesConfig = new MessagesConfiguration({
+      messageComposerView: this.customMessageComposerView,
       messageHeaderConfiguration: new MessageHeaderConfiguration({
         menu: null
       }),
@@ -269,7 +334,7 @@ export class AppChatComponent implements OnInit {
                     groupMembers,
                     [] // empty bannedMembersList
                   ).then(() => {
-                    if (this.onClose) this.onClose(); 
+                    if (this.onClose) this.onClose();
                   });
               }
             });
@@ -283,9 +348,8 @@ export class AppChatComponent implements OnInit {
   }
 
   startVoiceCall() {
-    const context = this.currentChatContext;
-    if (context.user) {
-      const receiverID = context.user.uid;
+    if (this.user) {
+      const receiverID = this.user.getUid();
       const callType = CometChat.CALL_TYPE.AUDIO;
       const receiverType = CometChat.RECEIVER_TYPE.USER;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -296,8 +360,8 @@ export class AppChatComponent implements OnInit {
         },
         (error: any) => console.error("Voice call initiation failed:", error)
       );
-    } else if (context.group) {
-      const receiverID = context.group.guid;
+    } else if (this.group) {
+      const receiverID = this.group.getGuid();
       const callType = CometChat.CALL_TYPE.AUDIO;
       const receiverType = CometChat.RECEIVER_TYPE.GROUP;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -312,9 +376,8 @@ export class AppChatComponent implements OnInit {
   }
 
   startVideoCall() {
-    const context = this.currentChatContext;
-    if (context.user) {
-      const receiverID = context.user.uid;
+    if (this.user) {
+      const receiverID = this.user.getUid();
       const callType = CometChat.CALL_TYPE.VIDEO;
       const receiverType = CometChat.RECEIVER_TYPE.USER;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -325,8 +388,8 @@ export class AppChatComponent implements OnInit {
         },
         (error: any) => console.error("Video call initiation failed:", error)
       );
-    } else if (context.group) {
-      const receiverID = context.group.guid;
+    } else if (this.group) {
+      const receiverID = this.group.getGuid();
       const callType = CometChat.CALL_TYPE.VIDEO;
       const receiverType = CometChat.RECEIVER_TYPE.GROUP;
       this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
@@ -394,5 +457,14 @@ export class AppChatComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  ngOnDestroy() {
+    if (this.themeMutationObserver) {
+      this.themeMutationObserver.disconnect();
+    }
+    if (this.ccActiveChatChanged) {
+      this.ccActiveChatChanged.unsubscribe();
+    }
   }
 }

@@ -60,10 +60,21 @@
       </div>
 
       <div class="row p-y-24">
-        <div class="col-12">
+        <div class="col-sm-6">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Amount</mat-label>
             <input matInput type="number" name="amount" [(ngModel)]="invoiceDetail().amount">
+          </mat-form-field>
+        </div>
+
+        <div class="col-sm-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="invoiceDetail().status_id" name="status_id">
+              <mat-option [value]="2">Pending</mat-option>
+              <mat-option [value]="3">Paid</mat-option>
+              <mat-option [value]="4">Overdue</mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
       </div>

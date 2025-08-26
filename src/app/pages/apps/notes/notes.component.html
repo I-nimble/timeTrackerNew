@@ -74,7 +74,7 @@
       <i-tabler name="menu-2" class="icon-20"></i-tabler>
     </button>
     <div class="d-flex align-items-center gap-2">
-      <button mat-flat-button (click)="addNoteClick()">Add Notes</button>
+      <button mat-flat-button (click)="addNoteClick()">Add Note</button>
       @if(selectedNote()){
         <button mat-flat-button color="primary" (click)="updateNoteTitle(changedTitle)">Save Note</button>
       }
@@ -90,7 +90,9 @@
             <textarea
               matInput
               [ngModel]="selectedNote()?.content"
+              placeholder="Write your note here..."
               rows="5"
+              placeholder="Write your note here..."
               class="note-content p-8"
               (ngModelChange)="changeNoteTitle($event)"
             ></textarea>

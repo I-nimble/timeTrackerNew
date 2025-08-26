@@ -2,21 +2,6 @@
   <mat-card-header>
     <div class="filters-row row w-100">
       <div class="col-md-5 mb-2">
-        <mat-form-field class="w-100" appearance="outline">
-          <mat-label>Select a Team Member</mat-label>
-          <mat-select
-            [(value)]="selectedUserId"
-            (selectionChange)="onUserChange($event.value)"
-          >
-            <mat-option [value]="null">All members</mat-option>
-            <mat-option
-              *ngFor="let user of dataSource"
-              [value]="user.profile.id"
-            >
-              {{ user.profile.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
         <div *ngIf="role == '1'">
           <mat-form-field class="w-100" appearance="outline">
             <mat-label>Select a Company</mat-label>
@@ -31,6 +16,22 @@
             </mat-select>
           </mat-form-field>
         </div>
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Select a Team Member</mat-label>
+          <mat-select
+            [(value)]="selectedUserId"
+            (selectionChange)="onUserChange($event.value)"
+            [disabled]="!selectedClient && role == '1'"
+          >
+            <mat-option [value]="null">All members</mat-option>
+            <mat-option
+              *ngFor="let user of dataSource"
+              [value]="user.profile.id"
+            >
+              {{ user.profile.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
       <div class="col-12 col-md-6">
         <mat-form-field class="w-100" appearance="outline">

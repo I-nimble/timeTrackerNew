@@ -163,12 +163,12 @@ export class TeamComponent {
               company_id: user.company_id,
               name: user.user.name,
               last_name: user.user.last_name,
+              email: user.user.email,
               position: user.position_id || user.position?.id || '',
               projects: user.projects ? user.projects.map((project: any) => project.id) : [],
               imagePath: '/assets/images/default-user-profile-pic.png',
             },
             role: user.position?.title || 'Other',
-            email: user.user.email,
           });
         });
         this.getProfilePics();

@@ -126,12 +126,17 @@ export class BoardsService {
 
   createColumn(boardId: number, column: any): Observable<any> {
   return this.http.post<any>(`${this.API_URI}/columns`, {
-    ...column,
-    board_id: boardId
-  });
-}
+      ...column,
+      board_id: boardId
+    });
+  }
 
-updateColumn(columnId: number, column: any): Observable<any> {
-  return this.http.put<any>(`${this.API_URI}/columns/${columnId}`, column);
-}
+  updateColumn(columnId: number, column: any): Observable<any> {
+    return this.http.put<any>(`${this.API_URI}/columns/${columnId}`, column);
+  }
+
+  searchTasks(boardId: number, search: any) {
+    return this.http.get<any>(`${this.API_URI}/search/tasks?board_id=${boardId}&q=${search}`);
+  }
+
 }
