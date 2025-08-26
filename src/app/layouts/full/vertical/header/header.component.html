@@ -196,10 +196,10 @@
     [matMenuTriggerFor]="msgMenu"
     aria-label="Messages"
     class="d-flex justify-content-center"
+    style="position: relative;"
   >
     <i-tabler class="d-flex icon-22" [name]="'bell'"></i-tabler>
-
-    <div class="pulse" *ngIf="hasPendingNotifications">
+    <div class="pulse" *ngIf="hasPendingNotifications" style="position: absolute; top: 12px; right: 6px;">
       <span class="heartbit border-primary"></span>
       <span class="point bg-primary"></span>
     </div>
