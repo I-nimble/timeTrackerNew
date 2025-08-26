@@ -41,6 +41,22 @@
             <p class="info">{{ client?.company?.location || '' }}</p>
           </div>
         </div>
+
+        <div class="field-row">
+          <div class="field-block">
+            <p class="field">Socials</p>
+            <div class="social-links d-flex" style="gap: 16px;">
+              <a *ngFor="let social of companySocials"
+                [href]="social.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="display: flex; align-items: center; text-decoration: none;">
+                <i [ngClass]="social.iconClass" class="social-icon" [attr.aria-label]="social.name"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </mat-card-content>

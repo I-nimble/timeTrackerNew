@@ -33,6 +33,17 @@ export class ClientDetailsComponent implements OnInit {
     return this._client;
   }
 
+  get companySocials(): { name: string, url: string, iconClass: string }[] {
+    const sm = this.client?.company?.social_media;
+    if (!sm) return [];
+    return [
+      { name: 'Instagram', url: sm.instagram, iconClass: 'bi bi-instagram' },
+      { name: 'Facebook',  url: sm.facebook,  iconClass: 'bi bi-facebook' },
+      { name: 'LinkedIn',  url: sm.linkedin,  iconClass: 'bi bi-linkedin' },
+      { name: 'Twitter',   url: sm.twitter,   iconClass: 'bi bi-twitter' },
+    ].filter(s => !!s.url);
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
