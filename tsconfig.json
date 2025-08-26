@@ -20,7 +20,15 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "strictPropertyInitialization": false,
-    "lib": ["ES2022", "dom"]
+    "lib": ["ES2022", "dom"],
+    "paths": {
+      "@cometchat/chat-sdk-javascript-new": [
+        "node_modules/@cometchat/chat-sdk-javascript"
+      ],
+      "@cometchat/calls-sdk-javascript-new": [
+        "node_modules/@cometchat/calls-sdk-javascript"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
