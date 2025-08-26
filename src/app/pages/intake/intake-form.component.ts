@@ -118,6 +118,7 @@ export class AppIntakeFormComponent implements OnInit {
 
   formSubmitted = false;
   showForm: boolean = true;
+  showVideo: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -131,6 +132,7 @@ export class AppIntakeFormComponent implements OnInit {
       map(value => this._filter(value || ''))
     );
     this.showForm = !this.router.url.includes('/talent-match');
+    this.showVideo = this.router.url.includes('/talent-match');
   }
 
   ngOnInit(): void {

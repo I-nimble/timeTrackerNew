@@ -6,11 +6,12 @@
     <div class="col-12">
       <mat-card *ngIf="!formSubmitted" class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
         <img src="assets/images/inimble.png" id="logo" class="m-t-20 m-b-20">
-        <video controls id="introduction-video">
+        <video controls id="introduction-video" *ngIf="showVideo">
           <source src="assets/videos/intake-presentation.mp4" type="video/mp4">
           Your browser does not support the video tag.
         </video>
-        <h1 class="m-b-20 intake-title">Let's connect you with <span class="highlight-green">the right talent</span></h1>
+        <h1 *ngIf="showForm" class="text-center m-b-24">Intake</h1>
+        <h1 *ngIf="showVideo" class="m-b-20 intake-title">Let's connect you with <span class="highlight-green">the right talent</span></h1>
       </mat-card>
     </div>
   </div>
