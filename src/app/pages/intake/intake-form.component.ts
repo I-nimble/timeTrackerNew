@@ -18,7 +18,7 @@ import { startWith, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -117,17 +117,20 @@ export class AppIntakeFormComponent implements OnInit {
   });
 
   formSubmitted = false;
+  showForm: boolean = true;
 
   constructor(
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
     private intakeService: IntakeService,
-    private positionsService: PositionsService
+    private positionsService: PositionsService,
+    private router: Router
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || ''))
     );
+    this.showForm = !this.router.url.includes('/talent-match');
   }
 
   ngOnInit(): void {
