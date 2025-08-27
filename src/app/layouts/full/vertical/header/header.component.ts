@@ -88,6 +88,7 @@ export class HeaderComponent implements OnInit {
   applications: any[] = [];
   recentNotifications: any[] = [];
   hasPendingNotifications: boolean = false;
+  private previousNotificationCount: number = 0;
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
 
@@ -443,10 +444,11 @@ export class HeaderComponent implements OnInit {
       this.hasPendingNotifications = this.recentNotifications?.some(
         (n) => n.users_notifications.status === 4
       );
-      const isNew = notifications.length > this.recentNotifications.length;
-      if (isNew) {
-        this.playNotificationSound();
+      const isNew = notifications.length > this.previousNotificationCount;
+      if (isNew && this.hasPendingNotifications) {
+      this.playNotificationSound();
       }
+      this.previousNotificationCount = notifications.length;
     });
   }
 
