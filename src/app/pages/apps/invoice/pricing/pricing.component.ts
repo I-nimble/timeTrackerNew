@@ -10,6 +10,8 @@ import { CoreService } from "src/app/services/core.service"
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { ActivatedRoute } from '@angular/router';
 import { BankTransferComponent } from "src/app/components/stripe/bank-transfer/bank-transfer.component"
+import { PaymentModalComponent } from "src/app/components/payment-modal/payment-modal.component"
+import { MatDialog } from '@angular/material/dialog';
 import { CheckComponent } from "src/app/components/stripe/check/check.component"
 
 interface pricecards {
@@ -33,11 +35,18 @@ export class AppPricingStripeComponent {
   onPaymentMethodChange(method: string) {
     this.selectedPaymentMethod = method
 
-    setTimeout(() => {
+    if (this.selectedPaymentMethod == 'card'){
+      setTimeout(() => {
       if (this.paymentForm) {
         this.paymentForm.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 1000);
+    } else {
+      console.log(this.selectedPaymentMethod)
+      this.dialog.open(PaymentModalComponent, {
+      width: '350px'
+    });
+    }
   }
 
   getPaymentMethod(cardId: number): string {
@@ -75,7 +84,8 @@ export class AppPricingStripeComponent {
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: MatDialog
   ) {
     this.route.queryParams.subscribe(params => {
       if (params['invoiceId']) {

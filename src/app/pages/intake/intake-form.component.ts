@@ -8,7 +8,7 @@ import {
 import { MaterialModule } from '../../material.module';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -18,7 +18,7 @@ import { startWith, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -34,6 +34,7 @@ import { RouterLink } from '@angular/router';
     MatChipsModule,
     MatAutocompleteModule,
     RouterLink,
+    NgIf
   ],
   templateUrl: './intake-form.component.html',
   styleUrl: './intake-form.component.scss',
@@ -116,17 +117,22 @@ export class AppIntakeFormComponent implements OnInit {
   });
 
   formSubmitted = false;
+  showForm: boolean = true;
+  showVideo: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
     private intakeService: IntakeService,
-    private positionsService: PositionsService
+    private positionsService: PositionsService,
+    private router: Router
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
       map(value => this._filter(value || ''))
     );
+    this.showForm = !this.router.url.includes('/talent-match');
+    this.showVideo = this.router.url.includes('/talent-match');
   }
 
   ngOnInit(): void {
