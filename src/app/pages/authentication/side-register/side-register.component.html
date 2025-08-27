@@ -95,6 +95,32 @@
                         <mat-step [stepControl]="registerClientForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
                             <form class="m-t-24" [formGroup]="registerClientForm">
+                              <h2 class="text-center m-b-10 label-title">Departments</h2>
+                              <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
+                              <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
+                                <button
+                                  mat-stroked-button
+                                  [ngClass]="selectedDepartments.includes(dept) ? 'primary' : 'disabled'"
+                                  *ngFor="let dept of departmentsOptions"
+                                  (click)="toggleDepartment(dept); $event.preventDefault()"
+                                >
+                                  {{ dept?.name }}
+                                </button>
+                              </div>
+                              <mat-form-field *ngIf="hasOtherDepartment()"
+                                appearance="outline" class="w-100">
+                                <mat-label>Other Department</mat-label>
+                                <input matInput formControlName="otherDepartment" type="text" />
+                              </mat-form-field>
+                              <button class="w-100" mat-flat-button matStepperNext>
+                                Next
+                              </button>
+                            </form>
+                          </div>
+                        </mat-step>
+                        <mat-step [stepControl]="registerClientForm">
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
+                            <form class="m-t-24" [formGroup]="registerClientForm">
                               <h2 class="text-center m-b-10 label-title">Enter your phone number</h2>
                               <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
       
