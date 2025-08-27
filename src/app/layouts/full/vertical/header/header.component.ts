@@ -323,6 +323,14 @@ export class HeaderComponent implements OnInit {
             subtitle: 'Team members',
             link: '/apps/team',
           },
+          {
+            id: 4,
+            img: 'credit-card',
+            color: 'warning',
+            title: 'Payments',
+            subtitle: 'Manage your payments',
+            link: '/apps/invoice',
+          },
         ]
       : []),
   ];
