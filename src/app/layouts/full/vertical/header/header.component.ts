@@ -83,10 +83,12 @@ export class HeaderComponent implements OnInit {
   // companyLogo: any = 'assets/images/default-logo.jpg';
   profilePicture: any | string | null = null;
   assetsPath: string = environment.assets;
+  mp3Path: string = environment.mp3;
   userEmail: any;
   applications: any[] = [];
   recentNotifications: any[] = [];
   hasPendingNotifications: boolean = false;
+  private previousNotificationCount: number = 0;
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
 
@@ -450,7 +452,17 @@ export class HeaderComponent implements OnInit {
       this.hasPendingNotifications = this.recentNotifications?.some(
         (n) => n.users_notifications.status === 4
       );
+      const isNew = notifications.length > this.previousNotificationCount;
+      if (isNew && this.hasPendingNotifications) {
+      this.playNotificationSound();
+      }
+      this.previousNotificationCount = notifications.length;
     });
+  }
+
+  playNotificationSound() {
+    const audio = new Audio(`${this.mp3Path}/notification.mp3`);
+    audio.play();
   }
 
   seeAllNotifications() {
