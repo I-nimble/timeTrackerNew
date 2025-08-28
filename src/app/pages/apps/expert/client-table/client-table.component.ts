@@ -32,11 +32,11 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['clients']) {
       this.clients.forEach(client => {
-        if (client.company?.departments) {
+        if (client.company && client.company.departments) {
           client.company.departmentsString = (client.company.departments as Department[])
             .map((d: Department) => d.name)
             .join(', ');
-        } else {
+        } else if (client.company) {
           client.company.departmentsString = '';
         }
       });
