@@ -30,6 +30,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { DepartmentsService } from 'src/app/services/departments.service';
 
 @Component({
   selector: 'app-side-register',
@@ -59,6 +60,8 @@ export class AppSideRegisterComponent {
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company_name: ['', [Validators.required]],
+    departments: [['']],
+    otherDepartment: [''],
     countryCode: ['+1', Validators.required],
     phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
@@ -107,6 +110,9 @@ export class AppSideRegisterComponent {
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
   hasInvitation: boolean = false;
+  departmentsOptions: any = [];
+  selectedDepartments: any[] = [];
+  otherDepartment: string = '';
 
   constructor(
     private settings: CoreService, 
@@ -123,10 +129,12 @@ export class AppSideRegisterComponent {
     private employeesService: EmployeesService,
     private chatService: CometChatService,
     private applicationsService: ApplicationsService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private departmentsService: DepartmentsService,
   ) {
     this.getCompanies();
     this.getPositions();
+    this.getDepartments();
 
     this.route.queryParams.subscribe((params:any) => {
       if(params['company_id']) this.companyId = params['company_id'];
@@ -303,6 +311,17 @@ export class AppSideRegisterComponent {
     return this.registerClientForm.controls;
   }
 
+  getDepartments() {
+    this.departmentsService.get().subscribe((departments: any) => {
+      const activeDepartments = departments.filter((d: any) => d.active === 1);
+      this.departmentsOptions = [...activeDepartments, { id: -1, name: 'Other' }];
+    })
+  }
+
+  hasOtherDepartment(): boolean {
+    return this.selectedDepartments.some(dept => dept.name === 'Other');
+  }
+
   openSnackBar(message: string, action: string): void {
     this.snackBar.open(message, action, {
       duration: 2000,
@@ -327,6 +346,8 @@ export class AppSideRegisterComponent {
         firstName: this.registerClientForm.value.name,
         lastName: this.registerClientForm.value.last_name,
         company: this.registerClientForm.value.company_name,
+        departments: this.registerClientForm.value.departments,
+        otherDepartment: this.registerClientForm.value.otherDepartment,
         email: this.registerClientForm.value.email,
         phone: phone,
         password: this.registerClientForm.value.password,
@@ -542,5 +563,20 @@ export class AppSideRegisterComponent {
         },
       });
     }
+  }
+
+  toggleDepartment(dept: any) {
+    const idx = this.selectedDepartments.findIndex(d => d.id === dept.id);
+    if (idx > -1) {
+      this.selectedDepartments.splice(idx, 1);
+      if (dept.name === 'Other') this.otherDepartment = '';
+    } else {
+      this.selectedDepartments.push(dept);
+    }
+    
+    this.registerClientForm.patchValue({
+      departments: this.selectedDepartments.map(d => d.name) || [''],
+      otherDepartment: this.otherDepartment
+    });
   }
 }
