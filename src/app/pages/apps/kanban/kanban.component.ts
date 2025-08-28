@@ -21,6 +21,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
 import { forkJoin } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-kanban',
@@ -32,6 +33,7 @@ import { forkJoin } from 'rxjs';
     TablerIconsModule,
     DragDropModule,
     NgScrollbarModule,
+    FormsModule
   ],
 })
 export class AppKanbanComponent implements OnInit {
@@ -46,6 +48,7 @@ export class AppKanbanComponent implements OnInit {
   employees: any;
   isLoading = true;
   userId: string | null;
+  taskSearch: string = '';
 
   constructor(
     public dialog: MatDialog,
@@ -59,6 +62,25 @@ export class AppKanbanComponent implements OnInit {
   ngOnInit(): void {
     this.loadBoards();
     this.userId = localStorage.getItem('id');
+  }
+
+  onSearchTasks() {
+    const query = this.taskSearch?.trim();
+    if (!query) {
+      this.loadTasks(this.selectedBoardId);
+      return;
+    }
+    if (!this.selectedBoardId) {
+      this.showSnackbar('Please select a board first');
+      return;
+    }
+    this.kanbanService.searchTasks(this.selectedBoardId, query).subscribe((tasks: any[]) => {
+      this.selectedBoardColumns.forEach(col => col.tasks = []);
+      tasks.forEach(task => {
+        const col = this.selectedBoardColumns.find(c => c.id === task.column_id);
+        if (col) col.tasks.push(task);
+      });
+    });
   }
 
   get selectedBoard() {
