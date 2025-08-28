@@ -100,14 +100,11 @@ export class UsersService {
     return this.http.post(`${this.API_URI}/users/create`, form);
   }
 
-  public update(userData: any) {
+  public updateProfile(userData: any) {
     let form = new FormData();
-    if (userData.id) form.append('id', userData.id);
     if (userData.name) form.append('name', userData.name);
     if (userData.last_name) form.append('last_name', userData.last_name);
     if (userData.password) form.append('password', userData.password);
-    if (userData.active) form.append('active', userData.active);
-    if (userData.email) form.append('email', userData.email);
     if (userData.phone) form.append('phone', userData.phone);
     if (userData.address) form.append('address', userData.address);
     if (userData.employee) {
@@ -116,13 +113,16 @@ export class UsersService {
       if (userData.employee.social_media) form.append('social_media', JSON.stringify(userData.employee.social_media));
       if (userData.employee.insurance_data) form.append('insurance_data', JSON.stringify(userData.employee.insurance_data));
     };
-    if (userData.role) form.append('role', userData.role);
     if (userData.company) form.append('company', JSON.stringify(userData.company));
-    if (userData.profile) form.append('profile', userData.profile);
+    if (userData.profile instanceof File) {
+      form.append('profile', userData.profile);
+    } else if (userData.profile === null) {
+      form.append('remove_picture', 'true');
+    }
 
-    return this.http.patch(`${this.API_URI}/users/${userData.id}`, form).pipe(
+    return this.http.patch(`${this.API_URI}/users`, form).pipe(
       map((result) => {
-        if (userData.profile) {
+        if (userData.profile || userData.profile === null) {
           this.profilePicUpdatedSource.next();
         }
         return result;
