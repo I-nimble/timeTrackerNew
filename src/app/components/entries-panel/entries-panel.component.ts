@@ -30,7 +30,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { ClockoutModalComponent } from '../clockout-modal/clockout-modal.component';
 
 @Component({
   selector: 'app-entries-panel',
@@ -216,7 +216,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
             const matchingDay = scheduleDays.find((day:any) => dayOfWeek == day.id);
             if (matchingDay) {
               this.validStartTime = this.parseStartTime(schedule.start_time)
-              this.endOfShift = this.parseEndOfShift(schedule.end_time)
+              this.endOfShift = this.parseEndOfShiftUTC(schedule.end_time)
             }
             else {
               this.canStart = false
@@ -313,6 +313,22 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
+  parseEndOfShiftUTC(endTime: string) {
+    if (!endTime) return null;
+
+    const [hour, minute, second] = endTime.split(':').map(Number);
+    if ([hour, minute, second].some(isNaN)) return null;
+
+    const now = moment.utc();
+    const endOfShiftUTC = moment.utc(now)
+      .hour(hour)
+      .minute(minute)
+      .second(second)
+      .millisecond(0);
+
+    return endOfShiftUTC.toDate();
+  }
+
   strToDate(date:string) {
     const parts = date?.split(' ');
     const dateParts = parts[0]?.split('-');
@@ -358,16 +374,50 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     };
     this.start_entry.emit(data);
   }
-  async endCurrentEntry() {
-    this.end_entry.emit(this.entry);
+
+  async endCurrentEntry(customEndTime?: Date) {
+    const now = customEndTime ? moment.utc(customEndTime) : moment.utc();
+
+    if (this.endOfShift) {
+      const endOfShiftUTC = moment.utc(this.endOfShift);
+
+      const diffMinutes = now.diff(endOfShiftUTC, 'minutes');
+
+      if (diffMinutes >= 30 && !customEndTime) {
+        this.lateClockout();
+        return;
+      } else {
+      }
+    } else {
+    }
+
+    this.entry.end_time = now.toDate();
+
+    this.entriesService.closeCurrentEntry(this.entry).subscribe({
+      next: () => {
+        this.showSnackbar('Entry closed successfully');
+        this.updateVariablesOnEnd();
+      },
+      error: (err) => {
+        this.showSnackbar('Error closing entry');
+      }
+    });
   }
+
   updateVariablesOnEnd() {
     this.timer = '00:00:00';
     this.entry.description = '';
     this.entry.project_id = '';
-    this.startTime = null
-    this.UTCStartTime = null
+    this.startTime = null;
+    this.UTCStartTime = null;
+    this.stopTimer();
+    this.entryCheck = false;
+    this.justInTime = false;
+    this.canStart = true;
+    this.entry.status = 0;
+    this.entry.id = null;
   }
+
   cancelCurrentEntry() {
     this.cancel_entry.emit(this.entry);
   }
@@ -412,6 +462,27 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   public setProject(project: Project) {
     this.entry.project_id = project.id;
     this.entry.project = project.name;
+  }
+
+  public lateClockout() {
+    const dialogRef = this.dialog.open(ClockoutModalComponent, {
+      height: 'max-content',
+      width: '500px',
+      hasBackdrop: true,
+      backdropClass: 'blur',
+      data: { currentTime: new Date() }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.action === 'confirm' && result.clockoutTime) {
+        const caracasMoment = moment.tz(result.clockoutTime, 'America/Caracas');
+        const utcDate = caracasMoment.toDate(); 
+        
+        this.endCurrentEntry(utcDate);
+      } else {
+        this.showSnackbar('Clock-out cancelled.');
+      }
+    });
   }
 
   public checkToDoLogged() {
