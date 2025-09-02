@@ -21,6 +21,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-employees-reports',
@@ -61,7 +62,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   refreshInterval: any;
-  allowedRole2: boolean = false;
+  allowedTM: boolean = false;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -74,13 +75,13 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const allowedEmails = ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'];
+    const allowedReportEmails = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
-    this.allowedRole2 = this.role === '2' && allowedEmails.includes(email || '');
+    this.allowedTM = this.role === '2' && allowedReportEmails.includes(email || '');
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1' || this.allowedRole2) {
+    if (this.role == '1' || this.allowedTM) {
       this.getCompanies();
     }
     this.getDataSource();

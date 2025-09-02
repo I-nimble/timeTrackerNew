@@ -17,5 +17,6 @@ export const environment = {
     messagingSenderId: "562152489018",
     appId: "1:562152489018:web:10df1fd86381626629f503"
   },
-  vapidKey: 'BAgM65bd3u0eip66PuUViB9xB4agoBNFqTOragNBofHJnz7BcZM4SJqoSZyu2gj8Aiz573ExvVDwfU_eICWf2JI'
+  vapidKey: 'BAgM65bd3u0eip66PuUViB9xB4agoBNFqTOragNBofHJnz7BcZM4SJqoSZyu2gj8Aiz573ExvVDwfU_eICWf2JI',
+  allowedReportEmails: ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'],
 };

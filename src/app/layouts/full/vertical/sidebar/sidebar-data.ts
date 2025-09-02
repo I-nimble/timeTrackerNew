@@ -1,10 +1,10 @@
 import { NavItem } from './nav-item/nav-item';
-
+import { environment } from 'src/environments/environment';
 
 export function getNavItems(role: number): NavItem[] {
   const isOrphan = localStorage.getItem('isOrphan') == 'true';
   const email = localStorage.getItem('email');
-  const allowedReportEmails = ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'];
+  const allowedReportEmails = environment.allowedReportEmails;
   return [
     {
       navCap: 'Home',
