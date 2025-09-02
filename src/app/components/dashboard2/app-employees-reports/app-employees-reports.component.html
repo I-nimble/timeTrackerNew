@@ -2,7 +2,7 @@
   <mat-card-header>
     <div class="filters-row row w-100">
       <div class="col-md-5 mb-2">
-        <div *ngIf="role == '1'">
+        <div *ngIf="role == '1' || allowedRole2">
           <mat-form-field class="w-100" appearance="outline">
             <mat-label>Select a Company</mat-label>
             <mat-select
@@ -21,7 +21,7 @@
           <mat-select
             [(value)]="selectedUserId"
             (selectionChange)="onUserChange($event.value)"
-            [disabled]="!selectedClient && role == '1'"
+            [disabled]="!selectedClient && (role == '1' || allowedRole2)"
           >
             <mat-option [value]="null">All members</mat-option>
             <mat-option

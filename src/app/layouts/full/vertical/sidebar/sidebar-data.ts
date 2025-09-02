@@ -3,6 +3,8 @@ import { NavItem } from './nav-item/nav-item';
 
 export function getNavItems(role: number): NavItem[] {
   const isOrphan = localStorage.getItem('isOrphan') == 'true';
+  const email = localStorage.getItem('email');
+  const allowedReportEmails = ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'];
   return [
     {
       navCap: 'Home',
@@ -18,18 +20,27 @@ export function getNavItems(role: number): NavItem[] {
             ? '/dashboards/tm'
             : '/dashboards/dashboard2'
     },
-    ...(Number(role) !== 2 ? [{
-      displayName: 'Reports',
-      iconName: 'chart-bar',
-      bgcolor: 'primary',
-      route: '/dashboards/reports',
-    },
-    {
-      displayName: 'Productivity',
-      iconName: 'chart-bar',
-      bgcolor: 'primary',
-      route: '/dashboards/productivity',
-    }] : []),
+    ...((Number(role) === 2 && allowedReportEmails.includes(email || ''))
+      ? [{
+          displayName: 'Reports',
+          iconName: 'chart-bar',
+          bgcolor: 'primary',
+          route: '/dashboards/reports',
+        }]
+      : (Number(role) !== 2
+        ? [{
+            displayName: 'Reports',
+            iconName: 'chart-bar',
+            bgcolor: 'primary',
+            route: '/dashboards/reports',
+          },
+          {
+            displayName: 'Productivity',
+            iconName: 'chart-bar',
+            bgcolor: 'primary',
+            route: '/dashboards/productivity',
+          }]
+        : [])),
     ...(!isOrphan ? [
       {
         navCap: 'Apps',

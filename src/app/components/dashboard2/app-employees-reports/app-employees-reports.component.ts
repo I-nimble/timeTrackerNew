@@ -61,6 +61,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   refreshInterval: any;
+  allowedRole2: boolean = false;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -73,10 +74,13 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const allowedEmails = ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'];
+    const email = localStorage.getItem('email');
+    this.allowedRole2 = this.role === '2' && allowedEmails.includes(email || '');
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1') {
+    if (this.role == '1' || this.allowedRole2) {
       this.getCompanies();
     }
     this.getDataSource();
@@ -104,7 +108,8 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
       (!this.selectedClient || this.selectedClient === 0)
     ) {
       this.dataSource = [];
-      this.dataSourceChange.emit(this.dataSource);
+      this.filteredDataSource = [];
+      this.dataSourceChange.emit(this.filteredDataSource);
       return;
     }
     this.isLoading = true;
@@ -133,7 +138,6 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             status: employee.status,
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
-          
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
 
@@ -154,11 +158,13 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   filterByUser() {
-    this.filteredDataSource = this.dataSource.filter((u) => {
-      const userMatch =
-        !this.selectedUserId || u.profile.id === this.selectedUserId;
-      return userMatch;
-    });
+    if (!this.selectedUserId) {
+      this.filteredDataSource = [...this.dataSource];
+    } else {
+      this.filteredDataSource = this.dataSource.filter(
+        (u) => u.profile.id === this.selectedUserId
+      );
+    }
   }
 
   onUserChange(userId: number | null) {
@@ -174,8 +180,8 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   onClientChange(client: any) {
-    this.dataSource = [];
     this.selectedClient = client.id;
+    this.selectedUserId = null;
     this.getDataSource();
   }
 
