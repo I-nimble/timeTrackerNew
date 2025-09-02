@@ -8,11 +8,14 @@
 // HEADINGS
 h1.landingpage {
   font-family: "Montserrat", sans-serif;
-  font-size: 56px;
+  font-size: 50px;
   line-height: 74px;
   font-weight: bold;
   .extra-bold {
     font-weight: 700;
+  }
+  strong {
+    text-transform: uppercase;
   }
 }
 h2.landingpage {
