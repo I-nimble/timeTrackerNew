@@ -316,8 +316,50 @@ mat-tab-header {
 // }
 /* Default table styles */
 .why-compare-table {
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
-  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.why-compare-table th,
+.why-compare-table td {
+  padding: 18px 16px;
+  text-align: left;
+  font-size: 1rem;
+  border-bottom: 1px solid #e5e7e9;
+}
+
+.why-compare-table th {
+  background: #f5f6fa;
+  font-weight: 700;
+  color: #1A1B1F;
+  border-bottom: 2px solid #8bb97c;
+}
+
+.why-compare-table td[data-label="Inimble"] {
+  background: #f8fff6;
+}
+
+.why-compare-table td[data-label="Freelancers"] {
+  background: #fff6f6;
+}
+
+.why-compare-table .icon-24 {
+  vertical-align: middle;
+}
+
+.why-compare-table th:first-child,
+.why-compare-table td:first-child {
+  border-left: none;
+}
+
+.why-compare-table th:last-child,
+.why-compare-table td:last-child {
+  border-right: none;
 }
 
 /* Mobile styles */
@@ -389,6 +431,33 @@ mat-tab-header {
 }
 #invoices-img-mobile-2 {
   background-image: url("../../images/landingpage/mobile_invoices_02.png");
+  height: 250px;
+  overflow: hidden;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+// LANDING PAGE IMAGE
+
+#landingpage-img {
+  background-image: url("../../images/landingpage/landingpage.png");
+  height: 600px;
+  overflow: hidden;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#landingpage-img-mobile-1 {
+  background-image: url("../../images/landingpage/landingpage_img_mobile_1.png");
+  height: 250px;
+  overflow: hidden;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#landingpage-img-mobile-2 {
+  background-image: url("../../images/landingpage/landingpage_img_mobile_2.png");
   height: 250px;
   overflow: hidden;
   background-size: contain;
