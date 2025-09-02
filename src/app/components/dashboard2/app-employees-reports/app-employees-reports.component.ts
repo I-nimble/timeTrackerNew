@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { RatingsEntriesService } from '../../../services/ratings_entries.service';
 import { UsersService } from '../../../services/users.service';
 import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of, finalize } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import {
@@ -105,12 +105,13 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
 
   getDataSource() {
     if (
-      this.role == '1' &&
+      (this.role == '1' || this.allowedTM) &&
       (!this.selectedClient || this.selectedClient === 0)
     ) {
       this.dataSource = [];
       this.filteredDataSource = [];
       this.dataSourceChange.emit(this.filteredDataSource);
+      this.isLoading = false;
       return;
     }
     this.isLoading = true;
@@ -141,20 +142,29 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
           }));
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
-
+          if (this.dataSource.length === 0) {
+            return of({ profilePics: [] });
+          }
           const profilePicRequests = this.dataSource.map((task) =>
             this.usersService.getProfilePic(task.profile.id)
           );
-          return forkJoin({
-            profilePics: forkJoin(profilePicRequests),
-          });
+          return forkJoin({ profilePics: forkJoin(profilePicRequests) });
+        }),
+        finalize(() => {
+          this.isLoading = false;
         })
       )
-      .subscribe(({ profilePics }) => {
-        this.dataSource.forEach((task, index) => {
-          task.profile.image = profilePics[index];
-        });
-        this.isLoading = false;
+      .subscribe({
+        next: ({ profilePics }) => {
+          this.dataSource.forEach((task, index) => {
+            task.profile.image = profilePics[index] || null;
+          });
+        },
+        error: () => {
+          this.dataSource = [];
+          this.filteredDataSource = [];
+          this.dataSourceChange.emit(this.filteredDataSource);
+        },
       });
   }
 
@@ -180,8 +190,8 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onClientChange(client: any) {
-    this.selectedClient = client.id;
+  onClientChange(clientId: number) {
+    this.selectedClient = clientId;
     this.selectedUserId = null;
     this.getDataSource();
   }
