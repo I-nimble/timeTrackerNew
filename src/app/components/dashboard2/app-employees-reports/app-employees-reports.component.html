@@ -16,6 +16,7 @@
             </mat-select>
           </mat-form-field>
         </div>
+        <div *ngIf="role == '3'" style="display:none"></div>
         <mat-form-field class="w-100" appearance="outline">
           <mat-label>Select a Team Member</mat-label>
           <mat-select
@@ -77,7 +78,7 @@
         </div>
       </ng-container>
       <ng-template #afterLoad>
-        <div *ngIf="!selectedClient || selectedClient === 0; else showResults">
+        <div *ngIf="(role == '1' || allowedTM) && (!selectedClient || selectedClient === 0); else showResults">
           <div class="text-center p-4 f-s-16 text-muted">
             Please select a company.
           </div>

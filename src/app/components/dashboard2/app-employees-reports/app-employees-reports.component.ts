@@ -83,8 +83,15 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     this.endDate = today.toDate();
     if (this.role == '1' || this.allowedTM) {
       this.getCompanies();
+      this.getDataSource();
+    } else if (this.role == '3') {
+      this.companiesService.getByOwner().subscribe((company: any) => {
+        this.selectedClient = company?.company?.id || company?.company_id || 0;
+        this.getDataSource();
+      });
+    } else {
+      this.getDataSource();
     }
-    this.getDataSource();
 
     this.refreshInterval = setInterval(() => {
       this.getDataSource();
@@ -104,10 +111,14 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   getDataSource() {
-    if (
-      (this.role == '1' || this.allowedTM) &&
-      (!this.selectedClient || this.selectedClient === 0)
-    ) {
+    if ((this.role == '1' || this.allowedTM) && (!this.selectedClient || this.selectedClient === 0)) {
+      this.dataSource = [];
+      this.filteredDataSource = [];
+      this.dataSourceChange.emit(this.filteredDataSource);
+      this.isLoading = false;
+      return;
+    }
+    if (this.role == '3' && (!this.selectedClient || this.selectedClient === 0)) {
       this.dataSource = [];
       this.filteredDataSource = [];
       this.dataSourceChange.emit(this.filteredDataSource);
