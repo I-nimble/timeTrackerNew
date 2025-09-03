@@ -1,27 +1,67 @@
-<mat-card class="cardWithShadow">
-  <mat-card-content>
-    <div class="row justify-content-between gap-16">
-      <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
-        <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <input
-            matInput
-            placeholder="Select a Department"
-            [(ngModel)]="departmentFilter"
-            (keyup)="applyDepartmentFilter()"
-          />
-          <mat-icon matSuffix>
-            <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-          </mat-icon>
-        </mat-form-field>
+<ng-container *ngIf="!selectedClient">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row justify-content-between gap-16">
+        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Select a Department"
+              [(ngModel)]="departmentFilter"
+              (keyup)="applyDepartmentFilter()"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-6 d-flex align-items-center justify-content-start gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Ask AI: Which expert works best for..."
+              [(ngModel)]="aiQuestion"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="robot" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+          <button mat-raised-button color="primary" (click)="askGemini()" [disabled]="aiLoading || !aiQuestion">
+            Ask AI
+          </button>
+        </div>
       </div>
-    </div>
-  </mat-card-content>
-</mat-card>
+      <div *ngIf="aiAnswer" class="mt-16">
+          <mat-card color="accent" class="p-16">
+            <b>AI's answer:</b>
+            <div>
+              <ng-container *ngIf="!aiLoading; else loading">
+                <div [innerHTML]="aiAnswer | markdown | linebreak"></div>
+              </ng-container>
+              <ng-template #loading>
+                <div class="d-flex align-items-center gap-8">
+                  <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+                  <span>AI is writing an answer...</span>
+                </div>
+              </ng-template>
+            </div>
+          </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-<mat-card class="cardWithShadow mt-16">
-  <mat-card-content>
-    <div class="table-responsive">
-      <app-client-table [clients]="filteredClients"></app-client-table>
-    </div>
-  </mat-card-content>
-</mat-card>
+  <mat-card class="cardWithShadow mt-16">
+    <mat-card-content>
+      <div class="table-responsive">
+        <app-client-table [clients]="filteredClients"></app-client-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
+
+<ng-container *ngIf="selectedClient">
+  <app-client-details
+    [client]="selectedClient"
+    (back)="onBackFromDetails()">
+  </app-client-details>
+</ng-container>
