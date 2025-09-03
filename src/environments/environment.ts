@@ -6,6 +6,7 @@ export const environment = {
   baseWP: 'https://i-nimble.com',
   form:'https://forms.office.com/r',
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',
+  mp3: "https://inimble-app.s3.us-east-1.amazonaws.com/assets/sounds",
   upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
   stripePublicKey:'pk_test_51RoRhYA7lAmLJd56IjAbCmMWMtjh7iLIVxMLav5vCeBjGaTBlRFyAErXSeGtRLFNx49mmwWSOc9cnJHnXUsRT9VV00joP4DxQo',
   firebaseConfig: {

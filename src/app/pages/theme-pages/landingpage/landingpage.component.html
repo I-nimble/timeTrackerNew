@@ -12,31 +12,40 @@
     <!-- ------------------------------------------------------------------
     Banner
     ------------------------------------------------------------------ -->
-    <div class="overflow-hidden p-b-0" style="margin-top:70px">
-      <div class="container" id="hero">
+    <div class="overflow-hidden p-b-0" style="margin-top:140px">
+      <div class="container">
         <div class="row justify-content-center h-100">
-          <div class="col-12 col-md-5">
+          <div class="col-12 text-center">
             <div class="d-flex flex-column justify-content-center align-items-start h-100">
-              <h1 class="banner-title m-0 f-w-700 landingpage">
-                <strong>The First</strong> Remote Operating Platform
+              <h1 class="banner-title m-0 f-w-700 landingpage w-100">
+                <strong>Power</strong> your law firm remote operations with
                 <br />
-                <span class="underline"><strong> for Lawyers</strong></span>
+                <span class="underline"><strong> one platform</strong></span>
               </h1>
-              <p class="p-y-24 m-t-12 m-0 landingpage">
-                Run your entire legal team — from hiring to compliance — in one secure platform. Free for your first 5 users, forever.
+              <p class="p-y-24 m-t-10 m-0 landingpage w-100">
+                Power all your legal operations with one platform
               </p>
               <app-hero-button 
                 variant="filled" 
-                text="Free for Your First 5 Users — Forever. Get Started Today."
+                text="Start today for free"
                 [fullWidth]="isMobileScreen"
                 [routerLink]="['/authentication/login']"  
-                class="m-t-24"
+                class="m-y-12 m-x-auto"
               >
               </app-hero-button>
             </div>
           </div>
-          <div class="col-12 col-md-7">
+        </div>
+        <!-- Invoices image -->
+        <div class="">
+          <div class="container" id="invoices-img" *ngIf="!isMobileScreen; else invoicesImgMobile">
           </div>
+          <ng-template #invoicesImgMobile>
+            <div class="container" id="invoices-img-mobile-1">
+            </div>
+            <div class="container" id="invoices-img-mobile-2">
+            </div>
+          </ng-template>
         </div>
       </div>
     </div>
@@ -109,10 +118,10 @@
               Specially built for businesses
             </h2>
             <p class="text-white m-b-40 l-h-26 landingpage">
-              The only platform built for remote legal teams. From AI-powered hiring and onboarding to secure workflows, compliance, and payments — Inimble replaces multiple tools with one login. Free for your first 5 users, forever.       
+              It brings together staffing, IT, HR, productivity tools, and payroll — all under one login. From hiring and onboardind compliance, inimble is the only tool a modern legal team needs.       
             </p>
             <app-button 
-              text="Free Forever for Your First 5 Users — Create Your Account Now"
+              text="TRY APP FOR FREE NOW!"
               [routerLink]="['/authentication/login']"
               variant="filled"
               size="large"
@@ -159,13 +168,11 @@
                       <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
                           <i-tabler name="circle-check" class="icon-24 m-r-10" style="color: #8bb97c"></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
                           <i-tabler name="alert-triangle" class="icon-24 m-r-10" style="color: #e6b97a"></i-tabler>
-                          <p class="extra-bold">Sometimes</p>
                         </div>
                       </td>
                     </tr>
@@ -177,13 +184,11 @@
                       <td class="text-center" data-label="Inimble">
                         <div class="d-flex justify-content-start">
                           <i-tabler name="circle-check" class="icon-24 m-r-10" style="color: #8bb97c"></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
                         <div class="d-flex justify-content-start">
                           <i-tabler name="circle-x" class="icon-24 m-r-10" style="color: #e57373"></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -203,7 +208,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -213,7 +217,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -233,7 +236,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -243,7 +245,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -263,7 +264,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -273,7 +273,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e6b97a"
                           ></i-tabler>
-                          <p class="extra-bold">Sometimes</p>
                         </div>
                       </td>
                     </tr>
@@ -293,7 +292,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -303,7 +301,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -323,7 +320,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -333,7 +329,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e6b97a"
                           ></i-tabler>
-                          <p class="extra-bold">Sometimes</p>
                         </div>
                       </td>
                     </tr>
@@ -353,7 +348,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -363,7 +357,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -383,7 +376,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -393,7 +385,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -413,7 +404,6 @@
                             class="icon-24 m-r-10"
                             style="color: #8bb97c"
                           ></i-tabler>
-                          <p class="extra-bold">Always</p>
                         </div>
                       </td>
                       <td class="text-center" data-label="Freelancers">
@@ -423,7 +413,6 @@
                             class="icon-24 m-r-10"
                             style="color: #e57373"
                           ></i-tabler>
-                          <p class="extra-bold">Never</p>
                         </div>
                       </td>
                     </tr>
@@ -441,14 +430,14 @@
       <div class="gradient-transition white-lightgray"></div>
     </div>
 
-    <!-- Invoices image -->
+    <!-- Landing Page image -->
     <div class="spacer p-b-0 bg-light-gray">
-      <div class="container" id="invoices-img" *ngIf="!isMobileScreen; else invoicesImgMobile">
+      <div class="container" id="landingpage-img" *ngIf="!isMobileScreen; else landingpageImgMobile">
       </div>
-      <ng-template #invoicesImgMobile>
-        <div class="container" id="invoices-img-mobile-1">
+      <ng-template #landingpageImgMobile>
+        <div class="container" id="landingpage-img-mobile-1">
         </div>
-        <div class="container" id="invoices-img-mobile-2">
+        <div class="container" id="landingpage-img-mobile-2">
         </div>
       </ng-template>
     </div>

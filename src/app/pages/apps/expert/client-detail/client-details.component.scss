@@ -68,6 +68,8 @@
       .field-block {
         flex: 1 1 45%;
         min-width: 200px;
+        display: flex;
+        flex-direction: column; 
 
         .field {
           font-weight: bold;
@@ -76,7 +78,8 @@
 
         .info {
           margin: 0;
-          word-wrap: break-word;
+          white-space: nowrap;
+          display: block;     
         }
 
         a {
