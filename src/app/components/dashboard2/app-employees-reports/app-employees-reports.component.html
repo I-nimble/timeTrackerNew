@@ -73,7 +73,15 @@
   <mat-card-content class="p-t-0">
     <div class="table-responsive">
       <ng-container *ngIf="isLoading; else afterLoad">
-        <div class="text-center p-4">
+        <div 
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            width: 100%;
+          "
+        >
           <mat-progress-spinner diameter="70" mode="indeterminate"></mat-progress-spinner>
         </div>
       </ng-container>
