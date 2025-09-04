@@ -1,0 +1,24 @@
+<div class="match-search d-flex flex-column align-items-center gap-4">
+  <img src="assets/images/inimble.png" alt="Inimble Logo" height="80" />
+  <div class="search-bar w-100 d-flex align-items-center gap-2" style="max-width: 600px;">
+    <mat-form-field appearance="outline" class="flex-grow-1 hide-hint m-0">
+      <mat-icon matPrefix>
+        <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+      </mat-icon>        
+      <input
+        matInput
+        [placeholder]="placeholder"
+        [(ngModel)]="query"
+        (ngModelChange)="onSearchChange()" />
+    </mat-form-field>
+
+    <button *ngIf="aiEnabled"
+            mat-raised-button color="primary"
+            (click)="onAskAI()" [disabled]="loading || !query">
+      <ng-container *ngIf="!loading; else loadingTpl">Search</ng-container>
+      <ng-template #loadingTpl>
+        <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+      </ng-template>
+    </button>
+  </div>
+</div>

@@ -8,13 +8,20 @@
 
             <div output>
                 <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
-                    <mat-form-field appearance="outline" class="flex-grow-1 hide-hint m-b-0 m-r-20">
+<!--                     <mat-form-field appearance="outline" class="flex-grow-1 hide-hint m-b-0 m-r-20">
                         <input matInput type="text" placeholder="Search Candidate" [(ngModel)]="searchText"
                             (ngModelChange)="applyFilter()" />
                         <mat-icon matSuffix>
                             <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
                         </mat-icon>
-                    </mat-form-field>
+                    </mat-form-field> -->
+                    <app-match 
+                        appearance="outline" 
+                        class="flex-grow-1 hide-hint m-b-0 m-r-20"
+                        [aiEnabled]="false"
+                        placeholder="Search Candidate"
+                        (searchChange)="searchText = $event; applyFilter()">
+                    </app-match>
                     <button mat-flat-button class="m-r-8" [disabled]="selection.selected.length === 0"
                         (click)="openDialog('Schedule')">
                         Interview

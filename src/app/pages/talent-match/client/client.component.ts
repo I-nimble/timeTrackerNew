@@ -23,6 +23,7 @@ import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatchComponent } from 'src/app/components/match-search/match.component';
 
 @Component({
   standalone: true,
@@ -39,6 +40,7 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MaterialModule,
     TablerIconsModule,
     FormsModule,
+    MatchComponent
   ],
   templateUrl: './client.component.html',
 })

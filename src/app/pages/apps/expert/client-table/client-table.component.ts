@@ -37,7 +37,7 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
   constructor(private router: Router, private usersService: UsersService, private sanitizer: DomSanitizer) {}
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['clients']) {
+    if (changes['clients'] && this.clients) {
       this.clients.forEach(client => {
         const d = client.company?.departments as Department[] | undefined;
         client.company = client.company || {};
@@ -47,8 +47,13 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
           client.imagePath = url;
         });
       });
-      this.dataSourceTable = new MatTableDataSource(this.clients);
-      if (this.paginator) this.dataSourceTable.paginator = this.paginator;
+
+      if (this.dataSourceTable) {
+        this.dataSourceTable.data = this.clients;
+      } else {
+        this.dataSourceTable = new MatTableDataSource(this.clients);
+        if (this.paginator) this.dataSourceTable.paginator = this.paginator;
+      }
     }
   }
 
