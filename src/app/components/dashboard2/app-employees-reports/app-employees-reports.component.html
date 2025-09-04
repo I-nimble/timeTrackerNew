@@ -2,7 +2,7 @@
   <mat-card-header>
     <div class="filters-row row w-100">
       <div class="col-md-5 mb-2">
-        <div *ngIf="role == '1'">
+        <div *ngIf="role == '1' || allowedTM">
           <mat-form-field class="w-100" appearance="outline">
             <mat-label>Select a Company</mat-label>
             <mat-select
@@ -10,18 +10,19 @@
               (selectionChange)="onClientChange($event.value)"
             >
               <mat-option [value]="null" disabled>Select a client</mat-option>
-              <mat-option *ngFor="let company of companiesList" [value]="company">
+              <mat-option *ngFor="let company of companiesList" [value]="company.id">
                 {{ company.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
+        <div *ngIf="role == '3'" style="display:none"></div>
         <mat-form-field class="w-100" appearance="outline">
           <mat-label>Select a Team Member</mat-label>
           <mat-select
             [(value)]="selectedUserId"
             (selectionChange)="onUserChange($event.value)"
-            [disabled]="!selectedClient && role == '1'"
+            [disabled]="!selectedClient && (role == '1' || allowedTM)"
           >
             <mat-option [value]="null">All members</mat-option>
             <mat-option
@@ -58,7 +59,7 @@
         class="col-12 col-md-1 d-flex justify-content-center justify-content-md-start mt-2 mt-md-0"
       >
         <button
-          *ngIf="role != '2'"
+          *ngIf="role != '2' || allowedTM"
           mat-flat-button
           (click)="downloadReportAll()"
           [disabled]="isLoading || !dataSource?.length"
@@ -71,20 +72,38 @@
   </mat-card-header>
   <mat-card-content class="p-t-0">
     <div class="table-responsive">
-      <app-employee-table [displayedColumns]="customColumns" [dataSource]="filteredDataSource"></app-employee-table>
-      <div *ngIf="isLoading" class="text-center p-4">
-        <mat-progress-spinner
-          diameter="70"
-          style="margin: 0 auto"
-          mode="indeterminate"
-        ></mat-progress-spinner>
-      </div>
-      <div
-        *ngIf="!isLoading && dataSource?.length === 0"
-        class="text-center p-4 f-s-16 text-muted"
-      >
-        No completed tasks yet.
-      </div>
+      <ng-container *ngIf="isLoading; else afterLoad">
+        <div 
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            width: 100%;
+          "
+        >
+          <mat-progress-spinner diameter="70" mode="indeterminate"></mat-progress-spinner>
+        </div>
+      </ng-container>
+      <ng-template #afterLoad>
+        <div *ngIf="(role == '1' || allowedTM) && (!selectedClient || selectedClient === 0); else showResults">
+          <div class="text-center p-4 f-s-16 text-muted">
+            Please select a company.
+          </div>
+        </div>
+        <ng-template #showResults>
+          <app-employee-table
+            *ngIf="dataSource.length > 0; else noData"
+            [displayedColumns]="customColumns"
+            [dataSource]="filteredDataSource">
+          </app-employee-table>
+          <ng-template #noData>
+            <div class="text-center p-4 f-s-16 text-muted">
+              No completed tasks yet.
+            </div>
+          </ng-template>
+        </ng-template>
+      </ng-template>
     </div>
   </mat-card-content>
 </mat-card>

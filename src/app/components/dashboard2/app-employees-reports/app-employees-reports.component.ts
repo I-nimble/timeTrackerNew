@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { RatingsEntriesService } from '../../../services/ratings_entries.service';
 import { UsersService } from '../../../services/users.service';
 import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of, finalize } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import {
@@ -21,6 +21,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-employees-reports',
@@ -61,6 +62,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   refreshInterval: any;
+  allowedTM: boolean = false;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -73,13 +75,23 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const allowedReportEmails = environment.allowedReportEmails;
+    const email = localStorage.getItem('email');
+    this.allowedTM = this.role === '2' && allowedReportEmails.includes(email || '');
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1') {
+    if (this.role == '1' || this.allowedTM) {
       this.getCompanies();
+      this.getDataSource();
+    } else if (this.role == '3') {
+      this.companiesService.getByOwner().subscribe((company: any) => {
+        this.selectedClient = company?.company?.id || company?.company_id || 0;
+        this.getDataSource();
+      });
+    } else {
+      this.getDataSource();
     }
-    this.getDataSource();
 
     this.refreshInterval = setInterval(() => {
       this.getDataSource();
@@ -99,12 +111,18 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   getDataSource() {
-    if (
-      this.role == '1' &&
-      (!this.selectedClient || this.selectedClient === 0)
-    ) {
+    if ((this.role == '1' || this.allowedTM) && (!this.selectedClient || this.selectedClient === 0)) {
       this.dataSource = [];
-      this.dataSourceChange.emit(this.dataSource);
+      this.filteredDataSource = [];
+      this.dataSourceChange.emit(this.filteredDataSource);
+      this.isLoading = false;
+      return;
+    }
+    if (this.role == '3' && (!this.selectedClient || this.selectedClient === 0)) {
+      this.dataSource = [];
+      this.filteredDataSource = [];
+      this.dataSourceChange.emit(this.filteredDataSource);
+      this.isLoading = false;
       return;
     }
     this.isLoading = true;
@@ -133,32 +151,42 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             status: employee.status,
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
-          
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
-
+          if (this.dataSource.length === 0) {
+            return of({ profilePics: [] });
+          }
           const profilePicRequests = this.dataSource.map((task) =>
             this.usersService.getProfilePic(task.profile.id)
           );
-          return forkJoin({
-            profilePics: forkJoin(profilePicRequests),
-          });
+          return forkJoin({ profilePics: forkJoin(profilePicRequests) });
+        }),
+        finalize(() => {
+          this.isLoading = false;
         })
       )
-      .subscribe(({ profilePics }) => {
-        this.dataSource.forEach((task, index) => {
-          task.profile.image = profilePics[index];
-        });
-        this.isLoading = false;
+      .subscribe({
+        next: ({ profilePics }) => {
+          this.dataSource.forEach((task, index) => {
+            task.profile.image = profilePics[index] || null;
+          });
+        },
+        error: () => {
+          this.dataSource = [];
+          this.filteredDataSource = [];
+          this.dataSourceChange.emit(this.filteredDataSource);
+        },
       });
   }
 
   filterByUser() {
-    this.filteredDataSource = this.dataSource.filter((u) => {
-      const userMatch =
-        !this.selectedUserId || u.profile.id === this.selectedUserId;
-      return userMatch;
-    });
+    if (!this.selectedUserId) {
+      this.filteredDataSource = [...this.dataSource];
+    } else {
+      this.filteredDataSource = this.dataSource.filter(
+        (u) => u.profile.id === this.selectedUserId
+      );
+    }
   }
 
   onUserChange(userId: number | null) {
@@ -173,9 +201,9 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onClientChange(client: any) {
-    this.dataSource = [];
-    this.selectedClient = client.id;
+  onClientChange(clientId: number) {
+    this.selectedClient = clientId;
+    this.selectedUserId = null;
     this.getDataSource();
   }
 
