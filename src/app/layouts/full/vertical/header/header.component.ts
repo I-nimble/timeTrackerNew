@@ -325,6 +325,10 @@ export class HeaderComponent implements OnInit {
             subtitle: 'Team members',
             link: '/apps/team',
           },
+        ]
+      : []),
+      ...(Number(this.role) !== 2 && Number(this.role) !== 4
+      ? [
           {
             id: 4,
             img: 'credit-card',

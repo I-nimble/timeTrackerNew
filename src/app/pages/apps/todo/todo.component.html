@@ -24,7 +24,7 @@
           >
             <mat-option [value]="null"> All members </mat-option>
 
-            <mat-option [value]="loggedInUser?.id">
+            <mat-option [value]="loggedInUser?.id" *ngIf="userRole !== '4'">
               {{ loggedInUser?.name }} {{ loggedInUser?.last_name }}
             </mat-option>
             <mat-option *ngFor="let tm of teamMembers" [value]="tm.user.id">
@@ -382,6 +382,7 @@
                       <div class="d-flex align-items-start">
                         <div class="m-l-auto d-flex">
                           <button
+                            [disabled]="userRole == '4'"
                             mat-icon-button
                             class="d-flex justify-content-center"
                             href="javascript: void(0);"
@@ -393,6 +394,7 @@
                             ></i-tabler>
                           </button>
                           <button
+                            [disabled]="userRole == '4'"
                             *ngIf="userRole !== '2'"
                             mat-icon-button
                             type="button"

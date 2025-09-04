@@ -81,7 +81,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1' || this.allowedTM) {
+    if (this.role == '1' || this.allowedTM || this.role == '4') {
       this.getCompanies();
       this.getDataSource();
     } else if (this.role == '3') {
@@ -111,7 +111,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   getDataSource() {
-    if ((this.role == '1' || this.allowedTM) && (!this.selectedClient || this.selectedClient === 0)) {
+    if ((this.role == '1' || this.allowedTM || this.role == '4') && (!this.selectedClient || this.selectedClient === 0)) {
       this.dataSource = [];
       this.filteredDataSource = [];
       this.dataSourceChange.emit(this.filteredDataSource);

@@ -328,7 +328,7 @@ export class AppEmployeeDialogContentComponent {
             });
           });
         }
-        else if (this.userRole === '1') {
+        else if (this.userRole === '1' || this.userRole === '4') {
           this.inviteEmployeeForm.patchValue({
             company_id: this.local_data.profile.companyId || ''
           });

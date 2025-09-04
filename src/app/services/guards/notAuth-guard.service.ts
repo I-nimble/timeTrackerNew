@@ -21,7 +21,7 @@ export class notAuthGuard {
       if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '2'){
         this.router.navigate(['dashboards/tm'])
         return false;
-      }else if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '1'){
+      }else if(localStorage.getItem('role') !== null && this.loggedIn == true && (localStorage.getItem('role') === '1' || localStorage.getItem('role') === '4')){
         this.router.navigate(['dashboards/admin'])
         return false
       }else if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '3'){

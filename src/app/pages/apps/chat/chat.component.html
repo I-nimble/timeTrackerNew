@@ -55,7 +55,7 @@
 
       <!-- PROFESSIONAL PLAN CHAT -->
       <cometchat-conversations-with-messages 
-        *ngIf="(plan && plan.id === 3) || userRole === '1'"
+        *ngIf="(plan && plan.id === 3) || (userRole === '1' || userRole === '4')"
         id="chat-container"
         [messagesConfiguration]="professionalMessagesConfig"
         [StartConversationConfiguration]="StartConversationConfiguration"
