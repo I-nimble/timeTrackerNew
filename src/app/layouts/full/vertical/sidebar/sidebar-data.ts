@@ -23,7 +23,8 @@ export function getNavItems(role: number): NavItem[] {
       iconName: 'chart-bar',
       bgcolor: 'primary',
       route: '/dashboards/reports',
-    },
+    }] : []),
+    ...(Number(role) !== 2 && Number(role) !== 4 ? [
     {
       displayName: 'Productivity',
       iconName: 'chart-bar',

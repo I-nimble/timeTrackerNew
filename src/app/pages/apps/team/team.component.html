@@ -23,7 +23,7 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+        <div class="col-lg-4 d-flex align-items-center justify-content-end" *ngIf="userRole != '4'">
           <button mat-flat-button (click)="openDialog('Invite', {companyId})" color="primary">
             Add Team Member
           </button>

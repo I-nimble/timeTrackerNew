@@ -303,7 +303,7 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   getTeamMembers() {
-    if (this.userRole === '1') {
+    if (this.userRole === '1' || this.userRole === '4') {
       if (this.companyId) {
         this.companiesService.getEmployees(this.companyId).subscribe({
           next: (employees: any) => {

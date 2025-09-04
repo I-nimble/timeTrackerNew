@@ -185,7 +185,7 @@ export class AppTodoComponent implements OnInit {
   }
 
   getTeamMembers() {
-    if (this.userRole === '1') {
+    if (this.userRole === '1' || this.userRole === '4') {
       // Get all employees
       this.employeesService.get().subscribe((employees: any) => {
         this.teamMembers = employees;
@@ -319,7 +319,7 @@ export class AppTodoComponent implements OnInit {
     this.toDoFormArray.clear();
 
     if (
-      (this.userRole === '1' && this.teamMemberId === null) ||
+      ((this.userRole === '1' || this.userRole === '4') && this.teamMemberId === null) ||
       this.userRole === '2' ||
       (this.userRole === '3' && this.teamMemberId === null && this.companyId)
     ) {

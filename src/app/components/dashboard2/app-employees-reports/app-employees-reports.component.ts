@@ -76,7 +76,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1') {
+    if (this.role == '1' || this.role == '4') {
       this.getCompanies();
     }
     this.getDataSource();
@@ -100,7 +100,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
 
   getDataSource() {
     if (
-      this.role == '1' &&
+      (this.role == '1' || this.role == '4') &&
       (!this.selectedClient || this.selectedClient === 0)
     ) {
       this.dataSource = [];

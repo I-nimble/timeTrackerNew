@@ -10,6 +10,7 @@ import { GetStartedComponent } from './pages/register/get-started/get-started.co
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
 const CLIENT_TYPE_ROLE = '3';
+const SUPPORT_TYPE_ROLE = '4';
 
 export const routes: Routes = [
   {
@@ -31,7 +32,7 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         loadChildren: () =>
           import('./pages/reports/reports.module').then((m) => m.ReportsModule),
-        data: { allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE] },
+        data: { allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
       },
       {
         path: 'employees',
@@ -86,7 +87,7 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/admin/admin.module').then((m) => m.AdminModule),
         canActivate: [UserTypeGuardService],
-        data: { allowedUserTypes: [ADMIN_TYPE_ROLE] },
+        data: { allowedUserTypes: [ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
       },
       {
         path: 'client',
@@ -102,7 +103,7 @@ export const routes: Routes = [
             (m) => m.RatingsModule
           ),
         canActivate: [UserTypeGuardService],
-        data: { allowedUserTypes: [ADMIN_TYPE_ROLE, CLIENT_TYPE_ROLE, USER_TYPE_ROLE] },
+        data: { allowedUserTypes: [ADMIN_TYPE_ROLE, CLIENT_TYPE_ROLE, USER_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
       },
     ],
   },
