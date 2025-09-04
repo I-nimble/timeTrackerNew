@@ -15,7 +15,7 @@
             </mat-icon>
           </mat-form-field>
   
-          <mat-form-field appearance="outline" *ngIf="userRole === '1'" class="w-100 hide-hint">
+          <mat-form-field appearance="outline" *ngIf="userRole === '1' || userRole === '4'" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
             <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
               <mat-option *ngFor="let company of companies" [value]="company.id">
