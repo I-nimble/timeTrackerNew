@@ -27,15 +27,20 @@ export class MatchComponent {
   @Output() interview = new EventEmitter<void>();
 
   query: string = '';
+  cooldownActive = false;
 
   onSearchChange() {
     this.searchChange.emit(this.query);
   }
 
   onAskAI() {
-    if (!this.query) return;
+    if (!this.query || this.cooldownActive) return;
     this.loading = true;
     this.askAI.emit(this.query);
+    this.cooldownActive = true;
+    setTimeout(() => {
+      this.cooldownActive = false;
+    }, 8000);
   }
 
   finishLoading() {
