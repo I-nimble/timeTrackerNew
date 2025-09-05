@@ -11,7 +11,8 @@
         [(ngModel)]="query"
         (ngModelChange)="onSearchChange()" />
     </mat-form-field>
-
+  </div>
+  <div class="d-flex justify-content-center gap-2">
     <button *ngIf="aiEnabled"
             mat-raised-button color="primary"
             (click)="onAskAI()" [disabled]="loading || !query">
@@ -19,6 +20,13 @@
       <ng-template #loadingTpl>
         <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
       </ng-template>
+    </button>
+    <button *ngIf="showInterviewButton"
+            mat-raised-button
+            color="primary"
+            (click)="onInterviewClick()"
+            [disabled]="interviewDisabled">
+      Interview
     </button>
   </div>
 </div>

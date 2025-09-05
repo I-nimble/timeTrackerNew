@@ -19,9 +19,12 @@ export class MatchComponent {
   @Input() aiEnabled: boolean = false;
   @Input() placeholder: string = 'Search...';
   @Input() loading = false;
+  @Input() showInterviewButton = false;
+  @Input() interviewDisabled = false;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
+  @Output() interview = new EventEmitter<void>();
 
   query: string = '';
 
@@ -37,5 +40,9 @@ export class MatchComponent {
 
   finishLoading() {
     this.loading = false;
+  }
+
+  onInterviewClick() {
+    this.interview.emit();
   }
 }

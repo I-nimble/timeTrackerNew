@@ -24,6 +24,8 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
+import { AIService } from 'src/app/services/ai.service';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 
 @Component({
   standalone: true,
@@ -40,7 +42,9 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
     MaterialModule,
     TablerIconsModule,
     FormsModule,
-    MatchComponent
+    MatchComponent,
+    MarkdownPipe,
+    LinebreakPipe
   ],
   templateUrl: './client.component.html',
 })
@@ -64,13 +68,17 @@ export class AppTalentMatchClientComponent implements OnInit {
   companyId: number | null = null;
   interviews: any[] = [];
   assetsPath: string = 'assets/images/default-user-profile-pic.png';
-
+  aiLoading = false;
+  aiAnswer: string = '';
+  hasSearchResults = false;
+  
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
     private interviewsService: InterviewsService,
+    private aiService: AIService
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +88,44 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getInterviews();
   }
 
+  searchCandidatesWithAI(question: string) {
+    if (!question?.trim()) return;
+
+    this.aiLoading = true;
+    this.aiAnswer = '';
+    this.hasSearchResults = false;
+    const candidates = this.dataSource?.data || [];
+    console.log('Candidate object example:', candidates[0]);
+    const simplifiedCandidates = candidates.map(c => ({
+      id: c.id,
+      name: c.name,
+      skills: c.skills,
+      position: this.getPositionTitle(c.position_id) ?? '',
+      location: c.location,
+    }));
+
+    this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
+      next: (res) => {
+        const rawText = res.answer ?? '';
+        this.aiAnswer = rawText;
+        const selectedCandidates: string[] = [];
+        const regex = /"([^"]+)"/g;
+        let match;
+        while ((match = regex.exec(rawText)) !== null) {
+          selectedCandidates.push(match[1]);
+        }
+        this.dataSource.data = candidates.filter(c => selectedCandidates.includes(c.name));
+        this.hasSearchResults = true;
+        this.aiLoading = false;
+      },
+      error: (err) => {
+        console.error('AI search failed:', err);
+        this.aiAnswer = 'An error occurred while searching.';
+        this.aiLoading = false;
+      }
+    });
+  }
+  
   getInterviewDateTime(applicationId: number) {
     const interview = this.interviews.find(
       (interview) => interview.application_id === applicationId
@@ -164,12 +210,6 @@ export class AppTalentMatchClientComponent implements OnInit {
         });
       }
     });
-  }
-
-  applyFilter() {
-    if (this.dataSource) {
-      this.dataSource.filter = this.searchText.trim().toLowerCase();
-    }
   }
 
   getApplications() {
