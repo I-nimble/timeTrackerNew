@@ -8,6 +8,7 @@ import { AIService } from 'src/app/services/ai.service';
 import { ClientTableComponent } from './client-table/client-table.component';
 import { ClientDetailsComponent } from './client-detail/client-details.component';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { MatchComponent } from 'src/app/components/match-search/match.component';
 
 @Component({
   selector: 'app-expert',
@@ -21,13 +22,13 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
     ClientTableComponent,
     ClientDetailsComponent, 
     MarkdownPipe,
-    LinebreakPipe
+    LinebreakPipe,
+    MatchComponent
   ]
 })
 export class AppExpertComponent implements OnInit {
   clients: any[] = [];
   filteredClients: any[] = [];
-  departmentFilter: string = '';
   selectedClient: any = null;
   aiQuestion: string = '';
   aiAnswer: string = '';
@@ -38,19 +39,7 @@ export class AppExpertComponent implements OnInit {
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
       this.clients = users.filter((u: any) => u.role == 3 && u.active == 1);
-      this.filteredClients = [...this.clients];
-    });
-  }
-
-  applyDepartmentFilter() {
-    const filter = this.departmentFilter.trim().toLowerCase();
-    if (!filter) {
-      this.filteredClients = [...this.clients];
-      return;
-    }
-    this.filteredClients = this.clients.filter(client => {
-      const departments = client.company?.departmentsString?.toLowerCase() || '';
-      return departments.includes(filter);
+      // this.filteredClients = [...this.clients];
     });
   }
 
@@ -62,24 +51,38 @@ export class AppExpertComponent implements OnInit {
     this.selectedClient = null;
   }
 
-  async askGemini() {
-    if (!this.aiQuestion) return;
+  async askGemini(question: string) {
+    if (!question) return;
+    this.aiQuestion = question;
     this.aiLoading = true;
     this.aiAnswer = '';
-    try {
-      this.aiService.evaluateExperts(this.clients, this.aiQuestion).subscribe({
-        next: (res) => {
-          this.aiAnswer = res.answer;
-          this.aiLoading = false;
-        },
-        error: (err) => {
-          this.aiAnswer = 'Error getting answer from AI.';
-          this.aiLoading = false;
-        }
-      });
-    } catch (err) {
-      this.aiAnswer = 'Error getting answer from AI.';
-      this.aiLoading = false;
+    this.filteredClients = [];
+
+    this.aiService.evaluateExperts(this.clients, question).subscribe({
+      next: (res) => {
+      this.aiAnswer = res.answer;
+
+      const selectedCompanies = this.extractCompaniesFromAiAnswer(this.aiAnswer);
+
+      this.filteredClients = this.clients.filter(client =>
+        selectedCompanies.includes(client.company?.name)
+      );
+        this.aiLoading = false;
+      },
+      error: (err) => {
+        this.aiAnswer = 'Error getting answer from AI.';
+        this.aiLoading = false;
+      }
+    });
+  }
+
+  extractCompaniesFromAiAnswer(answer: string): string[] {
+    const regex = /"([^"]+)"/g;
+    const matches: string[] = [];
+    let match;
+    while ((match = regex.exec(answer)) !== null) {
+      matches.push(match[1].trim());
     }
+    return matches;
   }
 }
