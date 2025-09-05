@@ -67,9 +67,6 @@ export class AppExpertComponent implements OnInit {
       this.filteredClients = this.clients.filter(client =>
         selectedCompanies.includes(client.company?.name)
       );
-
-      console.log('AI Companies:', selectedCompanies);
-      console.log('Filtered Clients:', this.filteredClients);
         this.aiLoading = false;
       },
       error: (err) => {
