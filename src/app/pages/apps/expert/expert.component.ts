@@ -70,7 +70,7 @@ export class AppExpertComponent implements OnInit {
         this.aiLoading = false;
       },
       error: (err) => {
-        this.aiAnswer = 'Error getting answer from AI.';
+        this.aiAnswer = 'Error getting answer from AI, try again later.';
         this.aiLoading = false;
       }
     });
