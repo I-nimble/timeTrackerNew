@@ -2,11 +2,12 @@ import { Component, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit } 
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-scrapper-table',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule],
+  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatIconModule],
   templateUrl: './scrapper-table.component.html',
 })
 export class ScrapperTableComponent implements OnChanges, AfterViewInit {
