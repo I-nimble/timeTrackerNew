@@ -120,7 +120,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       },
       error: (err) => {
         console.error('AI search failed:', err);
-        this.aiAnswer = 'An error occurred while searching.';
+        this.aiAnswer = 'Error getting answer from AI, try again later.';
         this.aiLoading = false;
       }
     });
