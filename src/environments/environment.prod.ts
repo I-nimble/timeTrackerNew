@@ -19,4 +19,5 @@ export const environment = {
   },
   vapidKey: 'BAgM65bd3u0eip66PuUViB9xB4agoBNFqTOragNBofHJnz7BcZM4SJqoSZyu2gj8Aiz573ExvVDwfU_eICWf2JI',
   allowedReportEmails: ['pgarcia@i-nimble.com', 'jnava@i-nimble.com'],
+  allowedPaymentsEmails: ['jpalma@i-nimble.com'],
 };
