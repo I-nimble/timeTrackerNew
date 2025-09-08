@@ -1,4 +1,10 @@
 <mat-dialog-content>
+  <button mat-icon-button 
+          aria-label="Close dialog" 
+          (click)="closeDialog()"
+          style="position: absolute; top: 8px; right: 8px;">
+    <mat-icon>close</mat-icon>
+  </button>
     <div *ngIf="!interviewScheduled">
       <h2 class="m-b-20">Set up a date and time for the interview</h2>
       <form [formGroup]="interviewForm" (ngSubmit)="onScheduleInterview()">

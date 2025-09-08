@@ -15,6 +15,7 @@ import { UserTypeGuardService } from 'src/app/services/guards/user-type-guard.se
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
 const CLIENT_TYPE_ROLE = '3';
+const SUPPORT_TYPE_ROLE = '4';
 
 export const DashboardsRoutes: Routes = [
   {
@@ -35,7 +36,7 @@ export const DashboardsRoutes: Routes = [
       {
         path: 'admin',
         component: AppDashboardAdminComponent,
-        data: { title: 'Dashboard', allowedUserTypes: [ADMIN_TYPE_ROLE] },
+        data: { title: 'Dashboard', allowedUserTypes: [ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
         canActivate: [UserTypeGuardService],
       },
       {
@@ -43,7 +44,7 @@ export const DashboardsRoutes: Routes = [
         component: ReportsComponent,
         data: { 
           title: 'Reports', 
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE],
+          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE],
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Reports' }
@@ -56,7 +57,7 @@ export const DashboardsRoutes: Routes = [
         component: ProductivityComponent,
         data: {
           title: 'Productivity',
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE],
+          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE],
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Productivity' }
@@ -69,7 +70,7 @@ export const DashboardsRoutes: Routes = [
         component: NotificationsComponent,
         data: {
           title: 'Notifications',
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE]
+          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE]
         },
         canActivate: [UserTypeGuardService],
       },

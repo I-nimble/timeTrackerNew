@@ -10,6 +10,7 @@ import { UserTypeGuardService } from './services/guards/user-type-guard.service'
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
 const CLIENT_TYPE_ROLE = '3';
+const SUPPORT_TYPE_ROLE = '4';
 
 export const routes: Routes = [
   {
@@ -33,7 +34,7 @@ export const routes: Routes = [
             (m) => m.DashboardsRoutes
           ),
         canActivate: [AuthGuard],
-        data: { allowedUserTypes: [USER_TYPE_ROLE, CLIENT_TYPE_ROLE, ADMIN_TYPE_ROLE] },
+        data: { allowedUserTypes: [USER_TYPE_ROLE, CLIENT_TYPE_ROLE, ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
       },
       {
         path: 'forms',

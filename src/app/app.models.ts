@@ -9,4 +9,5 @@ export const userRoles = {
   admin: '1',
   user: '2',
   employer: '3',
+  support: '4',
 };

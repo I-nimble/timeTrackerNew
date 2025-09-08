@@ -33,14 +33,15 @@ export function getNavItems(role: number): NavItem[] {
             iconName: 'chart-bar',
             bgcolor: 'primary',
             route: '/dashboards/reports',
-          },
-          {
-            displayName: 'Productivity',
-            iconName: 'chart-bar',
-            bgcolor: 'primary',
-            route: '/dashboards/productivity',
           }]
         : [])),
+        ...(Number(role) !== 2 && Number(role) !== 4 ? [
+        {
+          displayName: 'Productivity',
+          iconName: 'chart-bar',
+          bgcolor: 'primary',
+          route: '/dashboards/productivity',
+        }] : []),
     ...(!isOrphan ? [
       {
         navCap: 'Apps',

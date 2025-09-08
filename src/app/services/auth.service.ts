@@ -122,7 +122,7 @@ export class AuthService {
   }
   verifyAdmin() {
     const role = localStorage.getItem('role');
-    if (role !== null && role === '1') {
+    if (role !== null && (role === '1' || role === '4')) {
       this.isAdmin.next(true);
       return this.isAdmin.asObservable();
     } else {

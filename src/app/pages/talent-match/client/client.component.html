@@ -7,20 +7,40 @@
             </h4>
 
             <div output>
-                <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
-                    <mat-form-field appearance="outline" class="flex-grow-1 hide-hint m-b-0 m-r-20">
-                        <input matInput type="text" placeholder="Search Candidate" [(ngModel)]="searchText"
-                            (ngModelChange)="applyFilter()" />
-                        <mat-icon matSuffix>
-                            <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-                        </mat-icon>
-                    </mat-form-field>
-                    <button mat-flat-button class="m-r-8" [disabled]="selection.selected.length === 0"
-                        (click)="openDialog('Schedule')">
-                        Interview
-                    </button>
+                    <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
+                        <app-match 
+                        appearance="outline" 
+                        class="flex-grow-1 hide-hint m-b-0"
+                        [loading]="aiLoading"
+                        [aiEnabled]="true"
+                        [showInterviewButton]="true"
+                        [interviewDisabled]="selection.selected.length === 0"
+                        (interview)="openDialog('Schedule')"
+                        placeholder="Search for a Candidate..."
+                        (askAI)="searchCandidatesWithAI($event)">
+                        </app-match>
+                    </div>
+                <div *ngIf="aiLoading || aiAnswer" class="mt-16">
+                <mat-card color="accent" class="p-16">
+                    <b>AI's answer:</b>
+                    <div>
+                    <ng-container *ngIf="aiLoading; else showTalentAnswer">
+                        <div class="d-flex align-items-center gap-8">
+                            <img
+                            src="assets/icons/ai-loader.gif"
+                            alt="AI loading"
+                            style="width: 80px; height: 80px;"
+                            />
+                            <span>Matching with the ideal candidate...</span>
+                        </div>
+                    </ng-container>
+                    <ng-template #showTalentAnswer>
+                        <div [innerHTML]="aiAnswer || '' | markdown | linebreak"></div>
+                    </ng-template>
+                    </div>
+                </mat-card>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" *ngIf="hasSearchResults">
                     <table mat-table [dataSource]="dataSource" class="w-100">
                         <ng-container matColumnDef="select">
                             <th mat-header-cell *matHeaderCellDef class="p-l-0">
@@ -53,8 +73,14 @@
                             </th>
                             <td mat-cell *matCellDef="let element">
                                 <div class="d-flex align-items-center">
-                                    <img [src]="element.profile_pic_url ? picturesUrl + '/' + element.profile_pic_url : assetsPath"
-                                        alt="users" width="40" class="rounded-circle" (error)="handleImageError($event)" />
+                                    <img 
+                                        [src]="element.profile_pic_url ? picturesUrl + '/' + element.profile_pic_url : assetsPath"
+                                        alt="users" 
+                                        width="45"
+                                        height="45"
+                                        class="rounded-circle"
+                                        style="object-fit: cover; aspect-ratio: 1 / 1;"
+                                        (error)="handleImageError($event)" />
                                     <div class="m-l-16">
                                         <h6 class=" f-s-14 f-w-600">
                                             {{ element.name }}

@@ -15,4 +15,11 @@ export class AIService {
       { experts, question }
     );
   }
+
+  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: string }> {
+    return this.http.post<{ answer: string }>(
+      `${this.API_URI}/ai/candidate-evaluation`,
+      { candidates, question }
+    );
+  }
 }

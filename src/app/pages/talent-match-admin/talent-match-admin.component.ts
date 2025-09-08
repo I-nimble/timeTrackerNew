@@ -71,6 +71,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
   positions: any[] = [];
+  userRole = localStorage.getItem('role');
 
   constructor(
     private applicationService: ApplicationsService,
