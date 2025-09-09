@@ -24,6 +24,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 export class PaymentsReportsComponent implements AfterViewInit {
   reportsList = new MatTableDataSource<any>([]);
   displayedColumns: string[] = ['id', 'created_at', 'status', 'action'];
+  reportsUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/reports';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -88,6 +89,34 @@ export class PaymentsReportsComponent implements AfterViewInit {
     }
   }
 
+    downloadReport(key: string, reportId: number) {
+        if (!key) {
+            this.snackBar.open('No report found', 'Close', { duration: 3000 });
+            return;
+        }
+
+        const url = `${this.reportsUrl}/${key}`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = key;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        this.invoiceService.markReportAsSeen(reportId).subscribe({
+            next: () => {
+            const updated = this.reportsList.data.map(r =>
+                r.id === reportId ? { ...r, status: true } : r
+            );
+            this.reportsList.data = updated;
+            },
+            error: () => {
+            this.showSnackbar('Failed to mark report as seen.');
+            },
+        });
+    }
+
+  
   showSnackbar(message: string): void {
     this.snackBar.open(message, 'Close', {
       duration: 3000,

@@ -52,14 +52,6 @@ export class InvoiceService {
     );
   }
 
-  getDownloadUrl(key: string): Observable<string> {
-    return this.http.get<{ url: string }>(
-      `${environment.apiUrl}/generate_download_url/${key}`
-    ).pipe(
-      map(res => res.url)
-    );
-  }
-
   submitReport(data: any): Observable<any> {
     let fileUpload$ = of(null);
 
