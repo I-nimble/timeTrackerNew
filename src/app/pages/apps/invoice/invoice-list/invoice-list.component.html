@@ -85,13 +85,24 @@
         </mat-form-field>
       </div>
       </div>
-      <div class="col-sm-4 d-flex align-items-center justify-content-end" >
+      <div class="col-sm-4 d-flex align-items-center justify-content-end">
         <a
           mat-button
           [routerLink]="['/apps/addInvoice']"
           mat-flat-button
           color="primary"
-          >Add Invoice</a>
+          class="me-4"
+        >
+          Add Invoice
+        </a>
+        <a
+          mat-button
+          [routerLink]="['/apps/payments-reports']"
+          mat-flat-button
+          color="primary"
+        >
+          Reports
+        </a>
       </div>
     </div>
   </mat-card-content>
