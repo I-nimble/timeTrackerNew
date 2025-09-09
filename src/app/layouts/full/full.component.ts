@@ -110,6 +110,42 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
+    ...(this.role != '1' && this.role != '4'
+    ? [{
+        id: 12,
+        img: '/assets/images/svgs/icon-speech-bubble.svg',
+        title: 'Help Center',
+        subtitle: 'Support & FAQs',
+        link: '/apps/chat/support',
+      }]
+    : []),
+    ...(this.role != '2'
+    ? [{
+        id: 13,
+        img: '/assets/images/svgs/icon-office-bag.svg',
+        title: 'Talent Match',
+        subtitle: 'Find top talent',
+        link: '/apps/talent-match',
+      }]
+    : []),
+    ...(this.role == '3'
+    ? [{
+        id: 14,
+        img: '/assets/images/svgs/icon-account.svg',
+        title: 'Expert Match',
+        subtitle: 'Connect with experts',
+        link: '/apps/expert',
+      }]
+    : []),
+    ...(this.role == '3'
+    ? [{
+        id: 15,
+        img: '/assets/images/svgs/icon-connect.svg',
+        title: 'Content Creator',
+        subtitle: 'Create and manage content',
+        link: '/apps/scrapper',
+      }]
+    : []),
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
