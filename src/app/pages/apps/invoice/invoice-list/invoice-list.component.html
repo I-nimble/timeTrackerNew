@@ -66,7 +66,7 @@
   </div>
 </div>
 
-<mat-card class="cardWithShadow" *ngIf="role == '1' || allowedTM">
+<mat-card class="cardWithShadow" *ngIf="role == '1' || allowedPaymentsManager">
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
       <div class="row m-b-16 col-lg-4">
@@ -145,7 +145,7 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="client" *ngIf="role == '1' || allowedTM">
+        <ng-container matColumnDef="client" *ngIf="role == '1' || allowedPaymentsManager">
           <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15">
             Client
           </th>
@@ -207,7 +207,7 @@
               mat-icon-button
               [routerLink]="['/apps/editinvoice/', element.id]"
               class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '1' || allowedTM"
+              *ngIf="role == '1' || allowedPaymentsManager"
             >
               <i-tabler
                 name="pencil"
@@ -252,7 +252,7 @@
               mat-icon-button
               (click)="deleteInvoice(element.id)"
               class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '1' || allowedTM"
+              *ngIf="role == '1' || allowedPaymentsManager"
             >
               <i-tabler
                 name="trash"

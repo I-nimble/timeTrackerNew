@@ -10,6 +10,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AppConfirmDeleteDialogComponent } from '../invoice-list/confirm-delete-dialog.component';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons'; 
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-payments-reports',
@@ -29,6 +30,8 @@ export class PaymentsReportsComponent implements AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
+  allowedPaymentsManager: boolean = false;
+
   constructor(
     private invoiceService: InvoiceService,
     private snackBar: MatSnackBar,
@@ -36,6 +39,8 @@ export class PaymentsReportsComponent implements AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    const email = localStorage.getItem('email') || '';
+    this.allowedPaymentsManager = environment.allowedPaymentsEmails.includes(email);
     this.loadReports();
   }
 
@@ -56,6 +61,7 @@ export class PaymentsReportsComponent implements AfterViewInit {
   }
 
   deleteReport(id: number): void {
+    if (this.allowedPaymentsManager) return;
     const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
 
     dialogRef.afterClosed().subscribe((result: boolean) => {
@@ -74,6 +80,7 @@ export class PaymentsReportsComponent implements AfterViewInit {
   }
 
   onFileSelected(event: any): void {
+    if (this.allowedPaymentsManager) return;
     const file: File = event.target.files[0];
     if (file) {
         const reportData = { file };
