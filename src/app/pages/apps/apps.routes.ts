@@ -33,6 +33,7 @@ import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
 import { AppExpertComponent } from './expert/expert.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
+import { ScrapperComponent } from './scrapper/scrapper.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -397,7 +398,18 @@ export const AppsRoutes: Routes = [
             { title: 'Pricing' },
           ],
         },
-      }
+      },
+      {
+        path: 'scrapper',
+        component: ScrapperComponent,
+        data: {
+          title: 'Scrapper',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'scrapper' },
+          ],
+        },
+      },
     ],
   },
 ];
