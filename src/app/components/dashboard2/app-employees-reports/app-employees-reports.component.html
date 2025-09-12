@@ -59,15 +59,35 @@
       <div 
         class="col-12 col-md-1 d-flex justify-content-center justify-content-md-start mt-2 mt-md-0"
       >
-        <button
-          *ngIf="role != '2' || allowedReportsManager"
-          mat-flat-button
-          (click)="downloadReportAll()"
-          [disabled]="isLoading || !dataSource?.length"
-          title="Download All Reports"
-        >
-          <i-tabler name="download" class="icon-18 me-1"></i-tabler>
-        </button>
+        <div *ngIf="role != '2' || allowedReportsManager">
+          <button
+            mat-flat-button
+            [matMenuTriggerFor]="downloadMenu"
+            [disabled]="isLoading || !dataSource?.length"
+            title="Download All Reports"
+          >
+            <i-tabler name="download" class="icon-18 me-1"></i-tabler>
+          </button>
+          <mat-menu #downloadMenu="matMenu">
+            <button 
+              mat-menu-item 
+              (click)="downloadReportAll('excel')" 
+              style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;"
+            >
+              <i-tabler name="file-spreadsheet" class="icon-18" style="display:inline-block;"></i-tabler>
+              <span>  Excel</span>
+            </button>
+
+            <button 
+              mat-menu-item 
+              (click)="downloadReportAll('pptx')" 
+              style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;"
+            >
+              <i-tabler name="presentation" class="icon-18" style="display:inline-block;"></i-tabler>
+              <span>  PowerPoint</span>
+            </button>
+          </mat-menu>
+        </div>
       </div>
     </div>
     <div class="w-100 d-flex justify-content-start mt-2">
