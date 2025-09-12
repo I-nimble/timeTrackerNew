@@ -99,6 +99,7 @@ export class FullComponent implements OnInit {
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
+  @ViewChild('filterNavRight', { static: false }) filterNavRight: MatSidenav;
 
   get isOver(): boolean {
     return this.isMobileScreen;
@@ -210,15 +211,15 @@ export class FullComponent implements OnInit {
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
       .subscribe((state) => {
-        // SidenavOpened must be reset true when layout changes
-        this.options.sidenavOpened = true;
         this.isMobileScreen = state.breakpoints[BELOWMONITOR];
-        if (this.options.sidenavCollapsed == false) {
-          this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];
-        }
-        this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
         this.resView = state.breakpoints[BELOWMONITOR];
+        if (!this.resView && this.filterNavRight && this.filterNavRight.opened) {
+          this.filterNavRight.close();
+        }
+
+        this.options.sidenavOpened = !this.resView;
       });
+
 
     // Initialize project theme with options
     this.receiveOptions(this.options);
