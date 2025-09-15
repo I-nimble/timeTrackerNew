@@ -116,7 +116,7 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.hasSearchResults = true;
         this.aiLoading = false;
         if (selectedCandidates.length > 0) {
-          this.aiAnswer = 'The candidates are listed below:';
+          this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
         }
