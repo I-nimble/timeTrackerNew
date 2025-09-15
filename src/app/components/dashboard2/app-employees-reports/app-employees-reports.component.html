@@ -72,19 +72,27 @@
             <button 
               mat-menu-item 
               (click)="downloadReportAll('excel')" 
-              style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;"
+              style="display:flex; align-items:center; gap:6px;"
             >
-              <i-tabler name="file-spreadsheet" class="icon-18" style="display:inline-block;"></i-tabler>
-              <span>  Excel</span>
+              <i-tabler 
+                name="file-spreadsheet" 
+                class="icon-18" 
+                style="position:relative; top:2px;"
+              ></i-tabler>
+              <span> Excel</span>
             </button>
 
             <button 
               mat-menu-item 
               (click)="downloadReportAll('pptx')" 
-              style="display:flex; align-items:center; justify-content:center; gap:6px; width:100%;"
+              style="display:flex; align-items:center; gap:6px;"
             >
-              <i-tabler name="presentation" class="icon-18" style="display:inline-block;"></i-tabler>
-              <span>  PowerPoint</span>
+              <i-tabler 
+                name="presentation" 
+                class="icon-18" 
+                style="position:relative; top:2px;"
+              ></i-tabler>
+              <span> PowerPoint</span>
             </button>
           </mat-menu>
         </div>
