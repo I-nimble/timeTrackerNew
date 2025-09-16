@@ -1,8 +1,8 @@
 <mat-card class="cardWithShadow h-100">
-  <mat-card-header>
+  <mat-card-header class="flex-column align-items-stretch">
     <div class="filters-row row w-100">
       <div class="col-md-5 mb-2">
-        <div *ngIf="role == '1' || allowedTM || role =='4'">
+        <div *ngIf="role == '1' || allowedReportsManager || role =='4'">
           <mat-form-field class="w-100" appearance="outline">
             <mat-label>Select a Company</mat-label>
             <mat-select
@@ -22,7 +22,7 @@
           <mat-select
             [(value)]="selectedUserId"
             (selectionChange)="onUserChange($event.value)"
-            [disabled]="!selectedClient && (role == '1' || allowedTM || role == '4')"
+            [disabled]="!selectedClient && (role == '1' || allowedReportsManager || role == '4')"
           >
             <mat-option [value]="null">All members</mat-option>
             <mat-option
@@ -54,12 +54,13 @@
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
         </mat-form-field>
+
       </div>
       <div 
         class="col-12 col-md-1 d-flex justify-content-center justify-content-md-start mt-2 mt-md-0"
       >
         <button
-          *ngIf="role != '2' || allowedTM"
+          *ngIf="role != '2' || allowedReportsManager"
           mat-flat-button
           (click)="downloadReportAll()"
           [disabled]="isLoading || !dataSource?.length"
@@ -68,6 +69,17 @@
           <i-tabler name="download" class="icon-18 me-1"></i-tabler>
         </button>
       </div>
+    </div>
+    <div class="w-100 d-flex justify-content-start mt-2">
+      <a
+        mat-flat-button
+        color="primary"
+        [routerLink]="['/apps/payments-reports']"
+        *ngIf="role == '1' || allowedReportsManager || role == '4'"
+        title="Go to Payments Reports"
+      >
+        Payments Reports
+      </a>
     </div>
   </mat-card-header>
   <mat-card-content class="p-t-0">
@@ -86,7 +98,7 @@
         </div>
       </ng-container>
       <ng-template #afterLoad>
-        <div *ngIf="(role == '1' || allowedTM) && (!selectedClient || selectedClient === 0); else showResults">
+        <div *ngIf="(role == '1' || allowedReportsManager) && (!selectedClient || selectedClient === 0); else showResults">
           <div class="text-center p-4 f-s-16 text-muted">
             Please select a company.
           </div>
