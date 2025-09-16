@@ -6,10 +6,6 @@
                 <span class="f-s-14 f-w-400 d-block">select one or more candidates to schedule an interview</span>
             </h4>
 
-            <div class="d-flex justify-content-center aling-items-center m-t-8">
-                <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
-            </div>
-
             <div output>
                     <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
                         <app-match 
@@ -20,7 +16,7 @@
                         [showInterviewButton]="true"
                         [interviewDisabled]="selection.selected.length === 0"
                         (interview)="openDialog('Schedule')"
-                        placeholder="What position are you looking for?"
+                        placeholder="Search for a Candidate..."
                         (askAI)="searchCandidatesWithAI($event)">
                         </app-match>
                     </div>
@@ -44,7 +40,7 @@
                     </div>
                 </mat-card>
                 </div>
-                <div class="table-responsive" *ngIf="hasSearchResults && dataSource?.data && dataSource.data.length > 0">
+                <div class="table-responsive" *ngIf="hasSearchResults">
                     <table mat-table [dataSource]="dataSource" class="w-100">
                         <ng-container matColumnDef="select">
                             <th mat-header-cell *matHeaderCellDef class="p-l-0">

@@ -21,7 +21,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { StripeService } from 'src/app/services/stripe.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
-import { environment } from 'src/environments/environment';
 
 @Component({
     selector: 'app-invoice-list',
@@ -48,8 +47,6 @@ export class AppInvoiceListComponent implements AfterViewInit {
   pendingInvoices = signal<any[]>([]);
   overdueInvoices = signal<any[]>([]);
   selectedCompanyId = signal<number | null>(null);
-  allowedPaymentsManager: boolean = false;
-  allowedReportsManager: boolean = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -57,12 +54,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService,private companiesService: CompaniesService,) {}
 
   ngOnInit(): void {
-  const allowedPaymentsEmails = environment.allowedPaymentsEmails;
-  const allowedReportsEmails = environment.allowedReportEmails;
-  const email = localStorage.getItem('email');
-  this.allowedReportsManager = this.role === '2' && allowedReportsEmails.includes(email || '');
-  this.allowedPaymentsManager = this.role === '2' && allowedPaymentsEmails.includes(email || '');
-  if (this.role == '3' || this.allowedPaymentsManager == true) {
+  if (this.role == '3') {
     this.displayedColumns = [
       'id',
       'paymentDate',

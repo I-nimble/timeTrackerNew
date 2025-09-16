@@ -95,6 +95,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.aiAnswer = '';
     this.hasSearchResults = false;
     const candidates = this.dataSource?.data || [];
+    console.log('Candidate object example:', candidates[0]);
     const simplifiedCandidates = candidates.map(c => ({
       id: c.id,
       name: c.name,
@@ -106,6 +107,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
       next: (res) => {
         const rawText = res.answer ?? '';
+        this.aiAnswer = rawText;
         const selectedCandidates: string[] = [];
         const regex = /"([^"]+)"/g;
         let match;
@@ -115,11 +117,6 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.dataSource.data = candidates.filter(c => selectedCandidates.includes(c.name));
         this.hasSearchResults = true;
         this.aiLoading = false;
-        if (selectedCandidates.length > 0) {
-          this.aiAnswer = 'The candidates are listed below:';
-        } else {
-          this.aiAnswer = 'No matches.';
-        }
       },
       error: (err) => {
         console.error('AI search failed:', err);

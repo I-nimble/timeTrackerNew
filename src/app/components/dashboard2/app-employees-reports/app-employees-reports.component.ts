@@ -22,7 +22,6 @@ import { ReportsService } from 'src/app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
 import { environment } from 'src/environments/environment';
-import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-employees-reports',
@@ -38,7 +37,6 @@ import { RouterLink } from '@angular/router';
     NgIf,
     TablerIconsModule,
     AppEmployeeTableComponent,
-    RouterLink
   ],
   providers: [
     provideNativeDateAdapter(),
@@ -64,7 +62,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   refreshInterval: any;
-  allowedReportsManager: boolean = false;
+  allowedTM: boolean = false;
 
   constructor(
     @Inject(RatingsEntriesService)
@@ -79,11 +77,11 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const allowedReportEmails = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
-    this.allowedReportsManager = this.role === '2' && allowedReportEmails.includes(email || '');
+    this.allowedTM = this.role === '2' && allowedReportEmails.includes(email || '');
     const today = moment();
     this.startDate = today.toDate();
     this.endDate = today.toDate();
-    if (this.role == '1' || this.allowedReportsManager || this.role == '4') {
+    if (this.role == '1' || this.allowedTM || this.role == '4') {
       this.getCompanies();
       this.getDataSource();
     } else if (this.role == '3') {
@@ -113,7 +111,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   }
 
   getDataSource() {
-    if ((this.role == '1' || this.allowedReportsManager || this.role == '4') && (!this.selectedClient || this.selectedClient === 0)) {
+    if ((this.role == '1' || this.allowedTM || this.role == '4') && (!this.selectedClient || this.selectedClient === 0)) {
       this.dataSource = [];
       this.filteredDataSource = [];
       this.dataSourceChange.emit(this.filteredDataSource);

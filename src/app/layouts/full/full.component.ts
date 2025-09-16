@@ -99,7 +99,6 @@ export class FullComponent implements OnInit {
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
-  @ViewChild('filterNavRight', { static: false }) filterNavRight: MatSidenav;
 
   get isOver(): boolean {
     return this.isMobileScreen;
@@ -111,42 +110,6 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    ...(this.role != '1' && this.role != '4'
-    ? [{
-        id: 12,
-        img: '/assets/images/svgs/icon-speech-bubble.svg',
-        title: 'Help Center',
-        subtitle: 'Support & FAQs',
-        link: '/apps/chat/support',
-      }]
-    : []),
-    ...(this.role != '2'
-    ? [{
-        id: 13,
-        img: '/assets/images/svgs/icon-office-bag.svg',
-        title: 'Talent Match',
-        subtitle: 'Find top talent',
-        link: '/apps/talent-match',
-      }]
-    : []),
-    ...(this.role == '3'
-    ? [{
-        id: 14,
-        img: '/assets/images/svgs/icon-account.svg',
-        title: 'Expert Match',
-        subtitle: 'Connect with experts',
-        link: '/apps/expert',
-      }]
-    : []),
-    ...(this.role == '3'
-    ? [{
-        id: 15,
-        img: '/assets/images/svgs/icon-connect.svg',
-        title: 'Content Creator',
-        subtitle: 'Create and manage content',
-        link: '/apps/scrapper',
-      }]
-    : []),
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -211,15 +174,15 @@ export class FullComponent implements OnInit {
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
       .subscribe((state) => {
+        // SidenavOpened must be reset true when layout changes
+        this.options.sidenavOpened = true;
         this.isMobileScreen = state.breakpoints[BELOWMONITOR];
-        this.resView = state.breakpoints[BELOWMONITOR];
-        if (!this.resView && this.filterNavRight && this.filterNavRight.opened) {
-          this.filterNavRight.close();
+        if (this.options.sidenavCollapsed == false) {
+          this.options.sidenavCollapsed = state.breakpoints[TABLET_VIEW];
         }
-
-        this.options.sidenavOpened = !this.resView;
+        this.isContentWidthFixed = state.breakpoints[MONITOR_VIEW];
+        this.resView = state.breakpoints[BELOWMONITOR];
       });
-
 
     // Initialize project theme with options
     this.receiveOptions(this.options);

@@ -91,7 +91,7 @@ export class HeaderComponent implements OnInit {
   private previousNotificationCount: number = 0;
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
-  profiledd: profiledd[] = [];
+
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -176,49 +176,6 @@ export class HeaderComponent implements OnInit {
     this.applicationsService.applicationsSeen$.subscribe(() => {
       this.hasNewTalentMatch = false;
     });
-
-    this.profiledd = [
-      {
-        id: 1,
-        img: 'wallet',
-        color: 'primary',
-        title: 'My Profile',
-        subtitle: 'Account Settings',
-        link: 'apps/account-settings',
-      },
-      {
-        id: 2,
-        img: 'shield',
-        color: 'success',
-        title: 'My Inbox',
-        subtitle: 'Notifications',
-        link: '/dashboards/notifications',
-      },
-      ...(Number(this.role) !== 2
-        ? [
-            {
-              id: 3,
-              img: 'users',
-              color: 'error',
-              title: 'My Team',
-              subtitle: 'Team members',
-              link: '/apps/team',
-            },
-          ]
-        : []),
-      ...((Number(this.role) !== 2 && Number(this.role) !== 4) || (environment.allowedPaymentsEmails.includes(this.userEmail))
-        ? [
-            {
-              id: 4,
-              img: 'credit-card',
-              color: 'warning',
-              title: 'Payments',
-              subtitle: 'Manage your payments',
-              link: '/apps/invoice',
-            },
-          ]
-        : []),
-    ];
   }
 
   getUserData() {
@@ -341,7 +298,48 @@ export class HeaderComponent implements OnInit {
     },
   ];
 
-  // profiledd is now built dynamically in ngOnInit
+  profiledd: profiledd[] = [
+    {
+      id: 1,
+      img: 'wallet',
+      color: 'primary',
+      title: 'My Profile',
+      subtitle: 'Account Settings',
+      link: 'apps/account-settings',
+    },
+    {
+      id: 2,
+      img: 'shield',
+      color: 'success',
+      title: 'My Inbox',
+      subtitle: 'Notifications',
+      link: '/dashboards/notifications',
+    },
+    ...(Number(this.role) !== 2
+      ? [
+          {
+            id: 3,
+            img: 'users',
+            color: 'error',
+            title: 'My Team',
+            subtitle: 'Team members',
+            link: '/apps/team',
+          },
+        ]
+      : []),
+      ...(Number(this.role) !== 2 && Number(this.role) !== 4
+      ? [
+          {
+            id: 4,
+            img: 'credit-card',
+            color: 'warning',
+            title: 'Payments',
+            subtitle: 'Manage your payments',
+            link: '/apps/invoice',
+          },
+        ]
+      : []),
+  ];
 
   apps: apps[] = [
     {
