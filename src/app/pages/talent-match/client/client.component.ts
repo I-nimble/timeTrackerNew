@@ -125,8 +125,11 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.aiLoading = false;
       },
       error: (err) => {
-        console.error('AI search failed:', err);
-        this.aiAnswer = 'Error getting answer from AI, try again later.';
+        if (err.status === 429) {
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Please try again later.';
+        } else {
+          this.aiAnswer = 'Error getting answer from AI, try again later.';
+        }
         this.aiLoading = false;
       }
     });
