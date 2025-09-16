@@ -16,7 +16,6 @@
       </div>
       <div *ngIf="aiLoading || aiAnswer" class="mt-16">
         <mat-card color="accent" class="p-16">
-          <b>AI's answer:</b>
           <div>
             <ng-container *ngIf="aiLoading; else showAnswer">
               <div class="d-flex align-items-center gap-8">
