@@ -119,6 +119,8 @@ export class AppIntakeFormComponent implements OnInit {
   formSubmitted = false;
   showForm: boolean = true;
   showVideo: boolean = false;
+  lastIntakeId: number | null = null;
+  lastClientName: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -240,14 +242,34 @@ export class AppIntakeFormComponent implements OnInit {
       ...formValue.termsInfo
     };
     this.intakeService.submitIntake(data).subscribe({
-      next: () => {
+      next: (response: any) => {
         this.openSnackBar('Form submitted successfully', 'Close');
         this.formSubmitted = true;
         this.intakeForm.reset();
+        this.lastIntakeId = response?.id || null;
+        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
       },
       error: () => {
         this.openSnackBar('Error submitting form', 'Close');
       },
+    });
+  }
+
+  downloadPdf() {
+    if (!this.lastIntakeId) return;
+    const filename = `intake_${this.lastClientName || this.lastIntakeId}.pdf`;
+    this.intakeService.downloadIntakePdf(this.lastIntakeId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.openSnackBar('Error downloading PDF', 'Close');
+      }
     });
   }
 

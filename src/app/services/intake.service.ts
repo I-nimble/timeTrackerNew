@@ -35,6 +35,10 @@ export class IntakeService {
     return this.http.post(`${this.API_URI}`, body);
   }
 
+  public downloadIntakePdf(id: number) {
+    return this.http.get(`${this.API_URI}/${id}/pdf`, { responseType: 'blob' });
+  }
+
   public submitDiscovery(data: any) {
     const body = {
       company_name: data.companyName,
