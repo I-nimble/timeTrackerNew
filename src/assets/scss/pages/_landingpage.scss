@@ -1266,8 +1266,13 @@ mat-tab-header {
     }
   }
 }
-.text-btn button {
+.gradient-btn button {
   background:  $hero-gradient!important;
+
+  p {
+    color: #fff!important;
+    font-weight: bold!important;
+  }
 
   &:hover {
       background: $hero-gradient-hover!important;
