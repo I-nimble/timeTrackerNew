@@ -5,3 +5,22 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .card-dashboard {
     height: 85%;
 }
+.text-btn button p {
+    color: #fff!important;
+    font-weight: bold!important;
+}
+.comparison-table-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+@media (max-width: 500px) {
+  .f-s-25 {
+    font-size: 18px!important;
+  }
+  .mat-mdc-tab-labels {
+    flex-direction: column;
+    display: flex;
+    flex: 1 0 auto;
+  }
+}

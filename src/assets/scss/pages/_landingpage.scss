@@ -112,7 +112,7 @@ p.small {
   &.lightgray-white {
     background: linear-gradient(
       to bottom,
-      #f0f5f9 0%,        
+      #EAEAEA 0%,        
       $secondary-landing 100% 
     );
   }
@@ -213,7 +213,7 @@ mat-tab-header {
   h3 {
     font-family: "Montserrat", sans-serif;
     font-weight: 500;
-    font-size: 24px;
+    font-size: 22px;
     line-height: 28px;
     // padding-left: 1rem;
   }
@@ -414,7 +414,7 @@ mat-tab-header {
 // INVOICES IMAGE
 
 #invoices-img {
-  background-image: url("../../images/landingpage/invoices.png");
+  background-image: url("../../images/landingpage/invoices.svg");
   height: 600px;
   overflow: hidden;
   background-size: contain;
@@ -422,7 +422,7 @@ mat-tab-header {
   background-position: center;
 }
 #invoices-img-mobile-1 {
-  background-image: url("../../images/landingpage/mobile_invoices_01.png");
+  background-image: url("../../images/landingpage/mobile_invoices_01.svg");
   height: 250px;
   overflow: hidden;
   background-size: contain;
@@ -430,7 +430,7 @@ mat-tab-header {
   background-position: center;
 }
 #invoices-img-mobile-2 {
-  background-image: url("../../images/landingpage/mobile_invoices_02.png");
+  background-image: url("../../images/landingpage/mobile_invoices_02.svg");
   height: 250px;
   overflow: hidden;
   background-size: contain;
@@ -1264,5 +1264,17 @@ mat-tab-header {
     &.active {
       background: #80974F;
     }
+  }
+}
+.gradient-btn button {
+  background:  $hero-gradient!important;
+
+  p {
+    color: #fff!important;
+    font-weight: bold!important;
+  }
+
+  &:hover {
+      background: $hero-gradient-hover!important;
   }
 }
