@@ -71,7 +71,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   aiLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
-  
+  allCandidates: any[] = []; 
+
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
@@ -94,8 +95,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.aiLoading = true;
     this.aiAnswer = '';
     this.hasSearchResults = false;
-    const candidates = this.dataSource?.data || [];
-    console.log('Candidate object example:', candidates[0]);
+
+    const candidates = [...this.allCandidates];
+
     const simplifiedCandidates = candidates.map(c => ({
       id: c.id,
       name: c.name,
@@ -114,7 +116,11 @@ export class AppTalentMatchClientComponent implements OnInit {
         while ((match = regex.exec(rawText)) !== null) {
           selectedCandidates.push(match[1]);
         }
-        this.dataSource.data = candidates.filter(c => selectedCandidates.includes(c.name));
+
+        this.dataSource.data = candidates.filter(c =>
+          selectedCandidates.includes(c.name)
+        );
+
         this.hasSearchResults = true;
         this.aiLoading = false;
       },
@@ -216,7 +222,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
         let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(applications);
-       
+        this.allCandidates = [...filteredApplications];
         this.dataSource = new MatTableDataSource(filteredApplications);
 
         if (filteredApplications.find((app: any) => app.status_id === 1)) {
