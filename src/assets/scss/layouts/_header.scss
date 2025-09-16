@@ -1,4 +1,5 @@
 @use "../variables" as *;
+@use "../../../assets/scss/variables" as *;
 
 html .topbar {
   background-color: var(--mat-sys-surface);
@@ -153,6 +154,13 @@ html .topbar {
     position: relative;
     top: 5px;
   }
+}
+#get-started-button button {
+  background: $hero-gradient;
+  
+  &:hover {
+      background: $hero-gradient-hover;
+    }
 }
 @media (max-width: 475px) {
   #login-button, #get-started-button {
