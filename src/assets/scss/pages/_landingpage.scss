@@ -112,7 +112,7 @@ p.small {
   &.lightgray-white {
     background: linear-gradient(
       to bottom,
-      #f0f5f9 0%,        
+      #EAEAEA 0%,        
       $secondary-landing 100% 
     );
   }
@@ -1264,5 +1264,17 @@ mat-tab-header {
     &.active {
       background: #80974F;
     }
+  }
+}
+.gradient-btn button {
+  background:  $hero-gradient!important;
+
+  p {
+    color: #fff!important;
+    font-weight: bold!important;
+  }
+
+  &:hover {
+      background: $hero-gradient-hover!important;
   }
 }
