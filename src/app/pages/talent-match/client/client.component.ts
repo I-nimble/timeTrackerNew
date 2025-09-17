@@ -71,7 +71,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   aiLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
-  
+  allCandidates: any[] = []; 
+
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
@@ -94,7 +95,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.aiLoading = true;
     this.aiAnswer = '';
     this.hasSearchResults = false;
-    const candidates = this.dataSource?.data || [];
+
+    const candidates = [...this.allCandidates];
+
     const simplifiedCandidates = candidates.map(c => ({
       id: c.id,
       name: c.name,
@@ -112,7 +115,11 @@ export class AppTalentMatchClientComponent implements OnInit {
         while ((match = regex.exec(rawText)) !== null) {
           selectedCandidates.push(match[1]);
         }
-        this.dataSource.data = candidates.filter(c => selectedCandidates.includes(c.name));
+
+        this.dataSource.data = candidates.filter(c =>
+          selectedCandidates.includes(c.name)
+        );
+
         this.hasSearchResults = true;
         this.aiLoading = false;
         if (selectedCandidates.length > 0) {
@@ -122,8 +129,11 @@ export class AppTalentMatchClientComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('AI search failed:', err);
-        this.aiAnswer = 'Error getting answer from AI, try again later.';
+        if (err.status === 429) {
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Please try again later.';
+        } else {
+          this.aiAnswer = 'Error getting answer from AI, try again later.';
+        }
         this.aiLoading = false;
       }
     });
@@ -219,7 +229,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
         let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(applications);
-       
+        this.allCandidates = [...filteredApplications];
         this.dataSource = new MatTableDataSource(filteredApplications);
 
         if (filteredApplications.find((app: any) => app.status_id === 1)) {

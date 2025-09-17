@@ -40,7 +40,7 @@ export class MatchComponent {
     this.cooldownActive = true;
     setTimeout(() => {
       this.cooldownActive = false;
-    }, 8000);
+    }, 15000);
   }
 
   finishLoading() {
