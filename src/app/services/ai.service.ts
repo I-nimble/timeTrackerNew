@@ -9,15 +9,15 @@ export class AIService {
 
   constructor(private http: HttpClient) {}
 
-  evaluateExperts(experts: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateExperts(experts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/expert-evaluation`,
       { experts, question }
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/candidate-evaluation`,
       { candidates, question }
     );
