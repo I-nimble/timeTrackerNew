@@ -73,6 +73,11 @@ export class AppExpertComponent implements OnInit {
         selectedCompanies.includes(client.company?.name)
       );
         this.aiLoading = false;
+        if (selectedCompanies.length > 0) {
+          this.aiAnswer = 'The experts are listed below:';
+        } else {
+          this.aiAnswer = 'No matches.';
+        }
       },
       error: (err) => {
         if (err.status === 429) {

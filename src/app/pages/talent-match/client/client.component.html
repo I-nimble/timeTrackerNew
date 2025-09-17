@@ -45,7 +45,7 @@
                     </div>
                 </mat-card>
                 </div>
-                <div class="table-responsive" *ngIf="hasSearchResults">
+                <div class="table-responsive" *ngIf="hasSearchResults && dataSource?.data && dataSource.data.length > 0">
                     <table mat-table [dataSource]="dataSource" class="w-100">
                         <ng-container matColumnDef="select">
                             <th mat-header-cell *matHeaderCellDef class="p-l-0">
