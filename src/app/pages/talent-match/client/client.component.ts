@@ -134,7 +134,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
           this.useManualSearch = true;
           this.aiLoading = false;
         } else {
