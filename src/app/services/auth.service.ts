@@ -7,17 +7,20 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
 import { NotificationsService } from './notifications.service';
 import { CometChatService } from './apps/chat/chat.service';
-// import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-// import { provideAuth, getAuth } from '@angular/fire/auth';
-//import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider } from '@angular/fire/auth';
+import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
+import { provideAuth, getAuth } from '@angular/fire/auth';
+import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, user } from '@angular/fire/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { from } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   notificationStore = inject(NotificationStore);
-  // private auth = inject(Auth);
-  //readonly authState$ = authState(this.auth);
+  firebaseAuth = inject(Auth);
+  user$ = user(this.firebaseAuth);
+  
   private isLogged = new BehaviorSubject<boolean>(false);
   private isAdmin = new BehaviorSubject<boolean>(false);
   private role = new BehaviorSubject<string>(localStorage.getItem('role') || 'default');
@@ -32,9 +35,9 @@ export class AuthService {
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
-  login(email: string, password: string): Observable<any> {
+  login(email?: string, password?: string, googleId?: string): Observable<any> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
-    const body = JSON.stringify({ email, password });
+    const body = JSON.stringify({ email, password, googleId });
     return this.http.post<any>(`${this.API_URI}/signin`, body, { headers });
   }
   signup(newUser: any): Observable<any> {
@@ -175,13 +178,26 @@ export class AuthService {
     );
   }
 
-  //signInWithGoogle(): Promise<{ name: string; email: string }> {
-  //  const provider = new GoogleAuthProvider();
-  //  return signInWithPopup(this.auth, provider).then((result) => {
-  //    const user = result.user;
-  //    const name = user.displayName || '';
-  //    const email = user.email || '';
-  //    return { name, email }; 
-  //  });
-  //}
+  singUpWithGoogle(): Observable<{ name: string; email: string; picture: string; googleId: string }> {
+    const provider = new GoogleAuthProvider();
+    const promise =  signInWithPopup(this.firebaseAuth, provider).then((result) => {
+      const user = result.user;
+      const name = user.displayName || '';
+      const email = user.email || '';
+      const picture = user.photoURL || '';
+      const googleId = user.uid;
+      return { name, email, picture, googleId };
+    });
+
+    return from(promise);
+  }
+
+  signInWithGoogle(): Observable<{ googleId: string }> {
+    const promise = signInWithPopup(this.firebaseAuth, new GoogleAuthProvider()).then(response => {
+      const user = response.user;
+      const googleId = user.uid;
+      return { googleId };
+    });
+    return from(promise);
+  }
 }
