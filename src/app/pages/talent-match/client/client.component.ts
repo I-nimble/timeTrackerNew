@@ -109,7 +109,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
       next: (res) => {
         const rawText = res.answer ?? '';
-        this.aiAnswer = rawText;
         const selectedCandidates: string[] = [];
         const regex = /"([^"]+)"/g;
         let match;
@@ -123,6 +122,11 @@ export class AppTalentMatchClientComponent implements OnInit {
 
         this.hasSearchResults = true;
         this.aiLoading = false;
+        if (selectedCandidates.length > 0) {
+          this.aiAnswer = 'The candidates are listed below:';
+        } else {
+          this.aiAnswer = 'No matches.';
+        }
       },
       error: (err) => {
         if (err.status === 429) {

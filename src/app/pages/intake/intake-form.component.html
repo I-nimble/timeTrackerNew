@@ -263,7 +263,15 @@
         <div class="d-flex flex-column justify-content-center align-items-center p-24" *ngIf="formSubmitted">
           <h2 class="m-b-16 color-primary text-center">Thanks for your submission!</h2>
           <p>We will get in touch with you shortly.</p>
-          <button mat-flat-button routerLink="/landingpage" class="m-t-16">Go back</button>
+
+          <div class="d-flex gap-16 m-t-16">
+            <button mat-flat-button routerLink="/landingpage">
+              Go back
+            </button>
+            <button mat-flat-button color="primary" (click)="downloadPdf()" [disabled]="!lastIntakeId">
+              Download Intake
+            </button>
+          </div>
         </div>
       </mat-card>
     </div>
