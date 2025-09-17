@@ -71,7 +71,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   aiLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
-  allCandidates: any[] = []; 
+  allCandidates: any[] = [];
+  useManualSearch = false;
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -91,7 +92,10 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   searchCandidatesWithAI(question: string) {
     if (!question?.trim()) return;
-
+    if (this.useManualSearch) {
+      this.onManualSearch(question);
+      return;
+    }
     this.aiLoading = true;
     this.aiAnswer = '';
     this.hasSearchResults = false;
@@ -126,7 +130,9 @@ export class AppTalentMatchClientComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Please try again later.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow.';
+          this.useManualSearch = true;
+          this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
         }
@@ -134,7 +140,18 @@ export class AppTalentMatchClientComponent implements OnInit {
       }
     });
   }
-  
+
+  onManualSearch(query: string) {
+    const lower = query.toLowerCase();
+    this.dataSource.data = this.allCandidates.filter(c =>
+      c.name?.toLowerCase().includes(lower) ||
+      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
+      c.skills?.toLowerCase().includes(lower) ||
+      c.location?.toLowerCase().includes(lower)
+    );
+    this.hasSearchResults = this.dataSource.data.length > 0;
+  }
+
   getInterviewDateTime(applicationId: number) {
     const interview = this.interviews.find(
       (interview) => interview.application_id === applicationId

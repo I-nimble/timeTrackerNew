@@ -9,9 +9,10 @@
           appearance="outline"
           class="flex-grow-1 hide-hint m-b-0 m-r-20"
           [loading]="aiLoading"
-          [aiEnabled]="true"
+          [aiEnabled]="!useManualSearch"
           placeholder="Search for an Expert..."
-          (askAI)="askGemini($event)">
+          (askAI)="askGemini($event)"
+          (searchChange)="useManualSearch ? onManualSearch($event) : null">
         </app-match>          
       </div>
       <div *ngIf="aiLoading || aiAnswer" class="mt-16">
