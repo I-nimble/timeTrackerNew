@@ -13,6 +13,10 @@ import { RatingsEntriesService } from 'src/app/services/ratings_entries.service'
 import { RouterLink } from '@angular/router';
 import { RatingsService } from 'src/app/services/ratings.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
+import { nextDay } from 'date-fns';
+import { MatDialog } from '@angular/material/dialog';
+import { OlympiaService } from 'src/app/services/olympia.service';
+import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -92,13 +96,28 @@ export class AppDashboardTMComponent implements OnInit {
     private socketService: WebSocketService,
     private snackBar: MatSnackBar,
     public ratingsEntriesService: RatingsEntriesService,
-    public ratingsService: RatingsService
+    public ratingsService: RatingsService,
+    private olympiaService: OlympiaService,
+    public dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.getUser();
     this.getEntries();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
+    if (this.isOrphan) {
+      this.olympiaService.checkOlympiaForm().subscribe({
+        next: (res: any) => {
+          if (!res) {
+            this.openCompleteProfileDialog();
+          }
+        },  
+        error: (e: any) => {
+          console.error(e);
+          this.snackBar.open('There was an error checking your profile', 'close');
+        }
+      });
+    }
 
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
@@ -127,6 +146,19 @@ export class AppDashboardTMComponent implements OnInit {
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
+  }
+
+  openCompleteProfileDialog() {
+    const dialogRef = this.dialog.open(OlympiaDialogComponent, {
+      width: '500px',
+      data: {},
+    });
+
+    dialogRef.afterClosed().subscribe((result: { sent: boolean }) => {
+      if (result.sent) {
+        this.snackBar.open('Your submission was sent successfully', 'close');
+      }
+    });
   }
 
   getUser() {
