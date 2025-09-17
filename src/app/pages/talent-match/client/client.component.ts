@@ -105,7 +105,7 @@ export class AppTalentMatchClientComponent implements OnInit {
 
     this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
       next: (res) => {
-        const rawText = res.answer ?? '';
+        const rawText = res.answer?.parts?.[0]?.text ?? '';
         const selectedCandidates: string[] = [];
         const regex = /"([^"]+)"/g;
         let match;
