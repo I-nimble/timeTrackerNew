@@ -101,7 +101,7 @@
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
-    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2'"
+    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2' || allowedTM"
      (click)="clearTalentMatchNotification()">
         Talent Match
         <div class="pulse" *ngIf="hasNewTalentMatch">
