@@ -91,6 +91,7 @@ export class HeaderComponent implements OnInit {
   private previousNotificationCount: number = 0;
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
+  allowedTM: boolean = false;
   profiledd: profiledd[] = [];
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -176,6 +177,9 @@ export class HeaderComponent implements OnInit {
     this.applicationsService.applicationsSeen$.subscribe(() => {
       this.hasNewTalentMatch = false;
     });
+    const allowedTM = environment.allowedReportEmails;
+    const email = localStorage.getItem('email');
+    this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
 
     this.profiledd = [
       {
