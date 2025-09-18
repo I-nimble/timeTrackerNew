@@ -11,14 +11,19 @@
     <h2 class="dialog-title">
       <textarea
         class="title-textarea"
+        [class.field-error]="!local_data.goal?.trim() && formTouched"
         matInput
         [(ngModel)]="local_data.goal"
         name="goal"
         placeholder="{{
           local_data.type === 'board' ? 'Board Name *' : 'Task Title *'
         }}"
+        (blur)="formTouched = true"
       >
       </textarea>
+      <mat-error class="f-s-12" *ngIf="!local_data.goal?.trim() && formTouched">
+        {{ local_data.type === 'board' ? 'Board Name' : 'Task Title'}} is required
+      </mat-error>
     </h2>
     <button mat-icon-button mat-dialog-close class="close-btn">
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
