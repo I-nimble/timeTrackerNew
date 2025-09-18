@@ -33,6 +33,7 @@ export class AppExpertComponent implements OnInit {
   aiQuestion: string = '';
   aiAnswer: string = '';
   aiLoading: boolean = false;
+  useManualSearch: boolean = false;
 
   constructor(private usersService: UsersService, private aiService: AIService) {}
 
@@ -53,16 +54,19 @@ export class AppExpertComponent implements OnInit {
 
   async askGemini(question: string) {
     if (!question) return;
-    this.aiQuestion = question;
+    if (this.useManualSearch) {
+      this.onManualSearch(question);
+      return;
+    }
+    this.aiQuestion = question;    
     this.aiLoading = true;
     this.aiAnswer = '';
     this.filteredClients = [];
 
     this.aiService.evaluateExperts(this.clients, question).subscribe({
       next: (res) => {
-      this.aiAnswer = res.answer;
-
-      const selectedCompanies = this.extractCompaniesFromAiAnswer(this.aiAnswer);
+      const rawText = res.answer?.parts?.[0]?.text ?? '';
+      const selectedCompanies = this.extractCompaniesFromAiAnswer(rawText);
 
       this.filteredClients = this.clients.filter(client =>
         selectedCompanies.includes(client.company?.name)
@@ -76,7 +80,9 @@ export class AppExpertComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Please try again later.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.useManualSearch = true;
+          this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
         }
@@ -93,5 +99,21 @@ export class AppExpertComponent implements OnInit {
       matches.push(match[1].trim());
     }
     return matches;
+  }
+
+  onManualSearch(query: string) {
+    if (!query) {
+      this.filteredClients = [];
+      return;
+    }
+
+    const lower = query.toLowerCase();
+    this.filteredClients = this.clients.filter(client =>
+      client.name.toLowerCase().includes(lower) ||
+      client.company?.name?.toLowerCase().includes(lower) ||
+      client.company?.departments?.some((d: any) =>
+        d.name?.toLowerCase().includes(lower)
+      )
+    );
   }
 }
