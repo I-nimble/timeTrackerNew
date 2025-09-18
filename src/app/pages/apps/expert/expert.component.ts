@@ -60,16 +60,15 @@ export class AppExpertComponent implements OnInit {
 
     this.aiService.evaluateExperts(this.clients, question).subscribe({
       next: (res) => {
-      this.aiAnswer = res.answer;
-
-      const selectedCompanies = this.extractCompaniesFromAiAnswer(this.aiAnswer);
+      const rawText = res.answer?.parts?.[0]?.text ?? '';
+      const selectedCompanies = this.extractCompaniesFromAiAnswer(rawText);
 
       this.filteredClients = this.clients.filter(client =>
         selectedCompanies.includes(client.company?.name)
       );
         this.aiLoading = false;
         if (selectedCompanies.length > 0) {
-          this.aiAnswer = 'The experts are listed below:';
+          this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
         }
