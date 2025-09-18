@@ -26,7 +26,7 @@
     "@auth0/angular-jwt": "^5.1.2",
     "@cometchat/calls-sdk-javascript": "^4.1.0",
     "@cometchat/chat-sdk-javascript": "^4.0.12",
-    "@cometchat/chat-uikit-angular": "^4.3.30",
+    "@cometchat/chat-uikit-angular": "^4.3.31",
     "@cometchat/uikit-elements": "^4.3.24",
     "@cometchat/uikit-resources": "^4.3.20",
     "@cometchat/uikit-shared": "^4.3.25",
