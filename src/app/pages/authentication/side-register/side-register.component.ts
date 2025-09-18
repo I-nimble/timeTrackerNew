@@ -386,7 +386,7 @@ export class AppSideRegisterComponent {
         email: this.registerClientForm.value.email,
         phone: phone,
         password: this.registerClientForm.value.password,
-        google_user_id: this.registerClientForm.value.google_user_id,
+        google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
       };
       const fullName = this.registerClientForm.value.name + ' ' + this.registerClientForm.value.last_name;
 
@@ -447,7 +447,7 @@ export class AppSideRegisterComponent {
         password: this.registerInvitedTeamMemberForm.value.password,
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
-        google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id,
+        google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
       };
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
@@ -540,7 +540,7 @@ export class AppSideRegisterComponent {
         resume: this.registerTeamMemberForm.get('resume')?.value || null,
         picture: this.registerTeamMemberForm.get('picture')?.value || null,
         portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
-        google_user_id: this.registerTeamMemberForm.value.google_user_id,
+        google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
 
       this.usersService.registerOrphanTeamMember(teamMemberData).subscribe({
