@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
@@ -9,10 +9,14 @@ import { ClientTableComponent } from './client-table/client-table.component';
 import { ClientDetailsComponent } from './client-detail/client-details.component';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { Plan } from 'src/app/models/Plan.model';
 
 @Component({
   selector: 'app-expert',
   templateUrl: './expert.component.html',
+  styleUrls: ['./expert.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -34,13 +38,20 @@ export class AppExpertComponent implements OnInit {
   aiAnswer: string = '';
   aiLoading: boolean = false;
   useManualSearch: boolean = false;
+  plan?: Plan;
 
-  constructor(private usersService: UsersService, private aiService: AIService) {}
+  constructor(private usersService: UsersService, private aiService: AIService, private companiesService: CompaniesService, private plansService: PlansService) {}
 
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
       this.clients = users.filter((u: any) => u.role == 3 && u.active == 1);
       // this.filteredClients = [...this.clients];
+    });
+    this.companiesService.getByOwner().subscribe((company: any) => {
+      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
+        this.plan = companyPlan.plan;
+        console.log(this.plan)
+      });
     });
   }
 
