@@ -16,14 +16,28 @@
           </div>
          <div class="field-block">
             <p class="field">Email</p>
-            <p class="info">{{ client?.email || '' }}</p>
+            <div *ngIf="canShowContact; else upgradeMsg">
+              <p class="info">{{ client?.email || '' }}</p>
+            </div>
+            <ng-template #upgradeMsg>
+              <p class="text-primary">
+                Upgrade your plan to access the contact details of experts.
+              </p>
+            </ng-template>
           </div>
         </div>
 
         <div class="field-row">
            <div class="field-block">
             <p class="field">Phone</p>
-            <p class="info">{{ client?.phone || '' }}</p>
+            <div *ngIf="canShowContact; else upgradeMsg">
+              <p class="info">{{ client?.phone || '' }}</p>
+            </div>
+            <ng-template #upgradeMsg>
+              <p class="text-primary">
+                Upgrade your plan to access the contact details of experts.
+              </p>
+            </ng-template>
           </div>
           <div class="field-block">
             <p class="field">Website</p>

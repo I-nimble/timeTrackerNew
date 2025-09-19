@@ -40,7 +40,7 @@
   <mat-card class="cardWithShadow mt-16" *ngIf="filteredClients.length > 0">
     <mat-card-content>
       <div class="table-responsive">
-        <app-client-table [clients]="filteredClients"></app-client-table>
+        <app-client-table [clients]="filteredClients" [userPlanName]="this.plan?.name"></app-client-table>
       </div>
     </mat-card-content>
   </mat-card>
@@ -49,6 +49,7 @@
 <ng-container *ngIf="selectedClient">
   <app-client-details
     [client]="selectedClient"
+    [userPlanName]="this.plan?.name"
     (back)="onBackFromDetails()">
   </app-client-details>
 </ng-container>
