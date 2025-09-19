@@ -11,14 +11,19 @@
     <h2 class="dialog-title">
       <textarea
         class="title-textarea"
+        [class.field-error]="!local_data.goal?.trim() && formTouched"
         matInput
         [(ngModel)]="local_data.goal"
         name="goal"
         placeholder="{{
-          local_data.type === 'board' ? 'Board Name' : 'Task Title'
+          local_data.type === 'board' ? 'Board Name *' : 'Task Title *'
         }}"
+        (blur)="formTouched = true"
       >
       </textarea>
+      <mat-error class="f-s-12" *ngIf="!local_data.goal?.trim() && formTouched">
+        {{ local_data.type === 'board' ? 'Board Name' : 'Task Title'}} is required
+      </mat-error>
     </h2>
     <button mat-icon-button mat-dialog-close class="close-btn">
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
@@ -27,28 +32,35 @@
 
   <div class="properties-row" *ngIf="local_data.type !== 'board'">
     <div class="property-item">
-      <h3 class="property-title">Members</h3>
+      <h3 class="property-title">Members <span class="required-asterisk">*</span></h3>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select
           [(ngModel)]="local_data.employee_id"
           name="employee_id"
           required
+          [class.field-error]="!local_data.employee_id"
         >
           <mat-option *ngFor="let user of users" [value]="user.id">
             {{ user.name }} {{ user.last_name }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="!local_data.employee_id">
+          Member is required
+        </mat-error>
       </mat-form-field>
     </div>
 
     <div class="property-item">
-      <h3 class="property-title">Priority</h3>
+      <h3 class="property-title">Priority <span class="required-asterisk">*</span></h3>
       <mat-form-field appearance="outline" class="w-100">
-        <mat-select [(ngModel)]="local_data.priority" name="priority" required>
+        <mat-select [(ngModel)]="local_data.priority" name="priority" required [class.field-error]="!local_data.priority">
           <mat-option *ngFor="let priority of priorities" [value]="priority.id">
             {{ priority.name }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="!local_data.priority">
+          Priority is required
+        </mat-error>
       </mat-form-field>
     </div>
 
@@ -229,7 +241,7 @@
 </mat-dialog-content>
 
 <mat-dialog-actions class="dialog-actions">
-  <button mat-flat-button (click)="doAction()" class="primary-btn">
+  <button mat-flat-button (click)="doAction()" class="primary-btn" [disabled]="!isFormValid()">
     {{ action === "Edit" ? "Save" : "Add" }}
   </button>
   <button mat-flat-button (click)="closeDialog()" class="bg-error text-white">

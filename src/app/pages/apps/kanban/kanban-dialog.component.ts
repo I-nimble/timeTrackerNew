@@ -62,6 +62,8 @@ export class AppKanbanDialogComponent implements OnInit {
   pastedAttachments: any[] = [];
   @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
+  formTouched: boolean = false;
+  isSaving: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -125,6 +127,17 @@ export class AppKanbanDialogComponent implements OnInit {
       this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
     }
   });
+  }
+
+  isFormValid(): boolean {
+    if (this.local_data.type === 'board') {
+      return !!this.local_data.goal?.trim();
+    }
+    
+    return !!this.local_data.goal?.trim() && 
+          !!this.local_data.employee_id && 
+          !!this.local_data.priority && 
+          !!this.local_data.due_date;
   }
 
   showSnackbar(message: string): void {
@@ -273,7 +286,18 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   doAction(): void {
+    this.formTouched = true;
+    
+    if (!this.isFormValid()) {
+      this.showSnackbar('Please fill all required fields');
+      return;
+    }
+    
+    if (this.isSaving) return;
+    this.isSaving = true;
+    
     this.local_data.task_attachments = this.attachments;
+    
     if (
       this.action === 'Edit' &&
       this.local_data.previousVisibility === 'private' &&
@@ -283,12 +307,12 @@ export class AppKanbanDialogComponent implements OnInit {
         data: {
           action: this.action,
           type: 'board visibility',
-          message:
-            'This will make the board public. Everyone will be able to see it.',
+          message: 'This will make the board public. Everyone will be able to see it.',
         },
       });
 
       dialogRef.afterClosed().subscribe((result: any) => {
+        this.isSaving = false;
         if (!result) return;
         if (result) {
           this.dialogRef.close({ event: this.action, data: this.local_data });
@@ -296,7 +320,12 @@ export class AppKanbanDialogComponent implements OnInit {
       });
     } else {
       this.dialogRef.close({ event: this.action, data: this.local_data });
+      this.isSaving = false;
     }
+  }
+
+  onFieldChange(): void {
+    this.formTouched = true;
   }
 
   closeDialog(): void {
