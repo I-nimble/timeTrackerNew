@@ -50,7 +50,6 @@ export class AppExpertComponent implements OnInit {
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
         this.plan = companyPlan.plan;
-        console.log(this.plan)
       });
     });
   }
