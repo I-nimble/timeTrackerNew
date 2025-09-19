@@ -9,17 +9,28 @@ export class AIService {
 
   constructor(private http: HttpClient) {}
 
-  evaluateExperts(experts: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateExperts(experts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/expert-evaluation`,
       { experts, question }
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/candidate-evaluation`,
       { candidates, question }
+    );
+  }
+
+  evaluatePosts(posts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    const keywords = Array.from(
+      new Set(posts.map(p => p.keyword).filter(Boolean))
+    ).join(', ');
+
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
+      `${this.API_URI}/ai/post-evaluation`,
+      { keywords, question }
     );
   }
 }

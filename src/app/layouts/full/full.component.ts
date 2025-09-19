@@ -111,7 +111,7 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    ...(this.role != '1' && this.role != '4'
+    ...(this.role != '1' && this.role != '4' 
     ? [{
         id: 12,
         img: '/assets/images/svgs/icon-speech-bubble.svg',
@@ -120,7 +120,8 @@ export class FullComponent implements OnInit {
         link: '/apps/chat/support',
       }]
     : []),
-    ...(this.role != '2'
+    ...(this.role != '2' ||
+    environment.allowedReportEmails.includes(localStorage.getItem('email') || '')
     ? [{
         id: 13,
         img: '/assets/images/svgs/icon-office-bag.svg',
