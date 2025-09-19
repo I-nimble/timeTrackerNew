@@ -69,7 +69,7 @@ export class AppExpertComponent implements OnInit {
       );
         this.aiLoading = false;
         if (selectedCompanies.length > 0) {
-          this.aiAnswer = 'The experts are listed below:';
+          this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
         }
