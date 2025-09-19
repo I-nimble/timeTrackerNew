@@ -5,12 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
+import { MaterialModule } from 'src/app/material.module';
 
 @Component({
   selector: 'app-client-details',
   styleUrls: ['./client-details.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, MatCardModule, MaterialModule],
   templateUrl: './client-details.component.html',
 })
 export class ClientDetailsComponent implements OnInit {
@@ -18,6 +19,7 @@ export class ClientDetailsComponent implements OnInit {
   private _client: any;
   departmentsList: string = '';
   defaultLogo = 'assets/inimble.png';
+  @Input() userPlanName: any = '';
 
   @Input()
   set client(value: any) {
@@ -102,5 +104,9 @@ export class ClientDetailsComponent implements OnInit {
     } else {
       this.departmentsList = '';
     }
+  }
+
+  get canShowContact(): boolean {
+    return this.userPlanName.toLowerCase() !== 'basic';
   }
 }
