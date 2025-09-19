@@ -22,4 +22,15 @@ export class AIService {
       { candidates, question }
     );
   }
+
+  evaluatePosts(posts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    const keywords = Array.from(
+      new Set(posts.map(p => p.keyword).filter(Boolean))
+    ).join(', ');
+
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
+      `${this.API_URI}/ai/post-evaluation`,
+      { keywords, question }
+    );
+  }
 }
