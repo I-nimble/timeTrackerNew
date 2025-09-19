@@ -29,7 +29,7 @@
                 variant="filled" 
                 text="Start today for free"
                 [fullWidth]="isMobileScreen"
-                [routerLink]="['/authentication/login']"  
+                [routerLink]="['/authentication/side-register']"  
                 class="m-y-12 m-x-auto"
               >
               </app-hero-button>
@@ -386,7 +386,7 @@
 
       <div class="p-x-16">
         <app-button [fullWidth]="true" class="m-t-16 w-100" text="Login" variant="ghost" size="small" [routerLink]="['/authentication/login']"></app-button>
-        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Get Started" variant="filled" size="small"></app-button>
+        <app-button [fullWidth]="true" class="m-t-16 w-100" text="Get Started" variant="filled" size="small" [routerLink]="['/authentication/side-register']"></app-button>
       </div>
     </div>
   </mat-sidenav>
