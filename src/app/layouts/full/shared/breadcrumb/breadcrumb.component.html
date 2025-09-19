@@ -3,7 +3,9 @@
   class="bg-white rounded p-y-30 p-x-24 m-b-30 overflow-hidden d-flex align-items-center justify-content-between"
 >
   <div class="d-flex align-items-center gap-10">
-    <app-go-back></app-go-back>
+      @if(pageInfo?.showGoBack) {
+        <app-go-back></app-go-back>
+      }
     <!-- <h4 class="page-title m-0 f-s-20 f-w-600">
       {{ pageInfo?.['title'] }}
     </h4> -->
