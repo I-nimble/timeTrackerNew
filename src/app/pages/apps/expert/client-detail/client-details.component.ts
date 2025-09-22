@@ -6,6 +6,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { MaterialModule } from 'src/app/material.module';
+import { PlansService } from 'src/app/services/plans.service';
 
 @Component({
   selector: 'app-client-details',
@@ -19,7 +20,7 @@ export class ClientDetailsComponent implements OnInit {
   private _client: any;
   departmentsList: string = '';
   defaultLogo = 'assets/inimble.png';
-  @Input() userPlanName: any = '';
+  plan: string = '';
 
   @Input()
   set client(value: any) {
@@ -51,11 +52,15 @@ export class ClientDetailsComponent implements OnInit {
     private router: Router,
     private usersService: UsersService,
     private companiesService: CompaniesService,
+    private plansService: PlansService
   ) {}
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) return;
+
+    const currentPlan = this.plansService.getCurrentPlanValue();
+    this.plan = currentPlan.name
 
     const preselected = this.usersService.getSelectedUser();
     if (preselected?.id === id) {
@@ -107,6 +112,6 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   get canShowContact(): boolean {
-    return this.userPlanName.toLowerCase() !== 'basic';
+    return this.plan?.toLowerCase() !== 'basic';
   }
 }

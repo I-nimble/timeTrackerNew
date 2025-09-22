@@ -49,7 +49,6 @@
 <ng-container *ngIf="selectedClient">
   <app-client-details
     [client]="selectedClient"
-    [userPlanName]="this.plan?.name"
     (back)="onBackFromDetails()">
   </app-client-details>
 </ng-container>
