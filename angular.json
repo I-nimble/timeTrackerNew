@@ -25,18 +25,38 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets", "src/firebase-messaging-sw.js", {
-              "glob": "**/*",
-              "input":  "./node_modules/@cometchat/chat-uikit-angular/assets/",
-              "output": "assets/"
-            }],
+            "assets": [
+              "src/favicon.ico", 
+              "src/assets", 
+              "src/firebase-messaging-sw.js", 
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@cometchat/chat-uikit-angular/assets/",
+                "output": "assets/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@ionic/core/dist/ionic",
+                "output": "./ionic"
+              }
+            ],
             "styles": [
+              "node_modules/@ionic/angular/css/core.css",
+              "node_modules/@ionic/angular/css/normalize.css",
+              "node_modules/@ionic/angular/css/structure.css",
+              "node_modules/@ionic/angular/css/typography.css",
+              "node_modules/@ionic/angular/css/display.css",
+              "node_modules/@ionic/angular/css/padding.css",
+              "node_modules/@ionic/angular/css/float-elements.css",
+              "node_modules/@ionic/angular/css/text-alignment.css",
+              "node_modules/@ionic/angular/css/text-transformation.css",
+              "node_modules/@ionic/angular/css/flex-utils.css",
               "src/styles.scss",
               "src/assets/scss/style.scss",
               "node_modules/ngx-toastr/toastr.css",
               "node_modules/angular-calendar/css/angular-calendar.css",
               "node_modules/highlight.js/styles/atom-one-dark.min.css",
-              "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/@fortawesome/fontawesome-free/css/all.min.css"
             ],
             "scripts": [],
             "browser": "src/main.ts"
@@ -96,8 +116,23 @@
             "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets", "src/firebase-messaging-sw.js"],
-            "styles": ["src/styles.scss"],
+            "assets": [
+              "src/favicon.ico", 
+              "src/assets", 
+              "src/firebase-messaging-sw.js",
+              {
+                "glob": "**/*",
+                "input": "node_modules/@ionic/core/dist/ionic",
+                "output": "./ionic"
+              }
+            ],
+            "styles": [
+              "node_modules/@ionic/angular/css/core.css",
+              "node_modules/@ionic/angular/css/normalize.css",
+              "node_modules/@ionic/angular/css/structure.css",
+              "node_modules/@ionic/angular/css/typography.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           }
         }

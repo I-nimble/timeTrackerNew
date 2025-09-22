@@ -18,6 +18,7 @@ import { SocketIoModule } from 'ngx-socket-io';
 import { SharedModule } from './components/shared.module';
 // import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 // import { getAuth, provideAuth } from '@angular/fire/auth';
+import { IonicModule } from '@ionic/angular';
 
 export function jwtOptionsFactory() {
   return {
@@ -48,6 +49,7 @@ export function jwtOptionsFactory() {
     BrowserAnimationsModule,
     // ClientDashboardComponent,
     // NgbModule
+    IonicModule.forRoot()
   ],
   providers: [
     // CustomDatePipe,
