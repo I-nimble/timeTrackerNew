@@ -71,7 +71,9 @@ export class AppTalentMatchClientComponent implements OnInit {
   aiLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
-  
+  allCandidates: any[] = [];
+  useManualSearch = false;
+
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
@@ -90,11 +92,16 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   searchCandidatesWithAI(question: string) {
     if (!question?.trim()) return;
-
+    if (this.useManualSearch) {
+      this.onManualSearch(question);
+      return;
+    }
     this.aiLoading = true;
     this.aiAnswer = '';
     this.hasSearchResults = false;
-    const candidates = this.dataSource?.data || [];
+
+    const candidates = [...this.allCandidates];
+
     const simplifiedCandidates = candidates.map(c => ({
       id: c.id,
       name: c.name,
@@ -112,7 +119,11 @@ export class AppTalentMatchClientComponent implements OnInit {
         while ((match = regex.exec(rawText)) !== null) {
           selectedCandidates.push(match[1]);
         }
-        this.dataSource.data = candidates.filter(c => selectedCandidates.includes(c.name));
+
+        this.dataSource.data = candidates.filter(c =>
+          selectedCandidates.includes(c.name)
+        );
+
         this.hasSearchResults = true;
         this.aiLoading = false;
         if (selectedCandidates.length > 0) {
@@ -122,13 +133,29 @@ export class AppTalentMatchClientComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('AI search failed:', err);
-        this.aiAnswer = 'Error getting answer from AI, try again later.';
+        if (err.status === 429) {
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.useManualSearch = true;
+          this.aiLoading = false;
+        } else {
+          this.aiAnswer = 'Error getting answer from AI, try again later.';
+        }
         this.aiLoading = false;
       }
     });
   }
-  
+
+  onManualSearch(query: string) {
+    const lower = query.toLowerCase();
+    this.dataSource.data = this.allCandidates.filter(c =>
+      c.name?.toLowerCase().includes(lower) ||
+      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
+      c.skills?.toLowerCase().includes(lower) ||
+      c.location?.toLowerCase().includes(lower)
+    );
+    this.hasSearchResults = this.dataSource.data.length > 0;
+  }
+
   getInterviewDateTime(applicationId: number) {
     const interview = this.interviews.find(
       (interview) => interview.application_id === applicationId
@@ -219,7 +246,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
         let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(applications);
-       
+        this.allCandidates = [...filteredApplications];
         this.dataSource = new MatTableDataSource(filteredApplications);
 
         if (filteredApplications.find((app: any) => app.status_id === 1)) {
