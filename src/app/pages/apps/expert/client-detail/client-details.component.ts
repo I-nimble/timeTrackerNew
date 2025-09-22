@@ -5,12 +5,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
+import { MaterialModule } from 'src/app/material.module';
+import { PlansService } from 'src/app/services/plans.service';
 
 @Component({
   selector: 'app-client-details',
   styleUrls: ['./client-details.component.scss'],
   standalone: true,
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, MatCardModule, MaterialModule],
   templateUrl: './client-details.component.html',
 })
 export class ClientDetailsComponent implements OnInit {
@@ -18,6 +20,7 @@ export class ClientDetailsComponent implements OnInit {
   private _client: any;
   departmentsList: string = '';
   defaultLogo = 'assets/inimble.png';
+  plan: string = '';
 
   @Input()
   set client(value: any) {
@@ -49,11 +52,15 @@ export class ClientDetailsComponent implements OnInit {
     private router: Router,
     private usersService: UsersService,
     private companiesService: CompaniesService,
+    private plansService: PlansService
   ) {}
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) return;
+
+    const currentPlan = this.plansService.getCurrentPlanValue();
+    this.plan = currentPlan.name
 
     const preselected = this.usersService.getSelectedUser();
     if (preselected?.id === id) {
@@ -102,5 +109,9 @@ export class ClientDetailsComponent implements OnInit {
     } else {
       this.departmentsList = '';
     }
+  }
+
+  get canShowContact(): boolean {
+    return this.plan?.toLowerCase() !== 'basic';
   }
 }
