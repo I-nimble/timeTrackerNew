@@ -268,19 +268,8 @@ export class AppEmployeeDialogContentComponent {
   projects: any[] = [];
   selectedFile: File | null = null;
   sendingData: boolean = false;
-  editEmployeeForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    last_name: ['', Validators.required],
-    password: [''],
-    email: ['', [Validators.required, Validators.email]],
-    position: ['', Validators.required],
-    projects: [[]],
-  });
-  inviteEmployeeForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    company_id: ['', Validators.required],
-  });
+  editEmployeeForm: FormGroup;
+  inviteEmployeeForm: FormGroup;
   companies: any[] = [];
   userRole = localStorage.getItem('role');
 
@@ -299,12 +288,30 @@ export class AppEmployeeDialogContentComponent {
   ) {
     this.action = data.action;
     this.local_data = { ...data.employee };
+
+    this.editEmployeeForm = this.fb.group({
+      name: ['', Validators.required],
+      last_name: ['', Validators.required],
+      password: [''],
+      email: ['', [Validators.required, Validators.email]],
+      company_id: ['', this.userRole === '1' ? Validators.required : []], // AÑADIDO
+      position: ['', Validators.required],
+      projects: [[]],
+    });
+  
+    this.inviteEmployeeForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      company_id: ['', Validators.required],
+    });
+
     if(this.action === 'Update') {
       this.editEmployeeForm.patchValue({ // Populate form data
         name: this.local_data.profile.name,
         last_name: this.local_data.profile.last_name,
         password: null,
         email: this.local_data.profile.email,
+        company_id: this.local_data.profile.company_id || '',
         position: this.local_data.profile.position,
         projects: this.local_data.profile.projects || [],
       });
@@ -312,6 +319,10 @@ export class AppEmployeeDialogContentComponent {
 
     this.positionsService.get().subscribe((positions: any) => {
       this.positions = positions;
+    });
+
+    this.companiesService.getCompanies().subscribe((companies: any) => {
+      this.companies = companies;
     });
 
     this.projectsService.get().subscribe((projects: any) => {
@@ -330,7 +341,7 @@ export class AppEmployeeDialogContentComponent {
         }
         else if (this.userRole === '1' || this.userRole === '4') {
           this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.profile.companyId || ''
+            company_id: this.local_data.profile.company_id || ''
           });
         }
       });
