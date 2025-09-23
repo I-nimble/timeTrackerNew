@@ -204,6 +204,7 @@ export const AppsRoutes: Routes = [
             component: ClientDetailsComponent,
             data: {
               title: 'Client Details',
+              showGoBack: true,
               urls: [
                 { title: 'Dashboard', url: '/dashboards/dashboard1' },
                 { title: 'Client Details' },
@@ -400,6 +401,7 @@ export const AppsRoutes: Routes = [
         component: AppPricingStripeComponent,
         data: {
           title: 'Pricing',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Pricing' },
