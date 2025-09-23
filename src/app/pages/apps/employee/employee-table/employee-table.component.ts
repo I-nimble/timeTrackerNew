@@ -294,7 +294,7 @@ export class AppEmployeeDialogContentComponent {
       last_name: ['', Validators.required],
       password: [''],
       email: ['', [Validators.required, Validators.email]],
-      company_id: ['', this.userRole === '1' ? Validators.required : []], // AÑADIDO
+      company_id: ['', this.userRole === '1' ? Validators.required : []],
       position: ['', Validators.required],
       projects: [[]],
     });
