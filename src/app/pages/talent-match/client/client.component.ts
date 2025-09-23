@@ -352,7 +352,7 @@ export class AppTalentMatchClientComponent implements OnInit {
 })
 export class AppInterviewDialogContentComponent {
   local_data: any;
-  interviewForm: FormGroup;
+  dateTime: Date | null = null;
   interviewScheduled = false;
   availableDaysFilter = (d: Date | null): boolean => {
     if (!d) return false;
@@ -387,61 +387,50 @@ export class AppInterviewDialogContentComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.local_data = data;
-    this.interviewForm = this.fb.group({
-      date: [null, Validators.required],
-      time: [null, Validators.required],
-    });
     const m = moment(this.local_data.date_time).local();
     if (this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
-      this.interviewForm.patchValue({
-        date: m.toDate(),
-        time: m.format('HH:mm'),
-      });
+      this.dateTime = m.toDate();
     }
   }
 
   onScheduleInterview() {
-    if (this.interviewForm.valid) {
-      const date = this.interviewForm.value.date;
-      const time = this.interviewForm.value.time;
-      const dateTime = new Date(date);
-      const [hours, minutes] = time.split(':');
-      dateTime.setHours(+hours, +minutes, 0, 0);
-      const date_time = dateTime.toISOString();
+    if(!this.dateTime) {
+      this.openSnackBar('Please select a date and time', 'Close');
+      return;
+    }
 
-      const applicants = this.local_data.selected;
-      const company_id = this.data.companyId;
+    const applicants = this.local_data.selected;
+    const company_id = this.data.companyId;
 
-      const data = {
-        date_time,
-        applicants,
-        company_id,
-      };
-      if (this.local_data.action === 'Schedule') {
-        this.interviewsService.post(data).subscribe({
+    const data = {
+      date_time: this.dateTime,
+      applicants,
+      company_id,
+    };
+    if (this.local_data.action === 'Schedule') {
+      this.interviewsService.post(data).subscribe({
+        next: () => {
+          this.interviewScheduled = true;
+        },
+        error: (err: any) => {
+          console.error('Error scheduling interview:', err);
+          this.openSnackBar('Error scheduling interview', 'Close');
+          this.dialogRef.close({ event: 'Cancel' });
+        },
+      });
+    } else if (this.local_data.action === 'Reeschedule') {
+      this.interviewsService
+        .put(data, this.local_data.interviewId)
+        .subscribe({
           next: (response: any) => {
             this.interviewScheduled = true;
           },
           error: (err: any) => {
-            console.error('Error scheduling interview:', err);
-            this.openSnackBar('Error scheduling interview', 'Close');
+            console.error('Error reescheduling interview:', err);
+            this.openSnackBar('Error reescheduling interview', 'Close');
             this.dialogRef.close({ event: 'Cancel' });
           },
         });
-      } else if (this.local_data.action === 'Reeschedule') {
-        this.interviewsService
-          .put(data, this.local_data.interviewId)
-          .subscribe({
-            next: (response: any) => {
-              this.interviewScheduled = true;
-            },
-            error: (err: any) => {
-              console.error('Error reescheduling interview:', err);
-              this.openSnackBar('Error reescheduling interview', 'Close');
-              this.dialogRef.close({ event: 'Cancel' });
-            },
-          });
-      }
     }
   }
 
