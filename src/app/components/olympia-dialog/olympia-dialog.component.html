@@ -1,0 +1,452 @@
+<div class="d-flex flex-row justify-content-between align-items-center">
+    <div></div>
+    <mat-dialog-actions class="d-flex flex-end">
+        <div class="w-100 d-flex justify-content-center">
+            <button mat-button class="ms-2 rounded shadow px-4 py-1 btn btn-danger" [mat-dialog-close]="true">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </mat-dialog-actions>
+</div>
+<mat-dialog-content class="d-flex flex-column justify-content-start align-items-center p-t-0">
+    <section id="ask-completion" *ngIf="!showForm && !submitted"
+        class="d-flex flex-column justify-content-center align-items-center">
+        <h2 mat-dialog-title class="text-center m-t-2 m-b-20">Complete your profile so our team can assess your talent!
+        </h2>
+        <div class="d-flex flex-row justify-content-around" style="width: 75%; margin: 0 auto;">
+            <button mat-flat-button class="bg-error text-white m-r-16" [mat-dialog-close]="false">
+                Maybe later
+            </button>
+            <button mat-flat-button color="primary" (click)="showOlympiaForm()">
+                Continue
+            </button>
+        </div>
+    </section>
+
+    <form *ngIf="showForm" class="m-t-24" [formGroup]="olympiaForm">
+        <h2 class="text-center m-b-10">Olympia - Inimble</h2>
+        <ul>
+            <li>Responde cada afirmación con la opción que mejor represente tu opinión o comportamiento en el entorno laboral.</li>
+            <li>Ten en cuenta que no hay respuestas correctas o incorrectas; tu honestidad es fundamental para obtener resultados precisos y saber tu compatibilidad con el puesto al que optas.</li>
+        </ul>        
+        <p>Una vez hayas completado la prueba Olympia, deberás esperar a que nuestro equipo de Recursos Humanos la revise. En caso de obtener un resultado positivo, te estaremos contactando vía WhatsApp para agendar una primera entrevista. Si no eres contactado, significará que no pasaste la prueba y no se continuará con el proceso de selección.</p>
+        <br />
+        <p class="m-b-24">Inimble Work Smart 💚</p>
+        
+        <div class="row">
+            <div class="col-12">
+                <p class="fs-12 f-w-600 m-b-5">Full name:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <input matInput formControlName="full_name" required type="text" placeholder="Full Name" />
+                    <mat-error *ngIf="olympiaForm.get('full_name')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Birth Date:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <input matInput formControlName="birth_date" required type="date" placeholder="Birth Date" />
+                    <mat-error *ngIf="olympiaForm.get('birth_date')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">In which state and country do you currently reside?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <input matInput formControlName="location_state_country" required type="text"
+                        placeholder="State/Country" />
+                    <mat-error *ngIf="olympiaForm.get('location_state_country')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Which area are you applying for?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="application_area" required>
+                        <mat-option value="Virtual Assistant">Virtual Assistant</mat-option>
+                        <mat-option value="Technology">Technology</mat-option>
+                        <mat-option value="Sales">Sales</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('application_area')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">When faced with a challenge, I like to take the initiative to find solutions immediately and do not wait for instructions from others:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="take_initiative" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('take_initiative')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I prefer to make decisions quickly to avoid delays in a project. I do not like to wait:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="quick_decisions" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('quick_decisions')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">In high-pressure situations, I feel comfortable taking control of the group and I usually take the lead without any problems:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="pressure_leadership" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('pressure_leadership')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I don't hesitate to express my opinions, even if they differ from those of others:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="express_opinions" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('express_opinions')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">When things don't go as planned, I prefer to make changes quickly rather than stick to a plan:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="adapt_changes" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('adapt_changes')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I constantly try to motivate and enthuse those around me during teamwork:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="motivate_team" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('motivate_team')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I enjoy social interactions in the workplace and constantly seek to connect with others. I consider myself friendly:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="social_interactions" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('social_interactions')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I consider myself a good communicator who can persuade others with my ideas:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="good_communicator" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('good_communicator')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I feel energized when working on creative projects with a collaborative team. I like working with lots of people:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="team_projects" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('team_projects')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">If a coworker needs help, I am one of the first to offer, regardless of my own tasks:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="help_colleagues" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('help_colleagues')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+
+                <p class="fs-12 f-w-600 m-b-5">I value harmony in the workplace and seek to avoid conflict whenever possible. I seek peace of mind:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="workplace_harmony" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('workplace_harmony')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I prefer a predictable and structured work environment where I can plan my activities at a steady pace:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="structured_environment" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('structured_environment')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I enjoy teamwork and make an effort to listen to and consider the opinions of others. I am more of a follower than a leader:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="team_listener" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('team_listener')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I feel comfortable supporting the team during times of change to facilitate a smooth, step-by-step transition:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="support_transitions" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('support_transitions')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I feel more comfortable with long-term strategies that involve careful planning and slow but steady growth:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="long_term_strategies" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('long_term_strategies')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I am careful with details and make sure that all tasks are done correctly. I tend to be a perfectionist:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="detail_oriented" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('detail_oriented')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I prefer to follow established procedures to minimize errors and ensure quality. I strictly adhere to established standards:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="follow_procedures" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('follow_procedures')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I like to plan ahead and follow a clear method to complete my tasks. I don't like to improvise:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="plan_ahead" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('plan_ahead')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I enjoy working in roles that require precision and a meticulous approach to work, based on proven methodologies:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="precision_work" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('precision_work')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">I like to receive and give feedback to ensure that the team meets quality standards:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="give_feedback" required>
+                        <mat-option value="Never">Never</mat-option>
+                        <mat-option value="Sometimes">Sometimes</mat-option>
+                        <mat-option value="Frequently">Frequently</mat-option>
+                        <mat-option value="Always">Always</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('give_feedback')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">As a child, did you always do what you were told immediately, without complaining?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="childhood_obedience" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('childhood_obedience')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Do you sometimes get moody?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="gets_grumpy" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('gets_grumpy')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Do you often laugh at dirty jokes?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="laughs_dirty_jokes" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('laughs_dirty_jokes')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Are you completely free of prejudice of any kind?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="prejudice_free" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('prejudice_free')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Do you brag a little sometimes?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="brags_sometimes" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('brags_sometimes')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Do you always reply to emails and messages immediately?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="immediate_responses" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('immediate_responses')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Do you sometimes put off until tomorrow what you should do today?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="procrastinates" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('procrastinates')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Have you ever told a lie in your life?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="ever_lied" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('ever_lied')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <p class="fs-12 f-w-600 m-b-5">Is it easier for you to accept victory than defeat in a game?:</p>
+                <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-select formControlName="accept_win_over_loss" required>
+                        <mat-option value="Yes">Yes</mat-option>
+                        <mat-option value="No">No</mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="olympiaForm.get('accept_win_over_loss')?.errors?.['required']" class="text-danger">
+                        This field is required.
+                    </mat-error>
+                </mat-form-field>
+
+                <button mat-flat-button color="primary" (click)="submitOlympiaForm()"
+                    [disabled]="olympiaForm.invalid || isSubmitting">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <section id="submitted" *ngIf="submitted" class="d-flex flex-column justify-content-center align-items-center">
+        <h2 mat-dialog-title class="text-center m-t-2 m-b-20">Your profile has been submitted!</h2>
+        <p>We will contact you soon in case you are selected.</p>
+        <div class="d-flex flex-row justify-content-around" style="width: 75%; margin: 0 auto;">
+            <button mat-flat-button class="bg-error text-white m-r-16" [mat-dialog-close]="true">
+                Close
+            </button>
+        </div>
+    </section>
+</mat-dialog-content>

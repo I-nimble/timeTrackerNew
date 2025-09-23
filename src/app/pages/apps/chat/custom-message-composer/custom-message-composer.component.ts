@@ -155,12 +155,20 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 
 	toggleAttachmentDropdown() {
 		this.showAttachmentDropdown = !this.showAttachmentDropdown;
-		this.showEmojiDropdown = false;
+		if(this.showAttachmentDropdown) {
+			this.showEmojiDropdown = false;
+			this.showVoiceRecorderDropdown = false;
+		}
+		this.cdr.detectChanges();
 	}
 
 	toggleEmojiDropdown() {
 		this.showEmojiDropdown = !this.showEmojiDropdown;
-		this.showAttachmentDropdown = false;
+		if(this.showEmojiDropdown) {
+			this.showAttachmentDropdown = false;
+			this.showVoiceRecorderDropdown = false;
+		}
+		this.cdr.detectChanges();
 	}
 
 	selectAttachmentType(type: string) {
@@ -249,12 +257,15 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 		if (!this.showVoiceRecorderDropdown) {
 			this.discardVoiceRecording();
 		} else {
+			this.showAttachmentDropdown = false;
+			this.showEmojiDropdown = false;
 			this.isRecording = false;
 			this.voiceRecorderTime = '00:00';
 			this.recordedAudioUrl = null;
 			this.recordedChunks = [];
 			this.stopVoiceRecorderTimer();
 		}
+		this.cdr.detectChanges();
 	}
 
 	startVoiceRecording() {

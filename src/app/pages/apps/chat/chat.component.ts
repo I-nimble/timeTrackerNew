@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
@@ -12,10 +12,10 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration } from '@cometchat/uikit-shared';
-import { BackdropStyle } from "@cometchat/uikit-elements";
+import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration, ContactsStyle } from '@cometchat/uikit-shared';
+import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import { CometChatUIEvents } from "@cometchat/uikit-resources"
+import { CometChatUIEvents, DatePatterns, TimestampAlignment } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
@@ -44,6 +44,14 @@ interface InlineImage {
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppChatComponent implements OnInit {
+  @ViewChild('contactsView', { static: true }) contactsView!: TemplateRef<any>;
+  @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
+  @ViewChild('conversationsMenuTemplate', { static: true }) conversationsMenuTemplate!: TemplateRef<any>;
+  @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
+  @ViewChild('basicChat') basicChat: any;
+  @ViewChild('essentialChat') essentialChat: any;
+  @ViewChild('professionalChat') professionalChat: any;
+
   plansService = inject(PlansService);
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
@@ -51,6 +59,7 @@ export class AppChatComponent implements OnInit {
   groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
   companies: any[] = [];
   selectedCompanyId!: number;
+  showContacts: boolean = false;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
   public loader: Loader = new Loader(true, false, false);
@@ -87,34 +96,22 @@ export class AppChatComponent implements OnInit {
         this.user = null;
         this.group = group as CometChat.Group;
       },
+      menu: this.conversationsMenuTemplate,
     }),
+    contactsStyle: new ContactsStyle({
+      activeTabBackground: '#92b46c',
+      activeTabTitleTextColor: '#fff',
+      tabBorderRadius: '16px',
+      tabBorder: 'none'
+    })
   });
 
-  public conversationConfiguration = new ConversationsConfiguration({
-    onItemClick: async (conversation) => {
-      const conv = conversation.getConversationWith();
-      const convType = conversation.getConversationType();
+  public conversationConfiguration!: ConversationsConfiguration;
+  public groupsConfiguration: GroupsConfiguration;
 
-      if (convType === 'user') {
-        this.user = conv as CometChat.User;
-        this.group = null;
-      } else if (convType === 'group') {
-        this.group = conv as CometChat.Group;
-        this.user = null;
-      }
-    },
-  });
-  public groupsConfiguration = new GroupsConfiguration({
-    onItemClick: async (group) => {
-      this.group = group as CometChat.Group;
-      this.user = null;
-    },
-  });
-
-  @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
-  @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
   user: CometChat.User | null = null;
   group: CometChat.Group | null = null;
+  isSelect: boolean = false;
 
   getButtonStyle() {
     return {
@@ -132,7 +129,7 @@ export class AppChatComponent implements OnInit {
   }
   getButtonIconStyle() {
     return {
-      filter: 'invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%)'
+      filter: 'invert(8%) sepia(18%) saturate(487%) hue-rotate(57deg) brightness(91%) contrast(88%)'
     };
   }
 
@@ -142,7 +139,8 @@ export class AppChatComponent implements OnInit {
     private companiesService: CompaniesService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private employeesService: EmployeesService
+    private employeesService: EmployeesService,
+    public ref: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -167,7 +165,11 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
-            templates: this.chatService.templates
+            templates: this.chatService.templates,
+            showAvatar: true,
+            scrollToBottomOnNewMessages: true,
+            datePattern: DatePatterns.DateTime,
+            timestampAlignment: TimestampAlignment.bottom,
           }),
           messageHeaderConfiguration: new MessageHeaderConfiguration({
             menu: null // Hide call buttons for groups
@@ -184,7 +186,11 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
-            templates: this.chatService.templates
+            templates: this.chatService.templates,
+            showAvatar: true,
+            scrollToBottomOnNewMessages: true,
+            datePattern: DatePatterns.DateTime,
+            timestampAlignment: TimestampAlignment.bottom,
           }),
           threadedMessageConfiguration: new ThreadedMessagesConfiguration({
             hideMessageComposer: true,
@@ -197,6 +203,22 @@ export class AppChatComponent implements OnInit {
     });
 
     try {
+      this.conversationConfiguration = new ConversationsConfiguration({
+        onItemClick: async (conversation) => {
+          const conv = conversation.getConversationWith();
+          const convType = conversation.getConversationType();
+
+          if (convType === 'user') {
+            this.user = conv as CometChat.User;
+            this.group = null;
+          } else if (convType === 'group') {
+            this.group = conv as CometChat.Group;
+            this.user = null;
+          }
+        },
+        menu: this.conversationsMenuTemplate
+      });
+
       if(this.userRole === '3') {
         this.companiesService.getByOwner().subscribe({
           next: (company: any) => {
@@ -264,7 +286,11 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
-        templates: this.chatService.templates
+        templates: this.chatService.templates,
+        showAvatar: true,
+        scrollToBottomOnNewMessages: true,
+        datePattern: DatePatterns.DateTime,
+        timestampAlignment: TimestampAlignment.bottom
       }),
       messageHeaderConfiguration: new MessageHeaderConfiguration({
         menu: this.customMenu
@@ -283,7 +309,11 @@ export class AppChatComponent implements OnInit {
       messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
-        templates: this.chatService.templates
+        templates: this.chatService.templates,
+        showAvatar: true,
+        scrollToBottomOnNewMessages: true,
+        datePattern: DatePatterns.DateTime,
+        timestampAlignment: TimestampAlignment.bottom
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -308,7 +338,11 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
-        templates: this.chatService.templates
+        templates: this.chatService.templates,
+        showAvatar: true,
+        scrollToBottomOnNewMessages: true,
+        datePattern: DatePatterns.DateTime,
+        timestampAlignment: TimestampAlignment.bottom
       }),
       threadedMessageConfiguration: new ThreadedMessagesConfiguration({
         hideMessageComposer: true,
@@ -344,6 +378,14 @@ export class AppChatComponent implements OnInit {
             .friendsOnly(true)
         })
       })
+    })
+
+    this.groupsConfiguration = new GroupsConfiguration({
+      onItemClick: async (group) => {
+        this.group = group as CometChat.Group;
+        this.user = null;
+      },
+      menu: this.conversationsMenuTemplate,
     })
   }
 
@@ -431,6 +473,14 @@ export class AppChatComponent implements OnInit {
       light: '#92b46c',
       dark: '#388E3C'
     });
+    this.themeService.theme.palette.setBackground({
+      light: '#ffffff',
+      dark: "#111c2d"
+    });
+    this.themeService.theme.palette.setSecondary({
+      light: '#e5eaef',
+      dark: '#15263a'
+    })
     this.themeService.theme.typography.setFontFamily('Montserrat, sans-serif');
   }
 
@@ -449,6 +499,17 @@ export class AppChatComponent implements OnInit {
       }, 100);
     });
     this.themeMutationObserver.observe(htmlElement, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  onMenuButtonClick() {
+    this.showContacts = !this.showContacts;
+    if (this.plan && this.plan.id === 2 && this.essentialChat) {
+      this.essentialChat.showStartConversation = this.showContacts;
+    }
+    if ((this.plan && this.plan.id === 3) && this.professionalChat) {
+      this.professionalChat.showStartConversation = this.showContacts;
+    }
+    this.ref.detectChanges();
   }
 
   openSnackBar(message: string, action: string) {

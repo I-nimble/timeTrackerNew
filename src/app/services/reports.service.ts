@@ -33,9 +33,13 @@ export class ReportsService {
     return this.http.post(`${this.API_URI}/entries`, info, { headers });
   }
 
-  getReport(dates: any, user: any = null, filters:any) { 
+  getReport(dates: any, user: any = null, filters: any, format: 'excel' | 'pptx' = 'excel') {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
-    const info = this.toBeSent(dates, user, filters);
+    const info = {
+      ...this.toBeSent(dates, user, filters),
+      format
+    };
+
     return this.http.post(`${this.API_URI}`, info, {
       headers,
       responseType: 'blob',

@@ -40,9 +40,9 @@
 
                     <ng-template #registerForm>
                       <!-- Sign up with Google -->
-                      <!-- <div class="row m-t-24">
+                      <div class="row m-t-24">
                         <div class="col-12 col-sm-12">
-                          <button mat-stroked-button class="w-100 m-b-4">
+                          <button mat-stroked-button class="w-100 m-b-4" (click)="googleSignUp()">
                             <div class="d-flex align-items-center">
                               <img
                                 src="/assets/images/svgs/google-icon.svg"
@@ -56,7 +56,7 @@
                         </div>
                       </div>
   
-                      <div class="or-border m-t-30">or sign up as a {{userRole === '3' ? 'client' : 'team member'}} with</div> -->
+                      <div class="or-border m-t-30">or sign up as a {{userRole === '3' ? 'client' : 'team member'}} with</div>
                       
                       <!-- Client registration form -->
                       <mat-stepper #stepper id="register-form" *ngIf="userRole === '3'">
