@@ -204,6 +204,7 @@ export const AppsRoutes: Routes = [
             component: ClientDetailsComponent,
             data: {
               title: 'Client Details',
+              showGoBack: true,
               urls: [
                 { title: 'Dashboard', url: '/dashboards/dashboard1' },
                 { title: 'Client Details' },
@@ -272,6 +273,7 @@ export const AppsRoutes: Routes = [
         component: AppCourseDetailComponent,
         data: {
           title: 'Course Detail',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Course Detail' },
@@ -294,6 +296,7 @@ export const AppsRoutes: Routes = [
         component: AppBlogDetailsComponent,
         data: {
           title: 'Blog Detail',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Blog Detail' },
@@ -316,6 +319,7 @@ export const AppsRoutes: Routes = [
         component: EmployeeDetailsComponent,
         data: { 
           title: 'Employee Details',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee Details' },
@@ -338,6 +342,7 @@ export const AppsRoutes: Routes = [
         component: PaymentsReportsComponent,
         data: {
           title: 'Reports',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title:  'Reports' },
@@ -349,6 +354,7 @@ export const AppsRoutes: Routes = [
         component: AppAddInvoiceComponent,
         data: {
           title: 'Add Invoice',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Add Invoice' },
@@ -360,6 +366,7 @@ export const AppsRoutes: Routes = [
         component: AppInvoiceViewComponent,
         data: {
           title: 'View Invoice',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'View Invoice' },
@@ -371,6 +378,7 @@ export const AppsRoutes: Routes = [
         component: AppEditInvoiceComponent,
         data: {
           title: 'Edit Invoice',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Edit Invoice' },
@@ -393,6 +401,7 @@ export const AppsRoutes: Routes = [
         component: AppPricingStripeComponent,
         data: {
           title: 'Pricing',
+          showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Pricing' },
