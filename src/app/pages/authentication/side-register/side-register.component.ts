@@ -56,7 +56,7 @@ export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]], // check if email is taken
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company_name: ['', [Validators.required]],
@@ -68,7 +68,7 @@ export class AppSideRegisterComponent {
     google_user_id: [''],
   });
   registerInvitedTeamMemberForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company: ['', [Validators.required]],
@@ -79,7 +79,7 @@ export class AppSideRegisterComponent {
   registerTeamMemberForm: FormGroup = this.fb.group({
     location: ['', Validators.required],
     role: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     appliedWhere: ['', Validators.required],
     referred: ['no'],
