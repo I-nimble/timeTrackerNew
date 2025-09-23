@@ -65,7 +65,13 @@
                             <form [formGroup]="registerClientForm">
                               <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
                               <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" [readonly]="signedWithGoogleClicked" />
+                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerClientForm.get('email')?.hasError('email') || registerClientForm.get('email')?.hasError('pattern')) && registerClientForm.get('email')?.touched"
+                                >
+                                  Please enter a valid email address
+                                </mat-error>
                               </mat-form-field>
       
                               <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('email')?.valid">Next</button>
@@ -170,7 +176,13 @@
                             <form [formGroup]="registerInvitedTeamMemberForm">
                               <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
                               <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" [readonly]="signedWithGoogleClicked" />
+                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerInvitedTeamMemberForm.get('email')?.hasError('email') || registerInvitedTeamMemberForm.get('email')?.hasError('pattern')) && registerInvitedTeamMemberForm.get('email')?.touched"
+                                >
+                                  Please enter a valid email address
+                                </mat-error>
                               </mat-form-field>
   
                               <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('email')?.valid">Next</button>
@@ -268,7 +280,13 @@
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Email</mat-label>
-                              <input matInput formControlName="email" type="email" required [readonly]="signedWithGoogleClicked">
+                              <input matInput formControlName="email" type="email" required>
+                              <mat-error 
+                                class="text-danger f-s-12 m-t-0"
+                                *ngIf="(registerTeamMemberForm.get('email')?.hasError('email') || registerTeamMemberForm.get('email')?.hasError('pattern')) && registerTeamMemberForm.get('email')?.touched"
+                              >
+                                Please enter a valid email address
+                              </mat-error>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline" class="w-100">
