@@ -169,7 +169,7 @@
       </mat-form-field>
     </div>
 
-    <div class="col-12" *ngIf="userRole === '1'">
+    <div class="col-12" *ngIf="userRole === '1' || userRole === '4'">
       <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Company</mat-label>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select formControlName="company_id" name="company_id" required>
