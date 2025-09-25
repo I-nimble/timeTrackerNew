@@ -64,7 +64,8 @@ export class AppAccountSettingComponent implements OnInit {
       name: '',
       headquarter: '',
       employees_amount: '',
-      bussiness_segment: ''
+      bussiness_segment: '',
+      show_info: true
     }
   };
   profileForm: FormGroup = this.fb.group({
@@ -77,6 +78,7 @@ export class AppAccountSettingComponent implements OnInit {
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
     bussiness_segment: [''],
+    show_info: [true],
     old_password: ['', [Validators.minLength(8)]],
     new_password: ['', [Validators.minLength(8)]]
   },  {
@@ -218,6 +220,7 @@ export class AppAccountSettingComponent implements OnInit {
         headquarter: this.user.company.headquarter,
         employees_amount: this.user.company.employees_amount,
         bussiness_segment: this.user.company.bussiness_segment,
+        show_info: this.user.company.show_info ?? true
       });
     }
     else {
@@ -340,7 +343,8 @@ export class AppAccountSettingComponent implements OnInit {
         logo: this.logo !== this.originalLogo ? this.profileForm.value.logo : this.originalLogo, // Validate logo changes
         headquarter: this.profileForm.value.headquarter,
         employees_amount: this.profileForm.value.employees_amount,
-        bussiness_segment: this.profileForm.value.bussiness_segment
+        bussiness_segment: this.profileForm.value.bussiness_segment,
+        show_info: this.profileForm.value.show_info
       };
   
       this.usersService.updateProfile(userData).subscribe({
