@@ -397,6 +397,17 @@ export const AppsRoutes: Routes = [
         },
       },
       {
+        path: 'permission',
+        component: AppPermissionComponent,
+        data: {
+          title: 'Permission',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Permission' },
+          ],
+        },
+      },
+      {
         path: 'pricing',
         component: AppPricingStripeComponent,
         data: {
