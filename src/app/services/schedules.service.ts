@@ -17,4 +17,8 @@ export class SchedulesService {
   public getById(id: number | string): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/${id}`);
   }
+
+  public getByUserId(id: number | string): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/user/${id}`);
+  }
 }
