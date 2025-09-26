@@ -76,4 +76,21 @@ export class AppInvoiceViewComponent {
       seconds.toString().padStart(2, '0')
     ].join(':');
   }
+
+  toDateInputValue(date: string | Date): string {
+    if (!date) {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    const d = new Date(date);
+
+    if (isNaN(d.getTime())) {
+      console.warn('Invalid date in toDateInputValue:', date);
+      return new Date().toISOString().split('T')[0];
+    }
+
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
+  }
 }
