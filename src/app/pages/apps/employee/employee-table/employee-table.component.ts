@@ -426,7 +426,7 @@ export class AppEmployeeDialogContentComponent {
     return groups;
   }
 
-  addScheduleGroup(days: string[] = ['Monday'], start_time: string = '09:00', end_time: string = '17:00'): void {
+  addScheduleGroup(days: string[] = [], start_time: string = '09:00', end_time: string = '17:00'): void {
     const scheduleGroup = this.fb.group({
       days: [days, Validators.required],
       start_time: [start_time, Validators.required],
