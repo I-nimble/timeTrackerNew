@@ -24,17 +24,18 @@ import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { environment } from 'src/environments/environment';
 
 @Component({
-    selector: 'app-invoice-list',
-    templateUrl: './invoice-list.component.html',
-    imports: [
-        MaterialModule,
-        CommonModule,
-        RouterModule,
-        FormsModule,
-        ReactiveFormsModule,
-        TablerIconsModule,
-        StripeComponent,
-    ]
+  selector: 'app-invoice-list',
+  templateUrl: './invoice-list.component.html',
+  styleUrls: ['./invoice-list.component.scss'],
+  imports: [
+    MaterialModule,
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TablerIconsModule,
+    StripeComponent,
+  ]
 })
 export class AppInvoiceListComponent implements AfterViewInit {
   role: any = localStorage.getItem('role');
@@ -50,55 +51,107 @@ export class AppInvoiceListComponent implements AfterViewInit {
   selectedCompanyId = signal<number | null>(null);
   allowedPaymentsManager: boolean = false;
   allowedReportsManager: boolean = false;
+  startDate: Date | null = null;
+  endDate: Date | null = null;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
 
-  constructor(private invoiceService: InvoiceService,private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService,private companiesService: CompaniesService,) {}
+  constructor(private invoiceService: InvoiceService, private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService, private companiesService: CompaniesService,) { }
 
   ngOnInit(): void {
-  const allowedPaymentsEmails = environment.allowedPaymentsEmails;
-  const allowedReportsEmails = environment.allowedReportEmails;
-  const email = localStorage.getItem('email');
-  this.allowedReportsManager = this.role === '2' && allowedReportsEmails.includes(email || '');
-  this.allowedPaymentsManager = this.role === '2' && allowedPaymentsEmails.includes(email || '');
-  if (this.role == '3' || this.allowedPaymentsManager == true) {
-    this.displayedColumns = [
-      'id',
-      'paymentDate',
-      'amount',
-      'status',
-      'action',
-    ];
-  } else {
-    this.displayedColumns = [
-      'id',
-      'paymentDate',
-      'client',
-      'amount',
-      'status',
-      'action',
-    ];
-  }
-  this.companiesService.getCompanies().subscribe({
-    next: (companies: any[]) => {
-      this.companies = companies;
-      this.companyMap = {};
-      companies.forEach(c => this.companyMap[c.id] = c.name);
+    const allowedPaymentsEmails = environment.allowedPaymentsEmails;
+    const allowedReportsEmails = environment.allowedReportEmails;
+    const email = localStorage.getItem('email');
+    this.allowedReportsManager = this.role === '2' && allowedReportsEmails.includes(email || '');
+    this.allowedPaymentsManager = this.role === '2' && allowedPaymentsEmails.includes(email || '');
+    if (this.role == '3' || this.allowedPaymentsManager == true) {
+      this.displayedColumns = [
+        'id',
+        'paymentDate',
+        'amount',
+        'status',
+        'action',
+      ];
+    } else {
+      this.displayedColumns = [
+        'id',
+        'paymentDate',
+        'client',
+        'amount',
+        'status',
+        'action',
+      ];
     }
-  });
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any[]) => {
+        this.companies = companies;
+        this.companyMap = {};
+        companies.forEach(c => this.companyMap[c.id] = c.name);
+      }
+    });
 
-  this.loadInvoices();
-}
+    this.loadInvoices();
+  }
 
   ngAfterViewInit(): void {
     this.invoiceList.paginator = this.paginator;
     this.invoiceList.sort = this.sort;
   }
 
+  onDateRangeChange(): void {
+    if (this.startDate && this.endDate) {
+      this.filterInvoices();
+    }
+  }
+
+  downloadInvoice(id: number): void {
+    this.invoiceService.getInvoiceFile(id).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `invoice-${id}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+      },
+      error: (err) => {
+        console.error('Error downloading invoice:', err);
+      },
+    });
+  }
+
+  generateInvoice(): void {
+    if(!this.selectedCompanyId() || !this.startDate || !this.endDate) {
+      this.showSnackbar('Please select a company and a date range');
+      return;
+    }
+
+    this.invoiceService.createInvoice({
+      company_id: this.selectedCompanyId(),
+      billing_period_start: this.startDate,
+      billing_period_end: this.endDate,
+    }).subscribe({
+      next: (response: any) => {
+        this.selectedCompanyId.set(null);
+        this.startDate = null;
+        this.endDate = null;
+        this.invoiceList.data.push(response);
+        this.activeTab.set('All');
+        this.loadInvoices();
+      },
+      error: (err: any) => {
+        console.error('Error creating invoice:', err);
+      },
+    });
+  }
+
   handleTabClick(tab: string): void {
     this.activeTab.set(tab);
-    this.filterInvoices(); 
+    this.filterInvoices();
   }
 
   filterInvoices(): void {
@@ -106,7 +159,12 @@ export class AppInvoiceListComponent implements AfterViewInit {
     let filteredInvoices: any[] = [];
 
     if (currentTab === 'All') {
-      filteredInvoices = [...this.paidInvoices(), ...this.pendingInvoices(), ...this.overdueInvoices()];
+      filteredInvoices = [
+        ...this.paidInvoices(), 
+        ...this.pendingInvoices(), 
+        ...this.overdueInvoices(),
+        ...this.invoiceList.data.filter((inv: any) => inv.status.name === 'Draft')
+      ];
     } else if (currentTab === 'Paid') {
       filteredInvoices = [...this.paidInvoices()];
     } else if (currentTab === 'Pending') {
@@ -120,6 +178,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
       filteredInvoices = filteredInvoices.filter(
         invoice => invoice.user?.company?.id === this.selectedCompanyId()
       );
+    } 
+
+    if (this.startDate && this.endDate) {
+      const [start, end] = [this.startDate, this.endDate].map(d => new Date(d).setHours(0,0,0,0));
+      filteredInvoices = filteredInvoices.filter((invoice: any) => {
+        const dueDate = new Date(invoice.due_date).setHours(0,0,0,0);
+        return dueDate >= start && dueDate <= end;
+      });
     }
 
     this.invoiceList.data = filteredInvoices;
@@ -163,10 +229,10 @@ export class AppInvoiceListComponent implements AfterViewInit {
       .length;
   }
 
- 
+
   deleteInvoice(id: number): void {
     const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
-  
+
     dialogRef.afterClosed().subscribe((result: any) => {
       this.loadInvoices();
       if (result) {
@@ -186,7 +252,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
   showSnackbar(message: string): void {
     this.snackBar.open(message, 'Close', {
-      duration: 3000, 
+      duration: 3000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
@@ -205,26 +271,9 @@ export class AppInvoiceListComponent implements AfterViewInit {
     }
   }
 
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies: any) => {
-        console.log(companies)
-      },
-    });
-  }
-
   handleCompanySelection(event: any): void {
     const companyId = event.value;
     this.selectedCompanyId.set(companyId);
     this.filterInvoices();
   }
-
-  getCompanyName(userId: number): void {
-    // this.companiesService.getByUserId(userId).subscribe({
-    //   next: (company: any) => {
-    //     return company.name || 'N/A';
-    //   },
-    // });
-  }
-  
 }
