@@ -18,7 +18,7 @@ import {
 } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { AppAddEmployeeComponent } from '../add/add.component';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Employee } from 'src/app/pages/apps/employee/employee';
