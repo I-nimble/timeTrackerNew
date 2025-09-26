@@ -148,6 +148,15 @@ export class FullComponent implements OnInit {
         link: '/apps/scrapper',
       }]
     : []),
+    ...(this.role == '1'
+    ? [{
+        id: 16,
+        img: '/assets/images/svgs/icon-connect.svg',
+        title: 'Permissions',
+        subtitle: 'Give permissions to your users',
+        link: '/apps/permission',
+      }]
+    : []),
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',

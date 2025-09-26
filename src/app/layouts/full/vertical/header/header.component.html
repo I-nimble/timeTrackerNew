@@ -98,6 +98,8 @@
     </mat-menu> -->
     <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1' && role != '4'"
     >Help Center</a>
+    <a mat-button [routerLink]="['/apps/permission']" *ngIf="role == '1'"
+    >Permissions</a>
           <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
