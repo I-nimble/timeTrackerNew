@@ -35,7 +35,6 @@ import {
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
 import { SelectionModel } from '@angular/cdk/collections';
-import { AppEmployeeDialogContentComponent, AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
 import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
 import { AppEmployeeDialogContentComponent } from '../employee/employee-dialog-content';
 

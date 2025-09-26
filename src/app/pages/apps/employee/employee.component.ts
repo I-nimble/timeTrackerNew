@@ -45,7 +45,6 @@ import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-
 import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
 import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 import { AppEmployeeDialogContentComponent } from './employee-dialog-content';
-import { AppEmployeeDialogContentComponent, AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 
 @Component({
   templateUrl: './employee.component.html',
