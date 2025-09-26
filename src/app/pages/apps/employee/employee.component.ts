@@ -14,7 +14,7 @@ import {
 } from '@angular/material/dialog';
 import { DatePipe } from '@angular/common';
 import { AppAddEmployeeComponent } from './add/add.component';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { Employee } from 'src/app/pages/apps/employee/employee';
@@ -43,7 +43,7 @@ import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialo
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
 import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
-import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
+import { AppEmployeeDialogContentComponent, AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 
 @Component({
   templateUrl: './employee.component.html',
@@ -353,190 +353,5 @@ export class AppEmployeeComponent {
     return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${
       row.position + 1
     }`;
-  }
-}
-
-interface DialogData {
-  action: string;
-  employee: Employee;
-}
-
-@Component({
-  // tslint:disable-next-line: component-selector
-  selector: 'app-dialog-content',
-  imports: [
-    MaterialModule,
-    FormsModule,
-    ReactiveFormsModule,
-    CommonModule,
-    TablerIconsModule,
-  ],
-  templateUrl: 'employee-dialog-content.html',
-})
-// tslint:disable-next-line: component-class-suffix
-export class AppEmployeeDialogContentComponent {
-  action: string | any;
-  // tslint:disable-next-line - Disables all
-  local_data: any;
-  selectedImage: any = '';
-  joiningDate = new FormControl();
-  positions: any[] = [];
-  projects: any[] = [];
-  selectedFile: File | null = null;
-  sendingData: boolean = false;
-  editEmployeeForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    last_name: ['', Validators.required],
-    password: [''],
-    email: ['', [Validators.required, Validators.email]],
-    position: ['', Validators.required],
-    projects: [[]],
-  });
-  inviteEmployeeForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    company_id: ['', Validators.required],
-  });
-  companies: any[] = [];
-  userRole = localStorage.getItem('role');
-
-  constructor(
-    public dialog: MatDialog,
-    public dialogRef: MatDialogRef<AppEmployeeDialogContentComponent>,
-    private employeesService: EmployeesService,
-    private usersService: UsersService,
-    private snackBar: MatSnackBar,
-    private positionsService: PositionsService,
-    private projectsService: ProjectsService,
-    private fb: FormBuilder,
-    private companiesService: CompaniesService,
-    // @Optional() is used to prevent error if no data is passed
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
-  ) {
-    this.action = data.action;
-    this.local_data = { ...data.employee };
-    if(this.action === 'Update') {
-      this.editEmployeeForm.patchValue({ // Populate form data
-        name: this.local_data.name || '',
-        last_name: this.local_data.last_name || '',
-        password: '',
-        email: this.local_data.email || '',
-        position: this.local_data.position || '',
-        projects: this.local_data.projects || [],
-      });
-    }
-
-    this.positionsService.get().subscribe((positions: any) => {
-      this.positions = positions;
-    });
-
-    this.projectsService.get().subscribe((projects: any) => {
-      this.projects = projects;
-    });
-
-    if(this.action === 'Invite') {
-      this.companiesService.getCompanies().subscribe((companies: any) => {
-        this.companies = companies;
-        if(this.userRole === '3') {
-          this.companiesService.getByOwner().subscribe((company: any) => {
-            this.inviteEmployeeForm.patchValue({
-              company_id: company.company.id
-            });
-          });
-        }
-        else if (this.userRole === '1') {
-          this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.companyId || ''
-          });
-        }
-      });
-    }
-
-    // Set default image path if not already set
-    if (!this.local_data.image) {
-      this.local_data.image = 'assets/images/default-user-profile-pic.png';
-    }
-  }
-
-  doAction(): void {
-
-    if (this.action === 'Invite') {
-      this.sendingData = true;
-      if(!this.inviteEmployeeForm.valid) {
-        this.openSnackBar('Please fill in all required fields', 'Close');
-        this.sendingData = false;
-        return;
-      }
-      const invitationData = {
-        name: this.inviteEmployeeForm.value.name,
-        email: this.inviteEmployeeForm.value.email,
-        company_id: this.inviteEmployeeForm.value.company_id,
-      };
-      this.employeesService.inviteEmployee(invitationData).subscribe({
-        next: () => {
-          this.dialogRef.close({ event: 'Refresh' });
-          this.openSnackBar('Employee Invited successfully!', 'Close');
-          this.sendingData = false;
-          this.inviteEmployeeForm.reset();
-        },
-        error: (err: any) => {
-          console.error('Error adding employee:', err);
-          const errorMsg = err?.error?.message || 'Error inviting Team Member';
-          this.openSnackBar(errorMsg, 'Close');
-          this.sendingData = false;
-          this.inviteEmployeeForm.reset();
-        }
-      });
-    } else if (this.action === 'Update') {
-      // this.employeesService.updateEmployee(this.local_data);
-      // this.dialogRef.close({ event: 'Update' });
-      // this.openSnackBar('Employee Updated successfully!', 'Close');
-    } else if (this.action === 'Delete') {
-      this.employeesService.deleteEmployee(this.local_data.id).subscribe({
-        next: () => {
-          this.dialogRef.close({ event: 'Delete' });
-          this.openSnackBar('Employee Deleted successfully!', 'Close');
-        },
-        error: (err:any) => {
-          console.error('Error deleting employee:', err);
-          this.openSnackBar('Error deleting employee', 'Close');
-        },
-      });
-    }
-  }
-
-  openSnackBar(message: string, action: string) {
-    this.snackBar.open(message, action, {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-    });
-  }
-
-  closeDialog(): void {
-    this.dialogRef.close({ event: 'Cancel' });
-  }
-
-  selectFile(event: any): void {
-    if (!event.target.files[0] || event.target.files[0].length === 0) {
-      this.openSnackBar('Please select an image', 'Close');
-      return;
-    }
-
-    const mimeType = event.target.files[0].type;
-    if (mimeType.match(/image\/jpeg/) == null) {
-      this.openSnackBar('The image must be a JPEG file', 'Close');
-      return;
-    }
-
-    this.selectedFile = event.target.files[0];
-    if(this.selectedFile) {
-      const reader = new FileReader();
-      reader.readAsDataURL(this.selectedFile);
-  
-      reader.onload = (_event) => {
-        this.local_data.image = reader.result; // Set selected image for preview
-      };
-    }
   }
 }
