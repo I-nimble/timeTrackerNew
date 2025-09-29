@@ -31,6 +31,7 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
   @Output() selectClient = new EventEmitter<any>();
   displayedColumns: string[] = ['name', 'email', 'phone', 'company', 'departments'];
   dataSourceTable = new MatTableDataSource<any>([]);
+  @Input() userPlanName: any = '';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -64,5 +65,9 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
   viewClient(client: any) {
     this.usersService.setUserInformation(client);
     this.router.navigate(['/apps/expert/client', client.id]);
+  }
+
+  get canShowContact(): boolean {
+    return this.userPlanName.toLowerCase() !== 'basic';
   }
 }
