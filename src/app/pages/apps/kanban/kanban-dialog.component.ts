@@ -56,7 +56,7 @@ export class AppKanbanDialogComponent implements OnInit {
   filteredUsers: any[] = [];
   mentionStartPos = 0;
   commentText: string = '';
-  dueTime: string = '';
+  dueDateTime: Date | null = null;
   companies: any[] = [];
   firstAttachmentImage: any = null;
   pastedAttachments: any[] = [];
@@ -110,34 +110,32 @@ export class AppKanbanDialogComponent implements OnInit {
     if (this.local_data.due_date) {
       const dueDate = new Date(this.local_data.due_date);
       if (!isNaN(dueDate.getTime())) {
-        const hours = dueDate.getHours().toString().padStart(2, '0');
-        const minutes = dueDate.getMinutes().toString().padStart(2, '0');
-        this.dueTime = `${hours}:${minutes}`;
+        this.dueDateTime = dueDate;
       }
     } else {
-    const defaultDate = new Date();
-    defaultDate.setHours(defaultDate.getHours() + 24);
-    this.dueTime = defaultDate.toTimeString().substring(0, 5);
-    this.local_data.due_date = defaultDate;
-  }
+      const defaultDate = new Date();
+      defaultDate.setHours(defaultDate.getHours() + 24);
+      this.dueDateTime = defaultDate;
+      this.local_data.due_date = defaultDate;
+    }
     this.updateFirstAttachmentImage();
 
     setTimeout(() => {
-    if (this.descriptionEditor && this.local_data.recommendations) {
-      this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
-    }
-  });
+      if (this.descriptionEditor && this.local_data.recommendations) {
+        this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
+      }
+    });
   }
 
   isFormValid(): boolean {
     if (this.local_data.type === 'board') {
       return !!this.local_data.goal?.trim();
     }
-    
-    return !!this.local_data.goal?.trim() && 
-          !!this.local_data.employee_id && 
-          !!this.local_data.priority && 
-          !!this.local_data.due_date;
+
+    return !!this.local_data.goal?.trim() &&
+      !!this.local_data.employee_id &&
+      !!this.local_data.priority &&
+      !!this.local_data.due_date;
   }
 
   showSnackbar(message: string): void {
@@ -167,8 +165,8 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   updateFirstAttachmentImage() {
-    this.firstAttachmentImage = this.attachments.find(att => 
-      att.file_type?.startsWith('image/') || 
+    this.firstAttachmentImage = this.attachments.find(att =>
+      att.file_type?.startsWith('image/') ||
       (att instanceof File && att.type.startsWith('image/'))
     );
   }
@@ -198,7 +196,7 @@ export class AppKanbanDialogComponent implements OnInit {
       this.attachments.push(files.item(i)!);
     }
     event.target.value = '';
-    this.updateFirstAttachmentImage(); 
+    this.updateFirstAttachmentImage();
   }
 
   removeAttachment(index: number): void {
@@ -222,7 +220,7 @@ export class AppKanbanDialogComponent implements OnInit {
     ) {
       this.companiesService.getCompanies().subscribe((companies: any) => {
         this.companies = companies;
-        if(this.local_data.company_id) {
+        if (this.local_data.company_id) {
           const company = companies.find(
             (c: any) => c.id === this.local_data.company_id
           );
@@ -236,7 +234,7 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   getUsers(companyId?: number) {
-    if(companyId) {
+    if (companyId) {
       this.companiesService
         .getEmployees(companyId)
         .subscribe((employees: any) => {
@@ -287,17 +285,21 @@ export class AppKanbanDialogComponent implements OnInit {
 
   doAction(): void {
     this.formTouched = true;
-    
+
     if (!this.isFormValid()) {
       this.showSnackbar('Please fill all required fields');
       return;
     }
-    
+
     if (this.isSaving) return;
     this.isSaving = true;
-    
+
     this.local_data.task_attachments = this.attachments;
-    
+
+    if (this.dueDateTime) {
+      this.local_data.due_date = this.dueDateTime;
+    }
+
     if (
       this.action === 'Edit' &&
       this.local_data.previousVisibility === 'private' &&
@@ -338,70 +340,70 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   onCommentInput(event: any) {
-  const textarea = event.target;
-  const value = textarea.value;
-  const pos = textarea.selectionStart;
-  const textUpToCursor = value.slice(0, pos);
-  
-  const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
-  
-  if (atMatch) {
-    this.mentionQuery = atMatch[1];
-    this.filteredUsers = this.users.filter(u => 
-      `${u.name} ${u.last_name}`
-        .toLowerCase()
-        .includes(this.mentionQuery.toLowerCase())
-    );
-    this.showMentionList = this.filteredUsers.length > 0;
-    this.mentionStartPos = pos - this.mentionQuery.length - 1;
-    this.mentionIndex = 0;
-  } else {
-    this.showMentionList = false;
+    const textarea = event.target;
+    const value = textarea.value;
+    const pos = textarea.selectionStart;
+    const textUpToCursor = value.slice(0, pos);
+
+    const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
+
+    if (atMatch) {
+      this.mentionQuery = atMatch[1];
+      this.filteredUsers = this.users.filter(u =>
+        `${u.name} ${u.last_name}`
+          .toLowerCase()
+          .includes(this.mentionQuery.toLowerCase())
+      );
+      this.showMentionList = this.filteredUsers.length > 0;
+      this.mentionStartPos = pos - this.mentionQuery.length - 1;
+      this.mentionIndex = 0;
+    } else {
+      this.showMentionList = false;
+    }
   }
-}
 
   onCommentKeydown(event: KeyboardEvent) {
-  if (!this.showMentionList) return;
+    if (!this.showMentionList) return;
 
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    this.mentionIndex = 
-      (this.mentionIndex - 1 + this.filteredUsers.length) % 
-      this.filteredUsers.length;
-  } else if (event.key === 'Enter') {
-    event.preventDefault();
-    if (this.filteredUsers[this.mentionIndex]) {
-      this.selectMention(this.filteredUsers[this.mentionIndex]);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.mentionIndex =
+        (this.mentionIndex - 1 + this.filteredUsers.length) %
+        this.filteredUsers.length;
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (this.filteredUsers[this.mentionIndex]) {
+        this.selectMention(this.filteredUsers[this.mentionIndex]);
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.showMentionList = false;
     }
-  } else if (event.key === 'Escape') {
-    event.preventDefault();
-    this.showMentionList = false;
   }
-}
 
   selectMention(user: any) {
-  const textarea = this.commentTextarea?.nativeElement;
-  if (!textarea) return;
-  
-  const value = this.commentText || '';
-  const before = value.substring(0, this.mentionStartPos);
-  const after = value.substring(textarea.selectionStart);
-  
-  const mentionText = `@${user.name} ${user.last_name}`;
-  this.commentText = before + mentionText + ' ' + after;
-  
-  this.showMentionList = false;
-  
-  setTimeout(() => {
-    textarea.focus();
-    const newPosition = before.length + mentionText.length + 1;
-    textarea.selectionStart = newPosition;
-    textarea.selectionEnd = newPosition;
-  });
-}
+    const textarea = this.commentTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const value = this.commentText || '';
+    const before = value.substring(0, this.mentionStartPos);
+    const after = value.substring(textarea.selectionStart);
+
+    const mentionText = `@${user.name} ${user.last_name}`;
+    this.commentText = before + mentionText + ' ' + after;
+
+    this.showMentionList = false;
+
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = before.length + mentionText.length + 1;
+      textarea.selectionStart = newPosition;
+      textarea.selectionEnd = newPosition;
+    });
+  }
 
   getMentionMarkup(user: any): string {
     return `@${user.name}${user.last_name}`;
@@ -419,65 +421,22 @@ export class AppKanbanDialogComponent implements OnInit {
     }
   }
 
-  onDueDateChange(event: any) {
-  const date = event.value;
-  let time = this.dueTime || '00:00';
-  this.setDueDateTime(date, time);
-}
-
-onDueTimeChange(event: any) {
-  const time = event.target?.value || event;
-  const [hoursStr, minutesStr] = time.split(':');
-  const hours = parseInt(hoursStr, 10);
-  const minutes = parseInt(minutesStr, 10);
-
-  if (hours < 8) {
-    this.dueTime = '08:00';
-  } else if (hours > 20 || (hours === 20 && minutes > 0)) {
-    this.dueTime = '20:00';
-  } else {
-    this.dueTime = time;
-  }
-
-  const currentDueDate = new Date(this.local_data.due_date || new Date());
-  currentDueDate.setHours(parseInt(this.dueTime.split(':')[0]), parseInt(this.dueTime.split(':')[1]), 0, 0);
-  this.local_data.due_date = currentDueDate;
-}
-
-setDueDateTime(date: Date | string, time: string) {
-  if (!date || !time) return;
-
-  let localDate: Date;
-  if (typeof date === 'string') {
-    const dateOnly = date.split('T')[0];
-    const [year, month, day] = dateOnly.split('-').map(Number);
-    localDate = new Date(year, month - 1, day);
-  } else {
-    localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  const [hours, minutes] = time.split(':').map(Number);
-  localDate.setHours(hours, minutes, 0, 0);
-
-  this.local_data.due_date = localDate;
-}
-
-async onPaste(event: ClipboardEvent) {
+  async onPaste(event: ClipboardEvent) {
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
-    
+
     if (clipboardData.files.length > 0 && clipboardData.files[0].type.startsWith('image/')) {
       event.preventDefault();
-      
+
       const file = clipboardData.files[0];
       try {
         const upload$ = this.kanbanService.uploadTaskAttachments([file]);
         const uploadedFiles = await lastValueFrom(upload$);
-        
+
         if (uploadedFiles.length > 0) {
           const uploadedFile = uploadedFiles[0];
           this.pastedAttachments.push(uploadedFile);
-          
+
           this.insertImageInEditor(uploadedFile);
         }
       } catch (error) {
@@ -486,23 +445,23 @@ async onPaste(event: ClipboardEvent) {
       }
     }
   }
-  
+
   insertImageInEditor(file: any) {
     const editor = this.descriptionEditor.nativeElement;
     const img = document.createElement('img');
     img.src = this.attachmentsUrl + file.s3_filename;
     img.style.maxWidth = '100%';
-    
+
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       range.insertNode(img);
       range.collapse(false);
-    
+
       this.updateRecommendationsValue();
     }
   }
-  
+
   updateRecommendationsValue() {
     this.local_data.recommendations = this.descriptionEditor.nativeElement.innerHTML;
   }
@@ -510,8 +469,8 @@ async onPaste(event: ClipboardEvent) {
   onEditorInput() {
     this.updateRecommendationsValue();
   }
-  
-  
+
+
   insertImage() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -522,7 +481,7 @@ async onPaste(event: ClipboardEvent) {
         try {
           const upload$ = this.kanbanService.uploadTaskAttachments([file]);
           const uploadedFiles = await lastValueFrom(upload$);
-          
+
           if (uploadedFiles.length > 0) {
             this.insertImageInEditor(uploadedFiles[0]);
           }
@@ -537,4 +496,3 @@ async onPaste(event: ClipboardEvent) {
 
   safeHtmlPipe = this.sanitizer.bypassSecurityTrustHtml;
 }
-

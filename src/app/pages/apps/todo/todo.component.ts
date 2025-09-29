@@ -85,7 +85,6 @@ export class AppTodoComponent implements OnInit {
   priorities: any[] = [];
   filteredArray: any[] = [];
   loggedInUser: any;
-  dueTime: string = '';
   isLoading: boolean = true;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
@@ -94,7 +93,8 @@ export class AppTodoComponent implements OnInit {
       goal: ['', [Validators.required]],
       frequency_id: [null],
       recommendations: [''],
-      due_date: [null],
+      due_date: [null, Validators.required],
+      due_time: ['', [Validators.required]],
       priority: [3], // 3 = Normal
       recurrent: [false],
       is_numeric: [false],
@@ -538,27 +538,15 @@ export class AppTodoComponent implements OnInit {
       return;
     }
 
-    if (!this.newTaskForm.get('recurrent')?.value) {
-      const dueDateControl = this.newTaskForm.get('due_date');
-      const dueTime = this.dueTime;
-
-      if (!dueDateControl?.value && !dueTime) {
-        const now = new Date();
-        const dueDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        dueDateControl?.setValue(dueDate);
-        this.dueTime = `${dueDate
-          .getHours()
-          .toString()
-          .padStart(2, '0')}:${dueDate
-          .getMinutes()
-          .toString()
-          .padStart(2, '0')}`;
-      }
-    }
+    const date: Date = this.newTaskForm.value.due_date;
+    const timeDate: Date = this.newTaskForm.value.due_time;
+    const dueDate = new Date(date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0));
 
     const taskData = {
       ...this.newTaskForm.value,
-      board_id: this.newTaskForm.value.board_id || null, // Send null if no board is selected
+      due_date: dueDate,
+      board_id: this.newTaskForm.value.board_id || null,
+      employee_id: this.teamMemberId,
     };
 
     this.ratingsService
@@ -621,11 +609,10 @@ export class AppTodoComponent implements OnInit {
       ? new Date(this.toDoToEdit.due_date)
       : null;
     if (dueDate && !isNaN(dueDate.getTime())) {
-      const hours = dueDate.getHours().toString().padStart(2, '0');
-      const minutes = dueDate.getMinutes().toString().padStart(2, '0');
-      this.dueTime = `${hours}:${minutes}`;
-    } else {
-      this.dueTime = '';
+      this.newTaskForm.patchValue({
+        due_date: dueDate,
+        due_time: dueDate
+      });
     }
   }
 
@@ -661,31 +648,6 @@ export class AppTodoComponent implements OnInit {
     return this.toDoFormArray.controls.some(
       (ctrl) => ctrl.get('achieved')?.value
     );
-  }
-
-  onDueDateChange(event: any) {
-    const date = event.value;
-    let time = this.dueTime || '00:00';
-    this.setDueDateTime(date, time);
-  }
-
-  onDueTimeChange(event: any) {
-    this.dueTime = event.target.value;
-    const date = this.newTaskForm.value.due_date;
-    this.setDueDateTime(date, this.dueTime);
-  }
-
-  setDueDateTime(date: Date | string, time: string) {
-    if (!date || !time) return;
-    // Si date es string, conviértelo a Date correctamente
-    let localDate = typeof date === 'string' ? new Date(date) : new Date(date);
-    const [hours, minutes] = time.split(':').map(Number);
-
-    // Ajusta la hora localmente
-    localDate.setHours(hours, minutes, 0, 0);
-
-    // Actualiza el formControl con el nuevo Date (con hora local)
-    this.newTaskForm.patchValue({ due_date: localDate });
   }
 
   stripHtml(html: string): string {
