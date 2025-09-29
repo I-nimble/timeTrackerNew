@@ -1169,11 +1169,36 @@ mat-tab-header {
   }
 }
 
+.comparison-carousel {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  overflow: visible;
+}
+
 .testimonial-carousel {
   position: relative;
   margin: 0 auto;
   overflow: hidden;
   overflow: visible;
+}
+.comparison-carousel-inner {
+  min-height: 500px;
+  display: flex;
+  gap: 16px;
+}
+.comparison-carousel-item {
+  flex: 1;
+  min-width: 0;
+  background: $secondary-landing;
+  border-radius: 30px;
+}
+.comparison-table-img {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: auto;
+  display: block;
 }
 
 .carousel-inner {
