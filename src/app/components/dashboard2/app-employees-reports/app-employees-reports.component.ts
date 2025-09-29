@@ -246,7 +246,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
       });
   }
 
-  downloadReportAll(): void {
+  downloadReportAll(format: 'excel' | 'pptx'): void {
     if (!this.dataSource?.length) return;
 
     const userIds = this.dataSource.map((u) => u.profile.id);
@@ -258,6 +258,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
       byClient: false,
       useTimezone: true,
       multipleUsers: true,
+      format
     };
 
     const datesRange = {
@@ -266,14 +267,16 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     };
 
     this.reportsService
-      .getReport(datesRange, { id: userIds }, filters)
+      .getReport(datesRange, { id: userIds }, filters, format)
       .subscribe({
         next: (file: Blob) => {
+          const ext = format === 'pptx' ? 'pptx' : 'xlsx';
           const filename = `I-nimble_Report_${moment(
             datesRange.firstSelect
           ).format('DD-MM-YYYY')}_${moment(datesRange.lastSelect).format(
             'DD-MM-YYYY'
-          )}.xlsx`;
+          )}.${ext}`;
+
           const url = window.URL.createObjectURL(file);
           const a = document.createElement('a');
           a.href = url;
@@ -285,7 +288,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             window.URL.revokeObjectURL(url);
           }, 0);
         },
-        error: (err) => {
+        error: () => {
           this.openSnackBar('Error getting reports', 'Close');
         },
       });
