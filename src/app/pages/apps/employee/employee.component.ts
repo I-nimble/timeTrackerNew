@@ -43,7 +43,8 @@ import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialo
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
 import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
-import { AppEmployeeDialogContentComponent, AppEmployeeTableComponent } from "./employee-table/employee-table.component";
+import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
+import { AppEmployeeDialogContentComponent } from './employee-dialog-content';
 
 @Component({
   templateUrl: './employee.component.html',
