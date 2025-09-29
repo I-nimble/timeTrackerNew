@@ -200,4 +200,8 @@ export class AuthService {
     });
     return from(promise);
   }
+
+  checkEmailExists(email: string): Observable<boolean> {
+    return this.http.post<boolean>(`${this.API_URI}/check-email`, { email });
+  }
 }

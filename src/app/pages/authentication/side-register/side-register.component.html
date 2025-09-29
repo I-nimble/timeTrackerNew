@@ -72,6 +72,12 @@
                                 >
                                   Please enter a valid email address
                                 </mat-error>
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerClientForm.get('email')?.hasError('emailTaken')) && registerClientForm.get('email')?.touched"
+                                  >
+                                  Email is already taken
+                                </mat-error>
                               </mat-form-field>
       
                               <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('email')?.valid">Next</button>
@@ -183,6 +189,12 @@
                                 >
                                   Please enter a valid email address
                                 </mat-error>
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerInvitedTeamMemberForm.get('email')?.hasError('emailTaken')) && registerInvitedTeamMemberForm.get('email')?.touched"
+                                  >
+                                  Email is already taken
+                                </mat-error>
                               </mat-form-field>
   
                               <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('email')?.valid">Next</button>
@@ -286,6 +298,12 @@
                                 *ngIf="(registerTeamMemberForm.get('email')?.hasError('email') || registerTeamMemberForm.get('email')?.hasError('pattern')) && registerTeamMemberForm.get('email')?.touched"
                               >
                                 Please enter a valid email address
+                              </mat-error>
+                              <mat-error 
+                                class="text-danger f-s-12 m-t-0"
+                                *ngIf="(registerTeamMemberForm.get('email')?.hasError('emailTaken')) && registerTeamMemberForm.get('email')?.touched"
+                                >
+                                Email is already taken
                               </mat-error>
                             </mat-form-field>
 
