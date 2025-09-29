@@ -22,6 +22,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { OlympiaService } from 'src/app/services/olympia.service';
 
 @Component({
   standalone: true,
@@ -30,6 +31,7 @@ import { of } from 'rxjs';
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
+  selectedTabIndex: number = 0;
   notificationStore = inject(NotificationStore);
   user: any = {
     name: '',
@@ -125,6 +127,45 @@ export class AppAccountSettingComponent implements OnInit {
   logo: string = 'assets/images/default-logo.jpg';
   picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
   originalLogo: string = '';
+  submitted: boolean = false;
+  showForm: boolean = false;
+  isOrphan: boolean;
+  olympiaForm = this.fb.group({
+    full_name: ['', Validators.required],
+    birth_date: ['', Validators.required],
+    location_state_country: ['', Validators.required],
+    application_area: ['', Validators.required],
+    take_initiative: ['', Validators.required],
+    quick_decisions: ['', Validators.required],
+    pressure_leadership: ['', Validators.required],
+    express_opinions: ['', Validators.required],
+    adapt_changes: ['', Validators.required],
+    motivate_team: ['', Validators.required],
+    social_interactions: ['', Validators.required],
+    good_communicator: ['', Validators.required],
+    team_projects: ['', Validators.required],
+    help_colleagues: ['', Validators.required],
+    workplace_harmony: ['', Validators.required],
+    structured_environment: ['', Validators.required],
+    team_listener: ['', Validators.required],
+    support_transitions: ['', Validators.required],
+    long_term_strategies: ['', Validators.required],
+    detail_oriented: ['', Validators.required],
+    follow_procedures: ['', Validators.required],
+    plan_ahead: ['', Validators.required],
+    precision_work: ['', Validators.required],
+    give_feedback: ['', Validators.required],
+    childhood_obedience: ['', Validators.required],
+    gets_grumpy: ['', Validators.required],
+    laughs_dirty_jokes: ['', Validators.required],
+    prejudice_free: ['', Validators.required],
+    brags_sometimes: ['', Validators.required],
+    immediate_responses: ['', Validators.required],
+    procrastinates: ['', Validators.required],
+    ever_lied: ['', Validators.required],
+    accept_win_over_loss: ['', Validators.required],
+  });
+
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
@@ -132,12 +173,30 @@ export class AppAccountSettingComponent implements OnInit {
             private fb: FormBuilder,
             private dialog: MatDialog,
             private plansService: PlansService,
+            private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
             private cdr: ChangeDetectorRef
           ) {}
 
   ngOnInit(): void {
     this.getUser();
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
+    this.checkOlympiaStatus();
+  }
+
+  onTabChange(event: any) {
+    this.selectedTabIndex = event.index;
+  }
+
+  checkOlympiaStatus(): void {
+    this.olympiaService.checkOlympiaForm().subscribe({
+      next: (res: boolean) => {
+        this.submitted = res;
+      },
+      error: () => {
+        console.error('Error checking Olympia form status');
+      }
+    });
   }
 
   getUser() {
@@ -425,6 +484,28 @@ export class AppAccountSettingComponent implements OnInit {
           this.getUser();
         });
     }
+  }
+
+  submitOlympiaForm(): void {
+    this.isSubmitting = true;
+    if (!this.olympiaForm.valid) {
+      this.openSnackBar('Please fill all the required fields', 'close');
+      this.isSubmitting = false;
+      return;
+    }
+
+    const data = this.olympiaForm.value;
+    this.olympiaService.submitOlympiaForm(data).subscribe({
+      next: () => {
+        this.openSnackBar('Form submitted successfully', 'close');
+        this.isSubmitting = false;
+        this.submitted = true;
+      },
+      error: () => {
+        this.openSnackBar('Error submitting form', 'close');
+        this.isSubmitting = false;
+      },
+    });
   }
 
   openSnackBar(message: string, action: string): void {
