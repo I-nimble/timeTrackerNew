@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { Loader } from 'src/app/app.models';
 
 @Component({
   selector: 'app-invoice-view',
@@ -18,6 +20,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
+    LoaderComponent
   ]
 })
 export class AppInvoiceViewComponent {
@@ -30,6 +33,8 @@ export class AppInvoiceViewComponent {
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
   tax: number = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
+  loader = new Loader(false, false, false);
+  message = '';
 
   constructor(
     private activatedRouter: ActivatedRoute,
@@ -38,15 +43,22 @@ export class AppInvoiceViewComponent {
   ) { }
 
   ngOnInit(): void {
+    this.loader.started = true;
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
+    if(!this.id()) {
+      this.loader.complete = true;
+      this.loader.error = true;
+      this.message = 'The invoice you are trying to view does not exist or has been deleted.';
+      return;
+    }
     this.loadInvoiceDetail();
   }
 
   private loadInvoiceDetail(): void {
     this.invoiceService.getInvoiceDetail(this.id()).subscribe({
       next: (data) => {
-        console.log(data)
         this.invoiceDetail.set(data);
+        this.loader.complete = true;
       }
     });
   }

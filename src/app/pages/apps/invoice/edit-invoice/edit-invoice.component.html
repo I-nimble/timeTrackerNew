@@ -1,7 +1,17 @@
-<mat-card class="cardWithShadow" id="invoice-edit">
-  <mat-card-content>
-    <!-- ADD HERE THE INVOICE VIEW BUT ENABLING EDIT THE DATA -->
-    <form #invoiceForm="ngForm" (ngSubmit)="saveDetail($event)">
+<ng-template #loaderElement>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="d-flex justify-content-center align-items-center">
+        <app-loader [loader]="loader" [message]="message" [diameter]="44"></app-loader>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-template>
+
+<div *ngIf="loader.complete; else loaderElement">
+  <mat-card class="cardWithShadow" id="invoice-edit">
+    <mat-card-content>
+      <!-- ADD HERE THE INVOICE VIEW BUT ENABLING EDIT THE DATA -->
       <div class="row">
         <div class="col-md-4 col-12">
           <img src="assets/images/inimble.png" alt="Invoice" id="inimble-logo">
@@ -44,7 +54,8 @@
             <table mat-table [dataSource]="editModel()?.invoiceItems" class="w-100" id="invoice-items-table">
               <ng-container matColumnDef="description">
                 <th mat-header-cell *matHeaderCellDef>Description</th>
-                <td mat-cell *matCellDef="let element">{{ element.position || 'Remote Assistant' }} ({{ element.full_time ? 'Full-Time' : 'Part-Time' }})</td>
+                <td mat-cell *matCellDef="let element">{{ element.position || 'Remote Assistant' }} ({{ element.full_time
+                  ? 'Full-Time' : 'Part-Time' }})</td>
               </ng-container>
               <ng-container matColumnDef="hours">
                 <th mat-header-cell *matHeaderCellDef>Hours</th>
@@ -52,15 +63,19 @@
               </ng-container>
               <ng-container matColumnDef="hourly-rate">
                 <th mat-header-cell *matHeaderCellDef>Hourly Rate</th>
-                <td mat-cell *matCellDef="let element">{{ element.hourly_rate | currency: 'USD' }}</td>
+                <td mat-cell *matCellDef="let element">
+                  <mat-form-field appearance="outline">
+                    <input matInput type="number" min="0" step="0.01" [(ngModel)]="element.hourly_rate" (change)="onHourlyRateChange(element, $event)" name="hourly_rate_{{element.id}}">
+                  </mat-form-field>
+                </td>
               </ng-container>
               <ng-container matColumnDef="cost">
                 <th mat-header-cell *matHeaderCellDef>Cost</th>
                 <td mat-cell *matCellDef="let element">{{ element.cost | currency: 'USD' }}</td>
               </ng-container>
               <ng-container matColumnDef="footer-sub-total">
-                  <td mat-footer-cell *matFooterCellDef colspan="3">Sub-total</td>
-                </ng-container>
+                <td mat-footer-cell *matFooterCellDef colspan="3">Sub-total</td>
+              </ng-container>
               <ng-container matColumnDef="footer-total">
                 <td mat-footer-cell *matFooterCellDef colspan="3">Total</td>
               </ng-container>
@@ -72,7 +87,7 @@
               <ng-container matColumnDef="empty-column">
                 <td mat-footer-cell *matFooterCellDef></td>
               </ng-container>
-
+  
               <tr mat-header-row *matHeaderRowDef="itemsDisplayedColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: itemsDisplayedColumns;"></tr>
               <tr mat-footer-row *matFooterRowDef="itemsFooterDisplayedColumns"></tr>
@@ -85,103 +100,109 @@
           </div>
         </div>
       </div>
-      <div class="container" *ngFor="let item of editModel()?.invoiceItems; let i = index">
-        <hr>
-        <div class="row">
-          <div class="col-md-4 col-12">
-            <img src="assets/images/inimble.png" alt="Invoice" id="inimble-logo">
-          </div>
-          <div class="col-12">
-            <div class="m-x-20">
-              <b>TIME SHEET</b>
-              <p>DAYS BETWEEN: {{ editModel()?.billing_period_start | date: "MMM dd, yyyy" }} - {{
+    </mat-card-content>
+  </mat-card>
+  
+  <mat-card class="cardWithShadow" class="invoice-edit" *ngFor="let item of editModel()?.invoiceItems; let i = index">
+    <mat-card-content class="container">
+      <div class="row">
+        <div class="col-md-4 col-12">
+          <img src="assets/images/inimble.png" alt="Invoice" id="inimble-logo">
+        </div>
+        <div class="col-12">
+          <div class="m-x-20">
+            <b>TIME SHEET</b>
+            <p>DAYS BETWEEN: {{ editModel()?.billing_period_start | date: "MMM dd, yyyy" }} - {{
               editModel()?.billing_period_end | date: "MMM dd, yyyy" }}</p>
-              <b>{{ editModel()?.user?.company?.name | uppercase }}</b>
-              <table id="employee-table">
-                <thead>
-                  <tr>
-                    <th>
-                      EMPLOYEE NAME: {{ item.name | uppercase }} {{ item.last_name | uppercase }}
-                    </th>
-                    <th>TITLE: TIME SHEET</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      DIRECT SUPERVISOR:
-                      <mat-form-field appearance="outline">
-                        <input matInput [(ngModel)]="editModel().direct_supervisor" name="direct_supervisor">
-                      </mat-form-field>
-                    </td>
-                    <td>STATUS: {{ item.full_time ? 'FULL-TIME' : 'PART-TIME' }}</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      INIMBLE SUPERVISOR:
-                      <mat-form-field appearance="outline">
-                        <input matInput [(ngModel)]="editModel().inimble_supervisor" name="inimble_supervisor">
-                      </mat-form-field>
-                    </td>
-                    <td>MONTH PERIOD: {{ editModel().billing_period_start | date: "MMMM" | uppercase }} – {{
+            <b>{{ editModel()?.user?.company?.name | uppercase }}</b>
+            <table id="employee-table">
+              <thead>
+                <tr>
+                  <th>
+                    EMPLOYEE NAME: {{ item.name | uppercase }} {{ item.last_name | uppercase }}
+                  </th>
+                  <th>TITLE: TIME SHEET</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    DIRECT SUPERVISOR:
+                    <mat-form-field appearance="outline">
+                      <input matInput [(ngModel)]="editModel().direct_supervisor" name="direct_supervisor">
+                    </mat-form-field>
+                  </td>
+                  <td>STATUS: {{ item.full_time ? 'FULL-TIME' : 'PART-TIME' }}</td>
+                </tr>
+                <tr>
+                  <td>
+                    INIMBLE SUPERVISOR:
+                    <mat-form-field appearance="outline">
+                      <input matInput [(ngModel)]="editModel().inimble_supervisor" name="inimble_supervisor">
+                    </mat-form-field>
+                  </td>
+                  <td>MONTH PERIOD: {{ editModel().billing_period_start | date: "MMMM" | uppercase }} – {{
                     editModel().billing_period_end | date: "MMMM" | uppercase }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <!-- ENTRIES PER EMPLOYEE -->
-            <table mat-table [dataSource]="item.entries" class="w-100" id="entries-table">
-              <ng-container matColumnDef="day">
-                <th mat-header-cell *matHeaderCellDef>Day</th>
-                <td mat-cell *matCellDef="let element">{{ element.date | date: "EEEE" }}</td>
-              </ng-container>
-              <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let element">
-                  <mat-form-field appearance="outline" class="max-content-width">
-                    <input matInput type="date" [ngModel]="toDateInputValue(element.date)" (ngModelChange)="onEntryDateChange(element, $event)" name="entry_date_{{element.id}}">
-                  </mat-form-field>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="clock-in">
-                <th mat-header-cell *matHeaderCellDef>Clock-in</th>
-                <td mat-cell *matCellDef="let element">
-                  <mat-form-field appearance="outline" class="max-content-width">
-                      <input matInput type="time" [ngModel]="toTimeInputValue(element.start_time)" (ngModelChange)="onStartTimeChange(element, $event)" name="entry_start_{{element.id}}">
-                  </mat-form-field>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="clock-out">
-                <th mat-header-cell *matHeaderCellDef>Clock-out</th>
-                <td mat-cell *matCellDef="let element">
-                  <mat-form-field appearance="outline" class="max-content-width">
-                    <input matInput type="time" [ngModel]="toTimeInputValue(element.end_time)" (ngModelChange)="onEndTimeChange(element, $event)" name="entry_end_{{element.id}}">
-                  </mat-form-field>
-                </td>
-              </ng-container>
-              <ng-container matColumnDef="total-hours">
-                <th mat-header-cell *matHeaderCellDef>Total Hours</th>
-                <td mat-cell *matCellDef="let element">{{ decimalToTime(element.entry_hours) }}</td>
-              </ng-container>
-              <ng-container matColumnDef="comments">
-                <th mat-header-cell *matHeaderCellDef>Comments</th>
-                <td mat-cell *matCellDef="let element">
-                  <mat-form-field appearance="outline">
-                    <input matInput [(ngModel)]="element.task.description" name="entry_comment_{{element.id}}" (ngModelChange)="onCommentChange(element, $event)">
-                  </mat-form-field>
-                </td>
-              </ng-container>
-              <tr mat-header-row *matHeaderRowDef="ratingsDisplayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: ratingsDisplayedColumns;"></tr>
+                </tr>
+              </tbody>
             </table>
           </div>
+          <!-- ENTRIES PER EMPLOYEE -->
+          <table mat-table [dataSource]="item.entries" class="w-100" id="entries-table">
+            <ng-container matColumnDef="day">
+              <th mat-header-cell *matHeaderCellDef>Day</th>
+              <td mat-cell *matCellDef="let element">{{ element.date | date: "EEEE" }}</td>
+            </ng-container>
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field appearance="outline" class="max-content-width">
+                  <input matInput type="date" [ngModel]="toDateInputValue(element.date)"
+                    (ngModelChange)="onEntryDateChange(element, $event)" name="entry_date_{{element.id}}">
+                </mat-form-field>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="clock-in">
+              <th mat-header-cell *matHeaderCellDef>Clock-in</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field appearance="outline" class="max-content-width">
+                  <input matInput type="time" [ngModel]="toTimeInputValue(element.start_time)"
+                    (ngModelChange)="onStartTimeChange(element, $event)" name="entry_start_{{element.id}}">
+                </mat-form-field>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="clock-out">
+              <th mat-header-cell *matHeaderCellDef>Clock-out</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field appearance="outline" class="max-content-width">
+                  <input matInput type="time" [ngModel]="toTimeInputValue(element.end_time)"
+                    (ngModelChange)="onEndTimeChange(element, $event)" name="entry_end_{{element.id}}">
+                </mat-form-field>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="total-hours">
+              <th mat-header-cell *matHeaderCellDef>Total Hours</th>
+              <td mat-cell *matCellDef="let element">{{ decimalToTime(element.entry_hours) }}</td>
+            </ng-container>
+            <ng-container matColumnDef="comments">
+              <th mat-header-cell *matHeaderCellDef>Comments</th>
+              <td mat-cell *matCellDef="let element">
+                <mat-form-field appearance="outline">
+                  <input matInput [(ngModel)]="element.task.description" name="entry_comment_{{element.id}}"
+                    (ngModelChange)="onCommentChange(element, $event)">
+                </mat-form-field>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="ratingsDisplayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: ratingsDisplayedColumns;"></tr>
+          </table>
         </div>
       </div>
-      <div class="p-t-24 text-right">
-        <button mat-flat-button color="primary" type="submit">
+      <div class="p-t-24 text-right" *ngIf="i == editModel()?.invoiceItems?.length - 1">
+        <button mat-flat-button color="primary" (click)="saveDetail($event)">
           Save Invoice
         </button>
       </div>
-    </form>
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>
