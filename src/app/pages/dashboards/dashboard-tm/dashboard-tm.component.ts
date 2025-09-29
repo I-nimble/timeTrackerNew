@@ -17,6 +17,8 @@ import { nextDay } from 'date-fns';
 import { MatDialog } from '@angular/material/dialog';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -105,19 +107,6 @@ export class AppDashboardTMComponent implements OnInit {
     this.getUser();
     this.getEntries();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
-    if (this.isOrphan) {
-      this.olympiaService.checkOlympiaForm().subscribe({
-        next: (res: any) => {
-          if (!res) {
-            this.openCompleteProfileDialog();
-          }
-        },  
-        error: (e: any) => {
-          console.error(e);
-          this.snackBar.open('There was an error checking your profile', 'close');
-        }
-      });
-    }
 
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
@@ -146,19 +135,6 @@ export class AppDashboardTMComponent implements OnInit {
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
-  }
-
-  openCompleteProfileDialog() {
-    const dialogRef = this.dialog.open(OlympiaDialogComponent, {
-      width: '500px',
-      data: {},
-    });
-
-    dialogRef.afterClosed().subscribe((result: { sent: boolean }) => {
-      if (result.sent) {
-        this.snackBar.open('Your submission was sent successfully', 'close');
-      }
-    });
   }
 
   getUser() {
