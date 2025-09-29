@@ -1,6 +1,6 @@
 <mat-card class="cardWithShadow">
 
-    <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms">
+  <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms" (selectedTabChange)="onTabChange($event)">
     <mat-tab>
         <ng-template mat-tab-label>
           <div class="d-flex align-items-center">
@@ -280,133 +280,375 @@
         </div>
       </mat-card-content>
     </mat-tab>
-    <mat-tab *ngIf="role === '2'">
+    <mat-tab *ngIf="role === '2' && isOrphan">
         <ng-template mat-tab-label>
           <div class="d-flex align-items-center">
             <mat-icon class="d-flex align-items-center">
               <i-tabler name="user-circle" class="icon-20 m-r-8 d-flex"></i-tabler>
             </mat-icon>
           </div>
-          Medical
+          Olympia
         </ng-template>
         <mat-card-content class="p-y-24">
           <div class="row">
             <div class="col-12">
               <mat-card class="cardWithShadow">
                 <mat-card-content>
-                  <mat-card-title>Medical Details</mat-card-title>
-                  <mat-card-subtitle class="f-s-14"
-                    > To update your medical details, make your changes and click save.
-                  </mat-card-subtitle
-                  >
-
-                <form [formGroup]="medicalForm" class="row m-t-24">
-                  <div class="col-12">
-                     <!-- input -->
-                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                     >Medical Conditions</mat-label
-                   >
-                   <mat-form-field
-                     appearance="outline"
-                     class="w-100"
-                     color="primary"
-                   >
-                     <input matInput placeholder="Medical Conditions" type="text" formControlName="medical_conditions" />
-                   </mat-form-field>
-                  </div>
-                  <div class="col-12">
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                    >Emergency Contact</mat-label
-                    >
-                  </div>
-                  <div class="col-sm-6" formGroupName="emergency_contact">
-                    <!-- input -->
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="text" placeholder="Name" formControlName="name" />
-                    </mat-form-field>
-                  </div>
-                  <div class="col-sm-6" formGroupName="emergency_contact">
-                    <!-- input -->
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="text" placeholder="Relationship" formControlName="relationship" />
-                    </mat-form-field>
-                  </div>
-                  <div class="col-12" formGroupName="emergency_contact">
-                    <!-- input -->
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="text" placeholder="Phone Number" formControlName="phone" />
-                    </mat-form-field>
-                    <div *ngIf="medicalForm.get('emergency_contact.phone')?.touched && medicalForm.get('emergency_contact.phone')?.errors">
-                      <p class="text-danger f-s-12 m-t-0" *ngIf="medicalForm.get('emergency_contact.phone')?.errors?.['pattern']">Please enter a valid phone number (e.g., +1 (123) 456-7890)</p> 
+                  <mat-card-title class="text-center m-b-10">Olympia - Inimble</mat-card-title>
+                  <mat-card-subtitle *ngIf="!submitted" class="f-s-14">
+                    <ul>
+                        <li>Answer to each statement with the option that best represents your opinion or behavior in the workplace.</li>
+                        <li>Keep in mind that there are no right or wrong answers; your honesty is essential to obtain accurate results and determine your compatibility with the position you are applying for.</li>
+                    </ul>        
+                    <p>Once you have completed the Olympia test, you must wait for our Human Resources team to review it. If you obtain a positive result, we will contact you via WhatsApp to schedule a first interview. If you are not contacted, it means that you did not pass the test and the selection process will not continue.</p>
+                    <br/>
+                    <p class="m-b-24">Inimble Work Smart 💚</p>
+                  </mat-card-subtitle>
+                  <form *ngIf="!submitted" [formGroup]="olympiaForm" class="row m-t-24">
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">Full name:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <input matInput formControlName="full_name" required type="text" placeholder="Full Name" />
+                      </mat-form-field>
                     </div>
-                  </div>
-                  <div class="col-12">
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                    >Insurance Data</mat-label
-                    >
-                  </div>
-                  <div class="col-sm-6" formGroupName="insurance_data">
-                    <!-- input -->
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="text" placeholder="Insurance Provider" formControlName="provider" />
-                    </mat-form-field>
-                  </div>
-                  <div class="col-sm-6" formGroupName="insurance_data">
-                    <!-- input -->
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="text" placeholder="Policy Number" formControlName="policy_number" />
-                    </mat-form-field>
-                  </div>
-                  <div class="col-12" formGroupName="insurance_data">
-                    <mat-form-field appearance="outline" class="w-100" color="primary">
-                      <textarea
-                        matInput
-                        placeholder="Coverage Details"
-                        formControlName="coverage_details"
-                        rows="4"
-                      ></textarea>
-                    </mat-form-field>
-                  </div>
-                  <div class="col-12" formGroupName="insurance_data">
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Insurance Start Date</mat-label>
-                    <mat-form-field appearance="outline" class="w-100" color="primary">
-                      <input
-                        matInput
-                        [matDatepicker]="startPicker"
-                        placeholder="Select a date"
-                        formControlName="createdAt"
-                        name="insuranceStartDate"
-                      />
-                      <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-                      <mat-datepicker #startPicker></mat-datepicker>
-                    </mat-form-field>
-                  </div>
-                </form>
-              </mat-card-content>
-            </mat-card>
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">Birth Date:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <input matInput formControlName="birth_date" required type="date" placeholder="Birth Date" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">In which state and country do you currently reside?:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <input matInput formControlName="location_state_country" required type="text" placeholder="State, Country" />
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">Which area are you applying for?:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <mat-select formControlName="application_area" required>
+                          <mat-option value="Virtual Assistant">Virtual Assistant</mat-option>
+                          <mat-option value="Technology">Technology</mat-option>
+                          <mat-option value="Sales">Sales</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">When faced with a challenge, I like to take the initiative to find solutions immediately and do not wait for instructions from others:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <mat-select formControlName="take_initiative" required>
+                          <mat-option value="Never">Never</mat-option>
+                          <mat-option value="Sometimes">Sometimes</mat-option>
+                          <mat-option value="Frequently">Frequently</mat-option>
+                          <mat-option value="Always">Always</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                    <div class="col-12">
+                      <mat-label class="fs-12 f-w-600 m-b-5">I prefer to make decisions quickly to avoid delays in a project. I do not like to wait:</mat-label>
+                      <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                        <mat-select formControlName="quick_decisions" required>
+                          <mat-option value="Never">Never</mat-option>
+                          <mat-option value="Sometimes">Sometimes</mat-option>
+                          <mat-option value="Frequently">Frequently</mat-option>
+                          <mat-option value="Always">Always</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">In high-pressure situations, I feel comfortable taking control of the group and I usually take the lead without any problems:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="pressure_leadership" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I don't hesitate to express my opinions, even if they differ from those of others:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="express_opinions" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">When things don't go as planned, I prefer to make changes quickly rather than stick to a plan:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="adapt_changes" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I constantly try to motivate and enthuse those around me during teamwork:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="motivate_team" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I enjoy social interactions in the workplace and constantly seek to connect with others. I consider myself friendly:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="social_interactions" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I consider myself a good communicator who can persuade others with my ideas:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="good_communicator" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I feel energized when working on creative projects with a collaborative team. I like working with lots of people:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="team_projects" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">If a coworker needs help, I am one of the first to offer, regardless of my own tasks:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="help_colleagues" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I value harmony in the workplace and seek to avoid conflict whenever possible. I seek peace of mind:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="workplace_harmony" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I prefer a predictable and structured work environment where I can plan my activities at a steady pace:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="structured_environment" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I enjoy teamwork and make an effort to listen to and consider the opinions of others. I am more of a follower than a leader:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="team_listener" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I feel comfortable supporting the team during times of change to facilitate a smooth, step-by-step transition:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="support_transitions" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I feel more comfortable with long-term strategies that involve careful planning and slow but steady growth:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="long_term_strategies" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I am careful with details and make sure that all tasks are done correctly. I tend to be a perfectionist:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="detail_oriented" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I prefer to follow established procedures to minimize errors and ensure quality. I strictly adhere to established standards:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="follow_procedures" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I like to plan ahead and follow a clear method to complete my tasks. I don't like to improvise:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="plan_ahead" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I enjoy working in roles that require precision and a meticulous approach to work, based on proven methodologies:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="precision_work" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">I like to receive and give feedback to ensure that the team meets quality standards:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="give_feedback" required>
+                            <mat-option value="Never">Never</mat-option>
+                            <mat-option value="Sometimes">Sometimes</mat-option>
+                            <mat-option value="Frequently">Frequently</mat-option>
+                            <mat-option value="Always">Always</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">As a child, did you always do what you were told immediately, without complaining?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="childhood_obedience" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Do you sometimes get moody?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="gets_grumpy" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Do you often laugh at dirty jokes?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="laughs_dirty_jokes" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Are you completely free of prejudice of any kind?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="prejudice_free" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Do you brag a little sometimes?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="brags_sometimes" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Do you always reply to emails and messages immediately?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="immediate_responses" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Do you sometimes put off until tomorrow what you should do today?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="procrastinates" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Have you ever told a lie in your life?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="ever_lied" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                      <div class="col-12">
+                        <mat-label class="fs-12 f-w-600 m-b-5">Is it easier for you to accept victory than defeat in a game?:</mat-label>
+                        <mat-form-field appearance="outline" class="w-100 m-b-16" color="primary">
+                          <mat-select formControlName="accept_win_over_loss" required>
+                            <mat-option value="yes">Yes</mat-option>
+                            <mat-option value="no">No</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                    <div class="col-12 text-right m-t-24">
+                      <button mat-flat-button color="primary" (click)="submitOlympiaForm()" [disabled]="isSubmitting">Submit</button>
+                    </div>
+                  </form>
+                  <ng-container *ngIf="submitted">
+                    <div class="d-flex flex-column align-items-center justify-content-center p-24">
+                      <h2 class="text-center m-b-16">Thank you for submitting your Olympia assessment!</h2>
+                      <p class="text-center">We will contact you soon in case you are selected.</p>
+                    </div>
+                  </ng-container>
+                </mat-card-content>
+              </mat-card>
+            </div>
           </div>
-        </div>
-      </mat-card-content>
+        </mat-card-content>
     </mat-tab>
     <mat-tab *ngIf="role === '2'">
       <ng-template mat-tab-label>
@@ -606,7 +848,9 @@
     </mat-tab>
     </mat-tab-group>
     <div class="text-right p-24 p-t-0">
-      <button mat-flat-button class="m-r-8" (click)="saveProfile()" [disabled]="isSubmitting">Save</button>
-      <button mat-flat-button class="bg-error text-white">Cancel</button>
+      <ng-container *ngIf="!(role === '2' && isOrphan && selectedTabIndex === 1)">
+        <button mat-flat-button class="m-r-8" (click)="saveProfile()" [disabled]="isSubmitting">Save</button>
+        <button mat-flat-button class="bg-error text-white">Cancel</button>
+      </ng-container>
     </div>
 </mat-card>
