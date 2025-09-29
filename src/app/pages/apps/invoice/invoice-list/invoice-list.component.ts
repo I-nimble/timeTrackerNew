@@ -22,6 +22,7 @@ import { StripeService } from 'src/app/services/stripe.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { environment } from 'src/environments/environment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-invoice-list',
@@ -57,7 +58,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
 
-  constructor(private invoiceService: InvoiceService, private dialog: MatDialog, private snackBar: MatSnackBar, private stripeService: StripeService, private companiesService: CompaniesService,) { }
+  constructor(
+    private invoiceService: InvoiceService, 
+    private dialog: MatDialog, 
+    private snackBar: MatSnackBar, 
+    private stripeService: StripeService, 
+    private companiesService: CompaniesService,
+    public router: Router,
+  ) { }
 
   ngOnInit(): void {
     const allowedPaymentsEmails = environment.allowedPaymentsEmails;
@@ -67,7 +75,6 @@ export class AppInvoiceListComponent implements AfterViewInit {
     this.allowedPaymentsManager = this.role === '2' && allowedPaymentsEmails.includes(email || '');
     if (this.role == '3' || this.allowedPaymentsManager == true) {
       this.displayedColumns = [
-        'id',
         'paymentDate',
         'amount',
         'status',
@@ -75,7 +82,6 @@ export class AppInvoiceListComponent implements AfterViewInit {
       ];
     } else {
       this.displayedColumns = [
-        'id',
         'paymentDate',
         'client',
         'amount',
@@ -103,6 +109,17 @@ export class AppInvoiceListComponent implements AfterViewInit {
     if (this.startDate && this.endDate) {
       this.filterInvoices();
     }
+  }
+
+  onRowClick(row: any, event: MouseEvent): void {
+    if ((event?.target as HTMLElement).parentElement?.classList.contains('actions-btn')) {
+      return;
+    }
+    if(this.role == '1' || this.allowedPaymentsManager) {
+      this.router.navigate(['/apps/editinvoice', row.id]);
+      return;
+    }
+    this.router.navigate(['/apps/viewinvoice', row.id]);
   }
 
   downloadInvoice(id: number): void {
@@ -246,6 +263,25 @@ export class AppInvoiceListComponent implements AfterViewInit {
             this.showSnackbar('Error deleting invoice.');
           }
         });
+      }
+    });
+  }
+
+  sendToClient(id: number): void {
+    this.invoiceService.approveInvoice(id).subscribe({
+      next: () => {
+        this.showSnackbar('Invoice sent to client successfully!');
+        this.invoiceList.data.forEach((invoice: any) => {
+          if (invoice.id === id) {
+            invoice.status = {
+              id: 2,
+              name: 'Pending',
+            };
+          }
+        });
+      },
+      error: () => {
+        this.showSnackbar('Error sending invoice to client.');
       }
     });
   }

@@ -16,6 +16,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { UsersService } from 'src/app/services/users.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { Loader } from 'src/app/app.models';
 
 @Component({
   selector: 'app-edit-invoice',
@@ -28,6 +30,7 @@ import { ChangeDetectorRef } from '@angular/core';
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
+    LoaderComponent
   ]
 })
 export class AppEditInvoiceComponent {
@@ -46,6 +49,9 @@ export class AppEditInvoiceComponent {
   editModel = signal<any>({});
   originalData: any = null;
   changedEntries = new Set<any>();
+  changedHourlyRates = new Set<any>();
+  loader = new Loader(false, false, false);
+  message = '';
 
   trackByEntryId(index: number, item: any) {
     return item.id;
@@ -78,7 +84,14 @@ export class AppEditInvoiceComponent {
   }
 
   ngOnInit(): void {
+    this.loader.started = true;
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
+    if(!this.id()) {
+      this.loader.complete = true;
+      this.loader.error = true;
+      this.message = 'The invoice you are trying to view does not exist or has been deleted.';
+      return;
+    }
     this.loadCompanies();
     this.loadCients();
     this.loadInvoiceDetail();
@@ -154,12 +167,26 @@ export class AppEditInvoiceComponent {
             ))
           }));
         });
+        this.loader.complete = true;
+      },
+      error: () => {
+        this.loader.complete = true;
+        this.loader.error = true;
+        this.message = 'There was an error loading the invoice.';
+        this.snackBar.open('Error loading invoice details', 'Close', { duration: 3000 });
       }
     });
   }
 
   private markEntryAsChanged(entry: any): void {
     this.changedEntries.add(entry);
+  }
+
+  private markHourlyRateAsChanged(item: any): void {
+    this.changedHourlyRates.add({
+      employee_id: item.employee_id,
+      hourly_rate: item.hourly_rate,
+    });
   }
 
   decimalToTime(decimal: number): string {
@@ -185,12 +212,15 @@ export class AppEditInvoiceComponent {
       return 0;
     }
 
-    const startUTC = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(),
-      start.getHours(), start.getMinutes(), start.getSeconds());
-    const endUTC = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(),
-      end.getHours(), end.getMinutes(), end.getSeconds());
+    const startUTC = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(),
+      start.getHours(), start.getMinutes(), start.getSeconds()));
+    const endUTC = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(),
+      end.getHours(), end.getMinutes(), end.getSeconds()));
+    if (endUTC < startUTC) {
+      endUTC.setUTCDate(endUTC.getUTCDate() + 1);
+    }
 
-    let diff = (endUTC - startUTC) / (1000 * 60 * 60);
+    let diff = (endUTC.getTime() - startUTC.getTime()) / (1000 * 60 * 60);
 
     if (diff < 0) {
       diff += 24;
@@ -405,6 +435,19 @@ export class AppEditInvoiceComponent {
     this.cdr.detectChanges();
   }
 
+  onHourlyRateChange(item: any, event: Event): void {
+    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    const newHourlyRate = (event.target as HTMLInputElement).value;
+    if (invoiceItem) {
+      invoiceItem.hourly_rate = newHourlyRate;
+      this.markHourlyRateAsChanged(invoiceItem);
+      this.recalculateCosts();
+      this.updateFormArrayWithChanges();
+    }
+
+    this.cdr.detectChanges();
+  }
+
   onCommentChange(entry: any, newComment: string): void {
     const entryId = entry.id;
 
@@ -489,8 +532,8 @@ export class AppEditInvoiceComponent {
       billing_period_end: this.editModel().billing_period_end,
       inimble_supervisor: this.editModel().inimble_supervisor,
       direct_supervisor: this.editModel().direct_supervisor,
-      status_id: 2, // Set status to "Pending"
       changed_entries: [...this.changedEntries],
+      changed_hourly_rates: [...this.changedHourlyRates],
     };
 
     this.invoiceService.updateInvoice(this.id(), data).subscribe({
