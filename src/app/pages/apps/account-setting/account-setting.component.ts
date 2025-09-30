@@ -296,27 +296,27 @@ export class AppAccountSettingComponent implements OnInit {
 
       // Populate medical form
       this.medicalForm.patchValue({
-        medical_conditions: this.user.employee.medical_conditions,
+        medical_conditions: this.user.employee?.medical_conditions,
         emergency_contact: {
-          name: this.user.employee.emergency_contact?.name || '',
-          relationship: this.user.employee.emergency_contact?.relationship || '',
-          phone: this.user.employee.emergency_contact?.phone || ''
+          name: this.user.employee?.emergency_contact?.name || '',
+          relationship: this.user.employee?.emergency_contact?.relationship || '',
+          phone: this.user.employee?.emergency_contact?.phone || ''
         },
         insurance_data: {
-          provider: this.user.employee.insurance_data?.provider || '',
-          policy_number: this.user.employee.insurance_data?.policy_number || '',
-          coverage_details: this.user.employee.insurance_data?.coverage_details || '',
-          createdAt: this.user.employee.insurance_data?.createdAt || null
+          provider: this.user.employee?.insurance_data?.provider || '',
+          policy_number: this.user.employee?.insurance_data?.policy_number || '',
+          coverage_details: this.user.employee?.insurance_data?.coverage_details || '',
+          createdAt: this.user.employee?.insurance_data?.createdAt || null
         }
       });
 
       // Populate social media form
       this.socialMediaForm.patchValue({
         social_media: {
-          facebook: this.user.employee.social_media?.facebook || '',
-          instagram: this.user.employee.social_media?.instagram || '',
-          twitter: this.user.employee.social_media?.twitter || '',
-          linkedin: this.user.employee.social_media?.linkedin || ''
+          facebook: this.user.employee?.social_media?.facebook || '',
+          instagram: this.user.employee?.social_media?.instagram || '',
+          twitter: this.user.employee?.social_media?.twitter || '',
+          linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
     }
