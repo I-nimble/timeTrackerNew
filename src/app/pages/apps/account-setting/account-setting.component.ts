@@ -223,7 +223,6 @@ export class AppAccountSettingComponent implements OnInit {
         console.warn('No introduction video found or failed to load', err);
       }
     });
-    console.log('Video preview URL:', this.videoPreview);
   }
 
   onVideoSelected(event: any): void {
