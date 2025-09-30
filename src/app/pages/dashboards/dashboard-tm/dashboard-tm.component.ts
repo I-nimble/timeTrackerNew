@@ -92,6 +92,9 @@ export class AppDashboardTMComponent implements OnInit {
   userCompletedProfile: boolean = false;
   olympiaSubmitted: boolean = false;
   pictureUploaded: boolean = false;
+  profileCompleted: boolean = false;
+  videoUploaded: boolean = false;
+  matchRequested: boolean = false;
 
   constructor(
     private usersService: UsersService,
@@ -311,5 +314,18 @@ export class AppDashboardTMComponent implements OnInit {
 
   checkPictureUploaded() {
     this.pictureUploaded = this.user.picture && !this.user.picture.includes('default');
+  }
+
+  requestMatch() {
+    if (!this.user?.id) return;
+    this.usersService.requestMatch(this.user.id).subscribe({
+      next: () => {
+        this.matchRequested = true;
+        this.showSnackbar('Match request sent successfully!');
+      },
+      error: () => {
+        this.showSnackbar('Error sending match request');
+      }
+    });
   }
 }
