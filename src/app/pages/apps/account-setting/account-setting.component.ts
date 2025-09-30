@@ -210,7 +210,20 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   loadExistingVideo(): void {
-    
+    if (!this.user?.email) return;
+
+    this.usersService.getIntroductionVideo(this.user.email).subscribe({
+      next: (res: any) => {
+        if (res.videoURL) {
+          this.videoPreview = res.videoURL;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.warn('No introduction video found or failed to load', err);
+      }
+    });
+    console.log('Video preview URL:', this.videoPreview);
   }
 
   onVideoSelected(event: any): void {
@@ -558,19 +571,18 @@ export class AppAccountSettingComponent implements OnInit {
   uploadVideo(): void {
     if (!this.selectedVideoFile) return;
 
-    this.applicationsService.uploadIntroductionVideo(this.selectedVideoFile, this.user.id)
+    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email)
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
           this.selectedVideoFile = null;
           this.videoUploadProgress = 0;
-          this.getUser(); 
         })
       )
       .subscribe({
-        next: (response: any) => {
+        next: (res: any) => {
           this.openSnackBar('Video uploaded successfully!', 'Close');
-          this.videoPreview = response.videoUrl;
+          this.videoPreview = res.videoURL;
         },
         error: (error) => {
           this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');

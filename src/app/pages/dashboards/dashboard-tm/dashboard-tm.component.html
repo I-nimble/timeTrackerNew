@@ -178,6 +178,23 @@
               </div>
             </mat-step>
 
+            <mat-step [completed]="videoUploaded">
+              <ng-template matStepLabel>Upload Introduction Video</ng-template>
+              <p>
+                <strong>Show us who you are.</strong><br>
+                Please upload your introduction video in the profile section.
+                Once uploaded, you’ll be able to proceed.
+              </p>
+              <div class="d-flex justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>
+                  Back
+                </button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="!videoUploaded">
+                  Next
+                </button>
+              </div>
+            </mat-step>
+
             <mat-step [completed]="matchRequested">
               <ng-template matStepLabel>Ask for a Match</ng-template>
               <p>
