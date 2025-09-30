@@ -641,7 +641,10 @@
                   <ng-container *ngIf="submitted">
                     <div class="d-flex flex-column align-items-center justify-content-center p-24">
                       <h2 class="text-center m-b-16">Thank you for submitting your Olympia assessment!</h2>
-                      <p class="text-center">We will contact you soon in case you are selected.</p>
+                      <p class="text-center">Please complete the steps and we will contact you soon in case you are selected.</p>
+                      <button mat-flat-button color="primary" class="m-t-16" [routerLink]="['/dashboards/tm']">
+                        Go
+                      </button>  
                     </div>
                   </ng-container>
                 </mat-card-content>
