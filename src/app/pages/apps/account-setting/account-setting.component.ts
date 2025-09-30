@@ -23,11 +23,14 @@ import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
+import { RouterLink } from '@angular/router';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf],
+  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
@@ -165,8 +168,13 @@ export class AppAccountSettingComponent implements OnInit {
     ever_lied: ['', Validators.required],
     accept_win_over_loss: ['', Validators.required],
   });
+  videoPreview: string | null = null;
+  selectedVideoFile: File | null = null;
+  videoUploadProgress: number = 0;
+  maxVideoSize: number = 100 * 1024 * 1024; 
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
@@ -175,13 +183,15 @@ export class AppAccountSettingComponent implements OnInit {
             private plansService: PlansService,
             private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
-            private cdr: ChangeDetectorRef
+            private cdr: ChangeDetectorRef,
+            public applicationsService: ApplicationsService
           ) {}
 
   ngOnInit(): void {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
+    this.loadExistingVideo(); 
   }
 
   onTabChange(event: any) {
@@ -197,6 +207,73 @@ export class AppAccountSettingComponent implements OnInit {
         console.error('Error checking Olympia form status');
       }
     });
+  }
+
+  loadExistingVideo(): void {
+    if (!this.user?.email) return;
+
+    this.usersService.getIntroductionVideo(this.user.email).subscribe({
+      next: (res: any) => {
+        if (res.videoURL) {
+          this.videoPreview = res.videoURL;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.warn('No introduction video found or failed to load', err);
+      }
+    });
+  }
+
+  onVideoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'];
+    if (!allowedTypes.includes(file.type)) {
+      this.openSnackBar('Only MP4, MOV, and AVI video files are allowed!', 'Close');
+      this.resetVideoInput();
+      return;
+    }
+
+    if (file.size > this.maxVideoSize) {
+      this.openSnackBar('Video file size should be 100MB or less', 'Close');
+      this.resetVideoInput();
+      return;
+    }
+
+    this.selectedVideoFile = file;
+    this.previewVideo(file);
+  }
+
+  previewVideo(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.videoPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  deleteVideo(): void {
+    this.videoPreview = null;
+    this.selectedVideoFile = null;
+    this.videoUploadProgress = 0;
+    this.resetVideoInput();
+    
+    // this.usersService.deleteIntroductionVideo().subscribe({
+    //   next: () => {
+    //     this.notificationStore.addNotifications('Video deleted successfully', 'success');
+    //   },
+    //   error: (error) => {
+    //     this.notificationStore.addNotifications('Error deleting video', 'error');
+    //   }
+    // });
+  }
+
+  resetVideoInput(): void {
+    if (this.videoInput) {
+      this.videoInput.nativeElement.value = '';
+    }
   }
 
   getUser() {
@@ -295,27 +372,27 @@ export class AppAccountSettingComponent implements OnInit {
 
       // Populate medical form
       this.medicalForm.patchValue({
-        medical_conditions: this.user.employee.medical_conditions,
+        medical_conditions: this.user.employee?.medical_conditions,
         emergency_contact: {
-          name: this.user.employee.emergency_contact?.name || '',
-          relationship: this.user.employee.emergency_contact?.relationship || '',
-          phone: this.user.employee.emergency_contact?.phone || ''
+          name: this.user.employee?.emergency_contact?.name || '',
+          relationship: this.user.employee?.emergency_contact?.relationship || '',
+          phone: this.user.employee?.emergency_contact?.phone || ''
         },
         insurance_data: {
-          provider: this.user.employee.insurance_data?.provider || '',
-          policy_number: this.user.employee.insurance_data?.policy_number || '',
-          coverage_details: this.user.employee.insurance_data?.coverage_details || '',
-          createdAt: this.user.employee.insurance_data?.createdAt || null
+          provider: this.user.employee?.insurance_data?.provider || '',
+          policy_number: this.user.employee?.insurance_data?.policy_number || '',
+          coverage_details: this.user.employee?.insurance_data?.coverage_details || '',
+          createdAt: this.user.employee?.insurance_data?.createdAt || null
         }
       });
 
       // Populate social media form
       this.socialMediaForm.patchValue({
         social_media: {
-          facebook: this.user.employee.social_media?.facebook || '',
-          instagram: this.user.employee.social_media?.instagram || '',
-          twitter: this.user.employee.social_media?.twitter || '',
-          linkedin: this.user.employee.social_media?.linkedin || ''
+          facebook: this.user.employee?.social_media?.facebook || '',
+          instagram: this.user.employee?.social_media?.instagram || '',
+          twitter: this.user.employee?.social_media?.twitter || '',
+          linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
     }
@@ -478,12 +555,39 @@ export class AppAccountSettingComponent implements OnInit {
           })
         )
         .subscribe(response => {
-          this.openSnackBar('User data updated successfully!', 'Close');
-          this.user = response;
-          this.isSubmitting = false;
-          this.getUser();
+          if (this.selectedVideoFile) {
+            this.uploadVideo();
+          } else {
+            this.openSnackBar('User data updated successfully!', 'Close');
+            this.user = response;
+            this.isSubmitting = false;
+            this.getUser();
+          }
         });
     }
+  }
+
+  uploadVideo(): void {
+    if (!this.selectedVideoFile) return;
+
+    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.selectedVideoFile = null;
+          this.videoUploadProgress = 0;
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.openSnackBar('Video uploaded successfully!', 'Close');
+          this.videoPreview = res.videoURL;
+        },
+        error: (error) => {
+          this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
+          console.error('Video upload error:', error);
+        }
+      });
   }
 
   submitOlympiaForm(): void {
