@@ -26,10 +26,7 @@
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
           <!-- add employee -->
-          <button 
-            mat-flat-button 
-            (click)="openDialog('Invite', {companyId})" color="primary"
-          >
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
             Add Team Member
           </button>
         </div>

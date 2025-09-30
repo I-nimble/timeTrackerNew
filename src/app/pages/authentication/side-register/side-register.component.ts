@@ -100,9 +100,7 @@ export class AppSideRegisterComponent {
     workExperience: [''],
     workReferences: ['', Validators.required],
     hobbies: [''],
-    introductionVideo: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     google_user_id: [''],
   });
   userRole: string = '3';
@@ -608,9 +606,7 @@ export class AppSideRegisterComponent {
         availability: this.registerTeamMemberForm.value.availability,
         salary_range: this.registerTeamMemberForm.value.salaryRange,
         programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        introduction_video: this.registerTeamMemberForm.get('introductionVideo')?.value || null,
         resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        picture: this.registerTeamMemberForm.get('picture')?.value || null,
         portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
         google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };

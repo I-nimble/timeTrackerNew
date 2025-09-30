@@ -30,8 +30,8 @@
               </div>
             </div>
           </div>
-          <div class="text-center">
-            <h5 class="mb-0">{{ user.name }} {{ user.last_name }}</h5>
+          <div class="text-center mt-2">
+            <h5 class="mb-2">{{ user.name }} {{ user.last_name }}</h5>
             <p class="mb-0 position" *ngIf="!isOrphan">{{ user.employee.position_name }}</p>
           </div>
         </div>
@@ -135,4 +135,93 @@
     </div>
   </div>
 </div>
+</div>
+
+<div *ngIf="isOrphan" class="row mt-4 m-b-20">
+  <div class="col-md-12">
+    <div class="card shadow-none h-100">
+      <div class="card-body">
+        <p class="mb-3 fw-semibold">Get Started</p>
+        <ng-container *ngIf="!pictureUploaded || !matchRequested; else completedMessage">
+          <mat-horizontal-stepper linear class="onboarding-stepper" [selectedIndex]="selectedStepperIndex">
+            
+            <mat-step [completed]="true">
+              <ng-template matStepLabel>Register & Login</ng-template>
+              <p>
+                <strong>Welcome to the platform!</strong><br>
+                You’ve successfully created your account and logged in. 
+                Your credentials are now active, giving you access to the features available to your role. 
+                Keep your login information secure. Once you’re ready, click “Next” to proceed to setting up your profile.
+              </p>
+              <div class="step-button-container">
+                <button mat-flat-button color="primary" matStepperNext>
+                  Next
+                </button>
+              </div>
+            </mat-step>
+
+            <mat-step [completed]="pictureUploaded">
+              <ng-template matStepLabel>Configure Profile</ng-template>
+              <p>
+                <strong>Get your profile ready.</strong><br>
+                Go to the user profile section located at the top corner of the dashboard. 
+                Upload your profile picture so we can recognize you and fill out your personal information such as full name and contact details. 
+                Once your picture is uploaded, you can proceed with the next step.
+              </p>
+              <div class="d-flex justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>
+                  Back
+                </button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="!pictureUploaded">
+                  Next
+                </button>
+              </div>
+            </mat-step>
+
+            <mat-step [completed]="videoUploaded">
+              <ng-template matStepLabel>Upload Introduction Video</ng-template>
+              <p>
+                <strong>Show us who you are.</strong><br>
+                Please upload your introduction video in the profile section.
+                Once uploaded, you’ll be able to proceed.
+              </p>
+              <div class="d-flex justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>
+                  Back
+                </button>
+                <button mat-flat-button color="primary" matStepperNext [disabled]="!videoUploaded">
+                  Next
+                </button>
+              </div>
+            </mat-step>
+
+            <mat-step [completed]="matchRequested">
+              <ng-template matStepLabel>Ask for a Match</ng-template>
+              <p>
+                <strong>Almost done!</strong><br>
+                Click the “Request Match” button below to notify your team that you have completed all the previous steps. 
+                This will trigger the team matching process and connect you with clients. 
+                Once the request is sent, we will be contacting you if you're matched.
+              </p>
+              <div class="d-flex justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>
+                  Back
+                </button>
+                <button mat-flat-button color="primary" (click)="requestMatch()" [disabled]="matchRequested">
+                  Request Match
+                </button>
+              </div>
+            </mat-step>
+
+          </mat-horizontal-stepper>
+        </ng-container>
+        <ng-template #completedMessage>
+          <div class="text-center p-4">
+            <h5 class="fw-semibold">You're all set!</h5>
+            <p>We’ll be contacting you soon. Thank you for completing all the steps.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
 </div>

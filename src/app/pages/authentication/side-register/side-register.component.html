@@ -677,15 +677,6 @@
                         <!-- Step 7: Media Uploads -->
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
-                            <p>Introduction Video (English)</p>
-                            <input type="file" accept="video/*" (change)="onFileChange($event, 'introductionVideo')" #videoInput>
-                            <mat-error *ngIf="registerTeamMemberForm.get('introductionVideo')?.hasError('required')">
-                              Video is required
-                            </mat-error>
-                            <mat-error *ngIf="registerTeamMemberForm.get('introductionVideo')?.hasError('maxFileSize')">
-                              File too large (max 10GB)
-                            </mat-error>
-
                             <p>Resume (PDF)</p>
                             <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')">
                             <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')">
@@ -706,15 +697,6 @@
                                 File too large (max 10GB)
                               </mat-error>
                             </div>
-
-                            <p>Profile Picture</p>
-                            <input type="file" accept="image/*" (change)="onFileChange($event, 'picture')">
-                            <mat-error *ngIf="registerTeamMemberForm.get('picture')?.hasError('required')">
-                                Picture is required
-                            </mat-error>
-                            <mat-error *ngIf="registerTeamMemberForm.get('picture')?.hasError('maxFileSize')">
-                              File too large (max 10GB)
-                            </mat-error>
 
                             <button mat-flat-button color="primary" class="w-100" (click)="submit()" 
                                     [disabled]="!registerTeamMemberForm.valid">

@@ -44,7 +44,7 @@ export class AppExpertComponent implements OnInit {
 
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
-      this.clients = users.filter((u: any) => u.role == 3 && u.active == 1);
+      this.clients = users.filter((u: any) => u.role == 3 && u.active == 1 && u.company?.show_info == 1);
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {

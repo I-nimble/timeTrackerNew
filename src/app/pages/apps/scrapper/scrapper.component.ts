@@ -40,7 +40,6 @@ export class ScrapperComponent implements OnInit {
   getPosts() {
     this.scrapperService.getPosts().subscribe(posts => {
       this.posts = posts;
-      this.filteredPosts = [...posts];
     });
   }
 

@@ -30,8 +30,13 @@
         </div>
       </mat-card>
     </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow mt-16" *ngIf="filteredPosts.length > 0">
+  <mat-card-content>
     <div class="table-responsive">
-      <app-scrapper-table [items]="filteredPosts.length ? filteredPosts : posts"></app-scrapper-table>
+      <app-scrapper-table [items]="filteredPosts"></app-scrapper-table>
     </div>
   </mat-card-content>
 </mat-card>

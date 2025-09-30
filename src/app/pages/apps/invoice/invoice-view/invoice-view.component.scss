@@ -1,0 +1,55 @@
+#inimble-logo {
+    max-width: 100%;
+    margin: 4rem 0;
+}
+#invoice-view {
+    font-size: 12px;
+}
+.text-danger {
+    color: red;
+}
+#invoice-items-table {
+    border-collapse: collapse;
+    margin-bottom: 4rem;
+    th {
+        background: #bebebe;
+        color: #fff;
+        font-weight: bold;
+    }
+    th, td {
+        font-size: 13px;
+        border-bottom: none;
+    }
+}
+#thank-you {
+    margin-bottom: 4rem;
+}
+#employee-table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 2rem 0;
+    th {
+        background: #d7d7d7;
+    }
+    th, td {
+        border: 1px solid #000;
+        padding: 7px;
+        text-align: left;
+        font-weight: normal;
+        font-size: 13px;
+    }
+}
+#entries-table {
+    margin-bottom: 4rem;
+    border-collapse: collapse;
+    tr {
+        height: max-content;
+    }
+    th, td {
+        font-size: 13px;
+        border: 1px solid #000;
+        font-weight: normal;
+        padding: 5px;
+        line-height: 1;
+    }
+}
