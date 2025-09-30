@@ -25,6 +25,7 @@ import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink } from '@angular/router';
 import { MatProgressBar } from '@angular/material/progress-bar';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
@@ -182,7 +183,8 @@ export class AppAccountSettingComponent implements OnInit {
             private plansService: PlansService,
             private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
-            private cdr: ChangeDetectorRef
+            private cdr: ChangeDetectorRef,
+            public applicationsService: ApplicationsService
           ) {}
 
   ngOnInit(): void {
@@ -208,9 +210,7 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   loadExistingVideo(): void {
-    if (this.user?.employee?.introduction_video) {
-      this.videoPreview = this.user.employee.introduction_video;
-    }
+    
   }
 
   onVideoSelected(event: any): void {
@@ -543,12 +543,40 @@ export class AppAccountSettingComponent implements OnInit {
           })
         )
         .subscribe(response => {
-          this.openSnackBar('User data updated successfully!', 'Close');
-          this.user = response;
-          this.isSubmitting = false;
-          this.getUser();
+          if (this.selectedVideoFile) {
+            this.uploadVideo();
+          } else {
+            this.openSnackBar('User data updated successfully!', 'Close');
+            this.user = response;
+            this.isSubmitting = false;
+            this.getUser();
+          }
         });
     }
+  }
+
+  uploadVideo(): void {
+    if (!this.selectedVideoFile) return;
+
+    this.applicationsService.uploadIntroductionVideo(this.selectedVideoFile, this.user.id)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.selectedVideoFile = null;
+          this.videoUploadProgress = 0;
+          this.getUser(); 
+        })
+      )
+      .subscribe({
+        next: (response: any) => {
+          this.openSnackBar('Video uploaded successfully!', 'Close');
+          this.videoPreview = response.videoUrl;
+        },
+        error: (error) => {
+          this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
+          console.error('Video upload error:', error);
+        }
+      });
   }
 
   submitOlympiaForm(): void {
