@@ -95,6 +95,7 @@ export class AppDashboardTMComponent implements OnInit {
   profileCompleted: boolean = false;
   videoUploaded: boolean = false;
   matchRequested: boolean = false;
+  selectedStepperIndex: number = 0;
 
   constructor(
     private usersService: UsersService,
@@ -142,6 +143,25 @@ export class AppDashboardTMComponent implements OnInit {
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
+
+    this.usersService.getUsers({ searchField: '', filter: { currentUser: true } })
+    .subscribe({
+      next: (users: any) => {
+        this.user = users[0];
+
+        this.usersService.getProfilePic(this.user.id).subscribe({
+          next: (url: any) => {
+            if (url) this.user.picture = url;
+            this.checkPictureUploaded();
+            this.setStepperToLastCompletedStep();
+          },
+          error: () => {
+            this.checkPictureUploaded();
+            this.setStepperToLastCompletedStep();
+          }
+        });
+      }
+    });
   }
 
   getUser() {
@@ -161,8 +181,13 @@ export class AppDashboardTMComponent implements OnInit {
           next: (url: any) => {
             if (url) {
               this.picture = url;
+              this.user.picture = url;
             }
+            this.checkPictureUploaded();
           },
+          error: () => {
+            this.checkPictureUploaded();
+          }
         });
 
         this.getEmployees();
@@ -313,7 +338,19 @@ export class AppDashboardTMComponent implements OnInit {
   }
 
   checkPictureUploaded() {
-    this.pictureUploaded = this.user.picture && !this.user.picture.includes('default');
+    const defaultImages = [
+      'assets/images/default-user-profile-pic.png',
+      'assets/images/default-logo.jpg'
+    ];
+    this.pictureUploaded = !!this.user.picture && !defaultImages.includes(this.user.picture);
+  }
+
+  setStepperToLastCompletedStep() {
+    if (this.pictureUploaded) {
+      this.selectedStepperIndex = 1;
+    } else {
+      this.selectedStepperIndex = 0;
+    }
   }
 
   requestMatch() {
