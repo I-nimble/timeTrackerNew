@@ -116,6 +116,8 @@ export class AppDashboardTMComponent implements OnInit {
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
     this.checkPictureUploaded();
+    this.checkVideoStatus();
+    this.setStepperToLastCompletedStep();
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
         this.currentEntryId = data.id;
@@ -153,11 +155,9 @@ export class AppDashboardTMComponent implements OnInit {
           next: (url: any) => {
             if (url) this.user.picture = url;
             this.checkPictureUploaded();
-            this.setStepperToLastCompletedStep();
           },
           error: () => {
             this.checkPictureUploaded();
-            this.setStepperToLastCompletedStep();
           }
         });
       }
@@ -345,11 +345,31 @@ export class AppDashboardTMComponent implements OnInit {
     this.pictureUploaded = !!this.user.picture && !defaultImages.includes(this.user.picture);
   }
 
+  checkVideoStatus() {
+    const email = localStorage.getItem('email') || '';
+    if (!email) return;
+
+    this.usersService.checkIntroductionVideo(email).subscribe({
+      next: (res: any) => {
+        this.videoUploaded = res.hasVideo;
+        this.setStepperToLastCompletedStep();
+      },
+      error: (err) => {
+        console.error('Error checking video status', err);
+        this.setStepperToLastCompletedStep();
+      }
+    });
+  }
+
   setStepperToLastCompletedStep() {
-    if (this.pictureUploaded) {
+    if (!this.pictureUploaded) {
       this.selectedStepperIndex = 1;
+    } else if (!this.videoUploaded) {
+      this.selectedStepperIndex = 2;
+    } else if (!this.matchRequested) {
+      this.selectedStepperIndex = 3;
     } else {
-      this.selectedStepperIndex = 0;
+      this.selectedStepperIndex = 3;
     }
   }
 
