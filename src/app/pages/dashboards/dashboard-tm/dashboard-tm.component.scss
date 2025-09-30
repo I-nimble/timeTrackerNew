@@ -159,3 +159,39 @@ mat-icon {
     justify-content: center;
     margin-top: 15px;
 }
+
+.onboarding-stepper {
+  .mat-horizontal-stepper-header {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background-color: #f9fafc;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #111c2d;
+  }
+
+  .mat-step-icon {
+    background-color: #2553b9;
+    color: #fff;
+  }
+
+  .mat-step-icon-selected {
+    background-color: #111c2d;
+  }
+
+  .mat-step-label {
+    font-size: .9rem;
+    color: #707a82;
+    font-weight: 500;
+  }
+
+  .mat-horizontal-content-container {
+    padding: 1rem 0;
+  }
+
+  .mat-mdc-button,
+  .mat-stroked-button {
+    border-radius: 0.5rem;
+    font-weight: 500;
+  }
+}

@@ -23,11 +23,12 @@ import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf],
+  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {

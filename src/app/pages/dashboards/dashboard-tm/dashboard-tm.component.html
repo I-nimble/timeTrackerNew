@@ -136,3 +136,79 @@
   </div>
 </div>
 </div>
+
+<!-- Orphan Stepper -->
+<div *ngIf="isOrphan" class="row mt-4 m-b-20">
+  <div class="col-md-12">
+    <div class="card shadow-none h-100">
+      <div class="card-body">
+        <p class="mb-3 fw-semibold">Get Started</p>
+        <mat-horizontal-stepper linear class="onboarding-stepper">
+          <!-- Step 1: Profile -->
+          <mat-step [completed]="userCompletedProfile">
+            <ng-template matStepLabel>Complete Profile</ng-template>
+            <p>Fill in your personal information to complete your profile.</p>
+            <div class="text-end">
+              <button
+                mat-stroked-button
+                color="primary"
+                matStepperNext
+                [disabled]="!userCompletedProfile"
+              >
+                Next
+              </button>
+            </div>
+          </mat-step>
+
+          <!-- Step 2: Upload Picture -->
+          <mat-step [completed]="pictureUploaded">
+            <ng-template matStepLabel>Upload Profile Picture</ng-template>
+            <p>Make sure to upload a profile picture.</p>
+            <div class="text-end">
+              <button
+                mat-stroked-button
+                color="primary"
+                matStepperNext
+                [disabled]="!pictureUploaded"
+              >
+                Next
+              </button>
+            </div>
+          </mat-step>
+
+          <!-- Step 3: Olympia Assessment -->
+          <mat-step [completed]="olympiaSubmitted">
+            <ng-template matStepLabel>Olympia Assessment</ng-template>
+            <p *ngIf="!olympiaSubmitted">
+              Please complete your Olympia assessment in the Account Settings.
+            </p>
+            <p *ngIf="olympiaSubmitted">
+              You have submitted your assessment. Thank you!
+            </p>
+            <div class="text-end">
+              <button
+                mat-stroked-button
+                color="primary"
+                matStepperNext
+                [disabled]="!olympiaSubmitted"
+              >
+                Next
+              </button>
+            </div>
+          </mat-step>
+
+          <!-- Step 4: Finish -->
+          <mat-step>
+            <ng-template matStepLabel>All Done!</ng-template>
+            <p>Congrats! You have completed all steps.</p>
+            <div class="d-flex justify-content-between">
+              <button mat-stroked-button color="primary" matStepperPrevious>
+                Back
+              </button>
+            </div>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </div>
+    </div>
+  </div>
+</div>

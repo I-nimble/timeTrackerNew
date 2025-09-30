@@ -89,6 +89,9 @@ export class AppDashboardTMComponent implements OnInit {
   employer: any = {};
   companyLogo!: SafeResourceUrl;
   isOrphan: boolean;
+  userCompletedProfile: boolean = false;
+  olympiaSubmitted: boolean = false;
+  pictureUploaded: boolean = false;
 
   constructor(
     private usersService: UsersService,
@@ -107,7 +110,8 @@ export class AppDashboardTMComponent implements OnInit {
     this.getUser();
     this.getEntries();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
-
+    this.checkOlympiaStatus();
+    this.checkPictureUploaded();
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
         this.currentEntryId = data.id;
@@ -294,5 +298,18 @@ export class AppDashboardTMComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  checkOlympiaStatus() {
+    this.olympiaService.checkOlympiaForm().subscribe({
+      next: (res: boolean) => {
+        this.olympiaSubmitted = res;
+      },
+      error: () => console.error('Error checking Olympia form status')
+    });
+  }
+
+  checkPictureUploaded() {
+    this.pictureUploaded = this.user.picture && !this.user.picture.includes('default');
   }
 }
