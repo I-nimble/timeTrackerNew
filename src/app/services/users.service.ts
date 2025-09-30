@@ -282,4 +282,8 @@ export class UsersService {
   getCurrentTeamMember(): number | null {
     return this.teamMemberSource.getValue();
   }
+
+  requestMatch(userId: number): Observable<any> {
+    return this.http.post(`${this.API_URI}/users/request-match/${userId}`, {});
+  }
 }
