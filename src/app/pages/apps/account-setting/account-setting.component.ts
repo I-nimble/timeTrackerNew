@@ -24,11 +24,12 @@ import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink } from '@angular/router';
+import { MatProgressBar } from '@angular/material/progress-bar';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink],
+  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
@@ -166,8 +167,13 @@ export class AppAccountSettingComponent implements OnInit {
     ever_lied: ['', Validators.required],
     accept_win_over_loss: ['', Validators.required],
   });
+  videoPreview: string | null = null;
+  selectedVideoFile: File | null = null;
+  videoUploadProgress: number = 0;
+  maxVideoSize: number = 100 * 1024 * 1024; 
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
@@ -183,6 +189,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
+    this.loadExistingVideo(); 
   }
 
   onTabChange(event: any) {
@@ -198,6 +205,63 @@ export class AppAccountSettingComponent implements OnInit {
         console.error('Error checking Olympia form status');
       }
     });
+  }
+
+  loadExistingVideo(): void {
+    if (this.user?.employee?.introduction_video) {
+      this.videoPreview = this.user.employee.introduction_video;
+    }
+  }
+
+  onVideoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'];
+    if (!allowedTypes.includes(file.type)) {
+      this.notificationStore.addNotifications('Only MP4, MOV, and AVI video files are allowed!', 'error');
+      this.resetVideoInput();
+      return;
+    }
+
+    if (file.size > this.maxVideoSize) {
+      this.notificationStore.addNotifications('Video file size should be 100MB or less', 'error');
+      this.resetVideoInput();
+      return;
+    }
+
+    this.selectedVideoFile = file;
+    this.previewVideo(file);
+  }
+
+  previewVideo(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.videoPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  deleteVideo(): void {
+    this.videoPreview = null;
+    this.selectedVideoFile = null;
+    this.videoUploadProgress = 0;
+    this.resetVideoInput();
+    
+    // this.usersService.deleteIntroductionVideo().subscribe({
+    //   next: () => {
+    //     this.notificationStore.addNotifications('Video deleted successfully', 'success');
+    //   },
+    //   error: (error) => {
+    //     this.notificationStore.addNotifications('Error deleting video', 'error');
+    //   }
+    // });
+  }
+
+  resetVideoInput(): void {
+    if (this.videoInput) {
+      this.videoInput.nativeElement.value = '';
+    }
   }
 
   getUser() {
