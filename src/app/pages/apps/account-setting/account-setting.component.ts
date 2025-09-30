@@ -219,13 +219,13 @@ export class AppAccountSettingComponent implements OnInit {
 
     const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'];
     if (!allowedTypes.includes(file.type)) {
-      this.notificationStore.addNotifications('Only MP4, MOV, and AVI video files are allowed!', 'error');
+      this.openSnackBar('Only MP4, MOV, and AVI video files are allowed!', 'Close');
       this.resetVideoInput();
       return;
     }
 
     if (file.size > this.maxVideoSize) {
-      this.notificationStore.addNotifications('Video file size should be 100MB or less', 'error');
+      this.openSnackBar('Video file size should be 100MB or less', 'Close');
       this.resetVideoInput();
       return;
     }
