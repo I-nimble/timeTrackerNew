@@ -40,7 +40,24 @@
 
 cometchat-conversations-with-messages,
 cometchat-groups-with-messages {
-  height: 65vh;
+  height: 80vh;
+}
+cometchat-conversations-with-messages > div.cc-with-messages__wrapper,
+cometchat-groups-with-messages > div.cc-with-messages__wrapper {
+  border-radius: 16px;
+  border: none!important;
+}
+cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main,
+cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__main,
+cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__start-conversation,
+cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__start-conversation {
+  padding: 10px 0;
+}
+cometchat-conversations-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar,
+cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-messages__sidebar {
+  padding-left: 10px;
 }
 
 #outgoingCall {
@@ -90,4 +107,8 @@ cometchat-groups-with-messages {
       margin-bottom: -23px !important;
     }
   }
+}
+cometchat-message-bubble div.cc-message-bubble div.cc-message-bubble__content {
+  padding: 5px!important;
+  border-radius: 16px!important;
 }
