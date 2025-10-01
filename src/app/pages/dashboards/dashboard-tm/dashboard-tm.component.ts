@@ -399,11 +399,13 @@ export class AppDashboardTMComponent implements OnInit {
     this.usersService.requestMatch(this.user.id).subscribe({
       next: () => {
         this.matchRequested = true;
+        this.selectedStepperIndex = -1;
         this.showSnackbar('Match request sent successfully!');
       },
       error: (error) => {
         if (error.status === 400) {
           this.matchRequested = true;
+          this.selectedStepperIndex = -1;
           this.showSnackbar('Match already requested. Please wait for our contact.');
         } else {
           this.showSnackbar('Error sending match request');
