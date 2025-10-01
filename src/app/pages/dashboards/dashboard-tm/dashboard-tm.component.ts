@@ -332,6 +332,7 @@ export class AppDashboardTMComponent implements OnInit {
     this.olympiaService.checkOlympiaForm().subscribe({
       next: (res: boolean) => {
         this.olympiaSubmitted = res;
+        this.setStepperToLastCompletedStep();
       },
       error: () => console.error('Error checking Olympia form status')
     });
@@ -343,6 +344,7 @@ export class AppDashboardTMComponent implements OnInit {
       'assets/images/default-logo.jpg'
     ];
     this.pictureUploaded = !!this.user.picture && !defaultImages.includes(this.user.picture);
+    this.setStepperToLastCompletedStep();
   }
 
   checkVideoStatus() {
@@ -362,14 +364,14 @@ export class AppDashboardTMComponent implements OnInit {
   }
 
   setStepperToLastCompletedStep() {
-    if (!this.pictureUploaded) {
+    if (!this.pictureUploaded || !this.videoUploaded) {
       this.selectedStepperIndex = 1;
-    } else if (!this.videoUploaded) {
+    } else if (!this.olympiaSubmitted) {
       this.selectedStepperIndex = 2;
     } else if (!this.matchRequested) {
       this.selectedStepperIndex = 3;
     } else {
-      this.selectedStepperIndex = 3;
+      this.selectedStepperIndex = -1; 
     }
   }
 
