@@ -23,7 +23,7 @@ import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 
@@ -184,7 +184,8 @@ export class AppAccountSettingComponent implements OnInit {
             private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
             private cdr: ChangeDetectorRef,
-            public applicationsService: ApplicationsService
+            public applicationsService: ApplicationsService,
+            private route: ActivatedRoute
           ) {}
 
   ngOnInit(): void {
@@ -192,10 +193,16 @@ export class AppAccountSettingComponent implements OnInit {
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
     this.loadExistingVideo(); 
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'];
+      if (tab !== undefined && !isNaN(tab)) {
+        this.selectedTabIndex = +tab;
+      }
+    });
   }
 
-  onTabChange(event: any) {
-    this.selectedTabIndex = event.index;
+  onTabChange(index: number) {
+    this.selectedTabIndex = index;
   }
 
   checkOlympiaStatus(): void {

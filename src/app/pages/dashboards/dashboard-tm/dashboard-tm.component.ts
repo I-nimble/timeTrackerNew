@@ -10,7 +10,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { RatingsService } from 'src/app/services/ratings.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { nextDay } from 'date-fns';
@@ -19,6 +19,7 @@ import { OlympiaService } from 'src/app/services/olympia.service';
 import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
 import { MatStepperModule } from '@angular/material/stepper';
 import { ReactiveFormsModule } from '@angular/forms';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -96,6 +97,7 @@ export class AppDashboardTMComponent implements OnInit {
   videoUploaded: boolean = false;
   matchRequested: boolean = false;
   selectedStepperIndex: number = 0;
+  firstStepperLoad: boolean = true;
 
   constructor(
     private usersService: UsersService,
@@ -107,7 +109,8 @@ export class AppDashboardTMComponent implements OnInit {
     public ratingsEntriesService: RatingsEntriesService,
     public ratingsService: RatingsService,
     private olympiaService: OlympiaService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -365,14 +368,16 @@ export class AppDashboardTMComponent implements OnInit {
   }
 
   setStepperToLastCompletedStep() {
-    if (!this.pictureUploaded || !this.videoUploaded) {
-      this.selectedStepperIndex = 1;
-    } else if (!this.olympiaSubmitted) {
+    if (!this.pictureUploaded && !this.videoUploaded) {
+      this.selectedStepperIndex = 0;
+    } else if (this.pictureUploaded && this.videoUploaded && !this.olympiaSubmitted) {
       this.selectedStepperIndex = 2;
-    } else if (!this.matchRequested) {
+    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && !this.matchRequested) {
       this.selectedStepperIndex = 3;
+    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && this.matchRequested) {
+      this.selectedStepperIndex = -1;
     } else {
-      this.selectedStepperIndex = -1; 
+      this.selectedStepperIndex = 1;
     }
   }
 
@@ -411,6 +416,30 @@ export class AppDashboardTMComponent implements OnInit {
           this.showSnackbar('Error sending match request');
         }
       }
+    });
+  }
+
+  preventStepperBack(event: StepperSelectionEvent) {
+    if (this.firstStepperLoad) {
+      this.firstStepperLoad = false;
+      return;
+    }
+
+    if (event.previouslySelectedIndex > event.selectedIndex) {
+      setTimeout(() => {
+        this.selectedStepperIndex = event.previouslySelectedIndex;
+      });
+      return;
+    }
+    this.selectedStepperIndex = event.selectedIndex;
+  }
+
+  goToAccountSettings(tabIndex: number) {
+    this.selectedStepperIndex = tabIndex;
+    setTimeout(() => {
+      this.router.navigate(['/apps/account-settings'], {
+        queryParams: { tab: tabIndex }
+      });
     });
   }
 }

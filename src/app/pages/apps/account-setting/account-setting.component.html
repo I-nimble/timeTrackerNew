@@ -1,6 +1,6 @@
 <mat-card class="cardWithShadow">
 
-  <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms" (selectedTabChange)="onTabChange($event)">
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" mat-stretch-tabs="false" animationDuration="0ms" (selectedIndexChange)="onTabChange($event)">
     <mat-tab>
         <ng-template mat-tab-label>
           <div class="d-flex align-items-center">
