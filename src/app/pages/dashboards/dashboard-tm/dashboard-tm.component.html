@@ -142,9 +142,11 @@
     <div class="card shadow-none h-100">
       <div class="card-body">
         <p class="mb-3 fw-semibold">Get Started</p>
-        <ng-container *ngIf="!pictureUploaded || !matchRequested; else completedMessage">
+        <ng-container *ngIf="selectedStepperIndex !== -1; else completedMessage">
           <mat-horizontal-stepper linear class="onboarding-stepper" [selectedIndex]="selectedStepperIndex">
-            
+            <ng-template matStepperIcon="edit">
+              <mat-icon>check</mat-icon>
+            </ng-template>
             <mat-step [completed]="true">
               <ng-template matStepLabel>Register & Login</ng-template>
               <p>
@@ -160,36 +162,36 @@
               </div>
             </mat-step>
 
-            <mat-step [completed]="pictureUploaded">
+            <mat-step [completed]="pictureUploaded && videoUploaded">
               <ng-template matStepLabel>Configure Profile</ng-template>
               <p>
                 <strong>Get your profile ready.</strong><br>
                 Go to the user profile section located at the top corner of the dashboard. 
-                Upload your profile picture so we can recognize you and fill out your personal information such as full name and contact details. 
-                Once your picture is uploaded, you can proceed with the next step.
+                Upload your profile picture and an introduction video so we can recognize you and get to know you better.
+                Once your picture and video are uploaded, you can proceed with the next step.
               </p>
               <div class="d-flex justify-content-between">
                 <button mat-flat-button class="bg-error text-white" matStepperPrevious>
                   Back
                 </button>
-                <button mat-flat-button color="primary" matStepperNext [disabled]="!pictureUploaded">
+                <button mat-flat-button color="primary" matStepperNext [disabled]="!pictureUploaded || !videoUploaded">
                   Next
                 </button>
               </div>
             </mat-step>
 
-            <mat-step [completed]="videoUploaded">
-              <ng-template matStepLabel>Upload Introduction Video</ng-template>
+            <mat-step [completed]="olympiaSubmitted">
+              <ng-template matStepLabel>Complete the Olympia test</ng-template>
               <p>
-                <strong>Show us who you are.</strong><br>
-                Please upload your introduction video in the profile section.
-                Once uploaded, you’ll be able to proceed.
+                <strong>Submit the Olympia test</strong><br>
+              Fill out the Olympia assessment form with honest and thoughtful responses. Your answers will help us better understand your working style and compatibility with the role.
+              Our HR team will carefully review your responses. Once submitted, you can continue and request a match.
               </p>
               <div class="d-flex justify-content-between">
                 <button mat-flat-button class="bg-error text-white" matStepperPrevious>
                   Back
                 </button>
-                <button mat-flat-button color="primary" matStepperNext [disabled]="!videoUploaded">
+                <button mat-flat-button color="primary" matStepperNext [disabled]="!olympiaSubmitted">
                   Next
                 </button>
               </div>
