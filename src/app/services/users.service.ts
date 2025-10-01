@@ -305,4 +305,8 @@ export class UsersService {
   checkIntroductionVideo(email: string) {
     return this.http.post<{ hasVideo: boolean }>(`${this.API_URI}/users/check-video`, { email });
   }
+
+  checkMatchStatus(userId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.API_URI}/users/match-status/${userId}`);
+  }
 }

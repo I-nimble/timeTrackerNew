@@ -138,7 +138,7 @@ export class AppDashboardTMComponent implements OnInit {
           const company = companies.filter(
             (company: any) => company.id == company_id
           )[0];
-          const companyTimeZone = company.timezone?.split(':')[0];
+          const companyTimeZone = company?.timezone?.split(':')[0];
           this.timeZone = companyTimeZone;
         });
       });
@@ -184,6 +184,7 @@ export class AppDashboardTMComponent implements OnInit {
               this.user.picture = url;
             }
             this.checkPictureUploaded();
+            this.checkMatchRequestStatus(); 
           },
           error: () => {
             this.checkPictureUploaded();
@@ -375,15 +376,38 @@ export class AppDashboardTMComponent implements OnInit {
     }
   }
 
-  requestMatch() {
+  checkMatchRequestStatus() {
     if (!this.user?.id) return;
+    
+    this.usersService.checkMatchStatus(this.user.id).subscribe({
+      next: (status: boolean) => {
+        this.matchRequested = status;
+        this.setStepperToLastCompletedStep();
+      },
+      error: (error) => {
+        console.error('Error checking match status', error);
+        if (error.status !== 404) {
+          this.showSnackbar('Error checking match status');
+        }
+      }
+    });
+  }
+
+  requestMatch() {
+    if (!this.user?.id || this.matchRequested) return;
+    
     this.usersService.requestMatch(this.user.id).subscribe({
       next: () => {
         this.matchRequested = true;
         this.showSnackbar('Match request sent successfully!');
       },
-      error: () => {
-        this.showSnackbar('Error sending match request');
+      error: (error) => {
+        if (error.status === 400) {
+          this.matchRequested = true;
+          this.showSnackbar('Match already requested. Please wait for our contact.');
+        } else {
+          this.showSnackbar('Error sending match request');
+        }
       }
     });
   }
