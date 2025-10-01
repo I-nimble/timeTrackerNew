@@ -46,9 +46,11 @@ export class EmployeesService {
     formData.append('name', employee.name);
     formData.append('last_name', employee.last_name);
     if (employee.password) formData.append('password', employee.password);
+    formData.append('company_id', employee.company_id);
     formData.append('position', employee.position);
     formData.append('projects', JSON.stringify(employee.projects));
     formData.append('employee', JSON.stringify({ id: companyId, position: employee.position }));
+    formData.append('schedules', JSON.stringify(employee.schedules));
     if (file) formData.append('profile', file);
     return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
   }

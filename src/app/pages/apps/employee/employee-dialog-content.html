@@ -99,6 +99,17 @@
         </mat-form-field>
       </div>
 
+      <div class="col-12" *ngIf="userRole === '1'">
+        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Company</mat-label>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-select formControlName="company_id" name="company_id" required>
+            <mat-option *ngFor="let company of companies" [value]="company.id">
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Position</mat-label>
         <mat-form-field appearance="outline" class="w-100">          
@@ -119,6 +130,87 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
+      </div>
+
+      <!-- Schedule Section -->
+      <div class="col-12" *ngIf="false">
+        <div class="schedule-header d-flex align-items-center justify-content-between m-b-16 m-t-24">
+          <h4 class="f-s-16 f-w-600 m-b-0">Schedule</h4>
+          <button mat-stroked-button type="button" (click)="addScheduleGroup()" class="add-schedule-btn" 
+                  [disabled]="scheduleGroups.length >= 7">
+            <i-tabler name="plus" class="icon-16 m-r-8"></i-tabler>
+            Add Time Slot
+          </button>
+        </div>
+        
+        <div class="schedule-groups" formArrayName="scheduleGroups">
+          <div *ngFor="let group of scheduleGroups.controls; let i = index" [formGroupName]="i" 
+              class="schedule-group-card m-b-16 p-16 border-radius-8 bg-light-hover">
+            
+            <div class="schedule-group-header d-flex align-items-center justify-content-between m-b-12">
+              <h5 class="f-s-14 f-w-600 m-b-0 text-primary">Time Slot {{i + 1}}</h5>
+              <button mat-icon-button color="warn" (click)="removeScheduleGroup(i)" type="button" 
+                      class="delete-btn" [disabled]="scheduleGroups.length === 1"
+                      matTooltip="Remove time slot" matTooltipPosition="above">
+                <i-tabler name="trash" class="icon-16"></i-tabler>
+              </button>
+            </div>
+
+            <div class="row g-3">
+              <!-- Days Selection (Multiple) -->
+              <div class="col-lg-12">
+                <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Select Days</mat-label>
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-select formControlName="days" multiple placeholder="Choose days for this schedule">
+                    <mat-option 
+                      *ngFor="let day of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']" 
+                      [value]="day"
+                      [disabled]="isDaySelected(day) && !group.value.days.includes(day)">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <span>{{ day }}</span>
+                        <span *ngIf="isDaySelected(day) && !group.value.days.includes(day)" 
+                              class="text-muted f-s-12">(already selected)</span>
+                      </div>
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <!-- Time Range -->
+              <div class="col-lg-12">
+                <mat-label class="f-s-14 f-w-600 m-b-12 d-block">Time Range</mat-label>
+                <div class="row g-3">
+                  <div class="col-lg-6">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>Start Time</mat-label>
+                      <input matInput type="time" formControlName="start_time" placeholder="HH:MM">
+                    </mat-form-field>
+                  </div>
+
+                  <div class="col-lg-6">
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-label>End Time</mat-label>
+                      <input matInput type="time" formControlName="end_time" placeholder="HH:MM">
+                    </mat-form-field>
+                  </div>
+                </div>
+                
+                <div *ngIf="group.value.start_time && group.value.end_time && group.value.start_time >= group.value.end_time" 
+                    class="text-error f-s-12 m-t-4 d-flex align-items-center">
+                  <i-tabler name="alert-circle" class="icon-18 m-r-4"></i-tabler>
+                  End time must be after start time
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="scheduleGroups.length === 0" class="empty-schedule text-center p-24 border-dashed border-radius-8">
+            <i-tabler name="calendar" class="icon-32 text-muted m-b-8"></i-tabler>
+            <div class="f-s-14 text-muted">No schedule slots added yet</div>
+            <div class="f-s-12 text-muted m-t-4">Click "Add Time Slot" to create a schedule</div>
+          </div>
+        </div>
       </div>
     </div>
     <button
