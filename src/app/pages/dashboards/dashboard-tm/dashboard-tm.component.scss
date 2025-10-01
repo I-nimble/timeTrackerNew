@@ -34,6 +34,8 @@
     padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
     color: var(--bs-card-color);
     background-color: var(--bs-card-body-bg);
+    box-shadow: var(--bs-card-box-shadow);
+    border-radius: var(--bs-card-border-radius);
 }
 
 .img-fluid {
@@ -161,6 +163,10 @@ mat-icon {
 }
 
 .onboarding-stepper {
+  ::ng-deep .mat-step-header .mat-step-icon .mat-icon {
+    color: #fff !important;
+  }
+
   .mat-horizontal-stepper-header {
     background-color: #f9fafc;
     border-radius: 0.5rem;
@@ -232,11 +238,4 @@ mat-icon {
       margin-bottom: 1rem;
     }
   }
-}
-
-.card-body {
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
