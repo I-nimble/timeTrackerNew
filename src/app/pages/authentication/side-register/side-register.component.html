@@ -42,7 +42,7 @@
                       <!-- Sign up with Google -->
                       <div class="row m-t-24">
                         <div class="col-12 col-sm-12">
-                          <button mat-stroked-button class="w-100 m-b-4" (click)="googleSignUp()">
+                          <!-- <button mat-stroked-button class="w-100 m-b-4" (click)="googleSignUp()">
                             <div class="d-flex align-items-center">
                               <img
                                 src="/assets/images/svgs/google-icon.svg"
@@ -52,11 +52,11 @@
                               />
                               Sign up with Google
                             </div>
-                          </button>
+                          </button> -->
                         </div>
                       </div>
   
-                      <div class="or-border m-t-30">or sign up as a {{userRole === '3' ? 'client' : 'team member'}} with</div>
+                      <!-- <div class="or-border m-t-30">or sign up as a {{userRole === '3' ? 'client' : 'team member'}} with</div> -->
                       
                       <!-- Client registration form -->
                       <mat-stepper #stepper id="register-form" *ngIf="userRole === '3'">
@@ -66,11 +66,6 @@
                               <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
                               <mat-form-field appearance="outline" class="w-100">
                                 <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
-                                <mat-error
-                                  class="text-danger f-s-12 m-t-0"
-                                  *ngIf="registerClientForm.get('email')?.hasError('required') && registerClientForm.get('email')?.touched">
-                                  Email is required
-                                </mat-error>
                                 <mat-error 
                                   class="text-danger f-s-12 m-t-0"
                                   *ngIf="(registerClientForm.get('email')?.hasError('email') || registerClientForm.get('email')?.hasError('pattern')) && registerClientForm.get('email')?.touched"
@@ -82,6 +77,11 @@
                                   *ngIf="(registerClientForm.get('email')?.hasError('emailTaken')) && registerClientForm.get('email')?.touched"
                                   >
                                   Email is already taken
+                                </mat-error>
+                                <mat-error
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerClientForm.get('email')?.hasError('required') && registerClientForm.get('email')?.touched">
+                                  Email is required
                                 </mat-error>
                               </mat-form-field>
       
