@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
+import { UIKitSettingsBuilder } from "@cometchat/uikit-shared";
 import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -23,7 +23,6 @@ export class CometChatService {
   public outGoingCallObject!: CometChat.Call | null;
   templates: CometChatMessageTemplate[] = [];
   public unreadCountUpdated$ = new Subject<void>();
-  public contactsConfiguration: ContactsConfiguration;
 
   constructor(
     private http: HttpClient, 
@@ -46,7 +45,6 @@ export class CometChatService {
       if (!loggedIn) return;
 
       this.createCustomMessageTemplates();
-      this.setContactsConfiguration();
 
       this.isChatAvailable = true;
 
@@ -59,20 +57,6 @@ export class CometChatService {
       console.error("Initialization failed with error:", error);
     }
   }
-
-  setContactsConfiguration(): void {
-    const friendsRequestBuilder = new CometChat.UsersRequestBuilder()
-      .setLimit(100)
-      .friendsOnly(true);
-
-    this.contactsConfiguration = new ContactsConfiguration({
-      usersConfiguration: new UsersConfiguration({
-        usersRequestBuilder: friendsRequestBuilder,
-        hideSeparator: true
-      })
-    });
-  }
-
   
   async fetchUnreadMessages(): Promise<any[]> {
     let limit = 99;
