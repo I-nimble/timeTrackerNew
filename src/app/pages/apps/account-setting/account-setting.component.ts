@@ -191,7 +191,6 @@ export class AppAccountSettingComponent implements OnInit {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
-    this.loadExistingVideo(); 
   }
 
   onTabChange(event: any) {
@@ -283,6 +282,7 @@ export class AppAccountSettingComponent implements OnInit {
       ).subscribe({
           next: (users: any) => {
             this.user = users[0];
+            this.loadExistingVideo();
             this.usersService.getProfilePic(this.user.id).subscribe({
               next: (url: any) => {
                 if (url) {
@@ -328,7 +328,7 @@ export class AppAccountSettingComponent implements OnInit {
       this.usersService.getUsers(userFilter).subscribe({
         next: (users: any) => {
           this.user = users[0];
-
+          this.loadExistingVideo();
           this.initializeForm();
           
           this.usersService.getProfilePic(this.user.id).subscribe({
