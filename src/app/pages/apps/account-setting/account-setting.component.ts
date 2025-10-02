@@ -133,6 +133,7 @@ export class AppAccountSettingComponent implements OnInit {
   submitted: boolean = false;
   showForm: boolean = false;
   isOrphan: boolean;
+  matchRequested: boolean = false;
   olympiaForm = this.fb.group({
     full_name: ['', Validators.required],
     birth_date: ['', Validators.required],
@@ -289,6 +290,7 @@ export class AppAccountSettingComponent implements OnInit {
       ).subscribe({
           next: (users: any) => {
             this.user = users[0];
+            this.checkMatchRequestStatus() 
             this.loadExistingVideo();
             this.usersService.getProfilePic(this.user.id).subscribe({
               next: (url: any) => {
@@ -336,6 +338,7 @@ export class AppAccountSettingComponent implements OnInit {
         next: (users: any) => {
           this.user = users[0];
           this.loadExistingVideo();
+          this.checkMatchRequestStatus() 
           this.initializeForm();
           
           this.usersService.getProfilePic(this.user.id).subscribe({
@@ -616,6 +619,19 @@ export class AppAccountSettingComponent implements OnInit {
         this.openSnackBar('Error submitting form', 'close');
         this.isSubmitting = false;
       },
+    });
+  }
+
+  checkMatchRequestStatus() {
+    if (!this.user?.id) return;
+    
+    this.usersService.checkMatchStatus(this.user.id).subscribe({
+      next: (status: boolean) => {
+        this.matchRequested = status;
+      },
+      error: (error) => {
+        console.error('Error checking match status', error);
+      }
     });
   }
 
