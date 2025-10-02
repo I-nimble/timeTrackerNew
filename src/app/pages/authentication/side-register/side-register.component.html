@@ -1,6 +1,6 @@
 <div class="blank-layout-container justify-content-center">
   <div class="auth-wrapper">
-    <div class="position-relative">
+    <div class="register-container position-relative">
     <span class="d-block f-w-500 d-block f-s-14 m-t-24 m-x-16">
         <a
         [routerLink]="['/landingpage']"
@@ -164,7 +164,7 @@
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
                           <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerClientForm">
+                            <form class="m-t-24 col-12" [formGroup]="registerClientForm">
                               <h2 class="text-center m-b-10 label-title">Enter your phone number</h2>
                               <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
       
