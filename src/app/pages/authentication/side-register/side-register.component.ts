@@ -217,22 +217,6 @@ export class AppSideRegisterComponent {
     };
   }
 
-  emailTakenValidator(): ValidatorFn {
-    return (control: AbstractControl) => {
-      if (!control.value) {
-        return Promise.resolve(null);
-      }
-      return new Promise(resolve => {
-        this.authService.checkEmailExists(control.value).subscribe(
-          (exists: boolean) => {
-            resolve(exists ? { emailTaken: true } : null);
-          },
-          () => resolve(null)
-        );
-      });
-    };
-  }
-
   getLocations() {
     this.applicationsService.getLocations().subscribe((locations: any) => {
       this.locations = locations;
@@ -420,36 +404,36 @@ export class AppSideRegisterComponent {
     });
   }
 
-  googleSignUp() {
-    this.authService.singUpWithGoogle().subscribe((data) => {
-      if (this.userRole === '3') {
-        this.registerClientForm.patchValue({
-          name: data.name.split(' ')[0],
-          last_name: data.name.split(' ')[1] || '',
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else if (this.userRole === '2' && this.hasInvitation) {
-        this.registerInvitedTeamMemberForm.patchValue({
-          name: data.name.split(' ')[0],
-          last_name: data.name.split(' ')[1] || '',
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else if (this.userRole === '2') {
-        this.registerTeamMemberForm.patchValue({
-          fullName: data.name,
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else { return };
-      this.signedWithGoogleClicked = true;
-      this.openSnackBar('Google account linked. Please complete the rest of the form.', 'success');
-    });
-  }
+  // googleSignUp() {
+  //   this.authService.singUpWithGoogle().subscribe((data) => {
+  //     if (this.userRole === '3') {
+  //       this.registerClientForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2' && this.hasInvitation) {
+  //       this.registerInvitedTeamMemberForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2') {
+  //       this.registerTeamMemberForm.patchValue({
+  //         fullName: data.name,
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else { return };
+  //     this.signedWithGoogleClicked = true;
+  //     this.openSnackBar('Google account linked. Please complete the rest of the form.', 'success');
+  //   });
+  // }
 
   submit() {
     if (this.userRole === '3') {
