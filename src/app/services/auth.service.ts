@@ -178,28 +178,28 @@ export class AuthService {
     );
   }
 
-  singUpWithGoogle(): Observable<{ name: string; email: string; picture: string; googleId: string }> {
-    const provider = new GoogleAuthProvider();
-    const promise =  signInWithPopup(this.firebaseAuth, provider).then((result) => {
-      const user = result.user;
-      const name = user.displayName || '';
-      const email = user.email || '';
-      const picture = user.photoURL || '';
-      const googleId = user.uid;
-      return { name, email, picture, googleId };
-    });
+  // singUpWithGoogle(): Observable<{ name: string; email: string; picture: string; googleId: string }> {
+  //   const provider = new GoogleAuthProvider();
+  //   const promise =  signInWithPopup(this.firebaseAuth, provider).then((result) => {
+  //     const user = result.user;
+  //     const name = user.displayName || '';
+  //     const email = user.email || '';
+  //     const picture = user.photoURL || '';
+  //     const googleId = user.uid;
+  //     return { name, email, picture, googleId };
+  //   });
 
-    return from(promise);
-  }
+  //   return from(promise);
+  // }
 
-  signInWithGoogle(): Observable<{ googleId: string }> {
-    const promise = signInWithPopup(this.firebaseAuth, new GoogleAuthProvider()).then(response => {
-      const user = response.user;
-      const googleId = user.uid;
-      return { googleId };
-    });
-    return from(promise);
-  }
+  // signInWithGoogle(): Observable<{ googleId: string }> {
+  //   const promise = signInWithPopup(this.firebaseAuth, new GoogleAuthProvider()).then(response => {
+  //     const user = response.user;
+  //     const googleId = user.uid;
+  //     return { googleId };
+  //   });
+  //   return from(promise);
+  // }
 
   checkEmailExists(email: string): Observable<boolean> {
     return this.http.post<boolean>(`${this.API_URI}/check-email`, { email });
