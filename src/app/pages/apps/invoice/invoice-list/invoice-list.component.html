@@ -186,11 +186,17 @@
                 <mat-icon>visibility</mat-icon>
                 <span>View</span>
               </button>
-              <button mat-menu-item (click)="downloadInvoice(element.id)"
+              <button mat-menu-item (click)="downloadInvoice(element.id, 'excel')"
               class="d-flex align-items-center justify-content-center">
                 <!-- class="d-flex align-items-center justify-content-center" *ngIf="role == '3'" -->
-                <mat-icon>download</mat-icon>
-                <span>Download</span>
+                <mat-icon>table</mat-icon>
+                <span>Download Excel</span>
+              </button>
+              <button mat-menu-item (click)="downloadInvoice(element.id, 'pdf')"
+              class="d-flex align-items-center justify-content-center">
+                <!-- class="d-flex align-items-center justify-content-center" *ngIf="role == '3'" -->
+                <mat-icon>file_copy</mat-icon>
+                <span>Download PDF</span>
               </button>
             </mat-menu>
           </td>

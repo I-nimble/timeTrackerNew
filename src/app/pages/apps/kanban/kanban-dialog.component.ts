@@ -64,6 +64,7 @@ export class AppKanbanDialogComponent implements OnInit {
   @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
   formTouched: boolean = false;
   isSaving: boolean = false;
+  isOrphan: boolean = false;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -81,7 +82,11 @@ export class AppKanbanDialogComponent implements OnInit {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
-
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true' || localStorage.getItem('role') === '4';
+    if (this.isOrphan && (!this.data.type || this.data.type === 'task')) {
+      const employeeId = this.local_data.employee_id;
+      this.local_data.employee_id = employeeId;
+    }
     if (data.type === 'board') {
       this.local_data.type = 'board';
       this.local_data.id = data.id || null;
@@ -131,11 +136,10 @@ export class AppKanbanDialogComponent implements OnInit {
     if (this.local_data.type === 'board') {
       return !!this.local_data.goal?.trim();
     }
-
-    return !!this.local_data.goal?.trim() &&
-      !!this.local_data.employee_id &&
-      !!this.local_data.priority &&
-      !!this.local_data.due_date;
+    if (this.isOrphan) {
+      return !!this.local_data.goal?.trim() && !!this.local_data.priority && !!this.local_data.due_date;
+    }
+    return !!this.local_data.goal?.trim() && !!this.local_data.employee_id && !!this.local_data.priority && !!this.local_data.due_date;
   }
 
   showSnackbar(message: string): void {
