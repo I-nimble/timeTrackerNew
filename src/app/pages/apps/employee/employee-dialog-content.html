@@ -133,9 +133,15 @@
       </div>
 
       <!-- Schedule Section -->
-      <div class="col-12" *ngIf="false">
+      <div class="col-12" *ngIf="userRole == '1' || userRole == '3'">
         <div class="schedule-header d-flex align-items-center justify-content-between m-b-16 m-t-24">
-          <h4 class="f-s-16 f-w-600 m-b-0">Schedule</h4>
+          <div>
+            <h4 class="f-s-16 f-w-600 m-b-0">Schedule</h4>
+            <div class="d-flex align-items-start">
+            <i-tabler name="clock" class="icon-16 m-r-5 text-primary"></i-tabler>
+            <span class="f-s-12 text-muted">{{ getTimezoneInfo() }}</span>
+          </div>
+          </div>          
           <button mat-stroked-button type="button" (click)="addScheduleGroup()" class="add-schedule-btn" 
                   [disabled]="scheduleGroups.length >= 7">
             <i-tabler name="plus" class="icon-16 m-r-8"></i-tabler>
