@@ -98,7 +98,7 @@ export class AppSideRegisterComponent {
     workReferences: ['', Validators.required],
     hobbies: [''],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
+    picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
   });
   userRole: string = '3';
   companyId: string = '';
