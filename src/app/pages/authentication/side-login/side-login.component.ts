@@ -103,21 +103,21 @@ export class AppSideLoginComponent {
     return this.form.controls;
   }
 
-  googleLogin() {
-    this.loginWithGoogle = true;
-    this.authService.signInWithGoogle().subscribe({
-      next: (response: any) => {
-        this.loginWithGoogle = false;
-        this.authLogin(response.googleId);
-      },
-      error: (e) => {
-        this.loginWithGoogle = false;
-        this.openSnackBar("Error logging in with Google", "error");
-        console.error(e);
-        return;
-      },
-    });
-  }
+  // googleLogin() {
+  //   this.loginWithGoogle = true;
+  //   this.authService.signInWithGoogle().subscribe({
+  //     next: (response: any) => {
+  //       this.loginWithGoogle = false;
+  //       this.authLogin(response.googleId);
+  //     },
+  //     error: (e) => {
+  //       this.loginWithGoogle = false;
+  //       this.openSnackBar("Error logging in with Google", "error");
+  //       console.error(e);
+  //       return;
+  //     },
+  //   });
+  // }
 
   authLogin(googleId?: string) {
     if ((this.form.value.email && this.form.value.password) || googleId) {

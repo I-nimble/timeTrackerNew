@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject } from '@angular/core';
+import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -7,7 +7,8 @@ import {
   ReactiveFormsModule,
   FormGroup,
   AbstractControl,
-  ValidatorFn
+  ValidatorFn,
+  ValidationErrors
 } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
@@ -56,19 +57,19 @@ export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
-    company_name: ['', [Validators.required]],
-    departments: [['']],
+    company_name: ['', [Validators.required], [this.companyExistsValidator()]],
+    departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
     phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
-  });
+  }, { validators: this.crossFieldValidator() });
   registerInvitedTeamMemberForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company: ['', [Validators.required]],
@@ -79,15 +80,15 @@ export class AppSideRegisterComponent {
   registerTeamMemberForm: FormGroup = this.fb.group({
     location: ['', Validators.required],
     role: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     appliedWhere: ['', Validators.required],
-    referred: ['no'],
+    referred: ['no', Validators.required],
     referredName: [''],
     fullName: ['', Validators.required],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', Validators.required],
-    additionalPhone: [''],
+    contactPhone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    additionalPhone: ['', [Validators.pattern(/^\+?\d{7,15}$/)]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: ['0', Validators.required],
@@ -99,9 +100,7 @@ export class AppSideRegisterComponent {
     workExperience: [''],
     workReferences: ['', Validators.required],
     hobbies: [''],
-    introductionVideo: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     google_user_id: [''],
   });
   userRole: string = '3';
@@ -135,6 +134,7 @@ export class AppSideRegisterComponent {
     private applicationsService: ApplicationsService,
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -154,6 +154,67 @@ export class AppSideRegisterComponent {
         this.showRegisterForm(this.userRole);
       }
     });
+
+    this.registerClientForm.get('departments')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
+    });
+
+    this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
+    });
+  }
+
+  emailTakenValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return Promise.resolve(null);
+      }
+      return new Promise(resolve => {
+        this.authService.checkEmailExists(control.value).subscribe(
+          (exists: boolean) => {
+            resolve(exists ? { emailTaken: true } : null);
+          },
+          () => resolve(null)
+        );
+      });
+    };
+  }
+
+  crossFieldValidator(): ValidatorFn {
+    return (formGroup: AbstractControl): ValidationErrors | null => {
+      const departments = formGroup.get('departments')?.value;
+      const otherDepartment = formGroup.get('otherDepartment')?.value;
+
+      if (departments && Array.isArray(departments) && departments.includes('Other')) {
+        if (!otherDepartment || otherDepartment.trim() === '') {
+          formGroup.get('otherDepartment')?.setErrors({ required: true });
+          return { otherDepartmentRequired: true };
+        } else {
+          formGroup.get('otherDepartment')?.setErrors(null);
+        }
+      } else {
+        formGroup.get('otherDepartment')?.setErrors(null);
+      }
+
+      return null;
+    };
+  }
+
+  companyExistsValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return Promise.resolve(null);
+      }
+      return new Promise(resolve => {
+        this.companiesService.checkCompanyExists(control.value).subscribe(
+          ({ exists }: { exists: boolean }) => {
+            console.log(exists)
+            resolve(exists ? { companyExists: true } : null);
+          },
+          () => resolve(null)
+        );
+      });
+    };
   }
 
   getLocations() {
@@ -210,13 +271,22 @@ export class AppSideRegisterComponent {
       if (!location || !role) return;
 
       if (role === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       } else if (role === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       }
 
       if (location && role) {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('salaryRange', this.fb.control('', Validators.required));
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'salaryRange',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       }
 
       if (role === 'Virtual Assistant') {
@@ -334,36 +404,36 @@ export class AppSideRegisterComponent {
     });
   }
 
-  googleSignUp() {
-    this.authService.singUpWithGoogle().subscribe((data) => {
-      if (this.userRole === '3') {
-        this.registerClientForm.patchValue({
-          name: data.name.split(' ')[0],
-          last_name: data.name.split(' ')[1] || '',
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else if (this.userRole === '2' && this.hasInvitation) {
-        this.registerInvitedTeamMemberForm.patchValue({
-          name: data.name.split(' ')[0],
-          last_name: data.name.split(' ')[1] || '',
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else if (this.userRole === '2') {
-        this.registerTeamMemberForm.patchValue({
-          fullName: data.name,
-          email: data.email,
-          google_user_id: data.googleId,
-        });
-      }
-      else { return };
-      this.signedWithGoogleClicked = true;
-      this.openSnackBar('Google account linked. Please complete the rest of the form.', 'success');
-    });
-  }
+  // googleSignUp() {
+  //   this.authService.singUpWithGoogle().subscribe((data) => {
+  //     if (this.userRole === '3') {
+  //       this.registerClientForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2' && this.hasInvitation) {
+  //       this.registerInvitedTeamMemberForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2') {
+  //       this.registerTeamMemberForm.patchValue({
+  //         fullName: data.name,
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else { return };
+  //     this.signedWithGoogleClicked = true;
+  //     this.openSnackBar('Google account linked. Please complete the rest of the form.', 'success');
+  //   });
+  // }
 
   submit() {
     if (this.userRole === '3') {
@@ -536,9 +606,7 @@ export class AppSideRegisterComponent {
         availability: this.registerTeamMemberForm.value.availability,
         salary_range: this.registerTeamMemberForm.value.salaryRange,
         programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        introduction_video: this.registerTeamMemberForm.get('introductionVideo')?.value || null,
         resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        picture: this.registerTeamMemberForm.get('picture')?.value || null,
         portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
         google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
@@ -602,5 +670,14 @@ export class AppSideRegisterComponent {
       departments: this.selectedDepartments.map(d => d.name) || [''],
       otherDepartment: this.otherDepartment
     });
+  }
+
+  mustBeYesValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (control.value === 'no') {
+        return { mustBeYes: true };
+      }
+      return null;
+    };
   }
 }

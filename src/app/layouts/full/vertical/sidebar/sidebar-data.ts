@@ -42,21 +42,16 @@ export function getNavItems(role: number): NavItem[] {
           bgcolor: 'primary',
           route: '/dashboards/productivity',
         }] : []),
-    ...(!isOrphan ? [
+    ...(!isOrphan || isOrphan ? [
       {
         navCap: 'Apps',
       },
+      ...(!isOrphan ? [
       {
         displayName: 'Chat',
         iconName: 'message-2',
         bgcolor: 'primary',
         route: '/apps/chat',
-      },
-      {
-        displayName: 'Calendar',
-        iconName: 'calendar-event',
-        bgcolor: 'primary',
-        route: '/apps/calendar',
       },
       {
         displayName: 'Kanban',
@@ -88,6 +83,13 @@ export function getNavItems(role: number): NavItem[] {
         bgcolor: 'primary',
         route: 'apps/history',
       }] : []),
+    ] : []),
+      {
+        displayName: 'Calendar',
+        iconName: 'calendar-event',
+        bgcolor: 'primary',
+        route: '/apps/calendar',
+      }
     ] : []),
   ];
 }

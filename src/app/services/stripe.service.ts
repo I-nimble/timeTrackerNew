@@ -15,7 +15,7 @@ export class StripeService {
   }
 
   getPaymentDetail(id: number): Observable<any> {
-      return this.http.get(`${environment.apiUrl}/${id}`);
+    return this.http.get(`${environment.apiUrl}/${id}`);
   }
 
   getPaymentByInvoiceId(invoiceId: string): Observable<{ paymentId: number }> {

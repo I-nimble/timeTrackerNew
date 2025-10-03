@@ -10,13 +10,16 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { RatingsService } from 'src/app/services/ratings.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { nextDay } from 'date-fns';
 import { MatDialog } from '@angular/material/dialog';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { ReactiveFormsModule } from '@angular/forms';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -87,6 +90,14 @@ export class AppDashboardTMComponent implements OnInit {
   employer: any = {};
   companyLogo!: SafeResourceUrl;
   isOrphan: boolean;
+  userCompletedProfile: boolean = false;
+  olympiaSubmitted: boolean = false;
+  pictureUploaded: boolean = false;
+  profileCompleted: boolean = false;
+  videoUploaded: boolean = false;
+  matchRequested: boolean = false;
+  selectedStepperIndex: number = 0;
+  firstStepperLoad: boolean = true;
 
   constructor(
     private usersService: UsersService,
@@ -98,27 +109,18 @@ export class AppDashboardTMComponent implements OnInit {
     public ratingsEntriesService: RatingsEntriesService,
     public ratingsService: RatingsService,
     private olympiaService: OlympiaService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.getUser();
     this.getEntries();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
-    if (this.isOrphan) {
-      this.olympiaService.checkOlympiaForm().subscribe({
-        next: (res: any) => {
-          if (!res) {
-            this.openCompleteProfileDialog();
-          }
-        },  
-        error: (e: any) => {
-          console.error(e);
-          this.snackBar.open('There was an error checking your profile', 'close');
-        }
-      });
-    }
-
+    this.checkOlympiaStatus();
+    this.checkPictureUploaded();
+    this.checkVideoStatus();
+    this.setStepperToLastCompletedStep();
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
         this.currentEntryId = data.id;
@@ -139,24 +141,28 @@ export class AppDashboardTMComponent implements OnInit {
           const company = companies.filter(
             (company: any) => company.id == company_id
           )[0];
-          const companyTimeZone = company.timezone?.split(':')[0];
+          const companyTimeZone = company?.timezone?.split(':')[0];
           this.timeZone = companyTimeZone;
         });
       });
     } else {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
-  }
 
-  openCompleteProfileDialog() {
-    const dialogRef = this.dialog.open(OlympiaDialogComponent, {
-      width: '500px',
-      data: {},
-    });
+    this.usersService.getUsers({ searchField: '', filter: { currentUser: true } })
+    .subscribe({
+      next: (users: any) => {
+        this.user = users[0];
 
-    dialogRef.afterClosed().subscribe((result: { sent: boolean }) => {
-      if (result.sent) {
-        this.snackBar.open('Your submission was sent successfully', 'close');
+        this.usersService.getProfilePic(this.user.id).subscribe({
+          next: (url: any) => {
+            if (url) this.user.picture = url;
+            this.checkPictureUploaded();
+          },
+          error: () => {
+            this.checkPictureUploaded();
+          }
+        });
       }
     });
   }
@@ -178,8 +184,14 @@ export class AppDashboardTMComponent implements OnInit {
           next: (url: any) => {
             if (url) {
               this.picture = url;
+              this.user.picture = url;
             }
+            this.checkPictureUploaded();
+            this.checkMatchRequestStatus(); 
           },
+          error: () => {
+            this.checkPictureUploaded();
+          }
         });
 
         this.getEmployees();
@@ -317,6 +329,117 @@ export class AppDashboardTMComponent implements OnInit {
       duration: 2000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
+    });
+  }
+
+  checkOlympiaStatus() {
+    this.olympiaService.checkOlympiaForm().subscribe({
+      next: (res: boolean) => {
+        this.olympiaSubmitted = res;
+        this.setStepperToLastCompletedStep();
+      },
+      error: () => console.error('Error checking Olympia form status')
+    });
+  }
+
+  checkPictureUploaded() {
+    const defaultImages = [
+      'assets/images/default-user-profile-pic.png',
+      'assets/images/default-logo.jpg'
+    ];
+    this.pictureUploaded = !!this.user.picture && !defaultImages.includes(this.user.picture);
+    this.setStepperToLastCompletedStep();
+  }
+
+  checkVideoStatus() {
+    const email = localStorage.getItem('email') || '';
+    if (!email) return;
+
+    this.usersService.checkIntroductionVideo(email).subscribe({
+      next: (res: any) => {
+        this.videoUploaded = res.hasVideo;
+        this.setStepperToLastCompletedStep();
+      },
+      error: (err) => {
+        console.error('Error checking video status', err);
+        this.setStepperToLastCompletedStep();
+      }
+    });
+  }
+
+  setStepperToLastCompletedStep() {
+    if (!this.pictureUploaded && !this.videoUploaded) {
+      this.selectedStepperIndex = 0;
+    } else if (this.pictureUploaded && this.videoUploaded && !this.olympiaSubmitted) {
+      this.selectedStepperIndex = 2;
+    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && !this.matchRequested) {
+      this.selectedStepperIndex = 3;
+    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && this.matchRequested) {
+      this.selectedStepperIndex = -1;
+    } else {
+      this.selectedStepperIndex = 1;
+    }
+  }
+
+  checkMatchRequestStatus() {
+    if (!this.user?.id) return;
+    
+    this.usersService.checkMatchStatus(this.user.id).subscribe({
+      next: (status: boolean) => {
+        this.matchRequested = status;
+        this.setStepperToLastCompletedStep();
+      },
+      error: (error) => {
+        console.error('Error checking match status', error);
+        if (error.status !== 404) {
+          this.showSnackbar('Error checking match status');
+        }
+      }
+    });
+  }
+
+  requestMatch() {
+    if (!this.user?.id || this.matchRequested) return;
+    
+    this.usersService.requestMatch(this.user.id).subscribe({
+      next: () => {
+        this.matchRequested = true;
+        this.selectedStepperIndex = -1;
+        this.showSnackbar('Match request sent successfully!');
+      },
+      error: (error) => {
+        if (error.status === 400) {
+          this.matchRequested = true;
+          this.selectedStepperIndex = -1;
+          this.showSnackbar('Match already requested. Please wait for our contact.');
+        } else {
+          this.showSnackbar('Error sending match request');
+        }
+      }
+    });
+  }
+
+  preventStepperBack(event: StepperSelectionEvent) {
+    if (this.firstStepperLoad) {
+      this.firstStepperLoad = false;
+      return;
+    }
+
+    if (event.previouslySelectedIndex > event.selectedIndex) {
+      setTimeout(() => {
+        this.selectedStepperIndex = event.previouslySelectedIndex;
+      });
+      return;
+    }
+    this.selectedStepperIndex = event.selectedIndex;
+  }
+
+  goToAccountSettings(tabIndex: number) {
+    this.selectedStepperIndex = tabIndex;
+    setTimeout(() => {
+      this.router.navigate(['/apps/account-settings'], {
+        queryParams: { tab: tabIndex }
+      });
     });
   }
 }

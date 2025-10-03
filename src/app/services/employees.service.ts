@@ -17,6 +17,10 @@ export class EmployeesService {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
+  public getOrphanEmployees(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/orphan`);
+  }
+  
   public getCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(this.API_URI);
   }
@@ -50,6 +54,7 @@ export class EmployeesService {
     formData.append('position', employee.position);
     formData.append('projects', JSON.stringify(employee.projects));
     formData.append('employee', JSON.stringify({ id: companyId, position: employee.position }));
+    formData.append('schedules', JSON.stringify(employee.schedules));
     if (file) formData.append('profile', file);
     return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
   }

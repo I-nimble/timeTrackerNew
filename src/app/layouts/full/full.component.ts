@@ -111,15 +111,15 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    ...(this.role != '1' && this.role != '4' 
-    ? [{
-        id: 12,
-        img: '/assets/images/svgs/icon-speech-bubble.svg',
-        title: 'Help Center',
-        subtitle: 'Support & FAQs',
-        link: '/apps/chat/support',
-      }]
-    : []),
+    // ...(this.role != '1' && this.role != '4' 
+    // ? [{
+    //     id: 12,
+    //     img: '/assets/images/svgs/icon-speech-bubble.svg',
+    //     title: 'Help Center',
+    //     subtitle: 'Support & FAQs',
+    //     link: '/apps/chat/support',
+    //   }]
+    // : []),
     ...(this.role != '2' ||
     environment.allowedReportEmails.includes(localStorage.getItem('email') || '')
     ? [{

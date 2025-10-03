@@ -64,6 +64,8 @@ export class AppKanbanDialogComponent implements OnInit {
   @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
   formTouched: boolean = false;
   isSaving: boolean = false;
+  isOrphan: boolean = false;
+  selectedEmployeeId: number | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -81,7 +83,11 @@ export class AppKanbanDialogComponent implements OnInit {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
-
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true' || localStorage.getItem('role') === '4';
+    if (this.isOrphan && (!this.data.type || this.data.type === 'task')) {
+      const employeeId = this.local_data.employee_id;
+      this.local_data.employee_id = employeeId;
+    }
     if (data.type === 'board') {
       this.local_data.type = 'board';
       this.local_data.id = data.id || null;
@@ -131,11 +137,10 @@ export class AppKanbanDialogComponent implements OnInit {
     if (this.local_data.type === 'board') {
       return !!this.local_data.goal?.trim();
     }
-
-    return !!this.local_data.goal?.trim() &&
-      !!this.local_data.employee_id &&
-      !!this.local_data.priority &&
-      !!this.local_data.due_date;
+    if (this.isOrphan) {
+      return !!this.local_data.goal?.trim() && !!this.local_data.priority && !!this.local_data.due_date;
+    }
+    return !!this.local_data.goal?.trim() && !!this.local_data.employee_id && !!this.local_data.priority && !!this.local_data.due_date;
   }
 
   showSnackbar(message: string): void {
@@ -235,36 +240,30 @@ export class AppKanbanDialogComponent implements OnInit {
 
   getUsers(companyId?: number) {
     if (companyId) {
-      this.companiesService
-        .getEmployees(companyId)
-        .subscribe((employees: any) => {
-          this.users = this.users.concat(employees.map((e: any) => e.user));
-          this.companiesService
-            .getEmployer(companyId)
-            .subscribe((employer: any) => {
-              this.users.push(employer.user);
-              this.users = this.users.sort((a: any, b: any) =>
-                a.name.localeCompare(b.name)
-              );
-            });
+      this.companiesService.getEmployees(companyId).subscribe((employees: any) => {
+        this.users = employees.map((e: any) => e.user);
+
+        this.companiesService.getEmployer(companyId).subscribe((employer: any) => {
+          this.users.push(employer.user);
+          this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
+          this.setSelectedEmployee();
         });
-    }
-    else {
-      this.companies.forEach((company: any) => {
-        this.companiesService
-          .getEmployees(company.id)
-          .subscribe((employees: any) => {
-            this.users = this.users.concat(employees.map((e: any) => e.user));
-            this.companiesService
-              .getEmployer(company.id)
-              .subscribe((employer: any) => {
-                this.users.push(employer.user);
-                this.users = this.users.sort((a: any, b: any) =>
-                  a.name.localeCompare(b.name)
-                );
-              });
-          });
       });
+    } else {
+      this.employeesService.getOrphanEmployees().subscribe((orphans: any[]) => {
+        this.users = orphans.map((o: any) => o.user);
+        this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        this.setSelectedEmployee();
+      });
+    }
+  }
+
+  setSelectedEmployee() {
+    if (this.local_data.employee_id) {
+      const assignedUser = this.users.find(u => u.id === this.local_data.employee_id);
+      if (assignedUser) {
+        this.selectedEmployeeId = assignedUser.id;
+      }
     }
   }
 
