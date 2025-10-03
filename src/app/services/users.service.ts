@@ -179,7 +179,7 @@ export class UsersService {
   }
 
   getUploadUrl(type: string) {
-    return this.http.get<any>(`${this.API_URI}/generate_upload_url/${type}`);
+    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`, {});
   }
 
   getIntroductionVideo(email: string) {
