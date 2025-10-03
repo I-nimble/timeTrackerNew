@@ -65,7 +65,6 @@ export class AppKanbanDialogComponent implements OnInit {
   formTouched: boolean = false;
   isSaving: boolean = false;
   isOrphan: boolean = false;
-  selectedEmployeeId: number | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -240,30 +239,36 @@ export class AppKanbanDialogComponent implements OnInit {
 
   getUsers(companyId?: number) {
     if (companyId) {
-      this.companiesService.getEmployees(companyId).subscribe((employees: any) => {
-        this.users = employees.map((e: any) => e.user);
-
-        this.companiesService.getEmployer(companyId).subscribe((employer: any) => {
-          this.users.push(employer.user);
-          this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
-          this.setSelectedEmployee();
+      this.companiesService
+        .getEmployees(companyId)
+        .subscribe((employees: any) => {
+          this.users = this.users.concat(employees.map((e: any) => e.user));
+          this.companiesService
+            .getEmployer(companyId)
+            .subscribe((employer: any) => {
+              this.users.push(employer.user);
+              this.users = this.users.sort((a: any, b: any) =>
+                a.name.localeCompare(b.name)
+              );
+            });
         });
-      });
-    } else {
-      this.employeesService.getOrphanEmployees().subscribe((orphans: any[]) => {
-        this.users = orphans.map((o: any) => o.user);
-        this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
-        this.setSelectedEmployee();
-      });
     }
-  }
-
-  setSelectedEmployee() {
-    if (this.local_data.employee_id) {
-      const assignedUser = this.users.find(u => u.id === this.local_data.employee_id);
-      if (assignedUser) {
-        this.selectedEmployeeId = assignedUser.id;
-      }
+    else {
+      this.companies.forEach((company: any) => {
+        this.companiesService
+          .getEmployees(company.id)
+          .subscribe((employees: any) => {
+            this.users = this.users.concat(employees.map((e: any) => e.user));
+            this.companiesService
+              .getEmployer(company.id)
+              .subscribe((employer: any) => {
+                this.users.push(employer.user);
+                this.users = this.users.sort((a: any, b: any) =>
+                  a.name.localeCompare(b.name)
+                );
+              });
+          });
+      });
     }
   }
 
