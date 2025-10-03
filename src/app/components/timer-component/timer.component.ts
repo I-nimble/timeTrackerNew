@@ -108,8 +108,8 @@ export class TimerComponent {
       this.validStartTime != null &&
       this.entry.start_time != null
     ) {
-      const startTime = this.entry.start_time.getTime();
-      const validStartTime = this.validStartTime.getTime();
+      const startTime = this.entry.start_time?.getTime();
+      const validStartTime = this.validStartTime?.getTime();
       if (startTime && validStartTime) {
         return startTime <= validStartTime;
       }
@@ -160,12 +160,12 @@ export class TimerComponent {
 
         if (this.validStartTime !== null) {
           if (
-            this.localTime.getTime() >= this.validStartTime.getTime() &&
-            this.localTime.getTime() <= this.validEndTime.getTime()
+            this.localTime?.getTime() >= this.validStartTime?.getTime() &&
+            this.localTime?.getTime() <= this.validEndTime?.getTime()
           ) {
             if (
-              this.localTime.getTime() <=
-              this.validStartTime.getTime() + fiveMinutes
+              this.localTime?.getTime() <=
+              this.validStartTime?.getTime() + fiveMinutes
             ) {
               if (!this.initializing) {
                 this.initializing = true;
@@ -312,7 +312,7 @@ export class TimerComponent {
   }
 
   getHours(start_time: Date, end_time: Date) {
-    const diff = new Date(end_time).getTime() - new Date(start_time).getTime();
+    const diff = new Date(end_time)?.getTime() - new Date(start_time)?.getTime();
     const total = diff / (60 * 60 * 1000);
     return total;
   }

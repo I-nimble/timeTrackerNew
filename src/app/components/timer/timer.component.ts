@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { SharedModule } from '../shared.module';
 import { EntriesService } from 'src/app/services/entries.service';
-import * as moment from 'moment-timezone';
+import moment from 'moment-timezone';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { Subscription, interval } from 'rxjs';
 import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
@@ -81,8 +81,8 @@ export class TimerComponent implements OnChanges, OnInit {
 
   startedEarly() {
     if (this.entry.status !== null && this.validStartTime != null && this.entry.start_time != null) {
-      const startTime = this.entry.start_time.getTime()
-      const validStartTime = this.validStartTime.getTime()
+      const startTime = this.entry.start_time?.getTime()
+      const validStartTime = this.validStartTime?.getTime()
       if (startTime && validStartTime) {
         return startTime <= validStartTime
       }
@@ -123,8 +123,8 @@ export class TimerComponent implements OnChanges, OnInit {
         this.localTime = this.strToDate(utcTime)
 
         if (this.validStartTime !== null) {
-          if (this.localTime.getTime() >= this.validStartTime.getTime() && this.localTime.getTime() <= this.validEndTime.getTime()) {
-            if (this.localTime.getTime() <= (this.validStartTime.getTime() + fiveMinutes)) {
+          if (this.localTime?.getTime() >= this.validStartTime?.getTime() && this.localTime?.getTime() <= this.validEndTime?.getTime()) {
+            if (this.localTime?.getTime() <= (this.validStartTime?.getTime() + fiveMinutes)) {
               if (!this.initializing) {
                 this.initializing = true
                 this.justInTime = true
@@ -255,7 +255,7 @@ export class TimerComponent implements OnChanges, OnInit {
   }
 
   getHours(start_time: Date, end_time: Date) {
-    const diff = new Date(end_time).getTime() - new Date(start_time).getTime();
+    const diff = new Date(end_time)?.getTime() - new Date(start_time)?.getTime();
     const total = diff / (60 * 60 * 1000);
     return total;
   }
