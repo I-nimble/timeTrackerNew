@@ -31,7 +31,7 @@
   </div>
 
   <div class="properties-row" *ngIf="local_data.type !== 'board'">
-    <div class="property-item">
+    <div class="property-item" *ngIf="!isOrphan">
       <h3 class="property-title">Members <span class="required-asterisk">*</span></h3>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select

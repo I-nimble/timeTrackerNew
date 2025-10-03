@@ -122,13 +122,13 @@ export class AppInvoiceListComponent implements AfterViewInit {
     this.router.navigate(['/apps/viewinvoice', row.id]);
   }
 
-  downloadInvoice(id: number): void {
-    this.invoiceService.getInvoiceFile(id).subscribe({
+  downloadInvoice(id: number, format: string): void {
+    this.invoiceService.getInvoiceFile(id, format).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `invoice-${id}.xlsx`;
+        link.download = `invoice-${id}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
         document.body.appendChild(link);
         link.click();
         

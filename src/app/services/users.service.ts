@@ -179,7 +179,27 @@ export class UsersService {
   }
 
   getUploadUrl(type: string) {
-    return this.http.get<any>(`${this.API_URI}/generate_upload_url/${type}`);
+    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`, {});
+  }
+
+  getIntroductionVideo(email: string) {
+    return this.http.post<{ videoURL: string }>(`${this.API_URI}/generate_upload_url/video/introduction/download`, { email });
+  }
+  
+  uploadIntroductionVideo(file: File, email: string) {
+    const headers = new HttpHeaders({ 'Content-Type': file.type });
+    return this.http.post(`${this.API_URI}/generate_upload_url/video/introduction`, {
+      email: email,
+      contentType: file.type
+    }).pipe(
+      switchMap((res: any) => {
+        return this.http.put(res.url, file, { headers }).pipe(
+          switchMap(() => {
+            return this.getIntroductionVideo(email);
+          })
+        );
+      })
+    );
   }
 
   public registerOrphanTeamMember(data: any) {
@@ -276,5 +296,17 @@ export class UsersService {
 
   getCurrentTeamMember(): number | null {
     return this.teamMemberSource.getValue();
+  }
+
+  requestMatch(userId: number): Observable<any> {
+    return this.http.post(`${this.API_URI}/users/request-match/${userId}`, {});
+  }
+
+  checkIntroductionVideo(email: string) {
+    return this.http.post<{ hasVideo: boolean }>(`${this.API_URI}/users/check-video`, { email });
+  }
+
+  checkMatchStatus(userId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.API_URI}/users/match-status/${userId}`);
   }
 }

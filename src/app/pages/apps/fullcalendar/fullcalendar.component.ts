@@ -104,6 +104,7 @@ export class CalendarDialogComponent implements OnInit {
   );
 
   priorities: any[] = [];
+  isOrphan: boolean = localStorage.getItem('isOrphan') === 'true';
 
   constructor(
     public dialogRef: MatDialogRef<CalendarDialogComponent>,
@@ -265,7 +266,7 @@ export class AppFullcalendarComponent implements OnInit {
   companies: any[] = [];
   loggedInUser: any = null;
   events = signal<CustomCalendarEvent[]>([]);
-
+  isOrphan: boolean = localStorage.getItem('isOrphan') === 'true';
   config: MatDialogConfig = {
     width: '',
     height: '',
@@ -491,10 +492,10 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   handleTimeGridClick(date: Date): void {
-    if (!this.companyId) {
-      this.openSnackBar('Please select a company to create a task', 'Close');
-      return;
-    }
+  if (!this.isOrphan && !this.companyId) {
+    this.openSnackBar('Please select a company to create a task', 'Close');
+    return;
+  }
 
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
       width: '900px', 
@@ -515,7 +516,7 @@ export class AppFullcalendarComponent implements OnInit {
           due_date: result.data.due_date,
           priority: result.data.priority,
           recurrent: result.data.recurrent,
-          company_id: result.data.company_id,
+          company_id: this.isOrphan ? null : this.companyId,
           employee_id: result.data.employee_id,
           comments: result.data.comments,
           task_attachments: result.data.task_attachments,
@@ -563,7 +564,7 @@ export class AppFullcalendarComponent implements OnInit {
         dueTime: this.formatTime(event.start),
         priority: event.priority,
         employee_id: event.employee_id,
-        company_id: event.company_id,
+        company_id: this.isOrphan ? null : event.company_id,
         recommendations: event.recommendations,
         comments: event.comments,
         task_attachments: event.task_attachments,
