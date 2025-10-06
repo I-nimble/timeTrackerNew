@@ -80,6 +80,19 @@ export class AppLandingpageComponent implements AfterViewInit {
   @Output() toggleCollapsed = new EventEmitter<void>();
   @ViewChild('inimbleVideo') inimbleVideoRef!: ElementRef<HTMLVideoElement>;
 
+  currentComparisonTableSlide = 0;
+  comparisonTables = [
+    {
+      id: 1,
+      img: 'assets/images/comparison-table.svg',
+      title: 'Inimble vs freelance platforms',
+    },
+    {
+      id: 2,
+      img: 'assets/images/comparison-table-2.png',
+      title: 'Inimble vs local staff',
+    }
+  ];
   currentSlide = 0;
   testimonials = [
     {
@@ -206,6 +219,10 @@ export class AppLandingpageComponent implements AfterViewInit {
     }
   }
 
+  get currentComparisonTable() {
+    return this.comparisonTables[this.currentComparisonTableSlide];
+  }
+
   // scroll to demos
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
@@ -221,18 +238,34 @@ export class AppLandingpageComponent implements AfterViewInit {
   });
 }
 
-  prevSlide(): void {
-    this.currentSlide =
-      this.currentSlide === 0
-        ? this.testimonials.length - 1
-        : this.currentSlide - 1;
+  prevSlide(slider: string): void {
+    if(slider === 'testimonials') {
+      this.currentSlide =
+        this.currentSlide === 0
+          ? this.testimonials.length - 1
+          : this.currentSlide - 1;
+    }
+    else if (slider === 'comparison table') {
+      this.currentComparisonTableSlide =
+        this.currentComparisonTableSlide === 0
+          ? this.comparisonTables.length - 1
+          : this.currentComparisonTableSlide - 1;
+    }
   }
 
-  nextSlide(): void {
-    this.currentSlide =
-      this.currentSlide === this.testimonials.length - 1
-        ? 0
-        : this.currentSlide + 1;
+  nextSlide(slider: string): void {
+    if(slider === 'testimonials') {
+      this.currentSlide =
+        this.currentSlide === this.testimonials.length - 1
+          ? 0
+          : this.currentSlide + 1;
+    }
+    else if (slider === 'comparison table') {
+      this.currentComparisonTableSlide =
+        this.currentComparisonTableSlide === this.comparisonTables.length - 1
+          ? 0
+          : this.currentComparisonTableSlide + 1;
+    }
   }
 
   goToSlide(index: number): void {
