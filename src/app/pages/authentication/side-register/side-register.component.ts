@@ -75,6 +75,7 @@ export class AppSideRegisterComponent {
     company: ['', [Validators.required]],
     position: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    hourly_rate: [0, [Validators.min(0), Validators.max(1000)]],
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
@@ -150,6 +151,7 @@ export class AppSideRegisterComponent {
           email: params['email'],
           name: params['name'].split(' ')[0],
           last_name: params['name'].split(' ')[1] || '',
+          hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
       }
@@ -518,6 +520,7 @@ export class AppSideRegisterComponent {
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
         google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
+        hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
