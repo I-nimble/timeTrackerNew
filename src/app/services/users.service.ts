@@ -24,18 +24,20 @@ export class UsersService {
   public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
     const options = { headers: headers, responseType: 'blob' as 'json' };
-  
     return this.http.post<Blob>(`${this.API_URI}/users/profile`, { id }, options).pipe(
       switchMap((response: Blob) => {
+        if (!response || !(response instanceof Blob)) {
+          return of(null);
+        }
         if (response.type === 'application/json') {
           return new Observable<null>((observer) => {
             const reader = new FileReader();
             reader.onload = () => {
               const responseText = reader.result as string;
-              if (responseText.includes('Profile pic does not exists')) {
-                console.warn('No profile picture available: ', responseText);
-                observer.next(null);  
+              if (responseText.includes('Profile pic does not exist')) {
+                console.warn('No profile picture available');
               }
+              observer.next(null); 
               observer.complete(); 
             };
             reader.onerror = (error) => {
@@ -45,13 +47,18 @@ export class UsersService {
           });
         }
 
-        const url = URL.createObjectURL(response);
-        const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        return of(safeUrl); 
+        if (response.type.startsWith('image/')) {
+          const url = URL.createObjectURL(response);
+          const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+          return of(safeUrl);
+        } else {
+          console.warn('Unexpected response type:', response.type);
+          return of(null);
+        }
       }),
       catchError((error) => {
         console.error('Error fetching profile picture:', error);
-        return of(null);  
+        return of(null);
       })
     );
   }
