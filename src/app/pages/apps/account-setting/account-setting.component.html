@@ -1,6 +1,6 @@
 <mat-card class="cardWithShadow">
 
-  <mat-tab-group mat-stretch-tabs="false" animationDuration="0ms" (selectedTabChange)="onTabChange($event)">
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" mat-stretch-tabs="false" animationDuration="0ms" (selectedIndexChange)="onTabChange($event)">
     <mat-tab>
         <ng-template mat-tab-label>
           <div class="d-flex align-items-center">
@@ -704,13 +704,19 @@
                       <button mat-flat-button color="primary" (click)="submitOlympiaForm()" [disabled]="isSubmitting">Submit</button>
                     </div>
                   </form>
-                  <ng-container *ngIf="submitted">
+                  <ng-container *ngIf="submitted && !matchRequested">
                     <div class="d-flex flex-column align-items-center justify-content-center p-24">
                       <h2 class="text-center m-b-16">Thank you for submitting your Olympia assessment!</h2>
-                      <p class="text-center">Please complete the steps and we will contact you soon in case you are selected.</p>
+                      <p class="text-center">Please complete the steps to continue with you application.</p>
                       <button mat-flat-button color="primary" class="m-t-16" [routerLink]="['/dashboards/tm']">
                         Go
                       </button>  
+                    </div>
+                  </ng-container>
+                  <ng-container *ngIf="matchRequested">
+                    <div class="d-flex flex-column align-items-center justify-content-center p-24">
+                      <h2 class="text-center m-b-16">Thank you for completing the steps!</h2>
+                      <p class="text-center">We will contact you soon in case you are selected.</p>
                     </div>
                   </ng-container>
                 </mat-card-content>
