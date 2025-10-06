@@ -1,14 +1,9 @@
 <div class="row">
   <div class="col-sm-4 col-lg-4">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Pending' }"
-      (click)="handleTabClick('Pending')"
-    >
+    <mat-card class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Pending' }" (click)="handleTabClick('Pending')">
       <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-warning text-white"
-        >
+        <div class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-warning text-white">
           <i-tabler name="receipt-dollar" class="icon-24 d-flex"></i-tabler>
         </div>
         <div class="info">
@@ -22,15 +17,10 @@
   </div>
 
   <div class="col-sm-4 col-lg-4">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Paid' }"
-      (click)="handleTabClick('Paid')"
-    >
+    <mat-card class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Paid' }" (click)="handleTabClick('Paid')">
       <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-primary text-white"
-        >
+        <div class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-primary text-white">
           <i-tabler name="list-details" class="icon-24 d-flex"></i-tabler>
         </div>
         <div class="info">
@@ -44,15 +34,10 @@
   </div>
 
   <div class="col-sm-4 col-lg-4">
-    <mat-card
-      class="cardWithShadow cursor-pointer bg-light-error shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Overdue' }"
-      (click)="handleTabClick('Overdue')"
-    >
+    <mat-card class="cardWithShadow cursor-pointer bg-light-error shadow-none"
+      [ngClass]="{ 'active-tab': activeTab() === 'Overdue' }" (click)="handleTabClick('Overdue')">
       <mat-card-content class="d-flex align-items-center gap-16">
-        <div
-          class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-error text-white"
-        >
+        <div class="icon icon-38 rounded d-flex align-items-center justify-content-center bg-error text-white">
           <i-tabler name="sort-ascending" class="icon-24 d-flex"></i-tabler>
         </div>
         <div class="info">
@@ -70,38 +55,37 @@
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
       <div class="row m-b-16 col-lg-4">
-      <div>
         <mat-form-field appearance="outline" class="w-100 hide-hint">
-          <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+          <mat-label>Select a Company</mat-label>
           <mat-select (selectionChange)="handleCompanySelection($event)" [value]="selectedCompanyId()">
             <mat-option [value]="null">All</mat-option>
-            <mat-option
-              *ngFor="let company of companies"
-              [value]="company.id"
-            >
+            <mat-option *ngFor="let company of companies" [value]="company.id">
               {{ company.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
+      <div class="row m-b-16 col-lg-4">
+        <mat-form-field class="w-100" appearance="outline">
+          <mat-label>Date Range</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate placeholder="Start date" [(ngModel)]="startDate" (dateChange)="onDateRangeChange()" />
+            <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateChange)="onDateRangeChange()" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
       </div>
       <div class="col-sm-4 d-flex align-items-center justify-content-end">
-        <a
-          mat-button
-          [routerLink]="['/apps/addInvoice']"
-          mat-flat-button
-          color="primary"
-          class="me-4"
+        <a 
+          mat-button 
+          mat-flat-button 
+          color="primary" 
+          class="m-r-10"
+          *ngIf="role == '1' || allowedPaymentsManager" 
+          (click)="generateInvoice()"
         >
-          Add Invoice
-        </a>
-        <a
-          mat-button
-          [routerLink]="['/apps/payments-reports']"
-          mat-flat-button
-          color="primary"
-        >
-          Reports
+          Generate Invoice
         </a>
       </div>
     </div>
@@ -111,33 +95,9 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
     <div class="table-responsive">
-      <table
-        mat-table
-        [dataSource]="invoiceList"
-        matSort
-        class="no-wrap m-t-0 v-middle w-100"
-      >
-        <ng-container matColumnDef="id">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            mat-sort-header
-            class="f-w-600 f-s-15"
-          >
-            ID
-          </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
-            {{ element.id }}
-          </td>
-        </ng-container>
-
+      <table mat-table [dataSource]="invoiceList" matSort class="no-wrap m-t-0 v-middle w-100">
         <ng-container matColumnDef="paymentDate">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            mat-sort-header
-            class="f-w-600 f-s-15"
-          >
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600 f-s-15">
             Payment Date
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
@@ -155,12 +115,7 @@
         </ng-container>
 
         <ng-container matColumnDef="amount">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            mat-sort-header
-            class="f-w-600 f-s-15"
-          >
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600 f-s-15">
             Amount
           </th>
           <td mat-cell *matCellDef="let element" class="f-s-14">
@@ -169,19 +124,12 @@
         </ng-container>
 
         <ng-container matColumnDef="status">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            mat-sort-header
-            class="f-w-600 f-s-15"
-          >
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600 f-s-15">
             Status
           </th>
 
           <td mat-cell *matCellDef="let element" class="f-s-14">
-            <span
-              class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12"
-              [ngStyle]="{
+            <span class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12" [ngStyle]="{
                 'background-color':
                   element.status.name === 'Paid'
                     ? 'var(--mat-sys-primary)'
@@ -189,10 +137,11 @@
                     ? '#c9c8c8'
                     : element.status.name === 'Pending'
                     ? 'rgb(248 192 118)'
+                    : element.status.name === 'Draft'
+                    ? 'var(--mat-sys-error)'
                     : 'transparent',
                 color: 'white'
-              }"
-            >
+              }">
               {{ element.status.name }}
             </span>
           </td>
@@ -203,74 +152,64 @@
             Action
           </th>
           <td mat-cell *matCellDef="let element" class="d-flex">
-            <a
-              mat-icon-button
-              [routerLink]="['/apps/editinvoice/', element.id]"
-              class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '1' || allowedPaymentsManager"
-            >
-              <i-tabler
-                name="pencil"
-                class="icon-18 d-flex align-items-center"
-              ></i-tabler>
-            </a>
-            <a
-              mat-icon-button
-              [routerLink]="['/apps/pricing']"
-              [queryParams]="{ invoiceId: element.id }"
-              class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '3' && element.status.name != 'Paid'"
-            >
-              <i-tabler
-                name="credit-card-pay"
-                class="icon-18 d-flex align-items-center"
-              ></i-tabler>
-            </a>
-            <a
-              mat-icon-button
-              [routerLink]="['/apps/viewInvoice/', element.id]"
-              class="d-flex align-items-center justify-content-center"
-            >
-              <i-tabler
-                name="eye"
-                class="icon-18 d-flex align-items-center"
-              ></i-tabler>
-            </a>
-
-            <a
-              mat-icon-button
-              class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '3'"
-            >
-              <i-tabler
-                name="download"
-                class="icon-18 d-flex align-items-center"
-              ></i-tabler>
-            </a>
-
-            <a
-              mat-icon-button
-              (click)="deleteInvoice(element.id)"
-              class="d-flex align-items-center justify-content-center"
-              *ngIf="role == '1' || allowedPaymentsManager"
-            >
-              <i-tabler
-                name="trash"
-                class="icon-18 d-flex align-items-center"
-              ></i-tabler>
-            </a>
+            <button mat-icon-button [matMenuTriggerFor]="optionsMenu" class="m-l-10 actions-btn">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #optionsMenu="matMenu">
+              <!-- (click)="editInvoice(element.id)" -->
+              <button 
+                mat-menu-item 
+                [routerLink]="['/apps/editinvoice/', element.id]"
+                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager"
+              >
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+              <button mat-menu-item (click)="deleteInvoice(element.id)"
+                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+              <button mat-menu-item (click)="sendToClient(element.id)"
+                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager">
+                <mat-icon>send</mat-icon>
+                <span>Send to client</span>
+              </button>
+              <button mat-menu-item [routerLink]="['/apps/pricing']" [queryParams]="{ invoiceId: element.id }"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="role == '3' && element.status.name != 'Paid'">
+                <mat-icon>credit_card</mat-icon>
+                <span>Pay</span>
+              </button>
+              <button mat-menu-item [routerLink]="['/apps/viewInvoice/', element.id]"
+                class="d-flex align-items-center justify-content-center">
+                <mat-icon>visibility</mat-icon>
+                <span>View</span>
+              </button>
+              <button mat-menu-item (click)="downloadInvoice(element.id, 'excel')"
+              class="d-flex align-items-center justify-content-center">
+                <!-- class="d-flex align-items-center justify-content-center" *ngIf="role == '3'" -->
+                <mat-icon>table</mat-icon>
+                <span>Download Excel</span>
+              </button>
+              <button mat-menu-item (click)="downloadInvoice(element.id, 'pdf')"
+              class="d-flex align-items-center justify-content-center">
+                <!-- class="d-flex align-items-center justify-content-center" *ngIf="role == '3'" -->
+                <mat-icon>file_copy</mat-icon>
+                <span>Download PDF</span>
+              </button>
+            </mat-menu>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr 
+          mat-row *matRowDef="let row; columns: displayedColumns" 
+          (click)="onRowClick(row, $event)"
+          class="cursor-pointer"
+        ></tr>
       </table>
-      <mat-paginator
-        [pageSizeOptions]="[5, 10, 20]"
-        showFirstLastButtons
-      ></mat-paginator>
+      <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
     </div>
   </mat-card-content>
 </mat-card>
-
-

@@ -40,7 +40,6 @@ export class ScrapperComponent implements OnInit {
   getPosts() {
     this.scrapperService.getPosts().subscribe(posts => {
       this.posts = posts;
-      this.filteredPosts = [...posts];
     });
   }
 
@@ -55,16 +54,10 @@ export class ScrapperComponent implements OnInit {
     this.aiAnswer = '';
     this.filteredPosts = [];
 
-    this.aiService.evaluatePosts(this.posts, question).subscribe({
+    this.aiService.evaluatePosts(question).subscribe({
       next: (res) => {
-        const selectedKeywords = this.extractKeywordsFromAiAnswer(res.answer);
-
-        this.filteredPosts = [...this.posts.filter(post =>
-          selectedKeywords.some(kw =>
-            kw.toLowerCase() === post.keyword?.toLowerCase().trim()
-          )
-        )];
-
+        const returnedIds = res.posts.map((p: any) => p.id);
+        this.filteredPosts = this.posts.filter(post => returnedIds.includes(post.id));
         this.aiLoading = false;
         if (this.filteredPosts.length === 0) {
           this.aiAnswer = 'No matches found.';
@@ -82,17 +75,6 @@ export class ScrapperComponent implements OnInit {
         this.aiLoading = false;
       }
     });
-  }
-
-  extractKeywordsFromAiAnswer(answer: any): string[] {
-    const text = answer?.parts?.[0]?.text || '';
-
-    const keywords = text
-      .split('\n')
-      .map((k: string) => k.replace(/"/g, '').trim())
-      .filter(Boolean);
-
-    return Array.from(new Set(keywords));
   }
 
   onManualSearch(query: string) {

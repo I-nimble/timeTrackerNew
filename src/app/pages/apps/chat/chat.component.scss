@@ -1,4 +1,10 @@
-
+.cc__backdrop {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100% !important;
+  width: 100% !important;
+}
 .fullwidth {
   width: 100%;
 }
@@ -23,4 +29,8 @@
   padding: 20px;
   font-family: Arial, sans-serif;
   background-color: var(--bs-card-body-bg);
+}
+.chat-view-container {
+  height: 80vh;
+  max-height: 750px;
 }

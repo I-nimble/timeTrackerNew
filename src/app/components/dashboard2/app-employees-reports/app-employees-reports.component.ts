@@ -256,7 +256,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
       company: this.selectedClient || 'all',
       project: 'all',
       byClient: false,
-      useTimezone: false,
+      useTimezone: true,
       multipleUsers: true,
       format
     };

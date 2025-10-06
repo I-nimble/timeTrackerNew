@@ -7,7 +7,8 @@
             <input
               matInput
               placeholder="Search Team Member"
-              (keyup)="applyFilter($any($event.target).value)"
+              [(ngModel)]="searchText"
+              (keyup)="applyCombinedFilters()"
             />
             <mat-icon matSuffix>
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
@@ -16,15 +17,15 @@
   
           <mat-form-field appearance="outline" *ngIf="userRole === '1' || userRole === '4'" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
-            <mat-select (selectionChange)="handleCompanySelection($event)">
+            <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
               <mat-option *ngFor="let company of companies" [value]="company.id">
                 {{ company.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end" *ngIf="userRole != '4'">
-          <button mat-flat-button (click)="openDialog('Invite', {companyId})" color="primary">
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
             Add Team Member
           </button>
         </div>
@@ -34,7 +35,7 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive">
-        <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource"></app-employee-table>
+        <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource" (getEmployees)="getEmployees()"></app-employee-table>
         <div *ngIf="dataSource?.length === 0 && loaded" class="text-center p-4 f-s-16 text-muted">
           No employees found.
         </div>

@@ -31,7 +31,7 @@
   </div>
 
   <div class="properties-row" *ngIf="local_data.type !== 'board'">
-    <div class="property-item">
+    <div class="property-item" *ngIf="!isOrphan">
       <h3 class="property-title">Members <span class="required-asterisk">*</span></h3>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select
@@ -67,28 +67,32 @@
     <div class="property-item">
       <h3 class="property-title">Due Date</h3>
       <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Pick a date</mat-label>
         <input
           matInput
           [matDatepicker]="picker"
           placeholder="Select a date"
-          name="due_date"
-          [(ngModel)]="local_data.due_date"
-          (dateChange)="onDueDateChange($event)"
+          name="dueDateTime"
+          [(ngModel)]="dueDateTime"
+          required
         />
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
-      <mat-form-field appearance="outline" class="w-100 mt-2">
-        <input
-          matInput
-          type="time"
-          placeholder="Due Time"
-          [(ngModel)]="dueTime"
-          name="due_time"
-          min="08:00"
-          max="20:00"
-          (change)="onDueTimeChange($event)"
-        />
+      <mat-form-field appearance="outline" class="w-100 m-t-10">
+        <mat-label>Pick a time</mat-label>
+        <input 
+          matInput 
+          [matTimepicker]="timePicker"
+          [(ngModel)]="dueDateTime"
+          name="dueDateTime"
+          [ngModelOptions]="{updateOn: 'blur'}"
+          required
+          matTimepickerMin="08:00"
+          matTimepickerMax="20:00"
+        >
+        <mat-timepicker #timePicker></mat-timepicker>
+        <mat-timepicker-toggle [for]="timePicker" matSuffix></mat-timepicker-toggle>
       </mat-form-field>
     </div>
   </div>

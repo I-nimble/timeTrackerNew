@@ -11,6 +11,12 @@ export class InvoiceService {
   private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) { }
 
+  getInvoiceFile(id: number, format: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`, {
+      responseType: 'blob'
+    });
+  }
+
   public getInvoiceList(): Observable<any> {
     return this.http.get(`${this.apiUrl}/stripe/invoice`);
   }

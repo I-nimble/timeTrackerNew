@@ -24,12 +24,9 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end" *ngIf="userRole != '4'">
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
           <!-- add employee -->
-          <button 
-            mat-flat-button 
-            (click)="openDialog('Invite', {companyId})" color="primary"
-          >
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
             Add Team Member
           </button>
         </div>
