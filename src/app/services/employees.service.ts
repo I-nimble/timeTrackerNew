@@ -17,6 +17,10 @@ export class EmployeesService {
     return this.http.get<any[]>(`${this.API_URI}`);
   }
 
+  public getOrphanEmployees(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/orphan`);
+  }
+  
   public getCompanies(): Observable<Company[]> {
     return this.http.get<Company[]>(this.API_URI);
   }

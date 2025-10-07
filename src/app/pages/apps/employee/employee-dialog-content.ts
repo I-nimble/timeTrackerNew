@@ -1,6 +1,7 @@
 import {
   Component,
   Inject,
+  OnInit,
   Optional,
 } from '@angular/core';
 import {
@@ -22,6 +23,8 @@ import { SchedulesService } from 'src/app/services/schedules.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import moment from 'moment-timezone';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { TimezoneService } from 'src/app/services/timezone.service';
+import { Subscription } from 'rxjs';
 
 interface DialogData {
   action: string;
@@ -41,7 +44,7 @@ interface DialogData {
   templateUrl: './employee-dialog-content.html',
 })
 // tslint:disable-next-line: component-class-suffix
-export class AppEmployeeDialogContentComponent {
+export class AppEmployeeDialogContentComponent implements OnInit {
   action: string | any;
   local_data: any;
   joiningDate = new FormControl();
@@ -55,6 +58,9 @@ export class AppEmployeeDialogContentComponent {
   userRole = localStorage.getItem('role');
   existingSchedules: any[] = [];
   timeZone: string = 'America/Caracas';
+  userTimezone: string = 'UTC';
+  timezoneOffset: string = '';
+  private timezoneSubscription!: Subscription;
 
   constructor(
     public dialog: MatDialog,
@@ -67,6 +73,7 @@ export class AppEmployeeDialogContentComponent {
     private fb: FormBuilder,
     private companiesService: CompaniesService,
     private schedulesService: SchedulesService,
+    private timezoneService: TimezoneService,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.action = data.action;
@@ -137,51 +144,75 @@ export class AppEmployeeDialogContentComponent {
     }
   }
 
+  ngOnInit(): void {
+    this.timezoneSubscription = this.timezoneService.userTimezone$.subscribe(timezone => {
+      this.userTimezone = timezone;
+      this.timezoneOffset = this.timezoneService.getCurrentTimezoneOffset();
+      
+      if (this.action === 'Update' && this.local_data.profile.id) {
+        this.loadEmployeeSchedules();
+      }
+    });
+
+    this.positionsService.get().subscribe((positions: any) => {
+      this.positions = positions;
+    });
+
+    this.companiesService.getCompanies().subscribe((companies: any) => {
+      this.companies = companies;
+    });
+
+    this.projectsService.get().subscribe((projects: any) => {
+      this.projects = projects;
+    });
+
+    if(this.action === 'Invite') {
+      this.companiesService.getCompanies().subscribe((companies: any) => {
+        this.companies = companies;
+        if(this.userRole === '3') {
+          this.companiesService.getByOwner().subscribe((company: any) => {
+            this.inviteEmployeeForm.patchValue({
+              company_id: company.company.id
+            });
+          });
+        }
+        else if (this.userRole === '1' || this.userRole === '4') {
+          this.inviteEmployeeForm.patchValue({
+            company_id: this.local_data.profile.company_id || ''
+          });
+        }
+      });
+    }
+
+    if (!this.local_data.profile.imagePath) {
+      this.local_data.profile.imagePath = 'assets/images/default-user-profile-pic.png';
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.timezoneSubscription) {
+      this.timezoneSubscription.unsubscribe();
+    }
+  }
+
   get scheduleGroups() {
     return this.editEmployeeForm.get('scheduleGroups') as FormArray;
   }
 
-  convertUTCToVenezuelaTime(utcTime: string): string {  
-    try {
-      let cleanTime = utcTime;
-      if (cleanTime.includes(':')) {
-        const parts = cleanTime.split(':');
-        cleanTime = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
-      }
-      
-      const today = new Date();
-      const [hours, minutes, seconds] = cleanTime.split(':');
-      today.setUTCHours(parseInt(hours), parseInt(minutes || '0'), parseInt(seconds || '0'), 0);
-      
-      const venezuelaTime = moment(today).tz(this.timeZone).format('HH:mm');
-      return venezuelaTime;
-    } catch (error) {
-      console.error('Error converting time:', error, 'for time:', utcTime);
-      return '00:00';
-    }
+  convertUTCToLocalTime(utcTime: string): string {  
+    return this.timezoneService.convertUTCToLocalTime(utcTime, this.userTimezone);
   }
 
-  convertVenezuelaTimeToUTC(localTime: string): string {    
-    try {
-      const today = new Date();
-      const [hours, minutes] = localTime.split(':');
-      today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      
-      const utcTime = moment(today).utc().format('HH:mm:ss');
-      return utcTime;
-    } catch (error) {
-      console.error('Error converting time to UTC:', error);
-      return '00:00:00';
-    }
+   convertLocalTimeToUTC(localTime: string): string {    
+    return this.timezoneService.convertLocalTimeToUTC(localTime, this.userTimezone);
   }
 
   groupSchedulesByTime(schedules: any[]): any[] {
     const groups: any[] = [];
     
     schedules.forEach(schedule => {
-      
-      const startTime = this.convertUTCToVenezuelaTime(schedule.start_time);
-      const endTime = this.convertUTCToVenezuelaTime(schedule.end_time);
+      const startTime = this.convertUTCToLocalTime(schedule.start_time);
+      const endTime = this.convertUTCToLocalTime(schedule.end_time);
       
       const days = schedule.days ? schedule.days.map((day: any) => day.name) : [];
       
@@ -247,28 +278,28 @@ export class AppEmployeeDialogContentComponent {
   }
 
   loadEmployeeSchedules(): void {
-  this.schedulesService.getByUserId(this.local_data.profile.id).subscribe({
-    next: (schedules: any) => {
-      this.existingSchedules = schedules.schedules || [];
+    this.schedulesService.getByUserId(this.local_data.profile.id).subscribe({
+      next: (schedules: any) => {
+        this.existingSchedules = schedules.schedules || [];
 
-      while (this.scheduleGroups.length !== 0) {
-        this.scheduleGroups.removeAt(0);
+        while (this.scheduleGroups.length !== 0) {
+          this.scheduleGroups.removeAt(0);
+        }
+        
+        const groupedSchedules = this.groupSchedulesByTime(this.existingSchedules);
+        
+        groupedSchedules.forEach(group => {
+          this.addScheduleGroup(
+            group.days,
+            group.start_time,
+            group.end_time
+          );
+        });
+      },
+      error: (error) => {
+        console.error('Error loading schedules:', error);
       }
-      
-      const groupedSchedules = this.groupSchedulesByTime(this.existingSchedules);
-      
-      groupedSchedules.forEach(group => {
-        this.addScheduleGroup(
-          group.days,
-          group.start_time,
-          group.end_time
-        );
-      });
-    },
-    error: (error) => {
-      console.error('Error loading schedules:', error);
-    }
-  });
+    });
   }
 
   isDaySelected(day: string): boolean {
@@ -312,6 +343,7 @@ export class AppEmployeeDialogContentComponent {
         name: this.inviteEmployeeForm.value.name,
         email: this.inviteEmployeeForm.value.email,
         company_id: this.inviteEmployeeForm.value.company_id,
+        user_timezone: this.userTimezone
       };
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {
@@ -341,7 +373,8 @@ export class AppEmployeeDialogContentComponent {
       
       const employeeData = {
         ...this.editEmployeeForm.value,
-        schedules: scheduleData
+        schedules: scheduleData,
+        user_timezone: this.userTimezone
       };
 
       this.employeesService.updateEmployee(
@@ -353,9 +386,9 @@ export class AppEmployeeDialogContentComponent {
         next: () => {
           this.dialogRef.close({ event: 'Update' });
           this.openSnackBar('Team Member Updated successfully!', 'Close');
-            this.sendingData = false;
-          },
-          error: (err: any) => {
+          this.sendingData = false;
+        },
+        error: (err: any) => {
           console.error('Error updating Team Member:', err);
           this.openSnackBar('Error updating Team Member', 'Close');
           this.sendingData = false;
@@ -381,13 +414,17 @@ export class AppEmployeeDialogContentComponent {
     this.scheduleGroups.value.forEach((group: any) => {
       if (group.days && group.days.length > 0 && group.start_time && group.end_time) {
         group.days.forEach((day: string) => {
-          const startTime = this.convertVenezuelaTimeToUTC(group.start_time);
-          const endTime = this.convertVenezuelaTimeToUTC(group.end_time);
+          const startTime = this.convertLocalTimeToUTC(group.start_time);
+          const endTime = this.convertLocalTimeToUTC(group.end_time);
           
           scheduleData.push({
             day: day,
             start_time: startTime,
-            end_time: endTime
+            end_time: endTime,
+            metadata: {
+              user_timezone: this.userTimezone,
+              converted_at: new Date().toISOString()
+            }
           });
         });
       }
@@ -431,5 +468,9 @@ export class AppEmployeeDialogContentComponent {
         this.local_data.profile.imagePath = reader.result;
       };
     }
+  }
+
+  getTimezoneInfo(): string {
+    return `${this.userTimezone} (${this.timezoneOffset})`;
   }
 }

@@ -10,3 +10,33 @@
 .disabled {
     color: #4e4e4e!important;
 }
+
+@media (max-width: 480px) {    
+    ::ng-deep .mat-stepper-horizontal .mat-step-header {
+        padding: 12px 0;
+        height: auto !important;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    ::ng-deep .mat-stepper-horizontal .mat-step-label {
+        margin-left: 8px;
+    }
+    
+    ::ng-deep .mat-stepper-horizontal .mat-step-icon {
+        margin-right: 0;
+    }
+    
+    ::ng-deep .mat-stepper-horizontal-line {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1160px) {
+    .register-container {
+        width: 100%;
+        padding-right: 25px;
+    }
+}
