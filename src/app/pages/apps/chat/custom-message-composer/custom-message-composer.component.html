@@ -69,7 +69,7 @@
 			>
 				<img src="assets/images/svgs/Plus.svg" alt="Add attachment" class="icon" />
 			</button>
-			<input 
+			<textarea 
 				#textArea
 				matInput
 				class="message-textarea"
@@ -79,12 +79,13 @@
 				(keydown)="onKeyDown($event)"
 				(focus)="onFocus()"
 				(blur)="onBlur()"
-				rows="1"
-				autosize
+				cdkTextareaAutosize
+				cdkAutosizeMinRows="1"
+				cdkAutosizeMaxRows="3"
 				(dragenter)="handleDragEnter($event)"
 				(dragleave)="handleDragLeave($event)"
 				(dragover)="handleDragOver($event)"
-			>
+			></textarea>
 			<button 
 				mat-icon-button 
 				matSuffix
