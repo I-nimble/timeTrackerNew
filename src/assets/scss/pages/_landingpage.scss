@@ -1206,6 +1206,14 @@ mat-tab-header {
   display: flex;
   gap: 16px;
 }
+#comparison-tables-btn {
+  margin-top: 15px;
+}
+@media screen and (max-width: 400px) {
+  #comparison-tables-btn {
+    margin-top: 80px;
+  }
+}
 .b-t-green {
   border-top: 1px solid #8BB97C;
 }
