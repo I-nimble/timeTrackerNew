@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
     appName: 'inimbleapp', 
     webDir: 'dist/browser',
     server: {
-        hostname: 'home.inimbleapp.com' 
+        hostname: 'home.inimbleapp.com',
+        url: 'https://home.inimbleapp.com'
     }
 };
 
