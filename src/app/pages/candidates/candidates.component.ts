@@ -117,7 +117,7 @@ export class CandidatesComponent {
         document.body.removeChild(link);
       },
       error: (err: any) => {
-        console.error('Error downloading invoice:', err);
+        console.error('Error downloading candidate info:', err);
       },
     });
   }
@@ -198,12 +198,12 @@ export class CandidatesComponent {
   sendToTalentMatch(id: number): void {
     this.applicationsService.sendToTalentMatch(id).subscribe({
       next: () => {
-        this.showSnackbar('Invoice sent to talent match successfully!');
+        this.showSnackbar('Candidate sent to talent match successfully!');
         this.loadCandidates();
         this.filterCandidates();
       },
       error: () => {
-        this.showSnackbar('Error sending invoice to client.');
+        this.showSnackbar('Error sending candidate to client.');
       }
     });
   }
