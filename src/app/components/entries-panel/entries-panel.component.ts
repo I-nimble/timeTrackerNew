@@ -25,7 +25,6 @@ import moment from 'moment-timezone';
 import { Router } from '@angular/router';
 import Cookies from 'js-cookie';
 import { environment } from 'src/environments/environment';
-import { ToDoPopupComponent } from '../to-do-popup/to-do-popup.component';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
@@ -416,28 +415,6 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
   public checkToDoLogged() {
     this.endCurrentEntry()
-    this.ratingsService.checkToDoLogged(new Date()).subscribe({
-      next: (res) => {
-        if (res.result == 'pending') {
-          let dialogRef = this.dialog.open(ToDoPopupComponent, {
-            height: 'max-content',
-            width: '500px',
-            hasBackdrop: true,
-            backdropClass: 'blur'
-          }); 
-          dialogRef.afterClosed().subscribe(result => {
-            if (result == 'now') {
-              this.router.navigate(['apps/todo']);
-            }
-          });
-          this.entry.description = ''; 
-        }
-      },
-      error: (err) => {
-        this.showSnackbar('Error checking today goals');
-        console.error(err)
-      }
-    })
   }
 
   todayStr() {

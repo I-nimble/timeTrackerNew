@@ -1,20 +1,14 @@
 import { Routes } from '@angular/router';
 
 import { AppChatComponent } from './chat/chat.component';
-import { AppEmailComponent } from './email/email.component';
-import { DetailComponent } from './email/detail/detail.component';
 import { AppEmployeeComponent } from './employee/employee.component';
 import { AppBlogsComponent } from './blogs/blogs.component';
 import { AppBlogDetailsComponent } from './blogs/details/details.component';
-import { AppContactComponent } from './contact/contact.component';
-import { AppNotesComponent } from './notes/notes.component';
 import { AppPermissionComponent } from './permission/permission.component';
 import { AppKanbanComponent } from './kanban/kanban.component';
 import { AppFullcalendarComponent } from './fullcalendar/fullcalendar.component';
-import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
-import { AppStorageComponent } from './storage/storage.component';
 import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
 import { TeamComponent } from './team/team.component';
@@ -79,42 +73,7 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
-      {
-        path: 'notes',
-        component: AppNotesComponent,
-        data: {
-          title: 'Notes',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Notes' },
-          ],
-        },
-      },
       { path: 'email', redirectTo: 'email/inbox', pathMatch: 'full' },
-      {
-        path: 'email/:type',
-        component: AppEmailComponent,
-        data: {
-          title: 'Email',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Email' },
-          ],
-        },
-        children: [
-          {
-            path: ':id',
-            component: DetailComponent,
-            data: {
-              title: 'Email Detail',
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard2' },
-                { title: 'Email Detail' },
-              ],
-            },
-          },
-        ],
-      },
       {
         path: 'permission',
         component: AppPermissionComponent,
@@ -123,17 +82,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Roll Base Access' },
-          ],
-        },
-      },
-      {
-        path: 'storage',
-        component: AppStorageComponent,
-        data: {
-          title: 'Storage',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Storage' },
           ],
         },
       },
@@ -156,28 +104,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Kanban' },
-          ],
-        },
-      },
-      {
-        path: 'contacts',
-        component: AppContactComponent,
-        data: {
-          title: 'Contacts',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Contacts' },
-          ],
-        },
-      },
-      {
-        path: 'contact-list',
-        component: AppContactListComponent,
-        data: {
-          title: 'Contact List',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Contact List' },
           ],
         },
       },

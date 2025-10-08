@@ -61,20 +61,6 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
-        path: 'tables',
-        loadChildren: () =>
-          import('./pages/apps/storage/tables.routes').then((m) => m.DatatablesRoutes),
-        canActivate: [AuthGuard],
-      },
-      {
-        path: 'datatable',
-        loadChildren: () =>
-          import('./pages/apps/storage/tables.routes').then(
-            (m) => m.DatatablesRoutes
-          ),
-        canActivate: [AuthGuard],
-      },
-      {
         path: 'theme-pages',
         loadChildren: () =>
           import('./pages/theme-pages/theme-pages.routes').then(
