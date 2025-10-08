@@ -4,7 +4,7 @@ import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { CommonModule } from '@angular/common';
@@ -20,6 +20,7 @@ import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
 import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
+import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
 
 interface InlineImage {
   id: string;
@@ -51,6 +52,7 @@ export class AppChatComponent implements OnInit {
   @ViewChild('basicChat') basicChat: any;
   @ViewChild('essentialChat') essentialChat: any;
   @ViewChild('professionalChat') professionalChat: any;
+  @ViewChild('customHeaderView') customHeaderView: TemplateRef<any>;
 
   plansService = inject(PlansService);
   plan?: Plan;
@@ -64,6 +66,8 @@ export class AppChatComponent implements OnInit {
   private themeMutationObserver: MutationObserver;
   public loader: Loader = new Loader(true, false, false);
   public chatInitError: string | null = null;
+  templates: CometChatMessageTemplate[] = [];
+  public replyMessage: any = null;
 
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -147,6 +151,7 @@ export class AppChatComponent implements OnInit {
     try {
       this.configureTheme();
       this.observeAppTheme();
+      this.createCustomMessageTemplates();
       this.initPlanLogic();
     } catch (err) {
       this.loader = new Loader(true, true, true);
@@ -157,6 +162,7 @@ export class AppChatComponent implements OnInit {
 
   private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
+      this.replyMessage = null;
       if (event.group) {
         this.group = event.group;
         this.user = null;
@@ -165,7 +171,7 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
-            templates: this.chatService.templates,
+            templates: this.templates,
             showAvatar: true,
             scrollToBottomOnNewMessages: true,
             datePattern: DatePatterns.DateTime,
@@ -186,7 +192,7 @@ export class AppChatComponent implements OnInit {
           disableSoundForMessages: true,
           messageListConfiguration: new MessageListConfiguration({
             disableReactions: true,
-            templates: this.chatService.templates,
+            templates: this.templates,
             showAvatar: true,
             scrollToBottomOnNewMessages: true,
             datePattern: DatePatterns.DateTime,
@@ -286,7 +292,7 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
-        templates: this.chatService.templates,
+        templates: this.templates,
         showAvatar: true,
         scrollToBottomOnNewMessages: true,
         datePattern: DatePatterns.DateTime,
@@ -309,7 +315,7 @@ export class AppChatComponent implements OnInit {
       messageComposerView: this.customMessageComposerView,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
-        templates: this.chatService.templates,
+        templates: this.templates,
         showAvatar: true,
         scrollToBottomOnNewMessages: true,
         datePattern: DatePatterns.DateTime,
@@ -338,7 +344,7 @@ export class AppChatComponent implements OnInit {
       disableSoundForMessages: true,
       messageListConfiguration: new MessageListConfiguration({
         disableReactions: true,
-        templates: this.chatService.templates,
+        templates: this.templates,
         showAvatar: true,
         scrollToBottomOnNewMessages: true,
         datePattern: DatePatterns.DateTime,
@@ -511,6 +517,55 @@ export class AppChatComponent implements OnInit {
     }
     this.ref.detectChanges();
   }
+
+  private createCustomMessageTemplates() {
+    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
+    this.templates = this.templates.map(template => {
+      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
+      // Dont allow group owner to edit/delete messages of other members
+      newTemplate.options = (
+        loggedInUser: CometChat.User,
+        message: CometChat.BaseMessage,
+        theme: CometChatTheme,
+        group?: CometChat.Group
+      ) => {
+        let options = CometChatUIKit.getDataSource().getMessageOptions(
+          loggedInUser,
+          message,
+          theme,
+          group
+        );
+        if (
+          group &&
+          group.getOwner &&
+          group.getOwner() === loggedInUser.getUid() &&
+          message.getSender().getUid() !== loggedInUser.getUid()
+        ) {
+          options = options.filter(
+            (option: CometChatMessageOption) =>
+              option.id !== 'edit' && option.id !== 'delete'
+          );
+        }
+        // Replace default thread reply with custom option
+        options = options.map((option: CometChatMessageOption) => {
+          if (option.id === 'replyInThread') {
+            option.onClick = async () => {
+              this.replyMessage = message;
+            }
+          }
+          // NOTE: Here i can modify the edit option to save the id of the message to be edited and fill the custom message composer with its text in edit mode, on send message modify it. This would fix the issue of editing messages.
+          return option;
+        });
+        return options;
+      };
+      newTemplate.headerView = () => this.customHeaderView;
+      return newTemplate;
+    });
+  }
+
+  toDate(timestamp: any) {
+		return new Date(timestamp * 1000);
+	}
 
   openSnackBar(message: string, action: string) {
     this.snackBar.open(message, action, {

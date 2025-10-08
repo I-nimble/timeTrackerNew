@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
-import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
+import { CometChatUIKit, CometChatThemeService } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
@@ -8,7 +8,6 @@ import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 
 @Injectable({
@@ -21,7 +20,6 @@ export class CometChatService {
   isCallOngoing: boolean = false;
   public callObject!: CometChat.Call | null;
   public outGoingCallObject!: CometChat.Call | null;
-  templates: CometChatMessageTemplate[] = [];
   public unreadCountUpdated$ = new Subject<void>();
   public contactsConfiguration: ContactsConfiguration;
 
@@ -45,7 +43,6 @@ export class CometChatService {
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
 
-      this.createCustomMessageTemplates();
       this.setContactsConfiguration();
 
       this.isChatAvailable = true;
@@ -192,40 +189,6 @@ export class CometChatService {
       duration: 3000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
-    });
-  }
-
-  // Dont allow group owner to edit/delete messages of other members
-  private createCustomMessageTemplates() {
-    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
-    this.templates = this.templates.map(template => {
-      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
-      newTemplate.options = (
-        loggedInUser: CometChat.User,
-        message: CometChat.BaseMessage,
-        theme: CometChatTheme,
-        group?: CometChat.Group
-      ) => {
-        let options = CometChatUIKit.getDataSource().getMessageOptions(
-          loggedInUser,
-          message,
-          theme,
-          group
-        );
-        if (
-          group &&
-          group.getOwner &&
-          group.getOwner() === loggedInUser.getUid() &&
-          message.getSender().getUid() !== loggedInUser.getUid()
-        ) {
-          options = options.filter(
-            (option: CometChatMessageOption) =>
-              option.id !== 'edit' && option.id !== 'delete'
-          );
-        }
-        return options;
-      };
-      return newTemplate;
     });
   }
 }

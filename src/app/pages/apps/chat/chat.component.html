@@ -1,4 +1,34 @@
 <mat-card class="mat-card-top cardWithShadow communication-container p-0">
+
+  <ng-template #customHeaderView let-message>
+    <p *ngIf="message.getSender().getUid() !== userId" class="f-s-10 m-b-4 sender-name">{{ message.getSender().getName() }} {{ message.getMetadata()?.replyMessage ? 'replied to' : '' }}</p>
+    <div *ngIf="message.getMetadata()?.replyMessage" class="reply-preview f-s-10">
+      <div class="d-flex">
+        <p class="m-r-8"> 
+          {{ message.getMetadata().replyMessage.sender }} 
+        </p>
+        <p>
+          {{ toDate(message.getMetadata().replyMessage.sentAt) | date:'short' }}
+        </p>
+      </div>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'text'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.text }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'image'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'file'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'video'" class="f-s-12">
+        🎥 Video
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'audio'" class="f-s-12">
+        🎤 Audio
+      </span>
+		</div>
+  </ng-template>
+
   <ng-template #customMenu>
     <div style="display: flex; gap: 12px; margin-right: 5px;">
       <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
@@ -33,6 +63,7 @@
     <app-custom-message-composer
     [user]="user"
     [group]="group"
+    [replyMessage]="replyMessage"
     ></app-custom-message-composer>
   </ng-template>
 
