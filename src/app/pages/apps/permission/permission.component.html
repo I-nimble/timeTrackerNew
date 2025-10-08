@@ -62,14 +62,14 @@
             </mat-select>
           </mat-form-field>
 
-            <mat-form-field appearance="outline" class="w-100 hide-hint">
-              <mat-label class="f-s-14 m-b-8">Status</mat-label>
-              <mat-select [(ngModel)]="activeStatus" (selectionChange)="applyCombinedFilters()">
-                <mat-option [value]="1">Active</mat-option>
-                <mat-option [value]="0">Inactive</mat-option>                
-                <mat-option [value]="'all'">All</mat-option>
-              </mat-select>
-            </mat-form-field>
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select Section</mat-label>
+            <mat-select [(ngModel)]="selectedSection" (selectionChange)="onSectionChange()">
+              <mat-option *ngFor="let section of availableSections" [value]="section.key">
+                {{ section.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
         </div>
@@ -79,7 +79,10 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive">
-         <app-permission-table [dataSource]="dataSource" (userAction)="onUserAction($event)"></app-permission-table>
+        <app-permission-table
+          [dataSource]="dataSource"
+          [selectedSection]="selectedSection">
+        </app-permission-table>
       </div>
     </mat-card-content>
   </mat-card>

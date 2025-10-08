@@ -81,6 +81,7 @@ import { EmployeeDetailsComponent } from '../employee/employee-details/employee-
 import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
 import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
 import { AppPermissionTableComponent } from './permission-table/permission-table.component';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   selector: 'app-permission',
@@ -126,12 +127,18 @@ export class AppPermissionComponent {
   rolesMap: Record<number, string> = {};
   searchText: string = '';
   dataSource: any[] = [];
-  activeStatus: number | string = 'all';
+  activeStatus: number | string = 1;
+  availableSections: { key: string; label: string }[] = [
+    { key: 'users', label: 'Team Members' },
+    { key: 'payments', label: 'Payments' },
+  ];
+  selectedSection: string = this.availableSections[0]?.key || '';
 
   constructor(
     public dialog: MatDialog,
     private userService: UsersService,
     private companiesService: CompaniesService,
+    private permissionService: PermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -150,45 +157,38 @@ export class AppPermissionComponent {
 
   applyCombinedFilters(): void {
     const value = this.searchText ? this.searchText.trim().toLowerCase() : '';
-      this.dataSource = this.users.filter((user: any) => {
-        const matchesSearch =
-          (user.name && user.name.toLowerCase().includes(value)) ||
-          (user.last_name && user.last_name.toLowerCase().includes(value)) ||
-          (user.email && user.email.toLowerCase().includes(value));
 
-        const matchesActive =
-          this.activeStatus === 'all' || String(user.active) === String(this.activeStatus);
+    this.dataSource = this.users.filter((user: any) => {
+      const matchesActive = String(user.active) === '1';
 
-        if (!this.companyId || this.companyId === 'all') {
-          return matchesSearch && matchesActive;
-        }
-        const selectedCompany = this.companies.find(c => c.id == this.companyId);
-        const isAdmin = user.role == 1;
-        const isOwner = selectedCompany && user.id == selectedCompany.owner_id;
-        const isEmployee = user.employee && user.employee.company_id == this.companyId;
-        const isEmployer =
-          (Array.isArray(user.companies_users) &&
-            user.companies_users.some((cu: any) => cu.company_id == this.companyId)) ||
-          (user.company && user.company.id == this.companyId);
-        const isRelatedCompany =
-          Array.isArray(user.companies) &&
-          user.companies.some((c: any) => c.id == this.companyId || c == this.companyId);
+      const matchesSearch =
+        (user.name && user.name.toLowerCase().includes(value)) ||
+        (user.last_name && user.last_name.toLowerCase().includes(value)) ||
+        (user.email && user.email.toLowerCase().includes(value));
 
-        const included =
-          matchesSearch &&
-          matchesActive &&
-          (isEmployee || isOwner || isAdmin || isEmployer || isRelatedCompany);
+      if (!this.companyId || this.companyId === 'all') {
+        return matchesSearch && matchesActive;
+      }
 
-        if (included) {
-          let reason = [];
-          if (isEmployee) reason.push('employee');
-          if (isOwner) reason.push('owner');
-          if (isAdmin) reason.push('admin');
-          if (isEmployer) reason.push('employer');
-          if (isRelatedCompany) reason.push('relatedCompany');
-        }
-        return included;
-      });
+      const selectedCompany = this.companies.find(c => c.id == this.companyId);
+      const isAdmin = user.role == 1;
+      const isOwner = selectedCompany && user.id == selectedCompany.owner_id;
+      const isEmployee = user.employee && user.employee.company_id == this.companyId;
+      const isEmployer =
+        (Array.isArray(user.companies_users) &&
+          user.companies_users.some((cu: any) => cu.company_id == this.companyId)) ||
+        (user.company && user.company.id == this.companyId);
+      const isRelatedCompany =
+        Array.isArray(user.companies) &&
+        user.companies.some((c: any) => c.id == this.companyId || c == this.companyId);
+
+      const included =
+        matchesSearch &&
+        matchesActive &&
+        (isEmployee || isOwner || isAdmin || isEmployer || isRelatedCompany);
+
+      return included;
+    });
   }
 
   getUsers() {
@@ -214,6 +214,9 @@ export class AppPermissionComponent {
     });
   }
 
+  onSectionChange(): void {
+  }
+  
   getUsersPictures() {
     let count = 0;
     if (!this.users.length) {
@@ -241,14 +244,6 @@ export class AppPermissionComponent {
 
   setUser(user: any): void {
     this.userService.setUserInformation(user);
-  }
-
-  onUserAction(event: {action: string, user: any}) {
-    if (event.action === 'view') {
-      this.setUser(event.user);
-    } else if (event.action === 'edit') {
-    } else if (event.action === 'delete') {
-    }
   }
 
   loadRoles() {

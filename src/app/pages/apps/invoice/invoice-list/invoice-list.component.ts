@@ -21,6 +21,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { StripeService } from 'src/app/services/stripe.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { PermissionService } from 'src/app/services/permission.service';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 
@@ -50,8 +51,10 @@ export class AppInvoiceListComponent implements AfterViewInit {
   pendingInvoices = signal<any[]>([]);
   overdueInvoices = signal<any[]>([]);
   selectedCompanyId = signal<number | null>(null);
-  allowedPaymentsManager: boolean = false;
-  allowedReportsManager: boolean = false;
+  allowedPaymentsView: boolean = false;
+  allowedPaymentsManage: boolean = false;
+  allowedPaymentsEdit: boolean = false;
+  allowedPaymentsDelete: boolean = false;
   startDate: Date | null = null;
   endDate: Date | null = null;
 
@@ -64,16 +67,38 @@ export class AppInvoiceListComponent implements AfterViewInit {
     private snackBar: MatSnackBar, 
     private stripeService: StripeService, 
     private companiesService: CompaniesService,
+    private permissionService: PermissionService,
     public router: Router,
   ) { }
 
   ngOnInit(): void {
-    const allowedPaymentsEmails = environment.allowedPaymentsEmails;
-    const allowedReportsEmails = environment.allowedReportEmails;
-    const email = localStorage.getItem('email');
-    this.allowedReportsManager = this.role === '2' && allowedReportsEmails.includes(email || '');
-    this.allowedPaymentsManager = this.role === '2' && allowedPaymentsEmails.includes(email || '');
-    if (this.role == '3' || this.allowedPaymentsManager == true) {
+    this.role = localStorage.getItem('role');
+    const userId = Number(localStorage.getItem('id'));
+
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        const effectivePermissions = userPerms.effectivePermissions || [];
+
+        this.allowedPaymentsView = effectivePermissions.includes('payments.view');
+        this.allowedPaymentsManage = effectivePermissions.includes('payments.manage');
+        this.allowedPaymentsEdit = effectivePermissions.includes('payments.edit');
+        this.allowedPaymentsDelete = effectivePermissions.includes('payments.delete');
+        this.initInvoiceColumns();
+        this.loadCompanies();
+        this.loadInvoices();
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+
+        this.initInvoiceColumns();
+        this.loadCompanies();
+        this.loadInvoices();
+      }
+    });
+  }
+
+  private initInvoiceColumns(): void {
+    if (this.role === '3') {
       this.displayedColumns = [
         'paymentDate',
         'amount',
@@ -89,15 +114,17 @@ export class AppInvoiceListComponent implements AfterViewInit {
         'action',
       ];
     }
+  }
+
+  private loadCompanies(): void {
     this.companiesService.getCompanies().subscribe({
       next: (companies: any[]) => {
         this.companies = companies;
         this.companyMap = {};
         companies.forEach(c => this.companyMap[c.id] = c.name);
-      }
+      },
+      error: (err) => console.error('Error loading companies', err)
     });
-
-    this.loadInvoices();
   }
 
   ngAfterViewInit(): void {
@@ -115,7 +142,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
     if ((event?.target as HTMLElement).parentElement?.classList.contains('actions-btn')) {
       return;
     }
-    if(this.role == '1' || this.allowedPaymentsManager) {
+    if(this.role == '1' || this.allowedPaymentsManage) {
       this.router.navigate(['/apps/editinvoice', row.id]);
       return;
     }
