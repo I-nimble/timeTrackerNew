@@ -108,7 +108,14 @@ export class AppSideRegisterComponent {
   companies: any[] = [];
   positions: any[] = [];
   locations: any[] = [];
-  careerRoles: any[] = ["Virtual Assistant", "IT and Technology"];
+  careerRoles: any[] = [{
+    title: "Virtual Assistant",
+    position_id: 16
+  }, 
+  {
+    title: "IT and Technology",
+    position_id: 41
+  }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
   hasInvitation: boolean = false;
@@ -267,22 +274,28 @@ export class AppSideRegisterComponent {
       });
   
       if (!location || !role) return;
-      
-      if (role === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
-      } else if (role === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
+
+      if (role.title === 'Virtual Assistant') {
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
+      } else if (role.title === 'IT and Technology' && location !== 'Medellin') {
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       }
   
       if (location && role) {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('salaryRange', this.fb.control('', Validators.required));
       }
-  
-      if (role === 'Virtual Assistant') {
+
+      if (role.title === 'Virtual Assistant') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
       }
-  
-      if (role === 'IT and Technology' && location !== 'Medellin') {
+
+      if (role.title === 'IT and Technology' && location !== 'Medellin') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
       }
     }
@@ -297,8 +310,8 @@ export class AppSideRegisterComponent {
       const role = roleControl.value;
 
       if (location === 'Maracaibo') {
-        return role === 'Virtual Assistant' 
-          ? '$480-$560 USD' 
+        return role.title === 'Virtual Assistant'
+          ? '$480-$560 USD'
           : '$400-$900 USD';
       } else if (location === 'Medellin') {
         return '$700-$800 USD';
@@ -538,18 +551,18 @@ export class AppSideRegisterComponent {
         return;
       }
 
-      if((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
+      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
         this.openSnackBar('Please accept the availability and salary range conditions', 'error');
         return;
       }
 
-      if(this.registerTeamMemberForm.value.role === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
+      if (this.registerTeamMemberForm.value.role.title === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
         this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
       }
 
       const teamMemberData = {
         location: this.registerTeamMemberForm.value.location,
-        role: this.registerTeamMemberForm.value.role,
+        position_id: this.registerTeamMemberForm.value.role.position_id,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
         applied_where: this.registerTeamMemberForm.value.appliedWhere,
@@ -641,5 +654,13 @@ export class AppSideRegisterComponent {
       departments: this.selectedDepartments.map(d => d.name) || [''],
       otherDepartment: this.otherDepartment
     });
+  }
+  mustBeYesValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (control.value === 'no') {
+        return { mustBeYes: true };
+      }
+      return null;
+    };
   }
 }
