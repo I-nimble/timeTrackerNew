@@ -80,35 +80,47 @@ export class AppChatComponent implements OnInit {
   public professionalMessagesConfig: MessagesConfiguration;
 
   public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
-    ...this.chatService.contactsConfiguration,
-    usersConfiguration: new UsersConfiguration({
-      onItemClick: (user) => {
-        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
-        if (btn) btn.click();
+      usersConfiguration: new UsersConfiguration({
+        onItemClick: (user) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
 
-        this.user = user as CometChat.User;
-        this.group = null;
-      },
-    }),
-    groupsConfiguration: new GroupsConfiguration({
-      onItemClick: (group) => {
-        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
-        if (btn) btn.click();
+          this.user = user as CometChat.User;
+          this.group = null;
+        },
+        usersRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100)
+          .friendsOnly(true),
+        searchRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100)
+          .friendsOnly(true),
+        hideSeparator: true,
+      }),
+      groupsConfiguration: new GroupsConfiguration({
+        onItemClick: (group) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
 
-        this.user = null;
-        this.group = group as CometChat.Group;
-      },
-      menu: this.conversationsMenuTemplate,
-    }),
-    contactsStyle: new ContactsStyle({
-      activeTabBackground: '#92b46c',
-      activeTabTitleTextColor: '#fff',
-      tabBorderRadius: '16px',
-      tabBorder: 'none'
-    })
-  });
+          this.user = null;
+          this.group = group as CometChat.Group;
+        },
+        menu: this.conversationsMenuTemplate,
+        groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100)
+          .joinedOnly(true),
+        searchRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100)
+          .joinedOnly(true)
+      }),
+      contactsStyle: new ContactsStyle({
+        activeTabBackground: '#92b46c',
+        activeTabTitleTextColor: '#fff',
+        tabBorderRadius: '16px',
+        tabBorder: 'none'
+      })
+    });
 
   public conversationConfiguration!: ConversationsConfiguration;
   public groupsConfiguration: GroupsConfiguration;

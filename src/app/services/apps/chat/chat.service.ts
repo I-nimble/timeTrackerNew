@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
-import { CometChatUIKit, CometChatThemeService } from "@cometchat/chat-uikit-angular";
+import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
@@ -21,7 +21,6 @@ export class CometChatService {
   public callObject!: CometChat.Call | null;
   public outGoingCallObject!: CometChat.Call | null;
   public unreadCountUpdated$ = new Subject<void>();
-  public contactsConfiguration: ContactsConfiguration;
 
   constructor(
     private http: HttpClient, 
@@ -56,20 +55,6 @@ export class CometChatService {
       console.error("Initialization failed with error:", error);
     }
   }
-
-  setContactsConfiguration(): void {
-    const friendsRequestBuilder = new CometChat.UsersRequestBuilder()
-      .setLimit(100)
-      .friendsOnly(true);
-
-    this.contactsConfiguration = new ContactsConfiguration({
-      usersConfiguration: new UsersConfiguration({
-        usersRequestBuilder: friendsRequestBuilder,
-        hideSeparator: true
-      })
-    });
-  }
-
   
   async fetchUnreadMessages(): Promise<any[]> {
     let limit = 99;

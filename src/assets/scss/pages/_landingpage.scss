@@ -1169,17 +1169,50 @@ mat-tab-header {
   }
 }
 
-.testimonial-carousel {
+.comparison-carousel {
   position: relative;
   margin: 0 auto;
   overflow: hidden;
   overflow: visible;
 }
 
+.testimonial-carousel {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  overflow: visible;
+}
+.comparison-carousel-inner {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+}
+.comparison-carousel-item {
+  flex: 1;
+  min-width: 0;
+  background: $secondary-landing;
+  border-radius: 30px;
+}
+.comparison-table-img {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: auto;
+  display: block;
+}
+
 .carousel-inner {
   min-height: 300px;
   display: flex;
   gap: 16px;
+}
+#comparison-tables-btn {
+  margin-top: 15px;
+}
+@media screen and (max-width: 400px) {
+  #comparison-tables-btn {
+    margin-top: 80px;
+  }
 }
 .b-t-green {
   border-top: 1px solid #8BB97C;
