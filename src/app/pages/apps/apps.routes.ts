@@ -23,17 +23,12 @@ import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 import { AppStorageComponent } from './storage/storage.component';
-import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
 import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
 import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
-import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { TeamComponent } from './team/team.component';
 import { AppHistoryComponent } from './history/history.component';
 import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
-import { AppExpertComponent } from './expert/expert.component';
-import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
-import { ScrapperComponent } from './scrapper/scrapper.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -173,45 +168,6 @@ export const AppsRoutes: Routes = [
             { title: 'History' },
           ],
         },
-      },
-      {
-        path: 'talent-match',
-        component: AppTalentMatchComponent,
-        data: {
-          title: 'Talent match',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'talent match' },
-          ],
-        },
-      },
-      {
-        path: 'expert',
-        children: [
-          {
-            path: '',
-            component: AppExpertComponent,
-            data: {
-              title: 'Expert',
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Expert' },
-              ],
-            },
-          },
-          {
-            path: ':id',
-            component: ClientDetailsComponent,
-            data: {
-              title: 'Client Details',
-              showGoBack: true,
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Client Details' },
-              ],
-            },
-          },
-        ],
       },
       {
         path: 'kanban',
@@ -405,17 +361,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'Pricing' },
-          ],
-        },
-      },
-      {
-        path: 'scrapper',
-        component: ScrapperComponent,
-        data: {
-          title: 'Scrapper',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'scrapper' },
           ],
         },
       },
