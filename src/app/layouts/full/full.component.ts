@@ -111,43 +111,6 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    // ...(this.role != '1' && this.role != '4' 
-    // ? [{
-    //     id: 12,
-    //     img: '/assets/images/svgs/icon-speech-bubble.svg',
-    //     title: 'Help Center',
-    //     subtitle: 'Support & FAQs',
-    //     link: '/apps/chat/support',
-    //   }]
-    // : []),
-    ...(this.role != '2' ||
-    environment.allowedReportEmails.includes(localStorage.getItem('email') || '')
-    ? [{
-        id: 13,
-        img: '/assets/images/svgs/icon-office-bag.svg',
-        title: 'Talent Match',
-        subtitle: 'Find top talent',
-        link: '/apps/talent-match',
-      }]
-    : []),
-    ...(this.role == '3'
-    ? [{
-        id: 14,
-        img: '/assets/images/svgs/icon-account.svg',
-        title: 'Expert Match',
-        subtitle: 'Connect with experts',
-        link: '/apps/expert',
-      }]
-    : []),
-    ...(this.role == '3'
-    ? [{
-        id: 15,
-        img: '/assets/images/svgs/icon-connect.svg',
-        title: 'Content Creator',
-        subtitle: 'Create and manage content',
-        link: '/apps/scrapper',
-      }]
-    : []),
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -161,34 +124,6 @@ export class FullComponent implements OnInit {
       title: 'Calendar',
       subtitle: 'Manage tasks by date',
       link: '/apps/calendar',
-    },
-    {
-      id: 6,
-      img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      title: 'Kanban',
-      subtitle: 'Create tickets',
-      link: '/apps/kanban',
-    },
-    {
-      id: 7,
-      img: '/assets/images/svgs/icon-dd-application.svg',
-      title: 'Time tracker',
-      subtitle: 'Track your team time',
-      link: 'apps/time-tracker',
-    },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Notes',
-      subtitle: 'Keep personal notes',
-      link: '/apps/notes',
-    },
-    {
-      id: 10,
-      img: '/assets/images/svgs/icon-tasks.svg',
-      title: 'To Do',
-      subtitle: 'Manage your daily to-dos',
-      link: '/apps/todo',
     },
     ...(localStorage.getItem('role') == '3'
     ? [{
