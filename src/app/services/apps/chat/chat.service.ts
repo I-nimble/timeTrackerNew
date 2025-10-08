@@ -42,7 +42,6 @@ export class CometChatService {
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
 
-
       this.isChatAvailable = true;
 
       const permissionGranted = await this.requestNotificationPermission();
