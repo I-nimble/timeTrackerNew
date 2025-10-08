@@ -342,7 +342,7 @@
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Role</mat-label>
                               <mat-select formControlName="role" required>
-                                <mat-option *ngFor="let role of careerRoles" [value]="role">{{role}}</mat-option>
+                                <mat-option *ngFor="let role of careerRoles" [value]="role">{{role.title}}</mat-option>
                               </mat-select>
                               <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerTeamMemberForm.get('role')?.hasError('required') && registerTeamMemberForm.get('role')?.touched">
