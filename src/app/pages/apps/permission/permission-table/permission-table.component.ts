@@ -8,6 +8,8 @@ import {
   Optional,
   ViewChild,
   EventEmitter,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -28,6 +30,7 @@ import {
 } from 'src/app/components/reports-filter/reports-filter.component';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
 import { SelectionModel } from '@angular/cdk/collections';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   templateUrl: './permission-table.component.html',
@@ -51,7 +54,7 @@ export class AppPermissionTableComponent implements AfterViewInit {
   @Input() displayedColumns: string[] = [
     'name',
     'role',
-    'action'
+    'permissions'
   ];
   users: any[] = [];
   loaded: boolean = false;
@@ -70,14 +73,16 @@ export class AppPermissionTableComponent implements AfterViewInit {
   userRole = localStorage.getItem('role');
   companies: any[] = [];
   companyId: number | null = null;
-
+  availableSections: { key: string; label: string }[] = [];
   searchText: any;
-
+  permissions: any[] = [];
+  userPermissionsMap: { [userId: number]: string[] } = {};
   private _inputData: any[] = [];
 
   @Input() set dataSource(data: any[]) {
     this._inputData = data;
     this.dataSourceTable.data = data;
+    this.loadUserPermissions();
   }
 
   @Output() getEmployees = new EventEmitter<any>();
@@ -88,22 +93,89 @@ export class AppPermissionTableComponent implements AfterViewInit {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
+  constructor(
+    public dialog: MatDialog,
+    private userService: UsersService,
+    private permissionService: PermissionService
+  ) {}
+
+  ngOnInit() {
+    this.availableSections = [
+      { key: 'users', label: 'Team Members' },
+      { key: 'payments', label: 'Payments' },
+    ];
+
+    if (this.availableSections.length > 0) {
+      this.selectedSection = this.availableSections[0].key;
+      this.onSectionChange();
+    }
+  }
+
   ngAfterViewInit() {
     this.dataSourceTable.paginator = this.paginator;
   }
 
-  constructor(
-    public dialog: MatDialog,
-    private userService: UsersService,
-  ) {}
+  @Input() selectedSection: string = '';
 
-  @Output() userAction = new EventEmitter<{action: string, user: any}>();
-
-  onAction(action: string, user: any) {
-    this.userAction.emit({ action, user });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['selectedSection'] && this.selectedSection) {
+      this.onSectionChange();
+    }
   }
 
-  setUser(user: any): void {
-    this.userService.setUserInformation(user.profile);
+  onSectionChange() {
+    if (!this.selectedSection) return;
+
+    this.permissionService.getPermissionsBySection(this.selectedSection).subscribe({
+      next: (res) => {
+        this.permissions = res.permissions.map((p: { id: number; code: string; description: string; defaultRoles: string[] }) => ({
+          id: p.id,
+          code: p.code,
+          description: p.description,
+          defaultRoles: p.defaultRoles,
+          action: p.code.split('.')[1]
+        }));
+      },
+      error: (err) => console.error('Error loading section permissions', err),
+    });
+  }
+
+  loadUserPermissions() {
+    if (!this._inputData || this._inputData.length === 0) return;
+
+    this.permissionService.getAllUsersPermissions().subscribe({
+      next: (usersPerms: any[]) => {
+        usersPerms.forEach((userPerm) => {
+          this.userPermissionsMap[userPerm.id] = userPerm.effectivePermissions || [];
+        });
+      },
+      error: (err) => console.error('Error loading users permissions', err),
+    });
+  }
+
+  onTogglePermissionById(userId: number, permissionId: number, code: string, allow: boolean) {
+    console.log('Toggled:', { userId, permissionId, code, allow });
+
+    if (!permissionId) {
+      console.error('Permission ID not found for code:', code);
+      return;
+    }
+
+    if (allow) {
+      this.permissionService.setUserOverride(userId, permissionId, true).subscribe({
+        next: () => {
+          if (!this.userPermissionsMap[userId]) this.userPermissionsMap[userId] = [];
+          if (!this.userPermissionsMap[userId].includes(code)) this.userPermissionsMap[userId].push(code);
+        },
+        error: (err) => console.error('Error setting permission', err),
+      });
+    } else {
+      this.permissionService.removeUserOverride(userId, permissionId).subscribe({
+        next: () => {
+          this.userPermissionsMap[userId] = this.userPermissionsMap[userId].filter(c => c !== code);
+        },
+        error: (err) => console.error('Error removing permission', err),
+      });
+    }
   }
 }

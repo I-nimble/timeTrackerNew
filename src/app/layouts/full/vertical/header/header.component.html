@@ -111,6 +111,9 @@
           <span class="point bg-primary"></span>
         </div>
     </a>
+    <a mat-button [routerLink]="['/apps/permission']" *ngIf="role == '1'">
+      Permissions
+    </a>
     <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
       Expert Match
     </a>
