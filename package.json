@@ -11,6 +11,8 @@
     "ionic:build": "ng build --configuration=production",
     "ionic:stage": "ng build --configuration=stage",
     "ionic:serve": "ng serve",
+    "copy:icons": "ncp src/assets/android android/app/src/main/res",
+    "cap:sync:icons": "npm run copy:icons && npx cap sync",
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
     "cap:copy": "npx cap copy",
@@ -105,6 +107,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
+    "ncp": "^2.0.0",
     "typescript": "~5.6.3"
   }
 }
