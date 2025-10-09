@@ -9,6 +9,7 @@ import { CallSettings } from '@cometchat/calls-sdk-javascript/pack/src/models/Ca
 import { CometChatUIKitConstants } from '@cometchat/uikit-resources';
 import { StorageUtils } from '@cometchat/uikit-shared';
 import { CustomIncomingCallComponent } from './components/custom-incoming-call/custom-incoming-call.component';
+import { PushNotificationService } from './services/push-notifications.service';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +32,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     public cometChatService: CometChatService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private pushNotificationService: PushNotificationService,
   ) { }
 
   async ngOnInit() {
@@ -51,6 +53,8 @@ export class AppComponent implements OnInit, OnDestroy {
     CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
 
     CometChat.addCallListener(this.callListenerId, this.createCallListener());
+
+    this.initializePushNotifications();
   }
 
   createMessageListener() {
@@ -212,5 +216,13 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     CometChat.removeCallListener(this.callListenerId);
     this.clearCall();
+  }
+
+  private async initializePushNotifications() {
+    const userId = localStorage.getItem('id');;
+    
+    if (userId) {
+      await this.pushNotificationService.initializePushNotifications(userId);
+    }
   }
 }

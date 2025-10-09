@@ -10,7 +10,6 @@ import {
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
 import { getNavItems } from '../sidebar/sidebar-data';
-import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterModule } from '@angular/router';
@@ -136,7 +135,6 @@ export class HeaderComponent implements OnInit {
     private settings: CoreService,
     private vsidenav: CoreService,
     public dialog: MatDialog,
-    private translate: TranslateService,
     private companieService: CompaniesService,
     private applicationsService: ApplicationsService,
     private authService: AuthService,
@@ -145,7 +143,6 @@ export class HeaderComponent implements OnInit {
     private router: Router,
     private usersService: UsersService
   ) {
-    translate.setDefaultLang('en');
   }
 
   options = this.settings.getOptions();
@@ -283,7 +280,6 @@ export class HeaderComponent implements OnInit {
   }
 
   changeLanguage(lang: any): void {
-    this.translate.use(lang.code);
     this.selectedLanguage = lang;
   }
 
@@ -414,11 +410,6 @@ export class HeaderComponent implements OnInit {
       id: 4,
       title: '404 Error Page',
       link: '/authentication/error',
-    },
-    {
-      id: 5,
-      title: 'Notes App',
-      link: '/apps/notes',
     },
     {
       id: 6,

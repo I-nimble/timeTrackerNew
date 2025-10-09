@@ -13,6 +13,8 @@ import { Router } from '@angular/router';
 import { ChangeDetectorRef, HostListener } from '@angular/core';
 import { Notification } from '../../models/Notifications';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PushNotificationService } from 'src/app/services/push-notifications.service';
+import { Capacitor } from '@capacitor/core';
 
 @Component({
   selector: 'app-notification-list',
@@ -40,13 +42,18 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   isDesktopRow = () => window.innerWidth > 768;
   isMobileRow = () => window.innerWidth <= 768;
 
+  public isNative = Capacitor.isNativePlatform();
+  isPushEnabled = false;
+  isPushLoading = false;
+
   constructor(
     public notificationsService: NotificationsService,
     private webSocketService: WebSocketService,
     private router: Router,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private pushNotificationService: PushNotificationService
   ) {}
 
   @HostListener('window:resize', [])
@@ -88,12 +95,10 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.loadPushNotificationSettings();
     this.loadNotifications();
     this.loaded = true;
-    // setInterval(() => {
-    //   this.loadNotifications();
-    // }, 5000);
 
     this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'update') {
@@ -104,6 +109,73 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.notificationsDataSource.paginator = this.paginator;
+  }
+
+  private async loadPushNotificationSettings(): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) {
+        console.warn('No user ID available for push notifications');
+        this.isPushEnabled = false;
+        return;
+      }
+
+      const permissionStatus = await this.pushNotificationService.getPushPermissionStatus();
+      const hasToken = await this.pushNotificationService.isPushEnabledForUser(userId);
+      
+      this.isPushEnabled = permissionStatus?.granted && hasToken || false;
+    } catch (error) {
+      console.error('Error loading push notification settings:', error);
+      this.isPushEnabled = false;
+    }
+  }
+
+  private async getCurrentUserId(): Promise<string> {
+    try {
+
+      const userId = localStorage.getItem('id') || '';
+      return userId;
+    } catch (error) {
+      console.error('Error getting current user ID:', error);
+      return '';
+    }
+  }
+
+  async togglePushNotifications(): Promise<void> {
+    const userId = await this.getCurrentUserId();
+    if (!userId) {
+      this.openSnackBar('User not identified. Please log in again.', 'Close');
+      return;
+    }
+
+    this.isPushLoading = true;
+    this.cdr.detectChanges(); 
+
+    try {
+      if (this.isPushEnabled) {
+        const success = await this.pushNotificationService.unsubscribeFromPushNotifications(userId);
+        if (success) {
+          this.isPushEnabled = false;
+          this.openSnackBar('Push notifications disabled successfully', 'Close');
+        } else {
+          this.openSnackBar('Error disabling push notifications', 'Close');
+        }
+      } else {
+        const success = await this.pushNotificationService.initializePushNotifications(userId);
+        if (success) {
+          this.isPushEnabled = true;
+          this.openSnackBar('Push notifications enabled successfully', 'Close');
+        } else {
+          this.openSnackBar('Error enabling push notifications. Please check permissions.', 'Close');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling push notifications:', error);
+      this.openSnackBar('Error changing notification settings', 'Close');
+    } finally {
+      this.isPushLoading = false;
+      this.cdr.detectChanges(); 
+    }
   }
 
   formatMessage(message: string): string {

@@ -51,10 +51,6 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { environment } from '../environments/environment';
 
-export function HttpLoaderFactory(http: HttpClient): any {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
-
 export function jwtOptionsFactory() {
   return {
     tokenGetter: () => localStorage.getItem('jwt'),
@@ -110,13 +106,6 @@ export const appConfig: ApplicationConfig = {
       CalendarModule.forRoot({
         provide: DateAdapter,
         useFactory: adapterFactory,
-      }),
-      TranslateModule.forRoot({
-        loader: {
-          provide: TranslateLoader,
-          useFactory: HttpLoaderFactory,
-          deps: [HttpClient],
-        },
       }),
       JwtModule.forRoot({
         jwtOptionsProvider: {

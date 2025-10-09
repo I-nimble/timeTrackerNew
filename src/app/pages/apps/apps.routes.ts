@@ -97,51 +97,6 @@ export const AppsRoutes: Routes = [
         },
       },
       {
-        path: 'kanban',
-        component: AppKanbanComponent,
-        data: {
-          title: 'Kanban',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Kanban' },
-          ],
-        },
-      },
-      {
-        path: 'blog/post',
-        component: AppBlogsComponent,
-        data: {
-          title: 'Posts',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Posts' },
-          ],
-        },
-      },
-      {
-        path: 'blog/detail/:id',
-        component: AppBlogDetailsComponent,
-        data: {
-          title: 'Blog Detail',
-          showGoBack: true,
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Blog Detail' },
-          ],
-        },
-      },
-      {
-        path: 'time-tracker',
-        component: AppEmployeeComponent,
-        data: {
-          title: 'Time tracker',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Employee' },
-          ],
-        },
-      },
-      {
         path: 'employee',
         component: EmployeeDetailsComponent,
         data: { 

@@ -7,6 +7,11 @@ const config: CapacitorConfig = {
     server: {
         hostname: 'home.inimbleapp.com',
         url: 'https://home.inimbleapp.com'
+    },
+    plugins: {
+      PushNotifications: {
+        presentationOptions: ["badge", "sound", "alert"]
+      }
     }
 };
 

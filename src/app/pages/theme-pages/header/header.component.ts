@@ -145,27 +145,6 @@ export class AppHeaderComponent {
         subtitle: 'Solutions for managing workers compensation cases, file handling, and employee communication.',
         link: '/landingpage/industry/workers-compensation',
       },
-      // {
-      //   id: 6,
-      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      //   title: 'Tickets App',
-      //   subtitle: 'Create new ticket',
-      //   link: '/apps/tickets',
-      // },
-      // {
-      //   id: 7,
-      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
-      //   title: 'Email App',
-      //   subtitle: 'Get new emails',
-      //   link: '/apps/email/inbox',
-      // },
-      // {
-      //   id: 8,
-      //   img: '/assets/images/svgs/icon-dd-application.svg',
-      //   title: 'Courses',
-      //   subtitle: 'Create new course',
-      //   link: '/apps/courses',
-      // },
     ];
 
   testimonials: testimonials[] = [
@@ -220,77 +199,6 @@ export class AppHeaderComponent {
       color: 'primary',
       subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
-    // {
-    //   id: 5,
-    //   icon: 'tag',
-    //   title: 'Material ',
-    //   color: 'success',
-    //   subtext: 'Its been made with Material and full responsive layout.',
-    // },
-    // {
-    //   id: 9,
-    //   icon: 'adjustments',
-    //   title: 'Lots of Chart Options',
-    //   color: 'error',
-    //   subtext: 'You name it and we have it, Yes lots of variations for Charts.',
-    // },
-    // {
-    //   id: 7,
-    //   icon: 'language-katakana',
-    //   title: 'i18 Angular',
-    //   color: 'secondary',
-    //   subtext: 'i18 is a powerful internationalization framework.',
-    // },
-    // {
-    //   id: 13,
-    //   icon: 'calendar',
-    //   title: 'Calendar Design',
-    //   color: 'warning',
-    //   subtext: 'Calendar is available with our package & in nice design.',
-    // },
-
-    // {
-    //   id: 6,
-    //   icon: 'diamond',
-    //   title: '3400+ Font Icons',
-    //   color: 'primary',
-    //   subtext: 'Lots of Icon Fonts are included here in the package of Admin.',
-    // },
-    // {
-    //   id: 11,
-    //   icon: 'refresh',
-    //   title: 'Regular Updates',
-    //   color: 'primary',
-    //   subtext: 'We are constantly updating our pack with new features..',
-    // },
-    // {
-    //   id: 8,
-    //   icon: 'arrows-shuffle',
-    //   title: 'Easy to Customize',
-    //   color: 'secondary',
-    //   subtext: 'Customization will be easy as we understand your pain.',
-    // },
-    // {
-    //   id: 10,
-    //   icon: 'layers-intersect',
-    //   title: 'Lots of Table Examples',
-    //   color: 'success',
-    //   subtext: 'Tables are initial requirement and we added them.',
-    // },
-    // {
-    //   id: 14,
-    //   icon: 'messages',
-    //   title: 'Dedicated Support',
-    //   color: 'error',
-    //   subtext: 'We believe in supreme support is key and we offer that.',
-    // },
-    // {
-    //   id: 12,
-    //   icon: 'book',
-    //   title: 'Detailed Documentation',
-    //   color: 'warning',
-    //   subtext: 'Our Detailed Documentation Ensures Ease of Use',
-    // },
   ];
 
   quicklinks: quicklinks[] = [
@@ -315,24 +223,9 @@ export class AppHeaderComponent {
       link: '/authentication/error',
     },
     {
-      id: 5,
-      title: 'Notes App',
-      link: '/apps/notes',
-    },
-    {
       id: 6,
       title: 'Employee App',
       link: '/apps/employee',
-    },
-    {
-      id: 7,
-      title: 'Todo Application',
-      link: '/apps/todo',
-    },
-    {
-      id: 8,
-      title: 'Treeview',
-      link: '/theme-pages/treeview',
     },
   ];
 }
