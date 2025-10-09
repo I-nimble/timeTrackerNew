@@ -22,101 +22,6 @@
   </button>
   }
 
-  <!-- --------------------------------------------------------------- -->
-
-  <div class="d-none d-lg-flex">
-    <!-- --------------------------------------------------------------- -->
-    <!--  Links -->
-    <!-- --------------------------------------------------------------- -->
-    <!-- <button
-      mat-button
-      [matMenuTriggerFor]="appsmenu"
-      aria-label="Notifications"
-    >
-      <div class="d-flex align-items-center">
-        Apps <i-tabler name="chevron-down" class="icon-16 m-l-4"></i-tabler>
-      </div>
-    </button>
-    <mat-menu #appsmenu="matMenu" class="apps-dd cardWithShadow">
-      <div class="row">
-        <div class="col-sm-8 b-r-1 p-r-0">
-          <div class="p-32 p-b-0">
-            <div class="row">
-              @for(appdd of apps; track appdd.title) {
-              <div class="col-sm-6 text-hover-primary">
-                <a
-                  [routerLink]="[appdd.link]"
-                  class="d-flex align-items-center text-decoration-none m-b-24"
-                >
-                  <span
-                    class="text-primary bg-light-primary rounded icon-40 d-flex align-items-center justify-content-center"
-                  >
-                    <img [src]="appdd.img" width="20" />
-                  </span>
-
-                  <div class="m-l-16">
-                    <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                      {{ appdd.title }}
-                    </h5>
-                    <span class="text-body f-s-12">{{ appdd.subtitle }}</span>
-                  </div>
-                </a>
-              </div>
-              }
-            </div>
-          </div>
-          <div
-            class="b-t-1 p-24 d-none d-lg-flex align-items-center justify-content-between"
-          >
-            <span class="d-flex align-items-center f-s-16 f-w-500">
-              <i-tabler name="help" class="icon-20 m-r-8"></i-tabler>Frequently
-              Asked Questions
-            </span>
-            <a
-              [routerLink]="['/theme-pages/faq']"
-              mat-flat-button
-              color="primary"
-              >Check</a
-            >
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="p-x-16 p-y-32">
-            <h4 class="f-s-18 f-w-600 m-b-16">Quick Links</h4>
-            @for(quicklink of quicklinks; track quicklink.title) {
-            <div class="text-hover-primary">
-              <a
-                [routerLink]="[quicklink.link]"
-                class="hover-text text-decoration-none text-body f-w-600 d-block p-y-8"
-                >{{ quicklink.title }}</a
-              >
-            </div>
-            }
-          </div>
-        </div>
-      </div>
-    </mat-menu> -->
-    <!-- <a mat-button [routerLink]="['/apps/chat/support']" *ngIf="role != '1' && role != '4'"
-    >Help Center</a> -->
-          <!-- --------------------------------------------------------------- -->
-      <!-- Messages Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2' || allowedTM"
-     (click)="clearTalentMatchNotification()">
-        Talent Match
-        <div class="pulse" *ngIf="hasNewTalentMatch">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
-        </div>
-    </a>
-    <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
-      Expert Match
-    </a>
-    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="role == '3'">
-      Content Creator
-    </a>
-  </div>
-
   <span class="flex-1-auto"></span>
 
   <!-- Mobile Menu -->
@@ -127,47 +32,6 @@
   >
     <i-tabler name="grid-dots" class="icon-20 d-flex"></i-tabler>
   </button>
-
-  <!-- --------------------------------------------------------------- -->
-  <!--  Search -->
-  <!-- --------------------------------------------------------------- -->
-  <!-- <button
-    mat-stroked-button
-    class="d-none d-lg-flex custom-outline-btn"
-    (click)="openDialog()"
-  >
-    <div class="d-flex align-items-center">
-      <i-tabler name="search" class="icon-20 d-flex m-r-10"></i-tabler> Try to
-      Searching...
-    </div>
-  </button> -->
-
-  <!-- --------------------------------------------------------------- -->
-  <!-- langugage Dropdown -->
-  <!-- --------------------------------------------------------------- -->
-  <!-- <button
-    [matMenuTriggerFor]="flags"
-    mat-icon-button
-    class="m-l-10 d-none d-lg-flex align-items-center justify-content-center"
-  >
-    <img
-      [src]="selectedLanguage.icon"
-      class="rounded-circle object-cover icon-20"
-    />
-  </button>
-  <mat-menu #flags="matMenu" class="cardWithShadow">
-    @for(lang of languages; track lang) {
-    <button mat-menu-item (click)="changeLanguage(lang)">
-      <div class="d-flex align-items-center">
-        <img
-          [src]="lang.icon"
-          class="rounded-circle object-cover m-r-8 icon-20"
-        />
-        <span class="f-s-14">{{ lang.language }}</span>
-      </div>
-    </button>
-    }
-  </mat-menu> -->
 
   <!-- --------------------------------------------------------------- -->
   <!-- light / dark icon -->
@@ -225,27 +89,6 @@
   @if(isCollapse){
   <div class="header-collpase p-y-10 p-x-15">
     <div class="d-flex align-items-center justify-content-center gap-10">
-      <!-- --------------------------------------------------------------- -->
-      <!-- langugage Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <!-- <button [matMenuTriggerFor]="flags" mat-icon-button>
-        <img
-          [src]="selectedLanguage.icon"
-          class="rounded-circle object-cover icon-20"
-        />
-      </button> -->
-
-      <!-- --------------------------------------------------------------- -->
-      <!-- shortcut Dropdown -->
-      <!-- --------------------------------------------------------------- -->
-      <!-- <button
-        mat-icon-button
-        [matMenuTriggerFor]="notificationMenu"
-        aria-label="Notifications"
-      >
-        <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-      </button> -->
-
       <!-- --------------------------------------------------------------- -->
       <!-- Profile Dropdown -->
       <!-- --------------------------------------------------------------- -->
@@ -313,85 +156,6 @@
   </mat-menu>
 
   <!-- --------------------------------------------------------------- -->
-  <!-- Shortcuts Dropdown -->
-  <!-- --------------------------------------------------------------- -->
-  <!-- <button
-    mat-icon-button
-    [matMenuTriggerFor]="notificationMenu"
-    aria-label="Notifications"
-    class="d-none d-lg-block align-items-center justify-content-center"
-  >
-    <i-tabler class="d-flex" name="layout-grid-add"></i-tabler>
-  </button>
-  <mat-menu
-    #notificationMenu="matMenu"
-    xPosition="before"
-    class="topbar-dd cardWithShadow"
-  >
-    <div class="d-flex align-items-center p-x-32 p-y-16">
-      <h6 class="f-s-16 f-w-600 m-0">Shortcuts</h6>
-    </div>
-    <div class="row m-x-0">
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-b-1 b-r-1"
-          [routerLink]="['/apps/time-tracker']"
-        >
-          <div
-            class="icon-45 bg-light-secondary rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler
-              name="brand-ctemplar"
-              class="icon-20"
-              style="color: #141a2138"
-            ></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Time Tracker</h6>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-t-1 b-b-1"
-          [routerLink]="['/apps/chat']"
-        >
-          <div
-            class="icon-45 bg-light-primary rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="message-2" class="icon-20 text-primary"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Chat</h6>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center b-r-1"
-          [routerLink]="['/apps/todo']"
-        >
-          <div
-            class="icon-45 bg-light-warning rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="edit" class="icon-20 text-warning"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">To Do</h6>
-        </a>
-      </div>
-      <div class="col-6 p-x-0">
-        <a
-          class="bg-light-primary-hover d-flex justify-content-center flex-col gap-8 text-decoration-none p-x-20 p-y-12 text-center"
-          [routerLink]="['/apps/calendar']"
-        >
-          <div
-            class="icon-45 bg-light-success rounded-circle m-auto round d-flex align-items-center justify-content-center"
-          >
-            <i-tabler name="calendar" class="icon-20 text-success"></i-tabler>
-          </div>
-          <h6 class="f-s-16 f-w-600 m-0 text-body">Calendar</h6>
-        </a>
-      </div>
-    </div>
-  </mat-menu> -->
-
-  <!-- --------------------------------------------------------------- -->
   <!-- profile Dropdown -->
   <!-- --------------------------------------------------------------- -->
   <button
@@ -403,18 +167,6 @@
     class="profile-btn d-none d-lg-flex align-items-center justify-content-center"
   >
     <div class="d-flex align-items-center gap-12">
-      <!-- <img
-        *ngIf="role === '3'"
-        [src]="companyLogo"
-        class="shadow rounded-circle logo"
-        style="object-fit: contain;"
-      />
-      <img
-        *ngIf="role !== '3'"
-        [src]="profilePicture"
-        class="shadow rounded-circle logo"
-        style="object-fit: cover;"
-      /> -->
       <img
         [src]="profilePicture || 'assets/images/default-user-profile-pic.png'"
         class="shadow rounded-circle logo"
@@ -436,18 +188,6 @@
         <h6 class="f-s-16 f-w-600 m-0">User Profile</h6>
 
         <div class="d-flex align-items-center p-b-24 b-b-1 m-t-16">
-          <!-- <img
-            *ngIf="role === '3'"
-            [src]="companyLogo"
-            class="shadow rounded-circle logo"
-            style="width:95px; height:95px;object-fit: contain;"
-          /> -->
-          <!-- <img
-            *ngIf="role !== '3'"
-            [src]="profilePicture"
-            class="shadow rounded-circle logo"
-            style="width:95px; height:95px; object-fit: cover;"
-          /> -->
           <img
             [src]="profilePicture || 'assets/images/default-user-profile-pic.png'"
             class="shadow rounded-circle logo"

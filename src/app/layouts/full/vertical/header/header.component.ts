@@ -210,18 +210,6 @@ export class HeaderComponent implements OnInit {
             },
           ]
         : []),
-      ...((Number(this.role) !== 2 && Number(this.role) !== 4) || (environment.allowedPaymentsEmails.includes(this.userEmail))
-        ? [
-            {
-              id: 4,
-              img: 'credit-card',
-              color: 'warning',
-              title: 'Payments',
-              subtitle: 'Manage your payments',
-              link: '/apps/invoice',
-            },
-          ]
-        : []),
     ];
   }
 
