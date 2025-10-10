@@ -33,11 +33,6 @@
                 "glob": "**/*",
                 "input": "./node_modules/@cometchat/chat-uikit-angular/assets/",
                 "output": "assets/"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/@ionic/core/dist/ionic",
-                "output": "./ionic"
               }
             ],
             "styles": [

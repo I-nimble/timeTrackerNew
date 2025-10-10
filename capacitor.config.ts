@@ -4,10 +4,6 @@ const config: CapacitorConfig = {
     appId: 'com.inimbleapp.timetracker', 
     appName: 'inimbleapp', 
     webDir: 'dist/browser',
-    server: {
-        hostname: 'home.inimbleapp.com',
-        url: 'https://home.inimbleapp.com'
-    }
 };
 
 export default config;
