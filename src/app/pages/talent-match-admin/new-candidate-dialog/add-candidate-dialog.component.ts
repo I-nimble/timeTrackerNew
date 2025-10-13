@@ -166,6 +166,7 @@ export class AddCandidateDialogComponent implements OnInit {
       availability: formValue.availability,
       location_id: formValue.location_id,
       }),
+      status_id: 3
     };
 
     const id =
