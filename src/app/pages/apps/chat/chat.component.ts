@@ -281,6 +281,10 @@ export class AppChatComponent implements OnInit {
           }
         });
       } else {
+        this.plan = {
+          "name": "Professional",
+          "id": 3
+        }
         this.loader = new Loader(true, true, false);
       }
     } catch (err) {
