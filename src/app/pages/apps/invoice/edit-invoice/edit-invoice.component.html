@@ -193,8 +193,23 @@
                 </mat-form-field>
               </td>
             </ng-container>
+
+            <ng-container matColumnDef="footer-total">
+              <td mat-footer-cell *matFooterCellDef colspan="4" style="font-weight:bold;" class="text-center">TOTAL
+                HOURS</td>
+            </ng-container>
+            <ng-container matColumnDef="footer-amount">
+              <td mat-footer-cell *matFooterCellDef style="font-weight:bold;" class="text-center">
+                {{ item.hours | number: '1.0-2' }}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="empty-column">
+              <td mat-footer-cell *matFooterCellDef></td>
+            </ng-container>
+
             <tr mat-header-row *matHeaderRowDef="ratingsDisplayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: ratingsDisplayedColumns;"></tr>
+            <tr mat-footer-row *matFooterRowDef="footerDisplayedColumns"></tr>
           </table>
         </div>
       </div>

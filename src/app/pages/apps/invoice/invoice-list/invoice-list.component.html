@@ -51,7 +51,7 @@
   </div>
 </div>
 
-<mat-card class="cardWithShadow" *ngIf="role == '1' || allowedPaymentsManager">
+<mat-card class="cardWithShadow" *ngIf="role != '3' && allowedPaymentsView">
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
       <div class="row m-b-16 col-lg-4">
@@ -82,7 +82,7 @@
           mat-flat-button 
           color="primary" 
           class="m-r-10"
-          *ngIf="role == '1' || allowedPaymentsManager" 
+          *ngIf="allowedPaymentsManage"
           (click)="generateInvoice()"
         >
           Generate Invoice
@@ -105,7 +105,7 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="client" *ngIf="role == '1' || allowedPaymentsManager">
+        <ng-container matColumnDef="client" *ngIf="role != '3'">
           <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15">
             Client
           </th>
@@ -160,18 +160,18 @@
               <button 
                 mat-menu-item 
                 [routerLink]="['/apps/editinvoice/', element.id]"
-                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager"
+                class="d-flex align-items-center justify-content-center" *ngIf="allowedPaymentsEdit"
               >
                 <mat-icon>edit</mat-icon>
                 <span>Edit</span>
               </button>
               <button mat-menu-item (click)="deleteInvoice(element.id)"
-                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager">
+                class="d-flex align-items-center justify-content-center" *ngIf="allowedPaymentsDelete">
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
               </button>
               <button mat-menu-item (click)="sendToClient(element.id)"
-                class="d-flex align-items-center justify-content-center" *ngIf="role == '1' || allowedPaymentsManager">
+                class="d-flex align-items-center justify-content-center" *ngIf="allowedPaymentsManage">
                 <mat-icon>send</mat-icon>
                 <span>Send to client</span>
               </button>
