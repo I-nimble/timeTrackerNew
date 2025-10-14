@@ -71,18 +71,6 @@ export const AppsRoutes: Routes = [
           ],
         },
       },
-      { path: 'email', redirectTo: 'email/inbox', pathMatch: 'full' },
-      {
-        path: 'permission',
-        component: AppPermissionComponent,
-        data: {
-          title: 'Roll Base Access',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Roll Base Access' },
-          ],
-        },
-      },
       {
         path: 'history',
         component: AppHistoryComponent,
@@ -91,17 +79,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'History' },
-          ],
-        },
-      },
-      {
-        path: 'kanban',
-        component: AppKanbanComponent,
-        data: {
-          title: 'Kanban',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Kanban' },
           ],
         },
       },
