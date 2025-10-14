@@ -5,8 +5,7 @@ import { CometChatOngoingCall, CometChatOutgoingCall } from '@cometchat/chat-uik
 import "@cometchat/uikit-elements";
 import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CometChatCalls } from '@cometchat/calls-sdk-javascript-new';
-import { CallSettings } from '@cometchat/calls-sdk-javascript/pack/src/models/CallSettings';
-import { CometChatUIKitConstants } from '@cometchat/uikit-resources';
+import { CometChatUIKitConstants, CometChatCallEvents } from '@cometchat/uikit-resources';
 import { StorageUtils } from '@cometchat/uikit-shared';
 import { CustomIncomingCallComponent } from './components/custom-incoming-call/custom-incoming-call.component';
 
@@ -22,12 +21,13 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'Modernize Angular Admin Template';
   private callListenerId = 'APP_CALL_LISTENER';
   sessionId!: string;
-  callSettings!: CallSettings;
+  callSettingsBuilder!: any;
   callScreen!: HTMLElement;
   incomingCall: any = null;
   loggedInUID: string = '';
   outgoingCall: any = null;
   ongoingCall: any = null;
+  ccCallEnded!: any;
 
   constructor(
     public cometChatService: CometChatService,
@@ -51,6 +51,12 @@ export class AppComponent implements OnInit, OnDestroy {
     CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
 
     CometChat.addCallListener(this.callListenerId, this.createCallListener());
+
+    this.ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
+      (call: CometChat.Call) => {
+        this.clearCall();
+      }
+    );
   }
 
   createMessageListener() {
@@ -113,6 +119,9 @@ export class AppComponent implements OnInit, OnDestroy {
           this.incomingCall = null;
           CometChat.rejectCall(call.getSessionId(), CometChat.CALL_STATUS.BUSY);
         }
+      },
+      onCallEndedMessageReceived: (call: any) => {
+        this.clearCall()
       }
     });
   }
@@ -130,7 +139,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   acceptIncomingCall() {
     if (!this.incomingCall) return;
-    
     CometChat.acceptCall(this.incomingCall.sessionId)
       .then(call => {
         this.startCallSession(call);
@@ -159,58 +167,62 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
-  private startCallSession(call: any) {
+  private async startCallSession(call: any) {
     StorageUtils.setItem(CometChatUIKitConstants.calls.activecall, call.sessionId);
     
-    this.cometChatService.isCallOngoing = true;
     this.sessionId = call.getSessionId();
-    
-    this.callSettings = new CometChatCalls.CallSettingsBuilder()
+    this.callSettingsBuilder = new CometChatCalls.CallSettingsBuilder()
       .enableDefaultLayout(true)
-      .setIsAudioOnlyCall(call.getType() === 'audio')
-      .setCallListener(new CometChatCalls.OngoingCallListener({
-        onCallEndButtonPressed: () => this.clearCall(),
-        onCallEnded: () => this.clearCall()
-      }))
-      .build();
-
-    const callScreenElement = document.getElementById('callScreen');
-    if (callScreenElement) {
-      CometChatCalls.startSession(
-        this.sessionId,
-        this.callSettings,
-        callScreenElement
-      );
-    }
+      .setIsAudioOnlyCall(call.getType() === 'audio');
+    
+    this.cometChatService.isCallOngoing = true;
+    this.cdr.detectChanges();
   }
 
   clearCall = () => {
     StorageUtils.removeItem(CometChatUIKitConstants.calls.activecall);
     CometChatCalls.endSession();
+    CometChat.endCall(this.sessionId)
     CometChat.clearActiveCall();
     this.cometChatService.isCallOngoing = false;
     this.cometChatService.outGoingCallObject = null;
     this.cometChatService.callObject = null;
     this.sessionId = '';
-    this.callSettings = undefined as any;
+    this.callSettingsBuilder = undefined as any;
     this.incomingCall = null;
     this.outgoingCall = null;
     this.ongoingCall = null;
     this.cdr.detectChanges();
   }
 
-  public handleOnCloseClicked = () => {
-    const sessionId = this.cometChatService.outGoingCallObject?.getSessionId();
-    if (sessionId) {
-      CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.CANCELLED).then(
-        () => this.clearCall(),
-        error => console.error("Call cancel failed:", error)
-      );
-    }
-  };
+public handleOnCloseClicked = () => {
+  const outgoingCall = this.cometChatService.outGoingCallObject;
+  if (!outgoingCall) {
+    console.warn('No outgoing call object found');
+    return;
+  }
+
+  const sessionId = outgoingCall.getSessionId?.();
+  if (sessionId) {
+    CometChat.rejectCall(sessionId, CometChat.CALL_STATUS.CANCELLED).then(
+      () => this.clearCall()
+    ).catch(
+      (error: any) => {
+        console.error("Call cancel failed:", error);
+        if (error && error.stack) {
+          console.error("Stack trace:", error.stack);
+        }
+      }
+    );
+  } else {
+    console.warn('No sessionId found in outgoing call object');
+  }
+};
 
   ngOnDestroy() {
     CometChat.removeCallListener(this.callListenerId);
+    CometChat.removeMessageListener('UNIQUE_LISTENER_ID');
+    this.ccCallEnded?.unsubscribe();
     this.clearCall();
   }
 }
