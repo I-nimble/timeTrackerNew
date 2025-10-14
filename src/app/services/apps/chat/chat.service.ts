@@ -4,17 +4,17 @@ import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometcha
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat, CometChatNotifications } from '@cometchat/chat-sdk-javascript-new';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CometChatService {
   private UIKitSettings!: any;
+  private appSettings!: any;
   API_URI = environment.apiUrl;
   isChatAvailable: boolean = false; 
   isCallOngoing: boolean = false;
@@ -38,6 +38,9 @@ export class CometChatService {
 
       const initialized = await this.initCometChatUIKit(credentials);
       if (!initialized) return;
+
+      const initializedSDK = await this.initCometChatSDK(credentials);
+      if (!initializedSDK) return;
 
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
@@ -97,6 +100,20 @@ export class CometChatService {
       return true;
     } catch (error) {
       console.error("CometChatUIKit initialization failed:", error);
+      return false;
+    }
+  }
+
+  private async initCometChatSDK(credentials: any): Promise<boolean> {
+    try {
+      this.appSettings = new CometChat.AppSettingsBuilder()
+        .setRegion("us")
+        .subscribePresenceForAllUsers()
+        .build();
+      await CometChat.init(credentials.app_id, this.appSettings);
+      return true;
+    } catch (error) {
+      console.error("CometChat SDK initialization failed:", error);
       return false;
     }
   }
