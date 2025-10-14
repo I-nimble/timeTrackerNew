@@ -7,34 +7,6 @@
   </mat-card-content>
 </mat-card>
 
-<mat-card class="cardWithShadow mb-3" *ngIf="isNative">
-  <mat-card-content>
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <div class="f-w-600 f-s-16">Push Notifications</div>
-        <div class="f-s-14 text-muted">
-          Receive real-time notifications on your device
-          <span *ngIf="isPushLoading" class="ml-2">
-            <mat-spinner diameter="16"></mat-spinner>
-          </span>
-          <span *ngIf="!isPushLoading" class="ml-2">
-            {{ isPushEnabled ? '● Enabled' : '○ Disabled' }}
-          </span>
-        </div>
-      </div>
-      <button 
-        mat-stroked-button 
-        [color]="isPushEnabled ? 'warn' : 'primary'"
-        [disabled]="isPushLoading"
-        (click)="togglePushNotifications()"
-        class="f-s-14">
-        <mat-icon class="mr-1">{{ isPushEnabled ? 'notifications_off' : 'notifications' }}</mat-icon>
-        {{ isPushEnabled ? 'Disable' : 'Enable' }} Push
-      </button>
-    </div>
-  </mat-card-content>
-</mat-card>
-
 <mat-card class="cardWithShadow">
   <mat-card-content class="p-t-0">
     <div class="table-responsive">

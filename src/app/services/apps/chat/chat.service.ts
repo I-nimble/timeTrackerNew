@@ -10,6 +10,9 @@ import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
 import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 
 @Injectable({
   providedIn: 'root',
@@ -46,34 +49,160 @@ export class CometChatService {
       if (!loggedIn) return;
 
       this.createCustomMessageTemplates();
-      this.setContactsConfiguration();
 
       this.isChatAvailable = true;
 
-      const permissionGranted = await this.requestNotificationPermission();
-      if (!permissionGranted) return;
-
-      await this.registerPushToken();
+      if (Capacitor.isNativePlatform()) {
+        await this.initializeAndroidPushNotifications();
+      } else {
+        await this.initializeWebPushNotifications();
+      }
 
     } catch (error) {
       console.error("Initialization failed with error:", error);
     }
   }
 
-  setContactsConfiguration(): void {
-    const friendsRequestBuilder = new CometChat.UsersRequestBuilder()
-      .setLimit(100)
-      .friendsOnly(true);
+  private async initializeAndroidPushNotifications(): Promise<void> {
+    try {      
+      const hasPermission = await this.checkAndRequestPermissions();
+      if (!hasPermission) {
+        return;
+      }
 
-    this.contactsConfiguration = new ContactsConfiguration({
-      usersConfiguration: new UsersConfiguration({
-        usersRequestBuilder: friendsRequestBuilder,
-        hideSeparator: true
-      })
+      await PushNotifications.register();
+
+      this.setupPushListeners();
+
+      await this.registerFCMWithCometChat();
+
+    } catch (error) {
+      console.error('Error initializing Android push notifications:', error);
+    }
+  }
+
+  private async registerFCMWithCometChat(): Promise<void> {
+    try {
+      const { token } = await FirebaseMessaging.getToken();
+      
+      if (token) {
+        localStorage.setItem('fcm_token_android', token);
+        
+        await this.registerPushTokenWithCometChat(token);
+        
+      }
+    } catch (error) {
+      console.error('Error getting FCM token:', error);
+    }
+  }
+
+  private async registerPushTokenWithCometChat(token: string): Promise<void> {
+    try {
+      
+      await CometChatNotifications.registerPushToken(
+        token,
+        "fcm_android" as any, 
+        "chat-notifications" 
+      );
+      
+    } catch (error) {
+      console.error('Error registering token with CometChat:', error);
+    }
+  }
+
+  private async initializeWebPushNotifications(): Promise<void> {
+    try {
+      const permissionGranted = await this.requestNotificationPermission();
+      if (!permissionGranted) return;
+
+      await this.registerPushToken();
+      
+    } catch (error) {
+      console.error("Web push notification error:", error);
+    }
+  }
+
+  private async checkAndRequestPermissions(): Promise<boolean> {
+    try {
+      const permStatus = await PushNotifications.checkPermissions();
+
+      if (permStatus.receive !== 'granted') {
+        const requestedPerm = await PushNotifications.requestPermissions();
+        
+        if (requestedPerm.receive !== 'granted') {
+          this.openSnackBar('Please enable notifications to receive chat messages', 'Close');
+          return false;
+        }
+      }
+
+      await FirebaseMessaging.requestPermissions();
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+      return false;
+    }
+  }
+
+  private setupPushListeners(): void {
+    PushNotifications.addListener('pushNotificationReceived', 
+      (notification: PushNotificationSchema) => {
+        this.handleCometChatNotification(notification);
+      }
+    );
+
+    FirebaseMessaging.addListener('notificationReceived', (event: any) => {
+      this.handleCometChatNotification(event);
+    });
+
+    FirebaseMessaging.addListener('tokenReceived', async (event: any) => {
+      localStorage.setItem('fcm_token_latest', event.token);
+
+      await this.registerPushTokenWithCometChat(event.token);
     });
   }
 
+  private handleCometChatNotification(notification: any): void {
+
+    if (navigator.vibrate) {
+      navigator.vibrate([100, 50, 100]);
+    }
+
+    const notificationData = this.extractCometChatData(notification);
   
+  }
+
+  private extractCometChatData(notification: any): any {
+    const data = notification.data || notification;
+    
+    if (data['cometchat:message']) {
+      try {
+        return JSON.parse(data['cometchat:message']);
+      } catch (e) {
+        return data;
+      }
+    }
+    return data;
+  }
+
+  async checkPushStatus(): Promise<void> {
+    try {
+      
+      const token = localStorage.getItem('fcm_token_android');
+      
+      const permStatus = await PushNotifications.checkPermissions();
+      
+      if (token && permStatus.receive === 'granted') {
+        this.openSnackBar('CometChat push configured - Ready to receive messages', 'OK');
+      } else {
+        this.openSnackBar('Push configuration incomplete', 'Close');
+      }
+      
+    } catch (error) {
+      console.error('Error checking push status:', error);
+    }
+  }
+
   async fetchUnreadMessages(): Promise<any[]> {
     let limit = 99;
     let messagesRequest = new CometChat.MessagesRequestBuilder()
