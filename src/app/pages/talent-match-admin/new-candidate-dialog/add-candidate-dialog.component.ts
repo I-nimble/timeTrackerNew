@@ -169,6 +169,7 @@ export class AddCandidateDialogComponent implements OnInit {
       ...(this.selectedProfilePicFile && { profile_pic: this.selectedProfilePicFile }),
       availability: formValue.availability,
       location_id: formValue.location_id,
+      status_id: 3
     };
 
     const id =
