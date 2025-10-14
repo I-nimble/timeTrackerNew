@@ -5,10 +5,6 @@ import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppFaqComponent } from '../faq/faq.component';
-import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { MatSidenav } from '@angular/material/sidenav';
 import { ButtonComponent } from 'src/app/components/button/button.component';
 
@@ -52,7 +48,7 @@ interface features {
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent],
+  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, CommonModule],
   templateUrl: './header.component.html',
 })
 export class AppHeaderComponent {
@@ -107,190 +103,6 @@ export class AppHeaderComponent {
       subtitle: 'Collaborate and create with ease.',
       footer: 'Monday.com',
     },
-  ];
-
-  apps: apps[] = [
-      {
-        id: 1,
-        img: '/assets/images/svgs/Bookkeeper.svg',
-        title: 'Others',
-        subtitle: 'Tech Startups, Marketing Services, General Business Support',
-        link: '/landingpage/industry/other',
-      },
-      {
-        id: 2,
-        img: '/assets/images/svgs/Case-Manager.svg',
-        title: 'Other legal services',
-        subtitle: 'Specialized legal services for companies and individuals. Access case management, consulting, and legal documentation.',
-        link: '/landingpage/industry/legal-services',
-      },
-      {
-        id: 3,
-        img: '/assets/images/svgs/injury.svg',
-        title: 'Personal Injury',
-        subtitle: 'Manage personal injury cases, track files, and communicate with affected clients.',
-        link: '/landingpage/industry/personal-injury',
-      },
-      {
-        id: 4,
-        img: '/assets/images/svgs/real-state.svg',
-        title: 'Real estate',
-        subtitle: 'Tools for real estate agents: property management, contracts, and client tracking.',
-        link: '/landingpage/industry/real-state',
-      },
-      {
-        id: 5,
-        img: '/assets/images/svgs/workers-compensation.svg',
-        title: 'Workers compensation',
-        subtitle: 'Solutions for managing workers compensation cases, file handling, and employee communication.',
-        link: '/landingpage/industry/workers-compensation',
-      },
-      // {
-      //   id: 6,
-      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      //   title: 'Tickets App',
-      //   subtitle: 'Create new ticket',
-      //   link: '/apps/tickets',
-      // },
-      // {
-      //   id: 7,
-      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
-      //   title: 'Email App',
-      //   subtitle: 'Get new emails',
-      //   link: '/apps/email/inbox',
-      // },
-      // {
-      //   id: 8,
-      //   img: '/assets/images/svgs/icon-dd-application.svg',
-      //   title: 'Courses',
-      //   subtitle: 'Create new course',
-      //   link: '/apps/courses',
-      // },
-    ];
-
-  testimonials: testimonials[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      name: 'Jenny Wilson',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      name: 'Minshan Cui',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      name: 'Eminson Mendoza',
-      subtext: 'Features avaibility',
-    },
-  ];
-
-  features: features[] = [
-    {
-      id: 1,
-      icon: 'wand',
-      title: 'Expert recruitment services',
-      color: 'primary',
-      subtext:
-        'Our team of HR professionals recruit the best talent worldwide while also making sure they are the perfect fit for your business.',
-    },
-    {
-      id: 2,
-      icon: 'shield-lock',
-      title: 'HR integration and management',
-      color: 'primary',
-      subtext:
-        'Once recruited, new team members are smoothly integrated into your remote team through our specialized management tools, focusing on performance, engagement, and collaboration. ',
-    },
-    {
-      id: 3,
-      icon: 'archive',
-      title: 'Dedicated performance and IT support',
-      color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
-    },
-    {
-      id: 4,
-      icon: 'chart-pie',
-      title: 'Integrate tools for remote work',
-      color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
-    },
-    // {
-    //   id: 5,
-    //   icon: 'tag',
-    //   title: 'Material ',
-    //   color: 'success',
-    //   subtext: 'Its been made with Material and full responsive layout.',
-    // },
-    // {
-    //   id: 9,
-    //   icon: 'adjustments',
-    //   title: 'Lots of Chart Options',
-    //   color: 'error',
-    //   subtext: 'You name it and we have it, Yes lots of variations for Charts.',
-    // },
-    // {
-    //   id: 7,
-    //   icon: 'language-katakana',
-    //   title: 'i18 Angular',
-    //   color: 'secondary',
-    //   subtext: 'i18 is a powerful internationalization framework.',
-    // },
-    // {
-    //   id: 13,
-    //   icon: 'calendar',
-    //   title: 'Calendar Design',
-    //   color: 'warning',
-    //   subtext: 'Calendar is available with our package & in nice design.',
-    // },
-
-    // {
-    //   id: 6,
-    //   icon: 'diamond',
-    //   title: '3400+ Font Icons',
-    //   color: 'primary',
-    //   subtext: 'Lots of Icon Fonts are included here in the package of Admin.',
-    // },
-    // {
-    //   id: 11,
-    //   icon: 'refresh',
-    //   title: 'Regular Updates',
-    //   color: 'primary',
-    //   subtext: 'We are constantly updating our pack with new features..',
-    // },
-    // {
-    //   id: 8,
-    //   icon: 'arrows-shuffle',
-    //   title: 'Easy to Customize',
-    //   color: 'secondary',
-    //   subtext: 'Customization will be easy as we understand your pain.',
-    // },
-    // {
-    //   id: 10,
-    //   icon: 'layers-intersect',
-    //   title: 'Lots of Table Examples',
-    //   color: 'success',
-    //   subtext: 'Tables are initial requirement and we added them.',
-    // },
-    // {
-    //   id: 14,
-    //   icon: 'messages',
-    //   title: 'Dedicated Support',
-    //   color: 'error',
-    //   subtext: 'We believe in supreme support is key and we offer that.',
-    // },
-    // {
-    //   id: 12,
-    //   icon: 'book',
-    //   title: 'Detailed Documentation',
-    //   color: 'warning',
-    //   subtext: 'Our Detailed Documentation Ensures Ease of Use',
-    // },
   ];
 
   quicklinks: quicklinks[] = [

@@ -8,9 +8,7 @@ import { ViewportScroller } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
-import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 import { ButtonComponent } from 'src/app/components/button/button.component';
 
@@ -70,7 +68,7 @@ interface features {
 
 @Component({
     selector: 'app-pricing',
-    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
+    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppFooterComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
     templateUrl: './pricing.component.html',
 })
 export class AppPricingComponent {
