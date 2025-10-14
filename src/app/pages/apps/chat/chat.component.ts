@@ -6,7 +6,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
 import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
