@@ -156,42 +156,7 @@ export class AppCardsComponent {
   ];
 
   //   card 2
-  cardimgs: cardimgs[] = [
-    {
-      id: 1,
-      time: '2 mins Read',
-      imgSrc: '/assets/images/blog/blog-img1.jpg',
-      user: '/assets/images/profile/user-1.jpg',
-      title: 'As yen tumbles, gadget-loving Japan goes for secondhand iPhones',
-      views: '9,125',
-      category: 'Social',
-      comments: 3,
-      date: 'Mon, Dec 23',
-    },
-    {
-      id: 2,
-      time: '2 mins Read',
-      imgSrc: '/assets/images/blog/blog-img2.jpg',
-      user: '/assets/images/profile/user-2.jpg',
-      title:
-        'Intel loses bid to revive antitrust case against patent foe Fortress',
-      views: '9,125',
-      category: 'Gadget',
-      comments: 3,
-      date: 'Sun, Dec 23',
-    },
-    {
-      id: 3,
-      time: '2 mins Read',
-      imgSrc: '/assets/images/blog/blog-img3.jpg',
-      user: '/assets/images/profile/user-3.jpg',
-      title: 'COVID outbreak deepens as more lockdowns loom in China',
-      views: '9,125',
-      category: 'Health',
-      comments: 12,
-      date: 'Sat, Dec 23',
-    },
-  ];
+  cardimgs: cardimgs[] = [];
 
   //   card 3
   productcards: productcards[] = [
@@ -248,72 +213,13 @@ export class AppCardsComponent {
   ];
 
   // card 5
-  followercards: followercards[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      title: 'Andrew Grant',
-      subtext: 'El Salvador',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      title: 'Leo Pratt',
-      subtext: 'Bulgaria',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      title: 'Charles Nunez',
-      subtext: 'Nepal',
-    },
-  ];
+  followercards: followercards[] = [];
 
   // card 6
-  friendcards: friendcards[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      title: 'Andrew Grant',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      title: 'Leo Pratt',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      title: 'Charles Nunez',
-    },
-    {
-      id: 4,
-      imgSrc: '/assets/images/profile/user-4.jpg',
-      title: 'Lora Powers',
-    },
-  ];
+  friendcards: friendcards[] = [];
 
   // card 7
-  socialcards: socialcards[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      username: 'Andrew Grant',
-      post: 'Technology Director',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      username: 'Andrew Grant',
-      post: 'Technology Director',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      username: 'Andrew Grant',
-      post: 'Technology Director',
-    },
-  ];
+  socialcards: socialcards[] = [];
 
   // card 8
   giftcards: giftcards[] = [

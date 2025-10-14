@@ -2,8 +2,6 @@ import { Routes } from '@angular/router';
 
 import { AppChatComponent } from './chat/chat.component';
 import { AppEmployeeComponent } from './employee/employee.component';
-import { AppBlogsComponent } from './blogs/blogs.component';
-import { AppBlogDetailsComponent } from './blogs/details/details.component';
 import { AppPermissionComponent } from './permission/permission.component';
 import { AppKanbanComponent } from './kanban/kanban.component';
 import { AppFullcalendarComponent } from './fullcalendar/fullcalendar.component';
@@ -104,29 +102,6 @@ export const AppsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Kanban' },
-          ],
-        },
-      },
-      {
-        path: 'blog/post',
-        component: AppBlogsComponent,
-        data: {
-          title: 'Posts',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Posts' },
-          ],
-        },
-      },
-      {
-        path: 'blog/detail/:id',
-        component: AppBlogDetailsComponent,
-        data: {
-          title: 'Blog Detail',
-          showGoBack: true,
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Blog Detail' },
           ],
         },
       },

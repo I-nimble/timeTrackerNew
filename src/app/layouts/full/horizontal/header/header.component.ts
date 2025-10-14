@@ -2,7 +2,6 @@ import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
 import { getNavItems } from '../../vertical/sidebar/sidebar-data';
-import { TranslateService } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
@@ -111,11 +110,9 @@ export class AppHorizontalHeaderComponent implements OnInit {
     private settings: CoreService,
     private vsidenav: CoreService,
     public dialog: MatDialog,
-    private translate: TranslateService,
     private companieService: CompaniesService,
     private authService: AuthService,
   ) {
-    translate.setDefaultLang('en');
   }
 
   ngOnInit(): void {
@@ -150,7 +147,6 @@ export class AppHorizontalHeaderComponent implements OnInit {
   }
 
   changeLanguage(lang: any): void {
-    this.translate.use(lang.code);
     this.selectedLanguage = lang;
   }
 
@@ -169,38 +165,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
     this.authService.logout();
   }
 
-  notifications: notifications[] = [
-    {
-      id: 1,
-      img: '/assets/images/profile/user-1.jpg',
-      title: 'Roman Joined the Team!',
-      subtitle: 'Congratulate him',
-    },
-    {
-      id: 2,
-      img: '/assets/images/profile/user-2.jpg',
-      title: 'New message received',
-      subtitle: 'Salma sent you new message',
-    },
-    {
-      id: 3,
-      img: '/assets/images/profile/user-3.jpg',
-      title: 'New Payment received',
-      subtitle: 'Check your earnings',
-    },
-    {
-      id: 4,
-      img: '/assets/images/profile/user-4.jpg',
-      title: 'Jolly completed tasks',
-      subtitle: 'Assign her new tasks',
-    },
-    {
-      id: 5,
-      img: '/assets/images/profile/user-5.jpg',
-      title: 'Hitesh Joined the Team!',
-      subtitle: 'Congratulate him',
-    },
-  ];
+  notifications: notifications[] = [];
 
   profiledd: profiledd[] = [
     {

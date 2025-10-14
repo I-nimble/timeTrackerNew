@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 // ui
 import { AppBadgeComponent } from './badge/badge.component';
-import { AppChipsComponent } from './chips/chips.component';
 import { AppDialogComponent } from './dialog/dialog.component';
 import { AppDividerComponent } from './divider/divider.component';
 import { AppExpansionComponent } from './expansion/expansion.component';
@@ -42,17 +41,6 @@ export const UiComponentsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Expansion Panel' },
-          ],
-        },
-      },
-      {
-        path: 'chips',
-        component: AppChipsComponent,
-        data: {
-          title: 'Chip',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Chip' },
           ],
         },
       },

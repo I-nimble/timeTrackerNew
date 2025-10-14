@@ -342,26 +342,7 @@ export class AppPricingComponent {
 
   appdemos: demos[] = [];
 
-  testimonials: testimonials[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      name: 'Jenny Wilson',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      name: 'Minshan Cui',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      name: 'Eminson Mendoza',
-      subtext: 'Features avaibility',
-    },
-  ];
+  testimonials: testimonials[] = [];
 
   features: features[] = [
     {
