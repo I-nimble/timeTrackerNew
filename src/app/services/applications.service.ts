@@ -171,7 +171,7 @@ export class ApplicationsService {
           ...data,
           file_name: fileName,
           profile_pic: profilePic,
-          phone: null,
+          phone: data.phone ?? null,
           company_id: data.company_id == -1 ? null : data.company_id,
         };
 

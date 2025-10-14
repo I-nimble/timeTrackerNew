@@ -12,7 +12,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatOptionModule } from '@angular/material/core';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -27,9 +29,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatOptionModule,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatListModule
   ],
 })
 export class AddCandidateDialogComponent implements OnInit {
@@ -57,7 +61,7 @@ export class AddCandidateDialogComponent implements OnInit {
       english_level: ['', Validators.required],
       position_id: ['', Validators.required],
       current_position: [''],
-      company_id: [''],
+      company_ids: [[]],
       availability: [false, Validators.required],
       location_id: ['', Validators.required],
     });
@@ -68,22 +72,28 @@ export class AddCandidateDialogComponent implements OnInit {
       this.positions = positions;
       this.applicationsService.getLocations().subscribe((locations) => {
         this.locations = locations;
-      
+        const allCompanyIds = (this.data?.companies || []).map((c: any) => c.id);
+
         if (this.data.candidate) {
+          const candidateCompanyIds = this.data.candidate.companies && this.data.candidate.companies.length > 0
+            ? this.data.candidate.companies.map((c: any) => c.id)
+            : allCompanyIds;
+
           this.candidateForm.patchValue({
             name: this.data.candidate.name,
             email: this.data.candidate.email,
             skills: this.data.candidate.skills,
             english_level: this.data.candidate.english_level,
             position_id: this.data.candidate.position_id,
-            company_id:
-              this.data.candidate.company_id !== undefined
-                ? this.data.candidate.company_id
-                : '',
+            company_ids: candidateCompanyIds,
             availability: this.data.candidate.availability,
             location_id: this.locations.find((l: any) => l.country == this.data.candidate.location).id,
             current_position: this.data.candidate.current_position,
           });
+        } else {
+          if (allCompanyIds.length > 0) {
+            this.candidateForm.patchValue({ company_ids: allCompanyIds });
+          }
         }
       });
     });
@@ -145,12 +155,7 @@ export class AddCandidateDialogComponent implements OnInit {
     }
 
     const formValue = this.candidateForm.value;
-    const companyId =
-      formValue.company_id === '' ||
-      formValue.company_id === null ||
-      formValue.company_id === undefined
-        ? -1
-        : formValue.company_id;
+    const companyIds = formValue.company_ids || [];
 
     const data: any = {
       name: formValue.name,
@@ -159,13 +164,11 @@ export class AddCandidateDialogComponent implements OnInit {
       english_level: formValue.english_level,
       position_id: formValue.position_id,
       current_position: formValue.current_position,
-      company_id: companyId,
+      company_ids: companyIds,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
-      ...(this.selectedProfilePicFile && {
-        profile_pic: this.selectedProfilePicFile,
+      ...(this.selectedProfilePicFile && { profile_pic: this.selectedProfilePicFile }),
       availability: formValue.availability,
       location_id: formValue.location_id,
-      }),
     };
 
     const id =
@@ -188,6 +191,27 @@ export class AddCandidateDialogComponent implements OnInit {
         );
       },
     });
+  }
+
+  isAllSelected(): boolean {
+    const selected = this.candidateForm.get('company_ids')?.value || [];
+    const allIds = this.data.companies.map((c: any) => c.id);
+    return selected.length === allIds.length && allIds.length > 0;
+  }
+
+  getSelectedCompaniesLabel(): string {
+    const selected = this.candidateForm.get('company_ids')?.value || [];
+    const allIds = this.data.companies.map((c: any) => c.id);
+
+    if (selected.length === allIds.length && allIds.length > 0) {
+      return 'All';
+    }
+
+    const names = this.data.companies
+      .filter((c: any) => selected.includes(c.id))
+      .map((c: any) => c.name);
+
+    return names.join(', ');
   }
 
   onCancel(): void {
