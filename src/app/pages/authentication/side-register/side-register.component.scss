@@ -5,25 +5,26 @@
     margin-bottom: 45px;
 }
 ::ng-deep .mat-horizontal-content-container {
-    overflow: visible !important;
     padding: 0px;
 }
 .disabled {
     color: #4e4e4e!important;
 }
 
-@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+@media (max-width: 768px) {
   .mobile-auth-wrapper {
     min-height: 100vh;
   }
   
   .mobile-container {
     height: 100vh;
-    overflow: hidden;
+    width: 100%;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
   
   .mobile-auth-card {
-    height: 100vh !important;
+    height: auto !important;
     box-shadow: none !important;
   }
   
@@ -116,7 +117,6 @@
   
   .mobile-step-container {
     width: 100%;
-    margin-top: 10px !important;
   }
   
   .mobile-departments {
@@ -125,7 +125,7 @@
   }
   
   .mobile-department-btn {
-    min-height: 44px;
+    min-height: 20px;
     font-size: 14px;
   }
   
@@ -167,53 +167,6 @@
   }
 }
 
-@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
-  .mobile-auth-wrapper {
-    min-height: auto !important;
-    overflow: visible !important;
-  }
-  
-  .mobile-container {
-    height: auto;
-    overflow: visible;
-    min-height: auto;
-  }
-  
-  .mobile-auth-card {
-    height: auto !important;
-    overflow: visible;
-  }
-  
-  .mobile-auth-body {
-    height: auto !important;
-    overflow: visible;
-  }
-  
-  .mobile-row {
-    height: auto !important;
-    overflow: visible;
-  }
-  
-  .mobile-form-container {
-    overflow: visible;
-  }
-  
-  .mobile-form-wrapper {
-    overflow: visible;
-    height: auto;
-    min-height: auto;
-  }
-  
-  .mobile-form-content {
-    overflow: visible;
-    height: auto;
-  }
-  
-  body {
-    overflow-y: auto !important;
-  }
-}
-
 @media (max-width: 768px) {
   .mat-form-field {
     font-size: 16px !important;
@@ -231,17 +184,11 @@
   .mat-input-element {
     padding: 12px 0 !important;
   }
-  
-  .mobile-form-wrapper {
-    overflow-y: auto !important;
-    max-height: none !important;
-  }
 }
 
 .mobile-form-wrapper {
   scroll-behavior: smooth;
 }
-
 
 @media (max-width: 480px) {    
   ::ng-deep .mat-stepper-horizontal .mat-step-header {
@@ -264,7 +211,6 @@
   ::ng-deep .mat-stepper-horizontal-line {
     display: none !important;
   }
-  
   .mobile-form-wrapper {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
@@ -283,9 +229,5 @@
     overflow-y: auto !important;
     height: auto !important;
     min-height: 100vh !important;
-  }
-  
-  body {
-    overflow-y: auto !important;
   }
 }
