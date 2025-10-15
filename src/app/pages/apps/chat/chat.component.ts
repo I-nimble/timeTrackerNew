@@ -50,7 +50,7 @@ export class AppChatComponent implements OnInit {
   userId: string | null = localStorage.getItem('id');
   groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
   companies: any[] = [];
-  selectedCompanyId!: number;
+  selectedCompanyId: number = 1;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
   public loader: Loader = new Loader(true, false, false);
@@ -150,11 +150,39 @@ export class AppChatComponent implements OnInit {
       this.configureTheme();
       this.observeAppTheme();
       this.initPlanLogic();
+      this.getCompanies();
     } catch (err) {
       this.loader = new Loader(true, true, true);
       this.chatInitError = 'There was an error initializing the chat.';
       console.error('Chat initialization error:', err);
     }
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe((companies: any[]) => {
+      const credentialChecks = companies.map(company =>
+        this.chatService.getChatCredentials(company.id).toPromise()
+          .then((credentials: any) => ({
+            company,
+            hasCredentials: credentials?.api_key && !credentials.message
+          }))
+          .catch(() => ({ company, hasCredentials: false }))
+      );
+
+      Promise.all(credentialChecks).then(results => {
+        this.companies = results
+          .filter(result => result.hasCredentials)
+          .map(result => result.company);
+      });
+    });
+  }
+
+  initializeCompanyChat() {
+    this.chatService.isChatAvailable = false;
+    setTimeout(() => {
+      this.chatService.initializeCometChat(this.selectedCompanyId);
+      this.chatService.isChatAvailable = true;
+    }, 100);
   }
 
   private initPlanLogic() {
@@ -197,7 +225,7 @@ export class AppChatComponent implements OnInit {
     });
 
     try {
-      if(this.userRole === '3') {
+      if (this.userRole === '3') {
         this.companiesService.getByOwner().subscribe({
           next: (company: any) => {
             this.plansService.getCurrentPlan(company.company.id).subscribe({
@@ -273,7 +301,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -295,7 +322,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -328,20 +354,19 @@ export class AppChatComponent implements OnInit {
               if (currentCount + members.length > 6) {
                 component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
               } else {
-                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                  CometChat.addMembersToGroup(
-                    guid,
-                    groupMembers,
-                    [] // empty bannedMembersList
-                  ).then(() => {
-                    if (this.onClose) this.onClose();
-                  });
+                const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
+                CometChat.addMembersToGroup(
+                  guid,
+                  groupMembers,
+                  [] // empty bannedMembersList
+                ).then(() => {
+                  if (this.onClose) this.onClose();
+                });
               }
             });
           },
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -410,7 +435,7 @@ export class AppChatComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if(result?.group) {
+      if (result?.group) {
         this.openSnackBar('Group Created successfully!', 'Close');
         this.chatService.isChatAvailable = false;
         setTimeout(() => {

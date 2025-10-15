@@ -1,4 +1,11 @@
 
+.company-select {
+  width: 225px;
+  margin-right: 16px;
+}
+::ng-deep .company-select .mat-mdc-form-field-subscript-wrapper {
+  display: none !important;
+}
 .fullwidth {
   width: 100%;
 }

@@ -140,6 +140,7 @@ export class AppSideRegisterComponent {
       if(params['company_id']) this.companyId = params['company_id'];
       if(params['user_role']) this.userRole = params['user_role'];
       if(this.userRole == '2' && this.companyId) {
+        console.log('invited')
         this.hasInvitation = true;
         this.registerInvitedTeamMemberForm.patchValue({
           company: this.companyId,
@@ -148,6 +149,7 @@ export class AppSideRegisterComponent {
           last_name: params['name'].split(' ')[1] || '',
         });
         this.showRegisterForm(this.userRole);
+        console.log('form values', this.registerInvitedTeamMemberForm.value)
       }
     });
   }
@@ -416,6 +418,7 @@ export class AppSideRegisterComponent {
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
       };
+      console.log('teamMemberData', teamMemberData)
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
         next: () => {
