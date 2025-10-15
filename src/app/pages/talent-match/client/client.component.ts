@@ -71,7 +71,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   aiLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
-  allCandidates: any[] = []; 
+  allCandidates: any[] = [];
+  useManualSearch = false;
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -91,7 +92,10 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   searchCandidatesWithAI(question: string) {
     if (!question?.trim()) return;
-
+    if (this.useManualSearch) {
+      this.onManualSearch(question);
+      return;
+    }
     this.aiLoading = true;
     this.aiAnswer = '';
     this.hasSearchResults = false;
@@ -108,7 +112,7 @@ export class AppTalentMatchClientComponent implements OnInit {
 
     this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
       next: (res) => {
-        const rawText = res.answer ?? '';
+        const rawText = res.answer?.parts?.[0]?.text ?? '';
         const selectedCandidates: string[] = [];
         const regex = /"([^"]+)"/g;
         let match;
@@ -123,14 +127,16 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.hasSearchResults = true;
         this.aiLoading = false;
         if (selectedCandidates.length > 0) {
-          this.aiAnswer = 'The candidates are listed below:';
+          this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
         }
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Please try again later.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.useManualSearch = true;
+          this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
         }
@@ -138,7 +144,18 @@ export class AppTalentMatchClientComponent implements OnInit {
       }
     });
   }
-  
+
+  onManualSearch(query: string) {
+    const lower = query.toLowerCase();
+    this.dataSource.data = this.allCandidates.filter(c =>
+      c.name?.toLowerCase().includes(lower) ||
+      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
+      c.skills?.toLowerCase().includes(lower) ||
+      c.location?.toLowerCase().includes(lower)
+    );
+    this.hasSearchResults = this.dataSource.data.length > 0;
+  }
+
   getInterviewDateTime(applicationId: number) {
     const interview = this.interviews.find(
       (interview) => interview.application_id === applicationId
@@ -335,7 +352,7 @@ export class AppTalentMatchClientComponent implements OnInit {
 })
 export class AppInterviewDialogContentComponent {
   local_data: any;
-  interviewForm: FormGroup;
+  dateTime: Date | null = null;
   interviewScheduled = false;
   availableDaysFilter = (d: Date | null): boolean => {
     if (!d) return false;
@@ -370,61 +387,50 @@ export class AppInterviewDialogContentComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.local_data = data;
-    this.interviewForm = this.fb.group({
-      date: [null, Validators.required],
-      time: [null, Validators.required],
-    });
     const m = moment(this.local_data.date_time).local();
     if (this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
-      this.interviewForm.patchValue({
-        date: m.toDate(),
-        time: m.format('HH:mm'),
-      });
+      this.dateTime = m.toDate();
     }
   }
 
   onScheduleInterview() {
-    if (this.interviewForm.valid) {
-      const date = this.interviewForm.value.date;
-      const time = this.interviewForm.value.time;
-      const dateTime = new Date(date);
-      const [hours, minutes] = time.split(':');
-      dateTime.setHours(+hours, +minutes, 0, 0);
-      const date_time = dateTime.toISOString();
+    if(!this.dateTime) {
+      this.openSnackBar('Please select a date and time', 'Close');
+      return;
+    }
 
-      const applicants = this.local_data.selected;
-      const company_id = this.data.companyId;
+    const applicants = this.local_data.selected;
+    const company_id = this.data.companyId;
 
-      const data = {
-        date_time,
-        applicants,
-        company_id,
-      };
-      if (this.local_data.action === 'Schedule') {
-        this.interviewsService.post(data).subscribe({
+    const data = {
+      date_time: this.dateTime,
+      applicants,
+      company_id,
+    };
+    if (this.local_data.action === 'Schedule') {
+      this.interviewsService.post(data).subscribe({
+        next: () => {
+          this.interviewScheduled = true;
+        },
+        error: (err: any) => {
+          console.error('Error scheduling interview:', err);
+          this.openSnackBar('Error scheduling interview', 'Close');
+          this.dialogRef.close({ event: 'Cancel' });
+        },
+      });
+    } else if (this.local_data.action === 'Reeschedule') {
+      this.interviewsService
+        .put(data, this.local_data.interviewId)
+        .subscribe({
           next: (response: any) => {
             this.interviewScheduled = true;
           },
           error: (err: any) => {
-            console.error('Error scheduling interview:', err);
-            this.openSnackBar('Error scheduling interview', 'Close');
+            console.error('Error reescheduling interview:', err);
+            this.openSnackBar('Error reescheduling interview', 'Close');
             this.dialogRef.close({ event: 'Cancel' });
           },
         });
-      } else if (this.local_data.action === 'Reeschedule') {
-        this.interviewsService
-          .put(data, this.local_data.interviewId)
-          .subscribe({
-            next: (response: any) => {
-              this.interviewScheduled = true;
-            },
-            error: (err: any) => {
-              console.error('Error reescheduling interview:', err);
-              this.openSnackBar('Error reescheduling interview', 'Close');
-              this.dialogRef.close({ event: 'Cancel' });
-            },
-          });
-      }
     }
   }
 

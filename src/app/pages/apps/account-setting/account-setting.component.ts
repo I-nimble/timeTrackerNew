@@ -22,14 +22,19 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { OlympiaService } from 'src/app/services/olympia.service';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf],
+  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
+  selectedTabIndex: number = 0;
   notificationStore = inject(NotificationStore);
   user: any = {
     name: '',
@@ -64,7 +69,8 @@ export class AppAccountSettingComponent implements OnInit {
       name: '',
       headquarter: '',
       employees_amount: '',
-      bussiness_segment: ''
+      bussiness_segment: '',
+      show_info: true
     }
   };
   profileForm: FormGroup = this.fb.group({
@@ -77,6 +83,7 @@ export class AppAccountSettingComponent implements OnInit {
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
     bussiness_segment: [''],
+    show_info: [true],
     old_password: ['', [Validators.minLength(8)]],
     new_password: ['', [Validators.minLength(8)]]
   },  {
@@ -123,19 +130,158 @@ export class AppAccountSettingComponent implements OnInit {
   logo: string = 'assets/images/default-logo.jpg';
   picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
   originalLogo: string = '';
+  submitted: boolean = false;
+  showForm: boolean = false;
+  isOrphan: boolean;
+  matchRequested: boolean = false;
+  olympiaForm = this.fb.group({
+    full_name: ['', Validators.required],
+    birth_date: ['', Validators.required],
+    location_state_country: ['', Validators.required],
+    application_area: ['', Validators.required],
+    take_initiative: ['', Validators.required],
+    quick_decisions: ['', Validators.required],
+    pressure_leadership: ['', Validators.required],
+    express_opinions: ['', Validators.required],
+    adapt_changes: ['', Validators.required],
+    motivate_team: ['', Validators.required],
+    social_interactions: ['', Validators.required],
+    good_communicator: ['', Validators.required],
+    team_projects: ['', Validators.required],
+    help_colleagues: ['', Validators.required],
+    workplace_harmony: ['', Validators.required],
+    structured_environment: ['', Validators.required],
+    team_listener: ['', Validators.required],
+    support_transitions: ['', Validators.required],
+    long_term_strategies: ['', Validators.required],
+    detail_oriented: ['', Validators.required],
+    follow_procedures: ['', Validators.required],
+    plan_ahead: ['', Validators.required],
+    precision_work: ['', Validators.required],
+    give_feedback: ['', Validators.required],
+    childhood_obedience: ['', Validators.required],
+    gets_grumpy: ['', Validators.required],
+    laughs_dirty_jokes: ['', Validators.required],
+    prejudice_free: ['', Validators.required],
+    brags_sometimes: ['', Validators.required],
+    immediate_responses: ['', Validators.required],
+    procrastinates: ['', Validators.required],
+    ever_lied: ['', Validators.required],
+    accept_win_over_loss: ['', Validators.required],
+  });
+  videoPreview: string | null = null;
+  selectedVideoFile: File | null = null;
+  videoUploadProgress: number = 0;
+  maxVideoSize: number = 100 * 1024 * 1024; 
+
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
             private fb: FormBuilder,
             private dialog: MatDialog,
             private plansService: PlansService,
+            private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
-            private cdr: ChangeDetectorRef
+            private cdr: ChangeDetectorRef,
+            public applicationsService: ApplicationsService,
+            private route: ActivatedRoute
           ) {}
 
   ngOnInit(): void {
     this.getUser();
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
+    this.checkOlympiaStatus();
+    this.loadExistingVideo(); 
+    this.route.queryParams.subscribe(params => {
+      const tab = params['tab'];
+      if (tab !== undefined && !isNaN(tab)) {
+        this.selectedTabIndex = +tab;
+      }
+    });
+  }
+
+  onTabChange(index: number) {
+    this.selectedTabIndex = index;
+  }
+
+  checkOlympiaStatus(): void {
+    this.olympiaService.checkOlympiaForm().subscribe({
+      next: (res: boolean) => {
+        this.submitted = res;
+      },
+      error: () => {
+        console.error('Error checking Olympia form status');
+      }
+    });
+  }
+
+  loadExistingVideo(): void {
+    if (!this.user?.email) return;
+
+    this.usersService.getIntroductionVideo(this.user.email).subscribe({
+      next: (res: any) => {
+        if (res.videoURL) {
+          this.videoPreview = res.videoURL;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.warn('No introduction video found or failed to load', err);
+      }
+    });
+  }
+
+  onVideoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'];
+    if (!allowedTypes.includes(file.type)) {
+      this.openSnackBar('Only MP4, MOV, and AVI video files are allowed!', 'Close');
+      this.resetVideoInput();
+      return;
+    }
+
+    if (file.size > this.maxVideoSize) {
+      this.openSnackBar('Video file size should be 100MB or less', 'Close');
+      this.resetVideoInput();
+      return;
+    }
+
+    this.selectedVideoFile = file;
+    this.previewVideo(file);
+  }
+
+  previewVideo(file: File): void {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.videoPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  deleteVideo(): void {
+    this.videoPreview = null;
+    this.selectedVideoFile = null;
+    this.videoUploadProgress = 0;
+    this.resetVideoInput();
+    
+    // this.usersService.deleteIntroductionVideo().subscribe({
+    //   next: () => {
+    //     this.notificationStore.addNotifications('Video deleted successfully', 'success');
+    //   },
+    //   error: (error) => {
+    //     this.notificationStore.addNotifications('Error deleting video', 'error');
+    //   }
+    // });
+  }
+
+  resetVideoInput(): void {
+    if (this.videoInput) {
+      this.videoInput.nativeElement.value = '';
+    }
   }
 
   getUser() {
@@ -145,6 +291,8 @@ export class AppAccountSettingComponent implements OnInit {
       ).subscribe({
           next: (users: any) => {
             this.user = users[0];
+            this.checkMatchRequestStatus() 
+            this.loadExistingVideo();
             this.usersService.getProfilePic(this.user.id).subscribe({
               next: (url: any) => {
                 if (url) {
@@ -190,7 +338,8 @@ export class AppAccountSettingComponent implements OnInit {
       this.usersService.getUsers(userFilter).subscribe({
         next: (users: any) => {
           this.user = users[0];
-
+          this.loadExistingVideo();
+          this.checkMatchRequestStatus() 
           this.initializeForm();
           
           this.usersService.getProfilePic(this.user.id).subscribe({
@@ -218,6 +367,7 @@ export class AppAccountSettingComponent implements OnInit {
         headquarter: this.user.company.headquarter,
         employees_amount: this.user.company.employees_amount,
         bussiness_segment: this.user.company.bussiness_segment,
+        show_info: this.user.company.show_info ?? true
       });
     }
     else {
@@ -233,27 +383,27 @@ export class AppAccountSettingComponent implements OnInit {
 
       // Populate medical form
       this.medicalForm.patchValue({
-        medical_conditions: this.user.employee.medical_conditions,
+        medical_conditions: this.user.employee?.medical_conditions,
         emergency_contact: {
-          name: this.user.employee.emergency_contact?.name || '',
-          relationship: this.user.employee.emergency_contact?.relationship || '',
-          phone: this.user.employee.emergency_contact?.phone || ''
+          name: this.user.employee?.emergency_contact?.name || '',
+          relationship: this.user.employee?.emergency_contact?.relationship || '',
+          phone: this.user.employee?.emergency_contact?.phone || ''
         },
         insurance_data: {
-          provider: this.user.employee.insurance_data?.provider || '',
-          policy_number: this.user.employee.insurance_data?.policy_number || '',
-          coverage_details: this.user.employee.insurance_data?.coverage_details || '',
-          createdAt: this.user.employee.insurance_data?.createdAt || null
+          provider: this.user.employee?.insurance_data?.provider || '',
+          policy_number: this.user.employee?.insurance_data?.policy_number || '',
+          coverage_details: this.user.employee?.insurance_data?.coverage_details || '',
+          createdAt: this.user.employee?.insurance_data?.createdAt || null
         }
       });
 
       // Populate social media form
       this.socialMediaForm.patchValue({
         social_media: {
-          facebook: this.user.employee.social_media?.facebook || '',
-          instagram: this.user.employee.social_media?.instagram || '',
-          twitter: this.user.employee.social_media?.twitter || '',
-          linkedin: this.user.employee.social_media?.linkedin || ''
+          facebook: this.user.employee?.social_media?.facebook || '',
+          instagram: this.user.employee?.social_media?.instagram || '',
+          twitter: this.user.employee?.social_media?.twitter || '',
+          linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
     }
@@ -340,7 +490,8 @@ export class AppAccountSettingComponent implements OnInit {
         logo: this.logo !== this.originalLogo ? this.profileForm.value.logo : this.originalLogo, // Validate logo changes
         headquarter: this.profileForm.value.headquarter,
         employees_amount: this.profileForm.value.employees_amount,
-        bussiness_segment: this.profileForm.value.bussiness_segment
+        bussiness_segment: this.profileForm.value.bussiness_segment,
+        show_info: this.profileForm.value.show_info
       };
   
       this.usersService.updateProfile(userData).subscribe({
@@ -415,12 +566,74 @@ export class AppAccountSettingComponent implements OnInit {
           })
         )
         .subscribe(response => {
-          this.openSnackBar('User data updated successfully!', 'Close');
-          this.user = response;
-          this.isSubmitting = false;
-          this.getUser();
+          if (this.selectedVideoFile) {
+            this.uploadVideo();
+          } else {
+            this.openSnackBar('User data updated successfully!', 'Close');
+            this.user = response;
+            this.isSubmitting = false;
+            this.getUser();
+          }
         });
     }
+  }
+
+  uploadVideo(): void {
+    if (!this.selectedVideoFile) return;
+
+    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email)
+      .pipe(
+        finalize(() => {
+          this.isSubmitting = false;
+          this.selectedVideoFile = null;
+          this.videoUploadProgress = 0;
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.openSnackBar('Video uploaded successfully!', 'Close');
+          this.videoPreview = res.videoURL;
+        },
+        error: (error) => {
+          this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
+          console.error('Video upload error:', error);
+        }
+      });
+  }
+
+  submitOlympiaForm(): void {
+    this.isSubmitting = true;
+    if (!this.olympiaForm.valid) {
+      this.openSnackBar('Please fill all the required fields', 'close');
+      this.isSubmitting = false;
+      return;
+    }
+
+    const data = this.olympiaForm.value;
+    this.olympiaService.submitOlympiaForm(data).subscribe({
+      next: () => {
+        this.openSnackBar('Form submitted successfully', 'close');
+        this.isSubmitting = false;
+        this.submitted = true;
+      },
+      error: () => {
+        this.openSnackBar('Error submitting form', 'close');
+        this.isSubmitting = false;
+      },
+    });
+  }
+
+  checkMatchRequestStatus() {
+    if (!this.user?.id) return;
+    
+    this.usersService.checkMatchStatus(this.user.id).subscribe({
+      next: (status: boolean) => {
+        this.matchRequested = status;
+      },
+      error: (error) => {
+        console.error('Error checking match status', error);
+      }
+    });
   }
 
   openSnackBar(message: string, action: string): void {

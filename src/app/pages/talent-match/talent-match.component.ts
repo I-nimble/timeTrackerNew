@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AppTalentMatchClientComponent } from './client/client.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { AppIntakeFormComponent } from '../intake/intake-form.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -17,6 +18,12 @@ import { AppIntakeFormComponent } from '../intake/intake-form.component';
 })
 export class AppTalentMatchComponent {
   userRole = localStorage.getItem('role');
+  userEmail = localStorage.getItem('email');
+  allowedTM = false;
 
-  constructor() {}
+  constructor() {
+    const allowedEmails = environment.allowedReportEmails;
+    this.allowedTM =
+    this.userRole === '2' && allowedEmails.includes(this.userEmail || '');
+  }
 }

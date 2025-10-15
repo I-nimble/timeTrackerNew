@@ -7,19 +7,29 @@
   </button>
     <div *ngIf="!interviewScheduled">
       <h2 class="m-b-20">Set up a date and time for the interview</h2>
-      <form [formGroup]="interviewForm" (ngSubmit)="onScheduleInterview()">
+      <form (ngSubmit)="onScheduleInterview()">
         <mat-form-field appearance="outline" class="w-100 m-b-16">
-            <mat-label>Date</mat-label>
-            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="availableDaysFilter" formControlName="date" required>
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
+            <mat-label>Interview date</mat-label>
+            <input matInput [matDatepicker]="datePicker" [matDatepickerFilter]="availableDaysFilter" [(ngModel)]="dateTime" name="dateTime">
+            <mat-datepicker #datePicker></mat-datepicker>
+            <mat-datepicker-toggle [for]="datePicker" matSuffix></mat-datepicker-toggle>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-100 m-b-16">
-            <mat-label>Time</mat-label>
-            <input matInput type="time" formControlName="time" required>
+            <mat-label>Interview time</mat-label>
+            <input matInput
+              [matTimepicker]="timePicker"
+              [(ngModel)]="dateTime"
+              name="dateTime"
+              [ngModelOptions]="{updateOn: 'blur'}"
+              required
+              matTimepickerMin="08:00"
+              matTimepickerMax="20:00"
+            />
+            <mat-timepicker #timePicker></mat-timepicker>
+            <mat-timepicker-toggle [for]="timePicker" matSuffix></mat-timepicker-toggle>
         </mat-form-field>
-        <button mat-flat-button color="primary" type="submit" [disabled]="interviewForm.invalid">
+        <button mat-flat-button color="primary" type="submit" [disabled]="!dateTime">
           {{ local_data.action === 'Schedule' ? 'Schedule interview' : 'Reeschedule interview' }}
         </button>
       </form>

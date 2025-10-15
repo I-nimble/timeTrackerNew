@@ -16,17 +16,17 @@
                         appearance="outline" 
                         class="flex-grow-1 hide-hint m-b-0"
                         [loading]="aiLoading"
-                        [aiEnabled]="true"
+                        [aiEnabled]="!useManualSearch"
                         [showInterviewButton]="true"
                         [interviewDisabled]="selection.selected.length === 0"
                         (interview)="openDialog('Schedule')"
                         placeholder="What position are you looking for?"
-                        (askAI)="searchCandidatesWithAI($event)">
+                        (askAI)="searchCandidatesWithAI($event)"
+                        (searchChange)="useManualSearch ? onManualSearch($event) : null">
                         </app-match>
                     </div>
                 <div *ngIf="aiLoading || aiAnswer" class="mt-16">
                 <mat-card color="accent" class="p-16">
-                    <b>AI's answer:</b>
                     <div>
                     <ng-container *ngIf="aiLoading; else showTalentAnswer">
                         <div class="d-flex align-items-center gap-8">

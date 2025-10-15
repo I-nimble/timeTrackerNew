@@ -1,10 +1,24 @@
+@import url("../../../../assets/scss/_variables.scss");
 
-.company-select {
-  width: 225px;
-  margin-right: 16px;
+.reply-preview {
+  background: var(--mat-sys-surface-bright);
+  border: 1px solid var(--mat-sys-outline);
+  border-left: 5px solid var(--mat-sys-outline);
+  max-width: max-content;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
-::ng-deep .company-select .mat-mdc-form-field-subscript-wrapper {
-  display: none !important;
+.sender-name {
+  color: var(--chat-label-color);
+  font-size: 11px;
+}
+.cc__backdrop {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100% !important;
+  width: 100% !important;
 }
 .fullwidth {
   width: 100%;
@@ -30,4 +44,8 @@
   padding: 20px;
   font-family: Arial, sans-serif;
   background-color: var(--bs-card-body-bg);
+}
+.chat-view-container {
+  height: 80vh;
+  max-height: 750px;
 }

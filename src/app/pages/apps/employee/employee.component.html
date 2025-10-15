@@ -1,4 +1,4 @@
-<div *ngIf="userRole !== '2'; else employeeReport">
+<div *ngIf="userRole !== '2' || userPermissions.includes('users.view'); else employeeReport">
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="row justify-content-between gap-16">
@@ -24,12 +24,9 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end" *ngIf="userRole != '4'">
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
           <!-- add employee -->
-          <button 
-            mat-flat-button 
-            (click)="openDialog('Invite', {companyId})" color="primary"
-          >
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
             Add Team Member
           </button>
         </div>

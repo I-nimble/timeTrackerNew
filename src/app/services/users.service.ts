@@ -24,18 +24,20 @@ export class UsersService {
   public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
     const options = { headers: headers, responseType: 'blob' as 'json' };
-  
     return this.http.post<Blob>(`${this.API_URI}/users/profile`, { id }, options).pipe(
       switchMap((response: Blob) => {
+        if (!response || !(response instanceof Blob)) {
+          return of(null);
+        }
         if (response.type === 'application/json') {
           return new Observable<null>((observer) => {
             const reader = new FileReader();
             reader.onload = () => {
               const responseText = reader.result as string;
-              if (responseText.includes('Profile pic does not exists')) {
-                console.warn('No profile picture available: ', responseText);
-                observer.next(null);  
+              if (responseText.includes('Profile pic does not exist')) {
+                console.warn('No profile picture available');
               }
+              observer.next(null); 
               observer.complete(); 
             };
             reader.onerror = (error) => {
@@ -45,13 +47,18 @@ export class UsersService {
           });
         }
 
-        const url = URL.createObjectURL(response);
-        const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        return of(safeUrl); 
+        if (response.type.startsWith('image/')) {
+          const url = URL.createObjectURL(response);
+          const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+          return of(safeUrl);
+        } else {
+          console.warn('Unexpected response type:', response.type);
+          return of(null);
+        }
       }),
       catchError((error) => {
         console.error('Error fetching profile picture:', error);
-        return of(null);  
+        return of(null);
       })
     );
   }
@@ -179,7 +186,27 @@ export class UsersService {
   }
 
   getUploadUrl(type: string) {
-    return this.http.get<any>(`${this.API_URI}/generate_upload_url/${type}`);
+    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`, {});
+  }
+
+  getIntroductionVideo(email: string) {
+    return this.http.post<{ videoURL: string }>(`${this.API_URI}/generate_upload_url/video/introduction/download`, { email });
+  }
+  
+  uploadIntroductionVideo(file: File, email: string) {
+    const headers = new HttpHeaders({ 'Content-Type': file.type });
+    return this.http.post(`${this.API_URI}/generate_upload_url/video/introduction`, {
+      email: email,
+      contentType: file.type
+    }).pipe(
+      switchMap((res: any) => {
+        return this.http.put(res.url, file, { headers }).pipe(
+          switchMap(() => {
+            return this.getIntroductionVideo(email);
+          })
+        );
+      })
+    );
   }
 
   public registerOrphanTeamMember(data: any) {
@@ -276,5 +303,17 @@ export class UsersService {
 
   getCurrentTeamMember(): number | null {
     return this.teamMemberSource.getValue();
+  }
+
+  requestMatch(userId: number): Observable<any> {
+    return this.http.post(`${this.API_URI}/users/request-match/${userId}`, {});
+  }
+
+  checkIntroductionVideo(email: string) {
+    return this.http.post<{ hasVideo: boolean }>(`${this.API_URI}/users/check-video`, { email });
+  }
+
+  checkMatchStatus(userId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.API_URI}/users/match-status/${userId}`);
   }
 }

@@ -111,16 +111,17 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    ...(this.role != '1' && this.role != '4'
-    ? [{
-        id: 12,
-        img: '/assets/images/svgs/icon-speech-bubble.svg',
-        title: 'Help Center',
-        subtitle: 'Support & FAQs',
-        link: '/apps/chat/support',
-      }]
-    : []),
-    ...(this.role != '2'
+    // ...(this.role != '1' && this.role != '4' 
+    // ? [{
+    //     id: 12,
+    //     img: '/assets/images/svgs/icon-speech-bubble.svg',
+    //     title: 'Help Center',
+    //     subtitle: 'Support & FAQs',
+    //     link: '/apps/chat/support',
+    //   }]
+    // : []),
+    ...(this.role != '2' ||
+    environment.allowedReportEmails.includes(localStorage.getItem('email') || '')
     ? [{
         id: 13,
         img: '/assets/images/svgs/icon-office-bag.svg',
@@ -145,6 +146,15 @@ export class FullComponent implements OnInit {
         title: 'Content Creator',
         subtitle: 'Create and manage content',
         link: '/apps/scrapper',
+      }]
+    : []),
+    ...(this.role == '1'
+    ? [{
+        id: 16,
+        img: '/assets/images/svgs/icon-connect.svg',
+        title: 'Permissions',
+        subtitle: 'Give permissions to your users',
+        link: '/apps/permission',
       }]
     : []),
     {

@@ -1,15 +1,25 @@
+// Reply message preview
+.reply-preview {
+  background: var(--mat-sys-surface-bright);
+  border: 1px solid var(--mat-sys-outline);
+  border-left: 5px solid var(--mat-sys-outline);
+  max-width: max-content;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
 // Voice Recorder Dropdown Styles
 .voice-recorder-dropdown-container {
   position: relative;
 }
 .voice-recorder-dropdown {
   position: absolute;
-  bottom: 100%;
+  bottom: 20px;
   right: 0;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
   z-index: 1200;
   min-width: 260px;
   padding: 18px 24px 16px 24px;
@@ -51,7 +61,7 @@
   transition: color 0.2s;
 }
 .voice-recorder-stop-btn:hover {
-  color: #388E3C;
+  color: #388e3c;
 }
 .voice-recorder-audio-preview {
   display: flex;
@@ -79,7 +89,7 @@
   color: #cc0000;
 }
 .voice-recorder-send-btn:hover {
-  color: #388E3C;
+  color: #388e3c;
 }
 // Voice Recorder Popup Styles
 .voice-recorder-popup {
@@ -96,7 +106,7 @@
 .voice-recorder-modal {
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   padding: 32px 32px 24px 32px;
   min-width: 320px;
   min-height: 180px;
@@ -113,7 +123,7 @@
   margin-bottom: 18px;
 }
 .voice-recorder-timer {
-  font-family: 'Roboto Mono', monospace;
+  font-family: "Roboto Mono", monospace;
   letter-spacing: 2px;
 }
 .voice-recorder-body {
@@ -160,7 +170,7 @@
 }
 .voice-recorder-stop-btn:hover,
 .voice-recorder-send-btn:hover {
-  color: #388E3C;
+  color: #388e3c;
 }
 .voice-recorder-audio-preview {
   display: flex;
@@ -174,10 +184,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.18);
+  background: rgba(0, 0, 0, 0.18);
   z-index: 2001;
 }
-
 
 // Custom message composer styles
 .custom-message-composer {
@@ -250,23 +259,27 @@
 
     .message-textarea {
       width: 100%;
-      min-height: 24px;
-      max-height: 120px;
       border: none;
       outline: none;
       background: transparent;
       resize: none;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      overflow: auto;
       font-family: inherit;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1;
       color: inherit;
-      padding: 0;
-      border-radius: 20px;
+      border-radius: 0px;
       background: rgba(255, 255, 255, 0.05);
-      padding: 8px 12px;
 
       &::placeholder {
         color: #999;
+      }
+
+      ::-webkit-scrollbar {
+        display: none;
+        width: 0;
       }
     }
 
@@ -295,194 +308,127 @@
         margin-bottom: 8px;
       }
     }
-  }
 
-  .action-buttons-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    background: rgba(255, 255, 255, 0.02);
+        .attachment-dropdown {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 120px;
+      margin-bottom: 8px;
 
-    .attachment-dropdown-container {
-      position: relative;
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-      .attachment-btn {
-        color: #666;
-        transition: color 0.2s ease;
+        &:last-child {
+          border-bottom: none;
+        }
 
         &:hover {
-          color: #92b46c;
+          background-color: rgba(146, 180, 108, 0.1);
         }
 
-        .icon {
-          width: 20px;
-          height: 20px;
-          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+        .dropdown-icon {
+          width: 16px;
+          height: 16px;
+          margin-right: 8px;
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+            brightness(91%) contrast(88%);
         }
 
-        &:hover .icon {
-          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+        span {
+          font-size: 14px;
+          color: #333;
         }
       }
+    }
+        .emoji-dropdown {
+      position: absolute;
+      bottom: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      width: max-content;
+      max-height: max-content;
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin-bottom: 8px;
 
-      .attachment-dropdown {
-        position: absolute;
-        bottom: 100%;
-        left: 0;
-        background: white;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        min-width: 120px;
-        margin-bottom: 8px;
+      .emoji-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 4px;
+        padding: 12px;
 
-        .dropdown-item {
+        .emoji-item {
           display: flex;
           align-items: center;
-          padding: 8px 12px;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
           cursor: pointer;
+          border-radius: 4px;
           transition: background-color 0.2s ease;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-          &:last-child {
-            border-bottom: none;
-          }
+          font-size: 18px;
 
           &:hover {
             background-color: rgba(146, 180, 108, 0.1);
           }
-
-          .dropdown-icon {
-            width: 16px;
-            height: 16px;
-            margin-right: 8px;
-            filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-          }
-
-          span {
-            font-size: 14px;
-            color: #333;
-          }
-        }
-      }
-    }
-
-    .emoji-dropdown-container {
-      position: relative;
-
-      .emoji-btn {
-        color: #666;
-        transition: color 0.2s ease;
-
-        &:hover {
-          color: #92b46c;
-        }
-
-        .icon {
-          width: 20px;
-          height: 20px;
-          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-        }
-
-        &:hover .icon {
-          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
-        }
-      }
-
-      .emoji-dropdown {
-        position: absolute;
-        bottom: 100%;
-        right: 0;
-        background: white;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        width: max-content;
-        max-height: max-content;
-        overflow-y: auto;
-        overflow-x: hidden;
-        margin-bottom: 8px;
-
-        .emoji-grid {
-          display: grid;
-          grid-template-columns: repeat(8, 1fr);
-          gap: 4px;
-          padding: 12px;
-
-          .emoji-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
-            font-size: 18px;
-
-            &:hover {
-              background-color: rgba(146, 180, 108, 0.1);
-            }
-          }
-        }
-      }
-    }
-
-    .right-buttons {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-
-      .voice-btn {
-        color: #666;
-        transition: color 0.2s ease;
-
-        &:hover {
-          color: #92b46c;
-        }
-
-        .icon {
-          width: 20px;
-          height: 20px;
-          filter: invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-        }
-
-        &:hover .icon {
-          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
-        }
-      }
-
-      .send-btn {
-        color: #92b46c;
-        transition: all 0.2s ease;
-
-        &:hover:not(:disabled) {
-          background: rgba(146, 180, 108, 0.1);
-          transform: scale(1.1);
-        }
-
-        &:disabled {
-          color: #ccc;
-        }
-
-        .icon {
-          width: 20px;
-          height: 20px;
-          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
-        }
-
-        &:disabled .icon {
-          filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
         }
       }
     }
   }
 }
 
+.attachment-btn,
+.voice-btn,
+.emoji-btn {
+  color: #666;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #92b46c;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+      brightness(91%) contrast(88%);
+  }
+}
+
+.send-btn {
+  color: #92b46c;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(146, 180, 108, 0.1);
+    transform: scale(1.1);
+  }
+
+  &:disabled {
+    color: #ccc;
+  }
+  .send-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+      brightness(91%) contrast(88%);
+  }
+}
 
 // Dark theme support
 :host-context(.dark-theme) {
@@ -512,11 +458,8 @@
       .attachment-dropdown-container {
         .attachment-btn {
           .icon {
-            filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-          }
-
-          &:hover .icon {
-            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+              brightness(91%) contrast(88%);
           }
         }
 
@@ -533,7 +476,8 @@
             }
 
             .dropdown-icon {
-              filter: invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
+              filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+                brightness(91%) contrast(88%);
             }
 
             span {
@@ -546,11 +490,8 @@
       .emoji-dropdown-container {
         .emoji-btn {
           .icon {
-            filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-          }
-
-          &:hover .icon {
-            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+            filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+              brightness(91%) contrast(88%);
           }
         }
 
@@ -571,11 +512,8 @@
 
       .voice-btn {
         .icon {
-          filter: invert(60%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-        }
-
-        &:hover .icon {
-          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg) brightness(91%) contrast(88%);
+          filter: invert(69%) sepia(17%) saturate(511%) hue-rotate(57deg)
+            brightness(91%) contrast(88%);
         }
       }
     }
@@ -613,12 +551,12 @@
 // Drop area styles
 .drop-area {
   transition: all 0.3s ease !important;
-  
+
   &:hover {
     border-color: #92b46c !important;
     background-color: rgba(146, 180, 108, 0.1) !important;
   }
-  
+
   &.drag-over {
     border-color: #92b46c !important;
     background-color: rgba(146, 180, 108, 0.2) !important;
@@ -631,7 +569,7 @@
   .drop-area {
     border-color: #555 !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
-    
+
     &:hover {
       border-color: #92b46c !important;
       background-color: rgba(146, 180, 108, 0.15) !important;

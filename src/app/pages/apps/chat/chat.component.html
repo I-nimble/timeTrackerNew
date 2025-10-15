@@ -1,80 +1,119 @@
-<mat-card class="mat-card-top cardWithShadow communication-container">
+<mat-card class="mat-card-top cardWithShadow communication-container p-0">
+
+  <ng-template #customHeaderView let-message>
+    <p *ngIf="message.getSender().getUid() !== userId" class="f-s-10 m-b-4 sender-name">{{ message.getSender().getName() }} {{ message.getMetadata()?.replyMessage ? 'replied to' : '' }}</p>
+    <div *ngIf="message.getMetadata()?.replyMessage" class="reply-preview f-s-10">
+      <div class="d-flex">
+        <p class="m-r-8"> 
+          {{ message.getMetadata().replyMessage.sender }} 
+        </p>
+        <p>
+          {{ toDate(message.getMetadata().replyMessage.sentAt) | date:'short' }}
+        </p>
+      </div>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'text'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.text }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'image'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'file'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'video'" class="f-s-12">
+        🎥 Video
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'audio'" class="f-s-12">
+        🎤 Audio
+      </span>
+		</div>
+  </ng-template>
+
   <ng-template #customMenu>
     <div style="display: flex; gap: 12px; margin-right: 5px;">
       <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
-        <img src="assets/images/svgs/Audio-Call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
+        <img src="assets/images/svgs/phone-enabled.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
       </button>
       <button [ngStyle]="getButtonStyle()" (click)="startVideoCall()">
-        <img src="assets/images/svgs/Video-call2x.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
+        <img src="assets/images/svgs/videocam.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
       </button>
     </div>
   </ng-template>
 
+  <ng-template #conversationsMenuTemplate>
+    <div class="d-flex align-items-center gap-8">
+      <button
+        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))" 
+        [ngStyle]="getButtonStyle()"
+        (click)="openDialog()"
+      >
+        <img src="assets/images/svgs/add-group.svg" [ngStyle]="getButtonIconStyle()" alt="Create group" />
+      </button>
+      <button
+        [ngStyle]="getButtonStyle()"
+        (click)="onMenuButtonClick()"
+        *ngIf="this.plan && this.plan.id != 1"
+      >
+        <img src="assets/images/svgs/new-conversation.svg" [ngStyle]="getButtonIconStyle()" alt="Start new conversation" />
+      </button>
+    </div>
+  </ng-template>
+  
   <ng-template #customMessageComposerView>
     <app-custom-message-composer
-      [user]="user"
-      [group]="group"
+    [user]="user"
+    [group]="group"
+    [replyMessage]="replyMessage"
     ></app-custom-message-composer>
   </ng-template>
 
-  <app-loader *ngIf="loader.started && !loader.complete && !loader.error" [loader]="loader" style="margin: 0 auto;">
+  <app-loader *ngIf="loader.started && !loader.complete && !loader.error" [loader]="loader" style="margin: 2rem auto;">
   </app-loader>
 
   <ng-container *ngIf="loader.complete">
     @if(chatService.isChatAvailable && !chatInitError) {
-    <div class="d-flex justify-content-start align-items-center m-b-16 m-t-16">
-      <div *ngIf="userRole === '1' || userRole === '4'">
-        <mat-form-field appearance="outline" class="w-100 company-select">
-          <mat-select [(value)]="selectedCompanyId" (change)="initializeCompanyChat()">
-            <mat-option *ngFor="let company of companies" [value]="company.id">
-              {{ company.name }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+      <div class="chat-view-container">
+        <!-- BASIC PLAN CHAT -->
+        <cometchat-groups-with-messages 
+          *ngIf="plan && plan.id == 1"
+          id="chat-container"
+          [backdropStyle]="backdropStyle"
+          [hideCreateGroup]="true"
+          [messagesConfiguration]="basicMessagesConfig"
+          [StartConversationConfiguration]="StartConversationConfiguration"
+          [groupsConfiguration]="groupsConfiguration"
+          [user]="user"
+          [group]="group"
+          #basicChat
+        >
+        </cometchat-groups-with-messages>
+      
+        <!-- ESSENTIAL PLAN CHAT -->
+        <cometchat-conversations-with-messages 
+          *ngIf="plan && plan.id === 2"
+          id="chat-container"
+          [messagesConfiguration]="essentialMessagesConfig"
+          [StartConversationConfiguration]="StartConversationConfiguration"
+          [conversationConfiguration]="conversationConfiguration"
+          [user]="user"
+          [group]="group"
+          #essentialChat
+        >
+        </cometchat-conversations-with-messages>
+
+        <!-- PROFESSIONAL PLAN CHAT -->
+        <cometchat-conversations-with-messages 
+          *ngIf="(plan && plan.id === 3) || (userRole === '1' || userRole === '4')"
+          id="chat-container"
+          [messagesConfiguration]="professionalMessagesConfig"
+          [StartConversationConfiguration]="StartConversationConfiguration"
+          [conversationConfiguration]="conversationConfiguration"
+          [user]="user"
+          [group]="group"
+          #professionalChat
+        >
+        </cometchat-conversations-with-messages>
       </div>
-      <button mat-flat-button color="primary" *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))"
-        (click)="openDialog()" id="create-group-button">
-        Create Group
-      </button>
-    </div>
-
-      <!-- BASIC PLAN CHAT -->
-      <cometchat-groups-with-messages 
-        *ngIf="plan && plan.id == 1"
-        id="chat-container"
-        [backdropStyle]="backdropStyle"
-        [hideCreateGroup]="true"
-        [messagesConfiguration]="basicMessagesConfig"
-        [StartConversationConfiguration]="StartConversationConfiguration"
-        [groupsConfiguration]="groupsConfiguration"
-        [user]="user"
-        [group]="group"
-      >
-      </cometchat-groups-with-messages>
-    
-      <!-- ESSENTIAL PLAN CHAT -->
-      <cometchat-conversations-with-messages 
-        *ngIf="plan && plan.id === 2"
-        id="chat-container"
-        [messagesConfiguration]="essentialMessagesConfig"
-        [StartConversationConfiguration]="StartConversationConfiguration"
-        [conversationConfiguration]="conversationConfiguration"
-        [user]="user"
-        [group]="group"
-      >
-      </cometchat-conversations-with-messages>
-
-      <!-- PROFESSIONAL PLAN CHAT -->
-      <cometchat-conversations-with-messages 
-        *ngIf="(plan && plan.id === 3) || (userRole === '1' || userRole === '4')"
-        id="chat-container"
-        [messagesConfiguration]="professionalMessagesConfig"
-        [StartConversationConfiguration]="StartConversationConfiguration"
-        [conversationConfiguration]="conversationConfiguration"
-        [user]="user"
-        [group]="group"
-      >
-      </cometchat-conversations-with-messages>
     }
     @else if (loader.complete && chatInitError) {
     <div class="cta-message">

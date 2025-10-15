@@ -56,7 +56,7 @@ export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]], // check if email is taken
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company_name: ['', [Validators.required]],
@@ -67,17 +67,19 @@ export class AppSideRegisterComponent {
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
   registerInvitedTeamMemberForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company: ['', [Validators.required]],
     position: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    hourly_rate: [0, [Validators.min(0), Validators.max(1000)]],
+    google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
     location: ['', Validators.required],
     role: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     appliedWhere: ['', Validators.required],
     referred: ['no'],
@@ -97,9 +99,8 @@ export class AppSideRegisterComponent {
     workExperience: [''],
     workReferences: ['', Validators.required],
     hobbies: [''],
-    introductionVideo: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
+    picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
   });
   userRole: string = '3';
   companyId: string = '';
@@ -147,11 +148,28 @@ export class AppSideRegisterComponent {
           email: params['email'],
           name: params['name'].split(' ')[0],
           last_name: params['name'].split(' ')[1] || '',
+          hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
         console.log('form values', this.registerInvitedTeamMemberForm.value)
       }
     });
+  }
+
+  emailTakenValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return Promise.resolve(null);
+      }
+      return new Promise(resolve => {
+        this.authService.checkEmailExists(control.value).subscribe(
+          (exists: boolean) => {
+            resolve(exists ? { emailTaken: true } : null);
+          },
+          () => resolve(null)
+        );
+      });
+    };
   }
 
   getLocations() {
@@ -417,6 +435,8 @@ export class AppSideRegisterComponent {
         password: this.registerInvitedTeamMemberForm.value.password,
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
+        google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
+        hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
       console.log('teamMemberData', teamMemberData)
 
@@ -511,9 +531,7 @@ export class AppSideRegisterComponent {
         availability: this.registerTeamMemberForm.value.availability,
         salary_range: this.registerTeamMemberForm.value.salaryRange,
         programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        introduction_video: this.registerTeamMemberForm.get('introductionVideo')?.value || null,
         resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        picture: this.registerTeamMemberForm.get('picture')?.value || null,
         portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
       };
 

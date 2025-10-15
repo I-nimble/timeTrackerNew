@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, forkJoin, of, Subject, tap } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, filter } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -173,5 +173,51 @@ export class ApplicationsService {
       filteredApplications = [];
     }
     return filteredApplications;
+  }
+
+    uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
+    return this.getVideoUploadUrl(videoFile, userId).pipe(
+      switchMap((uploadData: any) => {
+        const headers = new HttpHeaders({
+          'Content-Type': videoFile.type,
+        });
+
+        return this.http.put(uploadData.url, videoFile, { 
+          headers,
+          reportProgress: true,
+          observe: 'events'
+        }).pipe(
+          map(event => this.getUploadProgress(event)),
+          filter((event: any) => event.type === HttpEventType.Response),
+          map(() => {
+            return {
+              message: "Video uploaded successfully",
+              videoUrl: `https://inimble-app.s3.us-east-1.amazonaws.com/${uploadData.key}`,
+              fileName: uploadData.fileName
+            };
+          })
+        );
+      })
+    );
+  }
+
+  private getVideoUploadUrl(videoFile: File, userId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.API_URI}/generate_upload_url/video/introduction`,
+      { 
+        contentType: videoFile.type,
+        userId: userId
+      }
+    );
+  }
+
+  private getUploadProgress(event: any): any {
+    if (event.type === HttpEventType.UploadProgress) {
+      const progress = Math.round(100 * event.loaded / event.total);
+      return { type: 'progress', progress };
+    } else if (event.type === HttpEventType.Response) {
+      return event;
+    }
+    return event;
   }
 }

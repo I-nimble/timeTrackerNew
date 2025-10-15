@@ -2,7 +2,7 @@
 
   <!-- Name -->
   <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-3">Name</th>
     <td mat-cell *matCellDef="let client">
       <div class="d-flex align-items-center gap-16">
         <img
@@ -26,27 +26,45 @@
     </td>
   </ng-container>
 
-  <!-- Departments -->
+  <!-- Departments - Area -->
   <ng-container matColumnDef="departments">
-    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Departments</th>
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-4">Area</th>
     <td mat-cell *matCellDef="let client">{{ client.company?.departmentsString }}</td>
   </ng-container>
 
   <!-- Email -->
   <ng-container matColumnDef="email">
-    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Email</th>
-    <td mat-cell *matCellDef="let client">{{ client.email }}</td>
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-3">Email</th>
+    <td mat-cell *matCellDef="let client">
+      <ng-container *ngIf="canShowContact; else upgradeMsg">
+        {{ client.email }}
+      </ng-container>
+      <ng-template #upgradeMsg>
+        <p class="text-primary">
+          Upgrade your plan to access the contact details of experts.
+        </p>
+      </ng-template>
+    </td>
   </ng-container>
 
   <!-- Phone -->
   <ng-container matColumnDef="phone">
-    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Phone</th>
-    <td mat-cell *matCellDef="let client">{{ client.phone }}</td>
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-3">Phone</th>
+    <td mat-cell *matCellDef="let client">
+      <ng-container *ngIf="canShowContact; else upgradeMsg">
+        {{ client.phone }}
+      </ng-container>
+      <ng-template #upgradeMsg>
+        <p class="text-primary">
+          Upgrade your plan to access the contact details of experts.
+        </p>
+      </ng-template>
+    </td>
   </ng-container>
 
   <!-- Company -->
   <ng-container matColumnDef="company">
-    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Company</th>
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-4">Company</th>
     <td mat-cell *matCellDef="let client">
       <a
         class="f-w-600 f-s-16 m-t-0"

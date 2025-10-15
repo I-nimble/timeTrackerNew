@@ -16,27 +16,107 @@
 
 	<!-- Text Input Area (Top Section) -->
 	<div 
-		class="text-input-section"
+		class="text-input-section d-flex flex-column align-items-start"
 		(dragover)="handleDragOver($event)"
 		(dragleave)="handleDragLeave($event)"
 		(drop)="handleDrop($event)"
 		(dragenter)="handleDragEnter($event)"
 	>
-		<textarea
-			#textArea
-			class="message-textarea"
-			[placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
-			[value]="messageText"
-			(input)="onTextChange($event)"
-			(keydown)="onKeyDown($event)"
-			(focus)="onFocus()"
-			(blur)="onBlur()"
-			rows="1"
-			autosize
-			(dragenter)="handleDragEnter($event)"
-			(dragleave)="handleDragLeave($event)"
-			(dragover)="handleDragOver($event)"
-		></textarea>
+		<div *ngIf="replyMessage" class="reply-preview d-flex align-items-start">
+			<div>
+				<div class="d-flex">
+					<p class="f-s-12 m-r-8"> 
+						{{ replyMessage.getSender().getName() }} 
+					</p>
+					<p class="f-s-12">
+						{{ toDate(replyMessage.getSentAt()) | date:'short' }}
+					</p>
+				</div>
+					<span *ngIf="replyMessage.getType() === 'text'">
+					{{ replyMessage.getData().text }}
+				</span>
+				<span *ngIf="replyMessage.getType() === 'image'">
+					{{ replyMessage.getData().attachments[0].name }}
+				</span>
+					<span *ngIf="replyMessage.getType() === 'file'">
+					{{ replyMessage.getData().attachments[0].name }}
+				</span>
+				<span *ngIf="replyMessage.getType() === 'video'">
+					🎥 Video
+				</span>
+					<span *ngIf="replyMessage.getType() === 'audio'">
+					🎤 Audio
+				</span>
+			</div>
+
+			<button 
+				mat-icon-button 
+				class="cancel-reply-btn"
+				(click)="cancelReply()"
+				matTooltip="Cancel reply"
+				style="margin-left: 8px;"
+			>
+				<i-tabler name="x" class="icon-20"></i-tabler>
+			</button>
+		</div>
+		<mat-form-field  appearance="outline" color="primary" class="hide-hint w-100">
+			<button 
+				mat-icon-button 
+				matPrefix
+				class="attachment-btn"
+				(click)="toggleAttachmentDropdown(); $event.stopPropagation()"
+				matTooltip="Add to Chat"
+			>
+				<img src="assets/images/svgs/Plus.svg" alt="Add attachment" class="icon" />
+			</button>
+			<textarea 
+				#textArea
+				matInput
+				class="message-textarea"
+				[placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
+				[value]="messageText"
+				(input)="onTextChange($event)"
+				(keydown)="onKeyDown($event)"
+				(focus)="onFocus()"
+				(blur)="onBlur()"
+				cdkTextareaAutosize
+				cdkAutosizeMinRows="1"
+				cdkAutosizeMaxRows="4"
+				(dragenter)="handleDragEnter($event)"
+				(dragleave)="handleDragLeave($event)"
+				(dragover)="handleDragOver($event)"
+			></textarea>
+			<button 
+				mat-icon-button 
+				matSuffix
+				class="emoji-btn"
+				(click)="toggleEmojiDropdown(); $event.stopPropagation()"
+				matTooltip="Emoji"
+			>
+				<img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
+			</button>
+			<button 
+				*ngIf="!hideVoiceRecording"
+				mat-icon-button 
+				matSuffix
+				class="voice-btn"
+				(click)="toggleVoiceRecorderDropdown(); $event.stopPropagation()"
+				matTooltip="Voice message"
+			>
+				<img src="assets/images/svgs/mic.svg" alt="Voice recording" class="icon" />
+			</button>
+			<button 
+				mat-icon-button 
+				matSuffix
+				class="send-btn"
+				[disabled]="!messageText.trim() && inlineImages.length === 0"
+				(click)="sendMessage()"
+				matTooltip="Send message"
+			>
+				<img src="assets/images/svgs/Send.svg" alt="Send" class="send-icon" />
+			</button>
+		</mat-form-field>
+
 		<!-- Drag Overlay -->
 		<div 
 			class="drag-overlay" 
@@ -48,20 +128,9 @@
 			<mat-icon>cloud_upload</mat-icon>
 			<span>Drop image here</span>
 		</div>
-	</div>
 
-	<!-- Action Buttons Section (Bottom Section) -->
-	<div class="action-buttons-section">
 		<!-- Left Side - Attachment Button with Dropdown -->
 		<div class="attachment-dropdown-container">
-			<button 
-				mat-icon-button 
-				class="attachment-btn"
-				(click)="toggleAttachmentDropdown()"
-				matTooltip="Add to Chat"
-			>
-				<img src="assets/images/svgs/Plus.svg" alt="Add attachment" class="icon" />
-			</button>
 			<!-- Attachment Dropdown -->
 			<div class="attachment-dropdown" *ngIf="showAttachmentDropdown">
 				<div class="dropdown-item" (click)="selectAttachmentType('image')">
@@ -83,136 +152,104 @@
 			</div>
 		</div>
 
-		<!-- Right Side - Action Buttons -->
-		<div class="right-buttons">
-			<!-- Emoji Button with Dropdown -->
-			<div class="emoji-dropdown-container">
-				<button 
-					mat-icon-button 
-					class="emoji-btn"
-					(click)="toggleEmojiDropdown()"
-					matTooltip="Emoji"
-				>
-					<img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
-				</button>
-				<!-- Emoji Dropdown -->
-				<div class="emoji-dropdown" *ngIf="showEmojiDropdown">
-					<div class="emoji-dropdown-content" style="max-height: 260px; overflow-y: auto; scroll-behavior: smooth; width: max-content;">
-						<ng-container *ngFor="let category of emojiCategories">
-							<div class="emoji-category-label" [id]="'emoji-cat-' + category.position" style="font-weight: 600; margin: 8px 0 4px 8px; display: flex; align-items: center;">
-								{{ category.label }}
+		<div class="emoji-dropdown-container">
+			<!-- Emoji Dropdown -->
+			<div class="emoji-dropdown" *ngIf="showEmojiDropdown">
+				<div class="emoji-dropdown-content" style="max-height: 260px; overflow-y: auto; scroll-behavior: smooth; width: max-content;">
+					<ng-container *ngFor="let category of emojiCategories">
+						<div class="emoji-category-label" [id]="'emoji-cat-' + category.position" style="font-weight: 600; margin: 8px 0 4px 8px; display: flex; align-items: center;">
+							{{ category.label }}
+						</div>
+						<div class="emoji-grid">
+							<div 
+								class="emoji-item" 
+								*ngFor="let emoji of category.emojis" 
+								(click)="selectEmoji(emoji)"
+								[title]="emoji"
+							>
+								{{ emoji }}
 							</div>
-							<div class="emoji-grid">
-								<div 
-									class="emoji-item" 
-									*ngFor="let emoji of category.emojis" 
-									(click)="selectEmoji(emoji)"
-									[title]="emoji"
-								>
-									{{ emoji }}
-								</div>
-							</div>
-						</ng-container>
-					</div>
-					<!-- Category Icons Row -->
-					<div class="emoji-category-icons-row" style="display: flex; justify-content: center; align-items: center; gap: 10px; padding: 8px 0 4px 0; border-top: 1px solid #eee; background: #fafafa;">
-						<ng-container *ngFor="let category of emojiCategories">
-							<button type="button" class="emoji-category-icon-btn" style="background: none; border: none; cursor: pointer; padding: 0;" (click)="scrollToCategory(category.position)">
-								<img [src]="'assets/images/svgs/' + category.icon" [alt]="category.label" style="width: 24px; height: 24px;" />
-							</button>
-						</ng-container>
-					</div>
+						</div>
+					</ng-container>
+				</div>
+				<!-- Category Icons Row -->
+				<div class="emoji-category-icons-row" style="display: flex; justify-content: center; align-items: center; gap: 10px; padding: 8px 0 4px 0; border-top: 1px solid #eee; background: #fafafa;">
+					<ng-container *ngFor="let category of emojiCategories">
+						<button type="button" class="emoji-category-icon-btn" style="background: none; border: none; cursor: pointer; padding: 0;" (click)="scrollToCategory(category.position)">
+							<img [src]="'assets/images/svgs/' + category.icon" [alt]="category.label" style="width: 24px; height: 24px;" />
+						</button>
+					</ng-container>
 				</div>
 			</div>
-
-			<!-- Voice Recording Button as Dropdown -->
-			<div class="voice-recorder-dropdown-container">
-				<button 
-					*ngIf="!hideVoiceRecording"
-					mat-icon-button 
-					class="voice-btn"
-					(click)="toggleVoiceRecorderDropdown()"
-					matTooltip="Voice message"
-				>
-					<img src="assets/images/svgs/mic.svg" alt="Voice recording" class="icon" />
-				</button>
-				<div class="voice-recorder-dropdown" *ngIf="showVoiceRecorderDropdown">
-					<div class="voice-recorder-dropdown-content">
-						<!-- Initial state: show record icon -->
-						<ng-container *ngIf="!isRecording && !recordedAudioUrl">
-						    <div class="voice-recorder-timer">{{ voiceRecorderTime }}</div>
-							<button class="voice-recorder-record-btn" (click)="startVoiceRecording()">
-								<img src="assets/images/svgs/record-icon.svg" alt="Record" style="width:20px;height:20px;" />
-							</button>
-						</ng-container>
-						<!-- Recording state: show timer, stop icon -->
-						<ng-container *ngIf="isRecording">
-						    <div class="voice-recorder-timer">{{ voiceRecorderTime }}</div>
-							<div class="voice-recorder-actions">
-                                <button class="voice-recorder-close-btn" (click)="discardVoiceRecording()">
-									<img src="assets/images/svgs/close.svg" alt="Close" style="width:20px;height:20px;" />
-								</button>
-								<button class="voice-recorder-stop-btn" (click)="stopVoiceRecording()">
-									<img src="assets/images/svgs/stop.svg" alt="Stop" style="width:20px;height:20px;" />
-								</button>
-							</div>
-						</ng-container>
-						<!-- Recorded state: show audio controls, send and close icons -->
-						<ng-container *ngIf="recordedAudioUrl && !isRecording">
-							<div class="voice-recorder-audio-preview">
-								<button class="voice-recorder-close-btn" (click)="discardVoiceRecording()">
-									<img src="assets/images/svgs/close.svg" alt="Close" style="width:20px;height:20px;" />
-								</button>
-								<audio [src]="recordedAudioUrl" controls style="margin:0 12px;max-width:220px;"></audio>
-								<button class="voice-recorder-send-btn" (click)="sendVoiceRecording()">
-									<img src="assets/images/svgs/Send.svg" alt="Send" style="width:20px;height:20px;" />
-								</button>
-							</div>
-						</ng-container>
-					</div>
-				</div>
-			</div>
-
-			<!-- Send Button -->
-			<button 
-				mat-icon-button 
-				class="send-btn"
-				[disabled]="!messageText.trim() && inlineImages.length === 0"
-				(click)="sendMessage()"
-				matTooltip="Send message"
-			>
-				<img src="assets/images/svgs/Send.svg" alt="Send" class="icon" />
-			</button>
 		</div>
+
+		<div class="voice-recorder-dropdown-container">
+			<div class="voice-recorder-dropdown" *ngIf="showVoiceRecorderDropdown">
+				<div class="voice-recorder-dropdown-content">
+					<!-- Initial state: show record icon -->
+					<ng-container *ngIf="!isRecording && !recordedAudioUrl">
+						<div class="voice-recorder-timer">{{ voiceRecorderTime }}</div>
+						<button class="voice-recorder-record-btn" (click)="startVoiceRecording()">
+							<img src="assets/images/svgs/record-icon.svg" alt="Record" style="width:20px;height:20px;" />
+						</button>
+					</ng-container>
+					<!-- Recording state: show timer, stop icon -->
+					<ng-container *ngIf="isRecording">
+						<div class="voice-recorder-timer">{{ voiceRecorderTime }}</div>
+						<div class="voice-recorder-actions">
+							<button class="voice-recorder-close-btn" (click)="discardVoiceRecording()">
+								<img src="assets/images/svgs/close.svg" alt="Close" style="width:20px;height:20px;" />
+							</button>
+							<button class="voice-recorder-stop-btn" (click)="stopVoiceRecording()">
+								<img src="assets/images/svgs/stop.svg" alt="Stop" style="width:20px;height:20px;" />
+							</button>
+						</div>
+					</ng-container>
+					<!-- Recorded state: show audio controls, send and close icons -->
+					<ng-container *ngIf="recordedAudioUrl && !isRecording">
+						<div class="voice-recorder-audio-preview">
+							<button class="voice-recorder-close-btn" (click)="discardVoiceRecording()">
+								<img src="assets/images/svgs/close.svg" alt="Close" style="width:20px;height:20px;" />
+							</button>
+							<audio [src]="recordedAudioUrl" controls style="margin:0 12px;max-width:220px;"></audio>
+							<button class="voice-recorder-send-btn" (click)="sendVoiceRecording()">
+								<img src="assets/images/svgs/Send.svg" alt="Send" style="width:20px;height:20px;" />
+							</button>
+						</div>
+					</ng-container>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Hidden File Inputs -->
+		<input 
+			#imageInput
+			type="file" 
+			accept="image/*" 
+			style="display: none;" 
+			(change)="onFileSelected($event)"
+		/>
+		<input 
+			#videoInput
+			type="file" 
+			accept="video/*" 
+			style="display: none;" 
+			(change)="onFileSelected($event)"
+		/>
+		<input 
+			#audioInput
+			type="file" 
+			accept="audio/*" 
+			style="display: none;" 
+			(change)="onFileSelected($event)"
+		/>
+		<input 
+			#fileInput
+			type="file" 
+			accept="*/*" 
+			style="display: none;" 
+			(change)="onFileSelected($event)"
+		/>
 	</div>
 
-	<!-- Hidden File Inputs -->
-	<input 
-		#imageInput
-		type="file" 
-		accept="image/*" 
-		style="display: none;" 
-		(change)="onFileSelected($event)"
-	/>
-	<input 
-		#videoInput
-		type="file" 
-		accept="video/*" 
-		style="display: none;" 
-		(change)="onFileSelected($event)"
-	/>
-	<input 
-		#audioInput
-		type="file" 
-		accept="audio/*" 
-		style="display: none;" 
-		(change)="onFileSelected($event)"
-	/>
-	<input 
-		#fileInput
-		type="file" 
-		accept="*/*" 
-		style="display: none;" 
-		(change)="onFileSelected($event)"
-	/>
 </div>

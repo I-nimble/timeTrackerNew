@@ -23,6 +23,7 @@ html.dark-theme {
   --mat-stepper-header-focus-state-layer-color: #132335;
   --mat-stepper-header-hover-state-layer-color: #132335;
   --mat-expansion-header-hover-state-layer-color: #132335;
+  --chat-label-color: rgba(255, 255, 255, 0.58);
   @include mat.card-overrides(
     (
       elevated-container-color: #111c2d,

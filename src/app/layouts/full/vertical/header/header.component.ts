@@ -25,6 +25,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { PermissionService } from 'src/app/services/permission.service';
 import { Router } from '@angular/router';
 
 interface notifications {
@@ -91,6 +92,8 @@ export class HeaderComponent implements OnInit {
   private previousNotificationCount: number = 0;
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
+  allowedTM: boolean = false;
+  userPermissions: string[] = [];
   profiledd: profiledd[] = [];
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -142,7 +145,8 @@ export class HeaderComponent implements OnInit {
     public notificationsService: NotificationsService,
     public webSocketService: WebSocketService,
     private router: Router,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private permissionService: PermissionService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -176,50 +180,67 @@ export class HeaderComponent implements OnInit {
     this.applicationsService.applicationsSeen$.subscribe(() => {
       this.hasNewTalentMatch = false;
     });
+    const userId = Number(localStorage.getItem('id'));
 
-    this.profiledd = [
-      {
-        id: 1,
-        img: 'wallet',
-        color: 'primary',
-        title: 'My Profile',
-        subtitle: 'Account Settings',
-        link: 'apps/account-settings',
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.buildProfileMenu();
       },
-      {
-        id: 2,
-        img: 'shield',
-        color: 'success',
-        title: 'My Inbox',
-        subtitle: 'Notifications',
-        link: '/dashboards/notifications',
-      },
-      ...(Number(this.role) !== 2
-        ? [
-            {
-              id: 3,
-              img: 'users',
-              color: 'error',
-              title: 'My Team',
-              subtitle: 'Team members',
-              link: '/apps/team',
-            },
-          ]
-        : []),
-      ...((Number(this.role) !== 2 && Number(this.role) !== 4) || (environment.allowedPaymentsEmails.includes(this.userEmail))
-        ? [
-            {
-              id: 4,
-              img: 'credit-card',
-              color: 'warning',
-              title: 'Payments',
-              subtitle: 'Manage your payments',
-              link: '/apps/invoice',
-            },
-          ]
-        : []),
-    ];
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+        this.buildProfileMenu();
+      }
+    });
+    const allowedTM = environment.allowedReportEmails;
+    const email = localStorage.getItem('email');
+    this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
   }
+
+    private buildProfileMenu() {
+      this.profiledd = [
+        {
+          id: 1,
+          img: 'wallet',
+          color: 'primary',
+          title: 'My Profile',
+          subtitle: 'Account Settings',
+          link: 'apps/account-settings',
+        },
+        {
+          id: 2,
+          img: 'shield',
+          color: 'success',
+          title: 'My Inbox',
+          subtitle: 'Notifications',
+          link: '/dashboards/notifications',
+        },
+        ...((this.userPermissions.includes('users.view'))
+          ? [
+              {
+                id: 3,
+                img: 'users',
+                color: 'error',
+                title: 'My Team',
+                subtitle: 'Team members',
+                link: '/apps/team',
+              },
+            ]
+          : []),
+        ...((this.userPermissions.includes('payments.view'))
+          ? [
+              {
+                id: 4,
+                img: 'credit-card',
+                color: 'warning',
+                title: 'Payments',
+                subtitle: 'Manage your payments',
+                link: '/apps/invoice',
+              },
+            ]
+          : []),
+      ];
+    }
 
   getUserData() {
     this.userId = localStorage.getItem('id');

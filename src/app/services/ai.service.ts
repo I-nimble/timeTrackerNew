@@ -7,19 +7,26 @@ import { environment } from '../../environments/environment';
 export class AIService {
   private API_URI = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  evaluateExperts(experts: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateExperts(experts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/expert-evaluation`,
       { experts, question }
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: string }> {
-    return this.http.post<{ answer: string }>(
+  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+    return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/candidate-evaluation`,
       { candidates, question }
+    );
+  }
+
+  evaluatePosts(question: string): Observable<{ posts: { id: string, title: string, selftext: string, keyword: string }[] }> {
+    return this.http.post<{ posts: { id: string, title: string, selftext: string, keyword: string }[] }>(
+      `${this.API_URI}/ai/post-evaluation`,
+      { question }
     );
   }
 }
