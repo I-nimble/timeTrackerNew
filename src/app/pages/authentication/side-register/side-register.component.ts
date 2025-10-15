@@ -162,6 +162,7 @@ export class AppSideRegisterComponent {
           hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
+        console.log('form values', this.registerInvitedTeamMemberForm.value)
       }
     });
 
@@ -530,6 +531,7 @@ export class AppSideRegisterComponent {
         google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
         hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
+      console.log('teamMemberData', teamMemberData)
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
         next: () => {
