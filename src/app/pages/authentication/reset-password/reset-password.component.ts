@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import {
   FormGroup,
   FormControl,
@@ -23,8 +23,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     CommonModule
   ],
   templateUrl: './reset-password.component.html',
+  styleUrls: ['./reset-password.component.scss']
 })
-export class AppResetPasswordComponent implements OnInit {
+export class AppResetPasswordComponent implements OnInit, AfterViewInit {
   form: FormGroup;
   token: string = '';
   email: string = '';
@@ -52,6 +53,60 @@ export class AppResetPasswordComponent implements OnInit {
       }
     });
   }
+
+  
+  ngAfterViewInit() {
+    this.setupMobileInputHandling();
+  }
+
+  private setupMobileInputHandling() {
+    const isRealMobile = window.innerWidth <= 768 && 
+                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
+    
+    if (isRealMobile) {
+      const passwordInput = document.querySelector('input[formControlName="password"]') as HTMLElement;
+      const confirmPasswordInput = document.querySelector('input[formControlName="confirmPassword"]') as HTMLElement;
+      
+      if (passwordInput) {
+        passwordInput.addEventListener('focus', () => {
+          this.scrollToPasswordField();
+        });
+      }
+      
+      if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('focus', () => {
+          this.scrollToConfirmPasswordField();
+        });
+      }
+    }
+  }
+
+  private scrollToPasswordField() {
+    setTimeout(() => {
+      const passwordFields = document.querySelectorAll('.mobile-password-input');
+      if (passwordFields.length > 0) {
+        passwordFields[0].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
+  }
+
+  private scrollToConfirmPasswordField() {
+    setTimeout(() => {
+      const passwordFields = document.querySelectorAll('.mobile-password-input');
+      if (passwordFields.length > 1) {
+        passwordFields[1].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
+  }
+
 
   get f() {
     return this.form.controls;

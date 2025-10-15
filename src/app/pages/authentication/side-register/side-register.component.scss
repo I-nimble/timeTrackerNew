@@ -6,37 +6,286 @@
 }
 ::ng-deep .mat-horizontal-content-container {
     overflow: visible !important;
+    padding: 0px;
 }
 .disabled {
     color: #4e4e4e!important;
 }
 
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .mobile-auth-wrapper {
+    min-height: 100vh;
+  }
+  
+  .mobile-container {
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .mobile-auth-card {
+    height: 100vh !important;
+    box-shadow: none !important;
+  }
+  
+  .mobile-auth-body {
+    height: 100% !important;
+  }
+  
+  .mobile-row {
+    height: 100% !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-form-container {
+    height: 100%;
+    padding: 0 16px;
+  }
+  
+  .mobile-form-wrapper {
+    height: 100%;
+    align-items: flex-start !important;
+    padding-top: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-form-content {
+    height: auto;
+    min-height: 100%;
+    width: 100% !important;
+    margin-top: 0 !important;
+  }
+  
+  .mobile-form-col {
+    padding-bottom: 100px;
+  }
+  
+  .mobile-form {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+  }
+  
+  .mobile-input {
+    margin-bottom: 16px;
+    width: 100%;
+  }
+  
+  .mobile-form-input {
+    position: relative;
+    z-index: 1000;
+  }
+  
+  .mobile-title {
+    font-size: 24px !important;
+    margin-top: 20px !important;
+  }
+  
+  .mobile-subtitle {
+    margin-bottom: 30px !important;
+  }
+  
+  .mobile-step-title {
+    font-size: 20px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .mobile-step-subtitle {
+    font-size: 14px !important;
+  }
+  
+  .mobile-action-btn {
+    margin: 10px 0 !important;
+    height: 48px;
+  }
+  
+  .mobile-divider {
+    margin: 16px 0 !important;
+  }
+  
+  .mobile-submit-btn {
+    margin: 20px 0;
+    height: 48px;
+    font-size: 16px;
+  }
+  
+  .mobile-register-link {
+    text-align: center;
+    margin-bottom: 40px !important;
+  }
+  
+  .mobile-step-container {
+    width: 100%;
+    margin-top: 10px !important;
+  }
+  
+  .mobile-departments {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .mobile-department-btn {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  
+  .mobile-phone-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .mobile-phone-container .mobile-input {
+    width: 100% !important;
+  }
+  
+  .mobile-stepper {
+    width: 100%;
+  }
+  
+  ::ng-deep .mobile-stepper .mat-stepper-horizontal .mat-step-header {
+    padding: 12px 8px;
+    height: auto !important;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  ::ng-deep .mobile-stepper .mat-stepper-horizontal .mat-step-label {
+    margin-left: 8px;
+    font-size: 12px;
+  }
+  
+  ::ng-deep .mobile-stepper .mat-stepper-horizontal .mat-step-icon {
+    margin-right: 0;
+    width: 24px;
+    height: 24px;
+  }
+  
+  ::ng-deep .mobile-stepper .mat-stepper-horizontal-line {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+  .mobile-auth-wrapper {
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .mobile-container {
+    height: auto;
+    overflow: visible;
+    min-height: auto;
+  }
+  
+  .mobile-auth-card {
+    height: auto !important;
+    overflow: visible;
+  }
+  
+  .mobile-auth-body {
+    height: auto !important;
+    overflow: visible;
+  }
+  
+  .mobile-row {
+    height: auto !important;
+    overflow: visible;
+  }
+  
+  .mobile-form-container {
+    overflow: visible;
+  }
+  
+  .mobile-form-wrapper {
+    overflow: visible;
+    height: auto;
+    min-height: auto;
+  }
+  
+  .mobile-form-content {
+    overflow: visible;
+    height: auto;
+  }
+  
+  body {
+    overflow-y: auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .mat-form-field {
+    font-size: 16px !important;
+  }
+  
+  input, textarea, .mobile-form-input {
+    font-size: 16px !important;
+    min-height: 30px !important;
+  }
+  
+  .mat-form-field-infix {
+    min-height: 44px !important;
+  }
+  
+  .mat-input-element {
+    padding: 12px 0 !important;
+  }
+  
+  .mobile-form-wrapper {
+    overflow-y: auto !important;
+    max-height: none !important;
+  }
+}
+
+.mobile-form-wrapper {
+  scroll-behavior: smooth;
+}
+
+
 @media (max-width: 480px) {    
-    ::ng-deep .mat-stepper-horizontal .mat-step-header {
-        padding: 12px 0;
-        height: auto !important;
-        flex-direction: row;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 8px;
-    }
-    
-    ::ng-deep .mat-stepper-horizontal .mat-step-label {
-        margin-left: 8px;
-    }
-    
-    ::ng-deep .mat-stepper-horizontal .mat-step-icon {
-        margin-right: 0;
-    }
-    
-    ::ng-deep .mat-stepper-horizontal-line {
-        display: none !important;
-    }
+  ::ng-deep .mat-stepper-horizontal .mat-step-header {
+    padding: 12px 0;
+    height: auto !important;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  ::ng-deep .mat-stepper-horizontal .mat-step-label {
+    margin-left: 8px;
+  }
+  
+  ::ng-deep .mat-stepper-horizontal .mat-step-icon {
+    margin-right: 0;
+  }
+  
+  ::ng-deep .mat-stepper-horizontal-line {
+    display: none !important;
+  }
+  
+  .mobile-form-wrapper {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 @media (max-width: 1160px) {
-    .register-container {
-        width: 100%;
-        padding-right: 25px;
-    }
+  .register-container {
+    width: 100%;
+    padding-right: 25px;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-form-wrapper {
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh !important;
+  }
+  
+  body {
+    overflow-y: auto !important;
+  }
 }

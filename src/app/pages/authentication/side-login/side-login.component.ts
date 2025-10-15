@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, OnInit, inject } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
@@ -7,23 +7,19 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { environment } from 'src/environments/environment';
 import {AuthService} from '../../../services/auth.service';
-import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { EntriesService } from 'src/app/services/entries.service';
-import { NgIf } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
-import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 
@@ -50,30 +46,17 @@ export function jwtOptionsFactory() {
     MatSnackBar,
   ],
   templateUrl: './side-login.component.html',
+  styleUrls: ['./side-login.component.scss']
 })
-export class AppSideLoginComponent {
+export class AppSideLoginComponent implements AfterViewInit {
   
   notificationStore = inject(NotificationStore);
-  //@HostBinding('class') classes = 'row';
-  // isSignUp: boolean = false;
-  // login: Login = {
-  //  email: '',
-  //  password: '',
-  // };
-  // signUp: SignUp = {
-  //   email: '',
-  //   password: '',
-  //   confirmPass: '',
-  //   name: '',
-  //   last_name: '',
-  // };
   message: any;
   passerror: boolean = false;
   emailerror: boolean = false;
   includeLiveChat: boolean = false
   liveChatScript?: any
   liveChatBubble?: any
-  //assetPath = environment.assets + '/resources/empleadossection.png';
   assetPath = 'assets/images/login.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
@@ -85,9 +68,6 @@ export class AppSideLoginComponent {
      private socketService: WebSocketService,
      private notificationsService:NotificationsService,
      private entriesService:EntriesService,
-     private signupDataService: SignupDataService,
-     private employeeService: UsersService,
-     private companieService: CompaniesService,
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private chatService: CometChatService,
@@ -198,5 +178,57 @@ export class AppSideLoginComponent {
   private validateEmail(email: string): boolean {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
+  }
+
+  ngAfterViewInit() {
+    this.setupMobileInputHandling();
+  }
+
+  private setupMobileInputHandling() {
+    const isRealMobile = window.innerWidth <= 768 && 
+                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
+    
+    if (isRealMobile) {
+      const passwordInput = document.querySelector('input[formControlName="password"]') as HTMLElement;
+      const emailInput = document.querySelector('input[formControlName="email"]') as HTMLElement;
+      
+      if (passwordInput) {
+        passwordInput.addEventListener('focus', () => {
+          this.scrollToPasswordField();
+        });
+      }
+      
+      if (emailInput) {
+        emailInput.addEventListener('focus', () => {
+          this.scrollToEmailField();
+        });
+      }
+    }
+  }
+
+  private scrollToPasswordField() {
+    setTimeout(() => {
+      const passwordField = document.querySelector('.mobile-password-input') as HTMLElement;
+      if (passwordField) {
+        passwordField.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
+  }
+
+  private scrollToEmailField() {
+    setTimeout(() => {
+      const emailField = document.querySelector('input[formControlName="email"]') as HTMLElement;
+      if (emailField) {
+        emailField.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
   }
 }
