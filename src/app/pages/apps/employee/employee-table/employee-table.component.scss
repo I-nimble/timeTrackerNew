@@ -1,0 +1,13 @@
+::ng-deep .mat-mdc-paginator {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  padding: 0.25rem 0 !important;
+}
+
+::ng-deep .mat-mdc-paginator-range-label {
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  margin: 0 2px !important
+}
