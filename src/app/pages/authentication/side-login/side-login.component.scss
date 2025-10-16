@@ -3,15 +3,16 @@
     min-height: 100vh;
     padding: 20px 0px !important;
     margin: 10px 0px !important;
+    display: flex;
+    align-items: center!important;
   }
   
   .mobile-container {
-    height: 100vh;
+    height: 85vh;
     overflow: hidden;
   }
   
   .mobile-auth-card {
-    height: 100vh !important;
     margin: 0 !important;
     box-shadow: none !important;
   }
@@ -50,6 +51,7 @@
   .mobile-form {
     position: relative;
     z-index: 10;
+    margin-top: 0px!important;
   }
   
   .mobile-input {
@@ -80,14 +82,14 @@
   }
   
   .mobile-submit-btn {
-    margin: 20px 0;
-    height: 48px;
+    margin: 10px 0;
+    height: 40px;
     font-size: 16px;
   }
   
   .mobile-register-link {
     text-align: center;
-    margin-bottom: 40px !important;
+    margin-bottom: 10px !important;
   }
 }
 
