@@ -545,7 +545,7 @@
 
                             <!-- Conditional Availability Field -->
                             <ng-container *ngIf="registerTeamMemberForm.contains('availability')">
-                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'Virtual Assistant'">
+                              <div *ngIf="registerTeamMemberForm.get('role')?.value?.title === 'Virtual Assistant'">
                                 <p>Are you available to work Pacific Time hours (11:30am-8:00pm, Mon-Fri)?</p>
                                 <mat-radio-group formControlName="availability" required>
                                   <mat-radio-button value="yes">Yes</mat-radio-button>
@@ -556,7 +556,7 @@
                                 </mat-error>
                               </div>
 
-                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'IT and Technology'">
+                              <div *ngIf="registerTeamMemberForm.get('role')?.value?.title === 'IT and Technology'">
                                 <mat-form-field appearance="outline" class="w-100">
                                   <mat-label>Availability Details</mat-label>
                                   <textarea matInput formControlName="availability" required></textarea>
