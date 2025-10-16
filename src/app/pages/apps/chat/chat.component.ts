@@ -90,11 +90,9 @@ export class AppChatComponent implements OnInit {
           this.group = null;
         },
         usersRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100)
-          .friendsOnly(true),
+          .setLimit(100),
         searchRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100)
-          .friendsOnly(true),
+          .setLimit(100),
         hideSeparator: true,
       }),
       groupsConfiguration: new GroupsConfiguration({
