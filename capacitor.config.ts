@@ -4,6 +4,12 @@ const config: CapacitorConfig = {
     appId: 'com.inimbleapp.timetracker', 
     appName: 'inimbleapp', 
     webDir: 'dist/browser',
+    plugins: {
+    StatusBar: {
+      style: 'DEFAULT',
+      overlaysWebView: false 
+    }
+  }
 };
 
 export default config;
