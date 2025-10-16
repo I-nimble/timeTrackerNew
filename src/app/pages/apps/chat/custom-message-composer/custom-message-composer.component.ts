@@ -15,7 +15,6 @@ import { CometChatUIKit } from '@cometchat/chat-uikit-angular';
 export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	@Input() user: CometChat.User | null = null;
     @Input() group: CometChat.Group | null = null;
-    @Input() hideVoiceRecording: boolean = false;
 
 	messageText: string = '';
 	inlineImages: any[] = [];
@@ -49,6 +48,10 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
     ngOnInit () {
         document.addEventListener('paste', this.handlePaste.bind(this));
     }
+
+	get userHasWritten() {
+		return this.messageText.trim() || this.inlineImages.length > 0;
+	}
 
 	onTextChange(event: any) {
 		this.messageText = event.target.value;

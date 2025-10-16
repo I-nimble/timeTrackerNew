@@ -3,7 +3,8 @@ cometchat-groups-with-messages {
   height: 80vh;
 }
 cometchat-conversations-with-messages > div.cc-with-messages__wrapper,
-cometchat-groups-with-messages > div.cc-with-messages__wrapper {
+cometchat-groups-with-messages > div.cc-with-messages__wrapper, 
+cometchat-messages > div.cc-message-list__wrapper {
   border-radius: 16px;
   border: none!important;
 }

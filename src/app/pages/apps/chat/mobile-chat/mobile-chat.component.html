@@ -1,6 +1,6 @@
 <div id="mobile-chat-container" class="d-flex flex-column p-16">
   <!-- HEADER -->
-  <header>
+  <header *ngIf="currentTab.component !== 'messages'">
     <div class="d-flex justify-content-between align-items-center">
       <div class="d-flex align-items-center gap-8">
         <cometchat-avatar
@@ -89,29 +89,32 @@
     [groupsSearchRequestBuilder]="groupsSearchRequestBuilder"
   ></cometchat-contacts>
   } @case('messages') {
-  <!-- BASIC PLAN MESSAGES -->
-  <app-messages
-    *ngIf="(user || group) && plan.id == 1"
-    [user]="user"
-    [group]="group"
-    [messageListConfiguration]="basicMessageListConfiguration"
-  ></app-messages>
-  <!-- ESSENTIAL PLAN MESSAGES -->
-  <app-messages
-    *ngIf="(user || group) && plan.id == 2"
-    [user]="user"
-    [group]="group"
-    [messageListConfiguration]="essentialMessageListConfiguration"
-  ></app-messages>
-  <!-- PROFESSIONAL PLAN MESSAGES -->
-  <app-messages
-    *ngIf="
-      (user || group) && (plan.id == 3 || userRole === '1' || userRole === '4')
-    "
-    [user]="user"
-    [group]="group"
-    [messageListConfiguration]="professionalMessageListConfiguration"
-  ></app-messages>
+    <div id="messages-container">
+      <!-- BASIC PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && plan.id == 1"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="basicMessageListConfiguration"
+        [messageComposerView]="customMessageComposerView"
+      ></cometchat-messages>
+      <!-- ESSENTIAL PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && plan.id == 2"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="essentialMessageListConfiguration"
+        [messageComposerView]="customMessageComposerView"
+      ></cometchat-messages>
+      <!-- PROFESSIONAL PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && (plan.id == 3 || userRole == '1' || userRole == '4')"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="professionalMessageListConfiguration"
+        [messageComposerView]="customMessageComposerView"
+      ></cometchat-messages>
+    </div>
   } }
   <!-- FOOTER -->
   <footer class="p-t-16">

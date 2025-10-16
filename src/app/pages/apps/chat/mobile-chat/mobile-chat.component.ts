@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, Input, OnInit, NgModule, CUSTOM_ELEMENTS_SCHEMA, TemplateRef } from '@angular/core';
 import { CometChatService } from '../../../../services/apps/chat/chat.service';
 import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit, CometChatConversations, CometChatGroups, CometChatContacts, CometChatMessages } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
@@ -28,10 +28,11 @@ export class MobileChatComponent implements OnInit {
   @Input() basicMessagesConfig: MessagesConfiguration;
   @Input() essentialMessagesConfig: MessagesConfiguration;
   @Input() professionalMessagesConfig: MessagesConfiguration;
-  @Input() StartConversationConfiguration: ContactsConfiguration;
   @Input() conversationConfiguration: ConversationsConfiguration;
   @Input() plan: any;
   @Input() userRole: string | null = localStorage.getItem('role');
+  @Input() conversationsMenuTemplate: TemplateRef<any>;
+  @Input() customMessageComposerView: TemplateRef<any>;
 
   cometChatUser!: any;
   profilePic!: any;
@@ -53,6 +54,7 @@ export class MobileChatComponent implements OnInit {
   // Contacts builders: the UI accepts separate builders for users and groups (and their search variants)
   usersSearchRequestBuilder: CometChat.UsersRequestBuilder;
   groupsSearchRequestBuilder: CometChat.GroupsRequestBuilder;
+  public StartConversationConfiguration: ContactsConfiguration;
 
   constructor(private chatService: CometChatService) {
     this.onConversationsItemClick = this.onConversationsItemClick.bind(this);
@@ -65,6 +67,39 @@ export class MobileChatComponent implements OnInit {
       this.cometChatUser = user;
       this.profilePic = user.getAvatar();
     });
+
+    this.StartConversationConfiguration = new ContactsConfiguration({
+      ...this.chatService.contactsConfiguration,
+      usersConfiguration: new UsersConfiguration({
+        onItemClick: (user) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
+  
+          this.user = user as CometChat.User;
+          this.group = null;
+          this.currentTab = this.tabs[3]; // Switch to the Messages tab
+        },
+      }),
+      groupsConfiguration: new GroupsConfiguration({
+        onItemClick: (group) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
+  
+          this.user = null;
+          this.group = group as CometChat.Group;
+          this.currentTab = this.tabs[3]; // Switch to the Messages tab
+        },
+        menu: this.conversationsMenuTemplate,
+      }),
+      contactsStyle: new ContactsStyle({
+          activeTabBackground: '#92b46c',
+          activeTabTitleTextColor: '#fff',
+          tabBorderRadius: '16px',
+          tabBorder: 'none'
+        })
+      });
 
     this.essentialMessageListConfiguration = new MessageListConfiguration({
       disableReactions: true,
@@ -91,7 +126,6 @@ export class MobileChatComponent implements OnInit {
     })
 
     this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
-      .joinedOnly(true)
       .setLimit(50);
 
     this.conversationsRequestBuilder = new CometChat.ConversationsRequestBuilder()  
@@ -122,7 +156,6 @@ export class MobileChatComponent implements OnInit {
           .setLimit(50);
       } else if (this.currentTab?.component === 'groups') {
         this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
-          .joinedOnly(true)
           .setLimit(50);
       } else if (this.currentTab?.component === 'contacts') {
         this.usersSearchRequestBuilder = new CometChat.UsersRequestBuilder().setLimit(50);
@@ -141,7 +174,6 @@ export class MobileChatComponent implements OnInit {
       // update the search builder for groups
       this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
         .setSearchKeyword(query)
-        .joinedOnly(true)
         .setLimit(50);
     } else if (this.currentTab?.component === 'contacts') {
       this.usersSearchRequestBuilder = new CometChat.UsersRequestBuilder()
@@ -149,7 +181,6 @@ export class MobileChatComponent implements OnInit {
         .setLimit(50);
       this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
         .setSearchKeyword(query)
-        .joinedOnly(true)
         .setLimit(50);
     }
   }

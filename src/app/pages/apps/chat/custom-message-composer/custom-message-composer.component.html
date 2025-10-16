@@ -58,11 +58,11 @@
 				<img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
 			</button>
 			<button 
-				*ngIf="!hideVoiceRecording"
+				*ngIf="!messageText.trim() && inlineImages.length === 0"
 				mat-icon-button 
 				matSuffix
 				class="voice-btn"
-				(click)="toggleVoiceRecorderDropdown(); $event.stopPropagation()"
+				(click)="!userHasWritten"
 				matTooltip="Voice message"
 			>
 				<img src="assets/images/svgs/mic.svg" alt="Voice recording" class="icon" />
@@ -71,7 +71,7 @@
 				mat-icon-button 
 				matSuffix
 				class="send-btn"
-				[disabled]="!messageText.trim() && inlineImages.length === 0"
+				*ngIf="userHasWritten"
 				(click)="sendMessage()"
 				matTooltip="Send message"
 			>
