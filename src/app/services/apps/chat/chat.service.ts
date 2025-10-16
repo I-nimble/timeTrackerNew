@@ -30,12 +30,10 @@ export class CometChatService {
 
   async initializeCometChat(company_id?: number): Promise<void> {
     try {
-      console.log('initializing comet chat')
       const chat_uid = localStorage.getItem('id');
       if (!chat_uid) return;
 
       const credentials = await this.fetchChatCredentials(company_id); // change this
-      console.log('fetching chat credentials', credentials)
       if (!credentials) return;
 
       const initialized = await this.initCometChatUIKit(credentials);

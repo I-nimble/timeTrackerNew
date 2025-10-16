@@ -150,8 +150,15 @@ export class AppSideRegisterComponent {
           hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
-        console.log('form values', this.registerInvitedTeamMemberForm.value)
       }
+    });
+
+    this.registerClientForm.get('departments')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
+    });
+
+    this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
     });
   }
 
@@ -164,6 +171,42 @@ export class AppSideRegisterComponent {
         this.authService.checkEmailExists(control.value).subscribe(
           (exists: boolean) => {
             resolve(exists ? { emailTaken: true } : null);
+          },
+          () => resolve(null)
+        );
+      });
+    };
+  }
+
+  crossFieldValidator(): ValidatorFn {
+    return (formGroup: AbstractControl): ValidationErrors | null => {
+      const departments = formGroup.get('departments')?.value;
+      const otherDepartment = formGroup.get('otherDepartment')?.value;
+
+      if (departments && Array.isArray(departments) && departments.includes('Other')) {
+        if (!otherDepartment || otherDepartment.trim() === '') {
+          formGroup.get('otherDepartment')?.setErrors({ required: true });
+          return { otherDepartmentRequired: true };
+        } else {
+          formGroup.get('otherDepartment')?.setErrors(null);
+        }
+      } else {
+        formGroup.get('otherDepartment')?.setErrors(null);
+      }
+
+      return null;
+    };
+  }
+
+  companyExistsValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return Promise.resolve(null);
+      }
+      return new Promise(resolve => {
+        this.companiesService.checkCompanyExists(control.value).subscribe(
+          ({ exists }: { exists: boolean }) => {
+            resolve(exists ? { companyExists: true } : null);
           },
           () => resolve(null)
         );
@@ -437,7 +480,6 @@ export class AppSideRegisterComponent {
         google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
         hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
-      console.log('teamMemberData', teamMemberData)
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
         next: () => {
