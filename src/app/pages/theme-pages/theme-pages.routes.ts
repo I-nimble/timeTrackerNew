@@ -2,9 +2,7 @@ import { Routes } from '@angular/router';
 
 // theme pages
 import { AppAccountSettingComponent } from '../apps/account-setting/account-setting.component';
-import { AppFaqComponent } from './faq/faq.component';
 import { AppPricingComponent } from './pricing/pricing.component';
-import { AppTreeviewComponent } from './treeview/treeview.component';
 
 export const ThemePagesRoutes: Routes = [
   {
@@ -22,17 +20,6 @@ export const ThemePagesRoutes: Routes = [
         },
       },
       {
-        path: 'faq',
-        component: AppFaqComponent,
-        data: {
-          title: 'FAQ',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'FAQ' },
-          ],
-        },
-      },
-      {
         path: 'pricing',
         component: AppPricingComponent,
         data: {
@@ -40,17 +27,6 @@ export const ThemePagesRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Pricing' },
-          ],
-        },
-      },
-      {
-        path: 'treeview',
-        component: AppTreeviewComponent,
-        data: {
-          title: 'Treeview',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Treeview' },
           ],
         },
       },

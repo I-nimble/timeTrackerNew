@@ -1,39 +1,33 @@
 <div class="blank-layout-container justify-content-center">
-  <div class="auth-wrapper">
-    <div class="register-container position-relative">
-    <span class="d-block f-w-500 d-block f-s-14 m-t-24 m-x-16">
-        <a
-        [routerLink]="['/landingpage']"
-        class="text-decoration-none text-primary f-w-500 f-s-14">
-        Home</a>
-      </span>
-      <div class="w-100 position-relative rounded bg-white auth-card m-x-16 m-t-12">
-        <div class="auth-body h-100 p-0">
-          <div class="row g-0 h-100">
-            <div class="col-lg-6 position-relative auth-bg-container">
+  <div class="auth-wrapper mobile-auth-wrapper">
+    <div class="register-container position-relative mobile-container">
+      <div class="w-100 position-relative rounded bg-white auth-card m-x-16 m-t-12 mobile-auth-card">
+        <div class="auth-body h-100 p-0 mobile-auth-body">
+          <div class="row g-0 h-100 mobile-row">
+            <div class="col-lg-6 position-relative auth-bg-container d-none d-lg-block">
               <div class="auth-bg-image" [style.background-image]="'url(' + assetPath + ')'"></div>
             </div>
-            <div class="col-lg-6 col-12">
+            <div class="col-lg-6 col-12 mobile-form-container">
               <div
-                class="d-flex align-items-start align-items-lg-center justify-content-center"
+                class="d-flex align-items-start align-items-lg-center justify-content-center mobile-form-wrapper"
               >
-                <div class="d-flex justify-content-center align-items-start form-container m-t-24" style="width: 100%;">
-                  <div class="col-lg-11">
-                    <h4 class="f-w-700 f-s-30 lh-base m-0 m-t-32">
+                <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-form-content" style="width: 100%;">
+                  <div class="col-lg-11 mobile-form-col">
+                    <h4 class="f-w-700 f-s-30 lh-base m-0 m-t-32 mobile-title">
                       Welcome to Inimble
                     </h4>
-                    <span class="f-s-14 d-block mat-body-1 m-t-8"
+                    <span class="f-s-14 d-block mat-body-1 m-t-8 mobile-subtitle"
                     >Your all in one platform to manage your team</span
                     >
 
                     <div *ngIf="!isRegisterFormVisible; else registerForm">
-                      <button mat-stroked-button class="w-100 m-t-45" (click)="showRegisterForm('3')">
+                      <button mat-stroked-button class="w-100 m-t-45 mobile-action-btn" (click)="showRegisterForm('3')">
                         Client Registration
                       </button>
 
-                      <p class="text-center m-t-16 m-b-16">or</p>
+                      <p class="text-center m-t-16 m-b-16 mobile-divider">or</p>
   
-                      <button mat-stroked-button class="w-100 m-b-45" (click)="showRegisterForm('2')">
+                      <button mat-stroked-button class="w-100 m-b-45 mobile-action-btn" (click)="showRegisterForm('2')">
                         Apply for a Career Opportunity
                       </button>
                     </div>
@@ -59,13 +53,13 @@
                       <!-- <div class="or-border m-t-30">or sign up as a {{userRole === '3' ? 'client' : 'team member'}} with</div> -->
                       
                       <!-- Client registration form -->
-                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '3'">
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '3'" class="mobile-stepper">
                         <mat-step [stepControl]="registerClientForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerClientForm">
-                              <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerClientForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">What is your email address?</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" class="mobile-form-input" />
                                 <mat-error 
                                   class="text-danger f-s-12 m-t-0"
                                   *ngIf="(registerClientForm.get('email')?.hasError('email') || registerClientForm.get('email')?.hasError('pattern')) && registerClientForm.get('email')?.touched"
@@ -85,39 +79,39 @@
                                 </mat-error>
                               </mat-form-field>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('email')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('email')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerClientForm">
-                              <h2 class="text-center m-b-24 label-title">Enter your full name</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="name" required type="text" placeholder="First name" />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerClientForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Enter your full name</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="name" required type="text" placeholder="First name" class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerClientForm.get('name')?.hasError('required') && registerClientForm.get('name')?.touched">
                                   First name is required
                                 </mat-error>
                               </mat-form-field>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="last_name" required type="text" placeholder="Last name" />
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="last_name" required type="text" placeholder="Last name" class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerClientForm.get('last_name')?.hasError('required') && registerClientForm.get('last_name')?.touched">
                                   Last name is required
                                 </mat-error>
                               </mat-form-field>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('name')?.valid || !registerClientForm.get('last_name')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('name')?.valid || !registerClientForm.get('last_name')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerClientForm">
-                              <h2 class="text-center m-b-24 label-title">Enter your company name</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="company_name" required type="text" placeholder="Company name" />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form class="m-t-24 mobile-form" [formGroup]="registerClientForm">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Enter your company name</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="company_name" required type="text" placeholder="Company name" class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerClientForm.get('company_name')?.hasError('required') && registerClientForm.get('company_name')?.touched">
                                   Company name is required
@@ -128,54 +122,55 @@
                                 </mat-error>
                               </mat-form-field>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('company_name')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('company_name')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerClientForm">
-                              <h2 class="text-center m-b-10 label-title">Departments</h2>
-                              <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
-                              <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form class="m-t-24 mobile-form" [formGroup]="registerClientForm">
+                              <h2 class="text-center m-b-10 label-title mobile-step-title">Departments</h2>
+                              <p class="text-center m-b-24 label-subtitle mobile-step-subtitle">(This field is optional)</p>
+                              <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16 mobile-departments">
                                 <button
                                   mat-stroked-button
                                   [ngClass]="selectedDepartments.includes(dept) ? 'primary' : 'disabled'"
                                   *ngFor="let dept of departmentsOptions"
                                   (click)="toggleDepartment(dept); $event.preventDefault()"
+                                  class="mobile-department-btn"
                                 >
                                   {{ dept?.name }}
                                 </button>
                               </div>
                               <mat-form-field *ngIf="hasOtherDepartment()"
-                                appearance="outline" class="w-100">
+                                appearance="outline" class="w-100 mobile-input">
                                 <mat-label>Other Department</mat-label>
-                                <input matInput formControlName="otherDepartment" type="text" />
+                                <input matInput formControlName="otherDepartment" type="text" class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerClientForm.get('otherDepartment')?.hasError('required')">
                                   Please specify the other department
                                 </mat-error>
                               </mat-form-field>
-                              <button class="w-100" mat-flat-button matStepperNext>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext>
                                 Next
                               </button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24 col-12" [formGroup]="registerClientForm">
-                              <h2 class="text-center m-b-10 label-title">Enter your phone number</h2>
-                              <p class="text-center m-b-24 label-subtitle">(This field is optional)</p>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form class="m-t-24 col-12 mobile-form" [formGroup]="registerClientForm">
+                              <h2 class="text-center m-b-10 label-title mobile-step-title">Enter your phone number</h2>
+                              <p class="text-center m-b-24 label-subtitle mobile-step-subtitle">(This field is optional)</p>
       
-                              <div class="d-flex flex-row">
-                                <mat-form-field appearance="outline" style="width: 100px;" class="m-r-16">
+                              <div class="d-flex mobile-phone-container">
+                                <mat-form-field appearance="outline" style="width: 100px;" class="m-r-16 mobile-input">
                                   <mat-select formControlName="countryCode">
                                     <mat-option value="+1">+1 (US)</mat-option>
                                   </mat-select>
                                 </mat-form-field>
                                 <mat-form-field appearance="outline" style="flex-grow: 1;">
-                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" />
+                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" class="mobile-form-input" />
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.touched">
                                     Enter a valid phone number
@@ -183,16 +178,16 @@
                                 </mat-form-field>
                               </div>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('phone')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('phone')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerClientForm">
-                            <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                              <form class="m-t-24" [formGroup]="registerClientForm">
-                                <h2 class="text-center m-b-24 label-title">Enter your password</h2>
-                                <mat-form-field appearance="outline" class="w-100">
-                                  <input matInput formControlName="password" required type="password" placeholder="Password" />
+                            <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                              <form class="m-t-24 mobile-form" [formGroup]="registerClientForm">
+                                <h2 class="text-center m-b-24 label-title mobile-step-title">Enter your password</h2>
+                                <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                  <input matInput formControlName="password" required type="password" placeholder="Password" class="mobile-form-input" />
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('password')?.hasError('required') && registerClientForm.get('password')?.touched">
                                     Password is required
@@ -203,20 +198,20 @@
                                   </mat-error>
                                 </mat-form-field>
   
-                                <button class="w-100" mat-flat-button (click)="submit()" [disabled]="!registerClientForm.valid">Finish</button>
+                                <button class="w-100 mobile-submit-btn" mat-flat-button (click)="submit()" [disabled]="!registerClientForm.valid">Finish</button>
                               </form>
                             </div>
                         </mat-step>
                       </mat-stepper>
   
                       <!-- Invited Team Member registration form -->
-                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && hasInvitation">
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && hasInvitation" class="mobile-stepper">
                         <mat-step [stepControl]="registerInvitedTeamMemberForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerInvitedTeamMemberForm">
-                              <h2 class="text-center m-b-24 label-title">What is your email address?</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerInvitedTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">What is your email address?</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="email" required type="email" placeholder="email@example.com" class="mobile-form-input" />
                                 <mat-error
                                   class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerInvitedTeamMemberForm.get('email')?.hasError('required') && registerInvitedTeamMemberForm.get('email')?.touched">
@@ -236,55 +231,55 @@
                                 </mat-error>
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('email')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('email')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerInvitedTeamMemberForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form [formGroup]="registerInvitedTeamMemberForm">
-                              <h2 class="text-center m-b-24 label-title">Enter your full name</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="name" required type="text" placeholder="First name" />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerInvitedTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Enter your full name</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="name" required type="text" placeholder="First name" class="mobile-form-input"/>
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerInvitedTeamMemberForm.get('name')?.hasError('required') && registerInvitedTeamMemberForm.get('name')?.touched">
                                 First name is required
                                 </mat-error>
                               </mat-form-field>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput formControlName="last_name" required type="text" placeholder="Last name" />
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput formControlName="last_name" required type="text" placeholder="Last name" class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerInvitedTeamMemberForm.get('last_name')?.hasError('required') && registerInvitedTeamMemberForm.get('last_name')?.touched">
                                 Last name is required
                                 </mat-error>
                               </mat-form-field>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('name')?.valid || !registerInvitedTeamMemberForm.get('last_name')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('name')?.valid || !registerInvitedTeamMemberForm.get('last_name')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         <mat-step [stepControl]="registerInvitedTeamMemberForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
-                              <h2 class="text-center m-b-24 label-title">Company</h2>
-                              <mat-form-field appearance="outline" class="w-100">
-                                <input matInput [value]="getCompanyName" required type="text" readonly />
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Company</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <input matInput [value]="getCompanyName" required type="text" readonly class="mobile-form-input" />
                                 <mat-error class="text-danger f-s-12 m-t-0"
                                   *ngIf="registerInvitedTeamMemberForm.get('company')?.hasError('required') && registerInvitedTeamMemberForm.get('company')?.touched">
                                   Company is required
                                 </mat-error>
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('company')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('company')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
   
                         <mat-step [stepControl]="registerInvitedTeamMemberForm">
-                          <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
-                              <h2 class="text-center m-b-24 label-title">Select your position</h2>
-                              <mat-form-field appearance="outline" class="w-100">
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Select your position</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
                                 <mat-select formControlName="position" required>
                                   <mat-option *ngFor="let position of positions" [value]="position.id">
                                     {{ position.title }}
@@ -296,17 +291,17 @@
                                 </mat-error>
                               </mat-form-field>
   
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('position')?.valid">Next</button>
+                              <button class="w-100 mobile-submit-btn" mat-flat-button matStepperNext [disabled]="!registerInvitedTeamMemberForm.get('position')?.valid">Next</button>
                             </form>
                           </div>
                         </mat-step>
                         
                         <mat-step [stepControl]="registerInvitedTeamMemberForm">
-                            <div class="d-flex justify-content-center align-items-start form-container m-t-24">
-                              <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm">
-                                <h2 class="text-center m-b-24 label-title">Enter your password</h2>
-                                <mat-form-field appearance="outline" class="w-100">
-                                  <input matInput formControlName="password" required type="password" />
+                            <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                              <form class="m-t-24" [formGroup]="registerInvitedTeamMemberForm" class="mobile-form">
+                                <h2 class="text-center m-b-24 label-title mobile-step-title">Enter your password</h2>
+                                <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                  <input matInput formControlName="password" required type="password" class="mobile-form-input"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerInvitedTeamMemberForm.get('password')?.hasError('required') && registerInvitedTeamMemberForm.get('password')?.touched">
                                     Password is required
@@ -317,397 +312,423 @@
                                   </mat-error>
                                 </mat-form-field>
   
-                                <button class="w-100" mat-flat-button (click)="submit()" [disabled]="!registerInvitedTeamMemberForm.valid">Finish</button>
+                                <button class="w-100 mobile-submit-btn" mat-flat-button (click)="submit()" [disabled]="!registerInvitedTeamMemberForm.valid">Finish</button>
                               </form>
                             </div>
                         </mat-step>
                       </mat-stepper>
 
                       <!-- Team Member registration form without invitation -->
-                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && !hasInvitation">
+                      <mat-stepper #stepper id="register-form" *ngIf="userRole === '2' && !hasInvitation" class="mobile-stepper">
                         <!-- Step 1: Location and Role Selection -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Location</mat-label>
-                              <mat-select formControlName="location" required>
-                                <mat-option *ngFor="let loc of locations" [value]="loc.city">{{loc.city}}</mat-option>
-                              </mat-select>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('location')?.hasError('required') && registerTeamMemberForm.get('location')?.touched">
-                                Location is required
-                              </mat-error>
-                            </mat-form-field>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Location and Role Selection</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Location</mat-label>
+                                <mat-select formControlName="location" required>
+                                  <mat-option *ngFor="let loc of locations" [value]="loc.city">{{loc.city}}</mat-option>
+                                </mat-select>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('location')?.hasError('required') && registerTeamMemberForm.get('location')?.touched">
+                                  Location is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Role</mat-label>
-                              <mat-select formControlName="role" required>
-                                <mat-option *ngFor="let role of careerRoles" [value]="role">{{role}}</mat-option>
-                              </mat-select>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('role')?.hasError('required') && registerTeamMemberForm.get('role')?.touched">
-                                Role is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Role</mat-label>
+                                <mat-select formControlName="role" required>
+                                  <mat-option *ngFor="let role of careerRoles" [value]="role">{{role}}</mat-option>
+                                </mat-select>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('role')?.hasError('required') && registerTeamMemberForm.get('role')?.touched">
+                                  Role is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('location')?.valid || !registerTeamMemberForm.get('role')?.valid ||
-                                    (registerTeamMemberForm.get('location')?.value === 'Medellin' && registerTeamMemberForm.get('role')?.value === 'IT and Technology')">
-                              Next
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('location')?.valid || !registerTeamMemberForm.get('role')?.valid ||
+                                      (registerTeamMemberForm.get('location')?.value === 'Medellin' && registerTeamMemberForm.get('role')?.value === 'IT and Technology')">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 2: Personal Information -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Email</mat-label>
-                              <input matInput formControlName="email" type="email" required>
-                              <mat-error
-                                class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('email')?.hasError('required') && registerTeamMemberForm.get('email')?.touched">
-                                Email is required
-                              </mat-error>
-                              <mat-error 
-                                class="text-danger f-s-12 m-t-0"
-                                *ngIf="(registerTeamMemberForm.get('email')?.hasError('email') || registerTeamMemberForm.get('email')?.hasError('pattern')) && registerTeamMemberForm.get('email')?.touched"
-                              >
-                                Please enter a valid email address
-                              </mat-error>
-                              <mat-error 
-                                class="text-danger f-s-12 m-t-0"
-                                *ngIf="(registerTeamMemberForm.get('email')?.hasError('emailTaken')) && registerTeamMemberForm.get('email')?.touched"
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Personal Information</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Email</mat-label>
+                                <input matInput formControlName="email" type="email" required class="mobile-form-input">
+                                <mat-error
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('email')?.hasError('required') && registerTeamMemberForm.get('email')?.touched">
+                                  Email is required
+                                </mat-error>
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerTeamMemberForm.get('email')?.hasError('email') || registerTeamMemberForm.get('email')?.hasError('pattern')) && registerTeamMemberForm.get('email')?.touched"
                                 >
-                                Email is already taken
-                              </mat-error>
-                            </mat-form-field>
+                                  Please enter a valid email address
+                                </mat-error>
+                                <mat-error 
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="(registerTeamMemberForm.get('email')?.hasError('emailTaken')) && registerTeamMemberForm.get('email')?.touched"
+                                  >
+                                  Email is already taken
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Password</mat-label>
-                              <input matInput formControlName="password" type="password" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('password')?.hasError('required') && registerTeamMemberForm.get('password')?.touched">
-                                Password is required
-                              </mat-error>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('password')?.hasError('minlength') && registerTeamMemberForm.get('password')?.touched">
-                                Password must be at least 8 characters
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Password</mat-label>
+                                <input matInput formControlName="password" type="password" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('password')?.hasError('required') && registerTeamMemberForm.get('password')?.touched">
+                                  Password is required
+                                </mat-error>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('password')?.hasError('minlength') && registerTeamMemberForm.get('password')?.touched">
+                                  Password must be at least 8 characters
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Full Name</mat-label>
-                              <input matInput formControlName="fullName" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('fullName')?.hasError('required') && registerTeamMemberForm.get('fullName')?.touched">
-                                Full name is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Full Name</mat-label>
+                                <input matInput formControlName="fullName" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('fullName')?.hasError('required') && registerTeamMemberForm.get('fullName')?.touched">
+                                  Full name is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Age</mat-label>
-                              <input matInput formControlName="age" type="number" min="18" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('age')?.hasError('required') && registerTeamMemberForm.get('age')?.touched">
-                                Age is required
-                              </mat-error>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('age')?.hasError('min') && registerTeamMemberForm.get('age')?.touched">
-                                Minimum age is 18
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Age</mat-label>
+                                <input matInput formControlName="age" type="number" min="18" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('age')?.hasError('required') && registerTeamMemberForm.get('age')?.touched">
+                                  Age is required
+                                </mat-error>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('age')?.hasError('min') && registerTeamMemberForm.get('age')?.touched">
+                                  Minimum age is 18
+                                </mat-error>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('email')?.valid || 
-                                    !registerTeamMemberForm.get('password')?.valid || 
-                                    !registerTeamMemberForm.get('fullName')?.valid || 
-                                    !registerTeamMemberForm.get('age')?.valid">
-                              Next
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('email')?.valid || 
+                                      !registerTeamMemberForm.get('password')?.valid || 
+                                      !registerTeamMemberForm.get('fullName')?.valid || 
+                                      !registerTeamMemberForm.get('age')?.valid">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Referer Information -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100 m-b-16">
-                              <mat-label>Where did you apply?</mat-label>
-                              <input matInput formControlName="appliedWhere" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('appliedWhere')?.hasError('required') && registerTeamMemberForm.get('appliedWhere')?.touched">
-                                This field is required
-                              </mat-error>
-                            </mat-form-field>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Application Details</h2>
+                              <mat-form-field appearance="outline" class="w-100 m-b-16 mobile-input">
+                                <mat-label>Where did you apply?</mat-label>
+                                <input matInput formControlName="appliedWhere" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('appliedWhere')?.hasError('required') && registerTeamMemberForm.get('appliedWhere')?.touched">
+                                  This field is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Are you referred by someone?</mat-label>
-                              <mat-select formControlName="referred" required>
-                                <mat-option value="no">No</mat-option>
-                                <mat-option value="yes">Yes</mat-option>
-                              </mat-select>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('referred')?.hasError('required') && registerTeamMemberForm.get('referred')?.touched">
-                                This field is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Are you referred by someone?</mat-label>
+                                <mat-select formControlName="referred" required>
+                                  <mat-option value="no">No</mat-option>
+                                  <mat-option value="yes">Yes</mat-option>
+                                </mat-select>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('referred')?.hasError('required') && registerTeamMemberForm.get('referred')?.touched">
+                                  This field is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100" *ngIf="registerTeamMemberForm.get('referred')?.value === 'yes'">
-                              <mat-label>Who referred you?</mat-label>
-                              <input matInput formControlName="referredName" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('referredName')?.hasError('required') && registerTeamMemberForm.get('referredName')?.touched">
-                                Referrer's name is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input" *ngIf="registerTeamMemberForm.get('referred')?.value === 'yes'">
+                                <mat-label>Who referred you?</mat-label>
+                                <input matInput formControlName="referredName" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('referredName')?.hasError('required') && registerTeamMemberForm.get('referredName')?.touched">
+                                  Referrer's name is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('appliedWhere')?.valid
-                                    || !registerTeamMemberForm.get('referred')?.valid
-                                    || (registerTeamMemberForm.get('referred')?.value === 'yes' && !registerTeamMemberForm.get('referredName')?.valid)">
-                              Next
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('appliedWhere')?.valid
+                                      || !registerTeamMemberForm.get('referred')?.valid
+                                      || (registerTeamMemberForm.get('referred')?.value === 'yes' && !registerTeamMemberForm.get('referredName')?.valid)">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 3: Contact Details -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Contact Phone</mat-label>
-                              <input matInput formControlName="contactPhone" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('required') && registerTeamMemberForm.get('contactPhone')?.touched">
-                                Contact phone is required
-                              </mat-error>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('pattern') && registerTeamMemberForm.get('contactPhone')?.touched">
-                                Please enter a valid phone number
-                              </mat-error>
-                            </mat-form-field>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Contact Details</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Contact Phone</mat-label>
+                                <input matInput formControlName="contactPhone" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('required') && registerTeamMemberForm.get('contactPhone')?.touched">
+                                  Contact phone is required
+                                </mat-error>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('pattern') && registerTeamMemberForm.get('contactPhone')?.touched">
+                                  Please enter a valid phone number
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Additional Phone</mat-label>
-                              <input matInput formControlName="additionalPhone">
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('additionalPhone')?.hasError('pattern') && registerTeamMemberForm.get('additionalPhone')?.touched">
-                                Please enter a valid phone number
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Additional Phone</mat-label>
+                                <input matInput formControlName="additionalPhone" class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('additionalPhone')?.hasError('pattern') && registerTeamMemberForm.get('additionalPhone')?.touched">
+                                  Please enter a valid phone number
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Current Residence</mat-label>
-                              <input matInput formControlName="currentResidence" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('currentResidence')?.hasError('required') && registerTeamMemberForm.get('currentResidence')?.touched">
-                                Current residence is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Current Residence</mat-label>
+                                <input matInput formControlName="currentResidence" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('currentResidence')?.hasError('required') && registerTeamMemberForm.get('currentResidence')?.touched">
+                                  Current residence is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Address (with reference)</mat-label>
-                              <textarea matInput formControlName="address" required></textarea>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('address')?.hasError('required') && registerTeamMemberForm.get('address')?.touched">
-                                Address is required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Address (with reference)</mat-label>
+                                <textarea matInput formControlName="address" required class="mobile-form-input"></textarea>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('address')?.hasError('required') && registerTeamMemberForm.get('address')?.touched">
+                                  Address is required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('contactPhone')?.valid || !registerTeamMemberForm.get('currentResidence')?.valid || !registerTeamMemberForm.get('address')?.valid">  
-                              Next
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('contactPhone')?.valid || !registerTeamMemberForm.get('currentResidence')?.valid || !registerTeamMemberForm.get('address')?.valid">  
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 4: Family & Language -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100 m-b-16">
-                              <mat-label>English Level</mat-label>
-                              <mat-select formControlName="englishLevel" required>
-                                <mat-option *ngFor="let level of englishLevels" [value]="level">{{level}}</mat-option>
-                              </mat-select>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('englishLevel')?.hasError('required') && registerTeamMemberForm.get('englishLevel')?.touched">
-                                English level is required
-                              </mat-error>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Do you have children? How many?</mat-label>
-                              <input matInput formControlName="children" type="number" min="0">
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('children')?.hasError('required') && registerTeamMemberForm.get('children')?.touched">
-                                This field is required
-                              </mat-error>
-                            </mat-form-field>
-
-                            <!-- Conditional Availability Field -->
-                            <ng-container *ngIf="registerTeamMemberForm.contains('availability')">
-                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'Virtual Assistant'">
-                                <p>Are you available to work Pacific Time hours (11:30am-8:00pm, Mon-Fri)?</p>
-                                <mat-radio-group formControlName="availability" required>
-                                  <mat-radio-button value="yes">Yes</mat-radio-button>
-                                  <mat-radio-button value="no">No</mat-radio-button>
-                                </mat-radio-group>
-                                <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('availability')?.hasError('mustBeYes')">
-                                  You must be available to work Pacific Time hours to apply.
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Language & Family Information</h2>
+                              <mat-form-field appearance="outline" class="w-100 m-b-16 mobile-input">
+                                <mat-label>English Level</mat-label>
+                                <mat-select formControlName="englishLevel" required>
+                                  <mat-option *ngFor="let level of englishLevels" [value]="level">{{level}}</mat-option>
+                                </mat-select>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('englishLevel')?.hasError('required') && registerTeamMemberForm.get('englishLevel')?.touched">
+                                  English level is required
                                 </mat-error>
-                              </div>
+                              </mat-form-field>
 
-                              <div *ngIf="registerTeamMemberForm.get('role')?.value === 'IT and Technology'">
-                                <mat-form-field appearance="outline" class="w-100">
-                                  <mat-label>Availability Details</mat-label>
-                                  <textarea matInput formControlName="availability" required></textarea>
-                                </mat-form-field>
-                                <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('availability')?.hasError('mustBeYes')">
-                                  You must confirm your availability to apply.
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Do you have children? How many?</mat-label>
+                                <input matInput formControlName="children" type="number" min="0" class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('children')?.hasError('required') && registerTeamMemberForm.get('children')?.touched">
+                                  This field is required
                                 </mat-error>
-                              </div>
-                            </ng-container>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('englishLevel')?.valid || (registerTeamMemberForm.contains('availability') && !registerTeamMemberForm.get('availability')?.valid)">
-                              Next
-                            </button>
-                          </form>
+                              <!-- Conditional Availability Field -->
+                              <ng-container *ngIf="registerTeamMemberForm.contains('availability')">
+                                <div *ngIf="registerTeamMemberForm.get('role')?.value === 'Virtual Assistant'" class="mobile-availability">
+                                  <p class="mobile-step-subtitle">Are you available to work Pacific Time hours (11:30am-8:00pm, Mon-Fri)?</p>
+                                  <mat-radio-group formControlName="availability" required class="mobile-radio-group">
+                                    <mat-radio-button value="yes" class="mobile-radio-button">Yes</mat-radio-button>
+                                    <mat-radio-button value="no" class="mobile-radio-button">No</mat-radio-button>
+                                  </mat-radio-group>
+                                  <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('availability')?.hasError('mustBeYes')">
+                                    You must be available to work Pacific Time hours to apply.
+                                  </mat-error>
+                                </div>
+
+                                <div *ngIf="registerTeamMemberForm.get('role')?.value === 'IT and Technology'" class="mobile-availability">
+                                  <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                    <mat-label>Availability Details</mat-label>
+                                    <textarea matInput formControlName="availability" required class="mobile-form-input"></textarea>
+                                  </mat-form-field>
+                                  <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('availability')?.hasError('mustBeYes')">
+                                    You must confirm your availability to apply.
+                                  </mat-error>
+                                </div>
+                              </ng-container>
+
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('englishLevel')?.valid || (registerTeamMemberForm.contains('availability') && !registerTeamMemberForm.get('availability')?.valid)">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 5: Salary & Skills -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <!-- Dynamic Salary Question -->
-                            <div *ngIf="registerTeamMemberForm.contains('salaryRange')">
-                              <p class="fs-12 f-w-600">Are you willing to accept a monthly salary range between {{getSalaryRangeText()}}?</p>
-                              <mat-radio-group formControlName="salaryRange" required>
-                                <mat-radio-button value="yes">Yes</mat-radio-button>
-                                <mat-radio-button value="no">No</mat-radio-button>
-                              </mat-radio-group>
-                              <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('salaryRange')?.hasError('mustBeYes')">
-                                You must accept the salary range to apply.
-                              </mat-error>
-                            </div>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Skills & Salary Expectations</h2>
+                              <!-- Dynamic Salary Question -->
+                              <div *ngIf="registerTeamMemberForm.contains('salaryRange')" class="mobile-salary-range">
+                                <p class="fs-12 f-w-600 mobile-step-subtitle">Are you willing to accept a monthly salary range between {{getSalaryRangeText()}}?</p>
+                                <mat-radio-group formControlName="salaryRange" required class="mobile-radio-group">
+                                  <mat-radio-button value="yes" class="mobile-radio-button">Yes</mat-radio-button>
+                                  <mat-radio-button value="no" class="mobile-radio-button">No</mat-radio-button>
+                                </mat-radio-group>
+                                <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('salaryRange')?.hasError('mustBeYes')">
+                                  You must accept the salary range to apply.
+                                </mat-error>
+                              </div>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Competencies (Teamwork, Adaptability, etc.)</mat-label>
-                              <textarea matInput formControlName="competencies" required></textarea>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('competencies')?.hasError('required') && registerTeamMemberForm.get('competencies')?.touched">
-                                Competencies are required
-                              </mat-error>
-                            </mat-form-field>
-
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Technical Skills</mat-label>
-                              <textarea matInput formControlName="technicalSkills" required></textarea>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('technicalSkills')?.hasError('required') && registerTeamMemberForm.get('technicalSkills')?.touched">
-                                Technical skills are required
-                              </mat-error>
-                            </mat-form-field>
-
-                            <!-- Programming Languages (IT only) -->
-                            <div *ngIf="registerTeamMemberForm.contains('programmingLanguages')">
-                              <mat-form-field appearance="outline" class="w-100">
-                                <mat-label>Programming Languages & Experience</mat-label>
-                                <textarea matInput formControlName="programmingLanguages" required></textarea>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Competencies (Teamwork, Adaptability, etc.)</mat-label>
+                                <textarea matInput formControlName="competencies" required class="mobile-form-input"></textarea>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('competencies')?.hasError('required') && registerTeamMemberForm.get('competencies')?.touched">
+                                  Competencies are required
+                                </mat-error>
                               </mat-form-field>
-                            </div>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Technology Proficiency (1-10)</mat-label>
-                              <input matInput formControlName="techProficiency" type="number" min="1" max="10" required>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('required') && registerTeamMemberForm.get('techProficiency')?.touched">
-                                Tech proficiency is required
-                              </mat-error>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('min') && registerTeamMemberForm.get('techProficiency')?.touched">
-                                Minimum value is 1
-                              </mat-error>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('max') && registerTeamMemberForm.get('techProficiency')?.touched">
-                                Maximum value is 10
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Technical Skills</mat-label>
+                                <textarea matInput formControlName="technicalSkills" required class="mobile-form-input"></textarea>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('technicalSkills')?.hasError('required') && registerTeamMemberForm.get('technicalSkills')?.touched">
+                                  Technical skills are required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('competencies')?.valid || !registerTeamMemberForm.get('technicalSkills')?.valid || 
-                                    !registerTeamMemberForm.get('techProficiency')?.valid || (registerTeamMemberForm.contains('salaryRange') && !registerTeamMemberForm.get('salaryRange')?.valid)">
-                              Next
-                            </button>
-                          </form>
+                              <!-- Programming Languages (IT only) -->
+                              <div *ngIf="registerTeamMemberForm.contains('programmingLanguages')" class="mobile-programming">
+                                <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                  <mat-label>Programming Languages & Experience</mat-label>
+                                  <textarea matInput formControlName="programmingLanguages" required class="mobile-form-input"></textarea>
+                                </mat-form-field>
+                              </div>
+
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Technology Proficiency (1-10)</mat-label>
+                                <input matInput formControlName="techProficiency" type="number" min="1" max="10" required class="mobile-form-input">
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('required') && registerTeamMemberForm.get('techProficiency')?.touched">
+                                  Tech proficiency is required
+                                </mat-error>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('min') && registerTeamMemberForm.get('techProficiency')?.touched">
+                                  Minimum value is 1
+                                </mat-error>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('techProficiency')?.hasError('max') && registerTeamMemberForm.get('techProficiency')?.touched">
+                                  Maximum value is 10
+                                </mat-error>
+                              </mat-form-field>
+
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('competencies')?.valid || !registerTeamMemberForm.get('technicalSkills')?.valid || 
+                                      !registerTeamMemberForm.get('techProficiency')?.valid || (registerTeamMemberForm.contains('salaryRange') && !registerTeamMemberForm.get('salaryRange')?.valid)">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 6: Education & Experience -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Education History</mat-label>
-                              <textarea matInput formControlName="educationHistory"></textarea>
-                            </mat-form-field>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Education & Experience</h2>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Education History</mat-label>
+                                <textarea matInput formControlName="educationHistory" class="mobile-form-input"></textarea>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Work Experience</mat-label>
-                              <textarea matInput formControlName="workExperience"></textarea>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Work Experience</mat-label>
+                                <textarea matInput formControlName="workExperience" class="mobile-form-input"></textarea>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Work References</mat-label>
-                              <textarea matInput formControlName="workReferences" required></textarea>
-                              <mat-error class="text-danger f-s-12 m-t-0"
-                                *ngIf="registerTeamMemberForm.get('workReferences')?.hasError('required') && registerTeamMemberForm.get('workReferences')?.touched">
-                                Work references are required
-                              </mat-error>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Work References</mat-label>
+                                <textarea matInput formControlName="workReferences" required class="mobile-form-input"></textarea>
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('workReferences')?.hasError('required') && registerTeamMemberForm.get('workReferences')?.touched">
+                                  Work references are required
+                                </mat-error>
+                              </mat-form-field>
 
-                            <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Hobbies</mat-label>
-                              <textarea matInput formControlName="hobbies"></textarea>
-                            </mat-form-field>
+                              <mat-form-field appearance="outline" class="w-100 mobile-input">
+                                <mat-label>Hobbies</mat-label>
+                                <textarea matInput formControlName="hobbies" class="mobile-form-input"></textarea>
+                              </mat-form-field>
 
-                            <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid">
-                              Next
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" matStepperNext 
+                                      [disabled]="!registerTeamMemberForm.get('workReferences')?.valid">
+                                Next
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
 
                         <!-- Step 7: Media Uploads -->
                         <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
-                            <p>Resume (PDF)</p>
-                            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')">
-                            <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')">
-                              Resume is required
-                            </mat-error>
-                            <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('maxFileSize')">
-                              File too large (max 10GB)
-                            </mat-error>
+                          <div class="d-flex justify-content-center align-items-start form-container m-t-24 mobile-step-container">
+                            <form [formGroup]="registerTeamMemberForm" class="mobile-form">
+                              <h2 class="text-center m-b-24 label-title mobile-step-title">Document Upload</h2>
+                              <div class="mobile-file-upload">
+                                <p class="mobile-step-subtitle">Resume (PDF)</p>
+                                <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')" class="mobile-file-input">
+                                <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')" class="mobile-file-error">
+                                  Resume is required
+                                </mat-error>
+                                <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('maxFileSize')" class="mobile-file-error">
+                                  File too large (max 10GB)
+                                </mat-error>
+                              </div>
 
-                            <!-- Portfolio (VA only) -->
-                            <div *ngIf="registerTeamMemberForm.contains('portfolio')">
-                              <p>Portfolio (Graphic Design)</p>
-                              <input type="file" (change)="onFileChange($event, 'portfolio')">
-                              <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('required')">
-                                Portfolio is required
-                              </mat-error>
-                              <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('maxFileSize')">
-                                File too large (max 10GB)
-                              </mat-error>
-                            </div>
+                              <!-- Portfolio (VA only) -->
+                              <div *ngIf="registerTeamMemberForm.contains('portfolio')" class="mobile-file-upload">
+                                <p class="mobile-step-subtitle">Portfolio (Graphic Design)</p>
+                                <input type="file" (change)="onFileChange($event, 'portfolio')" class="mobile-file-input">
+                                <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('required')" class="mobile-file-error">
+                                  Portfolio is required
+                                </mat-error>
+                                <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('maxFileSize')" class="mobile-file-error">
+                                  File too large (max 10GB)
+                                </mat-error>
+                              </div>
 
-                            <button mat-flat-button color="primary" class="w-100" (click)="submit()" 
-                                    [disabled]="!registerTeamMemberForm.valid">
-                              Submit Application
-                            </button>
-                          </form>
+                              <button mat-flat-button color="primary" class="w-100 mobile-submit-btn" (click)="submit()" 
+                                      [disabled]="!registerTeamMemberForm.valid">
+                                Submit Application
+                              </button>
+                            </form>
+                          </div>
                         </mat-step>
                       </mat-stepper>
                     </ng-template>
 
-                    <span class="d-block f-w-500 d-block m-t-24 m-b-32"
+                    <span class="d-block f-w-500 d-block m-t-24 m-b-32 mobile-register-link"
                       >Already have an Account?
 
                       <a

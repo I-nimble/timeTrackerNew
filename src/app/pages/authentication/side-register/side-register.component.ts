@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, HostBinding, OnInit, inject, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -13,22 +13,17 @@ import {
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { environment } from 'src/environments/environment';
 import { AuthService } from '../../../services/auth.service';
-import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { EntriesService } from 'src/app/services/entries.service';
 import { NgIf, CommonModule } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
@@ -53,7 +48,7 @@ import { DepartmentsService } from 'src/app/services/departments.service';
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
 })
-export class AppSideRegisterComponent {
+export class AppSideRegisterComponent implements AfterViewInit {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
@@ -179,6 +174,49 @@ export class AppSideRegisterComponent {
       });
     };
   }
+
+  ngAfterViewInit() {
+    this.setupMobileInputHandling();
+  }
+
+  private setupMobileInputHandling() {
+    const isRealMobile = window.innerWidth <= 768 && 
+                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
+    
+    if (isRealMobile) {
+      this.setupFormInputHandling();
+    }
+  }
+
+  private setupFormInputHandling() {
+    const inputs = document.querySelectorAll('.mobile-form-input');
+    
+    inputs.forEach((input: Element) => {
+      input.addEventListener('focus', (event: Event) => {
+        this.scrollToInput(event.target as HTMLElement);
+      });
+    });
+
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
+    passwordInputs.forEach((input: Element) => {
+      input.addEventListener('focus', (event: Event) => {
+        this.scrollToInput(event.target as HTMLElement);
+      });
+    });
+  }
+
+  private scrollToInput(inputElement: HTMLElement) {
+    setTimeout(() => {
+      if (inputElement) {
+        inputElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
+  }
+
 
   crossFieldValidator(): ValidatorFn {
     return (formGroup: AbstractControl): ValidationErrors | null => {

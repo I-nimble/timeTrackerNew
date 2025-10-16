@@ -1,0 +1,121 @@
+@media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+  .mobile-auth-wrapper {
+    min-height: 100vh;
+    padding: 20px 0px !important;
+    margin: 10px 0px !important;
+    display: flex;
+    align-items: center!important;
+  }
+  
+  .mobile-container {
+    height: 85vh;
+    overflow: hidden;
+  }
+  
+  .mobile-auth-card {
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .mobile-auth-body {
+    height: 100% !important;
+  }
+  
+  .mobile-row {
+    height: 100% !important;
+    margin: 0 !important;
+  }
+  
+  .mobile-form-container {
+    height: 100%;
+    padding: 0 16px;
+  }
+  
+  .mobile-form-wrapper {
+    height: 100%;
+    align-items: flex-start !important;
+    padding-top: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-form-content {
+    height: auto;
+    min-height: 100%;
+  }
+  
+  .mobile-form-col {
+    padding-bottom: 100px;
+  }
+  
+  .mobile-form {
+    position: relative;
+    z-index: 10;
+    margin-top: 0px!important;
+  }
+  
+  .mobile-input {
+    margin-bottom: 16px;
+  }
+  
+  .mobile-password-input {
+    position: relative;
+    z-index: 1000;
+  }
+  
+  .mobile-title {
+    font-size: 24px !important;
+    margin-top: 20px !important;
+  }
+  
+  .mobile-subtitle {
+    margin-bottom: 30px !important;
+  }
+  
+  .mobile-actions {
+    margin: 20px 0;
+  }
+  
+  .mobile-forgot-link {
+    text-align: center;
+    margin: 16px 0 !important;
+  }
+  
+  .mobile-submit-btn {
+    margin: 10px 0;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .mobile-register-link {
+    text-align: center;
+    margin-bottom: 10px !important;
+  }
+}
+
+.mobile-form-field {
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .mat-form-field {
+    font-size: 16px !important;
+  }
+  
+  input, textarea {
+    font-size: 16px !important;
+    min-height: 30px !important;
+  }
+  
+  .mat-form-field-infix {
+    min-height: 44px !important;
+  }
+  
+  .mat-input-element {
+    padding: 12px 0 !important;
+  }
+}
+
+.mobile-form-wrapper {
+  scroll-behavior: smooth;
+}

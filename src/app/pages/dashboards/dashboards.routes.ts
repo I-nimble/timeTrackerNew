@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 // dashboards
-import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';

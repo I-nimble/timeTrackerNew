@@ -8,9 +8,7 @@ import { ViewportScroller } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
-import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 import { ButtonComponent } from 'src/app/components/button/button.component';
 
@@ -70,7 +68,7 @@ interface features {
 
 @Component({
     selector: 'app-pricing',
-    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
+    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppFooterComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
     templateUrl: './pricing.component.html',
 })
 export class AppPricingComponent {
@@ -344,26 +342,7 @@ export class AppPricingComponent {
 
   appdemos: demos[] = [];
 
-  testimonials: testimonials[] = [
-    {
-      id: 1,
-      imgSrc: '/assets/images/profile/user-1.jpg',
-      name: 'Jenny Wilson',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 2,
-      imgSrc: '/assets/images/profile/user-2.jpg',
-      name: 'Minshan Cui',
-      subtext: 'Features avaibility',
-    },
-    {
-      id: 3,
-      imgSrc: '/assets/images/profile/user-3.jpg',
-      name: 'Eminson Mendoza',
-      subtext: 'Features avaibility',
-    },
-  ];
+  testimonials: testimonials[] = [];
 
   features: features[] = [
     {

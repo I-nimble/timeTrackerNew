@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
-import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
-import { AppIntakeFormComponent } from './pages/intake/intake-form.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { UserTypeGuardService } from './services/guards/user-type-guard.service';
@@ -19,13 +17,8 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/landingpage',
+        redirectTo: '/authentication/login',
         pathMatch: 'full'
-      },
-      {
-        path: 'starter',
-        loadChildren: () =>
-          import('./pages/pages.routes').then((m) => m.PagesRoutes),
       },
       {
         path: 'dashboards',
@@ -35,18 +28,6 @@ export const routes: Routes = [
           ),
         canActivate: [AuthGuard],
         data: { allowedUserTypes: [USER_TYPE_ROLE, CLIENT_TYPE_ROLE, ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
-      },
-      {
-        path: 'forms',
-        loadChildren: () =>
-          import('./pages/forms/forms.routes').then((m) => m.FormsRoutes),
-        canActivate: [AuthGuard],
-      },
-      {
-        path: 'charts',
-        loadChildren: () =>
-          import('./pages/charts/charts.routes').then((m) => m.ChartsRoutes),
-        canActivate: [AuthGuard],
       },
       {
         path: 'apps',
@@ -68,14 +49,6 @@ export const routes: Routes = [
           ),
         canActivate: [AuthGuard],
       },
-      {
-        path: 'ui-components',
-        loadChildren: () =>
-          import('./pages/ui-components/ui-components.routes').then(
-            (m) => m.UiComponentsRoutes
-          ),
-        canActivate: [AuthGuard],
-      },
     ],
   },
   {
@@ -90,47 +63,6 @@ export const routes: Routes = [
           ),
         canActivate: [notAuthGuard],
       },
-      // {
-      //   path: 'landingpage',
-      //   loadChildren: () =>
-      //     import('./pages/theme-pages/landingpage/landingpage.routes').then(
-      //       (m) => m.LandingPageRoutes
-      //     ),
-      //   canActivate: [notAuthGuard], 
-      // },
-      {
-        path: 'landingpage',
-        loadChildren: () =>
-          import('./pages/theme-pages/front.routes').then(
-            (m) => m.HomePageRoutes
-          ),
-        canActivate: [notAuthGuard],
-      },
-      {
-        path: 'discovery',
-        pathMatch: 'full',
-        component: AppDiscoveryFormComponent,
-        data: {
-          title: 'Intake form',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Intake form' },
-          ],
-        },
-        canActivate: [notAuthGuard],
-      },
-      {
-        path: 'intake',
-        pathMatch: 'full',
-        component: AppIntakeFormComponent,
-        data: {
-          title: 'Intake form',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Intake form' },
-          ],
-        },
-      }
     ],
   },
   {
