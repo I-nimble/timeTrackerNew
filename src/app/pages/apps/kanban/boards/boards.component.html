@@ -77,13 +77,29 @@
                   <button 
                     mat-menu-item 
                     (click)="deleteBoard(board.id)" 
-                    [disabled]="role=='4' || board.user_id != userId || role!='1'"
-                  >
+                    [disabled]="board.user_id != userId && (role != '1' && role != '4')"
+                    >
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
                   </button>
                 </mat-menu>
               </div>
+            </mat-card-title>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <!-- ADD NEW BOARD CARD -->
+      <div class="col-sm-6 col-lg-4">
+        <mat-card 
+          class="mat-mdc-card mdc-card productcard overflow-hidden b-1 rounded"
+          style="cursor: pointer;"
+          id="new-board"
+          (click)="openDialog('Add', { type: 'board' })"
+        >
+          <mat-card-content class="mat-mdc-card-content p-b-24 p-t-12 position-relative d-flex justify-content-center align-items-center flex-column h-100">
+            <i-tabler name="plus" class="icon-36 p-b-8 new-card-text"></i-tabler>
+            <mat-card-title class="mat-mdc-card-title mat-headline-2 f-s-16 m-b-4 new-card-text">
+              Add new Board
             </mat-card-title>
           </mat-card-content>
         </mat-card>
