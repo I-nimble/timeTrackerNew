@@ -1,13 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-    appId: 'com.inimbleapp.timetracker', 
-    appName: 'inimbleapp', 
-    webDir: 'dist/browser',
-    plugins: {
+  appId: 'com.inimbleapp.timetracker', 
+  appName: 'inimbleapp', 
+  webDir: 'dist/browser',
+  plugins: {
     StatusBar: {
       style: 'DEFAULT',
-      overlaysWebView: false 
+      overlaysWebView: false,
+    },
+    NavigationBar: {
+      overlay: false
+    },
+    SplashScreen: {
+      launchShowDuration: 3000,
     }
   }
 };

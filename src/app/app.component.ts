@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CometChatService } from './services/apps/chat/chat.service';
 import { CometChatOngoingCall, CometChatOutgoingCall } from '@cometchat/chat-uikit-angular';
@@ -9,6 +9,8 @@ import { CallSettings } from '@cometchat/calls-sdk-javascript/pack/src/models/Ca
 import { CometChatUIKitConstants } from '@cometchat/uikit-resources';
 import { StorageUtils } from '@cometchat/uikit-shared';
 import { CustomIncomingCallComponent } from './components/custom-incoming-call/custom-incoming-call.component';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-root',
@@ -28,13 +30,17 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedInUID: string = '';
   outgoingCall: any = null;
   ongoingCall: any = null;
+  private darkModeMediaQuery!: MediaQueryList;
 
   constructor(
     public cometChatService: CometChatService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: any
   ) { }
 
   async ngOnInit() {
+    await this.initializeSystemBars();
+
     await this.cometChatService.initializeCometChat();
     this.callScreen = document.getElementById('callScreen') as HTMLElement;
 
@@ -51,6 +57,64 @@ export class AppComponent implements OnInit, OnDestroy {
     CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
 
     CometChat.addCallListener(this.callListenerId, this.createCallListener());
+
+    this.setupDarkModeListener();
+  }
+
+  async initializeSystemBars() {
+    try {
+      if (typeof StatusBar !== 'undefined') {
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (isDarkMode) {
+          // Modo oscuro
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#15263a' });
+        } else {
+          // Modo claro
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setBackgroundColor({ color: '#EAEAEA' });
+        }
+        
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      }
+    } catch (error) {
+      console.error('Error configuring system bars:', error);
+    }
+  }
+
+  setupDarkModeListener() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleColorSchemeChange = (event: MediaQueryListEvent) => {
+        this.updateSystemBarsColor(event.matches);
+      };
+      
+      if (this.darkModeMediaQuery.addEventListener) {
+        this.darkModeMediaQuery.addEventListener('change', handleColorSchemeChange);
+      } else {
+        this.darkModeMediaQuery.addListener(handleColorSchemeChange);
+      }
+      
+      this.updateSystemBarsColor(this.darkModeMediaQuery.matches);
+    }
+  }
+
+  async updateSystemBarsColor(isDarkMode: boolean) {
+    try {
+      if (typeof StatusBar !== 'undefined') {
+        if (isDarkMode) {
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#15263a' });
+        } else {
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setBackgroundColor({ color: '#EAEAEA' });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating system bars color:', error);
+    }
   }
 
   createMessageListener() {

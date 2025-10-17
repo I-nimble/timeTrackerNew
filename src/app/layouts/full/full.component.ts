@@ -17,7 +17,6 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { HeaderComponent } from './vertical/header/header.component';
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
-import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
 import { AuthService } from 'src/app/services/auth.service';
@@ -67,7 +66,6 @@ interface quicklinks {
     HeaderComponent,
     AppHorizontalHeaderComponent,
     AppHorizontalSidebarComponent,
-    AppBreadcrumbComponent,
     CustomizerComponent,
     BrandingComponent
   ],
