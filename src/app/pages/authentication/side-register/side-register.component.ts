@@ -7,7 +7,8 @@ import {
   ReactiveFormsModule,
   FormGroup,
   AbstractControl, 
-  ValidatorFn
+  ValidatorFn,
+  ValidationErrors
 } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
