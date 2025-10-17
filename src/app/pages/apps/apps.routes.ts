@@ -34,7 +34,6 @@ import { AppExpertComponent } from './expert/expert.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
 import { ScrapperComponent } from './scrapper/scrapper.component';
-import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 
 export const AppsRoutes: Routes = [
