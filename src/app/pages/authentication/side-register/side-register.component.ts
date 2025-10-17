@@ -218,7 +218,6 @@ export class AppSideRegisterComponent {
       return new Promise(resolve => {
         this.companiesService.checkCompanyExists(control.value).subscribe(
           ({ exists }: { exists: boolean }) => {
-            console.log(exists)
             resolve(exists ? { companyExists: true } : null);
           },
           () => resolve(null)

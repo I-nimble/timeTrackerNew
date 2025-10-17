@@ -28,12 +28,12 @@ export class CometChatService {
     private themeService: CometChatThemeService
   ) { }
 
-  async initializeCometChat(): Promise<void> {
+  async initializeCometChat(company_id?: number): Promise<void> {
     try {
       const chat_uid = localStorage.getItem('id');
       if (!chat_uid) return;
 
-      const credentials = await this.fetchChatCredentials();
+      const credentials = await this.fetchChatCredentials(company_id); // change this
       if (!credentials) return;
 
       const initialized = await this.initCometChatUIKit(credentials);
@@ -74,9 +74,9 @@ export class CometChatService {
     }
   }
 
-  private async fetchChatCredentials(): Promise<any | null> {
+  private async fetchChatCredentials(company_id?: number): Promise<any | null> {
     try {
-      const credentials: any = await firstValueFrom(this.getChatCredentials());
+      const credentials: any = await firstValueFrom(this.getChatCredentials(company_id));
       if (!credentials) {
         console.error("No chat credentials found in the database.");
         return null;
@@ -180,7 +180,10 @@ export class CometChatService {
     }
   }
 
-  public getChatCredentials(): Observable<any[]> {
+  public getChatCredentials(company_id?: number): Observable<any[]> {
+    if (company_id) {
+      return this.http.get<any[]>(`${this.API_URI}/chat/${company_id}`);
+    }
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 
