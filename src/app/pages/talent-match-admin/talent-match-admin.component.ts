@@ -141,9 +141,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getCompanyName(company_id: number): string {
-    if (company_id === -1) return 'N/A';
-    const company = this.companiesData.find((c: any) => c.id === company_id);
-    return company ? company.name : 'N/A';
+    return 'N/A';
   }
 
   openAddCandidateDialog(): void {

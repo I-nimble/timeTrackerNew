@@ -154,7 +154,21 @@
             <ng-container matColumnDef="company">
               <th mat-header-cell *matHeaderCellDef>Company</th>
               <td mat-cell *matCellDef="let element">
-                {{ getCompanyName(element.company_id) }}
+                <ng-container *ngIf="element.companies && element.companies.length > 0; else singleCompany">
+                  <ng-container *ngIf="companiesData && element.companies.length === companiesData.length; else listCompanies">
+                    <div style="white-space: normal; word-break: break-word;">All</div>
+                  </ng-container>
+                  <ng-template #listCompanies>
+                    <div style="white-space: normal; word-break: break-word;">
+                      <span *ngFor="let c of element.companies; let i = index">
+                        {{ c.name }}<span *ngIf="i < element.companies.length - 1">, </span>
+                      </span>
+                    </div>
+                  </ng-template>
+                </ng-container>
+                <ng-template #singleCompany>
+                  <div style="white-space: normal; word-break: break-word;">{{ getCompanyName(element.company_id) }}</div>
+                </ng-template>
               </td>
             </ng-container>
 
