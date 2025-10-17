@@ -34,6 +34,8 @@ import { AppExpertComponent } from './expert/expert.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
 import { ScrapperComponent } from './scrapper/scrapper.component';
+import { CandidatesComponent } from '../candidates/candidates.component';
+import { AppBoardsComponent } from './kanban/boards/boards.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -215,14 +217,31 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'kanban',
-        component: AppKanbanComponent,
-        data: {
-          title: 'Kanban',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Kanban' },
-          ],
-        },
+        children: [
+          {
+            path: '',
+            component: AppBoardsComponent,
+            data: {
+              title: 'Boards',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Boards' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: AppKanbanComponent,
+            data: {
+              title: 'Kanban',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Kanban' },
+              ],
+            },
+          },
+        ],
       },
       {
         path: 'tickets',

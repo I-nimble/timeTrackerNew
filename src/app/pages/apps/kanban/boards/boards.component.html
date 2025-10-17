@@ -1,0 +1,93 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap m-b-24">
+        <div class="d-flex align-items-center gap-8 m-b-10">
+          <h5 class="f-w-500 f-s-20">Boards</h5>
+          <div class="p-x-6 p-y-2 rounded-pill bg-secondary">
+            <div class="f-s-14 lh-sm">{{ boards.length }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6 col-lg-4" *ngFor="let board of boards">
+        <mat-card 
+          class="mat-mdc-card mdc-card cardWithShadow productcard overflow-hidden b-1 rounded"
+          style="cursor: pointer;"
+          (click)="openBoard(board.id)"
+        >
+          <a>
+            <img
+              alt="Board image"
+              height="220"
+              mat-card-image
+              class="mat-mdc-card-image mdc-card__media w-100 object-cover"
+              [src]="'assets/images/taskboard/kanban-img-' + (board.id % 2 === 0 ? '3' : '4') + '.jpg'"
+            >
+          </a>
+          <mat-card-content class="mat-mdc-card-content p-b-24 p-t-12 position-relative">
+            <mat-card-title class="mat-mdc-card-title mat-headline-2 f-s-16 m-b-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="f-s-16 lh-sm f-w-600">{{ board.name }}</h6>
+                  <p class="f-s-12 f-w-400 m-y-0">
+                    {{ board.createdAt | date:'EEE, MMM dd, yyyy' }}
+                  </p>
+                </div>
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="boardMenu"
+                  (click)="$event.stopPropagation()"
+                  class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed"
+                  mat-ripple-loader-class-name="mat-mdc-button-ripple"
+                  mat-ripple-loader-centered
+                  aria-label="More options"
+                >
+                  <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple"></span>
+                  <mat-icon 
+                    role="img"
+                    class="mat-icon notranslate material-icons mat-ligature-font mat-icon-no-color"
+                    aria-hidden="true"
+                    data-mat-icon-type="font"
+                  >
+                    more_vert
+                  </mat-icon>
+                  <span class="mat-focus-indicator"></span>
+                  <span class="mat-mdc-button-touch-target"></span>
+                  <span class="mat-ripple mat-mdc-button-ripple"></span>
+                </button>
+
+                <mat-menu #boardMenu="matMenu">
+                  <button 
+                    mat-menu-item 
+                    (click)="openDialog('Edit', { 
+                      type: 'board',
+                      id: board.id,
+                      company_id: board.company_id,
+                      name: board.name,
+                      visibility: board.visibility,
+                      restrictedUsers: board.restrictedUsers
+                    })"
+                    [disabled]="role=='4'"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button 
+                    mat-menu-item 
+                    (click)="deleteBoard(board.id)" 
+                    [disabled]="role=='4' || board.user_id != userId || role!='1'"
+                  >
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </mat-card-title>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
