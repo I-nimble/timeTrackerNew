@@ -2,7 +2,7 @@ import { Component, Inject, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy } from '@a
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CreateGroupStyle } from '@cometchat/chat-uikit-angular';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import "@cometchat/uikit-elements";
 
 @Component({

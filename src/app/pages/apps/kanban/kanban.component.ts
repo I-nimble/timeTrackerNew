@@ -22,6 +22,7 @@ import { RatingsEntriesService } from 'src/app/services/ratings_entries.service'
 import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-kanban',
@@ -56,12 +57,20 @@ export class AppKanbanComponent implements OnInit {
     private kanbanService: BoardsService,
     private employeesService: EmployeesService,
     private companieService: CompaniesService,
-    public ratingsEntriesService: RatingsEntriesService
+    public ratingsEntriesService: RatingsEntriesService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.loadBoards();
     this.userId = localStorage.getItem('id');
+
+    this.route.paramMap.subscribe(params => {
+      const boardIdParam = params.get('id');
+      this.selectedBoardId = boardIdParam ? +boardIdParam : null;
+      this.loadBoards().then(() => {
+        this.loadTasks(this.selectedBoardId);
+      });
+    });
   }
 
   onSearchTasks() {
@@ -87,12 +96,20 @@ export class AppKanbanComponent implements OnInit {
     return this.boards.find((b) => b.id === this.selectedBoardId) || {};
   }
 
-  loadBoards(): void {
-    this.kanbanService.getBoards().subscribe((boards) => {
-      this.boards = boards;
-      this.selectedBoardId = null;
-      this.loadTasks(this.selectedBoardId);
-      this.isLoading = false;
+  loadBoards(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.kanbanService.getBoards().subscribe({
+        next: (boards) => {
+          this.boards = boards;
+          this.isLoading = false;
+          resolve();
+        },
+        error: (err) => {
+          console.error(err);
+          this.isLoading = false;
+          reject(err);
+        }
+      });
     });
   }
 

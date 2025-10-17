@@ -46,60 +46,6 @@
             </mat-form-field>
           </div>
         </div>
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Select Board</mat-label>
-            <mat-select
-              [(value)]="selectedBoardId"
-              (selectionChange)="loadTasks(selectedBoardId)"
-            >
-              <mat-option [value]="null">All Boards</mat-option>
-              <mat-option *ngFor="let board of boards" [value]="board.id">
-                {{ board.name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <button
-            mat-icon-button
-            [matMenuTriggerFor]="boardMenu"
-            class="m-l-10"
-          >
-            <mat-icon>more_vert</mat-icon>
-          </button>
-          <mat-menu #boardMenu="matMenu">
-            <button
-              [disabled]="role == '4'"
-              mat-menu-item
-              (click)="openDialog('Add', { type: 'board' })"
-            >
-              <mat-icon>add</mat-icon>
-              <span>New board</span>
-            </button>
-            <button
-              mat-menu-item
-              (click)="openDialog('Edit', { 
-                  type: 'board', 
-                  id: selectedBoard.id,
-                  company_id: selectedBoard.company_id,
-                  name: selectedBoard.name,
-                  visibility: selectedBoard.visibility,
-                  restrictedUsers: selectedBoard.restrictedUsers,
-                  task_attachments: selectedBoard.task_attachments,
-                })"
-              [disabled]="!selectedBoardId || role == '4'"
-            >
-              <mat-icon>edit</mat-icon>
-              <span>Edit</span>
-            </button>
-            <button
-              mat-menu-item
-              (click)="deleteBoard(selectedBoardId)"
-              [disabled]="selectedBoard.user_id != userId || role == '4'"
-            >
-              <mat-icon>delete</mat-icon>
-              <span>Delete</span>
-            </button>
-          </mat-menu>
         </div>
       </div>
 
