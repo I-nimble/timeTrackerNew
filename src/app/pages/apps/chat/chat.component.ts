@@ -21,6 +21,7 @@ import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
 import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
 import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
+import { environment } from 'src/environments/environment';
 
 interface InlineImage {
   id: string;
@@ -58,7 +59,8 @@ export class AppChatComponent implements OnInit {
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
   userId: string | null = localStorage.getItem('id');
-  groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
+  userEmail: string | null = localStorage.getItem('email');
+  groupCreatorEmails: string[] = environment.groupCreatorEmails;
   companies: any[] = [];
   selectedCompanyId: number = 1;
   showContacts: boolean = false;
