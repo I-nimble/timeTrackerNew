@@ -44,8 +44,8 @@
                   <img
                     style="width: 50px; height: 50px; border-radius: 50%"
                     [src]="
-                      element.profile_pic_url && element.profile_pic_url !== ''
-                        ? picturesUrl + '/' + element.profile_pic_url
+                      element.picture && element.picture !== ''
+                        ? picturesUrl + '/' + element.picture
                         : assetsPath
                     "
                     alt="Profile picture"
@@ -101,27 +101,37 @@
               <th mat-header-cell *matHeaderCellDef>Status</th>
               <td mat-cell *matCellDef="let element">
                 @switch(element.status) {
-                  @case('Unread') {
+                  @case('pending') {
+                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Pending
+                    </span>
+                  }
+                  @case('reviewing') {
+                    <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
+                      Reviewing
+                    </span>
+                  }
+                  @case('talent match') {
                     <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
                       Posted
                     </span>
                   }
-                  @case('Read') {
+                  <!-- @case('read') {
                     <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
                       Seen by Client
                     </span>
-                  }
-                  @case('Scheduled Interview') {
+                  } -->
+                  @case('scheduled interview') {
                     <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
                       Waiting for Interview
                     </span>
                   }
-                  @case('Rejected') {
+                  @case('rejected') {
                     <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
                       Rejected
                     </span>
                   }
-                  @case('Accepted') {
+                  @case('hired') {
                     <span class="bg-light-success text-success rounded f-w-600 p-6 p-y-4 f-s-12">
                       Hired
                     </span>

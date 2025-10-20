@@ -35,7 +35,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 export class AddCandidateDialogComponent implements OnInit {
   candidateForm: FormGroup;
   positions: any[] = [];
-  englishLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  englishLevels = ['basic', 'intermediate', 'advanced'];
   selectedCVFile: File | null = null;
   selectedProfilePicFile: File | null = null;
   isCreationAllowed: boolean = true;
@@ -66,27 +66,27 @@ export class AddCandidateDialogComponent implements OnInit {
   ngOnInit(): void {
     this.positionsService.get().subscribe((positions) => {
       this.positions = positions;
-    });
-
-    this.applicationsService.getLocations().subscribe((locations) => {
-      this.locations = locations;
-    });
-
-    if (this.data.candidate) {
-      this.candidateForm.patchValue({
-        name: this.data.candidate.name,
-        email: this.data.candidate.email,
-        skills: this.data.candidate.skills,
-        english_level: this.data.candidate.english_level,
-        position_id: this.data.candidate.position_id,
-        company_id:
-          this.data.candidate.company_id !== undefined
-            ? this.data.candidate.company_id
-            : '',
-        availability: this.data.candidate.availability,
-        location_id: this.data.candidate.location_id,
+      this.applicationsService.getLocations().subscribe((locations) => {
+        this.locations = locations;
+      
+        if (this.data.candidate) {
+          this.candidateForm.patchValue({
+            name: this.data.candidate.name,
+            email: this.data.candidate.email,
+            skills: this.data.candidate.skills,
+            english_level: this.data.candidate.english_level,
+            position_id: this.data.candidate.position_id,
+            company_id:
+              this.data.candidate.company_id !== undefined
+                ? this.data.candidate.company_id
+                : '',
+            availability: this.data.candidate.availability,
+            location_id: this.locations.find((l: any) => l.country == this.data.candidate.location).id,
+            current_position: this.data.candidate.current_position,
+          });
+        }
       });
-    }
+    });
   }
 
   onCVSelected(event: any): void {
