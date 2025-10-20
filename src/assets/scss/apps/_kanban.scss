@@ -93,3 +93,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+#new-board {
+  height: 310px;
+  border: 1px dashed var(--mat-sys-primary-fixed-dim)!important;
+  transition: all .3s ease;
+
+  .new-card-text {
+    color: var(--mat-sys-primary-fixed-dim)!important;
+  }
+}
+#new-board:hover {
+  border: 1px solid var(--mat-sys-primary)!important;
+  box-shadow: var(--mdc-elevated-card-container-elevation, var(--mat-sys-level1));
+
+  .new-card-text {
+    color: var(--mat-sys-primary)!important;
+  }
+}

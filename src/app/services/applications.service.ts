@@ -21,10 +21,12 @@ export class ApplicationsService {
     return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
   }
 
-  markAsSeen() {
-    return this.http.put(`${this.API_URI}/applications/mark-as-seen`, {}).pipe(
-      tap(() => this.applicationsSeenSource.next())
-    );
+  sendToTalentMatch(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/talent-match/${id}`, {});
+  }
+
+  getCandidateFile(id: number, format: string): Observable<Blob> {
+    return this.http.post(`${this.API_URI}/applications/file/${id}/`, { format }, { responseType: 'blob' });
   }
 
   addSelectedCard(card: any): Observable<any[]> {
@@ -79,6 +81,39 @@ export class ApplicationsService {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
       { contentType: file?.type || 'application/octet-stream' }
+    );
+  }
+
+  uploadCV(file: File, candidateId: number): Observable<any> {
+    let resumeUpload$ = of(null);
+    if(file instanceof File) {
+      resumeUpload$ = this.getUploadUrl('resumes', file).pipe(
+        switchMap((resumeUrl: any) => {
+          this.resumeUrl = resumeUrl.url;
+          const headers = new HttpHeaders({
+            'Content-Type': file.type,
+          });
+          return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
+            map(() => {
+              const urlParts = this.resumeUrl.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
+          );
+        })
+      );
+    } else {
+      resumeUpload$ = of(null);
+    }
+
+    return resumeUpload$.pipe(
+      switchMap((resumeUrl: any) => {
+        if(!resumeUrl) return of(null);
+
+        const body = {
+          resume: resumeUrl
+        };
+        return this.http.put(`${this.API_URI}/applications/resume/${candidateId}`, body);
+      })
     );
   }
 
@@ -164,8 +199,8 @@ export class ApplicationsService {
     if (dayOfWeek >= 1 && dayOfWeek <= 5) {
       filteredApplications = applications.filter((app: any) => {
         if (!app.submission_date) return false;
-        const [year, month, day] = app.submission_date.split('-').map(Number);
-        const submission = new Date(year, month - 1, day);
+        const [year, month, day] = app.submission_date.split('T')[0].split('-').map(Number);
+        const submission = new Date(parseInt(year), parseInt(month) - 1, parseInt(day)); 
         submission.setHours(0, 0, 0, 0);
         return submission >= monday && submission <= friday;
       });

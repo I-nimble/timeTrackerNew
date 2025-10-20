@@ -43,7 +43,7 @@
   <ng-template #conversationsMenuTemplate>
     <div class="d-flex align-items-center gap-8">
       <button
-        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))" 
+        *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
         [ngStyle]="getButtonStyle()"
         (click)="openDialog()"
       >
@@ -72,6 +72,16 @@
 
   <ng-container *ngIf="loader.complete">
     @if(chatService.isChatAvailable && !chatInitError) {
+      <div *ngIf="userRole === '1' || userRole === '4'" class="m-t-16 m-b-16 m-l-16">
+        <mat-form-field appearance="outline" class="w-100 company-select">
+          <mat-select [value]="selectedCompanyId" (selectionChange)="initializeCompanyChat($event)">
+            <mat-option *ngFor="let company of companies" [value]="company.id">
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+        
       <div class="chat-view-container">
         <!-- BASIC PLAN CHAT -->
         <cometchat-groups-with-messages 
@@ -119,6 +129,11 @@
     <div class="cta-message">
       <p>{{ chatInitError }}</p>
     </div>
+    }
+    @else if (loader.complete && !chatService.isChatAvailable && !chatInitError) {
+      <div class="cta-message">
+        <p>Your chat is not available. Communicate with support to enable it.</p>
+      </div>
     }
   </ng-container>
 </mat-card>
