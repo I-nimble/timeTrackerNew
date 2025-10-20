@@ -192,12 +192,19 @@ export class AppChatComponent implements OnInit {
     });
   }
 
-  initializeCompanyChat() {
+  async initializeCompanyChat(event: any) {
+    this.selectedCompanyId = event.value;
     this.chatService.isChatAvailable = false;
-    setTimeout(() => {
-      this.chatService.initializeCometChat(this.selectedCompanyId);
+    this.loader = new Loader(true, false, false);
+    try {
+      await this.chatService.initializeCometChat(this.selectedCompanyId);
       this.chatService.isChatAvailable = true;
-    }, 100);
+      this.loader = new Loader(true, true, false);
+    } catch (error) {
+      this.loader = new Loader(true, true, true);
+      this.chatInitError = 'There was an error initializing the chat.';
+      this.openSnackBar(this.chatInitError, 'Close');
+    }
   }
 
   private initPlanLogic() {
