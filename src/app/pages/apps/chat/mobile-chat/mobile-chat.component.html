@@ -31,15 +31,16 @@
       </div>
     </div>
     <div class="m-t-16">
-        <!-- THIS FUNCTIONALITY IS DISABLED FOR OUR CURRENT COMET CHAT PLAN -->
+        <!-- THIS FUNCTIONALITY IS DISABLED FOR OUR CURRENT COMET CHAT PLAN, IT IS REQUIRED TO PAY IN ORDER TO ALLOW SEARCH -->
       <mat-form-field appearance="outline" class="w-100" disabled>
-        <!-- TODO: Develop search functionality -->
         <mat-label>Search</mat-label>
         <input
           matInput
           type="text"
           placeholder="Search"
           (input)="search($event)"
+          [disabled]="true"
+          readonly
         />
         <button
           mat-icon-button
