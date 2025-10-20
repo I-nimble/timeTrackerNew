@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
@@ -20,6 +20,8 @@ import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
 import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { MobileChatComponent } from './mobile-chat/mobile-chat.component';
 
 interface InlineImage {
   id: string;
@@ -37,7 +39,8 @@ interface InlineImage {
     CommonModule,
     MaterialModule,
     LoaderComponent,
-    CustomMessageComposerComponent
+    CustomMessageComposerComponent,
+    MobileChatComponent
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -80,7 +83,7 @@ export class AppChatComponent implements OnInit {
     usersConfiguration: new UsersConfiguration({
       onItemClick: (user) => {
         const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
         if (btn) btn.click();
 
         this.user = user as CometChat.User;
@@ -90,7 +93,7 @@ export class AppChatComponent implements OnInit {
     groupsConfiguration: new GroupsConfiguration({
       onItemClick: (group) => {
         const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+        const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
         if (btn) btn.click();
 
         this.user = null;
@@ -99,12 +102,12 @@ export class AppChatComponent implements OnInit {
       menu: this.conversationsMenuTemplate,
     }),
     contactsStyle: new ContactsStyle({
-      activeTabBackground: '#92b46c',
-      activeTabTitleTextColor: '#fff',
-      tabBorderRadius: '16px',
-      tabBorder: 'none'
-    })
-  });
+        activeTabBackground: '#92b46c',
+        activeTabTitleTextColor: '#fff',
+        tabBorderRadius: '16px',
+        tabBorder: 'none'
+      })
+    });
 
   public conversationConfiguration!: ConversationsConfiguration;
   public groupsConfiguration: GroupsConfiguration;
@@ -112,6 +115,7 @@ export class AppChatComponent implements OnInit {
   user: CometChat.User | null = null;
   group: CometChat.Group | null = null;
   isSelect: boolean = false;
+  isMobileScreen: boolean = false;
 
   getButtonStyle() {
     return {
@@ -140,7 +144,8 @@ export class AppChatComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private employeesService: EmployeesService,
-    public ref: ChangeDetectorRef
+    public ref: ChangeDetectorRef,
+    private breakpointObserver: BreakpointObserver
   ) { }
 
   ngOnInit(): void {
@@ -153,6 +158,12 @@ export class AppChatComponent implements OnInit {
       this.chatInitError = 'There was an error initializing the chat.';
       console.error('Chat initialization error:', err);
     }
+
+    this.breakpointObserver.observe([
+      '(max-width: 576px)' // or 767
+    ]).subscribe((result: any) => {
+      this.isMobileScreen = result.matches;
+    });
   }
 
   private initPlanLogic() {
