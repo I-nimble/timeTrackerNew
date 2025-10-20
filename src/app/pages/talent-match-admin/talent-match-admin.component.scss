@@ -1,0 +1,9 @@
+.table-responsive {
+  overflow-x: auto;
+}
+
+@media (min-width: 992px) {
+  .table-responsive {
+    overflow-x: visible;
+  }
+}

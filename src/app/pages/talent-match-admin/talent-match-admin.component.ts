@@ -35,6 +35,7 @@ export interface PeriodicElement {
 @Component({
   standalone: true,
   selector: 'app-talent-match-admin',
+  styleUrls: ['./talent-match-admin.component.scss'],
   imports: [
     MatCardModule,
     MatTableModule,
