@@ -1,4 +1,34 @@
 <mat-card class="mat-card-top cardWithShadow communication-container p-0">
+
+  <ng-template #customHeaderView let-message>
+    <p *ngIf="message.getSender().getUid() !== userId" class="f-s-10 m-b-4 sender-name">{{ message.getSender().getName() }} {{ message.getMetadata()?.replyMessage ? 'replied to' : '' }}</p>
+    <div *ngIf="message.getMetadata()?.replyMessage" class="reply-preview f-s-10">
+      <div class="d-flex">
+        <p class="m-r-8"> 
+          {{ message.getMetadata().replyMessage.sender }} 
+        </p>
+        <p>
+          {{ toDate(message.getMetadata().replyMessage.sentAt) | date:'short' }}
+        </p>
+      </div>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'text'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.text }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'image'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'file'" class="f-s-12">
+        {{ message.getMetadata().replyMessage.fileName }}
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'video'" class="f-s-12">
+        🎥 Video
+      </span>
+      <span *ngIf="message.getMetadata().replyMessage.type === 'audio'" class="f-s-12">
+        🎤 Audio
+      </span>
+		</div>
+  </ng-template>
+
   <ng-template #customMenu>
     <div style="display: flex; gap: 12px; margin-right: 5px;">
       <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
@@ -13,7 +43,7 @@
   <ng-template #conversationsMenuTemplate>
     <div class="d-flex align-items-center gap-8">
       <button
-        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))" 
+        *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
         [ngStyle]="getButtonStyle()"
         (click)="openDialog()"
       >
@@ -33,6 +63,7 @@
     <app-custom-message-composer
     [user]="user"
     [group]="group"
+    [replyMessage]="replyMessage"
     ></app-custom-message-composer>
   </ng-template>
 
@@ -41,6 +72,16 @@
 
   <ng-container *ngIf="loader.complete">
     @if(chatService.isChatAvailable && !chatInitError) {
+      <div *ngIf="userRole === '1' || userRole === '4'" class="m-t-16 m-b-16 m-l-16">
+        <mat-form-field appearance="outline" class="w-100 company-select">
+          <mat-select [value]="selectedCompanyId" (selectionChange)="initializeCompanyChat($event)">
+            <mat-option *ngFor="let company of companies" [value]="company.id">
+              {{ company.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+        
       <div class="chat-view-container">
         @if(isMobileScreen) {
           <!-- Show mobile chat -->
@@ -104,6 +145,11 @@
     <div class="cta-message">
       <p>{{ chatInitError }}</p>
     </div>
+    }
+    @else if (loader.complete && !chatService.isChatAvailable && !chatInitError) {
+      <div class="cta-message">
+        <p>Your chat is not available. Communicate with support to enable it.</p>
+      </div>
     }
   </ng-container>
 </mat-card>

@@ -1,20 +1,24 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, TemplateRef, HostListener, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { emojisByCategory } from '../emojisByCategory';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { CometChatUIKit } from '@cometchat/chat-uikit-angular';
+import { CometChatService } from 'src/app/services/apps/chat/chat.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
 	selector: 'app-custom-message-composer',
-    imports: [MaterialModule, CommonModule],
+    imports: [MaterialModule, CommonModule, TablerIconsModule],
 	templateUrl: './custom-message-composer.component.html',
 	styleUrls: ['./custom-message-composer.component.scss']
 })
 export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	@Input() user: CometChat.User | null = null;
     @Input() group: CometChat.Group | null = null;
+    @Input() hideVoiceRecording: boolean = false;
+	@Input() replyMessage: any = null;
 
 	messageText: string = '';
 	inlineImages: any[] = [];
@@ -43,11 +47,19 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	@ViewChild('videoInput', { static: false }) videoInput!: ElementRef<HTMLInputElement>;
 	@ViewChild('audioInput', { static: false }) audioInput!: ElementRef<HTMLInputElement>;
 
-	constructor(private cdr: ChangeDetectorRef, private snackBar: MatSnackBar) {}
+	constructor(
+		private cdr: ChangeDetectorRef, 
+		private snackBar: MatSnackBar,
+		protected chatService: CometChatService
+	) {}
 
     ngOnInit () {
         document.addEventListener('paste', this.handlePaste.bind(this));
     }
+
+	cancelReply() {
+		this.replyMessage = null;
+	}
 
 	get userHasWritten() {
 		return this.messageText.trim() || this.inlineImages.length > 0;
@@ -363,6 +375,7 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 				this.sendTextMessage();
 			}
 			this.clearComposer();
+			this.replyMessage = null;
 		}).catch((error) => {
 			this.openSnackBar('Error sending images: ' + error.message, 'Close');
 		});
@@ -398,7 +411,19 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
             messageType,
             receiverType
         );
-
+		if(this.replyMessage) {
+			mediaMessage.setMetadata({
+				replyMessage: {
+					text: this.replyMessage.getData().text,
+					type: this.replyMessage.getType(),
+					sender: this.replyMessage.getSender().getName(),
+					sentAt: this.replyMessage.getSentAt(),
+					fileName: (typeof this.replyMessage.getAttachment === 'function' && this.replyMessage.getAttachment())
+					? this.replyMessage.getAttachment().getName()
+					: '',
+				}
+			});
+		}
 		return CometChatUIKit.sendMediaMessage(mediaMessage);
     }
 
@@ -423,11 +448,27 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
             this.messageText,
             receiverType
         );
-    
-		this.clearComposer();
-		CometChatUIKit.sendTextMessage(textMessage).catch((error) => {
-			this.openSnackBar('Error sending message: ' + error.message, 'Close');
-		});
+		if(this.replyMessage) {
+			textMessage.setMetadata({
+				replyMessage: {
+					text: this.replyMessage.getData().text,
+					type: this.replyMessage.getType(),
+					sender: this.replyMessage.getSender().getName(),
+					sentAt: this.replyMessage.getSentAt(),
+					fileName: (typeof this.replyMessage.getAttachment === 'function' && this.replyMessage.getAttachment())
+					? this.replyMessage.getAttachment().getName()
+					: '',
+				}
+			});
+		}
+		CometChatUIKit.sendTextMessage(textMessage)
+			.then(() => {
+				this.clearComposer();
+				this.replyMessage = null;
+			})
+			.catch((error) => {
+				this.openSnackBar('Error sending message: ' + error.message, 'Close');
+			});
 	}
 
 	private clearComposer() {
@@ -443,6 +484,10 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
         verticalPosition: 'top',
         });
     }
+
+	toDate(timestamp: number) {
+		return new Date(timestamp * 1000);
+	}
 
 	ngOnDestroy() {
 		this.stopVoiceRecorderTimer();

@@ -193,6 +193,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
+    this.loadExistingVideo(); 
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {

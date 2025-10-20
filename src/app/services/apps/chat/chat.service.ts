@@ -1,29 +1,26 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
-import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
+import { CometChatUIKit, CometChatThemeService } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat, CometChatNotifications } from '@cometchat/chat-sdk-javascript-new';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CometChatService {
   private UIKitSettings!: any;
+  private appSettings!: any;
   API_URI = environment.apiUrl;
   isChatAvailable: boolean = false; 
   isCallOngoing: boolean = false;
   public callObject!: CometChat.Call | null;
   public outGoingCallObject!: CometChat.Call | null;
-  templates: CometChatMessageTemplate[] = [];
   public unreadCountUpdated$ = new Subject<void>();
-  public contactsConfiguration: ContactsConfiguration;
 
   constructor(
     private http: HttpClient, 
@@ -31,22 +28,22 @@ export class CometChatService {
     private themeService: CometChatThemeService
   ) { }
 
-  async initializeCometChat(): Promise<void> {
+  async initializeCometChat(company_id?: number): Promise<void> {
     try {
       const chat_uid = localStorage.getItem('id');
       if (!chat_uid) return;
 
-      const credentials = await this.fetchChatCredentials();
+      const credentials = await this.fetchChatCredentials(company_id); // change this
       if (!credentials) return;
 
       const initialized = await this.initCometChatUIKit(credentials);
       if (!initialized) return;
 
+      const initializedSDK = await this.initCometChatSDK(credentials);
+      if (!initializedSDK) return;
+
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
-
-      this.createCustomMessageTemplates();
-      this.setContactsConfiguration();
 
       this.isChatAvailable = true;
 
@@ -59,20 +56,6 @@ export class CometChatService {
       console.error("Initialization failed with error:", error);
     }
   }
-
-  setContactsConfiguration(): void {
-    const friendsRequestBuilder = new CometChat.UsersRequestBuilder()
-      .setLimit(100)
-      .friendsOnly(true);
-
-    this.contactsConfiguration = new ContactsConfiguration({
-      usersConfiguration: new UsersConfiguration({
-        usersRequestBuilder: friendsRequestBuilder,
-        hideSeparator: true
-      })
-    });
-  }
-
   
   async fetchUnreadMessages(): Promise<any[]> {
     let limit = 99;
@@ -91,9 +74,9 @@ export class CometChatService {
     }
   }
 
-  private async fetchChatCredentials(): Promise<any | null> {
+  private async fetchChatCredentials(company_id?: number): Promise<any | null> {
     try {
-      const credentials: any = await firstValueFrom(this.getChatCredentials());
+      const credentials: any = await firstValueFrom(this.getChatCredentials(company_id));
       if (!credentials) {
         console.error("No chat credentials found in the database.");
         return null;
@@ -117,6 +100,20 @@ export class CometChatService {
       return true;
     } catch (error) {
       console.error("CometChatUIKit initialization failed:", error);
+      return false;
+    }
+  }
+
+  private async initCometChatSDK(credentials: any): Promise<boolean> {
+    try {
+      this.appSettings = new CometChat.AppSettingsBuilder()
+        .setRegion("us")
+        .subscribePresenceForAllUsers()
+        .build();
+      await CometChat.init(credentials.app_id, this.appSettings);
+      return true;
+    } catch (error) {
+      console.error("CometChat SDK initialization failed:", error);
       return false;
     }
   }
@@ -183,7 +180,10 @@ export class CometChatService {
     }
   }
 
-  public getChatCredentials(): Observable<any[]> {
+  public getChatCredentials(company_id?: number): Observable<any[]> {
+    if (company_id) {
+      return this.http.get<any[]>(`${this.API_URI}/chat/${company_id}`);
+    }
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 
@@ -192,40 +192,6 @@ export class CometChatService {
       duration: 3000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
-    });
-  }
-
-  // Dont allow group owner to edit/delete messages of other members
-  private createCustomMessageTemplates() {
-    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
-    this.templates = this.templates.map(template => {
-      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
-      newTemplate.options = (
-        loggedInUser: CometChat.User,
-        message: CometChat.BaseMessage,
-        theme: CometChatTheme,
-        group?: CometChat.Group
-      ) => {
-        let options = CometChatUIKit.getDataSource().getMessageOptions(
-          loggedInUser,
-          message,
-          theme,
-          group
-        );
-        if (
-          group &&
-          group.getOwner &&
-          group.getOwner() === loggedInUser.getUid() &&
-          message.getSender().getUid() !== loggedInUser.getUid()
-        ) {
-          options = options.filter(
-            (option: CometChatMessageOption) =>
-              option.id !== 'edit' && option.id !== 'delete'
-          );
-        }
-        return options;
-      };
-      return newTemplate;
     });
   }
 }
