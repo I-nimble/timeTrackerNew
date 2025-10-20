@@ -6,7 +6,7 @@ import '@cometchat/uikit-elements';
 import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration, ContactsStyle } from '@cometchat/uikit-shared';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
 import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
-import { CometChatUIEvents, DatePatterns, TimestampAlignment } from "@cometchat/uikit-resources"
+import { CometChatUIEvents, DatePatterns, TimestampAlignment, CometChatMessageTemplate } from "@cometchat/uikit-resources"
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 
@@ -33,6 +33,8 @@ export class MobileChatComponent implements OnInit {
   @Input() userRole: string | null = localStorage.getItem('role');
   @Input() conversationsMenuTemplate: TemplateRef<any>;
   @Input() customMessageComposerView: TemplateRef<any>;
+  @Input() StartConversationConfiguration: ContactsConfiguration;
+  @Input() templates: CometChatMessageTemplate[];
 
   cometChatUser!: any;
   profilePic!: any;
@@ -53,7 +55,6 @@ export class MobileChatComponent implements OnInit {
   conversationsRequestBuilder: CometChat.ConversationsRequestBuilder;
   usersSearchRequestBuilder: CometChat.UsersRequestBuilder;
   groupsSearchRequestBuilder: CometChat.GroupsRequestBuilder;
-  public StartConversationConfiguration: ContactsConfiguration;
 
   constructor(private chatService: CometChatService) {
     this.onConversationsItemClick = this.onConversationsItemClick.bind(this);
@@ -67,49 +68,16 @@ export class MobileChatComponent implements OnInit {
       this.profilePic = user.getAvatar();
     });
 
-    this.StartConversationConfiguration = new ContactsConfiguration({
-      ...this.chatService.contactsConfiguration,
-      usersConfiguration: new UsersConfiguration({
-        onItemClick: (user) => {
-          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-          if (btn) btn.click();
-  
-          this.user = user as CometChat.User;
-          this.group = null;
-          this.currentTab = this.tabs[3]; // Switch to the Messages tab
-        },
-      }),
-      groupsConfiguration: new GroupsConfiguration({
-        onItemClick: (group) => {
-          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-          if (btn) btn.click();
-  
-          this.user = null;
-          this.group = group as CometChat.Group;
-          this.currentTab = this.tabs[3]; // Switch to the Messages tab
-        },
-        menu: this.conversationsMenuTemplate,
-      }),
-      contactsStyle: new ContactsStyle({
-          activeTabBackground: '#92b46c',
-          activeTabTitleTextColor: '#fff',
-          tabBorderRadius: '16px',
-          tabBorder: 'none'
-        })
-      });
-
     this.essentialMessageListConfiguration = new MessageListConfiguration({
       disableReactions: true,
-      templates: this.chatService.templates,
+      templates: this.templates,
       showAvatar: true,
       scrollToBottomOnNewMessages: true,
       datePattern: DatePatterns.DateTime,
       timestampAlignment: TimestampAlignment.bottom
     });
     this.professionalMessageListConfiguration = new MessageListConfiguration({
-      templates: this.chatService.templates,
+      templates: this.templates,
       showAvatar: true,
       scrollToBottomOnNewMessages: true,
       datePattern: DatePatterns.DateTime,
@@ -117,7 +85,7 @@ export class MobileChatComponent implements OnInit {
     })
     this.basicMessageListConfiguration = new MessageListConfiguration({
       disableReactions: true,
-      templates: this.chatService.templates,
+      templates: this.templates,
       showAvatar: true,
       scrollToBottomOnNewMessages: true,
       datePattern: DatePatterns.DateTime,
@@ -157,7 +125,7 @@ export class MobileChatComponent implements OnInit {
           .setLimit(50);
       } else if (this.currentTab?.component === 'contacts') {
         this.usersSearchRequestBuilder = new CometChat.UsersRequestBuilder().setLimit(50);
-        this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder().joinedOnly(true).setLimit(50);
+        this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder().setLimit(50);
       }
       return;
     }
