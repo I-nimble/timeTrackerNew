@@ -13,7 +13,7 @@
             <div class="col-lg-6 position-relative auth-bg-container">
               <div class="auth-bg-image" [style.background-image]="'url(' + assetPath + ')'"></div>
             </div>
-            <div class="col-lg-6 col-12">
+            <div class="col-lg-6 col-12 auth-info">
               <div
                 class="d-flex align-items-start align-items-lg-center justify-content-center"
               >
@@ -26,19 +26,56 @@
                     >Your all in one platform to manage your team</span
                     >
 
-                    <div *ngIf="!isRegisterFormVisible; else registerForm">
+                    <div *ngIf="!isRegisterFormVisible && !isImportantInformationVisible">
                       <button mat-stroked-button class="w-100 m-t-45" (click)="showRegisterForm('3')">
                         Client Registration
                       </button>
 
                       <p class="text-center m-t-16 m-b-16">or</p>
   
-                      <button mat-stroked-button class="w-100 m-b-45" (click)="showRegisterForm('2')">
+                      <button mat-stroked-button class="w-100 m-b-45" (click)="showImportantInformation()">
                         Apply for a Career Opportunity
                       </button>
                     </div>
 
-                    <ng-template #registerForm>
+                    <div *ngIf="!isRegisterFormVisible && isImportantInformationVisible">
+                      <h4 class="f-w-700 f-s-26 lh-base m-0 m-t-32">IMPORTANT INFORMATION</h4>
+                      <p class="m-t-16 m-b-16">
+                        <b>INIMBLE</b> is an outsourcing company specialized in providing talented and skilled professionals in administrative and technological areas. We adapt to the specific needs of each client, offering customized solutions tailored to their requirements. We began operations in the United States (Atlanta, Georgia) several years ago, and we currently have offices in Venezuela (Maracaibo and Valencia) and Colombia (Medellin) 🚀
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        Our work approach is 100% on-site during the initial stages, which is why we provide the workplace and the necessary electronic equipment to perform tasks, such as laptops, mice, headsets, and more.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        The position we are offering, in general terms, is that of a Virtual Assistant, and the required competencies for this role include:
+                      </p>
+                      <ul>
+                        <li>Proficiency in the English language</li>
+                        <li>Problem-solving skills</li>
+                        <li>Proactive attitude</li>
+                        <li>Familiarity with technological tools</li>
+                        <li>High adaptability and versatility</li>
+                        <li>Ability to work as part of a team</li>
+                      </ul>
+                      <p class="m-t-16 m-b-16">
+                        We currently operate exclusively in the U.S. Pacific Time Zone, which means the working hours are approximately 11:30 a.m. or 12:00 p.m. to 8:00 p.m., Monday through Friday.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        📝 Once you complete and submit the application form, you will need to wait for our Human Resources team to review your submission. Please note that the time it takes for HR to review applications may vary depending on the number of applicants we are processing at the moment. If you meet all the requirements, you will be contacted via WhatsApp to continue the process. If not, it means you were not pre-selected for the next stage.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        💰 Payments are made biweekly via Binance.
+                        🟢 Benefits will be discussed directly once the candidate has been selected to join Inimble.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        Inimble Work Smart 💚
+                      </p>
+                      <button mat-flat-button color="primary" class="w-100" (click)="showRegisterForm('2')">
+                        Start
+                      </button>
+                    </div>
+
+                    <div *ngIf="isRegisterFormVisible">
                       <!-- Sign up with Google -->
                       <!-- <div class="row m-t-24">
                         <div class="col-12 col-sm-12">
@@ -575,7 +612,7 @@
                           </form>
                         </mat-step>
                       </mat-stepper>
-                    </ng-template>
+                    </div>
 
                     <span class="d-block f-w-500 d-block m-t-24 m-b-32"
                       >Already have an Account?
