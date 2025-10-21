@@ -57,17 +57,22 @@
                   <td mat-cell *matCellDef="let element">{{ element.hourly_rate | currency: 'USD' }}</td>
                 </ng-container>
 
+                <ng-container matColumnDef="flat-fee">
+                  <th mat-header-cell *matHeaderCellDef>Flat Fee</th>
+                  <td mat-cell *matCellDef="let element">{{ element.flat_fee | currency: 'USD' }}</td>
+                </ng-container>
+
                 <ng-container matColumnDef="cost">
                   <th mat-header-cell *matHeaderCellDef>Cost</th>
                   <td mat-cell *matCellDef="let element">{{ element.cost | currency: 'USD' }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="footer-sub-total">
-                  <td mat-footer-cell *matFooterCellDef colspan="3">Sub-total</td>
+                  <td mat-footer-cell *matFooterCellDef colspan="4">Sub-total</td>
                 </ng-container>
 
                 <ng-container matColumnDef="footer-total">
-                  <td mat-footer-cell *matFooterCellDef colspan="3">Total</td>
+                  <td mat-footer-cell *matFooterCellDef colspan="4">Total</td>
                 </ng-container>
 
                 <ng-container matColumnDef="footer-amount">

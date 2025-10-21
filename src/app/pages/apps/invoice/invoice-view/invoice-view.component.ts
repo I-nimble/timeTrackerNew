@@ -26,7 +26,7 @@ import { Loader } from 'src/app/app.models';
 export class AppInvoiceViewComponent {
   id = signal<number>(0);
   invoiceDetail = signal<any>(null);
-  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'cost'];
+  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
   ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];

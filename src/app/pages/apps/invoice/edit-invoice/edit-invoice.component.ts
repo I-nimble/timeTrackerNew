@@ -35,7 +35,7 @@ import { Loader } from 'src/app/app.models';
 })
 export class AppEditInvoiceComponent {
   id = signal<number>(0);
-  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'cost'];
+  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
   ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
@@ -52,6 +52,7 @@ export class AppEditInvoiceComponent {
   changedHourlyRates = new Set<any>();
   loader = new Loader(false, false, false);
   message = '';
+  changedFlatFees = new Set<any>();
 
   trackByEntryId(index: number, item: any) {
     return item.id;
@@ -136,6 +137,7 @@ export class AppEditInvoiceComponent {
 
         this.recalculateCosts();
         this.changedEntries.clear();
+        this.changedFlatFees.clear();
 
         this.invoiceForm.patchValue({
           user_id: data.user_id,
@@ -156,6 +158,7 @@ export class AppEditInvoiceComponent {
             id: [item.id],
             full_time: [item.full_time],
             hourly_rate: [item.hourly_rate],
+            flat_fee: [item.flat_fee || 0.00],
             entries: this.fb.array(item.entries.map((entry: any) =>
               this.fb.group({
                 id: [entry.id],
@@ -324,7 +327,8 @@ export class AppEditInvoiceComponent {
   calculateItemCost(item: any): number {
     const totalHours = this.getTotalHoursForItem(item);
     const hourlyRate = item.hourly_rate || 0;
-    return totalHours * hourlyRate;
+    const flatFee = parseFloat(item.flat_fee) || 0.00;
+    return (totalHours * hourlyRate) + flatFee;
   }
 
   calculateTotalAmount(): number {
@@ -464,6 +468,28 @@ export class AppEditInvoiceComponent {
     this.cdr.detectChanges();
   }
 
+  onFlatFeeChange(item: any, event: Event): void {
+    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    const inputValue = (event.target as HTMLInputElement).value;
+    const newFlatFee = parseFloat(inputValue) || 0;
+    
+    if (invoiceItem) {
+      invoiceItem.flat_fee = newFlatFee;
+      this.markFlatFeeAsChanged(invoiceItem);
+      this.recalculateCosts();
+      this.updateFormArrayWithChanges();
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private markFlatFeeAsChanged(item: any): void {
+    this.changedFlatFees.add({
+      employee_id: item.employee_id,
+      flat_fee: item.flat_fee,
+    });
+  }
+
   private recalculateCosts(): void {
     if (!this.editModel()?.invoiceItems) return;
 
@@ -534,6 +560,7 @@ export class AppEditInvoiceComponent {
       direct_supervisor: this.editModel().direct_supervisor,
       changed_entries: [...this.changedEntries],
       changed_hourly_rates: [...this.changedHourlyRates],
+      changed_flat_fees: [...this.changedFlatFees],
     };
 
     this.invoiceService.updateInvoice(this.id(), data).subscribe({
