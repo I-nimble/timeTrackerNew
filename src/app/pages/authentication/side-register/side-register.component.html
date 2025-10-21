@@ -540,7 +540,7 @@
                             <div *ngIf="registerTeamMemberForm.contains('portfolio')">
                               <p>Portfolio (Graphic Design)</p>
 
-                              <button mat-flat-button color="primary" class="m-t-8 m-b-16 file">
+                              <button mat-flat-button color="primary" class="m-t-8 file">
                                 <i-tabler name="upload" class="icon-20"></i-tabler>
                                 Upload portfolio
                                 <input
@@ -568,7 +568,7 @@
                               </mat-error>
                             </div>
 
-                            <button mat-flat-button color="primary" class="w-100" (click)="submit()" 
+                            <button mat-flat-button color="primary" class="w-100 m-t-16" (click)="submit()" 
                                     [disabled]="!registerTeamMemberForm.valid">
                               Submit Application
                             </button>
