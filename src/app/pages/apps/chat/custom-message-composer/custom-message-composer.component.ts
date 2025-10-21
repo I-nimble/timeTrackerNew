@@ -5,16 +5,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { CometChatUIKit } from '@cometchat/chat-uikit-angular';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
 	selector: 'app-custom-message-composer',
-    imports: [MaterialModule, CommonModule],
+    imports: [MaterialModule, CommonModule, TablerIconsModule],
 	templateUrl: './custom-message-composer.component.html',
 	styleUrls: ['./custom-message-composer.component.scss']
 })
 export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	@Input() user: CometChat.User | null = null;
     @Input() group: CometChat.Group | null = null;
+	@Input() replyMessage: any = null;
 
 	messageText: string = '';
 	inlineImages: any[] = [];
