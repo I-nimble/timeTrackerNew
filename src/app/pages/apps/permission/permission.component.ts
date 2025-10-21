@@ -155,7 +155,6 @@ export class AppPermissionComponent {
           role: this.rolesMap[user.role] || 'Other',
           userRoleId: user.role
         }));
-        console.log('All users from endpoint:', this.users);
         this.dataSource = this.users;
         this.getUsersPictures();
       },

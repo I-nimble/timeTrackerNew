@@ -85,7 +85,7 @@ export class AppChatComponent implements OnInit {
       usersConfiguration: new UsersConfiguration({
         onItemClick: (user) => {
           const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
           if (btn) btn.click();
 
           this.user = user as CometChat.User;
@@ -100,7 +100,7 @@ export class AppChatComponent implements OnInit {
       groupsConfiguration: new GroupsConfiguration({
         onItemClick: (group) => {
           const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
           if (btn) btn.click();
 
           this.user = null;

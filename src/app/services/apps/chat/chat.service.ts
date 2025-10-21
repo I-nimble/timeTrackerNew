@@ -7,7 +7,8 @@ import { HttpClient } from '@angular/common/http';
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CometChat, CometChatNotifications } from '@cometchat/chat-sdk-javascript-new';
+import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChatNotifications } from '@cometchat/chat-sdk-javascript';
 
 @Injectable({
   providedIn: 'root',
