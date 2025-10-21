@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
   FormGroup,
-  AbstractControl,
+  AbstractControl, 
   ValidatorFn,
   ValidationErrors
 } from '@angular/forms';
@@ -120,6 +120,7 @@ export class AppSideRegisterComponent {
   }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
+  isImportantInformationVisible: boolean = false;
   hasInvitation: boolean = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
@@ -230,6 +231,10 @@ export class AppSideRegisterComponent {
     this.applicationsService.getLocations().subscribe((locations: any) => {
       this.locations = locations;
     });
+  }
+
+  showImportantInformation() {
+    this.isImportantInformationVisible = true;
   }
 
   showRegisterForm(userRole: string) {
@@ -681,7 +686,6 @@ export class AppSideRegisterComponent {
       otherDepartment: this.otherDepartment
     });
   }
-
   mustBeYesValidator(): ValidatorFn {
     return (control: AbstractControl) => {
       if (control.value === 'no') {

@@ -346,8 +346,8 @@ export class AppEmployeeDialogContentComponent implements OnInit {
         name: this.inviteEmployeeForm.value.name,
         email: this.inviteEmployeeForm.value.email,
         company_id: this.inviteEmployeeForm.value.company_id,
-        user_timezone: this.userTimezone,
-        hourly_rate: this.inviteEmployeeForm.value.hourly_rate || 0
+        hourly_rate: this.inviteEmployeeForm.value.hourly_rate || 0,
+        user_timezone: this.userTimezone
       };
       this.employeesService.inviteEmployee(invitationData).subscribe({
         next: () => {

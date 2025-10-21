@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UIKitSettingsBuilder, ContactsConfiguration, UsersConfiguration } from "@cometchat/uikit-shared";
-import { CometChatUIKit, CometChatThemeService, CometChatTheme } from "@cometchat/chat-uikit-angular";
+import { CometChatUIKit, CometChatThemeService } from "@cometchat/chat-uikit-angular";
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';

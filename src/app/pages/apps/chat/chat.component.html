@@ -72,9 +72,9 @@
 
   <ng-container *ngIf="loader.complete">
     @if(chatService.isChatAvailable && !chatInitError) {
-      <div *ngIf="userRole === '1' || userRole === '4'">
+      <div *ngIf="userRole === '1' || userRole === '4'" class="m-t-16 m-b-16 m-l-16">
         <mat-form-field appearance="outline" class="w-100 company-select">
-          <mat-select [(value)]="selectedCompanyId" (change)="initializeCompanyChat()">
+          <mat-select [value]="selectedCompanyId" (selectionChange)="initializeCompanyChat($event)">
             <mat-option *ngFor="let company of companies" [value]="company.id">
               {{ company.name }}
             </mat-option>
