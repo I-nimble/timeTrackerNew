@@ -13,7 +13,7 @@
   <ng-template #conversationsMenuTemplate>
     <div class="d-flex align-items-center gap-8">
       <button
-        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))" 
+        *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
         [ngStyle]="getButtonStyle()"
         (click)="openDialog()"
       >

@@ -4,9 +4,9 @@ import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit, CometChatTheme } from '@cometchat/chat-uikit-angular';
+import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,11 +15,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration, ContactsStyle } from '@cometchat/uikit-shared';
 import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import { CometChatUIEvents, DatePatterns, TimestampAlignment, CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
+import { CometChatUIEvents, DatePatterns, TimestampAlignment } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
 import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
+import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
+import { environment } from 'src/environments/environment';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MobileChatComponent } from './mobile-chat/mobile-chat.component';
 
@@ -54,20 +56,23 @@ export class AppChatComponent implements OnInit {
   @ViewChild('basicChat') basicChat: any;
   @ViewChild('essentialChat') essentialChat: any;
   @ViewChild('professionalChat') professionalChat: any;
+  @ViewChild('customHeaderView') customHeaderView: TemplateRef<any>;
 
   plansService = inject(PlansService);
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
   userId: string | null = localStorage.getItem('id');
-  groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
+  userEmail: string | null = localStorage.getItem('email');
+  groupCreatorEmails: string[] = environment.groupCreatorEmails;
   companies: any[] = [];
-  selectedCompanyId!: number;
+  selectedCompanyId: number = 1;
   showContacts: boolean = false;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
   public loader: Loader = new Loader(true, false, false);
   public chatInitError: string | null = null;
   templates: CometChatMessageTemplate[] = [];
+  public replyMessage: any = null;
 
   // BASIC PLAN CONFIGURATION
   public basicMessagesConfig: MessagesConfiguration;
@@ -80,29 +85,37 @@ export class AppChatComponent implements OnInit {
   public professionalMessagesConfig: MessagesConfiguration;
 
   public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
-    ...this.chatService.contactsConfiguration,
-    usersConfiguration: new UsersConfiguration({
-      onItemClick: (user) => {
-        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-        if (btn) btn.click();
+      usersConfiguration: new UsersConfiguration({
+        onItemClick: (user) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
 
-        this.user = user as CometChat.User;
-        this.group = null;
-      },
-    }),
-    groupsConfiguration: new GroupsConfiguration({
-      onItemClick: (group) => {
-        const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-        const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-        if (btn) btn.click();
+          this.user = user as CometChat.User;
+          this.group = null;
+        },
+        usersRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100),
+        searchRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100),
+        hideSeparator: true,
+      }),
+      groupsConfiguration: new GroupsConfiguration({
+        onItemClick: (group) => {
+          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
+          if (btn) btn.click();
 
-        this.user = null;
-        this.group = group as CometChat.Group;
-      },
-      menu: this.conversationsMenuTemplate,
-    }),
-    contactsStyle: new ContactsStyle({
+          this.user = null;
+          this.group = group as CometChat.Group;
+        },
+        menu: this.conversationsMenuTemplate,
+        groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100),
+        searchRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100),
+      }),
+      contactsStyle: new ContactsStyle({
         activeTabBackground: '#92b46c',
         activeTabTitleTextColor: '#fff',
         tabBorderRadius: '16px',
@@ -153,13 +166,14 @@ export class AppChatComponent implements OnInit {
     try {
       this.configureTheme();
       this.observeAppTheme();
+      this.createCustomMessageTemplates();
       this.initPlanLogic();
+      this.getCompanies();
     } catch (err) {
       this.loader = new Loader(true, true, true);
       this.chatInitError = 'There was an error initializing the chat.';
       console.error('Chat initialization error:', err);
     }
-    this.createCustomMessageTemplates();
 
     this.breakpointObserver.observe([
       '(max-width: 576px)' // or 767
@@ -168,42 +182,43 @@ export class AppChatComponent implements OnInit {
     });
   }
 
-  // Dont allow group owner to edit/delete messages of other members
-  private createCustomMessageTemplates() {
-    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
-    this.templates = this.templates.map(template => {
-      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
-      newTemplate.options = (
-        loggedInUser: CometChat.User,
-        message: CometChat.BaseMessage,
-        theme: CometChatTheme,
-        group?: CometChat.Group
-      ) => {
-        let options = CometChatUIKit.getDataSource().getMessageOptions(
-          loggedInUser,
-          message,
-          theme,
-          group
-        );
-        if (
-          group &&
-          group.getOwner &&
-          group.getOwner() === loggedInUser.getUid() &&
-          message.getSender().getUid() !== loggedInUser.getUid()
-        ) {
-          options = options.filter(
-            (option: CometChatMessageOption) =>
-              option.id !== 'edit' && option.id !== 'delete'
-          );
-        }
-        return options;
-      };
-      return newTemplate;
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe((companies: any[]) => {
+      const credentialChecks = companies.map(company =>
+        this.chatService.getChatCredentials(company.id).toPromise()
+          .then((credentials: any) => ({
+            company,
+            hasCredentials: credentials?.api_key && !credentials.message
+          }))
+          .catch(() => ({ company, hasCredentials: false }))
+      );
+
+      Promise.all(credentialChecks).then(results => {
+        this.companies = results
+          .filter(result => result.hasCredentials)
+          .map(result => result.company);
+      });
     });
+  }
+
+  async initializeCompanyChat(event: any) {
+    this.selectedCompanyId = event.value;
+    this.chatService.isChatAvailable = false;
+    this.loader = new Loader(true, false, false);
+    try {
+      await this.chatService.initializeCometChat(this.selectedCompanyId);
+      this.chatService.isChatAvailable = true;
+      this.loader = new Loader(true, true, false);
+    } catch (error) {
+      this.loader = new Loader(true, true, true);
+      this.chatInitError = 'There was an error initializing the chat.';
+      this.openSnackBar(this.chatInitError, 'Close');
+    }
   }
 
   private initPlanLogic() {
     this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
+      this.replyMessage = null;
       if (event.group) {
         this.group = event.group;
         this.user = null;
@@ -310,6 +325,10 @@ export class AppChatComponent implements OnInit {
           }
         });
       } else {
+        this.plan = {
+          "name": "Professional",
+          "id": 3
+        }
         this.loader = new Loader(true, true, false);
       }
     } catch (err) {
@@ -346,7 +365,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -372,7 +390,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -409,20 +426,19 @@ export class AppChatComponent implements OnInit {
               if (currentCount + members.length > 6) {
                 component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
               } else {
-                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                  CometChat.addMembersToGroup(
-                    guid,
-                    groupMembers,
-                    [] // empty bannedMembersList
-                  ).then(() => {
-                    if (this.onClose) this.onClose();
-                  });
+                const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
+                CometChat.addMembersToGroup(
+                  guid,
+                  groupMembers,
+                  [] // empty bannedMembersList
+                ).then(() => {
+                  if (this.onClose) this.onClose();
+                });
               }
             });
           },
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -499,7 +515,7 @@ export class AppChatComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if(result?.group) {
+      if (result?.group) {
         this.openSnackBar('Group Created successfully!', 'Close');
         this.chatService.isChatAvailable = false;
         setTimeout(() => {
@@ -558,6 +574,55 @@ export class AppChatComponent implements OnInit {
     }
     this.ref.detectChanges();
   }
+
+  private createCustomMessageTemplates() {
+    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
+    this.templates = this.templates.map(template => {
+      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
+      // Dont allow group owner to edit/delete messages of other members
+      newTemplate.options = (
+        loggedInUser: CometChat.User,
+        message: CometChat.BaseMessage,
+        theme: CometChatTheme,
+        group?: CometChat.Group
+      ) => {
+        let options = CometChatUIKit.getDataSource().getMessageOptions(
+          loggedInUser,
+          message,
+          theme,
+          group
+        );
+        if (
+          group &&
+          group.getOwner &&
+          group.getOwner() === loggedInUser.getUid() &&
+          message.getSender().getUid() !== loggedInUser.getUid()
+        ) {
+          options = options.filter(
+            (option: CometChatMessageOption) =>
+              option.id !== 'edit' && option.id !== 'delete'
+          );
+        }
+        // Replace default thread reply with custom option
+        options = options.map((option: CometChatMessageOption) => {
+          if (option.id === 'replyInThread') {
+            option.onClick = async () => {
+              this.replyMessage = message;
+            }
+          }
+          // NOTE: Here i can modify the edit option to save the id of the message to be edited and fill the custom message composer with its text in edit mode, on send message modify it. This would fix the issue of editing messages.
+          return option;
+        });
+        return options;
+      };
+      newTemplate.headerView = () => this.customHeaderView;
+      return newTemplate;
+    });
+  }
+
+  toDate(timestamp: any) {
+		return new Date(timestamp * 1000);
+	}
 
   openSnackBar(message: string, action: string) {
     this.snackBar.open(message, action, {
