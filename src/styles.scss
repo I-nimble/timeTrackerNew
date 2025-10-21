@@ -1,13 +1,25 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  padding: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+}
+/* Safe area handling for status bar */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-top: constant(safe-area-inset-top);
+  background-color: #EAEAEA; 
+}
 .card-dashboard {
-    height: 85%;
+  height: 85%;
+  margin-top: env(safe-area-inset-top);
+  margin-top: constant(safe-area-inset-top);
 }
 .text-btn button p {
-    color: #fff!important;
-    font-weight: bold!important;
+  color: #fff!important;
+  font-weight: bold!important;
 }
 .comparison-table-img {
   width: 80%;
@@ -23,5 +35,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     flex-direction: column;
     display: flex;
     flex: 1 0 auto;
+  }
+  body {
+    padding-top: max(env(safe-area-inset-top), 24px);
+    padding-top: max(constant(safe-area-inset-top), 24px);
   }
 }

@@ -64,14 +64,16 @@ export class AppComponent implements OnInit, OnDestroy {
   async initializeSystemBars() {
     try {
       if (typeof StatusBar !== 'undefined') {
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
         
         if (isDarkMode) {
-          // Modo oscuro
           await StatusBar.setStyle({ style: Style.Dark });
           await StatusBar.setBackgroundColor({ color: '#15263a' });
         } else {
-          // Modo claro
           await StatusBar.setStyle({ style: Style.Light });
           await StatusBar.setBackgroundColor({ color: '#EAEAEA' });
         }

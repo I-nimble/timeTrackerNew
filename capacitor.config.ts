@@ -6,14 +6,16 @@ const config: CapacitorConfig = {
   webDir: 'dist/browser',
   plugins: {
     StatusBar: {
-      style: 'DEFAULT',
+      style: 'LIGHT',
       overlaysWebView: false,
+      backgroundColor: '#EAEAEA'
     },
     NavigationBar: {
       overlay: false
     },
     SplashScreen: {
       launchShowDuration: 3000,
+      launchAutoHide: true
     }
   }
 };
