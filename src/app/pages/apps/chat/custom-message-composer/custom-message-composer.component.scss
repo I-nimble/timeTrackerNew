@@ -256,11 +256,11 @@
       resize: none;
       font-family: inherit;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1;
       color: inherit;
       padding: 5px 0;
-      border-radius: 20px;
       background: rgba(255, 255, 255, 0.05);
+      scrollbar-width: none;
 
       &::placeholder {
         color: #999;
