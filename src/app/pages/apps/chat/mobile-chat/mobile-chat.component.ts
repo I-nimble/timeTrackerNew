@@ -33,9 +33,8 @@ export class MobileChatComponent implements OnInit {
   @Input() userRole: string | null = localStorage.getItem('role');
   @Input() conversationsMenuTemplate: TemplateRef<any>;
   @Input() customMessageComposerView: TemplateRef<any>;
-  @Input() StartConversationConfiguration: ContactsConfiguration;
   @Input() templates: CometChatMessageTemplate[];
-
+  
   cometChatUser!: any;
   profilePic!: any;
   avatarStyle = new AvatarStyle({width: "28px",height: "28px"});
@@ -55,6 +54,7 @@ export class MobileChatComponent implements OnInit {
   conversationsRequestBuilder: CometChat.ConversationsRequestBuilder;
   usersSearchRequestBuilder: CometChat.UsersRequestBuilder;
   groupsSearchRequestBuilder: CometChat.GroupsRequestBuilder;
+  StartConversationConfiguration!: ContactsConfiguration;
 
   constructor(private chatService: CometChatService) {
     this.onConversationsItemClick = this.onConversationsItemClick.bind(this);
@@ -66,6 +66,39 @@ export class MobileChatComponent implements OnInit {
     CometChat.getLoggedinUser().then((user: any) => {
       this.cometChatUser = user;
       this.profilePic = user.getAvatar();
+    });
+
+    this.StartConversationConfiguration = new ContactsConfiguration({
+      usersConfiguration: new UsersConfiguration({
+        onItemClick: (user) => {
+          this.user = user as CometChat.User;
+          this.group = null;
+          this.currentTab = this.tabs[3];
+        },
+        usersRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100),
+        searchRequestBuilder: new CometChat.UsersRequestBuilder()
+          .setLimit(100),
+        hideSeparator: true,
+      }),
+      groupsConfiguration: new GroupsConfiguration({
+        onItemClick: (group) => {
+          this.user = null;
+          this.group = group as CometChat.Group;
+          this.currentTab = this.tabs[3];
+        },
+        menu: this.conversationsMenuTemplate,
+        groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100),
+        searchRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .setLimit(100),
+      }),
+      contactsStyle: new ContactsStyle({
+        activeTabBackground: '#92b46c',
+        activeTabTitleTextColor: '#fff',
+        tabBorderRadius: '16px',
+        tabBorder: 'none'
+      })
     });
 
     this.essentialMessageListConfiguration = new MessageListConfiguration({
