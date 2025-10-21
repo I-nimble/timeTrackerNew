@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject } from '@angular/core';
+import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -6,8 +6,9 @@ import {
   FormsModule,
   ReactiveFormsModule,
   FormGroup,
-  AbstractControl, 
-  ValidatorFn
+  AbstractControl,
+  ValidatorFn,
+  ValidationErrors
 } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
@@ -61,13 +62,14 @@ export class AppSideRegisterComponent {
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
-    company_name: ['', [Validators.required]],
-    departments: [['']],
+    company_name: ['', [Validators.required], [this.companyExistsValidator()]],
+    departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
     phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-  });
+    google_user_id: [''],
+  }, { validators: this.crossFieldValidator() });
   registerInvitedTeamMemberForm = this.fb.group({
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     name: ['', [Validators.required]],
@@ -84,12 +86,12 @@ export class AppSideRegisterComponent {
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     appliedWhere: ['', Validators.required],
-    referred: ['no'],
+    referred: ['no', Validators.required],
     referredName: [''],
     fullName: ['', Validators.required],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', Validators.required],
-    additionalPhone: [''],
+    contactPhone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    additionalPhone: ['', [Validators.pattern(/^\+?\d{7,15}$/)]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: ['0', Validators.required],
@@ -103,22 +105,31 @@ export class AppSideRegisterComponent {
     hobbies: [''],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
+    google_user_id: [''],
   });
   userRole: string = '3';
   companyId: string = '';
   companies: any[] = [];
   positions: any[] = [];
   locations: any[] = [];
-  careerRoles: any[] = ["Virtual Assistant", "IT and Technology"];
+  careerRoles: any[] = [{
+    title: "Virtual Assistant",
+    position_id: 16
+  }, 
+  {
+    title: "IT and Technology",
+    position_id: 41
+  }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
   hasInvitation: boolean = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
   otherDepartment: string = '';
+  signedWithGoogleClicked: boolean = false;
 
   constructor(
-    private settings: CoreService, 
+    private settings: CoreService,
     private router: Router,
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
@@ -134,15 +145,16 @@ export class AppSideRegisterComponent {
     private applicationsService: ApplicationsService,
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.getCompanies();
     this.getPositions();
     this.getDepartments();
 
-    this.route.queryParams.subscribe((params:any) => {
-      if(params['company_id']) this.companyId = params['company_id'];
-      if(params['user_role']) this.userRole = params['user_role'];
-      if(this.userRole == '2' && this.companyId) {
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['company_id']) this.companyId = params['company_id'];
+      if (params['user_role']) this.userRole = params['user_role'];
+      if (this.userRole == '2' && this.companyId) {
         this.hasInvitation = true;
         this.registerInvitedTeamMemberForm.patchValue({
           company: this.companyId,
@@ -153,6 +165,14 @@ export class AppSideRegisterComponent {
         });
         this.showRegisterForm(this.userRole);
       }
+    });
+
+    this.registerClientForm.get('departments')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
+    });
+
+    this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
+      this.registerClientForm.updateValueAndValidity();
     });
   }
 
@@ -165,6 +185,42 @@ export class AppSideRegisterComponent {
         this.authService.checkEmailExists(control.value).subscribe(
           (exists: boolean) => {
             resolve(exists ? { emailTaken: true } : null);
+          },
+          () => resolve(null)
+        );
+      });
+    };
+  }
+
+  crossFieldValidator(): ValidatorFn {
+    return (formGroup: AbstractControl): ValidationErrors | null => {
+      const departments = formGroup.get('departments')?.value;
+      const otherDepartment = formGroup.get('otherDepartment')?.value;
+
+      if (departments && Array.isArray(departments) && departments.includes('Other')) {
+        if (!otherDepartment || otherDepartment.trim() === '') {
+          formGroup.get('otherDepartment')?.setErrors({ required: true });
+          return { otherDepartmentRequired: true };
+        } else {
+          formGroup.get('otherDepartment')?.setErrors(null);
+        }
+      } else {
+        formGroup.get('otherDepartment')?.setErrors(null);
+      }
+
+      return null;
+    };
+  }
+
+  companyExistsValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return Promise.resolve(null);
+      }
+      return new Promise(resolve => {
+        this.companiesService.checkCompanyExists(control.value).subscribe(
+          ({ exists }: { exists: boolean }) => {
+            resolve(exists ? { companyExists: true } : null);
           },
           () => resolve(null)
         );
@@ -188,7 +244,7 @@ export class AppSideRegisterComponent {
   }
 
   private setupConditionalValidation() {
-    if(!this.registerTeamMemberForm) return;
+    if (!this.registerTeamMemberForm) return;
 
     const referredControl = this.registerTeamMemberForm?.get('referred');
     if (referredControl) {
@@ -203,11 +259,11 @@ export class AppSideRegisterComponent {
     }
 
     const locationControl = this.registerTeamMemberForm?.get('location');
-    if(locationControl) {
+    if (locationControl) {
       locationControl.valueChanges.subscribe(() => this.updateConditionalControls());
     }
     const roleControl = this.registerTeamMemberForm?.get('role');
-    if(roleControl) {
+    if (roleControl) {
       roleControl.valueChanges.subscribe(() => this.updateConditionalControls());
     }
   }
@@ -222,24 +278,33 @@ export class AppSideRegisterComponent {
       ['availability', 'salaryRange', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
         (this.registerTeamMemberForm as FormGroup<any>).removeControl(ctrl);
       });
-  
+
       if (!location || !role) return;
-      
-      if (role === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
-      } else if (role === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('availability', this.fb.control('', Validators.required));
+
+      if (role.title === 'Virtual Assistant') {
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
+      } else if (role.title === 'IT and Technology' && location !== 'Medellin') {
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'availability',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       }
-  
+
       if (location && role) {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('salaryRange', this.fb.control('', Validators.required));
+        (this.registerTeamMemberForm as FormGroup<any>).addControl(
+          'salaryRange',
+          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
+        );
       }
-  
-      if (role === 'Virtual Assistant') {
+
+      if (role.title === 'Virtual Assistant') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
       }
-  
-      if (role === 'IT and Technology' && location !== 'Medellin') {
+
+      if (role.title === 'IT and Technology' && location !== 'Medellin') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
       }
     }
@@ -254,8 +319,8 @@ export class AppSideRegisterComponent {
       const role = roleControl.value;
 
       if (location === 'Maracaibo') {
-        return role === 'Virtual Assistant' 
-          ? '$480-$560 USD' 
+        return role.title === 'Virtual Assistant'
+          ? '$480-$560 USD'
           : '$400-$900 USD';
       } else if (location === 'Medellin') {
         return '$700-$800 USD';
@@ -269,7 +334,7 @@ export class AppSideRegisterComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      
+
       if (file.size > 10737418240) {
         this.registerTeamMemberForm.get(controlName)?.setErrors({ maxFileSize: true });
       } else {
@@ -288,12 +353,12 @@ export class AppSideRegisterComponent {
 
       const file = control.value as File;
       if (file.size > maxSizeBytes) {
-        return { 
-          maxFileSize: { 
-            requiredSize: maxSizeBytes, 
+        return {
+          maxFileSize: {
+            requiredSize: maxSizeBytes,
             actualSize: file.size,
             message: `File size exceeds the maximum allowed size of ${this.formatFileSize(maxSizeBytes)}`
-          } 
+          }
         };
       }
       return null;
@@ -323,8 +388,8 @@ export class AppSideRegisterComponent {
   }
 
   get getCompanyName() {
-    if(!this.companyId) return '';
-    return this.companies.find((c:any) => c.id = this.companyId).name;
+    if (!this.companyId) return '';
+    return this.companies.find((c: any) => c.id = this.companyId).name;
   }
 
   get f() {
@@ -350,18 +415,49 @@ export class AppSideRegisterComponent {
     });
   }
 
+  // googleSignUp() {
+  //   this.authService.singUpWithGoogle().subscribe((data) => {
+  //     if (this.userRole === '3') {
+  //       this.registerClientForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2' && this.hasInvitation) {
+  //       this.registerInvitedTeamMemberForm.patchValue({
+  //         name: data.name.split(' ')[0],
+  //         last_name: data.name.split(' ')[1] || '',
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else if (this.userRole === '2') {
+  //       this.registerTeamMemberForm.patchValue({
+  //         fullName: data.name,
+  //         email: data.email,
+  //         google_user_id: data.googleId,
+  //       });
+  //     }
+  //     else { return };
+  //     this.signedWithGoogleClicked = true;
+  //     this.openSnackBar('Google account linked. Please complete the rest of the form.', 'success');
+  //   });
+  // }
+
   submit() {
-    if(this.userRole === '3') {
-      if(!this.registerClientForm.valid) {
+    if (this.userRole === '3') {
+      if (!this.registerClientForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
       }
-        
+
       let phone = this.registerClientForm.value.phone;
       if (phone && this.registerClientForm.controls.phone.valid) {
         phone = `${this.registerClientForm.value.countryCode}${phone}`;
       }
-  
+
       const clientData = {
         firstName: this.registerClientForm.value.name,
         lastName: this.registerClientForm.value.last_name,
@@ -371,12 +467,14 @@ export class AppSideRegisterComponent {
         email: this.registerClientForm.value.email,
         phone: phone,
         password: this.registerClientForm.value.password,
+        google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
       };
-  
+      const fullName = this.registerClientForm.value.name + ' ' + this.registerClientForm.value.last_name;
+
       this.companiesService.createPossible(clientData).subscribe({
-        next: (response: any) => {
+        next: () => {
           this.openSnackBar('Your information was sent successfully', 'success');
-          
+
           this.authService
             .login(clientData.email as string, clientData.password as string)
             .subscribe({
@@ -411,19 +509,14 @@ export class AppSideRegisterComponent {
             });
         },
         error: (e) => {
-          if (e.status === 409) {
-            this.openSnackBar(e.error.message, 'error'); // Email already exists
-            return;
-          }
-  
-          this.openSnackBar('There\'s been an error, try again later...', 'error');
           console.error(e);
+          this.openSnackBar(e.error.message, 'error'); // Email already exists
           return;
         },
       })
     }
-    else if(this.userRole === '2' && this.hasInvitation) {
-      if(!this.registerInvitedTeamMemberForm.valid) {
+    else if (this.userRole === '2' && this.hasInvitation) {
+      if (!this.registerInvitedTeamMemberForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
       }
@@ -442,7 +535,7 @@ export class AppSideRegisterComponent {
       this.employeesService.registerEmployee(teamMemberData).subscribe({
         next: () => {
           this.openSnackBar('Your registration was successful', 'success');
-          
+
           this.authService
             .login(teamMemberData.email as string, teamMemberData.password as string)
             .subscribe({
@@ -476,37 +569,32 @@ export class AppSideRegisterComponent {
               },
             });
         },
-        error: (e:any) => {
-          if (e.status === 409) {
-            this.openSnackBar(e.error.message, 'error'); // Email already exists
-            return;
-          }
-  
-          this.openSnackBar('There\'s been an error, try again later...', 'error');
+        error: (e: any) => {
           console.error(e);
+          this.openSnackBar(e.error.message, 'error'); // Email already exists
           return;
         },
       });
     }
     else if (this.userRole === '2' && !this.hasInvitation) {
 
-      if(!this.registerTeamMemberForm.valid) {
+      if (!this.registerTeamMemberForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
       }
 
-      if((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
+      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
         this.openSnackBar('Please accept the availability and salary range conditions', 'error');
         return;
       }
 
-      if(this.registerTeamMemberForm.value.role === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
+      if (this.registerTeamMemberForm.value.role.title === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
         this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
       }
 
       const teamMemberData = {
         location: this.registerTeamMemberForm.value.location,
-        role: this.registerTeamMemberForm.value.role,
+        position_id: this.registerTeamMemberForm.value.role.position_id,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
         applied_where: this.registerTeamMemberForm.value.appliedWhere,
@@ -532,12 +620,13 @@ export class AppSideRegisterComponent {
         programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
         resume: this.registerTeamMemberForm.get('resume')?.value || null,
         portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
+        google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
 
       this.usersService.registerOrphanTeamMember(teamMemberData).subscribe({
         next: () => {
           this.openSnackBar('Your registration was successful', 'success');
-          
+
           this.authService
             .login(teamMemberData.email as string, teamMemberData.password as string)
             .subscribe({
@@ -571,14 +660,9 @@ export class AppSideRegisterComponent {
               },
             });
         },
-        error: (e:any) => {
-          if (e.status === 409) {
-            this.openSnackBar(e.error.message, 'error');
-            return;
-          }
-  
-          this.openSnackBar('There\'s been an error, try again later...', 'error');
+        error: (e: any) => {
           console.error(e);
+          this.openSnackBar(e.error.message, 'error');
           return;
         },
       });
@@ -593,10 +677,19 @@ export class AppSideRegisterComponent {
     } else {
       this.selectedDepartments.push(dept);
     }
-    
+
     this.registerClientForm.patchValue({
       departments: this.selectedDepartments.map(d => d.name) || [''],
       otherDepartment: this.otherDepartment
     });
+  }
+
+  mustBeYesValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (control.value === 'no') {
+        return { mustBeYes: true };
+      }
+      return null;
+    };
   }
 }

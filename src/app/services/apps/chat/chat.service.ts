@@ -4,17 +4,18 @@ import { CometChatUIKit, CometChatThemeService } from "@cometchat/chat-uikit-ang
 import { Observable, firstValueFrom, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { CometChatNotifications } from "@cometchat/chat-sdk-javascript";
 import { getToken } from "firebase/messaging";
 import { messaging } from '../firebase';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChatNotifications } from '@cometchat/chat-sdk-javascript';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CometChatService {
   private UIKitSettings!: any;
+  private appSettings!: any;
   API_URI = environment.apiUrl;
   isChatAvailable: boolean = false; 
   isCallOngoing: boolean = false;
@@ -28,16 +29,19 @@ export class CometChatService {
     private themeService: CometChatThemeService
   ) { }
 
-  async initializeCometChat(): Promise<void> {
+  async initializeCometChat(company_id?: number): Promise<void> {
     try {
       const chat_uid = localStorage.getItem('id');
       if (!chat_uid) return;
 
-      const credentials = await this.fetchChatCredentials();
+      const credentials = await this.fetchChatCredentials(company_id); // change this
       if (!credentials) return;
 
       const initialized = await this.initCometChatUIKit(credentials);
       if (!initialized) return;
+
+      const initializedSDK = await this.initCometChatSDK(credentials);
+      if (!initializedSDK) return;
 
       const loggedIn = await this.loginCometChatUser(chat_uid);
       if (!loggedIn) return;
@@ -71,9 +75,9 @@ export class CometChatService {
     }
   }
 
-  private async fetchChatCredentials(): Promise<any | null> {
+  private async fetchChatCredentials(company_id?: number): Promise<any | null> {
     try {
-      const credentials: any = await firstValueFrom(this.getChatCredentials());
+      const credentials: any = await firstValueFrom(this.getChatCredentials(company_id));
       if (!credentials) {
         console.error("No chat credentials found in the database.");
         return null;
@@ -97,6 +101,20 @@ export class CometChatService {
       return true;
     } catch (error) {
       console.error("CometChatUIKit initialization failed:", error);
+      return false;
+    }
+  }
+
+  private async initCometChatSDK(credentials: any): Promise<boolean> {
+    try {
+      this.appSettings = new CometChat.AppSettingsBuilder()
+        .setRegion("us")
+        .subscribePresenceForAllUsers()
+        .build();
+      await CometChat.init(credentials.app_id, this.appSettings);
+      return true;
+    } catch (error) {
+      console.error("CometChat SDK initialization failed:", error);
       return false;
     }
   }
@@ -163,7 +181,10 @@ export class CometChatService {
     }
   }
 
-  public getChatCredentials(): Observable<any[]> {
+  public getChatCredentials(company_id?: number): Observable<any[]> {
+    if (company_id) {
+      return this.http.get<any[]>(`${this.API_URI}/chat/${company_id}`);
+    }
     return this.http.get<any[]>(`${this.API_URI}/chat/`);
   }
 

@@ -6,7 +6,7 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { CometChatService } from '../../../services/apps/chat/chat.service';
 import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
-import { CometChat } from '@cometchat/chat-sdk-javascript';
+import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -21,6 +21,7 @@ import { Loader } from 'src/app/app.models';
 import { emojisByCategory } from './emojisByCategory';
 import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
 import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
+import { environment } from 'src/environments/environment';
 
 interface InlineImage {
   id: string;
@@ -58,9 +59,10 @@ export class AppChatComponent implements OnInit {
   plan?: Plan;
   userRole: string | null = localStorage.getItem('role');
   userId: string | null = localStorage.getItem('id');
-  groupCreatorUserIds = ['189', '181']; // Steffi and Fernando
+  userEmail: string | null = localStorage.getItem('email');
+  groupCreatorEmails: string[] = environment.groupCreatorEmails;
   companies: any[] = [];
-  selectedCompanyId!: number;
+  selectedCompanyId: number = 1;
   showContacts: boolean = false;
   public ccActiveChatChanged: Subscription;
   private themeMutationObserver: MutationObserver;
@@ -83,24 +85,22 @@ export class AppChatComponent implements OnInit {
       usersConfiguration: new UsersConfiguration({
         onItemClick: (user) => {
           const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
           if (btn) btn.click();
 
           this.user = user as CometChat.User;
           this.group = null;
         },
         usersRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100)
-          .friendsOnly(true),
+          .setLimit(100),
         searchRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100)
-          .friendsOnly(true),
+          .setLimit(100),
         hideSeparator: true,
       }),
       groupsConfiguration: new GroupsConfiguration({
         onItemClick: (group) => {
           const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer.shadowRoot?.querySelector("button") as HTMLElement;
+          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
           if (btn) btn.click();
 
           this.user = null;
@@ -165,11 +165,39 @@ export class AppChatComponent implements OnInit {
       this.observeAppTheme();
       this.createCustomMessageTemplates();
       this.initPlanLogic();
+      this.getCompanies();
     } catch (err) {
       this.loader = new Loader(true, true, true);
       this.chatInitError = 'There was an error initializing the chat.';
       console.error('Chat initialization error:', err);
     }
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe((companies: any[]) => {
+      const credentialChecks = companies.map(company =>
+        this.chatService.getChatCredentials(company.id).toPromise()
+          .then((credentials: any) => ({
+            company,
+            hasCredentials: credentials?.api_key && !credentials.message
+          }))
+          .catch(() => ({ company, hasCredentials: false }))
+      );
+
+      Promise.all(credentialChecks).then(results => {
+        this.companies = results
+          .filter(result => result.hasCredentials)
+          .map(result => result.company);
+      });
+    });
+  }
+
+  initializeCompanyChat() {
+    this.chatService.isChatAvailable = false;
+    setTimeout(() => {
+      this.chatService.initializeCometChat(this.selectedCompanyId);
+      this.chatService.isChatAvailable = true;
+    }, 100);
   }
 
   private initPlanLogic() {
@@ -321,7 +349,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -347,7 +374,6 @@ export class AppChatComponent implements OnInit {
         addMembersConfiguration: new AddMembersConfiguration({
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -384,20 +410,19 @@ export class AppChatComponent implements OnInit {
               if (currentCount + members.length > 6) {
                 component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
               } else {
-                  const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                  CometChat.addMembersToGroup(
-                    guid,
-                    groupMembers,
-                    [] // empty bannedMembersList
-                  ).then(() => {
-                    if (this.onClose) this.onClose();
-                  });
+                const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
+                CometChat.addMembersToGroup(
+                  guid,
+                  groupMembers,
+                  [] // empty bannedMembersList
+                ).then(() => {
+                  if (this.onClose) this.onClose();
+                });
               }
             });
           },
           usersRequestBuilder: new CometChat.UsersRequestBuilder()
             .setLimit(100)
-            .friendsOnly(true)
         })
       })
     })
@@ -474,7 +499,7 @@ export class AppChatComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if(result?.group) {
+      if (result?.group) {
         this.openSnackBar('Group Created successfully!', 'Close');
         this.chatService.isChatAvailable = false;
         setTimeout(() => {
