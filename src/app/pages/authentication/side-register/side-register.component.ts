@@ -31,6 +31,7 @@ import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
   selector: 'app-side-register',
@@ -43,7 +44,8 @@ import { DepartmentsService } from 'src/app/services/departments.service';
     ReactiveFormsModule,
     BrandingComponent,
     NgIf,
-    RouterLink
+    RouterLink,
+    TablerIconsModule
   ],
   providers: [
     AuthService,
