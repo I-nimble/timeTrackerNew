@@ -508,8 +508,27 @@
                         <!-- Step 7: Media Uploads -->
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
-                            <p>Resume (PDF)</p>
-                            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')">
+                            <p>Please attach your resume, including months and years for each job. <b>(Example: Virtual Assistant at Inimble Venezuela - 1 year and 4 months)</b></p>
+                            <button mat-flat-button color="primary" class="m-t-8 file">
+                              <i-tabler name="upload" class="icon-20"></i-tabler>
+                              Upload resume
+                              <input
+                                #fileInput
+                                type="file"
+                                name="resume"
+                                (change)="onFileChange($event, 'resume')"
+                                accept=".pdf,.doc,.docx"
+                                style="
+                                  position: absolute;
+                                  display: block;
+                                  width: 100%;
+                                  opacity: 0;
+                                  top: 0;
+                                  left: 0;
+                                  cursor: pointer!important;"
+                              />
+                            </button>
+
                             <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')">
                               Resume is required
                             </mat-error>
@@ -520,7 +539,27 @@
                             <!-- Portfolio (VA only) -->
                             <div *ngIf="registerTeamMemberForm.contains('portfolio')">
                               <p>Portfolio (Graphic Design)</p>
-                              <input type="file" (change)="onFileChange($event, 'portfolio')">
+
+                              <button mat-flat-button color="primary" class="m-t-8 m-b-16 file">
+                                <i-tabler name="upload" class="icon-20"></i-tabler>
+                                Upload portfolio
+                                <input
+                                  #fileInput
+                                  type="file"
+                                  name="portfolio"
+                                  (change)="onFileChange($event, 'portfolio')"
+                                  accept=".pdf,.doc,.docx"
+                                  style="
+                                    position: absolute;
+                                    display: block;
+                                    width: 100%;
+                                    opacity: 0;
+                                    top: 0;
+                                    left: 0;
+                                    cursor: pointer!important;"
+                                />
+                              </button>
+
                               <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('required')">
                                 Portfolio is required
                               </mat-error>
