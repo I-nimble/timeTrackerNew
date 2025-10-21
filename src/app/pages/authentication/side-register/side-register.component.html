@@ -707,7 +707,10 @@
                             </mat-form-field>
 
                             <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid">
+                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid ||
+                                                !registerTeamMemberForm.get('workExperience')?.valid ||
+                                                !registerTeamMemberForm.get('educationHistory')?.valid ||
+                                                !registerTeamMemberForm.get('hobbies')?.valid">
                               Next
                             </button>
                           </form>
