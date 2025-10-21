@@ -446,6 +446,14 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
         });
     }
 
+	toDate(timestamp: number) {
+		return new Date(timestamp * 1000);
+	}
+
+	cancelReply() {
+		this.replyMessage = null;
+	}
+
 	ngOnDestroy() {
 		this.stopVoiceRecorderTimer();
 		if (this.dragLeaveTimeout) {
