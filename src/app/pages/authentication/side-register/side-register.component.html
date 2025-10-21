@@ -480,12 +480,12 @@
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Education History</mat-label>
-                              <textarea matInput formControlName="educationHistory"></textarea>
+                              <textarea matInput formControlName="educationHistory" required></textarea>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Work Experience</mat-label>
-                              <textarea matInput formControlName="workExperience"></textarea>
+                              <textarea matInput formControlName="workExperience" required></textarea>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline" class="w-100">
@@ -495,7 +495,7 @@
 
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Hobbies</mat-label>
-                              <textarea matInput formControlName="hobbies"></textarea>
+                              <textarea matInput formControlName="hobbies" required></textarea>
                             </mat-form-field>
 
                             <button mat-flat-button color="primary" class="w-100" matStepperNext 
