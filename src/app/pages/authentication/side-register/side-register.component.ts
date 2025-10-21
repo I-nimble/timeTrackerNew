@@ -118,6 +118,7 @@ export class AppSideRegisterComponent {
   }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
+  isImportantInformationVisible: boolean = false;
   hasInvitation: boolean = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
@@ -226,6 +227,10 @@ export class AppSideRegisterComponent {
     this.applicationsService.getLocations().subscribe((locations: any) => {
       this.locations = locations;
     });
+  }
+
+  showImportantInformation() {
+    this.isImportantInformationVisible = true;
   }
 
   showRegisterForm(userRole: string) {
