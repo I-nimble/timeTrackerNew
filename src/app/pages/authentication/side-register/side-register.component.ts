@@ -670,4 +670,11 @@ export class AppSideRegisterComponent {
       return null;
     };
   }
+
+  restrictToNumbers(event: KeyboardEvent) {
+    const key = event.key;
+    if (/^\d$/.test(key)) return;
+    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
+    event.preventDefault();
+  }
 }
