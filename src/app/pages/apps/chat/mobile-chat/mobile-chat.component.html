@@ -10,10 +10,16 @@
         <h4>{{ currentTab.label }}</h4>
       </div>
       <div>
+        <button
+          *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
+          (click)="openDialog.emit()"
+          [ngStyle]="getButtonStyle()"
+        >
+          <img src="assets/images/svgs/add-group.svg" alt="Create group" [ngStyle]="getButtonIconStyle()" />
+        </button>
         <!-- filter icon button -->
         <!-- <button 
                 mat-icon-button 
-                matPrefix
                 class="filter-btn"
                 matTooltip="Filter conversations"
             >
@@ -22,7 +28,6 @@
         <!-- <button
                 primary
                 mat-icon-button
-                matSuffix
                 matTooltip="Meet"
             >
                 <i-tabler name="video" class="icon"></i-tabler>

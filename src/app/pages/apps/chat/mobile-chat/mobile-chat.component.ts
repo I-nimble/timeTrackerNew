@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, NgModule, CUSTOM_ELEMENTS_SCHEMA, TemplateRef } from '@angular/core';
+import { Component, Input, OnInit, NgModule, CUSTOM_ELEMENTS_SCHEMA, TemplateRef, Output, EventEmitter } from '@angular/core';
 import { CometChatService } from '../../../../services/apps/chat/chat.service';
 import { CometChatThemeService, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit, CometChatConversations, CometChatGroups, CometChatContacts, CometChatMessages } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
@@ -9,6 +9,7 @@ import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
 import { CometChatUIEvents, DatePatterns, TimestampAlignment, CometChatMessageTemplate } from "@cometchat/uikit-resources"
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { environment } from 'src/environments/environment';
 
 interface ChatTab {
   label: string;
@@ -34,6 +35,7 @@ export class MobileChatComponent implements OnInit {
   @Input() conversationsMenuTemplate: TemplateRef<any>;
   @Input() customMessageComposerView: TemplateRef<any>;
   @Input() templates: CometChatMessageTemplate[];
+  @Output() openDialog: EventEmitter<void> = new EventEmitter<void>();
   
   cometChatUser!: any;
   profilePic!: any;
@@ -55,6 +57,28 @@ export class MobileChatComponent implements OnInit {
   usersSearchRequestBuilder: CometChat.UsersRequestBuilder;
   groupsSearchRequestBuilder: CometChat.GroupsRequestBuilder;
   StartConversationConfiguration!: ContactsConfiguration;
+  userEmail: string | null = localStorage.getItem('email');
+  groupCreatorEmails: string[] = environment.groupCreatorEmails;
+
+  getButtonStyle() {
+    return {
+      height: '20px',
+      width: '20px',
+      border: 'none',
+      borderRadius: '0',
+      background: 'transparent',
+      padding: '0',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    };
+  }
+  getButtonIconStyle() {
+    return {
+      filter: 'invert(8%) sepia(18%) saturate(487%) hue-rotate(57deg) brightness(91%) contrast(88%)'
+    };
+  }
 
   constructor(private chatService: CometChatService) {
     this.onConversationsItemClick = this.onConversationsItemClick.bind(this);
