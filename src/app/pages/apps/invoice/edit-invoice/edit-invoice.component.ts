@@ -107,7 +107,7 @@ export class AppEditInvoiceComponent {
     }
     const newEntry = {
       id: Math.floor(Math.random() * 1000000000),
-      date: new Date(),
+      date: new Date().toISOString(),
       start_time: new Date(),
       end_time: new Date(),
       entry_hours: 0,
