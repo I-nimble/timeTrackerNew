@@ -207,32 +207,41 @@ export class AppEditInvoiceComponent {
   }
 
   getTotalEntryHours(entry: any): number {
-    const start = new Date(entry.start_time);
-    const end = new Date(entry.end_time);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.warn('Invalid dates in getTotalEntryHours:', { start: entry.start_time, end: entry.end_time });
+    const referenceDate = new Date(entry.date);
+    if (isNaN(referenceDate.getTime())) {
+      console.warn('Invalid reference date in getTotalEntryHours:', entry.date);
       return 0;
     }
 
-    const startUTC = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(),
-      start.getHours(), start.getMinutes(), start.getSeconds()));
-    const endUTC = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(),
-      end.getHours(), end.getMinutes(), end.getSeconds()));
-    if (endUTC < startUTC) {
-      endUTC.setUTCDate(endUTC.getUTCDate() + 1);
+    const parseToDate = (val: any, baseDate: Date): Date => {
+      if (val) {
+        const direct = new Date(val);
+        if (!isNaN(direct.getTime())) return direct;
+      }
+      if (typeof val === 'string' && /^\d{1,2}:\d{2}(:\d{2})?$/.test(val)) {
+        const parts = val.split(':').map(Number);
+        const d = new Date(baseDate);
+        d.setHours(parts[0], parts[1], parts[2] || 0, 0);
+        return d;
+      }
+      return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
+    };
+
+    let start = parseToDate(entry.start_time, referenceDate);
+    let end = parseToDate(entry.end_time, referenceDate);
+
+    start.setFullYear(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+    end.setFullYear(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+
+    if (end.getTime() < start.getTime()) {
+      end.setDate(end.getDate() + 1);
     }
 
-    let diff = (endUTC.getTime() - startUTC.getTime()) / (1000 * 60 * 60);
-
-    if (diff < 0) {
-      diff += 24;
-    }
-
-    const roundedDiff = Math.round(diff * 100) / 100;
-
-    return roundedDiff;
+    const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const rounded = Math.round(diffHours * 100) / 100;
+    return rounded >= 0 ? rounded : 0;
   }
+
 
   combineDateAndTime(dateStr: string | Date, timeStr: string): string {
     if (!dateStr || !timeStr) {
@@ -294,9 +303,10 @@ export class AppEditInvoiceComponent {
       return new Date().toISOString().split('T')[0];
     }
 
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${d.getFullYear()}-${month}-${day}`;
+    const year = d.getUTCFullYear();
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   toTimeInputValue(date: string | Date): string {

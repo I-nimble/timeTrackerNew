@@ -162,7 +162,7 @@
           <table mat-table [dataSource]="item.entries" class="w-100" id="entries-table">
             <ng-container matColumnDef="day">
               <th mat-header-cell *matHeaderCellDef>Day</th>
-              <td mat-cell *matCellDef="let element">{{ element.date | date: "EEEE" }}</td>
+              <td mat-cell *matCellDef="let element">{{ element.date | date: "EEEE":"UTC" }}</td>
             </ng-container>
             <ng-container matColumnDef="date">
               <th mat-header-cell *matHeaderCellDef>Date</th>
