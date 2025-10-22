@@ -12,10 +12,11 @@ body {
   padding-top: constant(safe-area-inset-top);
   background-color: #EAEAEA; 
 }
+mat-sidenav, mat-sidenav-container {
+  padding-bottom: 60px;
+}
 .card-dashboard {
   height: 85%;
-  margin-top: env(safe-area-inset-top);
-  margin-top: constant(safe-area-inset-top);
 }
 .text-btn button p {
   color: #fff!important;
@@ -35,9 +36,5 @@ body {
     flex-direction: column;
     display: flex;
     flex: 1 0 auto;
-  }
-  body {
-    padding-top: max(env(safe-area-inset-top), 24px);
-    padding-top: max(constant(safe-area-inset-top), 24px);
   }
 }
