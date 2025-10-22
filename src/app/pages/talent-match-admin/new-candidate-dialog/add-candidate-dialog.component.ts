@@ -160,11 +160,11 @@ export class AddCandidateDialogComponent implements OnInit {
       position_id: formValue.position_id,
       current_position: formValue.current_position,
       company_id: companyId,
+      availability: formValue.availability,
+      location_id: formValue.location_id,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
-      availability: formValue.availability,
-      location_id: formValue.location_id,
       }),
       status_id: 3
     };
