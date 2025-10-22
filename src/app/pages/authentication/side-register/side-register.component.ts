@@ -6,7 +6,7 @@ import {
   FormsModule,
   ReactiveFormsModule,
   FormGroup,
-  AbstractControl, 
+  AbstractControl,
   ValidatorFn,
   ValidationErrors
 } from '@angular/forms';
@@ -99,10 +99,10 @@ export class AppSideRegisterComponent {
     competencies: ['', Validators.required],
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
-    educationHistory: [''],
-    workExperience: [''],
+    educationHistory: ['', Validators.required],
+    workExperience: ['', Validators.required],
     workReferences: ['', Validators.required],
-    hobbies: [''],
+    hobbies: ['', Validators.required],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     google_user_id: [''],
