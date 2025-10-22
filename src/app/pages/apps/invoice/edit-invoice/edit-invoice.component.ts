@@ -40,6 +40,7 @@ export class AppEditInvoiceComponent {
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
   ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
+  footerAddEntryColumns = ['add-entry'];
   tax: number = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
 
@@ -53,6 +54,7 @@ export class AppEditInvoiceComponent {
   loader = new Loader(false, false, false);
   message = '';
   changedFlatFees = new Set<any>();
+  isEntriesTableVisible = true;
 
   trackByEntryId(index: number, item: any) {
     return item.id;
@@ -96,6 +98,28 @@ export class AppEditInvoiceComponent {
     this.loadCompanies();
     this.loadCients();
     this.loadInvoiceDetail();
+  }
+
+  addNewEntry(item: any): void {
+    this.isEntriesTableVisible = false;
+    if (!item.entries) {
+      item.entries = [];
+    }
+    const newEntry = {
+      id: Math.floor(Math.random() * 1000000000),
+      date: new Date().toISOString(),
+      start_time: new Date(),
+      end_time: new Date(),
+      entry_hours: 0,
+      task: { description: '' },
+      employee_id: item.employee_id,
+    };
+    item.entries.push(newEntry);
+    this.markEntryAsChanged(newEntry);
+    this.recalculateCosts();
+    this.updateFormArrayWithChanges();
+    this.cdr.detectChanges();
+    this.isEntriesTableVisible = true;
   }
 
   private loadCients(): void {
