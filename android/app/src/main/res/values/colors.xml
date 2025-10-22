@@ -1,0 +1,13 @@
+<resources>    
+    <color name="colorPrimary">#15263a</color>
+    <color name="colorPrimaryDark">#15263a</color>
+    <color name="colorAccent">#15263a</color>
+    
+    <!-- Navigation Bar Colors -->
+    <color name="navigationBarLight">#EAEAEA</color>
+    <color name="navigationBarDark">#15263a</color>
+    
+    <!-- Status Bar Colors -->
+    <color name="statusBarLight">#15263a</color>
+    <color name="statusBarDark">#000000</color>
+</resources>
