@@ -81,7 +81,7 @@ export class AddCandidateDialogComponent implements OnInit {
                 ? this.data.candidate.company_id
                 : '',
             availability: this.data.candidate.availability,
-            location_id: this.locations.find((l: any) => l.country == this.data.candidate.location).id,
+            location_id: this.locations.find((l: any) => l.city == this.data.candidate.location).id,
             current_position: this.data.candidate.current_position,
           });
         }
