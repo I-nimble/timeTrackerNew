@@ -113,8 +113,10 @@ export class MobileChatComponent implements OnInit {
         },
         menu: this.conversationsMenuTemplate,
         groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
           .setLimit(100),
         searchRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
           .setLimit(100),
       }),
       contactsStyle: new ContactsStyle({
@@ -150,6 +152,7 @@ export class MobileChatComponent implements OnInit {
     })
 
     this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
+      .joinedOnly(true)
       .setLimit(50);
 
     this.conversationsRequestBuilder = new CometChat.ConversationsRequestBuilder()  
@@ -179,10 +182,11 @@ export class MobileChatComponent implements OnInit {
           .setLimit(50);
       } else if (this.currentTab?.component === 'groups') {
         this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
           .setLimit(50);
       } else if (this.currentTab?.component === 'contacts') {
         this.usersSearchRequestBuilder = new CometChat.UsersRequestBuilder().setLimit(50);
-        this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder().setLimit(50);
+        this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder().joinedOnly(true).setLimit(50);
       }
       return;
     }
@@ -197,6 +201,7 @@ export class MobileChatComponent implements OnInit {
       // update the search builder for groups
       this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
         .setSearchKeyword(query)
+        .joinedOnly(true)
         .setLimit(50);
     } else if (this.currentTab?.component === 'contacts') {
       this.usersSearchRequestBuilder = new CometChat.UsersRequestBuilder()
@@ -204,6 +209,7 @@ export class MobileChatComponent implements OnInit {
         .setLimit(50);
       this.groupsSearchRequestBuilder = new CometChat.GroupsRequestBuilder()
         .setSearchKeyword(query)
+        .joinedOnly(true)
         .setLimit(50);
     }
   }

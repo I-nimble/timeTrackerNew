@@ -15,7 +15,8 @@
 ::ng-deep .cc-groups {
     border: none!important;
 }
-::ng-deep .cc-contacts__wrapper {
+::ng-deep .cc-contacts__wrapper,
+::ng-deep .cc-details {
     padding: 0!important;
 }
 ::ng-deep .list__header,

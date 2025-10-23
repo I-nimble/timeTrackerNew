@@ -111,8 +111,10 @@ export class AppChatComponent implements OnInit {
         },
         menu: this.conversationsMenuTemplate,
         groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
           .setLimit(100),
         searchRequestBuilder: new CometChat.GroupsRequestBuilder()
+          .joinedOnly(true)
           .setLimit(100),
       }),
       contactsStyle: new ContactsStyle({

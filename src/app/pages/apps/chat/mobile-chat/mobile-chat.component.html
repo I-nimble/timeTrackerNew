@@ -81,6 +81,7 @@
   <cometchat-groups
     id="groups-container"
     [onItemClick]="onGroupsItemClick"
+    [groupsRequestBuilder]="StartConversationConfiguration.groupsConfiguration.groupsRequestBuilder"
     [groupsSearchRequestBuilder]="groupsSearchRequestBuilder"
   ></cometchat-groups>
   } @case('contacts') {
