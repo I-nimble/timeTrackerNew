@@ -81,7 +81,7 @@ export class AddCandidateDialogComponent implements OnInit {
                 ? this.data.candidate.company_id
                 : '',
             availability: this.data.candidate.availability,
-            location_id: this.locations.find((l: any) => l.country == this.data.candidate.location).id,
+            location_id: this.locations.find((l: any) => l.city == this.data.candidate.location).id,
             current_position: this.data.candidate.current_position,
           });
         }
@@ -160,11 +160,11 @@ export class AddCandidateDialogComponent implements OnInit {
       position_id: formValue.position_id,
       current_position: formValue.current_position,
       company_id: companyId,
+      availability: formValue.availability,
+      location_id: formValue.location_id,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
-      availability: formValue.availability,
-      location_id: formValue.location_id,
       }),
       status_id: 3
     };
