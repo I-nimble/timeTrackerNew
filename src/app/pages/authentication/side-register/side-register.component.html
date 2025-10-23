@@ -13,7 +13,7 @@
             <div class="col-lg-6 position-relative auth-bg-container">
               <div class="auth-bg-image" [style.background-image]="'url(' + assetPath + ')'"></div>
             </div>
-            <div class="col-lg-6 col-12">
+            <div class="col-lg-6 col-12 auth-info">
               <div
                 class="d-flex align-items-start align-items-lg-center justify-content-center"
               >
@@ -26,19 +26,58 @@
                     >Your all in one platform to manage your team</span
                     >
 
-                    <div *ngIf="!isRegisterFormVisible; else registerForm">
+                    <div *ngIf="!isRegisterFormVisible && !isImportantInformationVisible">
                       <button mat-stroked-button class="w-100 m-t-45" (click)="showRegisterForm('3')">
                         Client Registration
                       </button>
 
                       <p class="text-center m-t-16 m-b-16">or</p>
   
-                      <button mat-stroked-button class="w-100 m-b-45" (click)="showRegisterForm('2')">
+                      <button mat-stroked-button class="w-100 m-b-45" (click)="showImportantInformation()">
                         Apply for a Career Opportunity
                       </button>
                     </div>
 
-                    <ng-template #registerForm>
+                    <div *ngIf="!isRegisterFormVisible && isImportantInformationVisible">
+                      <h4 class="f-w-700 f-s-26 lh-base m-0 m-t-32">IMPORTANT INFORMATION</h4>
+                      <p class="m-t-16 m-b-16">
+                        <b>INIMBLE</b> is an outsourcing company specialized in providing talented and skilled professionals in administrative and technological areas. We adapt to the specific needs of each client, offering customized solutions tailored to their requirements. We began operations in the <b>United States (Atlanta, Georgia)</b> several years ago, and we currently have offices in <b>Venezuela (Maracaibo and Valencia)</b> and Colombia <b>(Medellin)</b> 🚀
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        Our work approach is <b>100% on-site during the initial stages</b>, which is why we provide the workplace and the necessary electronic equipment to perform tasks, such as laptops, mice, headsets, and more.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        The position we are offering, in general terms, is that of a Virtual Assistant, and the required competencies for this role include:
+                      </p>
+                      <ul>
+                        <li>Proficiency in the English language</li>
+                        <li>Problem-solving skills</li>
+                        <li>Proactive attitude</li>
+                        <li>Familiarity with technological tools</li>
+                        <li>High adaptability and versatility</li>
+                        <li>Ability to work as part of a team</li>
+                      </ul>
+                      <p class="m-t-16 m-b-16">
+                        We currently operate exclusively in the <b>U.S. Pacific Time Zone</b>, which means the working hours are approximately <b>11:30 a.m. or 12:00 p.m. to 8:00 p.m., Monday through Friday.</b>
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        📝 Once you complete and submit the application form, you will need to wait for our Human Resources team to review your submission. <b>Please note that the time it takes for HR to review applications may vary depending on the number of applicants we are processing at the moment.</b> If you meet all the requirements, you will be contacted via WhatsApp to continue the process. If not, it means you were not pre-selected for the next stage.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        💰 Payments are made <b>biweekly via Binance.</b>
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        🟢 <b>Benefits will be discussed directly once</b> the candidate has been selected to join Inimble.
+                      </p>
+                      <p class="m-t-16 m-b-16">
+                        <b>Inimble Work Smart</b> 💚
+                      </p>
+                      <button mat-flat-button color="primary" class="w-100" (click)="showRegisterForm('2')">
+                        Start
+                      </button>
+                    </div>
+
+                    <div *ngIf="isRegisterFormVisible">
                       <!-- Sign up with Google -->
                       <!-- <div class="row m-t-24">
                         <div class="col-12 col-sm-12">
@@ -480,12 +519,12 @@
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Education History</mat-label>
-                              <textarea matInput formControlName="educationHistory"></textarea>
+                              <textarea matInput formControlName="educationHistory" required></textarea>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Work Experience</mat-label>
-                              <textarea matInput formControlName="workExperience"></textarea>
+                              <textarea matInput formControlName="workExperience" required></textarea>
                             </mat-form-field>
 
                             <mat-form-field appearance="outline" class="w-100">
@@ -495,11 +534,14 @@
 
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Hobbies</mat-label>
-                              <textarea matInput formControlName="hobbies"></textarea>
+                              <textarea matInput formControlName="hobbies" required></textarea>
                             </mat-form-field>
 
                             <button mat-flat-button color="primary" class="w-100" matStepperNext 
-                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid">
+                                    [disabled]="!registerTeamMemberForm.get('workReferences')?.valid ||
+                                                !registerTeamMemberForm.get('workExperience')?.valid ||
+                                                !registerTeamMemberForm.get('educationHistory')?.valid ||
+                                                !registerTeamMemberForm.get('hobbies')?.valid">
                               Next
                             </button>
                           </form>
@@ -508,8 +550,27 @@
                         <!-- Step 7: Media Uploads -->
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
-                            <p>Resume (PDF)</p>
-                            <input type="file" accept=".pdf,.doc,.docx" (change)="onFileChange($event, 'resume')">
+                            <p>Please attach your resume, including months and years for each job. <b>(Example: Virtual Assistant at Inimble Venezuela - 1 year and 4 months)</b></p>
+                            <button mat-flat-button color="primary" class="m-t-8 file">
+                              <i-tabler name="upload" class="icon-20"></i-tabler>
+                              Upload resume
+                              <input
+                                #fileInput
+                                type="file"
+                                name="resume"
+                                (change)="onFileChange($event, 'resume')"
+                                accept=".pdf,.doc,.docx"
+                                style="
+                                  position: absolute;
+                                  display: block;
+                                  width: 100%;
+                                  opacity: 0;
+                                  top: 0;
+                                  left: 0;
+                                  cursor: pointer!important;"
+                              />
+                            </button>
+
                             <mat-error *ngIf="registerTeamMemberForm.get('resume')?.hasError('required')">
                               Resume is required
                             </mat-error>
@@ -520,7 +581,27 @@
                             <!-- Portfolio (VA only) -->
                             <div *ngIf="registerTeamMemberForm.contains('portfolio')">
                               <p>Portfolio (Graphic Design)</p>
-                              <input type="file" (change)="onFileChange($event, 'portfolio')">
+
+                              <button mat-flat-button color="primary" class="m-t-8 file">
+                                <i-tabler name="upload" class="icon-20"></i-tabler>
+                                Upload portfolio
+                                <input
+                                  #fileInput
+                                  type="file"
+                                  name="portfolio"
+                                  (change)="onFileChange($event, 'portfolio')"
+                                  accept=".pdf,.doc,.docx"
+                                  style="
+                                    position: absolute;
+                                    display: block;
+                                    width: 100%;
+                                    opacity: 0;
+                                    top: 0;
+                                    left: 0;
+                                    cursor: pointer!important;"
+                                />
+                              </button>
+
                               <mat-error *ngIf="registerTeamMemberForm.get('portfolio')?.hasError('required')">
                                 Portfolio is required
                               </mat-error>
@@ -529,14 +610,14 @@
                               </mat-error>
                             </div>
 
-                            <button mat-flat-button color="primary" class="w-100" (click)="submit()" 
+                            <button mat-flat-button color="primary" class="w-100 m-t-16" (click)="submit()" 
                                     [disabled]="!registerTeamMemberForm.valid">
                               Submit Application
                             </button>
                           </form>
                         </mat-step>
                       </mat-stepper>
-                    </ng-template>
+                    </div>
 
                     <span class="d-block f-w-500 d-block m-t-24 m-b-32"
                       >Already have an Account?
