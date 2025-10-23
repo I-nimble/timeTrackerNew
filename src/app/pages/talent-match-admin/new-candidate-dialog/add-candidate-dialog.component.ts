@@ -41,6 +41,7 @@ export class AddCandidateDialogComponent implements OnInit {
   isCreationAllowed: boolean = true;
   restrictionMessage: string = '';
   locations: any[] = [];
+  action: string = this.data.action || 'add';
 
   constructor(
     private fb: FormBuilder,
@@ -176,14 +177,14 @@ export class AddCandidateDialogComponent implements OnInit {
 
     this.applicationsService.submit(data, id).subscribe({
       next: (response) => {
-        this.snackBar.open('Candidate added successfully', 'Close', {
+        this.snackBar.open(`Candidate ${this.action == 'edit' ? 'edited' : 'added'} successfully`, 'Close', {
           duration: 3000,
         });
         this.dialogRef.close('success');
       },
       error: (error) => {
         this.snackBar.open(
-          'Error adding candidate: ' + error.message,
+          `Error ${this.action == 'edit' ? 'editing' : 'adding'} candidate: ${error.message}`,
           'Close',
           { duration: 3000 }
         );

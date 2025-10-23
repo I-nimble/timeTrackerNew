@@ -164,7 +164,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
       width: '600px',
       data: {
         candidate, 
-        companies: this.companiesData
+        companies: this.companiesData,
+        action: 'edit'
       }
     });
 
