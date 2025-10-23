@@ -28,33 +28,52 @@ export class CometChatService {
     private themeService: CometChatThemeService
   ) { }
 
-  async initializeCometChat(company_id?: number): Promise<void> {
+  private sleep(ms: number) {
+    return new Promise<void>(resolve => setTimeout(resolve, ms));
+  }
+
+  private async runInitializationAttempt(company_id?: number): Promise<boolean> {
     try {
       const chat_uid = localStorage.getItem('id');
-      if (!chat_uid) return;
+      if (!chat_uid) return false;
 
-      const credentials = await this.fetchChatCredentials(company_id); // change this
-      if (!credentials) return;
+      const credentials = await this.fetchChatCredentials(company_id);
+      if (!credentials) return false;
 
       const initialized = await this.initCometChatUIKit(credentials);
-      if (!initialized) return;
+      if (!initialized) return false;
 
       const initializedSDK = await this.initCometChatSDK(credentials);
-      if (!initializedSDK) return;
+      if (!initializedSDK) return false;
 
       const loggedIn = await this.loginCometChatUser(chat_uid);
-      if (!loggedIn) return;
+      if (!loggedIn) return false;
 
       this.isChatAvailable = true;
 
-      const permissionGranted = await this.requestNotificationPermission();
-      if (!permissionGranted) return;
-
+      await this.requestNotificationPermission();
       await this.registerPushToken();
 
+      return true;
     } catch (error) {
-      console.error("Initialization failed with error:", error);
+      console.error('Initialization attempt failed:', error);
+      return false;
     }
+  }
+
+  async initializeCometChat(company_id?: number, maxAttempts = 5, delayMs = 2000): Promise<void> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const ok = await this.runInitializationAttempt(company_id);
+      if (ok) return;
+
+      if (attempt < maxAttempts) {
+        console.warn(`CometChat init failed (attempt ${attempt}). Retrying in ${delayMs}ms...`);
+        await this.sleep(delayMs);
+      }
+    }
+
+    console.error('CometChat initialization failed after all attempts.');
+    this.openSnackBar('Chat initialization failed. Some chat features may be unavailable.', 'Close');
   }
   
   async fetchUnreadMessages(): Promise<any[]> {

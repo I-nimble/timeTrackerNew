@@ -126,9 +126,9 @@
       </div>
     }
     @else if (loader.complete && chatInitError) {
-    <div class="cta-message">
-      <p>{{ chatInitError }}</p>
-    </div>
+      <div class="cta-message">
+        <p>{{ chatInitError }}</p>
+      </div>
     }
     @else if (loader.complete && !chatService.isChatAvailable && !chatInitError) {
       <div class="cta-message">
