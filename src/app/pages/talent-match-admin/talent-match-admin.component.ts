@@ -35,6 +35,7 @@ export interface PeriodicElement {
 @Component({
   standalone: true,
   selector: 'app-talent-match-admin',
+  styleUrls: ['./talent-match-admin.component.scss'],
   imports: [
     MatCardModule,
     MatTableModule,
@@ -59,7 +60,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
     'location',
     'status',
     'interviewing on',
-    'company',
     'actions',
   ];
   dataSource = new MatTableDataSource<any>([]);
@@ -138,12 +138,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
     imgElement.src = this.assetsPath;
 
     imgElement.onerror = null;
-  }
-
-  getCompanyName(company_id: number): string {
-    if (company_id === -1) return 'N/A';
-    const company = this.companiesData.find((c: any) => c.id === company_id);
-    return company ? company.name : 'N/A';
   }
 
   openAddCandidateDialog(): void {

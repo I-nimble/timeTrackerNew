@@ -65,19 +65,6 @@
       </div>
       <div class="col-12 mb-3">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Company (Optional)</mat-label>
-          <mat-select formControlName="company_id">
-            <mat-option [value]="-1">None</mat-option>
-            <mat-option
-              *ngFor="let company of data.companies"
-              [value]="company.id"
-              >{{ company.name }}</mat-option
-            >
-          </mat-select>
-        </mat-form-field>
-      </div>
-      <div class="col-12 mb-3">
-        <mat-form-field appearance="outline" class="w-100">
           <mat-label>Location</mat-label>
           <mat-select formControlName="location_id">
             <mat-option
@@ -150,9 +137,6 @@
   </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" class="bg-error text-white">
-    Cancel
-  </button>
   <button
     mat-flat-button
     color="primary"
@@ -160,5 +144,8 @@
     [disabled]="!isCreationAllowed"
   >
     Save
+  </button>
+  <button mat-button (click)="onCancel()" class="bg-error text-white">
+    Cancel
   </button>
 </mat-dialog-actions>
