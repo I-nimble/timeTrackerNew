@@ -165,7 +165,9 @@ export class AppChatComponent implements OnInit {
       this.observeAppTheme();
       this.createCustomMessageTemplates();
       this.initPlanLogic();
-      this.getCompanies();
+      if(this.userRole === '1' || this.userRole === '4') {
+        this.getCompanies();
+      }
     } catch (err) {
       this.loader = new Loader(true, true, true);
       this.chatInitError = 'There was an error initializing the chat.';
