@@ -15,9 +15,16 @@
 ::ng-deep .cc-groups {
     border: none!important;
 }
-::ng-deep .cc-contacts__wrapper,
 ::ng-deep .cc-details {
     padding: 0!important;
+}
+::ng-deep .cc-contacts__wrapper,
+::ng-deep .cc-group-members__wrapper,
+::ng-deep .cc-add-members__wrapper,
+::ng-deep .cc-banned-members__wrapper {
+    padding-top: 2rem!important;
+    padding-right: 0!important;
+    padding-left: 0!important;
 }
 ::ng-deep .list__header,
 ::ng-deep .cc-contacts-title,
