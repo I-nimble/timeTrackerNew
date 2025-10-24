@@ -152,10 +152,11 @@
         </div>
       </div>
     </div>
-
     <div class="right-content">
       <div class="section" *ngIf="local_data.type !== 'board'">
         <h3 class="section-title">Comments & Activity</h3>
+
+        <!-- Comment input -->
         <div class="comment-input-container">
           <mat-form-field appearance="outline" class="w-100">
             <textarea
@@ -164,45 +165,45 @@
               [(ngModel)]="commentText"
               placeholder="Write a comment..."
               rows="2"
-              #commentTextarea
-              (input)="onCommentInput($event)"
-              (keydown)="onCommentKeydown($event)"
             ></textarea>
           </mat-form-field>
 
           <button
             mat-flat-button
             color="primary"
-            (click)="addComment()"
+            (click)="submitComment()"
             [disabled]="!commentText.trim()"
             class="save-btn"
           >
             Save
           </button>
-
-          <div *ngIf="showMentionList" class="mention-list mat-mdc-menu-panel b-1">
-            <div
-              *ngFor="let user of filteredUsers; let i = index"
-              [class.selected]="i === mentionIndex"
-              (mousedown)="selectMention(user)"
-              class="mention-item"
-            >
-              &#64;{{ user.name }} {{ user.last_name }}
-            </div>
-          </div>
         </div>
 
-        <div class="comment-history" *ngIf="local_data.comments">
-          <div
-            *ngFor="let c of local_data.comments.split('\n')"
-            class="comment-item bg-secondary"
-          >
-            <div class="comment-header">
-              <span class="user-name">{{ c.split(":")[0] }}</span>
-              <span class="comment-date">23 jun 2025, 14:44</span>
+        <div class="comment-history" *ngIf="comments.length > 0">
+          <div *ngFor="let c of comments.slice().reverse()" class="comment-item bg-secondary">
+            <div class="comment-header d-flex justify-between align-center">
+              <div class="user-info">
+                <span class="user-name">{{ c.user.name }} {{ c.user.last_name }}</span>
+                <span class="comment-date">{{ c.createdAt | date:'dd MMM yyyy, HH:mm' }}</span>
+              </div>
+
+              <div *ngIf="c.user_id === userId">
+                <button mat-icon-button [matMenuTriggerFor]="menu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #menu="matMenu">
+                  <button mat-menu-item (click)="startEditingComment(c)">
+                    <mat-icon>edit</mat-icon> Edit
+                  </button>
+                  <button mat-menu-item (click)="deleteComment(c.id)">
+                    <mat-icon>delete</mat-icon> Delete
+                  </button>
+                </mat-menu>
+              </div>
             </div>
             <div class="comment-text">
-              {{ c.split(":").slice(1).join(":") }}
+              {{ c.comment }}
             </div>
           </div>
         </div>
