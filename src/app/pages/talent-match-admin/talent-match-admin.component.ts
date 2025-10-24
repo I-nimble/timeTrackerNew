@@ -101,7 +101,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getApplications() {
-    this.applicationService.get().subscribe((applications) => {
+    this.applicationService.get(true).subscribe((applications) => {
       this.applicationsData = applications;
       this.dataSource.data = applications;
     });

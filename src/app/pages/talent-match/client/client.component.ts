@@ -224,18 +224,18 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  rejectApplication(applicationId: number) {
+  deleteApplication(applicationId: number) {
     const dialog = this.dialog.open(ModalComponent, {
-      data: { subject: 'application', action: 'reject' },
+      data: { subject: 'application', action: 'delete' },
     });
     dialog.afterClosed().subscribe((option: boolean) => {
       if (option) {
-        this.applicationsService.reject(applicationId).subscribe({
+        this.applicationsService.delete(applicationId).subscribe({
           next: (response: any) => {
             this.getApplications();
           },
           error: (err: any) => {
-            console.error('Error rejecting application:', err);
+            console.error('Error deleting application:', err);
           },
         });
       }
