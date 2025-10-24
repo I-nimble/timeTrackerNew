@@ -98,45 +98,23 @@
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-2 status-cell">Status</th>
-              <td mat-cell *matCellDef="let element" class="status-cell">
-                @switch(element.status) {
-                  @case('pending') {
-                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Pending
-                    </span>
-                  }
-                  @case('reviewing') {
-                    <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Reviewing
-                    </span>
-                  }
-                  @case('talent match') {
-                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Posted
-                    </span>
-                  }
-                  <!-- @case('read') {
-                    <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Seen by Client
-                    </span>
-                  } -->
-                  @case('scheduled interview') {
-                    <span class="bg-light-warning text-warning rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Waiting for Interview
-                    </span>
-                  }
-                  @case('rejected') {
-                    <span class="bg-light-error text-error rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Rejected
-                    </span>
-                  }
-                  @case('hired') {
-                    <span class="bg-light-success text-success rounded f-w-600 p-6 p-y-4 f-s-12">
-                      Hired
-                    </span>
-                  }
-                }
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let element">
+                <span class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12" [ngStyle]="{
+                  'background-color':
+                    element.status === 'pending'
+                      ? 'var(--mat-sys-error)'
+                      : element.status === 'talent match'
+                      ? 'rgb(253, 253, 150)'
+                      : element.status === 'hired'
+                      ? 'var(--mat-sys-primary)'
+                      : element.status === 'reviewing'
+                      ? 'rgb(255, 174, 105)'
+                      : 'rgb(72, 72, 72)',
+                  color: element.status === 'talent match' ? 'black' : 'white'
+                }">
+                {{ element.status }}
+              </span>
               </td>
             </ng-container>
 

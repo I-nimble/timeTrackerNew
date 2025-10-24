@@ -101,8 +101,9 @@ export class AppInvoiceViewComponent {
       return new Date().toISOString().split('T')[0];
     }
 
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${d.getFullYear()}/${month}/${day}`;
+    const year = d.getUTCFullYear();
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }
