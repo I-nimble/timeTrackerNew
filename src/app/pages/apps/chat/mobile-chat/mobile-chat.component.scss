@@ -24,6 +24,10 @@
 ::ng-deep .cc-close-button {
     display: none!important;
 }
+::ng-deep .cc-details__wrapper {
+    overflow-y: auto!important;
+    scrollbar-width: thin;
+}
 #conversations-container {
     cometchat-conversations {
         max-height: 100%;
