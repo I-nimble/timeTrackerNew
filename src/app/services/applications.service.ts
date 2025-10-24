@@ -61,8 +61,8 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
-  public get(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/`);
+  public get(onlyTalentPool: boolean = false): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
   }
 
   public getSelectedApplications(): Observable<any[]> {
