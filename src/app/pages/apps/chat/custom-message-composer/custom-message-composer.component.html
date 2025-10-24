@@ -22,62 +22,99 @@
 		(drop)="handleDrop($event)"
 		(dragenter)="handleDragEnter($event)"
 	>
-		<mat-form-field  appearance="outline" color="primary" class="hide-hint w-100">
+		<div *ngIf="replyMessage" class="reply-preview d-flex align-items-start">
+			<div>
+				<div class="d-flex">
+					<p class="f-s-12 m-r-8"> 
+						{{ replyMessage.getSender().getName() }} 
+					</p>
+					<p class="f-s-12">
+						{{ toDate(replyMessage.getSentAt()) | date:'short' }}
+					</p>
+				</div>
+					<span *ngIf="replyMessage.getType() === 'text'">
+					{{ replyMessage.getData().text }}
+				</span>
+				<span *ngIf="replyMessage.getType() === 'image'">
+					{{ replyMessage.getData().attachments[0].name }}
+				</span>
+					<span *ngIf="replyMessage.getType() === 'file'">
+					{{ replyMessage.getData().attachments[0].name }}
+				</span>
+				<span *ngIf="replyMessage.getType() === 'video'">
+					🎥 Video
+				</span>
+					<span *ngIf="replyMessage.getType() === 'audio'">
+					🎤 Audio
+				</span>
+			</div>
+
 			<button 
 				mat-icon-button 
-				matPrefix
+				class="cancel-reply-btn"
+				(click)="cancelReply()"
+				matTooltip="Cancel reply"
+				style="margin-left: 8px;"
+			>
+				<i-tabler name="x" class="icon-20"></i-tabler>
+			</button>
+		</div>
+		<div class="d-flex justify-content-center align-items-center w-100">
+			<button 
+				mat-icon-button 
 				class="attachment-btn"
 				(click)="toggleAttachmentDropdown(); $event.stopPropagation()"
 				matTooltip="Add to Chat"
 			>
 				<img src="assets/images/svgs/Plus.svg" alt="Add attachment" class="icon" />
 			</button>
-			<input 
-				#textArea
-				matInput
-				class="message-textarea"
-				[placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
-				[value]="messageText"
-				(input)="onTextChange($event)"
-				(keydown)="onKeyDown($event)"
-				(focus)="onFocus()"
-				(blur)="onBlur()"
-				rows="1"
-				autosize
-				(dragenter)="handleDragEnter($event)"
-				(dragleave)="handleDragLeave($event)"
-				(dragover)="handleDragOver($event)"
-			>
+			<mat-form-field  appearance="outline" color="primary" class="hide-hint w-100" style="flex: 1;">
+				<textarea 
+					#textArea
+					matInput
+					class="message-textarea"
+					[placeholder]="inlineImages.length > 0 ? 'Add a message...' : 'Enter your message here'"
+					[value]="messageText"
+					(input)="onTextChange($event)"
+					(keydown)="onKeyDown($event)"
+					(focus)="onFocus()"
+					(blur)="onBlur()"
+					cdkTextareaAutosize
+					cdkAutosizeMinRows="1"
+					cdkAutosizeMaxRows="4"
+					(dragenter)="handleDragEnter($event)"
+					(dragleave)="handleDragLeave($event)"
+					(dragover)="handleDragOver($event)"
+				></textarea>
+				<button 
+					mat-icon-button 
+					matSuffix
+					class="emoji-btn"
+					(click)="toggleEmojiDropdown(); $event.stopPropagation()"
+					matTooltip="Emoji"
+				>
+					<img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
+				</button>
+			</mat-form-field>
 			<button 
+				*ngIf="!userHasWritten"
 				mat-icon-button 
-				matSuffix
-				class="emoji-btn"
-				(click)="toggleEmojiDropdown(); $event.stopPropagation()"
-				matTooltip="Emoji"
-			>
-				<img src="assets/images/svgs/emoji.svg" alt="Emoji" class="icon" />
-			</button>
-			<button 
-				*ngIf="!hideVoiceRecording"
-				mat-icon-button 
-				matSuffix
 				class="voice-btn"
-				(click)="toggleVoiceRecorderDropdown(); $event.stopPropagation()"
+				(click)="toggleVoiceRecorderDropdown()"
 				matTooltip="Voice message"
 			>
 				<img src="assets/images/svgs/mic.svg" alt="Voice recording" class="icon" />
 			</button>
 			<button 
 				mat-icon-button 
-				matSuffix
 				class="send-btn"
-				[disabled]="!messageText.trim() && inlineImages.length === 0"
+				*ngIf="userHasWritten"
 				(click)="sendMessage()"
 				matTooltip="Send message"
 			>
 				<img src="assets/images/svgs/Send.svg" alt="Send" class="send-icon" />
 			</button>
-		</mat-form-field>
+		</div>
 
 		<!-- Drag Overlay -->
 		<div 

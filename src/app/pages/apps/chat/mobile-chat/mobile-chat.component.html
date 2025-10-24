@@ -1,0 +1,155 @@
+<div id="mobile-chat-container" class="d-flex flex-column p-16">
+  <!-- HEADER -->
+  <header *ngIf="currentTab.component !== 'messages'">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-8">
+        <cometchat-avatar
+          [image]="profilePic"
+          [avatarStyle]="avatarStyle"
+        ></cometchat-avatar>
+        <h4>{{ currentTab.label }}</h4>
+      </div>
+      <div>
+        <button
+          *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
+          (click)="openDialog.emit()"
+          [ngStyle]="getButtonStyle()"
+        >
+          <img src="assets/images/svgs/add-group.svg" alt="Create group" [ngStyle]="getButtonIconStyle()" />
+        </button>
+        <!-- filter icon button -->
+        <!-- <button 
+                mat-icon-button 
+                class="filter-btn"
+                matTooltip="Filter conversations"
+            >
+                <i-tabler name="filter" class="icon"></i-tabler>
+            </button> -->
+        <!-- <button
+                primary
+                mat-icon-button
+                matTooltip="Meet"
+            >
+                <i-tabler name="video" class="icon"></i-tabler>
+                Meet
+            </button> -->
+      </div>
+    </div>
+    <div class="m-t-16">
+        <!-- THIS FUNCTIONALITY IS DISABLED FOR OUR CURRENT COMET CHAT PLAN, IT IS REQUIRED TO PAY IN ORDER TO ALLOW SEARCH -->
+      <mat-form-field appearance="outline" class="w-100" disabled>
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          type="text"
+          placeholder="Search"
+          (input)="search($event)"
+          [disabled]="true"
+          readonly
+        />
+        <button
+          mat-icon-button
+          matSuffix
+          class="search-btn"
+          [disabled]="!searchText.trim()"
+          (click)="search()"
+          matTooltip="Search conversations"
+        >
+          <i-tabler name="search" class="icon"></i-tabler>
+        </button>
+      </mat-form-field>
+    </div>
+  </header>
+
+  @switch(currentTab.component) { @case('chats') {
+  <!-- CONVERSATIONS -->
+  <div id="conversations-container">
+    <!-- ESSENTIAL AND PROFESSIONAL PLAN CONVERSATIONS -->
+    <cometchat-conversations
+      *ngIf="plan && plan.id != 1"
+      id="cc-conversations"
+      [onItemClick]="onConversationsItemClick"
+      [conversationsRequestBuilder]="conversationsRequestBuilder"
+    ></cometchat-conversations>
+
+    <!-- NEW CONVERSATION BUBBLE -->
+    <div id="new-conversation-bubble" (click)="currentTab = tabs[2]">
+      <i-tabler name="message-plus" class="icon-20"></i-tabler>
+    </div>
+  </div>
+  } @case('groups') {
+  <cometchat-groups
+    id="groups-container"
+    [onItemClick]="onGroupsItemClick"
+    [groupsRequestBuilder]="StartConversationConfiguration.groupsConfiguration.groupsRequestBuilder"
+    [groupsSearchRequestBuilder]="groupsSearchRequestBuilder"
+  ></cometchat-groups>
+  } @case('contacts') {
+  <!-- CONTACTS -->
+  <!-- TODO: Hide header -->
+  <cometchat-contacts
+    id="contacts-container"
+    [usersConfiguration]="StartConversationConfiguration.usersConfiguration"
+    [groupsConfiguration]="StartConversationConfiguration.groupsConfiguration"
+    [contactsStyle]="StartConversationConfiguration.contactsStyle"
+    [usersSearchRequestBuilder]="usersSearchRequestBuilder"
+    [groupsSearchRequestBuilder]="groupsSearchRequestBuilder"
+  ></cometchat-contacts>
+  } @case('messages') {
+    <div id="messages-container">
+      <!-- BASIC PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && plan.id == 1"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="basicMessagesConfig.messageListConfiguration"
+        [messageComposerView]="basicMessagesConfig.messageComposerView"
+        [disableSoundForMessages]="basicMessagesConfig.disableSoundForMessages"
+        [threadedMessageConfiguration]="basicMessagesConfig.threadedMessageConfiguration"
+        [messageComposerConfiguration]="basicMessagesConfig.messageComposerConfiguration"
+        [detailsConfiguration]="basicMessagesConfig.detailsConfiguration"
+        
+      ></cometchat-messages>
+      <!-- ESSENTIAL PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && plan.id == 2"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="essentialMessagesConfig.messageListConfiguration"
+        [messageComposerView]="essentialMessagesConfig.messageComposerView"
+        [disableSoundForMessages]="essentialMessagesConfig.disableSoundForMessages"
+        [threadedMessageConfiguration]="essentialMessagesConfig.threadedMessageConfiguration"
+        [messageHeaderConfiguration]="essentialMessagesConfig.messageHeaderConfiguration"
+        [detailsConfiguration]="essentialMessagesConfig.detailsConfiguration"
+        
+      ></cometchat-messages>
+      <!-- PROFESSIONAL PLAN MESSAGES -->
+      <cometchat-messages
+        *ngIf="(user || group) && (plan.id == 3 || userRole == '1' || userRole == '4')"
+        [user]="user!"
+        [group]="group!"
+        [messageListConfiguration]="professionalMessagesConfig.messageListConfiguration"
+        [messageComposerView]="professionalMessagesConfig.messageComposerView"
+        [disableSoundForMessages]="professionalMessagesConfig.disableSoundForMessages"
+        [messageHeaderConfiguration]="professionalMessagesConfig.messageHeaderConfiguration"
+        [detailsConfiguration]="professionalMessagesConfig.detailsConfiguration"
+      ></cometchat-messages>
+    </div>
+  } }
+  <!-- FOOTER -->
+  <footer class="p-t-16">
+    <div class="d-flex justify-content-around align-items-center">
+      <button
+        *ngFor="let tab of tabs"
+        class="text-center cursor-pointer tab-btn"
+        [ngClass]="{ active: tab === currentTab }"
+        (click)="currentTab = tab"
+        [disabled]="tab.component === 'chats' && plan.id == 1"
+        [hidden]="tab.component === 'messages'"
+      >
+        <i-tabler [name]="tab.icon" class="icon-20"></i-tabler>
+        <p class="f-s-12">{{ tab.label }}</p>
+      </button>
+    </div>
+  </footer>
+</div>

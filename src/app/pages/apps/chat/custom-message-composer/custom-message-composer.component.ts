@@ -5,17 +5,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { CometChatUIKit } from '@cometchat/chat-uikit-angular';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 @Component({
 	selector: 'app-custom-message-composer',
-    imports: [MaterialModule, CommonModule],
+    imports: [MaterialModule, CommonModule, TablerIconsModule],
 	templateUrl: './custom-message-composer.component.html',
 	styleUrls: ['./custom-message-composer.component.scss']
 })
 export class CustomMessageComposerComponent implements OnInit, OnDestroy {
 	@Input() user: CometChat.User | null = null;
     @Input() group: CometChat.Group | null = null;
-    @Input() hideVoiceRecording: boolean = false;
+	@Input() replyMessage: any = null;
 
 	messageText: string = '';
 	inlineImages: any[] = [];
@@ -49,6 +50,10 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
     ngOnInit () {
         document.addEventListener('paste', this.handlePaste.bind(this));
     }
+
+	get userHasWritten() {
+		return this.messageText.trim() || this.inlineImages.length > 0;
+	}
 
 	onTextChange(event: any) {
 		this.messageText = event.target.value;
@@ -440,6 +445,14 @@ export class CustomMessageComposerComponent implements OnInit, OnDestroy {
         verticalPosition: 'top',
         });
     }
+
+	toDate(timestamp: number) {
+		return new Date(timestamp * 1000);
+	}
+
+	cancelReply() {
+		this.replyMessage = null;
+	}
 
 	ngOnDestroy() {
 		this.stopVoiceRecorderTimer();
