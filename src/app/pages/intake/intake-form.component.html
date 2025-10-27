@@ -255,11 +255,7 @@
               </p>
               <div class="d-flex justify-content-between m-t-16">
                 <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
-
-                <div class="d-flex gap-8">
-                  <button mat-stroked-button color="primary" (click)="saveProgress()">Save</button>
-                  <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!intakeForm.valid">Finish</button>
-                </div>
+                <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!intakeForm.valid">Finish</button>
               </div>
             </form>
           </mat-step>
