@@ -24,6 +24,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { lastValueFrom } from 'rxjs';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { SafeHtmlPipe } from './safe-html.pipe';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-kanban-dialog',
@@ -38,6 +41,9 @@ import { SafeHtmlPipe } from './safe-html.pipe';
     MatDatepickerModule,
     MatNativeDateModule,
     SafeHtmlPipe,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
   ],
   providers: [DatePipe, provideNativeDateAdapter()],
 })
@@ -56,6 +62,9 @@ export class AppKanbanDialogComponent implements OnInit {
   filteredUsers: any[] = [];
   mentionStartPos = 0;
   commentText: string = '';
+  comments: any[] = [];
+  editingComment: any = null;
+  selectedComment: any = null;
   dueDateTime: Date | null = null;
   companies: any[] = [];
   firstAttachmentImage: any = null;
@@ -65,6 +74,7 @@ export class AppKanbanDialogComponent implements OnInit {
   formTouched: boolean = false;
   isSaving: boolean = false;
   isOrphan: boolean = false;
+  userId: number | null = null;
   selectedEmployeeId: number | null = null;
 
   constructor(
@@ -113,6 +123,7 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.userId = Number(localStorage.getItem('id'));
     if (this.local_data.due_date) {
       const dueDate = new Date(this.local_data.due_date);
       if (!isNaN(dueDate.getTime())) {
@@ -125,7 +136,7 @@ export class AppKanbanDialogComponent implements OnInit {
       this.local_data.due_date = defaultDate;
     }
     this.updateFirstAttachmentImage();
-
+    this.loadComments();
     setTimeout(() => {
       if (this.descriptionEditor && this.local_data.recommendations) {
         this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
@@ -282,6 +293,12 @@ export class AppKanbanDialogComponent implements OnInit {
     });
   }
 
+  loadComments() {
+    this.ratingsService.getComments(this.local_data.id).subscribe(res => {
+      this.comments = res.map(c => ({ ...c, isEditing: false, editText: c.comment }));
+    });
+  }
+
   doAction(): void {
     this.formTouched = true;
 
@@ -408,16 +425,48 @@ export class AppKanbanDialogComponent implements OnInit {
     return `@${user.name}${user.last_name}`;
   }
 
-  addComment() {
-    const username = localStorage.getItem('username') || 'Usuario';
-    if (!this.local_data.comments) this.local_data.comments = '';
-    if (this.commentText.trim()) {
-      if (this.local_data.comments.length > 0) {
-        this.local_data.comments += '\n';
-      }
-      this.local_data.comments += `${username}: ${this.commentText.trim()}`;
+  submitComment() {
+    if (!this.commentText.trim()) return;
+
+    if (this.selectedComment) {
+      this.editComment(this.selectedComment, this.commentText);
+      this.selectedComment = null;
       this.commentText = '';
+      this.showSnackbar('Comment added!');
+    } else {
+      const payload = {
+        rating_id: this.local_data.id,
+        comment: this.commentText
+      };
+      this.ratingsService.addComment(payload).subscribe(newComment => {
+        this.comments.push(newComment);
+        this.commentText = '';
+        this.showSnackbar('Comment updated!');
+      });
     }
+  }
+
+  startEditingComment(comment: any) {
+    this.commentText = comment.comment;
+    this.selectedComment = comment;
+    setTimeout(() => {
+      this.commentTextarea?.nativeElement.focus();
+    });
+  }
+
+  editComment(comment: any, newText: string) {
+    if (!newText.trim()) return;
+    this.ratingsService.updateComment(comment.id, newText).subscribe(updated => {
+      comment.comment = updated.comment;
+      comment.isEditing = false;
+    });
+  }
+
+  deleteComment(commentId: number) {
+    this.ratingsService.deleteComment(commentId).subscribe(() => {
+      this.comments = this.comments.filter(c => c.id !== commentId);
+      this.showSnackbar('Comment deleted!');
+    });
   }
 
   async onPaste(event: ClipboardEvent) {
