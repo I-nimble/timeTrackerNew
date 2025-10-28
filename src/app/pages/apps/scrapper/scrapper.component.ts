@@ -39,7 +39,9 @@ export class ScrapperComponent implements OnInit {
 
   getPosts() {
     this.scrapperService.getPosts().subscribe(posts => {
-      this.posts = posts;
+      this.posts = posts.sort((a:any, b:any) => {
+        return new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime();
+      });
     });
   }
 
