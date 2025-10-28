@@ -432,7 +432,7 @@ export class AppKanbanDialogComponent implements OnInit {
       this.editComment(this.selectedComment, this.commentText);
       this.selectedComment = null;
       this.commentText = '';
-      this.showSnackbar('Comment added!');
+      this.showSnackbar('Comment updated!');
     } else {
       const payload = {
         rating_id: this.local_data.id,
@@ -441,7 +441,7 @@ export class AppKanbanDialogComponent implements OnInit {
       this.ratingsService.addComment(payload).subscribe(newComment => {
         this.comments.push(newComment);
         this.commentText = '';
-        this.showSnackbar('Comment updated!');
+        this.showSnackbar('Comment added!');
       });
     }
   }
