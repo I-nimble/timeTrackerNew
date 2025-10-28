@@ -68,8 +68,10 @@ export class CandidatesComponent {
     }
 
     this.displayedColumns = [
-      'candidate',
-      'vacancy',
+      'name',
+      'position',
+      'skills',
+      'location',
       'submission_date',
       'status',
       'actions',
