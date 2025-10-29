@@ -139,11 +139,11 @@ export class FullComponent implements OnInit {
         link: '/apps/expert',
       }]
     : []),
-    ...(this.role == '3'
+    ...(environment.allowedContentCreatorEmails.includes(localStorage.getItem('email') || '')
     ? [{
         id: 15,
         img: '/assets/images/svgs/icon-connect.svg',
-        title: 'Content Creator',
+        title: 'My Sentinel',
         subtitle: 'Create and manage content',
         link: '/apps/scrapper',
       }]

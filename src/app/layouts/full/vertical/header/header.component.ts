@@ -93,6 +93,7 @@ export class HeaderComponent implements OnInit {
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
   allowedTM: boolean = false;
+  allowedContentCreatorEmails: string[] = environment.allowedContentCreatorEmails;
   userPermissions: string[] = [];
   profiledd: profiledd[] = [];
   toggleCollpase() {
