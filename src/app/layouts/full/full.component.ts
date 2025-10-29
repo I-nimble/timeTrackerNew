@@ -143,7 +143,7 @@ export class FullComponent implements OnInit {
     ? [{
         id: 15,
         img: '/assets/images/svgs/icon-connect.svg',
-        title: 'Content Creator',
+        title: 'My Sentinel',
         subtitle: 'Create and manage content',
         link: '/apps/scrapper',
       }]
