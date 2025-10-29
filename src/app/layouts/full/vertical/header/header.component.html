@@ -118,7 +118,7 @@
     <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
       Expert Match
     </a>
-    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="role == '3'">
+    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="allowedContentCreatorEmails.includes(userEmail)">
       Content Creator
     </a>
   </div>
