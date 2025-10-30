@@ -16,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AddCandidateDialogComponent } from './new-candidate-dialog/add-candidate-dialog.component'; 
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-
+import { PermissionService } from 'src/app/services/permission.service';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
@@ -72,14 +72,18 @@ export class AppTalentMatchAdminComponent implements OnInit {
   companiesData: any[] = [];
   positions: any[] = [];
   userRole = localStorage.getItem('role');
-
+  canManage: boolean = false;
+  canEdit: boolean = false;
+  canDelete: boolean = false;
+  
   constructor(
     private applicationService: ApplicationsService,
     private interviewsService: InterviewsService,
     private companiesService: CompaniesService,
     private positionsService: PositionsService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private permissionService: PermissionService
   ) { }
   
   
@@ -87,6 +91,19 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.getApplications();
     this.getPositions();
     this.getInterviews();
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('talent-match.manage');
+        this.canEdit = effective.includes('talent-match.edit');
+        this.canDelete = effective.includes('talent-match.delete');
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
   }
 
   getPositions() {

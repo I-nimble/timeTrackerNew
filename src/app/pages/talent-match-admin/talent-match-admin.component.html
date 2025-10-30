@@ -23,7 +23,7 @@
             </mat-icon>
           </mat-form-field>
           <button
-            *ngIf="userRole != '4'"
+            *ngIf="canManage"
             mat-flat-button
             class="m-r-8"
             (click)="openAddCandidateDialog()"
@@ -140,11 +140,11 @@
                     <mat-icon>visibility</mat-icon>
                       <span>View</span>
                     </button>
-                  <button mat-menu-item (click)="openEditCandidateDialog(element)" *ngIf="userRole != '4'">
+                  <button mat-menu-item (click)="openEditCandidateDialog(element)" *ngIf="canEdit">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                   </button>
-                  <button mat-menu-item (click)="deleteCandidate(element.id)" *ngIf="userRole != '4'">
+                  <button mat-menu-item (click)="deleteCandidate(element.id)" *ngIf="canDelete">
                     <mat-icon>delete</mat-icon>
                     <span>Delete</span>
                   </button>

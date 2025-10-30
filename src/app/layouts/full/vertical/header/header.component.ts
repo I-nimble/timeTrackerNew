@@ -95,6 +95,7 @@ export class HeaderComponent implements OnInit {
   allowedTM: boolean = false;
   userPermissions: string[] = [];
   profiledd: profiledd[] = [];
+  canViewTalentMatch: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -195,6 +196,18 @@ export class HeaderComponent implements OnInit {
     const allowedTM = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
     this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.buildProfileMenu();
+        this.canViewTalentMatch =
+          this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view');
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+        this.buildProfileMenu();
+      },
+    });
   }
 
     private buildProfileMenu() {
