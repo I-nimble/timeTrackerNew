@@ -9,6 +9,10 @@ export class IntakeService {
   constructor(private http: HttpClient) {}
   private API_URI = environment.apiUrl + '/intake';
 
+  public getIntake(uuid: string) {
+    return this.http.get(`${this.API_URI}/${uuid}`);
+  }
+
   public submitIntake(data: any) {
     const body = {
       client: data.client,
