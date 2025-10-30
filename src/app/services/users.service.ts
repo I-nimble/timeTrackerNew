@@ -91,22 +91,6 @@ export class UsersService {
     return this.http.post<any>(`${this.API_URI}/users`, body, { headers });
   }
 
-  createUser(userData: any) {
-    let form = new FormData();
-    if (userData.id) form.append('id', userData.id);
-    if (userData.name) form.append('name', userData.name);
-    if (userData.last_name) form.append('last_name', userData.last_name);
-    if (userData.password) form.append('password', userData.password);
-    if (userData.active) form.append('active', userData.active);
-    if (userData.email) form.append('email', userData.email);
-    if (userData.phone) form.append('phone', userData.phone);
-    if (userData.employee) form.append('employee', JSON.stringify(userData.employee));
-    if (userData.role) form.append('role', userData.role);
-    if (userData.company) form.append('company', JSON.stringify(userData.company));
-    if (userData.profile) form.append('profile', userData.profile);
-    return this.http.post(`${this.API_URI}/users/create`, form);
-  }
-
   public updateProfile(userData: any) {
     let form = new FormData();
     if (userData.name) form.append('name', userData.name);
@@ -155,15 +139,6 @@ export class UsersService {
     return this.http.get(`${this.API_URI}/positions/${id}`);
   }
 
-  createPossible(body: PossibleMember) {
-    let form = new FormData();
-    form.append('name', body.name);
-    form.append('email', body.email);
-    form.append('phone', body.phone);
-    form.append('englishLevel', body.englishLevel);
-    form.append('resume', body.resume);
-    return this.http.post(`${this.API_URI}/users/create/possible`, form);
-  }
   setUserInformation(user: any) {
     this.selectedUser = user;
   }
