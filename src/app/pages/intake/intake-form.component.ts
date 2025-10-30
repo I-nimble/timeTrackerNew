@@ -18,7 +18,7 @@ import { startWith, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -127,7 +127,8 @@ export class AppIntakeFormComponent implements OnInit {
     public snackBar: MatSnackBar,
     private intakeService: IntakeService,
     private positionsService: PositionsService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
@@ -146,6 +147,12 @@ export class AppIntakeFormComponent implements OnInit {
         this.openSnackBar('Error loading positions', 'Close');
       }
     });
+
+    const uuid = this.route.snapshot.paramMap.get('uuid');
+    if (uuid) {
+      this.loadIntake(uuid);
+    }
+
     const competencies = this.intakeForm.get('positionInfo.competencies')?.value;
     if (Array.isArray(competencies)) {
       this.selectedCompetencies = competencies;
@@ -214,6 +221,52 @@ export class AppIntakeFormComponent implements OnInit {
       competenciesControl.markAsDirty();
       competenciesControl.updateValueAndValidity();
     }
+  }
+
+  loadIntake(uuid: string): void {
+    this.intakeService.getIntake(uuid).subscribe({
+      next: (data: any) => {
+        this.intakeForm.patchValue({
+          contactInfo: {
+            client: data.client,
+            contactPerson: data.contact_person,
+            email: data.email,
+            countryCode: data.phone?.split(' ')[0] || '+1',
+            phone: data.phone?.split(' ')[1] || '',
+            website: data.website,
+            industry: data.industry,
+            numberOfEmployees: data.number_of_employees,
+          },
+          positionInfo: {
+            jobTitle: data.job_title,
+            jobDescription: data.job_description,
+            kpi: data.kpi,
+            competencies: data.competencies?.split(', ') || [],
+            trainingContact: data.training_contact,
+            itContact: data.it_contact,
+            techNeeds: data.tech_needs,
+            additionalInfo: data.additional_info,
+          },
+          scheduleInfo: {
+            scheduleDays: data.schedule_days?.split(', ') || [],
+            scheduleStart: data.schedule?.split(' - ')[0] || '',
+            scheduleEnd: data.schedule?.split(' - ')[1] || '',
+            lunchTime: data.lunchtime,
+            holidaysObserved: data.holidays_observed?.split(', ') || [],
+          },
+        });
+        this.selectedCompetencies = data.competencies?.split(', ') || [];
+        if (data.status == "submitted"){
+          this.formSubmitted = true;
+        }
+        this.lastIntakeId = data.id || null;
+        this.lastClientName = (data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
+      },
+      error: (err) => {
+        console.error('Error loading intake:', err);
+        this.openSnackBar('Error loading intake data', 'Close');
+      },
+    });
   }
 
   sendForm() {
