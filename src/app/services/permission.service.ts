@@ -23,6 +23,10 @@ export class PermissionService {
     return this.http.get<any>(`${this.apiUrl}/user/${userId}`);
   }
   
+  getSections(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/section/`);
+  }
+
   getPermissionsBySection(sectionKey: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/section/${sectionKey}`);
   }
