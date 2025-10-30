@@ -77,10 +77,7 @@ export class AppPermissionComponent {
   searchText: string = '';
   dataSource: any[] = [];
   activeStatus: number | string = 1;
-  availableSections: { key: string; label: string }[] = [
-    { key: 'users', label: 'Team Members' },
-    { key: 'payments', label: 'Payments' },
-  ];
+  availableSections: { key: string; label: string }[] = [];
   selectedSection: string = this.availableSections[0]?.key || '';
 
   constructor(
@@ -94,6 +91,7 @@ export class AppPermissionComponent {
     this.loadRoles();    
     this.getUsers();
     this.getCompanies();
+    this.loadSections();
   }
 
   getCompanies() {
@@ -101,6 +99,18 @@ export class AppPermissionComponent {
       next: (companies: any) => {
         this.companies = companies;
       },
+    });
+  }
+
+  loadSections(): void {
+    this.permissionService.getSections().subscribe({
+      next: (sections) => {
+        this.availableSections = sections;
+        if (sections.length > 0) {
+          this.selectedSection = sections[0].key;
+        }
+      },
+      error: (err) => console.error('Error loading sections:', err),
     });
   }
 
