@@ -118,8 +118,8 @@
     <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
       Expert Match
     </a>
-    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="role == '3'">
-      Content Creator
+    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="allowedContentCreatorEmails.includes(userEmail)">
+      My Sentinel
     </a>
   </div>
 

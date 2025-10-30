@@ -224,18 +224,18 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  rejectApplication(applicationId: number) {
+  deleteApplication(applicationId: number) {
     const dialog = this.dialog.open(ModalComponent, {
-      data: { subject: 'application', action: 'reject' },
+      data: { subject: 'application', action: 'delete' },
     });
     dialog.afterClosed().subscribe((option: boolean) => {
       if (option) {
-        this.applicationsService.reject(applicationId).subscribe({
+        this.applicationsService.delete(applicationId).subscribe({
           next: (response: any) => {
             this.getApplications();
           },
           error: (err: any) => {
-            console.error('Error rejecting application:', err);
+            console.error('Error deleting application:', err);
           },
         });
       }
@@ -245,13 +245,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any) => {
-        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(applications);
-        this.allCandidates = [...filteredApplications];
-        this.dataSource = new MatTableDataSource(filteredApplications);
-
-        // if (filteredApplications.find((app: any) => app.status_id === 1)) {
-        //   this.applicationsService.markAsSeen().subscribe();
-        // }
+        this.allCandidates = applications;
+        this.dataSource = new MatTableDataSource(applications);
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);

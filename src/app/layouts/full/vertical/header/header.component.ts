@@ -93,6 +93,7 @@ export class HeaderComponent implements OnInit {
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
   allowedTM: boolean = false;
+  allowedContentCreatorEmails: string[] = environment.allowedContentCreatorEmails;
   userPermissions: string[] = [];
   profiledd: profiledd[] = [];
   toggleCollpase() {
@@ -284,9 +285,7 @@ export class HeaderComponent implements OnInit {
         this.applications = apps;
         const role = localStorage.getItem('role');
         
-        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(apps);
-        
-        if(role === '3' && filteredApplications.find((app: any) => app.status_id === 1)) {
+        if(role === '3' && this.applications.find((app: any) => app.status_id === 1)) {
           this.hasNewTalentMatch = true;
         } else {
           this.hasNewTalentMatch = false;

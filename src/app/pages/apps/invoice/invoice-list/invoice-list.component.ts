@@ -24,6 +24,7 @@ import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { PermissionService } from 'src/app/services/permission.service';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
+import moment from 'moment';
 
 @Component({
   selector: 'app-invoice-list',
@@ -176,19 +177,19 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
     this.invoiceService.createInvoice({
       company_id: this.selectedCompanyId(),
-      billing_period_start: this.startDate,
-      billing_period_end: this.endDate,
+      billing_period_start: moment(this.startDate).startOf('day').toISOString(),
+      billing_period_end: moment(this.endDate).endOf('day').toISOString(),
     }).subscribe({
       next: (response: any) => {
-        this.selectedCompanyId.set(null);
-        this.startDate = null;
-        this.endDate = null;
-        this.invoiceList.data.push(response);
-        this.activeTab.set('All');
-        this.loadInvoices();
+      this.selectedCompanyId.set(null);
+      this.startDate = null;
+      this.endDate = null;
+      this.invoiceList.data.push(response);
+      this.activeTab.set('All');
+      this.loadInvoices();
       },
       error: (err: any) => {
-        console.error('Error creating invoice:', err);
+      console.error('Error creating invoice:', err);
       },
     });
   }

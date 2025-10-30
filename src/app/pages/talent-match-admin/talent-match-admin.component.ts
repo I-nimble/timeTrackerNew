@@ -35,6 +35,7 @@ export interface PeriodicElement {
 @Component({
   standalone: true,
   selector: 'app-talent-match-admin',
+  styleUrls: ['./talent-match-admin.component.scss'],
   imports: [
     MatCardModule,
     MatTableModule,
@@ -100,7 +101,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getApplications() {
-    this.applicationService.get().subscribe((applications) => {
+    this.applicationService.get(true).subscribe((applications) => {
       this.applicationsData = applications;
       this.dataSource.data = applications;
     });
@@ -157,7 +158,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
       width: '600px',
       data: {
         candidate, 
-        companies: this.companiesData
+        companies: this.companiesData,
+        action: 'edit'
       }
     });
 
