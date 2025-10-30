@@ -181,34 +181,6 @@ export class ApplicationsService {
     );
   }
 
-  getFilteredApplicationsByDay(applications: any[]): any[] {
-    let filteredApplications: any[] = [];
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay();
-    
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    monday.setHours(0, 0, 0, 0);
-
-    const friday = new Date(monday);
-    friday.setDate(monday.getDate() + 4);
-    friday.setHours(0, 0, 0, 0);
-    // Only show applications if today is Monday to Friday
-    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-      filteredApplications = applications.filter((app: any) => {
-        if (!app.submission_date) return false;
-        const [year, month, day] = app.submission_date.split('T')[0].split('-').map(Number);
-        const submission = new Date(parseInt(year), parseInt(month) - 1, parseInt(day)); 
-        submission.setHours(0, 0, 0, 0);
-        return submission >= monday && submission <= friday;
-      });
-    } else {
-      filteredApplications = [];
-    }
-    return filteredApplications;
-  }
 
     uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
