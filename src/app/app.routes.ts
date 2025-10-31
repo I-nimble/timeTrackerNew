@@ -135,15 +135,25 @@ export const routes: Routes = [
       },
       {
         path: 'intake',
-        pathMatch: 'full',
         component: AppIntakeFormComponent,
         data: {
           title: 'Intake form',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Intake form' },
-          ],
-        },
+            { title: 'Intake form' }
+          ]
+        }
+      },
+      {
+        path: 'intake/:uuid',
+        component: AppIntakeFormComponent,
+        data: {
+          title: 'Intake form',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Intake form' }
+          ]
+        }
       }
     ],
   },
