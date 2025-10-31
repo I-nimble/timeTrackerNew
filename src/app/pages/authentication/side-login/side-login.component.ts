@@ -78,6 +78,7 @@ export class AppSideLoginComponent {
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
   route: any = ''
+  loginWithGoogle: boolean = false;
 
   constructor(
     private settings: CoreService,
@@ -102,9 +103,25 @@ export class AppSideLoginComponent {
     return this.form.controls;
   }
 
-  authLogin() {
-    if (this.form.value.email && this.form.value.password) {
-      this.authService.login(this.form.value.email, this.form.value.password).subscribe({
+  // googleLogin() {
+  //   this.loginWithGoogle = true;
+  //   this.authService.signInWithGoogle().subscribe({
+  //     next: (response: any) => {
+  //       this.loginWithGoogle = false;
+  //       this.authLogin(response.googleId);
+  //     },
+  //     error: (e) => {
+  //       this.loginWithGoogle = false;
+  //       this.openSnackBar("Error logging in with Google", "error");
+  //       console.error(e);
+  //       return;
+  //     },
+  //   });
+  // }
+
+  authLogin(googleId?: string) {
+    if ((this.form.value.email && this.form.value.password) || googleId) {
+      this.authService.login(this.form.value.email ?? undefined, this.form.value.password ?? undefined, googleId).subscribe({
         next: (v) => {
           const jwt = v.token;
           const name = v.username;

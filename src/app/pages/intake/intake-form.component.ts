@@ -138,6 +138,14 @@ export class AppIntakeFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const savedData = localStorage.getItem('intakeFormData');
+    if (savedData) {
+      this.intakeForm.patchValue(JSON.parse(savedData));
+      const competencies = this.intakeForm.get('positionInfo.competencies')?.value;
+      if (Array.isArray(competencies)) {
+        this.selectedCompetencies = competencies;
+      }
+    }
     this.positionsService.get().subscribe({
       next: (positions) => {
         this.positionsList = positions;
@@ -150,6 +158,9 @@ export class AppIntakeFormComponent implements OnInit {
     if (Array.isArray(competencies)) {
       this.selectedCompetencies = competencies;
     }
+    this.intakeForm.valueChanges.subscribe(value => {
+      localStorage.setItem('intakeFormData', JSON.stringify(value));
+    });
   }
 
   private _filter(value: string): string[] {
@@ -246,6 +257,7 @@ export class AppIntakeFormComponent implements OnInit {
         this.openSnackBar('Form submitted successfully', 'Close');
         this.formSubmitted = true;
         this.intakeForm.reset();
+        localStorage.removeItem('intakeFormData'); 
         this.lastIntakeId = response?.id || null;
         this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
       },
@@ -253,6 +265,12 @@ export class AppIntakeFormComponent implements OnInit {
         this.openSnackBar('Error submitting form', 'Close');
       },
     });
+  }
+
+  saveProgress() {
+    const formValue = this.intakeForm.value;
+    localStorage.setItem('intakeFormData', JSON.stringify(formValue));
+    this.openSnackBar('Progress saved', 'Close');
   }
 
   downloadPdf() {
