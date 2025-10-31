@@ -18,6 +18,9 @@ import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 import { PositionsService } from 'src/app/services/positions.service';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component'; 
+import { CompaniesService } from 'src/app/services/companies.service';
 
 @Component({
   selector: 'app-candidates',
@@ -45,6 +48,7 @@ export class CandidatesComponent {
   startDate: Date | null = null;
   endDate: Date | null = null;
   positions = signal<any[]>([]);
+  companiesData: any[] = [];
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -55,6 +59,7 @@ export class CandidatesComponent {
     public router: Router,
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
+    private companiesService: CompaniesService,
   ) { }
 
   ngOnInit(): void {
@@ -79,6 +84,12 @@ export class CandidatesComponent {
 
     this.loadCandidates();
     this.loadPositions();
+
+    this.companiesService.getCompanies().subscribe({
+      next: companies => {
+        this.companiesData = companies;
+      },
+    });
   }
 
   ngAfterViewInit(): void {
@@ -176,26 +187,46 @@ export class CandidatesComponent {
       .length;
   }
 
+  openEditCandidateDialog(candidate: any): void {
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: { 
+        companies: this.companiesData, 
+        action: 'edit', 
+        candidate: candidate 
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.loadCandidates();
+      }
+    });
+  }
 
-  // deleteInvoice(id: number): void {
-  //   const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
+  deleteApplication(id: number): void {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        type: 'application',
+      }
+    });
 
-  //   dialogRef.afterClosed().subscribe((result: any) => {
-  //     this.loadCandidates();
-  //     if (result) {
-  //       this.applicationsService.deleteA(id).subscribe({
-  //         next: () => {
-  //           this.loadCandidates();
-  //           this.filterCandidates();
-  //           this.showSnackbar('Invoice deleted successfully!');
-  //         },
-  //         error: () => {
-  //           this.showSnackbar('Error deleting invoice.');
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
+    dialogRef.afterClosed().subscribe((result: any) => {
+      this.loadCandidates();
+      if (result) {
+        this.applicationsService.delete(id).subscribe({
+          next: () => {
+            this.loadCandidates();
+            this.filterCandidates();
+            this.showSnackbar('Invoice deleted successfully!');
+          },
+          error: () => {
+            this.showSnackbar('Error deleting invoice.');
+          }
+        });
+      }
+    });
+  }
 
   sendToTalentMatch(id: number): void {
     this.applicationsService.sendToTalentMatch(id).subscribe({

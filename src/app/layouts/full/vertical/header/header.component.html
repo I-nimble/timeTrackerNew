@@ -104,7 +104,7 @@
     <a mat-button [routerLink]="['/apps/candidates']" *ngIf="role == '1' || allowedTM">
       Candidates
     </a>
-    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="role != '2' || allowedTM"
+    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="canViewTalentMatch"
      (click)="clearTalentMatchNotification()">
         Talent Match
         <div class="pulse" *ngIf="hasNewTalentMatch">
