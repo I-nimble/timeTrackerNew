@@ -120,6 +120,7 @@ export class AppIntakeFormComponent implements OnInit {
   showForm: boolean = true;
   showVideo: boolean = false;
   lastIntakeId: number | null = null;
+  lastIntakeUuid: number | null = null;
   lastClientName: string = '';
 
   constructor(
@@ -269,21 +270,32 @@ export class AppIntakeFormComponent implements OnInit {
     });
   }
 
+  saveDraft() {
+    const formValue = this.intakeForm.value;
+    const data = {
+      ...formValue.contactInfo,
+      ...formValue.positionInfo,
+      ...formValue.scheduleInfo,
+      status: 'draft',
+      uuid: this.lastIntakeUuid || null,
+    };
+
+    this.intakeService.saveIntake(data).subscribe({
+      next: (response: any) => {
+        this.openSnackBar('Intake saved successfully', 'Close');
+        this.lastIntakeId = response?.id || null;
+        this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
+        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
+      },
+      error: () => {
+        this.openSnackBar('Error saving intake', 'Close');
+      },
+    });
+  }
+
   sendForm() {
-    if (!this.intakeForm.get('contactInfo.phone')?.valid) {
-      this.openSnackBar('Please enter a valid phone number', 'Close');
-      return;
-    }
-    if (!this.intakeForm.get('contactInfo.email')?.valid) {
-      this.openSnackBar('Please enter a valid email address', 'Close');
-      return;
-    }
     if (!this.intakeForm.valid) {
-      this.openSnackBar('Fill all the required fields', 'Close');
-      return;
-    }
-    if (!this.intakeForm.get('termsInfo.acceptOtherCommunications')?.valid || !this.intakeForm.get('termsInfo.acceptPersonalData')?.valid) {
-      this.openSnackBar('Please accept the terms and conditions', 'Close');
+      this.openSnackBar('Please fill all required fields', 'Close');
       return;
     }
 
@@ -292,15 +304,18 @@ export class AppIntakeFormComponent implements OnInit {
       ...formValue.contactInfo,
       ...formValue.positionInfo,
       ...formValue.scheduleInfo,
-      ...formValue.termsInfo
+      status: 'submitted',
+      uuid: this.lastIntakeUuid || null,
     };
-    this.intakeService.submitIntake(data).subscribe({
+
+    this.intakeService.saveIntake(data).subscribe({
       next: (response: any) => {
         this.openSnackBar('Form submitted successfully', 'Close');
         this.formSubmitted = true;
-        this.intakeForm.reset();
         this.lastIntakeId = response?.id || null;
+        this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
         this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
+        this.intakeForm.reset();
       },
       error: () => {
         this.openSnackBar('Error submitting form', 'Close');
