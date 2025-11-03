@@ -31,7 +31,7 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
-    private chatService: CometChatService
+    private chatService: CometChatService,
   ) {}
   API_URI = environment.apiUrl + '/auth';
 

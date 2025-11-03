@@ -33,6 +33,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
 @Component({
   selector: 'app-side-register',
@@ -147,6 +148,7 @@ export class AppSideRegisterComponent {
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
     private cdr: ChangeDetectorRef,
+    private rocketChatService: RocketChatService,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -491,19 +493,21 @@ export class AppSideRegisterComponent {
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
-                this.chatService.initializeCometChat();
+                // this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -552,12 +556,14 @@ export class AppSideRegisterComponent {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -565,7 +571,7 @@ export class AppSideRegisterComponent {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
+                // this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -643,12 +649,14 @@ export class AppSideRegisterComponent {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -656,7 +664,7 @@ export class AppSideRegisterComponent {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
+                // this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
