@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,6 +7,8 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { MaterialModule } from 'src/app/material.module';
 import { PlansService } from 'src/app/services/plans.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-client-details',
@@ -15,12 +17,14 @@ import { PlansService } from 'src/app/services/plans.service';
   imports: [CommonModule, MatCardModule, MaterialModule],
   templateUrl: './client-details.component.html',
 })
-export class ClientDetailsComponent implements OnInit {
+export class ClientDetailsComponent implements OnInit, OnDestroy {
   @Output() back = new EventEmitter<void>();
   private _client: any;
   departmentsList: string = '';
   defaultLogo = 'assets/inimble.png';
   plan: string = '';
+  private loadingCompanyForUserId: number | null = null;
+  private destroy$ = new Subject<void>();
 
   @Input()
   set client(value: any) {
@@ -29,6 +33,12 @@ export class ClientDetailsComponent implements OnInit {
       this.departmentsList = value.company.departments.map((d: any) => d.name).join(', ');
     } else {
       this.departmentsList = '';
+    }
+    if (value && value.id) {
+      const missingCompanyInfo = !value.company || !value.company.id || !value.company.departments;
+      if (missingCompanyInfo && this.loadingCompanyForUserId !== Number(value.id)) {
+        this.loadCompany(Number(value.id));
+      }
     }
   }
 
@@ -56,32 +66,50 @@ export class ClientDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!id) return;
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(paramMap => {
+      const id = Number(paramMap.get('id'));
+      if (!id) return;
 
-    const currentPlan = this.plansService.getCurrentPlanValue();
-    this.plan = currentPlan.name
+      const currentPlan = this.plansService.getCurrentPlanValue();
+      this.plan = currentPlan?.name || this.plan;
 
-    const preselected = this.usersService.getSelectedUser();
-    if (preselected?.id === id) {
-      this.client = preselected;
-      this.loadCompany(id);
-      return;
-    }
-
-    this.usersService.getUsers({ filter: { id } }).subscribe(users => {
-      const found = Array.isArray(users) ? users.find((u: any) => u.id === id) : null;
-      if (found) {
-        this.client = found;
-        this.loadCompany(id);
-      } else {
-        this.router.navigate(['/apps/expert']);
+      const preselected = this.usersService.getSelectedUser();
+      if (preselected && Number(preselected.id) === id) {
+        this.client = preselected;
       }
+
+      this.usersService.getUsers({ filter: { id } }).pipe(takeUntil(this.destroy$)).subscribe(users => {
+        const found = Array.isArray(users) ? users.find((u: any) => Number(u.id) === id) : null;
+        if (found) {
+          this.client = found;
+          this.loadCompany(id);
+        } else {
+          if (this.client && this.client.id) {
+            this.loadCompany(id);
+          } else {
+            this.router.navigate(['/apps/expert']);
+          }
+        }
+      }, (err) => {
+        if (this.client && this.client.id) {
+          this.loadCompany(id);
+        } else {
+          this.router.navigate(['/apps/expert']);
+        }
+      });
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private loadCompany(userId: number) {
+    if (this.loadingCompanyForUserId === userId) return;
+    this.loadingCompanyForUserId = userId;
     this.companiesService.getByUserId(userId).subscribe((ownerResp: any) => {
+      console.debug('[ClientDetails] company response for userId', userId, ownerResp);
       const fullCompany = ownerResp?.company || this.client?.company;
       if (fullCompany) {
         this.client.company = { ...this.client.company, ...fullCompany };
@@ -98,6 +126,9 @@ export class ClientDetailsComponent implements OnInit {
           this.client.company.logoUrl = this.defaultLogo;
         }
       }
+      this.loadingCompanyForUserId = null;
+    }, () => {
+      this.loadingCompanyForUserId = null;
     });
   }
 
@@ -112,6 +143,6 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   get canShowContact(): boolean {
-    return this.plan?.toLowerCase() !== 'basic';
+    return (this.plan || '').toString().toLowerCase() !== 'basic';
   }
 }
