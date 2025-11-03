@@ -1,139 +1,102 @@
-<mat-card class="mat-card-top cardWithShadow communication-container p-0">
+<mat-card class="mat-mdc-card mdc-card chat-app cardWithShadow overflow-hidden">
+  <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
+    <mat-sidenav #sidebar
+      class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
+      mode="side"
+      opened
+    >
+      <div class="mat-drawer-inner-container chat-sidebar-inner">
+        <div class="sidebar-header">
+          <img src="assets/images/profile/user-1.jpg" alt="owner" />
+          <div class="sidebar-user-info">
+            <h4>Mike Nielsen</h4>
+            <span>info&#64;spike.com</span>
+          </div>
+        </div>
 
-  <ng-template #customHeaderView let-message>
-    <p *ngIf="message.getSender().getUid() !== userId" class="f-s-10 m-b-4 sender-name">{{ message.getSender().getName() }} {{ message.getMetadata()?.replyMessage ? 'replied to' : '' }}</p>
-    <div *ngIf="message.getMetadata()?.replyMessage" class="reply-preview f-s-10">
-      <div class="d-flex">
-        <p class="m-r-8"> 
-          {{ message.getMetadata().replyMessage.sender }} 
-        </p>
-        <p>
-          {{ toDate(message.getMetadata().replyMessage.sentAt) | date:'short' }}
-        </p>
+        <div class="sidebar-search">
+          <mat-form-field appearance="outline" class="w-100">
+            <input
+              matInput
+              placeholder="Search contacts"
+              [(ngModel)]="contactsFilter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="contacts-wrapper">
+          <div
+            class="contact-item"
+            *ngFor="let contact of filteredContacts()"
+            [class.active]="selectedContact?.id === contact.id"
+            (click)="selectContact(contact)"
+          >
+            <img [src]="contact.photo || 'assets/images/profile/user-4.jpg'" alt="{{ contact.from }}">
+            <div class="contact-info">
+              <div class="name">{{ contact.from }}</div>
+              <div class="last-message">
+                {{ contact.chat && contact.chat.length ? contact.chat[contact.chat.length - 1].msg : 'No messages yet' }}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <span *ngIf="message.getMetadata().replyMessage.type === 'text'" class="f-s-12">
-        {{ message.getMetadata().replyMessage.text }}
-      </span>
-      <span *ngIf="message.getMetadata().replyMessage.type === 'image'" class="f-s-12">
-        {{ message.getMetadata().replyMessage.fileName }}
-      </span>
-      <span *ngIf="message.getMetadata().replyMessage.type === 'file'" class="f-s-12">
-        {{ message.getMetadata().replyMessage.fileName }}
-      </span>
-      <span *ngIf="message.getMetadata().replyMessage.type === 'video'" class="f-s-12">
-        🎥 Video
-      </span>
-      <span *ngIf="message.getMetadata().replyMessage.type === 'audio'" class="f-s-12">
-        🎤 Audio
-      </span>
-		</div>
-  </ng-template>
+    </mat-sidenav>
 
-  <ng-template #customMenu>
-    <div style="display: flex; gap: 12px; margin-right: 5px;">
-      <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
-        <img src="assets/images/svgs/phone-enabled.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
-      </button>
-      <button [ngStyle]="getButtonStyle()" (click)="startVideoCall()">
-        <img src="assets/images/svgs/videocam.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
-      </button>
-    </div>
-  </ng-template>
+    <mat-sidenav-content
+      class="mat-drawer-content mat-sidenav-content bg-white chat-main"
+      [style.margin-left.px]="isSidebarOpen ? 320 : 0"
+    >
+      <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
+        <button mat-icon-button
+                (click)="toggleSidebar(); sidebar.toggle()"
+                class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
+          <mat-icon>short_text</mat-icon>
+        </button>
+        <div class="d-flex align-items-center gap-16">
+          <img *ngIf="selectedContact" [src]="selectedContact.photo" width="40" class="rounded-circle" alt="contact" />
+          <div class="f-s-16 f-w-600">{{ selectedContact?.from || 'Select a contact' }}</div>
+        </div>
+        <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #chatMenu="matMenu">
+          <button mat-menu-item>Contact info</button>
+          <button mat-menu-item>Mute</button>
+          <button mat-menu-item>Delete Chat</button>
+        </mat-menu>
+      </mat-toolbar>
 
-  <ng-template #conversationsMenuTemplate>
-    <div class="d-flex align-items-center gap-8">
-      <button
-        *ngIf="userRole !== '2' || (userEmail && groupCreatorEmails.includes(userEmail))" 
-        [ngStyle]="getButtonStyle()"
-        (click)="openDialog()"
-      >
-        <img src="assets/images/svgs/add-group.svg" [ngStyle]="getButtonIconStyle()" alt="Create group" />
-      </button>
-      <button
-        [ngStyle]="getButtonStyle()"
-        (click)="onMenuButtonClick()"
-        *ngIf="this.plan && this.plan.id != 1"
-      >
-        <img src="assets/images/svgs/new-conversation.svg" [ngStyle]="getButtonIconStyle()" alt="Start new conversation" />
-      </button>
-    </div>
-  </ng-template>
-  
-  <ng-template #customMessageComposerView>
-    <app-custom-message-composer
-    [user]="user"
-    [group]="group"
-    [replyMessage]="replyMessage"
-    ></app-custom-message-composer>
-  </ng-template>
+      <div class="chat-messages-wrapper">
+        <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
+          <ng-container *ngIf="selectedContact; else noConversation">
+            <div *ngFor="let m of messagesFor(selectedContact.id)" class="chat-list"
+                [ngClass]="{ 'odd': m.type === 'odd', 'even': m.type === 'even' }">
+              <div class="m-b-15">
+                <div [ngClass]="m.type === 'odd' ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
+                  <img *ngIf="m.type === 'odd'" width="40" class="rounded-circle" [src]="selectedContact.photo" />
+                  <span class="f-s-14">{{ m.msg }}</span>
+                </div>
+                <span class="f-s-12">{{ m.date | date:'MMM d, yyyy' }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noConversation>
+            <div class="empty-cta p-24 text-center">Select a contact on the left to view conversation</div>
+          </ng-template>
+        </mat-card-content>
+      </div>
 
-  <app-loader *ngIf="loader.started && !loader.complete && !loader.error" [loader]="loader" style="margin: 2rem auto;">
-  </app-loader>
-
-  <ng-container *ngIf="loader.complete">
-    @if(chatService.isChatAvailable && !chatInitError) {
-      <div *ngIf="userRole === '1' || userRole === '4'" class="m-t-16 m-b-16 m-l-16">
-        <mat-form-field appearance="outline" class="w-100 company-select">
-          <mat-select [value]="selectedCompanyId" (selectionChange)="initializeCompanyChat($event)">
-            <mat-option *ngFor="let company of companies" [value]="company.id">
-              {{ company.name }}
-            </mat-option>
-          </mat-select>
+      <mat-divider></mat-divider>
+      <div class="p-t-20 p-x-24 bg-white chat-input">
+        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" />
+          <button mat-icon-button matSuffix (click)="sendMessage()">
+            <mat-icon>send</mat-icon>
+          </button>
         </mat-form-field>
       </div>
-        
-      <div class="chat-view-container">
-        <!-- BASIC PLAN CHAT -->
-        <cometchat-groups-with-messages 
-          *ngIf="plan && plan.id == 1"
-          id="chat-container"
-          [backdropStyle]="backdropStyle"
-          [hideCreateGroup]="true"
-          [messagesConfiguration]="basicMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [groupsConfiguration]="groupsConfiguration"
-          [user]="user"
-          [group]="group"
-          #basicChat
-        >
-        </cometchat-groups-with-messages>
-      
-        <!-- ESSENTIAL PLAN CHAT -->
-        <cometchat-conversations-with-messages 
-          *ngIf="plan && plan.id === 2"
-          id="chat-container"
-          [messagesConfiguration]="essentialMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [conversationConfiguration]="conversationConfiguration"
-          [user]="user"
-          [group]="group"
-          #essentialChat
-        >
-        </cometchat-conversations-with-messages>
-
-        <!-- PROFESSIONAL PLAN CHAT -->
-        <cometchat-conversations-with-messages 
-          *ngIf="(plan && plan.id === 3) || (userRole === '1' || userRole === '4')"
-          id="chat-container"
-          [messagesConfiguration]="professionalMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [conversationConfiguration]="conversationConfiguration"
-          [user]="user"
-          [group]="group"
-          #professionalChat
-        >
-        </cometchat-conversations-with-messages>
-      </div>
-    }
-    @else if (loader.complete && chatInitError) {
-    <div class="cta-message">
-      <p>{{ chatInitError }}</p>
-    </div>
-    }
-    @else if (loader.complete && !chatService.isChatAvailable && !chatInitError) {
-      <div class="cta-message">
-        <p>Your chat is not available. Communicate with support to enable it.</p>
-      </div>
-    }
-  </ng-container>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </mat-card>
