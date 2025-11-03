@@ -93,8 +93,8 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)],
-    address: [''],
+    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)]],
+    address: ['', Validators.required],
     profile: ['']
   });
   medicalForm: FormGroup = this.fb.group({
@@ -173,6 +173,8 @@ export class AppAccountSettingComponent implements OnInit {
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
+  formChanged: boolean = false;
+  originalUserData: any = null;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
@@ -252,6 +254,7 @@ export class AppAccountSettingComponent implements OnInit {
 
     this.selectedVideoFile = file;
     this.previewVideo(file);
+    this.checkFormChanges();
   }
 
   previewVideo(file: File): void {
@@ -354,6 +357,31 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
+  checkFormChanges(): void {
+    if (!this.originalUserData) return;
+
+    const currentFormData = {
+      name: this.personalForm.get('name')?.value,
+      last_name: this.personalForm.get('last_name')?.value,
+      email: this.personalForm.get('email')?.value,
+      phone: this.personalForm.get('phone')?.value,
+      address: this.personalForm.get('address')?.value
+    };
+
+    // Check if any form field has changed
+    const formFieldsChanged = 
+      currentFormData.name !== this.originalUserData.name ||
+      currentFormData.last_name !== this.originalUserData.last_name ||
+      currentFormData.email !== this.originalUserData.email ||
+      currentFormData.phone !== this.originalUserData.phone ||
+      currentFormData.address !== this.originalUserData.address;
+
+    // Check if profile picture or video has changed
+    const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
+
+    this.formChanged = formFieldsChanged || mediaChanged;
+  }
+
   initializeForm() {
     if(this.role === '3') {
       this.profileForm.patchValue({
@@ -371,6 +399,14 @@ export class AppAccountSettingComponent implements OnInit {
       });
     }
     else {
+      this.originalUserData = {
+        name: this.user.name,
+        last_name: this.user.last_name,
+        email: this.user.email,
+        phone: this.user.phone,
+        address: this.user.address
+      };
+
       // Populate personal form
       this.personalForm.patchValue({
         name: this.user.name,
@@ -406,6 +442,10 @@ export class AppAccountSettingComponent implements OnInit {
           linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
+
+      this.personalForm.valueChanges.subscribe(() => {
+        this.checkFormChanges();
+      });
     }
   }
 
@@ -434,6 +474,7 @@ export class AppAccountSettingComponent implements OnInit {
       // if(this.role === '3') this.profileForm.patchValue({ logo: img })
       // else this.personalForm.patchValue({ profile: img });
       this.personalForm.patchValue({ profile: file });
+      this.checkFormChanges(); 
   }
 
   previewImage(file: File) {
@@ -461,6 +502,14 @@ export class AppAccountSettingComponent implements OnInit {
   resetFileInput() {
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  isSaveEnabled(): boolean {
+    if (this.role === '3') {
+      return this.profileForm.valid;
+    } else {
+      return this.personalForm.valid && this.formChanged;
     }
   }
   
