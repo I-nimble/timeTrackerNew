@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   RocketChatCredentials,
@@ -8,6 +8,7 @@ import {
   RocketChatRoom,
   RocketChatMessage,
 } from '../models/rocketChat.model';
+import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,8 @@ export class RocketChatService {
   private activeSubscriptions = new Map<string, string>();
   private messageId = 0;
   private subscriptionId = 0;
+
+  loggedInUserId: string | null = null;
 
   constructor(private http: HttpClient) {
     this.loadCredentials();
@@ -335,6 +338,7 @@ export class RocketChatService {
 
       if (testResponse.success) {
         this.saveCredentials(credentials);
+        this.loggedInUserId = testResponse.userId;
       } else {
         throw new Error('Invalid credentials');
       }
@@ -359,18 +363,13 @@ export class RocketChatService {
     }
   }
 
-  async getRooms(): Promise<RocketChatRoom[]> {
-    const response: any = await this.http
-      .get(`${this.API_URI}rooms.get`, {
-        headers: this.getAuthHeaders(),
-      })
-      .toPromise();
-
-    if (response.success) {
-      return response.update || [];
-    } else {
-      throw new Error(response.error || 'Failed to get rooms');
-    }
+  getRooms(): Observable<any> {
+    return this.http
+      .get<any>(`${this.API_URI}rooms.get`, {
+        headers: this.getAuthHeaders()
+      }).pipe(
+        map((res: any) => res.update as RocketChatRoom[])
+      )
   }
 
   async sendMessage(
@@ -528,5 +527,14 @@ export class RocketChatService {
     } else {
       throw new Error(response.error || `API call failed: ${endpoint}`);
     }
+  }
+
+  initializeJitsiMeeting(roomId: string, tmid: string, previewItem: {id:string, type:string, value:string}) {
+    this.http.post(`${this.API_URI}/commands`, { 
+      command: '/jitsi',
+      roomId,
+      tmid,
+      previewItem
+    }, { headers: this.getAuthHeaders() });
   }
 }

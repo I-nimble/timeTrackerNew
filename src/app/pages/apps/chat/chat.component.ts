@@ -1,26 +1,26 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
-import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration, ContactsStyle } from '@cometchat/uikit-shared';
-import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import { CometChatUIEvents, DatePatterns, TimestampAlignment } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
-import { emojisByCategory } from './emojisByCategory';
-import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
-import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
 import { environment } from 'src/environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -33,9 +33,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { MatSidenav } from '@angular/material/sidenav';
-import { MatMenuModule } from '@angular/material/menu';;
-import { messages as chatData } from './chatData';
-import { Contact, Message } from './chat';
+import { MatMenuModule } from '@angular/material/menu';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { RocketChatRoom, RocketChatMessage, RocketChatUser } from '../../../models/rocketChat.model';
 
 @Component({
   selector: 'app-chat',
@@ -51,69 +51,103 @@ import { Contact, Message } from './chat';
     MatToolbarModule,
     MatDividerModule,
     MatButtonModule,
-    MatMenuModule
+    MatMenuModule,
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
 })
-export class AppChatComponent {  contactsFilter = '';
-  selectedContact: Contact | null = null;
-  contacts: Contact[] = [];
-  messages: Message[] = [];
+export class AppChatComponent implements OnInit {
+  roomsFilter = '';
+  selectedConversation!: RocketChatRoom;
+  rooms: RocketChatRoom[] = [];
+  messages: RocketChatMessage[] = [];
   newMessage = '';
   isSidebarOpen = true;
-  @ViewChild('messagesContainer', { static: false }) messagesContainer?: ElementRef;
+  @ViewChild('messagesContainer', { static: false })
+  messagesContainer?: ElementRef;
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
 
   @HostListener('window:resize', ['$event'])
+  
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
+  constructor(protected chatService: RocketChatService) {}
+
   ngOnInit(): void {
-    this.contacts = chatData as Contact[];
-    setTimeout(() => this.scrollToBottom(), 100);
+    this.chatService.getRooms().subscribe((rooms: any) => {
+      console.log(rooms);
+      this.rooms = rooms;
+      // setTimeout(() => this.scrollToBottom(), 100);
+    });
   }
 
-  filteredContacts(): Contact[] {
-    if (!this.contactsFilter) return this.contacts;
-    const q = this.contactsFilter.toLowerCase();
-    return this.contacts.filter(c =>
-      c.from.toLowerCase().includes(q) || (c.subject || '').toLowerCase().includes(q)
+  call() {
+    // TODO: Implement call functionality
+    // Get jitsi meet url and open in new tab/window
+    // return this.chatService.initializeJitsiMeeting(
+    //   this.selectedConversation.id, 
+    //   this.selectedConversation.tmid, 
+    //   this.selectedConversation.previewItem
+    // );
+  }
+
+  filteredRooms(): RocketChatRoom[] {
+    if (!this.roomsFilter) return this.rooms;
+    const q = this.roomsFilter.toLowerCase();
+    return this.rooms.filter(
+      (r) => r.usernames?.filter((u: string) => u.toLowerCase().includes(q)) // filtering direct messages
     );
   }
 
+  getConversationPicture(room : RocketChatRoom) {
+    switch (room.t) {
+      case 'd': // direct message
+        // return 'assets/images/profile/user-4.jpg';
+      case 'p': // private chat
+        // return 'assets/images/profile/user-5.jpg';
+      case 'c': // channel
+        // return 'assets/images/profile/user-6.jpg';
+      case 'l': // livechat
+        // return 'assets/images/profile/user-7.jpg';
+      default:
+        return 'assets/images/default-user-profile-pic.png';
+    }
+  }
 
-  selectContact(c: Contact) {
-    this.selectedContact = c;
+  selectRoom(r: RocketChatRoom) {
+    this.selectedConversation = r;
     setTimeout(() => this.scrollToBottom(), 50);
   }
 
-  messagesFor(contactId: string): Message[] {
-    const contact = this.contacts.find(c => c.id === contactId);
-    return contact?.chat || [];
+  messagesFor(contactId: string): RocketChatMessage[] {
+    // TODO: get all messages for a room
+    return [];
   }
 
   sendMessage() {
-    if (!this.selectedContact) return;
-    const text = this.newMessage?.trim();
-    if (!text) return;
+    // TODO: Implement send message functionality via API
 
-    if (!this.selectedContact.chat) {
-      this.selectedContact.chat = [];
-    }
+    // if (!this.selectedConversation) return;
+    // const text = this.newMessage?.trim();
+    // if (!text) return;
 
-    this.selectedContact.chat.push({
-      type: 'even',
-      msg: text,
-      date: new Date()
-    });
+    // if (!this.selectedConversation.chat) {
+    //   this.selectedConversation.chat = [];
+    // }
 
-    this.newMessage = '';
+    // this.selectedConversation.chat.push({
+    //   type: 'even',
+    //   msg: text,
+    //   date: new Date(),
+    // });
+
+    // this.newMessage = '';
     setTimeout(() => this.scrollToBottom(), 50);
   }
-  
+
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
@@ -122,7 +156,6 @@ export class AppChatComponent {  contactsFilter = '';
     try {
       const el = this.messagesContainer?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 }

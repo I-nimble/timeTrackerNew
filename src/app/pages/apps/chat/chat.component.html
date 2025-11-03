@@ -18,8 +18,8 @@
           <mat-form-field appearance="outline" class="w-100">
             <input
               matInput
-              placeholder="Search contacts"
-              [(ngModel)]="contactsFilter"
+              placeholder="Search conversations"
+              [(ngModel)]="roomsFilter"
             />
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
@@ -28,15 +28,19 @@
         <div class="contacts-wrapper">
           <div
             class="contact-item"
-            *ngFor="let contact of filteredContacts()"
-            [class.active]="selectedContact?.id === contact.id"
-            (click)="selectContact(contact)"
+            *ngFor="let room of filteredRooms()"
+            [class.active]="selectedConversation?._id === room._id"
+            (click)="selectRoom(room)"
           >
-            <img [src]="contact.photo || 'assets/images/profile/user-4.jpg'" alt="{{ contact.from }}">
+            <img [src]="getConversationPicture(room)">
             <div class="contact-info">
-              <div class="name">{{ contact.from }}</div>
+              <div class="name">
+                <!-- TODO: Show room name here -->
+                <!-- {{ room.from }} -->
+              </div>
               <div class="last-message">
-                {{ contact.chat && contact.chat.length ? contact.chat[contact.chat.length - 1].msg : 'No messages yet' }}
+                <!-- TODO: Show last message here -->
+                <!-- {{ room.chat && room.chat.length ? room.chat[room.chat.length - 1].msg : 'No messages yet' }} -->
               </div>
             </div>
           </div>
@@ -48,37 +52,52 @@
       class="mat-drawer-content mat-sidenav-content bg-white chat-main"
       [style.margin-left.px]="isSidebarOpen ? 320 : 0"
     >
-      <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
-        <button mat-icon-button
-                (click)="toggleSidebar(); sidebar.toggle()"
-                class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
-          <mat-icon>short_text</mat-icon>
-        </button>
-        <div class="d-flex align-items-center gap-16">
-          <img *ngIf="selectedContact" [src]="selectedContact.photo" width="40" class="rounded-circle" alt="contact" />
-          <div class="f-s-16 f-w-600">{{ selectedContact?.from || 'Select a contact' }}</div>
+      <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
+        <div class="d-flex">
+          <button mat-icon-button
+                  (click)="toggleSidebar(); sidebar.toggle()"
+                  class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
+            <mat-icon>short_text</mat-icon>
+          </button>
+          <div class="d-flex align-items-center gap-16">
+            <img *ngIf="selectedConversation" [src]="getConversationPicture(selectedConversation)" width="40" class="rounded-circle" alt="contact" />
+            <div class="f-s-16 f-w-600">
+              <!-- TODO: Show room name here -->
+              <!-- {{ selectedConversation?.from || 'Select a contact' }} -->
+            </div>
+          </div>
         </div>
-        <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <mat-menu #chatMenu="matMenu">
-          <button mat-menu-item>Contact info</button>
-          <button mat-menu-item>Mute</button>
-          <button mat-menu-item>Delete Chat</button>
-        </mat-menu>
+        <div *ngIf="selectedConversation">
+          <button mat-icon-button class="m-l-auto" aria-label="Call" disabled>
+            <mat-icon>call</mat-icon>
+          </button>
+          <button mat-icon-button (click)="call()" class="m-l-auto" aria-label="Video call">
+            <mat-icon>video_call</mat-icon>
+          </button>
+          <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #chatMenu="matMenu">
+            <button mat-menu-item>Contact info</button>
+            <button mat-menu-item>Mute</button>
+            <button mat-menu-item>Delete Chat</button>
+          </mat-menu>
+        </div>
       </mat-toolbar>
 
       <div class="chat-messages-wrapper">
         <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
-          <ng-container *ngIf="selectedContact; else noConversation">
-            <div *ngFor="let m of messagesFor(selectedContact.id)" class="chat-list"
-                [ngClass]="{ 'odd': m.type === 'odd', 'even': m.type === 'even' }">
+          <ng-container *ngIf="selectedConversation; else noConversation">
+            <div *ngFor="let message of messagesFor(selectedConversation._id)" class="chat-list"
+                [ngClass]="message.u._id === chatService.loggedInUserId ? 'odd' : 'even'">
               <div class="m-b-15">
-                <div [ngClass]="m.type === 'odd' ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
-                  <img *ngIf="m.type === 'odd'" width="40" class="rounded-circle" [src]="selectedContact.photo" />
-                  <span class="f-s-14">{{ m.msg }}</span>
+                <div [ngClass]="message.t === 'odd' ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
+                  <img *ngIf="message.t === 'odd'" width="40" class="rounded-circle" [src]="getConversationPicture(selectedConversation)" />
+                  <span class="f-s-14">
+                    {{ message.msg }}
+                  </span>
                 </div>
-                <span class="f-s-12">{{ m.date | date:'MMM d, yyyy' }}</span>
+                <span class="f-s-12">{{ message.ts | date:'MMM d, yyyy' }}</span>
               </div>
             </div>
           </ng-container>
