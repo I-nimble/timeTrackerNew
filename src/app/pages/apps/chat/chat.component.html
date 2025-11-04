@@ -2,8 +2,8 @@
   <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
-      mode="side"
-      opened
+      [mode]="'side'"
+      [opened]="!isMobile || isSidebarOpen"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
         <div class="sidebar-header">
@@ -50,7 +50,8 @@
 
     <mat-sidenav-content
       class="mat-drawer-content mat-sidenav-content bg-white chat-main"
-      [style.margin-left.px]="isSidebarOpen ? 320 : 0"
+      (click)="isMobile && isSidebarOpen ? sidebar.close() : null"   
+      [style.margin-left.px]="!isMobile && isSidebarOpen ? 320 : 0"
     >
       <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
         <div class="d-flex">

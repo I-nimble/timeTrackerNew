@@ -26,6 +26,15 @@
   flex-direction: column;
   overflow: hidden;
 
+  @media (max-width: 1024px) {
+    width: 280px;
+  }
+
+  @media (max-width: 768px) {
+    width: calc(100vw - 70px);
+    max-width: calc(100vw - 70px);
+  }
+
   .chat-sidebar-inner {
     display: flex;
     flex-direction: column;
@@ -223,9 +232,6 @@
 }
 
 @media (max-width: 768px) {
-  .chat-sidebar {
-    display: none;
-  }
   .chat-main {
     width: 100%;
   }
