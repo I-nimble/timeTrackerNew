@@ -383,11 +383,11 @@ export class RocketChatService {
       )
   }
 
-  async sendMessage(
+  sendMessage(
     roomId: string,
     message: string
-  ): Promise<RocketChatMessage> {
-    const response: any = await this.http
+  ): Observable<any> {
+    return this.http
       .post(
         `${this.CHAT_API_URI}chat.postMessage`,
         {
@@ -395,14 +395,7 @@ export class RocketChatService {
           text: message,
         },
         { headers: this.getAuthHeaders() }
-      )
-      .toPromise();
-
-    if (response.success) {
-      return response.message;
-    } else {
-      throw new Error(response.error || 'Failed to send message');
-    }
+      );
   }
 
   async createDirectMessage(username: string): Promise<RocketChatRoom> {

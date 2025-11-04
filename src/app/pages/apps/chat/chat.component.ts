@@ -200,8 +200,13 @@ export class AppChatComponent implements OnInit {
   }
 
   sendMessage() {
-    // // // TODO: Implement send message functionality via realtime API and update messages
-    setTimeout(() => this.scrollToBottom(), 50);
+    this.chatService.sendMessage(this.selectedConversation._id, this.newMessage).subscribe((res: any) => {
+      if(!res.success) {
+        console.error('Error sending message', this.newMessage);
+      }
+      this.newMessage = '';
+      setTimeout(() => this.scrollToBottom(), 50);
+    });
   }
 
   toggleSidebar() {
