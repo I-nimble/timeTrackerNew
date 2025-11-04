@@ -12,28 +12,75 @@
         </ng-template>
         <mat-card-content class="p-y-24">
           <div class="row">
-            <div class="col-sm-6" *ngIf="role === '3'">
-              <mat-card class="cardWithShadow">
-                <mat-card-content class="p-y-24">
-                  <mat-card-title
-                    >Current Plan: <span class="text-success">{{ currentPlan?.name }}</span>
-                  </mat-card-title>
-                  <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
-                    >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
+            <div class="col-sm-6">
+              <div class="col-12" *ngIf="role === '3'">
+                <mat-card class="cardWithShadow">
+                  <mat-card-content class="p-y-24">
+                    <mat-card-title
+                      >Current Plan: <span class="text-success">{{ currentPlan?.name }}</span>
+                    </mat-card-title>
+                    <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
+                      >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
 
-                  <div class="m-t-24">
-                    <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
-                      <span>
-                        Go Premium
-                      </span>
-                      <i-tabler name="diamond" class="icon-20 f-w-600 f-s-5 m-l-8"></i-tabler>
-                    </button>
-                    <button mat-stroked-button class="m-l-8" color="warn" *ngIf="currentPlan?.id !== 1">
-                      Reset Plan
-                    </button>
-                  </div>
-                </mat-card-content>
-              </mat-card>
+                    <div class="m-t-24">
+                      <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
+                        <span>
+                          Go Premium
+                        </span>
+                        <i-tabler name="diamond" class="icon-20 f-w-600 f-s-5 m-l-8"></i-tabler>
+                      </button>
+                      <button mat-stroked-button class="m-l-8" color="warn" *ngIf="currentPlan?.id !== 1">
+                        Reset Plan
+                      </button>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              <div class="col-12" *ngIf="role === '3'">
+                <mat-card class="cardWithShadow">
+                  <mat-card-content class="p-y-24">
+                    <mat-card-title>My Sentinel</mat-card-title>
+                    <mat-card-subtitle class="f-s-14">
+                      AI content monitoring that tracks trending topics, analyzes posts automatically, and generates actionable suggestions for content opportunities.
+                    </mat-card-subtitle>
+
+                    <div class="m-t-24">
+                      <button 
+                        *ngIf="!sentinelSubscription || sentinelSubscription.status === 'inactive' || sentinelSubscription.status === 'incomplete' || sentinelSubscription.status === 'canceled'"
+                        mat-flat-button 
+                        color="primary" 
+                        (click)="enableSentinel()"
+                        [disabled]="isLoadingSubscription"
+                      >
+                        <span *ngIf="!isLoadingSubscription">Enable</span>
+                        <span *ngIf="isLoadingSubscription">Processing...</span>
+                      </button>
+                      
+                      <button 
+                        *ngIf="sentinelSubscription?.status === 'active' && !sentinelSubscription?.cancel_at_period_end"
+                        mat-stroked-button 
+                        class="m-l-8" 
+                        color="warn" 
+                        (click)="disableSentinel()"
+                        [disabled]="isLoadingSubscription"
+                      >
+                        <span *ngIf="!isLoadingSubscription">Disable</span>
+                        <span *ngIf="isLoadingSubscription">Processing...</span>
+                      </button>
+
+                      <button 
+                        *ngIf="sentinelSubscription?.status === 'active' && sentinelSubscription?.cancel_at_period_end"
+                        mat-stroked-button 
+                        class="m-l-8" 
+                        color="primary"
+                        disabled
+                      >
+                        Canceled (Ends {{ sentinelSubscription?.current_period_end | date:'mediumDate' }})
+                      </button>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
             </div>
             <div class="col-sm-6" *ngIf="role === '3'">
               <mat-card class="cardWithShadow">
