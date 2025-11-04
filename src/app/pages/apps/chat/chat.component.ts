@@ -124,6 +124,19 @@ export class AppChatComponent implements OnInit {
     });
   }
 
+  joinCall(message: RocketChatMessage) {
+    this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
+      if(!res.success) {
+        console.error('Error joining room', message.u._id);
+      }
+      window.open(res.callUrl, '_blank');
+    });
+  }
+
+  isFromMe(message: RocketChatMessage) {
+    return message.u._id === this.chatService.loggedInUser?._id
+  }
+
   filteredRooms(): RocketChatRoom[] {
     if (!this.roomsFilter) return this.rooms;
     const q = this.roomsFilter.toLowerCase();
@@ -152,7 +165,11 @@ export class AppChatComponent implements OnInit {
   selectRoom(r: RocketChatRoom) {
     this.selectedConversation = r;
     this.loadRoomMessages(r).subscribe(messages => {
-      this.messages = messages;
+      this.messages = messages.sort((a: RocketChatMessage, b: RocketChatMessage) => {
+        if (a.ts > b.ts) return 1;
+        if (a.ts < b.ts) return -1;
+        return 0;
+      });
       setTimeout(() => this.scrollToBottom(), 50);
     });
   }

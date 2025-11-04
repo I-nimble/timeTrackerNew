@@ -88,17 +88,38 @@
       <div class="chat-messages-wrapper">
         <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
           <ng-container *ngIf="selectedConversation; else noConversation">
-            <div *ngFor="let message of messages" class="chat-list"
-                [ngClass]="message.u._id === chatService.loggedInUser?._id ? 'odd' : 'even'">
-              <div class="m-b-15">
-                <div [ngClass]="message.t === 'odd' ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
-                  <img *ngIf="message.t === 'odd'" width="40" class="rounded-circle" [src]="getConversationPicture(selectedConversation)" />
-                  <span class="f-s-14">
-                    {{ message.msg }}
-                  </span>
+            <div 
+              *ngFor="let message of messages" 
+              class="chat-list"
+              [ngClass]="message.t === 'videoconf' ? 'call' : !isFromMe(message) ? 'odd' : 'even'"
+            >
+                <div class="m-b-15">
+                  <div 
+                    [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'"
+                  >
+                    @if(message.t === 'videoconf') {
+                      <span class="f-s-14">
+                        Call ongoing
+                      </span>
+                      <button mat-flat-button color="primary" (click)="joinCall(message)">
+                        Join
+                      </button>
+                    }
+                    @else {
+                      <img 
+                        *ngIf="!isFromMe(message)" 
+                        width="40" 
+                        class="rounded-circle" 
+                        [src]="getConversationPicture(selectedConversation)" 
+                      />
+                      <span class="f-s-14">
+                        {{ message.msg }}
+                      </span>
+                    }
+                  </div>
+                  <span class="f-s-12">{{ message.ts | date:'MMM d, yyyy' }}</span>
                 </div>
-                <span class="f-s-12">{{ message.ts | date:'MMM d, yyyy' }}</span>
-              </div>
+              
             </div>
           </ng-container>
           <ng-template #noConversation>

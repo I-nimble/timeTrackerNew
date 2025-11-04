@@ -556,6 +556,25 @@ export class RocketChatService {
     );
   }
 
+  joinJitsiMeeting(message: any): Observable<any> {
+    if (!message?.blocks && message?.blocks[0]?.callId) {
+      return of(null);
+    }
+
+    return this.http.post(`${this.API_URI}join-meeting`, 
+      { 
+        callId: message?.blocks[0].callId,
+        user: { 
+          name: this.loggedInUser?.name, 
+          avatarUrl: this.loggedInUser?.avatarUrl,
+          email: this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0 ? this.loggedInUser?.emails[0].address : '',
+          _id: this.loggedInUser?._id
+        }
+      },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
   getConversationPicture(room: RocketChatRoom): Observable<string> {
     switch (room.t) {
       case 'd': // direct message
