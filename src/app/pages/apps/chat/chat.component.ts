@@ -36,6 +36,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { RocketChatRoom, RocketChatMessage, RocketChatUser } from '../../../models/rocketChat.model';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
@@ -67,6 +68,9 @@ export class AppChatComponent implements OnInit {
   messagesContainer?: ElementRef;
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
+  defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
+  defaultGroupPicUrl = environment.assets + '/group-icon.webp';
+  roomPictures: { [roomId: string]: string } = {};
 
   @HostListener('window:resize', ['$event'])
   
@@ -78,73 +82,108 @@ export class AppChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.chatService.getRooms().subscribe((rooms: any) => {
-      console.log(rooms);
       this.rooms = rooms;
-      // setTimeout(() => this.scrollToBottom(), 100);
+      this.loadAllRoomPictures();
+      setTimeout(() => this.scrollToBottom(), 100);
     });
   }
 
+  private loadAllRoomPictures() {
+    this.rooms.forEach(room => {
+      this.chatService.getConversationPicture(room).subscribe(pictureUrl => {
+        this.roomPictures[room._id] = pictureUrl;
+      });
+    });
+  }
+
+  getConversationPicture(room: RocketChatRoom): string {
+    return this.roomPictures[room._id] || this.getDefaultPicture(room);
+  }
+
+  private getDefaultPicture(room: RocketChatRoom): string {
+    switch (room.t) {
+      case 'd': return this.defaultAvatarUrl;
+      case 'p': return this.defaultGroupPicUrl;
+      case 'c': return this.defaultGroupPicUrl;
+      case 'l': return this.defaultAvatarUrl;
+      default: return this.defaultAvatarUrl;
+    }
+  }
+
+  getUserEmail(): string {
+    const emails = this.chatService.loggedInUser?.emails;
+    return emails && emails.length > 0 ? emails[0].address : '';
+  }
+
   call() {
-    // TODO: Implement call functionality
-    // Get jitsi meet url and open in new tab/window
-    // return this.chatService.initializeJitsiMeeting(
-    //   this.selectedConversation.id, 
-    //   this.selectedConversation.tmid, 
-    //   this.selectedConversation.previewItem
-    // );
+    this.chatService.initializeJitsiMeeting(this.selectedConversation._id).subscribe((res: any) => {
+      if(!res.success) {
+        console.error('Error calling room', this.selectedConversation._id);
+      }
+      window.open(res.callUrl, '_blank');
+    });
   }
 
   filteredRooms(): RocketChatRoom[] {
     if (!this.roomsFilter) return this.rooms;
     const q = this.roomsFilter.toLowerCase();
     return this.rooms.filter(
-      (r) => r.usernames?.filter((u: string) => u.toLowerCase().includes(q)) // filtering direct messages
+      (r) => 
+        r?.name?.toLowerCase().includes(q) || 
+        r.usernames?.filter((u: string) => u !== this.chatService.loggedInUser?.username)[0].includes(q)
     );
   }
 
-  getConversationPicture(room : RocketChatRoom) {
-    switch (room.t) {
+  getConversationName(room : RocketChatRoom) {
+    switch (room?.t) {
       case 'd': // direct message
-        // return 'assets/images/profile/user-4.jpg';
+        return room.usernames?.filter((u: string) => u !== this.chatService.loggedInUser?.username)[0];
       case 'p': // private chat
-        // return 'assets/images/profile/user-5.jpg';
+        return room.name;
       case 'c': // channel
-        // return 'assets/images/profile/user-6.jpg';
+        return room.name;
       case 'l': // livechat
-        // return 'assets/images/profile/user-7.jpg';
+        return 'Inimble Support';
       default:
-        return 'assets/images/default-user-profile-pic.png';
+        return 'Unknown';
     }
   }
 
   selectRoom(r: RocketChatRoom) {
     this.selectedConversation = r;
-    setTimeout(() => this.scrollToBottom(), 50);
+    this.loadRoomMessages(r).subscribe(messages => {
+      this.messages = messages;
+      setTimeout(() => this.scrollToBottom(), 50);
+    });
   }
 
-  messagesFor(contactId: string): RocketChatMessage[] {
-    // TODO: get all messages for a room
-    return [];
+  loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
+    if (room.t === 'd') {
+      return this.chatService.loadDirectMessagesHistory(room._id);
+    }
+    else if (room.t === 'p') {
+      return this.chatService.getGroupMessagesHistory(room._id);
+    }
+    else if (room.t === 'c') {
+      return this.chatService.loadChannelMessagesHistory(room._id);
+    }
+    return of([]);
+  }
+
+  getLastMessage(room: RocketChatRoom): string {
+    const lastMessage = room.lastMessage;
+    switch (lastMessage?.t) {
+      case 'videoconf': return 'Call started';
+      case 'd': return lastMessage.msg || 'No messages yet';
+      case 'p': return lastMessage.msg || 'No messages yet';
+      case 'c': return lastMessage.msg || 'No messages yet';
+      case 'l': return lastMessage.msg || 'No messages yet';
+      default: return lastMessage?.msg || 'No messages yet';
+    }
   }
 
   sendMessage() {
-    // TODO: Implement send message functionality via API
-
-    // if (!this.selectedConversation) return;
-    // const text = this.newMessage?.trim();
-    // if (!text) return;
-
-    // if (!this.selectedConversation.chat) {
-    //   this.selectedConversation.chat = [];
-    // }
-
-    // this.selectedConversation.chat.push({
-    //   type: 'even',
-    //   msg: text,
-    //   date: new Date(),
-    // });
-
-    // this.newMessage = '';
+    // // // TODO: Implement send message functionality via realtime API and update messages
     setTimeout(() => this.scrollToBottom(), 50);
   }
 

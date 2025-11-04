@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, map, of, catchError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   RocketChatCredentials,
@@ -9,12 +9,14 @@ import {
   RocketChatMessage,
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
+import { C } from '@angular/cdk/keycodes';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RocketChatService {
-  private API_URI = `${environment.rocketChatUrl}/api/v1/`;
+  private CHAT_API_URI = `${environment.rocketChatUrl}/api/v1/`;
+  private API_URI = `${environment.apiUrl}/rocket-chat/`;
   private socket: WebSocket | null = null;
 
   private connectionSubject = new BehaviorSubject<boolean>(false);
@@ -28,13 +30,15 @@ export class RocketChatService {
   private messageId = 0;
   private subscriptionId = 0;
 
-  loggedInUserId: string | null = null;
+  loggedInUser: RocketChatUser | null = null;
+  defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
+  defaultGroupPicUrl = environment.assets + '/group-icon.webp';
 
   constructor(private http: HttpClient) {
     this.loadCredentials();
   }
 
-  private loadCredentials(): void {
+  public loadCredentials(): void {
     const stored = localStorage.getItem('rocketChatCredentials');
     if (stored) {
       try {
@@ -189,39 +193,46 @@ export class RocketChatService {
     return `sub-${++this.subscriptionId}`;
   }
 
-  async loadRoomHistory(
+  loadChannelMessagesHistory(
     roomId: string,
     limit: number = 50
-  ): Promise<RocketChatMessage[]> {
-    if (!this.credentials) {
-      throw new Error('Not authenticated');
-    }
+  ): Observable<any> {
+    return this.http
+      .get<any>(
+        `${this.CHAT_API_URI}channels.history?roomId=${roomId}&count=${limit}&unreads=true`,
+        { headers: this.getAuthHeaders() }
+      )
+      .pipe(
+        map((res: any) => res.messages as RocketChatMessage[])
+      )
+  }
 
-    try {
-      const response: any = await this.http
-        .post(
-          `${this.API_URI}/channels.history`,
-          {
-            roomId,
-            count: limit,
-          },
-          { headers: this.getAuthHeaders() }
-        )
-        .toPromise();
+  getGroupMessagesHistory(
+    roomId: string,
+    limit: number = 50
+  ): Observable<any> {
+    return this.http
+      .get<any>(
+        `${this.CHAT_API_URI}groups.history?roomId=${roomId}&count=${limit}&unreads=true`,
+        { headers: this.getAuthHeaders() }
+      )
+      .pipe(
+        map((res: any) => res.messages as RocketChatMessage[])
+      )
+  }
 
-      if (response.success) {
-        return response.messages || [];
-      } else {
-        throw new Error(response.error || 'Failed to load room history');
-      }
-    } catch (error) {
-      console.error(
-        'REST history load failed, falling back to WebSocket:',
-        error
-      );
-
-      return this.loadHistoryViaWebSocket(roomId, limit);
-    }
+  loadDirectMessagesHistory(
+    roomId: string,
+    limit: number = 50
+  ): Observable<RocketChatMessage[]> {
+    return this.http
+      .get<any>(
+        `${this.CHAT_API_URI}dm.history?roomId=${roomId}&count=${limit}&unreads=true`,
+        { headers: this.getAuthHeaders() }
+      )
+      .pipe(
+        map((res: any) => res.messages as RocketChatMessage[])
+      )
   }
 
   private async loadHistoryViaWebSocket(
@@ -302,7 +313,7 @@ export class RocketChatService {
   async login(email: string, password: string): Promise<RocketChatCredentials> {
     try {
       const loginResponse: any = await this.http
-        .post(`${this.API_URI}login`, { user: email, password })
+        .post(`${this.CHAT_API_URI}login`, { user: email, password })
         .toPromise();
 
       if (loginResponse.status === 'success' && loginResponse.data) {
@@ -312,6 +323,7 @@ export class RocketChatService {
         };
 
         this.saveCredentials(credentials);
+        this.saveUserData();
         return credentials;
       } else {
         throw new Error('Login failed: Invalid response');
@@ -333,12 +345,12 @@ export class RocketChatService {
       });
 
       const testResponse: any = await this.http
-        .get(`${this.API_URI}me`, { headers })
+        .get(`${this.CHAT_API_URI}me`, { headers })
         .toPromise();
 
       if (testResponse.success) {
         this.saveCredentials(credentials);
-        this.loggedInUserId = testResponse.userId;
+        this.saveUserData();
       } else {
         throw new Error('Invalid credentials');
       }
@@ -349,23 +361,22 @@ export class RocketChatService {
     }
   }
 
-  async getCurrentUser(): Promise<RocketChatUser> {
-    const response: any = await this.http
-      .get(`${this.API_URI}me`, {
-        headers: this.getAuthHeaders(),
-      })
-      .toPromise();
+  saveUserData() {
+    this.getCurrentUser().subscribe((user: RocketChatUser) => {
+      this.loggedInUser = user;
+    });
+  }
 
-    if (response.success) {
-      return response;
-    } else {
-      throw new Error(response.error || 'Failed to get user info');
-    }
+  getCurrentUser(): Observable<RocketChatUser> {
+    return this.http
+      .get<RocketChatUser>(`${this.CHAT_API_URI}me`, {
+        headers: this.getAuthHeaders(),
+      });
   }
 
   getRooms(): Observable<any> {
     return this.http
-      .get<any>(`${this.API_URI}rooms.get`, {
+      .get<any>(`${this.CHAT_API_URI}rooms.get`, {
         headers: this.getAuthHeaders()
       }).pipe(
         map((res: any) => res.update as RocketChatRoom[])
@@ -378,7 +389,7 @@ export class RocketChatService {
   ): Promise<RocketChatMessage> {
     const response: any = await this.http
       .post(
-        `${this.API_URI}chat.postMessage`,
+        `${this.CHAT_API_URI}chat.postMessage`,
         {
           channel: roomId,
           text: message,
@@ -397,7 +408,7 @@ export class RocketChatService {
   async createDirectMessage(username: string): Promise<RocketChatRoom> {
     const response: any = await this.http
       .post(
-        `${this.API_URI}dm.create`,
+        `${this.CHAT_API_URI}dm.create`,
         { username },
         { headers: this.getAuthHeaders() }
       )
@@ -412,7 +423,7 @@ export class RocketChatService {
 
   async getDirectMessages(): Promise<RocketChatRoom[]> {
     const response: any = await this.http
-      .get(`${this.API_URI}dm.list`, {
+      .get(`${this.CHAT_API_URI}dm.list`, {
         headers: this.getAuthHeaders(),
       })
       .toPromise();
@@ -426,7 +437,7 @@ export class RocketChatService {
 
   async getChannels(): Promise<RocketChatRoom[]> {
     const response: any = await this.http
-      .get(`${this.API_URI}channels.list`, {
+      .get(`${this.CHAT_API_URI}channels.list`, {
         headers: this.getAuthHeaders(),
       })
       .toPromise();
@@ -441,7 +452,7 @@ export class RocketChatService {
   async joinChannel(roomId: string): Promise<void> {
     const response: any = await this.http
       .post(
-        `${this.API_URI}channels.join`,
+        `${this.CHAT_API_URI}channels.join`,
         { roomId },
         { headers: this.getAuthHeaders() }
       )
@@ -455,7 +466,7 @@ export class RocketChatService {
   async leaveChannel(roomId: string): Promise<void> {
     const response: any = await this.http
       .post(
-        `${this.API_URI}channels.leave`,
+        `${this.CHAT_API_URI}channels.leave`,
         { roomId },
         { headers: this.getAuthHeaders() }
       )
@@ -470,7 +481,7 @@ export class RocketChatService {
     if (this.credentials) {
       try {
         await this.http
-          .post(`${this.API_URI}logout`, {}, { headers: this.getAuthHeaders() })
+          .post(`${this.CHAT_API_URI}logout`, {}, { headers: this.getAuthHeaders() })
           .toPromise();
       } catch (error) {
         console.error('Logout error:', error);
@@ -505,7 +516,7 @@ export class RocketChatService {
     method: string = 'GET',
     data?: any
   ): Promise<T> {
-    const url = `${this.API_URI}${endpoint}`;
+    const url = `${this.CHAT_API_URI}${endpoint}`;
 
     let request;
     if (method === 'GET') {
@@ -529,12 +540,55 @@ export class RocketChatService {
     }
   }
 
-  initializeJitsiMeeting(roomId: string, tmid: string, previewItem: {id:string, type:string, value:string}) {
-    this.http.post(`${this.API_URI}/commands`, { 
-      command: '/jitsi',
-      roomId,
-      tmid,
-      previewItem
-    }, { headers: this.getAuthHeaders() });
+  initializeJitsiMeeting(roomId: string): Observable<any> {
+    return this.http.post(`${this.API_URI}commands`, 
+      { 
+        roomId, 
+        command: 'jitsi', 
+        user: { 
+          name: this.loggedInUser?.name, 
+          avatarUrl: this.loggedInUser?.avatarUrl,
+          email: this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0 ? this.loggedInUser?.emails[0].address : '',
+          _id: this.loggedInUser?._id
+        } 
+      },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  getConversationPicture(room: RocketChatRoom): Observable<string> {
+    switch (room.t) {
+      case 'd': // direct message
+        const user = room.uids?.filter((u: string) => u !== this.loggedInUser?._id)[0];
+        if (!user) {
+          return of(this.defaultAvatarUrl);
+        }
+        return this.getUserAvatar(user).pipe(
+          map((userPicture: any) => {
+            return userPicture?.avatarUrl || userPicture || this.defaultAvatarUrl;
+          }),
+          catchError(() => {
+            return of(this.defaultAvatarUrl);
+          })
+        );
+      
+      case 'p': // private chat
+        return of(this.defaultGroupPicUrl);
+      
+      case 'c': // channel
+        return of(this.defaultGroupPicUrl);
+      
+      case 'l': // livechat
+        return of(this.defaultAvatarUrl);
+      
+      default:
+        return of(this.defaultAvatarUrl);
+    }
+  }
+
+  getUserAvatar(userId: string): Observable<any> {
+    return this.http.get(`${this.CHAT_API_URI}users.getAvatar`, {
+      params: { userId }
+    });
   }
 }

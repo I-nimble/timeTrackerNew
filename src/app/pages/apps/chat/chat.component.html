@@ -7,10 +7,12 @@
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
         <div class="sidebar-header">
-          <img src="assets/images/profile/user-1.jpg" alt="owner" />
+          <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" />
           <div class="sidebar-user-info">
-            <h4>Mike Nielsen</h4>
-            <span>info&#64;spike.com</span>
+            <h4>{{ chatService.loggedInUser?.name }}</h4>
+            <span>
+               {{ getUserEmail() }}
+            </span>
           </div>
         </div>
 
@@ -35,12 +37,10 @@
             <img [src]="getConversationPicture(room)">
             <div class="contact-info">
               <div class="name">
-                <!-- TODO: Show room name here -->
-                <!-- {{ room.from }} -->
+                {{ getConversationName(room) }}
               </div>
               <div class="last-message">
-                <!-- TODO: Show last message here -->
-                <!-- {{ room.chat && room.chat.length ? room.chat[room.chat.length - 1].msg : 'No messages yet' }} -->
+                {{ getLastMessage(room) }}
               </div>
             </div>
           </div>
@@ -62,8 +62,7 @@
           <div class="d-flex align-items-center gap-16">
             <img *ngIf="selectedConversation" [src]="getConversationPicture(selectedConversation)" width="40" class="rounded-circle" alt="contact" />
             <div class="f-s-16 f-w-600">
-              <!-- TODO: Show room name here -->
-              <!-- {{ selectedConversation?.from || 'Select a contact' }} -->
+              {{ selectedConversation ? getConversationName(selectedConversation) : 'Select a conversation' }}
             </div>
           </div>
         </div>
@@ -78,9 +77,9 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
-            <button mat-menu-item>Contact info</button>
-            <button mat-menu-item>Mute</button>
-            <button mat-menu-item>Delete Chat</button>
+            <button mat-menu-item disabled>Contact info</button>
+            <button mat-menu-item disabled>Mute</button>
+            <button mat-menu-item disabled>Delete Chat</button>
           </mat-menu>
         </div>
       </mat-toolbar>
@@ -88,8 +87,8 @@
       <div class="chat-messages-wrapper">
         <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
           <ng-container *ngIf="selectedConversation; else noConversation">
-            <div *ngFor="let message of messagesFor(selectedConversation._id)" class="chat-list"
-                [ngClass]="message.u._id === chatService.loggedInUserId ? 'odd' : 'even'">
+            <div *ngFor="let message of messages" class="chat-list"
+                [ngClass]="message.u._id === chatService.loggedInUser?._id ? 'odd' : 'even'">
               <div class="m-b-15">
                 <div [ngClass]="message.t === 'odd' ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
                   <img *ngIf="message.t === 'odd'" width="40" class="rounded-circle" [src]="getConversationPicture(selectedConversation)" />

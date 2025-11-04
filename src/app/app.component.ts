@@ -8,6 +8,7 @@ import { CometChatCalls } from '@cometchat/calls-sdk-javascript-new';
 import { CometChatUIKitConstants, CometChatCallEvents } from '@cometchat/uikit-resources';
 import { StorageUtils } from '@cometchat/uikit-shared';
 import { CustomIncomingCallComponent } from './components/custom-incoming-call/custom-incoming-call.component';
+import { RocketChatService } from './services/rocket-chat.service';
 
 @Component({
   selector: 'app-root',
@@ -31,10 +32,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     public cometChatService: CometChatService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private rocketChatService: RocketChatService
   ) { }
 
   async ngOnInit() {
+    this.rocketChatService.loadCredentials();
+    this.rocketChatService.saveUserData();
+
     await this.cometChatService.initializeCometChat();
     this.callScreen = document.getElementById('callScreen') as HTMLElement;
 
