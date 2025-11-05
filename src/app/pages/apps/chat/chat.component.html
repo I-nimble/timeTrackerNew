@@ -1,4 +1,24 @@
 <mat-card class="mat-mdc-card mdc-card chat-app cardWithShadow overflow-hidden">
+  <!-- ---------- TEST ---------- -->
+  <button mat-icon-button (click)="testTypingSubscription(selectedConversation._id)" class="m-l-auto" aria-label="Test typing subscription" title="Test typing subscription">
+    <mat-icon>bug_report</mat-icon>
+  </button>
+
+  <!-- Add this near the debug button -->
+  <div *ngIf="selectedConversation" class="debug-panel p-16">
+    <button mat-raised-button color="accent" (click)="simulateTypingEvent()">
+      Simulate Typing Event
+    </button>
+    <button mat-raised-button color="warn" (click)="clearTyping()">
+      Clear Typing
+    </button>
+    <div class="debug-info">
+      <strong>Typing Users:</strong> {{ typingUsers.join(', ') }}
+      <strong>Is User Typing:</strong> {{ isUserTyping }}
+    </div>
+  </div>
+<!-- ---------- TEST ---------- -->
+
   <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
@@ -198,6 +218,17 @@
                   </div>
                   <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
                 </div>
+            </div>
+
+            <div *ngIf="isUserTyping" class="typing-indicator">
+              <div class="d-flex align-items-center gap-8 p-8">
+                <div class="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <span class="f-s-12 text-muted">{{ getTypingText() }}</span>
+              </div>
             </div>
           </ng-container>
           <ng-template #noConversation>

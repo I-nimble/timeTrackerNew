@@ -85,6 +85,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
+  private typingSubscription!: Subscription;
+  private typingTimeout: any;
+  typingUsers: string[] = [];
+  isUserTyping = false;
   unreadMapSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
@@ -316,6 +320,71 @@ export class AppChatComponent implements OnInit, OnDestroy {
   isFromMe(message: RocketChatMessage) {
     return message.u._id === this.chatService.loggedInUser?._id;
   }
+
+// ------------------ TEST ------------------
+/**
+ * Simulate a typing event for testing
+ */
+simulateTypingEvent(): void {
+  if (!this.selectedConversation) return;
+  
+  // Simulate another user typing
+  this.handleTypingEvent({
+    roomId: this.selectedConversation._id,
+    username: 'testuser',
+    isTyping: true
+  });
+  
+  // Auto clear after 2 seconds
+  setTimeout(() => {
+    this.handleTypingEvent({
+      roomId: this.selectedConversation._id,
+      username: 'testuser',
+      isTyping: false
+    });
+  }, 2000);
+}
+
+/**
+ * Clear all typing indicators
+ */
+clearTyping(): void {
+  this.typingUsers = [];
+  this.isUserTyping = false;
+  console.log('🧹 Cleared all typing indicators');
+}
+
+testTypingSubscription(roomId: string): void {
+  console.log('🧪 Testing typing subscription for room:', roomId);
+  
+  // First, make sure we're subscribed to typing events
+  this.chatService.subscribeToTypingEvents(roomId);
+  
+  // Wait a bit for subscription to establish, then test
+  setTimeout(() => {
+    console.log('🧪 Sending test typing notification');
+    this.chatService.startTyping(roomId);
+    
+    // Also test receiving typing events by simulating one
+    setTimeout(() => {
+      console.log('🧪 Simulating received typing event');
+      // This simulates what we should receive from the server
+      this.handleTypingEvent({
+        roomId: roomId,
+        username: this.chatService.loggedInUser?.username || 'TestUser',
+        isTyping: true
+      });
+    }, 1000);
+    
+  }, 1000);
+  
+  // Stop typing after 3 seconds
+  setTimeout(() => {
+    console.log('🧪 Stopping test typing notification');
+    this.chatService.stopTyping(roomId);
+  }, 4000);
+}
+// ------------------ TEST ------------------
 
 
   getAttachmentType(attachment: RocketChatMessageAttachment): 'image' | 'video' | 'audio' | 'file' {
@@ -575,7 +644,11 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   getMessageTimestamp(message: RocketChatMessage): Date {
     if (typeof message.ts === 'string') {
       return new Date(message.ts);
-    } else if (message.ts && typeof message.ts === 'object' && '$date' in message.ts) {
+    } else if (
+      message.ts &&
+      typeof message.ts === 'object' &&
+      '$date' in message.ts
+    ) {
       const dateValue = message.ts.$date;
       return new Date(dateValue);
     }
@@ -596,6 +669,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
+    this.typingUsers = []; // Clear typing users when switching rooms
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -613,7 +687,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
 
-    const { history, realtimeStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
+    const { history, realtimeStream, typingStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
 
     this.messages = history;
     const existingMessageIds = new Set(this.messages.map(msg => msg._id));
@@ -639,6 +713,17 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       }
     });
     this.roomSubscriptions.set(room._id, sub);
+
+    // Subscribe to typing events
+    this.typingSubscription = typingStream.subscribe({
+      next: (typingEvent) => {
+        console.log('TYPING EVENT RECEIVED:', typingEvent);
+        this.handleTypingEvent(typingEvent);
+      },
+      error: (error) => {
+        console.error('Error in typing stream:', error);
+      },
+    });
 
     try {
       this.chatService.markChannelAsRead(room._id).subscribe({
@@ -686,6 +771,20 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     setTimeout(() => this.scrollToBottom(), 100);
   }
 
+    getTypingText(): string {
+    if (this.typingUsers.length === 0) return '';
+
+    if (this.typingUsers.length === 1) {
+      return `${this.typingUsers[0]} is typing...`;
+    } else if (this.typingUsers.length === 2) {
+      return `${this.typingUsers[0]} and ${this.typingUsers[1]} are typing...`;
+    } else {
+      return `${this.typingUsers[0]} and ${
+        this.typingUsers.length - 1
+      } others are typing...`;
+    }
+  }
+
   loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
     if (room.t === 'd') {
       return this.chatService.loadDirectMessagesHistory(room._id);
@@ -715,9 +814,57 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
+  private handleTypingEvent(event: {
+    roomId: string;
+    username: string;
+    isTyping: boolean;
+  }): void {
+    if (event.roomId !== this.selectedConversation?._id) return;
+
+    console.log(`⌨️ Handling typing event: ${event.username} is ${event.isTyping ? 'typing' : 'not typing'}`);
+
+    if (event.isTyping) {
+      // Add user to typing list if not already there
+      if (!this.typingUsers.includes(event.username)) {
+        this.typingUsers.push(event.username);
+        console.log('✅ Added user to typing list:', event.username);
+      }
+    } else {
+      // Remove user from typing list
+      this.typingUsers = this.typingUsers.filter(
+        (user) => user !== event.username
+      );
+      console.log('❌ Removed user from typing list:', event.username);
+    }
+
+    // Update typing indicator
+    this.isUserTyping = this.typingUsers.length > 0;
+    console.log('📊 Current typing users:', this.typingUsers);
+
+    // Clear any existing timeout for this user
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    // Auto-remove typing indicator after 3 seconds (fallback)
+    if (event.isTyping) {
+      this.typingTimeout = setTimeout(() => {
+        console.log('⏰ Typing timeout, removing user:', event.username);
+        this.typingUsers = this.typingUsers.filter(
+          (user) => user !== event.username
+        );
+        this.isUserTyping = this.typingUsers.length > 0;
+      }, 3000);
+    }
+  }
+
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     this.isSendingMessage = true;
+
+    // Stop typing when sending message
+    this.chatService.stopTyping(this.selectedConversation._id);
+    this.typingUsers = [];
 
     this.chatService
       .sendMessageWithConfirmation(
@@ -725,7 +872,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         this.newMessage
       )
       .subscribe({
-        next: (result: any) => {
+        next: (result) => {
           if (result.success) {
             this.newMessage = '';
           } else {
@@ -733,7 +880,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           }
           this.isSendingMessage = false;
         },
-        error: (error: any) => {
+        error: (error) => {
           console.error('Error sending message:', error);
           this.isSendingMessage = false;
         },
@@ -767,11 +914,25 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     if (this.realtimeSubscription) {
       this.realtimeSubscription.unsubscribe();
     }
+    if (this.typingSubscription) {
+      this.typingSubscription.unsubscribe();
+    }
     if (this.unreadMapSubscription) {
       this.unreadMapSubscription.unsubscribe();
     }
+    // Unsubscribe from current room
     if (this.selectedConversation) {
-      this.chatService.unsubscribeFromRoomMessages(this.selectedConversation._id);
+      this.chatService.unsubscribeFromRoomMessages(
+        this.selectedConversation._id
+      );
+      this.chatService.unsubscribeFromTypingEvents(
+        this.selectedConversation._id
+      );
+    }
+
+    // Clear typing timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
     }
   }
 
