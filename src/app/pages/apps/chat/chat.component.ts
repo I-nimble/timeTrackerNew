@@ -77,6 +77,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
+  private roomSubscriptions = new Map<string, Subscription>();
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -194,23 +195,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
 
-    try {
-      const { history, realtimeStream } =
-        await this.chatService.loadRoomHistoryWithRealtime(room);
-
-      this.messages = history;
-      const existingMessageIds = new Set(this.messages.map(msg => msg._id));
-
-      this.realtimeSubscription = realtimeStream.subscribe((newMessage) => {
-        if (!existingMessageIds.has(newMessage._id)) {
-          this.messages = [...this.messages, newMessage];
-          existingMessageIds.add(newMessage._id);
-          this.scrollToBottom();
-        }
-      });
-    } catch (error) {
-      console.error('Error loading room history:', error);
+    if (this.roomSubscriptions.has(room._id)) {
+      this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
+
+    const { history, realtimeStream } =
+      await this.chatService.loadRoomHistoryWithRealtime(room);
+
+    this.messages = history;
+    const existingMessageIds = new Set(this.messages.map(msg => msg._id));
+
+    const sub = realtimeStream.subscribe((newMessage) => {
+      if (!existingMessageIds.has(newMessage._id)) {
+        this.messages = [...this.messages, newMessage];
+        existingMessageIds.add(newMessage._id);
+        this.scrollToBottom();
+      }
+    });
+
+    this.roomSubscriptions.set(room._id, sub);
   }
 
   loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
