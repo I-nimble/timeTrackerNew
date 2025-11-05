@@ -715,28 +715,22 @@ export class RocketChatService {
   getConversationPicture(room: RocketChatRoom): Observable<string> {
     switch (room.t) {
       case 'd': // direct message
-        const user = room.uids?.filter(
-          (u: string) => u !== this.loggedInUser?._id
-        )[0];
-        if (!user) {
+      { 
+        const username = room.usernames?.find(
+          u => u !== this.loggedInUser?.username
+        );
+        if (!username) {
           return of(this.defaultAvatarUrl);
         }
-        return this.getUserAvatar(user).pipe(
-          map((userPicture: any) => {
-            return (
-              userPicture?.avatarUrl || userPicture || this.defaultAvatarUrl
-            );
-          }),
-          catchError(() => {
-            return of(this.defaultAvatarUrl);
-          })
-        );
+        return of(`${environment.rocketChatUrl}/avatar/${username}`);
+      }
 
       case 'p': // private chat
-        return of(this.defaultGroupPicUrl);
-
       case 'c': // channel
-        return of(this.defaultGroupPicUrl);
+        if (!room._id) {
+          return of(this.defaultGroupPicUrl);
+        }
+        return of(`${environment.rocketChatUrl}/avatar/room/${room._id}`);
 
       case 'l': // livechat
         return of(this.defaultAvatarUrl);
