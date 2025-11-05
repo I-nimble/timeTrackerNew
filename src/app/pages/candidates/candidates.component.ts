@@ -21,6 +21,7 @@ import { PositionsService } from 'src/app/services/positions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component'; 
 import { CompaniesService } from 'src/app/services/companies.service';
+import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 
 @Component({
   selector: 'app-candidates',
@@ -228,15 +229,34 @@ export class CandidatesComponent {
     });
   }
 
-  sendToTalentMatch(id: number): void {
-    this.applicationsService.sendToTalentMatch(id).subscribe({
-      next: () => {
-        this.showSnackbar('Candidate sent to talent match successfully!');
-        this.loadCandidates();
-        this.filterCandidates();
+  sendToTalentMatch(candidate: any): void {
+    const dialogRef = this.dialog.open(MatchPercentagesModalComponent, {
+      width: '600px',
+      maxHeight: '80vh',
+      data: {
+        candidate: {
+          id: candidate.id,
+          name: candidate.name,
+          email: candidate.email,
+          position_id: candidate.position_id
+        }
       },
-      error: () => {
-        this.showSnackbar('Error sending candidate to client.');
+      disableClose: false,
+      hasBackdrop: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result: string) => {
+      if (result === 'success') {
+        this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
+          next: () => {
+            this.showSnackbar('Candidate sent to talent match successfully!');
+            this.loadCandidates();
+            this.filterCandidates();
+          },
+          error: () => {
+            this.showSnackbar('Error sending candidate to talent match.');
+          }
+        });
       }
     });
   }
