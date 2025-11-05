@@ -1,0 +1,68 @@
+<div class="match-percentages-modal">
+  <div class="modal-header">
+    <h3 mat-dialog-title>Enter Match Percentages</h3>
+    <button mat-icon-button mat-dialog-close class="close-button" (click)="onCancel()" [disabled]="saving">
+      <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <div class="candidate-info">
+      <h3>{{ data.candidate.name }}</h3>
+      <p class="text-muted">{{ data.candidate.email }}</p>
+    </div>
+
+    <div class="categories-list" *ngIf="!loading; else loadingTemplate">
+      <mat-card *ngFor="let category of positionCategories" class="category-card">
+        <mat-card-content>
+          <div class="category-header">
+            <h4>{{ category.category_name }}</h4>
+            <span class="percentage-badge" [class.invalid]="!validatePercentage(category.id)">
+              {{ matchScores[category.id] || 0 }}%
+            </span>
+          </div>
+          
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Match Percentage (0-100%)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="0"
+              max="100"
+              [(ngModel)]="matchScores[category.id]"
+              (blur)="validatePercentage(category.id)"
+              placeholder="Enter percentage"
+            />
+            <span matSuffix>%</span>
+            <mat-error *ngIf="!validatePercentage(category.id)">
+              Please enter a value between 0 and 100
+            </mat-error>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div *ngIf="positionCategories.length === 0" class="no-categories">
+        <p>No position categories available.</p>
+      </div>
+    </div>
+
+    <ng-template #loadingTemplate>
+      <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading position categories...</p>
+      </div>
+    </ng-template>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="d-flex flex-end">
+    <button 
+      mat-flat-button 
+      color="primary" 
+      (click)="onSubmit()" 
+      [disabled]="saving || getInvalidCategories().length > 0 || !hasValidScores()">
+      <span *ngIf="!saving">Save</span>
+      <span *ngIf="saving">Saving...</span>
+    </button>
+    <button mat-flat-button class="bg-error text-white" (click)="onCancel()" [disabled]="saving">Cancel</button>
+  </mat-dialog-actions>
+</div>
