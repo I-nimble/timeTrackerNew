@@ -1,6 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject, map, of, catchError } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  map,
+  of,
+  catchError,
+  switchMap,
+  forkJoin,
+  filter,
+  firstValueFrom
+} from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   RocketChatCredentials,
@@ -86,6 +97,21 @@ export class RocketChatService {
     });
   }
 
+  
+  private normalizeTimestamp(ts: string | { $date: string | number }): Date {
+    if (typeof ts === 'string') {
+      return new Date(ts);
+    } else if (ts && typeof ts === 'object' && '$date' in ts) {
+      const dateValue = ts.$date;
+      if (typeof dateValue === 'number') {
+        return new Date(dateValue);
+      } else {
+        return new Date(dateValue);
+      }
+    }
+    return new Date();
+  }
+
   async connectWebSocket(): Promise<void> {
     if (!this.credentials) {
       throw new Error('Not authenticated');
@@ -100,8 +126,6 @@ export class RocketChatService {
       this.socket = new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
-        console.log('Rocket.Chat WebSocket connected');
-
         this.sendWebSocketMessage({
           msg: 'connect',
           version: '1',
@@ -132,11 +156,6 @@ export class RocketChatService {
       };
 
       this.socket.onclose = (event) => {
-        console.log(
-          'Rocket.Chat WebSocket disconnected:',
-          event.code,
-          event.reason
-        );
         this.connectionSubject.next(false);
 
         if (this.credentials) {
@@ -148,41 +167,244 @@ export class RocketChatService {
     });
   }
 
-  private handleWebSocketMessage(message: any): void {
-    if (message.msg === 'connected') {
-      console.log('Rocket.Chat WebSocket authenticated');
-      this.connectionSubject.next(true);
-    }
-
-    if (message.msg === 'ready') {
-      console.log('Subscriptions ready:', message.subs);
-    }
-
-    if (
-      message.msg === 'changed' &&
-      message.collection === 'stream-room-messages'
-    ) {
-      if (
-        message.fields &&
-        message.fields.args &&
-        message.fields.args.length > 0
-      ) {
-        const messageData = message.fields.args[0];
-        this.messageStreamSubject.next(messageData);
-      }
-    }
-
-    if (message.msg === 'result') {
-      console.log('Method result:', message);
-    }
-  }
-
   private sendWebSocketMessage(message: any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
     } else {
       console.error('WebSocket not connected');
     }
+  }
+
+  async loadRoomHistoryWithRealtime(
+    room: RocketChatRoom,
+    limit: number = 50
+  ): Promise<{
+    history: RocketChatMessage[];
+    realtimeStream: Observable<RocketChatMessage>;
+  }> {
+    try {
+      let history: RocketChatMessage[];
+      const roomId = room._id;
+
+      if (room.t === 'p') {
+        history = await firstValueFrom(
+          this.getGroupMessagesHistory(roomId, limit)
+        );
+      } else if (room.t === 'd') {
+        history = await firstValueFrom(
+          this.loadDirectMessagesHistory(roomId, limit)
+        );
+      } else {
+        history = await firstValueFrom(
+          this.loadChannelMessagesHistory(roomId, limit)
+        );
+      }
+
+      history.sort((a, b) => {
+        const dateA = this.normalizeTimestamp(a.ts).getTime();
+        const dateB = this.normalizeTimestamp(b.ts).getTime();
+        return dateA - dateB;
+      });
+
+      const latestHistoryTimestamp = history.length > 0 
+      ? this.normalizeTimestamp(history[history.length - 1].ts).getTime()
+      : 0;
+
+      await this.subscribeToRoomMessages(roomId);
+
+      return {
+        history,
+        realtimeStream: this.getMessageStream().pipe(
+          filter(message => message.rid === roomId),
+          filter(message => {
+            const messageTimestamp = this.normalizeTimestamp(message.ts).getTime();
+            return messageTimestamp > latestHistoryTimestamp;
+          })
+        )
+      };
+    } catch (error) {
+      console.error('Error loading room history:', error);
+      throw error;
+    }
+  }
+
+  private handleWebSocketMessage(message: any): void {
+    if (message.msg === 'connected') {
+      this.connectionSubject.next(true);
+
+      this.resubscribeToActiveRooms();
+    }
+
+    if (
+      message.msg === 'changed' &&
+      message.collection === 'stream-room-messages'
+    ) {
+      if (message.fields?.args?.[0]) {
+        const messageData: RocketChatMessage = message.fields.args[0];
+        this.messageStreamSubject.next(messageData);
+      }
+    }
+
+    if (
+      message.msg === 'changed' &&
+      message.collection === 'stream-notify-room'
+    ) {
+      this.roomUpdateSubject.next(message);
+    }
+
+    if (message.msg === 'ping') {
+      this.sendWebSocketMessage({ msg: 'pong' });
+    }
+  }
+
+  private resubscribeToActiveRooms(): void {
+    if (this.activeSubscriptions.size > 0) {
+      this.activeSubscriptions.forEach((subscriptionId, roomId) => {
+        this.subscribeToRoomMessages(roomId).catch((error) => {
+          console.error(`Failed to resubscribe to room ${roomId}:`, error);
+        });
+      });
+    }
+  }
+
+  async subscribeToRoomMessages(roomId: string): Promise<void> {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      await this.connectWebSocket();
+    }
+
+    const subscriptionId = this.generateSubscriptionId();
+
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-room-messages',
+      params: [roomId, false],
+    });
+
+    this.activeSubscriptions.set(roomId, subscriptionId);
+  }
+
+  unsubscribeFromRoomMessages(roomId: string): void {
+    const subscriptionId = this.activeSubscriptions.get(roomId);
+    if (
+      subscriptionId &&
+      this.socket &&
+      this.socket.readyState === WebSocket.OPEN
+    ) {
+      this.sendWebSocketMessage({
+        msg: 'unsub',
+        id: subscriptionId,
+      });
+      this.activeSubscriptions.delete(roomId);
+    }
+  }
+
+  sendMessageWithConfirmation(
+    roomId: string,
+    message: string
+  ): Observable<{
+    success: boolean;
+    message?: RocketChatMessage;
+    error?: string;
+  }> {
+    return new Observable((observer) => {
+      if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+        observer.next({ success: false, error: 'WebSocket not connected' });
+        observer.complete();
+        return;
+      }
+
+      const tempMessageId = this.generateMessageId();
+      let confirmationTimeout: any;
+
+      const handleConfirmation = (event: MessageEvent) => {
+        const wsMessage = JSON.parse(event.data);
+
+        if (wsMessage.msg === 'result' && wsMessage.id === tempMessageId) {
+          this.socket?.removeEventListener('message', handleConfirmation);
+          clearTimeout(confirmationTimeout);
+
+          if (wsMessage.error) {
+            observer.next({ success: false, error: wsMessage.error.message });
+          } else {
+            observer.next({ success: true, message: wsMessage.result });
+          }
+          observer.complete();
+        }
+      };
+
+      this.socket.addEventListener('message', handleConfirmation);
+
+      this.sendWebSocketMessage({
+        msg: 'method',
+        method: 'sendMessage',
+        id: tempMessageId,
+        params: [
+          {
+            _id: this.generateMessageId(),
+            rid: roomId,
+            msg: message,
+          },
+        ],
+      });
+
+      confirmationTimeout = setTimeout(() => {
+        this.socket?.removeEventListener('message', handleConfirmation);
+        observer.next({
+          success: false,
+          error: 'Message confirmation timeout',
+        });
+        observer.complete();
+      }, 10000);
+    });
+  }
+
+  getRoomsWithLastMessage(): Observable<RocketChatRoom[]> {
+    return this.getRooms().pipe(
+      switchMap((rooms) => {
+        const enhancedRooms: RocketChatRoom[] = rooms.map(
+          (room: RocketChatRoom) =>
+            this.getRoomLastMessage(room._id).pipe(
+              map((lastMessage) => ({
+                ...room,
+                lastMessage: lastMessage?.msg || 'No messages yet',
+                lastMessageTs: lastMessage?.ts || room.ts,
+              })),
+              catchError(() =>
+                of({
+                  ...room,
+                  lastMessage: 'No messages yet',
+                  lastMessageTs: room.ts,
+                })
+              )
+            )
+        );
+        return forkJoin(enhancedRooms);
+      })
+    );
+  }
+
+  private getRoomLastMessage(
+    roomId: string
+  ): Observable<RocketChatMessage | null> {
+    return this.loadChannelMessagesHistory(roomId, 1).pipe(
+      map((messages) => (messages.length > 0 ? messages[0] : null)),
+      catchError(() => of(null))
+    );
+  }
+
+  private setupConnectionMonitoring(): void {
+    this.connectionSubject.subscribe((isConnected) => {
+      if (isConnected) {
+        this.resubscribeToActiveRooms();
+      }
+    });
+
+    setInterval(() => {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.sendWebSocketMessage({ msg: 'ping' });
+      }
+    }, 30000);
   }
 
   private generateMessageId(): string {
@@ -202,23 +424,16 @@ export class RocketChatService {
         `${this.CHAT_API_URI}channels.history?roomId=${roomId}&count=${limit}&unreads=true`,
         { headers: this.getAuthHeaders() }
       )
-      .pipe(
-        map((res: any) => res.messages as RocketChatMessage[])
-      )
+      .pipe(map((res: any) => res.messages as RocketChatMessage[]));
   }
 
-  getGroupMessagesHistory(
-    roomId: string,
-    limit: number = 50
-  ): Observable<any> {
+  getGroupMessagesHistory(roomId: string, limit: number = 50): Observable<any> {
     return this.http
       .get<any>(
         `${this.CHAT_API_URI}groups.history?roomId=${roomId}&count=${limit}&unreads=true`,
         { headers: this.getAuthHeaders() }
       )
-      .pipe(
-        map((res: any) => res.messages as RocketChatMessage[])
-      )
+      .pipe(map((res: any) => res.messages as RocketChatMessage[]));
   }
 
   loadDirectMessagesHistory(
@@ -230,84 +445,7 @@ export class RocketChatService {
         `${this.CHAT_API_URI}dm.history?roomId=${roomId}&count=${limit}&unreads=true`,
         { headers: this.getAuthHeaders() }
       )
-      .pipe(
-        map((res: any) => res.messages as RocketChatMessage[])
-      )
-  }
-
-  private async loadHistoryViaWebSocket(
-    roomId: string,
-    limit: number = 50
-  ): Promise<RocketChatMessage[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-        reject(new Error('WebSocket not connected'));
-        return;
-      }
-
-      const messageId = this.generateMessageId();
-
-      const handleResult = (event: MessageEvent) => {
-        const message = JSON.parse(event.data);
-        if (message.msg === 'result' && message.id === messageId) {
-          this.socket!.removeEventListener('message', handleResult);
-
-          if (message.error) {
-            reject(new Error(message.error.message || 'Load history failed'));
-          } else {
-            resolve(message.result.messages || []);
-          }
-        }
-      };
-
-      this.socket.addEventListener('message', handleResult);
-
-      this.sendWebSocketMessage({
-        msg: 'method',
-        method: 'loadHistory',
-        id: messageId,
-        params: [roomId, null, limit, null],
-      });
-
-      setTimeout(() => {
-        this.socket!.removeEventListener('message', handleResult);
-        reject(new Error('Load history timeout'));
-      }, 10000);
-    });
-  }
-
-  async subscribeToRoomMessages(roomId: string): Promise<void> {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      await this.connectWebSocket();
-    }
-
-    const subscriptionId = this.generateSubscriptionId();
-
-    this.sendWebSocketMessage({
-      msg: 'sub',
-      id: subscriptionId,
-      name: 'stream-room-messages',
-      params: [roomId, false],
-    });
-
-    this.activeSubscriptions.set(roomId, subscriptionId);
-    console.log(`Subscribed to room messages: ${roomId}`);
-  }
-
-  unsubscribeFromRoomMessages(roomId: string): void {
-    const subscriptionId = this.activeSubscriptions.get(roomId);
-    if (
-      subscriptionId &&
-      this.socket &&
-      this.socket.readyState === WebSocket.OPEN
-    ) {
-      this.sendWebSocketMessage({
-        msg: 'unsub',
-        id: subscriptionId,
-      });
-      this.activeSubscriptions.delete(roomId);
-      console.log(`Unsubscribed from room messages: ${roomId}`);
-    }
+      .pipe(map((res: any) => res.messages as RocketChatMessage[]));
   }
 
   async login(email: string, password: string): Promise<RocketChatCredentials> {
@@ -368,34 +506,28 @@ export class RocketChatService {
   }
 
   getCurrentUser(): Observable<RocketChatUser> {
-    return this.http
-      .get<RocketChatUser>(`${this.CHAT_API_URI}me`, {
-        headers: this.getAuthHeaders(),
-      });
+    return this.http.get<RocketChatUser>(`${this.CHAT_API_URI}me`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   getRooms(): Observable<any> {
     return this.http
       .get<any>(`${this.CHAT_API_URI}rooms.get`, {
-        headers: this.getAuthHeaders()
-      }).pipe(
-        map((res: any) => res.update as RocketChatRoom[])
-      )
+        headers: this.getAuthHeaders(),
+      })
+      .pipe(map((res: any) => res.update as RocketChatRoom[]));
   }
 
-  sendMessage(
-    roomId: string,
-    message: string
-  ): Observable<any> {
-    return this.http
-      .post(
-        `${this.CHAT_API_URI}chat.postMessage`,
-        {
-          channel: roomId,
-          text: message,
-        },
-        { headers: this.getAuthHeaders() }
-      );
+  sendMessage(roomId: string, message: string): Observable<any> {
+    return this.http.post(
+      `${this.CHAT_API_URI}chat.postMessage`,
+      {
+        channel: roomId,
+        text: message,
+      },
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   async createDirectMessage(username: string): Promise<RocketChatRoom> {
@@ -474,7 +606,11 @@ export class RocketChatService {
     if (this.credentials) {
       try {
         await this.http
-          .post(`${this.CHAT_API_URI}logout`, {}, { headers: this.getAuthHeaders() })
+          .post(
+            `${this.CHAT_API_URI}logout`,
+            {},
+            { headers: this.getAuthHeaders() }
+          )
           .toPromise();
       } catch (error) {
         console.error('Logout error:', error);
@@ -534,16 +670,20 @@ export class RocketChatService {
   }
 
   initializeJitsiMeeting(roomId: string): Observable<any> {
-    return this.http.post(`${this.API_URI}commands`, 
-      { 
-        roomId, 
-        command: 'jitsi', 
-        user: { 
-          name: this.loggedInUser?.name, 
+    return this.http.post(
+      `${this.API_URI}commands`,
+      {
+        roomId,
+        command: 'jitsi',
+        user: {
+          name: this.loggedInUser?.name,
           avatarUrl: this.loggedInUser?.avatarUrl,
-          email: this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0 ? this.loggedInUser?.emails[0].address : '',
-          _id: this.loggedInUser?._id
-        } 
+          email:
+            this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0
+              ? this.loggedInUser?.emails[0].address
+              : '',
+          _id: this.loggedInUser?._id,
+        },
       },
       { headers: this.getAuthHeaders() }
     );
@@ -554,15 +694,19 @@ export class RocketChatService {
       return of(null);
     }
 
-    return this.http.post(`${this.API_URI}join-meeting`, 
-      { 
+    return this.http.post(
+      `${this.API_URI}join-meeting`,
+      {
         callId: message?.blocks[0].callId,
-        user: { 
-          name: this.loggedInUser?.name, 
+        user: {
+          name: this.loggedInUser?.name,
           avatarUrl: this.loggedInUser?.avatarUrl,
-          email: this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0 ? this.loggedInUser?.emails[0].address : '',
-          _id: this.loggedInUser?._id
-        }
+          email:
+            this.loggedInUser?.emails && this.loggedInUser?.emails.length > 0
+              ? this.loggedInUser?.emails[0].address
+              : '',
+          _id: this.loggedInUser?._id,
+        },
       },
       { headers: this.getAuthHeaders() }
     );
@@ -571,28 +715,32 @@ export class RocketChatService {
   getConversationPicture(room: RocketChatRoom): Observable<string> {
     switch (room.t) {
       case 'd': // direct message
-        const user = room.uids?.filter((u: string) => u !== this.loggedInUser?._id)[0];
+        const user = room.uids?.filter(
+          (u: string) => u !== this.loggedInUser?._id
+        )[0];
         if (!user) {
           return of(this.defaultAvatarUrl);
         }
         return this.getUserAvatar(user).pipe(
           map((userPicture: any) => {
-            return userPicture?.avatarUrl || userPicture || this.defaultAvatarUrl;
+            return (
+              userPicture?.avatarUrl || userPicture || this.defaultAvatarUrl
+            );
           }),
           catchError(() => {
             return of(this.defaultAvatarUrl);
           })
         );
-      
+
       case 'p': // private chat
         return of(this.defaultGroupPicUrl);
-      
+
       case 'c': // channel
         return of(this.defaultGroupPicUrl);
-      
+
       case 'l': // livechat
         return of(this.defaultAvatarUrl);
-      
+
       default:
         return of(this.defaultAvatarUrl);
     }
@@ -600,7 +748,7 @@ export class RocketChatService {
 
   getUserAvatar(userId: string): Observable<any> {
     return this.http.get(`${this.CHAT_API_URI}users.getAvatar`, {
-      params: { userId }
+      params: { userId },
     });
   }
 }

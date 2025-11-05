@@ -117,7 +117,7 @@
                       </span>
                     }
                   </div>
-                  <span class="f-s-12">{{ message.ts | date:'MMM d, yyyy' }}</span>
+                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'MMM d, yyyy' }}</span>
                 </div>
               
             </div>
@@ -129,7 +129,7 @@
       </div>
 
       <mat-divider></mat-divider>
-      <div class="p-t-20 p-x-24 bg-white chat-input">
+      <div class="p-t-20 p-x-24 bg-white chat-input" *ngIf="selectedConversation">
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
           <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" />
           <button mat-icon-button matSuffix (click)="sendMessage()">

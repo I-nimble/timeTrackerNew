@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   inject,
   CUSTOM_ELEMENTS_SCHEMA,
   ViewChild,
@@ -35,7 +36,11 @@ import { FormsModule } from '@angular/forms';
 import { MatSidenav } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
-import { RocketChatRoom, RocketChatMessage, RocketChatUser } from '../../../models/rocketChat.model';
+import {
+  RocketChatRoom,
+  RocketChatMessage,
+  RocketChatUser,
+} from '../../../models/rocketChat.model';
 import { Observable, of } from 'rxjs';
 
 @Component({
@@ -57,7 +62,7 @@ import { Observable, of } from 'rxjs';
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
 })
-export class AppChatComponent implements OnInit {
+export class AppChatComponent implements OnInit, OnDestroy {
   roomsFilter = '';
   selectedConversation!: RocketChatRoom;
   rooms: RocketChatRoom[] = [];
@@ -71,9 +76,9 @@ export class AppChatComponent implements OnInit {
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
+  realtimeSubscription: Subscription | null = null;
 
   @HostListener('window:resize', ['$event'])
-  
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
   }
@@ -89,8 +94,8 @@ export class AppChatComponent implements OnInit {
   }
 
   private loadAllRoomPictures() {
-    this.rooms.forEach(room => {
-      this.chatService.getConversationPicture(room).subscribe(pictureUrl => {
+    this.rooms.forEach((room) => {
+      this.chatService.getConversationPicture(room).subscribe((pictureUrl) => {
         this.roomPictures[room._id] = pictureUrl;
       });
     });
@@ -102,11 +107,16 @@ export class AppChatComponent implements OnInit {
 
   private getDefaultPicture(room: RocketChatRoom): string {
     switch (room.t) {
-      case 'd': return this.defaultAvatarUrl;
-      case 'p': return this.defaultGroupPicUrl;
-      case 'c': return this.defaultGroupPicUrl;
-      case 'l': return this.defaultAvatarUrl;
-      default: return this.defaultAvatarUrl;
+      case 'd':
+        return this.defaultAvatarUrl;
+      case 'p':
+        return this.defaultGroupPicUrl;
+      case 'c':
+        return this.defaultGroupPicUrl;
+      case 'l':
+        return this.defaultAvatarUrl;
+      default:
+        return this.defaultAvatarUrl;
     }
   }
 
@@ -116,17 +126,19 @@ export class AppChatComponent implements OnInit {
   }
 
   call() {
-    this.chatService.initializeJitsiMeeting(this.selectedConversation._id).subscribe((res: any) => {
-      if(!res.success) {
-        console.error('Error calling room', this.selectedConversation._id);
-      }
-      window.open(res.callUrl, '_blank');
-    });
+    this.chatService
+      .initializeJitsiMeeting(this.selectedConversation._id)
+      .subscribe((res: any) => {
+        if (!res.success) {
+          console.error('Error calling room', this.selectedConversation._id);
+        }
+        window.open(res.callUrl, '_blank');
+      });
   }
 
   joinCall(message: RocketChatMessage) {
     this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
-      if(!res.success) {
+      if (!res.success) {
         console.error('Error joining room', message.u._id);
       }
       window.open(res.callUrl, '_blank');
@@ -134,23 +146,29 @@ export class AppChatComponent implements OnInit {
   }
 
   isFromMe(message: RocketChatMessage) {
-    return message.u._id === this.chatService.loggedInUser?._id
+    return message.u._id === this.chatService.loggedInUser?._id;
   }
 
   filteredRooms(): RocketChatRoom[] {
     if (!this.roomsFilter) return this.rooms;
     const q = this.roomsFilter.toLowerCase();
     return this.rooms.filter(
-      (r) => 
-        r?.name?.toLowerCase().includes(q) || 
-        r.usernames?.filter((u: string) => u !== this.chatService.loggedInUser?.username)[0].includes(q)
+      (r) =>
+        r?.name?.toLowerCase().includes(q) ||
+        r.usernames
+          ?.filter(
+            (u: string) => u !== this.chatService.loggedInUser?.username
+          )[0]
+          .includes(q)
     );
   }
 
-  getConversationName(room : RocketChatRoom) {
+  getConversationName(room: RocketChatRoom) {
     switch (room?.t) {
       case 'd': // direct message
-        return room.usernames?.filter((u: string) => u !== this.chatService.loggedInUser?.username)[0];
+        return room.usernames?.filter(
+          (u: string) => u !== this.chatService.loggedInUser?.username
+        )[0];
       case 'p': // private chat
         return room.name;
       case 'c': // channel
@@ -162,26 +180,45 @@ export class AppChatComponent implements OnInit {
     }
   }
 
-  selectRoom(r: RocketChatRoom) {
-    this.selectedConversation = r;
-    this.loadRoomMessages(r).subscribe(messages => {
-      this.messages = messages.sort((a: RocketChatMessage, b: RocketChatMessage) => {
-        if (a.ts > b.ts) return 1;
-        if (a.ts < b.ts) return -1;
-        return 0;
+  getMessageTimestamp(message: RocketChatMessage): Date {
+    if (typeof message.ts === 'string') {
+      return new Date(message.ts);
+    } else if (message.ts && typeof message.ts === 'object' && '$date' in message.ts) {
+      const dateValue = message.ts.$date;
+      return new Date(dateValue);
+    }
+    console.warn('Invalid timestamp format for message:', message._id);
+    return new Date();
+  }
+
+  async selectRoom(room: RocketChatRoom) {
+    this.selectedConversation = room;
+
+    try {
+      const { history, realtimeStream } =
+        await this.chatService.loadRoomHistoryWithRealtime(room);
+
+      this.messages = history;
+      const existingMessageIds = new Set(this.messages.map(msg => msg._id));
+
+      this.realtimeSubscription = realtimeStream.subscribe((newMessage) => {
+        if (!existingMessageIds.has(newMessage._id)) {
+          this.messages = [...this.messages, newMessage];
+          existingMessageIds.add(newMessage._id);
+          this.scrollToBottom();
+        }
       });
-      setTimeout(() => this.scrollToBottom(), 50);
-    });
+    } catch (error) {
+      console.error('Error loading room history:', error);
+    }
   }
 
   loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
     if (room.t === 'd') {
       return this.chatService.loadDirectMessagesHistory(room._id);
-    }
-    else if (room.t === 'p') {
+    } else if (room.t === 'p') {
       return this.chatService.getGroupMessagesHistory(room._id);
-    }
-    else if (room.t === 'c') {
+    } else if (room.t === 'c') {
       return this.chatService.loadChannelMessagesHistory(room._id);
     }
     return of([]);
@@ -190,23 +227,41 @@ export class AppChatComponent implements OnInit {
   getLastMessage(room: RocketChatRoom): string {
     const lastMessage = room.lastMessage;
     switch (lastMessage?.t) {
-      case 'videoconf': return 'Call started';
-      case 'd': return lastMessage.msg || 'No messages yet';
-      case 'p': return lastMessage.msg || 'No messages yet';
-      case 'c': return lastMessage.msg || 'No messages yet';
-      case 'l': return lastMessage.msg || 'No messages yet';
-      default: return lastMessage?.msg || 'No messages yet';
+      case 'videoconf':
+        return 'Call started';
+      case 'd':
+        return lastMessage.msg || 'No messages yet';
+      case 'p':
+        return lastMessage.msg || 'No messages yet';
+      case 'c':
+        return lastMessage.msg || 'No messages yet';
+      case 'l':
+        return lastMessage.msg || 'No messages yet';
+      default:
+        return lastMessage?.msg || 'No messages yet';
     }
   }
 
   sendMessage() {
-    this.chatService.sendMessage(this.selectedConversation._id, this.newMessage).subscribe((res: any) => {
-      if(!res.success) {
-        console.error('Error sending message', this.newMessage);
-      }
-      this.newMessage = '';
-      setTimeout(() => this.scrollToBottom(), 50);
-    });
+    if (!this.newMessage.trim() || !this.selectedConversation) return;
+
+    this.chatService
+      .sendMessageWithConfirmation(
+        this.selectedConversation._id,
+        this.newMessage
+      )
+      .subscribe({
+        next: (result: any) => {
+          if (result.success) {
+            this.newMessage = '';
+          } else {
+            console.error('Failed to send message:', result.error);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error sending message:', error);
+        },
+      });
   }
 
   toggleSidebar() {
@@ -218,5 +273,15 @@ export class AppChatComponent implements OnInit {
       const el = this.messagesContainer?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;
     } catch (e) {}
+  }
+
+  ngOnDestroy() {
+    if (this.realtimeSubscription) {
+      this.realtimeSubscription.unsubscribe();
+    }
+    
+    if (this.selectedConversation) {
+      this.chatService.unsubscribeFromRoomMessages(this.selectedConversation._id);
+    }
   }
 }

@@ -124,7 +124,7 @@ export interface RocketChatMessage {
   rid: string;
   msg: string;
   alias?: string;
-  ts: string;
+  ts: string | { $date: string | number };
   u: RocketChatMessageUser;
   _updatedAt: string;
   reactions?: RocketChatMessageReactions;
