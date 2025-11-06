@@ -18,6 +18,7 @@ import {
   RocketChatUser,
   RocketChatRoom,
   RocketChatMessage,
+  RocketChatTeam
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { C } from '@angular/cdk/keycodes';
@@ -510,6 +511,13 @@ export class RocketChatService {
       headers: this.getAuthHeaders(),
     });
   }
+  
+  getUsers(): Observable<RocketChatUser[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<RocketChatUser[]>(`${this.CHAT_API_URI}users.list`, { headers }).pipe(
+      map((res: any) => res.users as RocketChatUser[])
+    );
+  }
 
   getRooms(): Observable<any> {
     return this.http
@@ -517,6 +525,64 @@ export class RocketChatService {
         headers: this.getAuthHeaders(),
       })
       .pipe(map((res: any) => res.update as RocketChatRoom[]));
+  }
+  
+  createRoom(name: string, type: 'c' | 'p', members?: string[]): Observable<RocketChatRoom> {
+    const headers = this.getAuthHeaders();
+    const safeName = String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9_\-]/g, '')
+      .replace(/^-+|-+$/g, '');
+
+    if (!safeName) {
+      return new Observable<RocketChatRoom>((observer) => {
+        observer.error(new Error('Invalid room name'));
+      });
+    }
+
+    if (type === 'c') {
+      return this.http.post<any>(`${this.CHAT_API_URI}channels.create`, { name: safeName }, { headers }).pipe(
+        switchMap(res => {
+          const channel = res?.channel as RocketChatRoom;
+          if (members?.length) {
+            const roomId = channel._id;
+            return forkJoin(members.map(userId =>
+              this.http.post(`${this.CHAT_API_URI}channels.invite`, { roomId, userId }, { headers })
+            )).pipe(map(() => channel));
+          }
+          return of(channel);
+        }),
+        catchError(err => {
+          throw err;
+        })
+      );
+    } else {
+      const body: any = { name: safeName };
+      if (members?.length) body.members = members;
+
+      return this.http.post<any>(`${this.CHAT_API_URI}groups.create`, body, { headers }).pipe(
+        switchMap(res => {
+          const group = res?.group as RocketChatRoom;
+          if (members?.length) {
+            return of(group);
+          }
+          return of(group);
+        }),
+        catchError(err => { throw err; })
+      );
+    }
+  }
+
+  createTeam(name: string, owner: string, members?: string[]): Observable<RocketChatTeam> {
+    const headers = this.getAuthHeaders();
+    const body: any = { name, type: 1, owner };
+    if (members?.length) body.members = members;
+
+    return this.http.post<any>(`${this.CHAT_API_URI}teams.create`, body, { headers }).pipe(
+      map(res => res.team as RocketChatTeam)
+    );
   }
 
   sendMessage(roomId: string, message: string): Observable<any> {

@@ -6,16 +6,39 @@
       [opened]="!isMobile || isSidebarOpen"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
-        <div class="sidebar-header">
-          <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" />
-          <div class="sidebar-user-info">
-            <h4>{{ chatService.loggedInUser?.name }}</h4>
-            <span>
-               {{ getUserEmail() }}
-            </span>
+        <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">
+          <div class="d-flex align-items-center gap-12">
+            <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" width="50" height="50" />
+            <div class="sidebar-user-info">
+              <h4>{{ chatService.loggedInUser?.name }}</h4>
+              <span>{{ getUserEmail() }}</span>
+            </div>
           </div>
-        </div>
+          <button
+            *ngIf="canCreateDirectMessage() || canCreateChannel() || canCreateTeam()"
+            mat-icon-button
+            [matMenuTriggerFor]="createMenu"
+            color="primary"
+            aria-label="Create new"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
 
+          <mat-menu #createMenu="matMenu">
+            <button *ngIf="canCreateDirectMessage()" mat-menu-item (click)="openCreateRoomDialog('d')">
+              <mat-icon>person</mat-icon>
+              <span>Direct Message</span>
+            </button>
+            <button *ngIf="canCreateChannel()" mat-menu-item (click)="openCreateRoomDialog('c')">
+              <mat-icon>group</mat-icon>
+              <span>Channel</span>
+            </button>
+            <button *ngIf="canCreateTeam()" mat-menu-item (click)="openCreateRoomDialog('t')">
+              <mat-icon>groups</mat-icon>
+              <span>Team</span>
+            </button>
+          </mat-menu>
+        </div>
         <div class="sidebar-search">
           <mat-form-field appearance="outline" class="w-100">
             <input
@@ -26,7 +49,7 @@
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
         </div>
-
+        
         <div class="contacts-wrapper">
           <div
             class="contact-item"

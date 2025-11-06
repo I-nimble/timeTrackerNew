@@ -36,6 +36,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSidenav } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { CreateRoomComponent } from './create-room/create-room.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
@@ -58,6 +59,7 @@ import { Observable, of } from 'rxjs';
     MatDividerModule,
     MatButtonModule,
     MatMenuModule,
+    CreateRoomComponent
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -84,13 +86,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
-    this.chatService.getRooms().subscribe((rooms: any) => {
-      this.rooms = rooms;
-      this.loadAllRoomPictures();
-      setTimeout(() => this.scrollToBottom(), 100);
+    this.loadRooms();
+  }
+
+  private loadRooms(): void {
+    this.chatService.getRooms().subscribe({
+      next: (rooms: any) => {
+        this.rooms = rooms;
+        this.loadAllRoomPictures();
+        setTimeout(() => this.scrollToBottom(), 100);
+      },
+      error: (err) => {
+        console.error('Error loading rooms:', err);
+      },
     });
   }
 
@@ -126,6 +137,23 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return emails && emails.length > 0 ? emails[0].address : '';
   }
 
+  private hasAnyRole(roles: string[]): boolean {
+    const userRoles = this.chatService.loggedInUser?.roles || [];
+    return userRoles.some(r => roles.includes(r));
+  }
+
+  canCreateTeam(): boolean {
+    return this.hasAnyRole(['moderator', 'admin']);
+  }
+
+  canCreateChannel(): boolean {
+    return this.hasAnyRole(['leader']);
+  }
+
+  canCreateDirectMessage(): boolean {
+    return this.hasAnyRole(['user']);
+  }
+
   call() {
     this.chatService
       .initializeJitsiMeeting(this.selectedConversation._id)
@@ -148,6 +176,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   isFromMe(message: RocketChatMessage) {
     return message.u._id === this.chatService.loggedInUser?._id;
+  }
+
+  openCreateRoomDialog(type: 'd' | 'c' | 't') {
+    const dialogRef = this.dialog.open(CreateRoomComponent, {
+      width: '400px',
+      data: { type },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        console.log('Created:', result.room);
+        this.loadRooms();
+      }
+    });
   }
 
   filteredRooms(): RocketChatRoom[] {
