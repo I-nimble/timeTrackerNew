@@ -1,0 +1,52 @@
+<mat-dialog-content class="mat-typography p-24">
+  <div class="dialog-header d-flex align-center justify-between mb-24">
+    <h2 class="dialog-title f-w-600 m-0">
+      {{ data.conversation?.t === 'd' ? 'Contact Info' : 
+         data.conversation?.t === 'c' ? 'Channel Info' : 
+         data.conversation?.t === 'p' ? 'Team Info' : 'Info' }}
+    </h2>
+    <button mat-icon-button (click)="dialogRef.close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="info-avatar-wrapper text-center mb-24">
+    <img
+      *ngIf="roomPicture; else defaultGroupPicture"
+      [src]="roomPicture"
+      class="info-avatar"
+      alt="avatar"
+    />
+    <ng-template #defaultGroupPicture>
+      <img src="assets/images/group-icon.webp" class="info-avatar" alt="group" />
+    </ng-template>
+  </div>
+  <ng-container *ngIf="data.conversation?.t === 'd' && data.userInfo">
+    <div class="info-block">
+      <span class="field-label">Username</span>
+      <span class="field-value">{{ data.userInfo.username }}</span>
+    </div>
+    <div class="info-block" *ngIf="data.userInfo.email">
+      <span class="field-label">Email</span>
+      <span class="field-value">{{ data.userInfo.email }}</span>
+    </div>
+    <div class="info-block" *ngIf="data.userInfo.utcOffset !== undefined">
+      <span class="field-label">Local time</span>
+      <span class="field-value">{{ getLocalTime(data.userInfo.utcOffset) }}</span>
+    </div>
+    <div class="info-block" *ngIf="data.userInfo.lastLogin">
+      <span class="field-label">Last login</span>
+      <span class="field-value">{{ data.userInfo.lastLogin | date:'MMM d, yyyy HH:mm' }}</span>
+    </div>
+    <div class="info-block" *ngIf="data.userInfo.createdAt">
+      <span class="field-label">Created at</span>
+      <span class="field-value">{{ data.userInfo.createdAt | date:'MMM d, yyyy' }}</span>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="(data.conversation?.t === 'c' || data.conversation?.t === 'p') && data.channelMembers?.length">
+    <h4 class="members-title">Members ({{ data.channelMembers.length }})</h4>
+    <div *ngFor="let m of data.channelMembers" class="member-row d-flex align-center gap-12 mb-16">
+      <img [src]="m.avatarUrl" width="48" class="rounded-circle" />
+      <div>{{ m.username }}</div>
+    </div>
+  </ng-container>
+</mat-dialog-content>
