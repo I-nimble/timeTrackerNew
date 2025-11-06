@@ -482,6 +482,17 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     return new Date();
   }
 
+  getSenderAvatar(message: RocketChatMessage): string {
+    if (this.isFromMe(message)) {
+      return this.chatService.loggedInUser?.avatarUrl || this.defaultAvatarUrl;
+    }
+    return this.chatService.getUserAvatarUrl(message.u.username);
+  }
+    
+  getSenderName(message: RocketChatMessage): string {
+    return message.u?.name || message.u?.username || 'Unknown';
+  }
+
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
 
