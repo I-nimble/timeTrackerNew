@@ -40,7 +40,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
 
-    await this.cometChatService.initializeCometChat();
+    // await this.cometChatService.initializeCometChat();
     this.callScreen = document.getElementById('callScreen') as HTMLElement;
 
     const user = await CometChat.getLoggedinUser();
@@ -53,9 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
         .catch(error => console.error('Service Worker registration failed:', error));
     }
 
-    CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
+    // CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
 
-    CometChat.addCallListener(this.callListenerId, this.createCallListener());
+    // CometChat.addCallListener(this.callListenerId, this.createCallListener());
 
     this.ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
       (call: CometChat.Call) => {

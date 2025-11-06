@@ -319,3 +319,9 @@
     height: calc(100vh - 200px);
   }
 }
+
+.attachment-preview > img,
+.attachment-preview > video {
+  max-height: 300px;
+  max-width: 100%;
+}

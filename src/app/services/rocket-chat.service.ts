@@ -19,7 +19,7 @@ import {
   RocketChatRoom,
   RocketChatMessage,
   RocketChatTeam,
-  RocketChatUserResponse,,
+  RocketChatUserResponse,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';

@@ -138,27 +138,27 @@
                         [src]="getConversationPicture(selectedConversation)" 
                       />
                       <span class="f-s-14">
-                        {{ message.attachments[0].title || 'File attachment'  }}
-                        <button mat-icon-button >
-                          <mat-icon>keyboard_arrow_down</mat-icon>
-                        </button>
+                        {{ message.attachments[0].title || 'File attachment' }}
                         <button mat-icon-button (click)="downloadFile(message.attachments[0])">
                           <mat-icon>download</mat-icon>
                         </button>
                         <div class="attachment-preview">
                           @switch (getAttachmentType(message.attachments[0])) {
                             @case('image') {
-                              <img height="300" [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
+                              <img [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
                             }
                             @case('video') {
-                              <video height="300" [src]="getFileUrl(message.attachments[0])" controls></video>
+                              <video [src]="getFileUrl(message.attachments[0])" controls></video>
                             }
                             @case('audio') {
                               <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
                             }
                             @default {
                               <span class="f-s-12 text-muted">
-                                {{ getFileUrl(message.attachments[0]) }}
+                                <mat-icon>insert_drive_file</mat-icon>
+                                <a [href]="getFileUrl(message.attachments[0])" target="_blank" download>
+                                  {{ message.attachments[0].title }}
+                                </a>
                               </span>
                             }
                           }
@@ -195,7 +195,7 @@
             <mat-icon>attach_file</mat-icon>
           </button>
           <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" />
-          <button mat-icon-button matSuffix (click)="sendMessage()">
+          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>

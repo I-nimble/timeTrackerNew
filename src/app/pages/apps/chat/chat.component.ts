@@ -88,6 +88,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   realtimeSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
+  isSendingMessage = false;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -208,20 +209,50 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return 'file';
   }
 
-  downloadFile(attachment: RocketChatMessageAttachment) {
-    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
-    if (!fullFileName) return;
+async downloadFile(attachment: RocketChatMessageAttachment) {
+  const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+  if (!fullFileName) return;
 
-    const fileNameInS3 = fullFileName.split('/').pop();
-    const url = `${this.rocketChatS3Bucket}/uploads/${fileNameInS3}`;
+  const fileNameInS3 = fullFileName.split('/')[2];
+  const groupId = this.selectedConversation?._id;
+  
+  if (!groupId) return;
 
+  const segment1 = groupId;
+  const segment2 = groupId.substring(17);
+  const downloadUrl = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+  const originalFileName = attachment.title || fileNameInS3;
+
+  try {
+    // Fetch the file and convert to blob
+    const response = await fetch(downloadUrl);
+    const blob = await response.blob();
+    
+    // Create object URL from blob
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // Create download link
     const link = document.createElement('a');
-    link.href = url;
-    link.download = attachment.title || 'attachment';
+    link.href = blobUrl;
+    link.download = originalFileName; // This forces download
+    
+    // Append to body, click, and clean up
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the blob URL
+    window.URL.revokeObjectURL(blobUrl);
+    
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Fallback to opening in new tab
+    window.open(downloadUrl, '_blank');
   }
+}
 
   selectFile() {
+    this.isSendingMessage = true;
     const input = document.createElement('input');
     input.type = 'file';
     input.click();
@@ -259,10 +290,19 @@ export class AppChatComponent implements OnInit, OnDestroy {
               })
             };
 
-            this.chatService.sendMessage(roomId, '', [attachment]);
+            this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
+              next: (res: any) => {
+                this.isSendingMessage = false;
+              },
+              error: (err: any) => {
+                console.error('Error sending message with attachment:', err);
+                this.isSendingMessage = false;
+              }
+            });
           },
           error: (err: any) => {
             console.error('Error uploading file:', err);
+            this.isSendingMessage = false;
           }
         });
       }
@@ -513,6 +553,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
+    this.isSendingMessage = true;
 
     this.chatService
       .sendMessageWithConfirmation(
@@ -526,9 +567,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
           } else {
             console.error('Failed to send message:', result.error);
           }
+          this.isSendingMessage = false;
         },
         error: (error: any) => {
           console.error('Error sending message:', error);
+          this.isSendingMessage = false;
         },
       });
   }
