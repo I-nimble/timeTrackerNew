@@ -41,6 +41,7 @@ import {
   RocketChatRoom,
   RocketChatMessage,
   RocketChatUser,
+  RocketChatMessageAttachment
 } from '../../../models/rocketChat.model';
 import { Observable, of } from 'rxjs';
 
@@ -80,6 +81,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
+  rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -178,6 +180,98 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return message.u._id === this.chatService.loggedInUser?._id;
   }
 
+
+  getAttachmentType(attachment: RocketChatMessageAttachment): 'image' | 'video' | 'audio' | 'file' {
+    if (!attachment) return 'file';
+
+    if (attachment.image_url) return 'image';
+    if (attachment.video_url) return 'video';
+    if (attachment.audio_url) return 'audio';
+    return 'file';
+  }
+
+  downloadFile(attachment: RocketChatMessageAttachment) {
+    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+    if (!fullFileName) return;
+
+    const fileNameInS3 = fullFileName.split('/').pop();
+    const url = `${this.rocketChatS3Bucket}/uploads/${fileNameInS3}`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = attachment.title || 'attachment';
+    link.click();
+  }
+
+  selectFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.click();
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      const roomId = this.selectedConversation?._id;
+      if (file) {
+        this.chatService.uploadFile(file, roomId).subscribe({
+          next: (res: any) => {
+            if (!res.success) {
+              console.error('Failed to upload file:', res.error);
+              return;
+            }
+            
+            const fileType = file.type.split('/')[0];
+            const attachment: RocketChatMessageAttachment = {
+              title: file.name,
+              title_link: res.file.url,
+              title_link_download: true,
+              ts: new Date().toISOString(),
+              
+              ...(fileType === 'image' && { 
+                image_url: res.file.url,
+                thumb_url: res.file.url 
+              }),
+              ...(fileType === 'video' && { 
+                video_url: res.file.url 
+              }),
+              ...(fileType === 'audio' && { 
+                audio_url: res.file.url 
+              }),
+              
+              ...(!['image', 'video', 'audio'].includes(fileType) && {
+                text: `File: ${file.name} (${this.formatFileSize(file.size)})`
+              })
+            };
+
+            this.chatService.sendMessage(roomId, '', [attachment]);
+          },
+          error: (err: any) => {
+            console.error('Error uploading file:', err);
+          }
+        });
+      }
+    };
+  }
+
+  getFileUrl(attachment: RocketChatMessageAttachment) {
+    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+    if (!fullFileName) return;
+
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+    const segment1 = groupId;
+    const segment2 = groupId.substring(17);
+
+    return `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+  }
+
+  // Helper method to format file size
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
   openCreateRoomDialog(type: 'd' | 'c' | 't') {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
@@ -186,7 +280,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.success) {
-        console.log('Created:', result.room);
         this.loadRooms();
       }
     });

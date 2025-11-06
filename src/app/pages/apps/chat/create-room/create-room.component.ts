@@ -57,7 +57,6 @@ export class CreateRoomComponent implements OnInit {
 
   ngOnInit() {
     this.chatService.getUsers().subscribe(users => {
-      console.log('Users:', users);
       this.users = users.filter(u => {
         return u._id !== this.chatService.loggedInUser?._id &&
           (!u.roles?.includes('bot') && !u.roles?.includes('app'));

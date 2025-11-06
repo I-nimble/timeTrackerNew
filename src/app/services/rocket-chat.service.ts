@@ -18,7 +18,8 @@ import {
   RocketChatUser,
   RocketChatRoom,
   RocketChatMessage,
-  RocketChatTeam
+  RocketChatTeam,
+  RocketChatMessageAttachment
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { C } from '@angular/cdk/keycodes';
@@ -86,16 +87,19 @@ export class RocketChatService {
     this.activeSubscriptions.clear();
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    if (!this.credentials) {
-      throw new Error('Not authenticated with Rocket.Chat');
+  public getAuthHeaders(includeContentType = true): HttpHeaders {
+    let headers = new HttpHeaders();
+
+    if(this.credentials) {
+      headers = headers.set('X-Auth-Token', this.credentials.authToken);
+      headers = headers.set('X-User-Id', this.credentials.userId);
     }
 
-    return new HttpHeaders({
-      'X-Auth-Token': this.credentials.authToken,
-      'X-User-Id': this.credentials.userId,
-      'Content-Type': 'application/json',
-    });
+    if (includeContentType) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    
+    return headers;
   }
 
   
@@ -227,6 +231,16 @@ export class RocketChatService {
       console.error('Error loading room history:', error);
       throw error;
     }
+  }
+
+  public uploadFile(file: File, roomId?: string, message: string = ''): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('msg', message);
+
+    return this.http.post(`${this.CHAT_API_URI}rooms.media/${roomId}`, formData, {
+      headers: this.getAuthHeaders(false),
+    });
   }
 
   private handleWebSocketMessage(message: any): void {
@@ -585,12 +599,13 @@ export class RocketChatService {
     );
   }
 
-  sendMessage(roomId: string, message: string): Observable<any> {
+  sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[]): Observable<any> {
     return this.http.post(
       `${this.CHAT_API_URI}chat.postMessage`,
       {
         channel: roomId,
         text: message,
+        ...(attachments && { attachments })
       },
       { headers: this.getAuthHeaders() }
     );
