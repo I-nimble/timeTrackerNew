@@ -19,6 +19,7 @@ import {
   RocketChatRoom,
   RocketChatMessage,
   RocketChatTeam,
+  RocketChatUserResponse,,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
@@ -533,6 +534,13 @@ export class RocketChatService {
     );
   }
 
+  getUserInfo(username: string): Observable<RocketChatUser> {
+    return this.http.get<RocketChatUserResponse>(
+      `${this.CHAT_API_URI}users.info?username=${username}&fields={"emails":1,"name":1,"username":1,"utcOffset":1,"createdAt":1,"lastLogin":1}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(map(res => res.user));
+  }
+
   getRooms(): Observable<any> {
     return this.http
       .get<any>(`${this.CHAT_API_URI}rooms.get`, {
@@ -540,7 +548,24 @@ export class RocketChatService {
       })
       .pipe(map((res: any) => res.update as RocketChatRoom[]));
   }
-  
+
+  getRoomMembers(
+    roomId: string,
+    type: 'c' | 'p'
+  ): Observable<RocketChatUser[]> {
+    const endpoint =
+      type === 'c'
+        ? `channels.members?roomId=${roomId}`
+        : `groups.members?roomId=${roomId}`;
+
+    return this.http.get<{ members: RocketChatUser[] }>(
+      `${this.CHAT_API_URI}${endpoint}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      map(res => res.members)
+    );
+  }
+
   createRoom(name: string, type: 'c' | 'p', members?: string[]): Observable<RocketChatRoom> {
     const headers = this.getAuthHeaders();
     const safeName = String(name || '')
@@ -825,5 +850,9 @@ export class RocketChatService {
     return this.http.get(`${this.CHAT_API_URI}users.getAvatar`, {
       params: { userId },
     });
+  }
+
+  getUserAvatarUrl(username: string): string {
+    return `${environment.rocketChatUrl}/avatar/${username}`;
   }
 }

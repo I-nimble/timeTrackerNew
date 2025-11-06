@@ -54,10 +54,10 @@
           <div
             class="contact-item"
             *ngFor="let room of filteredRooms()"
-            [class.active]="selectedConversation?._id === room._id"
+            [class.active]="selectedConversation?._id === room?._id"
             (click)="selectRoom(room)"
           >
-            <img [src]="getConversationPicture(room)">
+            <img [src]="getConversationPicture(room) || defaultAvatarUrl">
             <div class="contact-info">
               <div class="name">
                 {{ getConversationName(room) }}
@@ -101,7 +101,9 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
-            <button mat-menu-item disabled>Contact info</button>
+            <button mat-menu-item (click)="openInfoDialog()">
+              {{ getInfoTitle() }}
+            </button>
             <button mat-menu-item disabled>Mute</button>
             <button mat-menu-item disabled>Delete Chat</button>
           </mat-menu>
@@ -199,5 +201,60 @@
         </mat-form-field>
       </div>
     </mat-sidenav-content>
+<!--       <mat-sidenav
+        #infoSidebar
+        position="end"
+        class="mat-sidenav bg-white info-sidebar"
+        [mode]="isMobile ? 'over' : 'side'"
+        [opened]="infoSidebarOpen"
+        (closedStart)="infoSidebarOpen = false"
+        [fixedInViewport]="isMobile"
+        style="width: 320px;"
+      >
+        <div class="p-16">
+          <div class="info-header">
+            <span class="info-title">Contact info</span>
+            <button mat-icon-button class="close-btn" (click)="infoSidebar.close()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="info-avatar-wrapper">
+            <img
+              [src]="selectedConversation?.t === 'd' ? selectedUserInfo?.avatarUrl : getConversationPicture(selectedConversation)"
+              class="info-avatar"
+              alt="avatar"
+            />
+          </div>
+          <ng-container *ngIf="selectedConversation?.t === 'd' && selectedUserInfo">
+            <div class="info-block">
+              <span class="field-label">Username</span>
+              <span class="field-value">{{ selectedUserInfo.username }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.email">
+              <span class="field-label">Email</span>
+              <span class="field-value">{{ selectedUserInfo.email }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.utcOffset !== undefined">
+              <span class="field-label">Local time</span>
+              <span class="field-value">{{ getLocalTime(selectedUserInfo.utcOffset) }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.lastLogin">
+              <span class="field-label">Last login</span>
+              <span class="field-value">{{ selectedUserInfo.lastLogin | date:'MMM d, yyyy HH:mm' }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.createdAt">
+              <span class="field-label">Created at</span>
+              <span class="field-value">{{ selectedUserInfo.createdAt | date:'MMM d, yyyy' }}</span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="(selectedConversation?.t === 'c' || selectedConversation?.t === 'p') && channelMembers">
+            <h4 class="members-title">Members ({{ channelMembers.length }})</h4>
+            <div *ngFor="let m of channelMembers" class="member-row">
+              <img [src]="m.avatarUrl" width="40" class="rounded-circle" />
+              <div>{{ m.username }}</div>
+            </div>
+          </ng-container>
+        </div>
+      </mat-sidenav> -->
   </mat-sidenav-container>
 </mat-card>

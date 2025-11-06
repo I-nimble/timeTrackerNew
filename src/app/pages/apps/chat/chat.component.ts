@@ -37,6 +37,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { CreateRoomComponent } from './create-room/create-room.component';
+import { ChatInfoComponent } from './chat-info/chat-info.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
@@ -60,7 +61,8 @@ import { Observable, of } from 'rxjs';
     MatDividerModule,
     MatButtonModule,
     MatMenuModule,
-    CreateRoomComponent
+    CreateRoomComponent,
+    ChatInfoComponent
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -76,6 +78,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   messagesContainer?: ElementRef;
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
+  @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
+  // infoSidebarOpen = false;
+  selectedUserInfo: any = null;
+  channelMembers: any[] = [];
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
@@ -115,8 +121,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
     });
   }
 
-  getConversationPicture(room: RocketChatRoom): string {
-    return this.roomPictures[room._id] || this.getDefaultPicture(room);
+  getConversationPicture(room?: RocketChatRoom): string {
+    return this.roomPictures[room?._id || ''] || this.getDefaultPicture(room!);
   }
 
   private getDefaultPicture(room: RocketChatRoom): string {
@@ -137,6 +143,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
   getUserEmail(): string {
     const emails = this.chatService.loggedInUser?.emails;
     return emails && emails.length > 0 ? emails[0].address : '';
+  }
+
+  getInfoTitle(): string {
+    if (!this.selectedConversation) return 'Info';
+
+    switch (this.selectedConversation.t) {
+      case 'd': return 'Contact Info';
+      case 'c': return 'Channel Info';
+      case 'p': return 'Team Info';
+      case 'l': return 'Support Info';
+      default: return 'Info';
+    }
   }
 
   private hasAnyRole(roles: string[]): boolean {
@@ -285,6 +303,103 @@ export class AppChatComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadUserInfo(username: string) {
+    this.chatService.getUserInfo(username).subscribe(user => {
+      this.selectedUserInfo = {
+        ...user,
+        email: user.emails?.[0]?.address,
+        avatarUrl: this.chatService.getUserAvatarUrl(user.username)
+      };
+    });
+  }
+
+  loadChannelMembers(roomId: string, type: 'c' | 'p') {
+    this.chatService.getRoomMembers(roomId, type).subscribe(members => {
+      this.channelMembers = members.map(m => ({
+        ...m,
+        avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+      }));
+    });
+  }
+
+/*   openInfoSidebar() {
+    if (!this.selectedConversation) return;
+
+    const room = this.selectedConversation;
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+
+      if (otherUsername) {
+        this.loadUserInfo(otherUsername);
+      }
+
+    } else if (room.t === 'c') {
+      this.loadChannelMembers(room._id, 'c');
+
+    } else if (room.t === 'p') {
+      this.loadChannelMembers(room._id, 'p');
+    }
+    this.infoSidebarOpen = true;
+    this.infoSidebar.open();
+  }
+
+  closeInfoSidebar() {
+    this.infoSidebarOpen = false;
+  } */
+  
+  openInfoDialog() {
+    if (!this.selectedConversation) return;
+
+    const room = this.selectedConversation;
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+      if (otherUsername) {
+        this.chatService.getUserInfo(otherUsername).subscribe(user => {
+          const userInfo = {
+            ...user,
+            email: user.emails?.[0]?.address,
+            avatarUrl: this.chatService.getUserAvatarUrl(user.username)
+          };
+
+          this.dialog.open(ChatInfoComponent, {
+            width: this.isMobile ? '95vw' : '400px',
+            maxWidth: '95vw',
+            data: {
+              conversation: room,
+              userInfo,
+              channelMembers: []
+            },
+            panelClass: 'chat-info-dialog'
+          });
+        });
+      }
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.chatService.getRoomMembers(room._id, room.t).subscribe(members => {
+        const enrichedMembers = members.map(m => ({
+          ...m,
+          avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+        }));
+
+        this.dialog.open(ChatInfoComponent, {
+          width: this.isMobile ? '95vw' : '400px',
+          maxWidth: '95vw',
+          data: {
+            conversation: room,
+            userInfo: null,
+            channelMembers: enrichedMembers
+          },
+          panelClass: 'chat-info-dialog'
+        });
+      });
+    }
+  }
+
   filteredRooms(): RocketChatRoom[] {
     if (!this.roomsFilter) return this.rooms;
     const q = this.roomsFilter.toLowerCase();
@@ -334,8 +449,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
 
-    const { history, realtimeStream } =
-      await this.chatService.loadRoomHistoryWithRealtime(room);
+    const { history, realtimeStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
 
     this.messages = history;
     const existingMessageIds = new Set(this.messages.map(msg => msg._id));
@@ -347,8 +461,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
         this.scrollToBottom();
       }
     });
-
     this.roomSubscriptions.set(room._id, sub);
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+      if (otherUsername) this.loadUserInfo(otherUsername);
+      this.channelMembers = [];
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.loadChannelMembers(room._id, room.t);
+      this.selectedUserInfo = null;
+    }
+
+/*     if (this.isMobile) {
+      this.infoSidebarOpen = true;
+      this.infoSidebar?.open();
+    } */
+
+    setTimeout(() => this.scrollToBottom(), 100);
   }
 
   loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
@@ -400,6 +531,15 @@ export class AppChatComponent implements OnInit, OnDestroy {
           console.error('Error sending message:', error);
         },
       });
+  }
+  
+  getLocalTime(offset: number | undefined): string {
+    if (offset === undefined || offset === null) return '';
+
+    const now = new Date();
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const local = new Date(utcTime + offset * 3600000);
+    return local.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   toggleSidebar() {

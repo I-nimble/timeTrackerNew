@@ -145,6 +145,85 @@
   }
 }
 
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  .info-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .close-btn {
+    mat-icon {
+      font-size: 24px;
+      color: var(--mat-sys-on-background);
+    }
+  }
+}
+
+.info-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  .info-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.info-block {
+  margin-bottom: 16px;
+
+  .field-label {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .field-value {
+    font-size: 13px;
+    color: var(--chat-label-color);
+    display: block;
+  }
+}
+
+.members-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-sidebar {
+  width: 320px;
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    .mat-drawer-inner-container {
+      height: 100vh;
+    }
+  }
+}
+
 .chat-main {
   display: flex;
   flex-direction: column;
