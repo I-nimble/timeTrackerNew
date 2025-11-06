@@ -174,7 +174,7 @@
                       />
 
                       <div class="message-content">
-                        <strong *ngIf="selectedConversation?.t !== 'd'">
+                        <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
                           {{ getSenderName(message) }}
                         </strong>
                         <span class="f-s-14">{{ message.msg }}</span>
