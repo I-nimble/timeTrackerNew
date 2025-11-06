@@ -47,6 +47,7 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
     LinebreakPipe
   ],
   templateUrl: './client.component.html',
+  styleUrls: ['./client.component.scss'],
 })
 export class AppTalentMatchClientComponent implements OnInit {
   userRole = localStorage.getItem('role');
