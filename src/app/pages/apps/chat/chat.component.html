@@ -170,14 +170,18 @@
                         *ngIf="!isFromMe(message)" 
                         width="40" 
                         class="rounded-circle" 
-                        [src]="getConversationPicture(selectedConversation)" 
+                        [src]="getSenderAvatar(message)" 
                       />
-                      <span class="f-s-14">
-                        {{ message.msg }}
-                      </span>
+
+                      <div class="message-content">
+                        <strong *ngIf="selectedConversation?.t !== 'd'">
+                          {{ getSenderName(message) }}
+                        </strong>
+                        <span class="f-s-14">{{ message.msg }}</span>
+                      </div>
                     }
                   </div>
-                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'MMM d, yyyy' }}</span>
+                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
                 </div>
               
             </div>
