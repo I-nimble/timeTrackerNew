@@ -124,9 +124,16 @@
             <div 
               *ngFor="let message of messages" 
               class="chat-list"
-              [ngClass]="message.t === 'videoconf' ? 'call' : !isFromMe(message) ? 'odd' : 'even'"
-            >
-                <div class="m-b-15">
+              [ngClass]="
+                isSystemMessage(message) ? 'system-message' :
+                message.t === 'videoconf' ? 'call' :
+                !isFromMe(message) ? 'odd' : 'even'
+              ">
+                <div *ngIf="isSystemMessage(message)" class="system-message-text">
+                  {{ formatSystemMessage(message) }}
+                </div>
+
+                <div *ngIf="!isSystemMessage(message)" class="m-b-15">
                   <div 
                     [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'"
                   >
@@ -191,7 +198,6 @@
                   </div>
                   <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
                 </div>
-              
             </div>
           </ng-container>
           <ng-template #noConversation>
