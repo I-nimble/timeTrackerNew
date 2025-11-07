@@ -26,7 +26,6 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -143,7 +142,6 @@ export class AppSideRegisterComponent {
     private route: ActivatedRoute,
     private positionsService: PositionsService,
     private employeesService: EmployeesService,
-    private chatService: CometChatService,
     private applicationsService: ApplicationsService,
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
@@ -507,7 +505,6 @@ export class AppSideRegisterComponent {
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
-                // this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -571,7 +568,6 @@ export class AppSideRegisterComponent {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                // this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -664,7 +660,6 @@ export class AppSideRegisterComponent {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                // this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');

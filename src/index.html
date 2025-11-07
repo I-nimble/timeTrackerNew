@@ -27,35 +27,6 @@
 <body class="mat-typography">
   <app-root></app-root>
 
-  <!--Chat Script-->
-  <script type="text/javascript">
-    window.Tawk_API = window.Tawk_API || {};
-    var Tawk_LoadStart = new Date();
-
-    (function () {
-      var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
-      s1.async = true;
-      s1.src = 'https://embed.tawk.to/67101a094304e3196ad2ecce/1iabebdro';
-      s1.charset = 'UTF-8';
-      s1.setAttribute('crossorigin', '*');
-      s0.parentNode.insertBefore(s1, s0);
-
-      window.Tawk_API.onLoad = function () {
-        window.Tawk_API.minimize();
-        window.Tawk_API.setAttributes({
-          'name': localStorage.getItem('username') || 'Guest',
-          'email': localStorage.getItem('email') || ''
-        }, function(error) {
-          // console.log(error);
-        });
-        if (localStorage.getItem('role') == '3') {
-          window.Tawk_API.showWidget();
-        }
-        else {
-          window.Tawk_API.hideWidget();
-        }
-      };
-    })();
-  </script>
+  <script src='https://meet.inimbleapp.com/external_api.js'></script>
 </body>
 </html>

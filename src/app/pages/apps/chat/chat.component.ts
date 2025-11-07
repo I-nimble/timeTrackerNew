@@ -14,7 +14,6 @@ import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import '@cometchat/uikit-elements';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
