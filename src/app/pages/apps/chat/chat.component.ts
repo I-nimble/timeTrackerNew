@@ -163,6 +163,61 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return userRoles.some(r => roles.includes(r));
   }
 
+  isSystemMessage(message: RocketChatMessage): boolean {
+    const systemTypes = [
+      'rm', 'r',
+      'uj', 'ul', 'ult', 'ru',
+      'au',
+      'added-user-to-team',
+      'removed-user-from-team',
+      'user-added-room-to-team',
+      'room_changed_name',
+      'room_changed_description',
+      'room_changed_avatar'
+    ];
+    return systemTypes.includes(message.t || '');
+  }
+  
+  formatSystemMessage(message: RocketChatMessage): string {
+    const actor = this.getDisplayName(message.u);
+    const target = message.msg || '';
+
+    switch (message.t) {
+      case 'rm':
+        return `${actor} removed a message`;
+      case 'uj':
+        return `${actor} joined the room`;
+      case 'ul':
+      case 'ult':
+        return `${actor} left the room`;
+      case 'ru':
+        return `${actor} removed user "${target}"`;
+      case 'au':
+        return `${actor} added user "${target}"`;
+      case 'added-user-to-team':
+        return `${actor} added user "${target}" to the team`;
+      case 'removed-user-from-team':
+        return `${actor} removed user "${target}" from the team`;
+      case 'user-added-room-to-team':
+        return `${actor} added room "${target}" to the team`;
+      case 'r':
+      case 'room_changed_name':
+        return `${actor} changed the room name to "${target}"`;
+      case 'room_changed_description':
+        return `${actor} changed the description to "${target}"`;
+      case 'room_changed_avatar':
+        return `${actor} changed the room avatar`;
+      default:
+        return target || '';
+    }
+  }
+
+  getDisplayName(user: any): string {
+    if (!user) return 'Unknown';
+    if (user.name && user.name.trim().length > 0) return user.name.trim();
+    return user.username || 'Unknown';
+  }
+
   canCreateTeam(): boolean {
     return this.hasAnyRole(['moderator', 'admin']);
   }
