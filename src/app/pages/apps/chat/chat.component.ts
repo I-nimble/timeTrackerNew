@@ -79,13 +79,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
   @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
-  // infoSidebarOpen = false;
   selectedUserInfo: any = null;
   channelMembers: any[] = [];
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
+  unreadMapSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
   isSendingMessage = false;
@@ -95,16 +95,42 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadRooms();
+    try {
+      this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
+        try {
+          if (!message || !message.rid) return;
+          const room = this.rooms.find(r => r._id === message.rid);
+          if (room) {
+            (room as any).lastMessage = message;
+            (room as any).lastMessageTs = message.ts || (room as any).ts || message.ts;
+            this.moveRoomToTop(message.rid);
+          }
+        } catch (err) {
+          console.error('Error updating room lastMessage from global stream:', err, message);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to global message stream:', err);
+    }
+
+    try {
+      this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
+        this.sortRoomsByUnread();
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to unread map stream:', err);
+    }
   }
 
   private loadRooms(): void {
     this.chatService.getRooms().subscribe({
       next: (rooms: any) => {
         this.rooms = rooms;
+        this.sortRoomsByUnread();
         this.loadAllRoomPictures();
         setTimeout(() => this.scrollToBottom(), 100);
       },
@@ -361,34 +387,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       }));
     });
   }
-
-/*   openInfoSidebar() {
-    if (!this.selectedConversation) return;
-
-    const room = this.selectedConversation;
-
-    if (room.t === 'd') {
-      const otherUsername = room.usernames?.find(
-        u => u !== this.chatService.loggedInUser?.username
-      );
-
-      if (otherUsername) {
-        this.loadUserInfo(otherUsername);
-      }
-
-    } else if (room.t === 'c') {
-      this.loadChannelMembers(room._id, 'c');
-
-    } else if (room.t === 'p') {
-      this.loadChannelMembers(room._id, 'p');
-    }
-    this.infoSidebarOpen = true;
-    this.infoSidebar.open();
-  }
-
-  closeInfoSidebar() {
-    this.infoSidebarOpen = false;
-  } */
   
   openInfoDialog() {
     if (!this.selectedConversation) return;
@@ -471,6 +469,17 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
+  getUnreadMessageCount(room: RocketChatRoom): number {
+    if (!room) return 0;
+    try {
+      const count = this.chatService.getUnreadForRoom(room._id);
+      return count || 0;
+    } catch (err) {
+      console.error('Error reading unread count from service for room', room._id, err);
+      return 0;
+    }
+  }
+
   getMessageTimestamp(message: RocketChatMessage): Date {
     if (typeof message.ts === 'string') {
       return new Date(message.ts);
@@ -496,6 +505,18 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
 
+    try {
+      this.chatService.setActiveRoom(room._id);
+    } catch (err) {
+      console.error('Failed to notify active room:', err);
+    }
+
+    try {
+      this.chatService.markChannelAsRead(room._id);
+    } catch (err) {
+      console.error('Failed to mark channel as read:', err);
+    }
+
     if (this.roomSubscriptions.has(room._id)) {
       this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
@@ -510,9 +531,54 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         this.messages = [...this.messages, newMessage];
         existingMessageIds.add(newMessage._id);
         this.scrollToBottom();
+        try {
+          this.chatService.setUnreadForRoom(room._id, 0);
+        } catch (e) {}
+        try {
+          const roomIdx = this.rooms.findIndex(r => r._id === room._id);
+          if (roomIdx !== -1) {
+            (this.rooms[roomIdx] as any).lastMessage = newMessage;
+            (this.rooms[roomIdx] as any).lastMessageTs = newMessage.ts || (this.rooms[roomIdx] as any).ts;
+            this.moveRoomToTop(room._id);
+          }
+        } catch (err) {
+          console.error('Error updating room lastMessage after realtime message:', err, newMessage);
+        }
       }
     });
     this.roomSubscriptions.set(room._id, sub);
+
+    try {
+      this.chatService.markChannelAsRead(room._id).subscribe({
+        next: (res: any) => {
+          try {
+            this.chatService.setUnreadForRoom(room._id, 0);
+          } catch (e) {}
+
+          try {
+            this.chatService.getAllSubscriptions().subscribe({
+              next: (sres: any) => {
+                try {
+                  const payload = sres?.update || sres?.subscriptions || sres;
+                  const subsArray = Array.isArray(payload) ? payload : [payload];
+                  this.chatService.updateUnreadFromSubscriptions(subsArray);
+                } catch (e) {
+                  console.error('Error updating unread from subscriptions after mark-as-read:', e, sres);
+                }
+              },
+              error: (e) => console.error('Failed to refresh subscriptions after mark-as-read:', e)
+            });
+          } catch (e) {
+            console.error('Error calling getAllSubscriptions after markChannelAsRead:', e);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to mark room as read on server:', err);
+        }
+      });
+    } catch (err) {
+      console.error('Error calling markChannelAsRead:', err);
+    }
 
     if (room.t === 'd') {
       const otherUsername = room.usernames?.find(
@@ -524,11 +590,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       this.loadChannelMembers(room._id, room.t);
       this.selectedUserInfo = null;
     }
-
-/*     if (this.isMobile) {
-      this.infoSidebarOpen = true;
-      this.infoSidebar?.open();
-    } */
 
     setTimeout(() => this.scrollToBottom(), 100);
   }
@@ -608,12 +669,47 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   ngOnDestroy() {
+    try {
+      this.chatService.setActiveRoom(null);
+    } catch (err) {}
     if (this.realtimeSubscription) {
       this.realtimeSubscription.unsubscribe();
     }
-    
+    if (this.unreadMapSubscription) {
+      this.unreadMapSubscription.unsubscribe();
+    }
     if (this.selectedConversation) {
       this.chatService.unsubscribeFromRoomMessages(this.selectedConversation._id);
+    }
+  }
+
+  private sortRoomsByUnread(): void {
+    try {
+      this.rooms.sort((a, b) => {
+        const aUnread = this.chatService.getUnreadForRoom(a._id) || 0;
+        const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
+        if (aUnread !== bUnread) return bUnread - aUnread;
+
+        const aTs = a.lastMessage ? this.getMessageTimestamp(a.lastMessage).getTime() : 0;
+        const bTs = b.lastMessage ? this.getMessageTimestamp(b.lastMessage).getTime() : 0;
+        return bTs - aTs;
+      });
+      this.rooms = [...this.rooms];
+    } catch (err) {
+      console.error('Error sorting rooms by unread:', err);
+    }
+  }
+
+  private moveRoomToTop(roomId: string): void {
+    try {
+      const idx = this.rooms.findIndex(r => r._id === roomId);
+      if (idx === -1) return;
+      const [room] = this.rooms.splice(idx, 1);
+      this.rooms.unshift(room);
+      this.rooms = [...this.rooms];
+      try { this.cdr.detectChanges(); } catch (e) {}
+    } catch (err) {
+      console.error('Error moving room to top:', err, roomId);
     }
   }
 }

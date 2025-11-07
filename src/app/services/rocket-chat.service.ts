@@ -38,6 +38,11 @@ export class RocketChatService {
     new BehaviorSubject<RocketChatCredentials | null>(null);
   private messageStreamSubject = new Subject<RocketChatMessage>();
   private roomUpdateSubject = new Subject<any>();
+  private userNotifySubject = new Subject<any>();
+  private activeRoomSubject = new Subject<string | null>();
+  private unreadMap: Record<string, number> = {};
+  private unreadMapSubject = new BehaviorSubject<Record<string, number>>({});
+  private currentActiveRoom: string | null = null;
 
   private credentials: RocketChatCredentials | null = null;
   private activeSubscriptions = new Map<string, string>();
@@ -268,6 +273,10 @@ export class RocketChatService {
       this.roomUpdateSubject.next(message);
     }
 
+    if (message.msg === 'changed' && message.collection === 'stream-notify-user') {
+      this.userNotifySubject.next(message);
+    }
+
     if (message.msg === 'ping') {
       this.sendWebSocketMessage({ msg: 'pong' });
     }
@@ -275,10 +284,21 @@ export class RocketChatService {
 
   private resubscribeToActiveRooms(): void {
     if (this.activeSubscriptions.size > 0) {
-      this.activeSubscriptions.forEach((subscriptionId, roomId) => {
-        this.subscribeToRoomMessages(roomId).catch((error) => {
-          console.error(`Failed to resubscribe to room ${roomId}:`, error);
-        });
+      this.activeSubscriptions.forEach((subscriptionId, key) => {
+        try {
+          if (typeof key === 'string' && key.startsWith('user:')) {
+            const event = key.slice(5);
+            this.subscribeToUserNotifications(event).catch((error) => {
+              console.error(`Failed to resubscribe to user event ${event}:`, error);
+            });
+          } else {
+            this.subscribeToRoomMessages(key).catch((error) => {
+              console.error(`Failed to resubscribe to room ${key}:`, error);
+            });
+          }
+        } catch (err) {
+          console.error('Error while resubscribing active subscriptions:', err);
+        }
       });
     }
   }
@@ -298,6 +318,92 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(roomId, subscriptionId);
+  }
+
+  async subscribeToUserNotifications(event: string): Promise<void> {
+    if (!this.credentials) {
+      throw new Error('Not authenticated');
+    }
+
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      await this.connectWebSocket();
+    }
+
+    const subscriptionId = this.generateSubscriptionId();
+    const param = `${this.credentials.userId}/${event}`;
+
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-notify-user',
+      params: [param, false],
+    });
+
+    this.activeSubscriptions.set(`user:${event}`, subscriptionId);
+  }
+
+  unsubscribeUserNotifications(event: string): void {
+    const key = `user:${event}`;
+    const subscriptionId = this.activeSubscriptions.get(key);
+    if (subscriptionId && this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.sendWebSocketMessage({ msg: 'unsub', id: subscriptionId });
+      this.activeSubscriptions.delete(key);
+    }
+  }
+
+  getUserNotifyStream(): Observable<any> {
+    return this.userNotifySubject.asObservable();
+  }
+
+  private publishUnreadMap() {
+    this.unreadMapSubject.next({ ...this.unreadMap });
+  }
+
+  getUnreadMapStream(): Observable<Record<string, number>> {
+    return this.unreadMapSubject.asObservable();
+  }
+
+  getUnreadForRoom(roomId: string): number {
+    return this.unreadMap[roomId] || 0;
+  }
+
+  setUnreadForRoom(roomId: string, count: number): void {
+    if (!roomId) return;
+    this.unreadMap[roomId] = count || 0;
+    this.publishUnreadMap();
+  }
+
+  incrementUnreadForRoom(roomId: string, by: number = 1): void {
+    if (!roomId) return;
+    this.unreadMap[roomId] = (this.unreadMap[roomId] || 0) + by;
+    this.publishUnreadMap();
+  }
+
+  updateUnreadFromSubscriptions(subs: any[] | any): void {
+    try {
+      const arr = Array.isArray(subs) ? subs : [subs];
+      arr.forEach((s: any, idx: number) => {
+        const key = s?.rid || s?._id || `sub-${idx}`;
+        if (this.currentActiveRoom && key === this.currentActiveRoom) {
+          return;
+        }
+        if ('unread' in s) {
+          this.unreadMap[key] = s.unread || 0;
+        }
+      });
+      this.publishUnreadMap();
+    } catch (err) {
+      console.error('Failed to update unread map from subscriptions:', err, subs);
+    }
+  }
+
+  setActiveRoom(roomId: string | null): void {
+    this.currentActiveRoom = roomId;
+    this.activeRoomSubject.next(roomId);
+  }
+
+  getActiveRoomStream(): Observable<string | null> {
+    return this.activeRoomSubject.asObservable();
   }
 
   unsubscribeFromRoomMessages(roomId: string): void {
@@ -854,5 +960,17 @@ export class RocketChatService {
 
   getUserAvatarUrl(username: string): string {
     return `${environment.rocketChatUrl}/avatar/${username}`;
+  }
+
+  getAllSubscriptions(): Observable<any> {
+    return this.http.get(`${this.CHAT_API_URI}subscriptions.get`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  markChannelAsRead(roomId: string): Observable<any> {
+    return this.http.post(`${this.CHAT_API_URI}subscriptions.read`, { roomId }, {
+      headers: this.getAuthHeaders(),
+    });
   }
 }

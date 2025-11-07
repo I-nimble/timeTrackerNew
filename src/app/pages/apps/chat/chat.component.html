@@ -62,8 +62,16 @@
               <div class="name">
                 {{ getConversationName(room) }}
               </div>
-              <div class="last-message">
-                {{ getLastMessage(room) }}
+              <div class="d-flex justify-content-between">
+                <div class="last-message">
+                  {{ getLastMessage(room) }}
+                </div>
+                <span
+                  *ngIf="getUnreadMessageCount(room) > 0" 
+                  class="badge badge-pill badge-success"
+                >
+                    {{ getUnreadMessageCount(room) }}
+                </span>
               </div>
             </div>
           </div>
@@ -130,7 +138,7 @@
                         Join
                       </button>
                     }
-                    @else if(message.attachments) {
+                    @else if(message.attachments && message.attachments.length > 0) {
                       <img 
                         *ngIf="!isFromMe(message)" 
                         width="40" 
@@ -138,7 +146,7 @@
                         [src]="getConversationPicture(selectedConversation)" 
                       />
                       <span class="f-s-14">
-                        {{ message.attachments[0].title || 'File attachment' }}
+                        {{ message.attachments[0]?.title || 'File attachment' }}
                         <button mat-icon-button (click)="downloadFile(message.attachments[0])">
                           <mat-icon>download</mat-icon>
                         </button>
