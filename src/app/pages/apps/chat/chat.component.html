@@ -64,7 +64,7 @@
               </div>
               <div class="d-flex justify-content-between">
                 <div class="last-message">
-                  {{ getLastMessage(room) }}
+                  {{ getLastMessage(room).slice(0, 30) }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
                 </div>
                 <span
                   *ngIf="getUnreadMessageCount(room) > 0" 
