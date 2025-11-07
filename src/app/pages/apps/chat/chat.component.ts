@@ -217,13 +217,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
       case 'ult':
         return `${actor} left the room`;
       case 'ru':
-        return `${actor} removed user "${target}"`;
+        return `${actor} removed user ${target}`;
       case 'au':
-        return `${actor} added user "${target}"`;
+        return `${actor} added user ${target}`;
       case 'added-user-to-team':
-        return `${actor} added user "${target}" to the team`;
+        return `${actor} added user ${target} to the team`;
       case 'removed-user-from-team':
-        return `${actor} removed user "${target}" from the team`;
+        return `${actor} removed user ${target} from the team`;
       case 'user-added-room-to-team':
         return `${actor} added room "${target}" to the team`;
       case 'r':
@@ -249,11 +249,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   canCreateChannel(): boolean {
-    return this.hasAnyRole(['leader']);
+    return this.hasAnyRole(['leader', 'admin']);
   }
 
   canCreateDirectMessage(): boolean {
-    return this.hasAnyRole(['user']);
+    return this.hasAnyRole(['user', 'admin']);
   }
 
   call() {
@@ -411,10 +411,10 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  openCreateRoomDialog(type: 'd' | 'c' | 't') {
+  openCreateRoomDialog(type: 'd' | 'c' | 't', teamId?: string, teamName?: string) {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
-      data: { type },
+      data: { type, teamId, teamName },
     });
 
     dialogRef.afterClosed().subscribe(result => {

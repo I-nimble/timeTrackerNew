@@ -10,7 +10,8 @@ import {
   switchMap,
   forkJoin,
   filter,
-  firstValueFrom
+  firstValueFrom,
+  throwError
 } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
@@ -757,7 +758,29 @@ export class RocketChatService {
     );
   }
 
-  createRoom(name: string, type: 'c' | 'p', members?: string[]): Observable<RocketChatRoom> {
+  getTeams(): Observable<RocketChatTeam[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.CHAT_API_URI}teams.list`, { headers }).pipe(
+      map(res => res.teams as RocketChatTeam[])
+    );
+  }
+
+  getTeamMembers(teamId: string): Observable<RocketChatUser[]> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.get<{ members: any[] }>(
+      `${this.CHAT_API_URI}teams.members?teamId=${teamId}`,
+      { headers }
+    ).pipe(
+      map(res =>
+        res.members
+          .map(m => m.user)
+          .filter(u => !!u)
+      )
+    );
+  }
+
+  createRoom(name: string, type: 'c' | 'p',  members?: string[],  teamId?: string): Observable<RocketChatRoom> {
     const headers = this.getAuthHeaders();
     const safeName = String(name || '')
       .trim()
@@ -767,42 +790,53 @@ export class RocketChatService {
       .replace(/^-+|-+$/g, '');
 
     if (!safeName) {
-      return new Observable<RocketChatRoom>((observer) => {
-        observer.error(new Error('Invalid room name'));
-      });
+      return of(null as any);
     }
+    const endpoint = type === 'c' ? 'channels.create' : 'groups.create';
+    const body: any = { name: safeName };
 
-    if (type === 'c') {
-      return this.http.post<any>(`${this.CHAT_API_URI}channels.create`, { name: safeName }, { headers }).pipe(
-        switchMap(res => {
-          const channel = res?.channel as RocketChatRoom;
-          if (members?.length) {
-            const roomId = channel._id;
-            return forkJoin(members.map(userId =>
-              this.http.post(`${this.CHAT_API_URI}channels.invite`, { roomId, userId }, { headers })
-            )).pipe(map(() => channel));
-          }
-          return of(channel);
-        }),
-        catchError(err => {
-          throw err;
-        })
-      );
-    } else {
-      const body: any = { name: safeName };
-      if (members?.length) body.members = members;
+    return this.http.post<any>(`${this.CHAT_API_URI}${endpoint}`, body, { headers }).pipe(
+      switchMap(res => {
+        const room: RocketChatRoom =
+          (res?.channel || res?.group) as RocketChatRoom;
+        if (!room || !room._id) {
+          return throwError(() => new Error('Room creation failed'));
+        }
+        const roomId = room._id;
+        if (!members?.length) {
+          return of(room);
+        }
+        const inviteEndpoint =
+          type === 'c' ? 'channels.invite' : 'groups.invite';
+        return forkJoin(
+          members.map(userId =>
+            this.http.post(
+              `${this.CHAT_API_URI}${inviteEndpoint}`,
+              { roomId, userId },
+              { headers }
+            )
+          )
+        ).pipe(map(() => room));
+      }),
+      switchMap((room: RocketChatRoom) => {
+        if (!teamId) return of(room);
 
-      return this.http.post<any>(`${this.CHAT_API_URI}groups.create`, body, { headers }).pipe(
-        switchMap(res => {
-          const group = res?.group as RocketChatRoom;
-          if (members?.length) {
-            return of(group);
-          }
-          return of(group);
-        }),
-        catchError(err => { throw err; })
-      );
-    }
+        return this.http.post(
+          `${this.CHAT_API_URI}teams.addRooms`,
+          {
+            teamId: teamId,
+            rooms: [room._id]
+          },
+          { headers }
+        ).pipe(
+          map(() => room)
+        );
+      }),
+      catchError(err => {
+        console.error('Error creating or attaching channel:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   createTeam(name: string, owner: string, members?: string[]): Observable<RocketChatTeam> {

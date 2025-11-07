@@ -19,13 +19,19 @@
     </ng-container>
     <ng-container *ngIf="roomType === 'c'">
       <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Select Team</mat-label>
+        <mat-select [(value)]="selectedTeamId" (selectionChange)="onTeamChange($event.value)">
+          <mat-option *ngFor="let t of teams" [value]="t._id">{{ t.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100">
         <mat-label>Channel Name</mat-label>
         <input matInput [(ngModel)]="name" />
       </mat-form-field>
-      <mat-slide-toggle [(ngModel)]="isPrivate">Private</mat-slide-toggle>
-      <mat-form-field appearance="outline" class="w-100 mt-2">
+      <mat-slide-toggle *ngIf="!isLeader" [(ngModel)]="isPrivate">Private</mat-slide-toggle>
+      <mat-form-field appearance="outline" class="w-100 mt-2" *ngIf="selectedTeamId">
         <mat-label>Select users to add</mat-label>
-        <mat-select [(value)]="selectedUsers" multiple>
+        <mat-select [(value)]="selectedUsers" multiple [disabled]="!users.length">
           <mat-option *ngFor="let user of users" [value]="user">{{ user.name }}</mat-option>
         </mat-select>
       </mat-form-field>

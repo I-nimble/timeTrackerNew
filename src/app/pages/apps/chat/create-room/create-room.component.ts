@@ -43,24 +43,61 @@ export class CreateRoomComponent implements OnInit {
   roomType: 'd' | 'c' | 't';
   name = '';
   isPrivate = false;
+  selectedTeamId?: string;
+  selectedTeamName?: string;
+  teams: RocketChatTeam[] = [];
   users: RocketChatUser[] = [];
   selectedUsers: RocketChatUser[] = [];
 
   constructor(
-    private chatService: RocketChatService,
     public dialogRef: MatDialogRef<CreateRoomComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { type: 'd' | 'c' | 't' },
+    @Inject(MAT_DIALOG_DATA) public data: {
+      type: 'd' | 'c' | 't';
+      teamId?: string;
+      teamName?: string;
+    },
+    private chatService: RocketChatService,
     private snackBar: MatSnackBar
   ) {
     this.roomType = data.type;
   }
 
   ngOnInit() {
-    this.chatService.getUsers().subscribe(users => {
-      this.users = users.filter(u => {
-        return u._id !== this.chatService.loggedInUser?._id &&
-          (!u.roles?.includes('bot') && !u.roles?.includes('app'));
+    const exclude = (u: RocketChatUser) =>
+      u._id === this.chatService.loggedInUser?._id ||
+      u.roles?.includes('bot') || u.roles?.includes('app');
+
+    if (this.roomType === 'c') {
+      this.chatService.getTeams().subscribe(teams => {
+        this.teams = teams;
+        if (this.isLeader) this.isPrivate = true;
       });
+      this.isPrivate = this.chatService.loggedInUser?.roles?.includes('leader') || false;
+    } else if (this.roomType === 'd' || this.roomType === 't') {
+      this.chatService.getUsers().subscribe(users => {
+        this.users = users.filter(u => !exclude(u));
+      });
+    }
+  }
+  
+  get isLeader(): boolean {
+    return this.chatService.loggedInUser?.roles?.includes('leader') || false;
+  }
+
+  onTeamChange(teamId: string) {
+    const exclude = (u: RocketChatUser) =>
+      u._id === this.chatService.loggedInUser?._id ||
+      u.roles?.includes('bot') || u.roles?.includes('app');
+    this.selectedTeamId = teamId;
+    const team = this.teams.find(t => t._id === teamId);
+    this.selectedTeamName = team?.name;
+    this.chatService.getTeamMembers(teamId).subscribe(users => {
+      const exclude = (u: RocketChatUser) =>
+        u._id === this.chatService.loggedInUser?._id ||
+        u.roles?.includes('bot') || u.roles?.includes('app');
+
+      this.users = users.filter(u => !exclude(u));
+      this.selectedUsers = [];
     });
   }
 
@@ -75,15 +112,22 @@ export class CreateRoomComponent implements OnInit {
         break;
       }
       case 'c': {
+        if (!this.selectedTeamId) return;
         const type = this.isPrivate ? 'p' : 'c';
         const memberIds = this.selectedUsers.map(u => u._id);
-        this.chatService.createRoom(this.name, type, memberIds).subscribe({
-          next: (room: RocketChatRoom) => this.dialogRef.close({ success: true, room }),
-          error: err => {
-            console.error('Error creating channel:', err);
-            this.snackBar.open('Failed to create channel: ' + (err?.error?.error || err?.message || 'Unknown error'), 'Close', { duration: 5000 });
-          }
-        });
+
+        this.chatService.createRoom(this.name, type, memberIds, this.selectedTeamId)
+          .subscribe({
+            next: room => this.dialogRef.close({ success: true, room }),
+            error: err => {
+              console.error('Error creating channel:', err);
+              this.snackBar.open(
+                'Failed to create channel: ' + (err?.error?.error || err?.message || 'Unknown error'),
+                'Close',
+                { duration: 5000 }
+              );
+            }
+          });
         break;
       }
       case 't': {
