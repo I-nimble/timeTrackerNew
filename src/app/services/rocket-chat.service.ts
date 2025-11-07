@@ -253,6 +253,27 @@ export class RocketChatService {
     if (message.msg === 'connected') {
       this.connectionSubject.next(true);
 
+      this.subscribeToUserNotifications('message').catch((err) => {
+        console.error('Failed to subscribe to user:message on connect:', err);
+      });
+
+      this.getRooms().subscribe({
+        next: (rooms: any[]) => {
+          if (Array.isArray(rooms)) {
+            rooms.forEach((r: any) => {
+              const roomId = r && (r._id || r.id || r.roomId);
+              if (!roomId) return;
+              if (!this.activeSubscriptions.has(roomId)) {
+                this.subscribeToRoomMessages(roomId).catch((err) => {
+                  console.error(`Failed subscribing to room ${roomId} on connect:`, err);
+                });
+              }
+            });
+          }
+        },
+        error: (err) => console.error('Failed to load rooms on connect:', err),
+      });
+
       this.resubscribeToActiveRooms();
     }
 
@@ -263,6 +284,21 @@ export class RocketChatService {
       if (message.fields?.args?.[0]) {
         const messageData: RocketChatMessage = message.fields.args[0];
         this.messageStreamSubject.next(messageData);
+
+        try {
+          const fromUserId = (messageData as any).u?._id || (messageData as any).u?.id;
+          const fromUsername = (messageData as any).u?.username;
+          const isFromCurrentUser = !!(
+            (fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id) ||
+            (fromUsername && this.loggedInUser && fromUsername === this.loggedInUser.username)
+          );
+
+          if (!isFromCurrentUser && messageData.rid !== this.currentActiveRoom) {
+            this.playNotificationSound();
+          }
+        } catch (err) {
+          console.debug('Error checking message sender for notification:', err);
+        }
       }
     }
 
@@ -274,7 +310,45 @@ export class RocketChatService {
     }
 
     if (message.msg === 'changed' && message.collection === 'stream-notify-user') {
-      this.userNotifySubject.next(message);
+      try {
+        const args = message.fields?.args;
+
+        let payloadCandidate: any = null;
+        if (Array.isArray(args)) {
+          payloadCandidate = args[1] ?? args[0] ?? args;
+        } else {
+          payloadCandidate = args ?? message;
+        }
+
+        const looksLikeMessage = !!(
+          payloadCandidate &&
+          (payloadCandidate.rid || payloadCandidate.msg || payloadCandidate.message) &&
+          payloadCandidate.u
+        );
+
+        if (looksLikeMessage) {
+          const payload = payloadCandidate;
+          this.userNotifySubject.next(payload);
+
+          try {
+            this.getMessage(payload._id).subscribe((message: RocketChatMessage) => {
+              const fromUserId = message.u?._id;
+              const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
+  
+              if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
+                this.playNotificationSound();
+              }
+            });
+          } catch (err) {
+            console.debug('Error while handling user notify payload for audio:', err);
+          }
+        } else {
+          this.userNotifySubject.next(message);
+        }
+      } catch (err) {
+        console.error('Error handling stream-notify-user message:', err, message);
+        this.userNotifySubject.next(message);
+      }
     }
 
     if (message.msg === 'ping') {
@@ -283,6 +357,12 @@ export class RocketChatService {
   }
 
   private resubscribeToActiveRooms(): void {
+    if (!this.activeSubscriptions.has('user:message')) {
+      this.subscribeToUserNotifications('message').catch((error) => {
+        console.error('Failed to subscribe to user:message notifications:', error);
+      });
+    }
+
     if (this.activeSubscriptions.size > 0) {
       this.activeSubscriptions.forEach((subscriptionId, key) => {
         try {
@@ -527,6 +607,11 @@ export class RocketChatService {
         this.sendWebSocketMessage({ msg: 'ping' });
       }
     }, 30000);
+  }
+
+  playNotificationSound() {
+    const audio = new Audio(`${environment.mp3}/notification.mp3`);
+    audio.play();
   }
 
   private generateMessageId(): string {
@@ -846,6 +931,12 @@ export class RocketChatService {
 
   getCredentialsObservable(): Observable<RocketChatCredentials | null> {
     return this.credentialsSubject.asObservable();
+  }
+
+  getMessage(messageId: string): Observable<RocketChatMessage> {
+    return this.http.get<any>(`${this.CHAT_API_URI}chat.getMessage?msgId=${messageId}`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   getMessageStream(): Observable<RocketChatMessage> {
