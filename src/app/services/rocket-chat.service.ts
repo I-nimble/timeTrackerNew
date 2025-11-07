@@ -43,6 +43,7 @@ export class RocketChatService {
   private activeRoomSubject = new Subject<string | null>();
   private unreadMap: Record<string, number> = {};
   private unreadMapSubject = new BehaviorSubject<Record<string, number>>({});
+  private activeJitsiSubject = new BehaviorSubject<any | null>(null);
   private currentActiveRoom: string | null = null;
 
   private credentials: RocketChatCredentials | null = null;
@@ -442,6 +443,18 @@ export class RocketChatService {
 
   getUnreadMapStream(): Observable<Record<string, number>> {
     return this.unreadMapSubject.asObservable();
+  }
+
+  getActiveJitsiStream(): Observable<any | null> {
+    return this.activeJitsiSubject.asObservable();
+  }
+
+  openJitsiMeeting(meetingData: any) {
+    this.activeJitsiSubject.next(meetingData || null);
+  }
+
+  closeJitsiMeeting() {
+    this.activeJitsiSubject.next(null);
   }
 
   getUnreadForRoom(roomId: string): number {

@@ -1,0 +1,21 @@
+<div class="jitsi-wrapper" style="height:100%; width:100%; display:flex; flex-direction:column;">
+	<div class="jitsi-header" style="display:flex; justify-content:flex-end; padding:8px;">
+        <button
+            mat-icon-button
+            (click)="resize()"
+            color="primary"
+          >
+            <mat-icon *ngIf="isMinimized">fullscreen</mat-icon>
+            <mat-icon *ngIf="!isMinimized">fullscreen_exit</mat-icon>
+        </button>
+        <button 
+            mat-icon-button 
+            class="close-btn"
+            (click)="closeMeeting()"
+        >
+            <mat-icon>close</mat-icon>
+        </button>
+	</div>
+
+	<div #meetContainer class="jitsi-container" style="flex:1; min-height:400px; width:100%;"></div>
+</div>

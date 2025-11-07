@@ -37,6 +37,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { CreateRoomComponent } from './create-room/create-room.component';
 import { ChatInfoComponent } from './chat-info/chat-info.component';
+import { JitsiMeetComponent } from '../../../components/jitsi-meet/jitsi-meet.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
@@ -256,22 +257,55 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   call() {
-    this.chatService
-      .initializeJitsiMeeting(this.selectedConversation._id)
-      .subscribe((res: any) => {
-        if (!res.success) {
-          console.error('Error calling room', this.selectedConversation._id);
-        }
-        window.open(res.callUrl, '_blank');
+    if (!this.selectedConversation) return;
+
+    const roomId = this.selectedConversation._id;
+    this.chatService.initializeJitsiMeeting(roomId).subscribe((res: any) => {
+      if (!res || !res.success) {
+        console.error('Error calling room', roomId, res?.error);
+        return;
+      }
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: { startWithAudioMuted: false, startWithVideoMuted: false, prejoinPageEnabled: false },
+        interfaceConfigOverwrite: {}
       });
+    });
   }
 
   joinCall(message: RocketChatMessage) {
     this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
-      if (!res.success) {
-        console.error('Error joining room', message.u._id);
+      if (!res || !res.success) {
+        console.error('Error joining room', res?.error);
+        return;
       }
-      window.open(res.callUrl, '_blank');
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: { prejoinPageEnabled: false },
+        interfaceConfigOverwrite: {}
+      });
     });
   }
 
