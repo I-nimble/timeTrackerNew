@@ -2,7 +2,7 @@
   <div class="dialog-header d-flex align-center justify-between mb-24">
     <h2 class="dialog-title f-w-600 m-0">
       {{ data.conversation?.t === 'd' ? 'Contact Info' : 
-         data.conversation?.t === 'c' ? 'Channel Info' : 
+         data.conversation?.t === 'c' ? 'Group Info' : 
          data.conversation?.t === 'p' ? 'Team Info' : 'Info' }}
     </h2>
     <button mat-icon-button (click)="dialogRef.close()" class="close-btn">
