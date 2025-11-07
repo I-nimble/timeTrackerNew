@@ -1,7 +1,7 @@
 <mat-dialog-content class="mat-typography trello-style p-24">
   <div class="dialog-header d-flex justify-between align-center mb-16">
     <h2 class="dialog-title f-w-600">
-      Create {{ roomType === 'd' ? 'Direct Message' : roomType === 'c' ? 'Channel' : 'Team' }}
+      Create {{ roomType === 'd' ? 'Direct Message' : roomType === 'c' ? 'Group' : 'Team' }}
     </h2>
     <button mat-icon-button mat-dialog-close class="close-btn">
       <mat-icon>close</mat-icon>
@@ -18,12 +18,6 @@
       </mat-form-field>
     </ng-container>
     <ng-container *ngIf="roomType === 'c'">
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Select Team</mat-label>
-        <mat-select [(value)]="selectedTeamId" (selectionChange)="onTeamChange($event.value)">
-          <mat-option *ngFor="let t of teams" [value]="t._id">{{ t.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
       <mat-form-field appearance="outline" class="w-100">
         <mat-label>Channel Name</mat-label>
         <input matInput [(ngModel)]="name" />

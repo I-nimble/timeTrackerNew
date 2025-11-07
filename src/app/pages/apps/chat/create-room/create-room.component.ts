@@ -70,9 +70,18 @@ export class CreateRoomComponent implements OnInit {
     if (this.roomType === 'c') {
       this.chatService.getTeams().subscribe(teams => {
         this.teams = teams;
-        if (this.isLeader) this.isPrivate = true;
+
+        if (this.isLeader && teams.length > 0) {
+          const firstTeam = teams[0];
+          this.selectedTeamId = firstTeam._id;
+          this.selectedTeamName = firstTeam.name;
+          this.isPrivate = true;
+          this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+            this.users = users.filter(u => !exclude(u));
+            this.selectedUsers = [];
+          });
+        }
       });
-      this.isPrivate = this.chatService.loggedInUser?.roles?.includes('leader') || false;
     } else if (this.roomType === 'd' || this.roomType === 't') {
       this.chatService.getUsers().subscribe(users => {
         this.users = users.filter(u => !exclude(u));
@@ -82,23 +91,6 @@ export class CreateRoomComponent implements OnInit {
   
   get isLeader(): boolean {
     return this.chatService.loggedInUser?.roles?.includes('leader') || false;
-  }
-
-  onTeamChange(teamId: string) {
-    const exclude = (u: RocketChatUser) =>
-      u._id === this.chatService.loggedInUser?._id ||
-      u.roles?.includes('bot') || u.roles?.includes('app');
-    this.selectedTeamId = teamId;
-    const team = this.teams.find(t => t._id === teamId);
-    this.selectedTeamName = team?.name;
-    this.chatService.getTeamMembers(teamId).subscribe(users => {
-      const exclude = (u: RocketChatUser) =>
-        u._id === this.chatService.loggedInUser?._id ||
-        u.roles?.includes('bot') || u.roles?.includes('app');
-
-      this.users = users.filter(u => !exclude(u));
-      this.selectedUsers = [];
-    });
   }
 
   createRoom() {
