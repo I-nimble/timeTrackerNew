@@ -95,6 +95,8 @@ export interface RocketChatMessageAttachment {
   image_url?: string;
   image_type?: string;
   image_size?: number;
+  video_url?: string;
+  audio_url?: string;
   type?: string;
   description?: string;
 }

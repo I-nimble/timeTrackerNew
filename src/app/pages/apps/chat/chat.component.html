@@ -6,16 +6,39 @@
       [opened]="!isMobile || isSidebarOpen"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
-        <div class="sidebar-header">
-          <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" />
-          <div class="sidebar-user-info">
-            <h4>{{ chatService.loggedInUser?.name }}</h4>
-            <span>
-               {{ getUserEmail() }}
-            </span>
+        <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">
+          <div class="d-flex align-items-center gap-12">
+            <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" width="50" height="50" />
+            <div class="sidebar-user-info">
+              <h4>{{ chatService.loggedInUser?.name }}</h4>
+              <span>{{ getUserEmail() }}</span>
+            </div>
           </div>
-        </div>
+          <button
+            *ngIf="canCreateDirectMessage() || canCreateChannel() || canCreateTeam()"
+            mat-icon-button
+            [matMenuTriggerFor]="createMenu"
+            color="primary"
+            aria-label="Create new"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
 
+          <mat-menu #createMenu="matMenu">
+            <button *ngIf="canCreateDirectMessage()" mat-menu-item (click)="openCreateRoomDialog('d')">
+              <mat-icon>person</mat-icon>
+              <span>Direct Message</span>
+            </button>
+            <button *ngIf="canCreateChannel()" mat-menu-item (click)="openCreateRoomDialog('c')">
+              <mat-icon>group</mat-icon>
+              <span>Channel</span>
+            </button>
+            <button *ngIf="canCreateTeam()" mat-menu-item (click)="openCreateRoomDialog('t')">
+              <mat-icon>groups</mat-icon>
+              <span>Team</span>
+            </button>
+          </mat-menu>
+        </div>
         <div class="sidebar-search">
           <mat-form-field appearance="outline" class="w-100">
             <input
@@ -26,15 +49,15 @@
             <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
         </div>
-
+        
         <div class="contacts-wrapper">
           <div
             class="contact-item"
             *ngFor="let room of filteredRooms()"
-            [class.active]="selectedConversation?._id === room._id"
+            [class.active]="selectedConversation?._id === room?._id"
             (click)="selectRoom(room)"
           >
-            <img [src]="getConversationPicture(room)">
+            <img [src]="getConversationPicture(room) || defaultAvatarUrl">
             <div class="contact-info">
               <div class="name">
                 {{ getConversationName(room) }}
@@ -78,7 +101,9 @@
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
-            <button mat-menu-item disabled>Contact info</button>
+            <button mat-menu-item (click)="openInfoDialog()">
+              {{ getInfoTitle() }}
+            </button>
             <button mat-menu-item disabled>Mute</button>
             <button mat-menu-item disabled>Delete Chat</button>
           </mat-menu>
@@ -91,9 +116,16 @@
             <div 
               *ngFor="let message of messages" 
               class="chat-list"
-              [ngClass]="message.t === 'videoconf' ? 'call' : !isFromMe(message) ? 'odd' : 'even'"
-            >
-                <div class="m-b-15">
+              [ngClass]="
+                isSystemMessage(message) ? 'system-message' :
+                message.t === 'videoconf' ? 'call' :
+                !isFromMe(message) ? 'odd' : 'even'
+              ">
+                <div *ngIf="isSystemMessage(message)" class="system-message-text">
+                  {{ formatSystemMessage(message) }}
+                </div>
+
+                <div *ngIf="!isSystemMessage(message)" class="m-b-15">
                   <div 
                     [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'"
                   >
@@ -105,7 +137,7 @@
                         Join
                       </button>
                     }
-                    @else {
+                    @else if(message.attachments) {
                       <img 
                         *ngIf="!isFromMe(message)" 
                         width="40" 
@@ -113,13 +145,51 @@
                         [src]="getConversationPicture(selectedConversation)" 
                       />
                       <span class="f-s-14">
-                        {{ message.msg }}
+                        {{ message.attachments[0].title || 'File attachment' }}
+                        <button mat-icon-button (click)="downloadFile(message.attachments[0])">
+                          <mat-icon>download</mat-icon>
+                        </button>
+                        <div class="attachment-preview">
+                          @switch (getAttachmentType(message.attachments[0])) {
+                            @case('image') {
+                              <img [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
+                            }
+                            @case('video') {
+                              <video [src]="getFileUrl(message.attachments[0])" controls></video>
+                            }
+                            @case('audio') {
+                              <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
+                            }
+                            @default {
+                              <span class="f-s-12 text-muted">
+                                <mat-icon>insert_drive_file</mat-icon>
+                                <a [href]="getFileUrl(message.attachments[0])" target="_blank" download>
+                                  {{ message.attachments[0].title }}
+                                </a>
+                              </span>
+                            }
+                          }
+                        </div>
                       </span>
                     }
+                    @else {
+                      <img 
+                        *ngIf="!isFromMe(message)" 
+                        width="40" 
+                        class="rounded-circle" 
+                        [src]="getSenderAvatar(message)" 
+                      />
+
+                      <div class="message-content">
+                        <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
+                          {{ getSenderName(message) }}
+                        </strong>
+                        <span class="f-s-14">{{ message.msg }}</span>
+                      </div>
+                    }
                   </div>
-                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'MMM d, yyyy' }}</span>
+                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
                 </div>
-              
             </div>
           </ng-container>
           <ng-template #noConversation>
@@ -131,12 +201,70 @@
       <mat-divider></mat-divider>
       <div class="p-t-20 p-x-24 bg-white chat-input" *ngIf="selectedConversation">
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
+          <button mat-icon-button matPrefix (click)="selectFile()">
+            <mat-icon>attach_file</mat-icon>
+          </button>
           <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" />
-          <button mat-icon-button matSuffix (click)="sendMessage()">
+          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>
       </div>
     </mat-sidenav-content>
+<!--       <mat-sidenav
+        #infoSidebar
+        position="end"
+        class="mat-sidenav bg-white info-sidebar"
+        [mode]="isMobile ? 'over' : 'side'"
+        [opened]="infoSidebarOpen"
+        (closedStart)="infoSidebarOpen = false"
+        [fixedInViewport]="isMobile"
+        style="width: 320px;"
+      >
+        <div class="p-16">
+          <div class="info-header">
+            <span class="info-title">Contact info</span>
+            <button mat-icon-button class="close-btn" (click)="infoSidebar.close()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="info-avatar-wrapper">
+            <img
+              [src]="selectedConversation?.t === 'd' ? selectedUserInfo?.avatarUrl : getConversationPicture(selectedConversation)"
+              class="info-avatar"
+              alt="avatar"
+            />
+          </div>
+          <ng-container *ngIf="selectedConversation?.t === 'd' && selectedUserInfo">
+            <div class="info-block">
+              <span class="field-label">Username</span>
+              <span class="field-value">{{ selectedUserInfo.username }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.email">
+              <span class="field-label">Email</span>
+              <span class="field-value">{{ selectedUserInfo.email }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.utcOffset !== undefined">
+              <span class="field-label">Local time</span>
+              <span class="field-value">{{ getLocalTime(selectedUserInfo.utcOffset) }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.lastLogin">
+              <span class="field-label">Last login</span>
+              <span class="field-value">{{ selectedUserInfo.lastLogin | date:'MMM d, yyyy HH:mm' }}</span>
+            </div>
+            <div class="info-block" *ngIf="selectedUserInfo.createdAt">
+              <span class="field-label">Created at</span>
+              <span class="field-value">{{ selectedUserInfo.createdAt | date:'MMM d, yyyy' }}</span>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="(selectedConversation?.t === 'c' || selectedConversation?.t === 'p') && channelMembers">
+            <h4 class="members-title">Members ({{ channelMembers.length }})</h4>
+            <div *ngFor="let m of channelMembers" class="member-row">
+              <img [src]="m.avatarUrl" width="40" class="rounded-circle" />
+              <div>{{ m.username }}</div>
+            </div>
+          </ng-container>
+        </div>
+      </mat-sidenav> -->
   </mat-sidenav-container>
 </mat-card>

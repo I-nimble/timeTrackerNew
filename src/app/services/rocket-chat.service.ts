@@ -18,6 +18,9 @@ import {
   RocketChatUser,
   RocketChatRoom,
   RocketChatMessage,
+  RocketChatTeam,
+  RocketChatUserResponse,
+  RocketChatMessageAttachment
 } from '../models/rocketChat.model';
 import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
 import { C } from '@angular/cdk/keycodes';
@@ -85,16 +88,19 @@ export class RocketChatService {
     this.activeSubscriptions.clear();
   }
 
-  private getAuthHeaders(): HttpHeaders {
-    if (!this.credentials) {
-      throw new Error('Not authenticated with Rocket.Chat');
+  public getAuthHeaders(includeContentType = true): HttpHeaders {
+    let headers = new HttpHeaders();
+
+    if(this.credentials) {
+      headers = headers.set('X-Auth-Token', this.credentials.authToken);
+      headers = headers.set('X-User-Id', this.credentials.userId);
     }
 
-    return new HttpHeaders({
-      'X-Auth-Token': this.credentials.authToken,
-      'X-User-Id': this.credentials.userId,
-      'Content-Type': 'application/json',
-    });
+    if (includeContentType) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    
+    return headers;
   }
 
   
@@ -226,6 +232,16 @@ export class RocketChatService {
       console.error('Error loading room history:', error);
       throw error;
     }
+  }
+
+  public uploadFile(file: File, roomId?: string, message: string = ''): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('msg', message);
+
+    return this.http.post(`${this.CHAT_API_URI}rooms.media/${roomId}`, formData, {
+      headers: this.getAuthHeaders(false),
+    });
   }
 
   private handleWebSocketMessage(message: any): void {
@@ -510,6 +526,20 @@ export class RocketChatService {
       headers: this.getAuthHeaders(),
     });
   }
+  
+  getUsers(): Observable<RocketChatUser[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<RocketChatUser[]>(`${this.CHAT_API_URI}users.list`, { headers }).pipe(
+      map((res: any) => res.users as RocketChatUser[])
+    );
+  }
+
+  getUserInfo(username: string): Observable<RocketChatUser> {
+    return this.http.get<RocketChatUserResponse>(
+      `${this.CHAT_API_URI}users.info?username=${username}&fields={"emails":1,"name":1,"username":1,"utcOffset":1,"createdAt":1,"lastLogin":1}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(map(res => res.user));
+  }
 
   getRooms(): Observable<any> {
     return this.http
@@ -519,12 +549,88 @@ export class RocketChatService {
       .pipe(map((res: any) => res.update as RocketChatRoom[]));
   }
 
-  sendMessage(roomId: string, message: string): Observable<any> {
+  getRoomMembers(
+    roomId: string,
+    type: 'c' | 'p'
+  ): Observable<RocketChatUser[]> {
+    const endpoint =
+      type === 'c'
+        ? `channels.members?roomId=${roomId}`
+        : `groups.members?roomId=${roomId}`;
+
+    return this.http.get<{ members: RocketChatUser[] }>(
+      `${this.CHAT_API_URI}${endpoint}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      map(res => res.members)
+    );
+  }
+
+  createRoom(name: string, type: 'c' | 'p', members?: string[]): Observable<RocketChatRoom> {
+    const headers = this.getAuthHeaders();
+    const safeName = String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9_\-]/g, '')
+      .replace(/^-+|-+$/g, '');
+
+    if (!safeName) {
+      return new Observable<RocketChatRoom>((observer) => {
+        observer.error(new Error('Invalid room name'));
+      });
+    }
+
+    if (type === 'c') {
+      return this.http.post<any>(`${this.CHAT_API_URI}channels.create`, { name: safeName }, { headers }).pipe(
+        switchMap(res => {
+          const channel = res?.channel as RocketChatRoom;
+          if (members?.length) {
+            const roomId = channel._id;
+            return forkJoin(members.map(userId =>
+              this.http.post(`${this.CHAT_API_URI}channels.invite`, { roomId, userId }, { headers })
+            )).pipe(map(() => channel));
+          }
+          return of(channel);
+        }),
+        catchError(err => {
+          throw err;
+        })
+      );
+    } else {
+      const body: any = { name: safeName };
+      if (members?.length) body.members = members;
+
+      return this.http.post<any>(`${this.CHAT_API_URI}groups.create`, body, { headers }).pipe(
+        switchMap(res => {
+          const group = res?.group as RocketChatRoom;
+          if (members?.length) {
+            return of(group);
+          }
+          return of(group);
+        }),
+        catchError(err => { throw err; })
+      );
+    }
+  }
+
+  createTeam(name: string, owner: string, members?: string[]): Observable<RocketChatTeam> {
+    const headers = this.getAuthHeaders();
+    const body: any = { name, type: 1, owner };
+    if (members?.length) body.members = members;
+
+    return this.http.post<any>(`${this.CHAT_API_URI}teams.create`, body, { headers }).pipe(
+      map(res => res.team as RocketChatTeam)
+    );
+  }
+
+  sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[]): Observable<any> {
     return this.http.post(
       `${this.CHAT_API_URI}chat.postMessage`,
       {
         channel: roomId,
         text: message,
+        ...(attachments && { attachments })
       },
       { headers: this.getAuthHeaders() }
     );
@@ -715,28 +821,22 @@ export class RocketChatService {
   getConversationPicture(room: RocketChatRoom): Observable<string> {
     switch (room.t) {
       case 'd': // direct message
-        const user = room.uids?.filter(
-          (u: string) => u !== this.loggedInUser?._id
-        )[0];
-        if (!user) {
+      { 
+        const username = room.usernames?.find(
+          u => u !== this.loggedInUser?.username
+        );
+        if (!username) {
           return of(this.defaultAvatarUrl);
         }
-        return this.getUserAvatar(user).pipe(
-          map((userPicture: any) => {
-            return (
-              userPicture?.avatarUrl || userPicture || this.defaultAvatarUrl
-            );
-          }),
-          catchError(() => {
-            return of(this.defaultAvatarUrl);
-          })
-        );
+        return of(`${environment.rocketChatUrl}/avatar/${username}`);
+      }
 
       case 'p': // private chat
-        return of(this.defaultGroupPicUrl);
-
       case 'c': // channel
-        return of(this.defaultGroupPicUrl);
+        if (!room._id) {
+          return of(this.defaultGroupPicUrl);
+        }
+        return of(`${environment.rocketChatUrl}/avatar/room/${room._id}`);
 
       case 'l': // livechat
         return of(this.defaultAvatarUrl);
@@ -750,5 +850,9 @@ export class RocketChatService {
     return this.http.get(`${this.CHAT_API_URI}users.getAvatar`, {
       params: { userId },
     });
+  }
+
+  getUserAvatarUrl(username: string): string {
+    return `${environment.rocketChatUrl}/avatar/${username}`;
   }
 }

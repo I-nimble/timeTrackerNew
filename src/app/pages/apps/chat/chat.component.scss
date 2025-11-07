@@ -133,6 +133,8 @@
         font-size: 16px;
         font-weight: 600;
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
       }
 
       .last-message {
@@ -140,7 +142,89 @@
         color: var(--chat-label-color);
         margin-top: 4px;
         line-height: 1.3;
+        white-space: normal;
+        word-break: break-word;
+        overflow: hidden;  
       }
+    }
+  }
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  .info-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .close-btn {
+    mat-icon {
+      font-size: 24px;
+      color: var(--mat-sys-on-background);
+    }
+  }
+}
+
+.info-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  .info-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.info-block {
+  margin-bottom: 16px;
+
+  .field-label {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .field-value {
+    font-size: 13px;
+    color: var(--chat-label-color);
+    display: block;
+  }
+}
+
+.members-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-sidebar {
+  width: 320px;
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    .mat-drawer-inner-container {
+      height: 100vh;
     }
   }
 }
@@ -183,6 +267,24 @@
   max-height: none;
 }
 
+.message-content {
+  display: flex;
+  flex-direction: column;
+  padding-top: 0; 
+}
+
+.message-content strong {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  opacity: 0.8;
+}
+
+.message-content .f-s-14 {
+  margin-top: 0;
+  line-height: 1.3;
+}
+
 .chat-list {
   margin-bottom: 10px;
 
@@ -204,10 +306,34 @@
 
 .bg-light-primary {
   background: color-mix(in srgb, var(--mat-sys-on-primary) 10%, var(--mat-sys-surface));
+  padding: 10px 14px !important;
+  border-radius: 12px;
 }
 
 .bg-light-secondary {
   background: var(--mat-menu-item-hover-state-layer-color);
+  padding: 10px 14px !important;
+  border-radius: 12px;
+}
+
+.system-message {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  color: var(--chat-label-color);
+  font-size: 12px;
+  margin: 10px 0;
+}
+
+.system-message-text {
+  display: inline-block;
+  padding: 4px 10px;
+  background: var(--mat-sys-surface);
+  border-radius: 12px;
+  color: var(--chat-label-color);
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
 }
 
 .f-s-12 {
@@ -239,4 +365,10 @@
   .chat-messages {
     height: calc(100vh - 200px);
   }
+}
+
+.attachment-preview > img,
+.attachment-preview > video {
+  max-height: 300px;
+  max-width: 100%;
 }
