@@ -328,7 +328,7 @@ export class RocketChatService {
 
         if (looksLikeMessage) {
           const payload = payloadCandidate;
-          this.userNotifySubject.next(payload);
+          this.userNotifySubject.next(message);
 
           try {
             this.getMessage(payload._id).subscribe((message: RocketChatMessage) => {
