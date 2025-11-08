@@ -20,6 +20,7 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
   domain = environment.jitsiMeetUrl;
   domainHost = '';
   isMinimized = false;
+  isMobile = window.innerWidth <= 768;
 
   constructor(
     private hostElement: ElementRef,
