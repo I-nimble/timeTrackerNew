@@ -514,8 +514,13 @@ export class RocketChatService {
             });
             return;
           }
-
           const roomId = key;
+          this.subscribeToRoomMessages(roomId);
+          try {
+            this.joinTypingRoom(roomId);
+          } catch (err) {
+            console.error('Failed to join typing room via WebSocketService:', err);
+          }
           this.subscribeToRoomMessages(roomId).catch((error) => {
             console.error(`Failed to resubscribe to room ${roomId}:`, error);
           });
@@ -541,6 +546,15 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(roomId, subscriptionId);
+  }
+
+  public joinTypingRoom(roomId: string): void {
+    try {
+      if (!roomId) return;
+      this.webSocketService.joinRoom(roomId);
+    } catch (err) {
+      console.error('Error requesting joinTypingRoom:', err, roomId);
+    }
   }
 
   async subscribeToUserNotifications(event: string): Promise<void> {

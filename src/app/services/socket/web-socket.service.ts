@@ -64,6 +64,15 @@ export class WebSocketService {
     return this.notificationsSubject.asObservable();
   }
 
+  joinRoom(roomId: string) {
+    try {
+      if (!roomId) return;
+      this.socket.emit('client:joinChatRoom', roomId);
+    } catch (err) {
+      console.error('Failed to request join chat room', err, roomId);
+    }
+  }
+
   emitTyping(roomId: string, username: string, isTyping: boolean) {
     try {
       this.socket.emit('client:typing', { roomId, username, isTyping });
