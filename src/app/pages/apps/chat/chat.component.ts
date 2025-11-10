@@ -99,7 +99,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -258,6 +258,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   canCreateDirectMessage(): boolean {
     return this.hasAnyRole(['user', 'admin']);
+  }
+
+  canDeleteRoom(room: RocketChatRoom): boolean {
+    if (!room || !room.t) return false;
+    const roles = this.chatService.loggedInUser?.roles || [];
+
+    switch (room.t) {
+      case 'c': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
+      case 'p': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
+      case 'd': return true;
+      default: return false;
+    }
   }
 
   call(type: 'video' | 'audio') {
@@ -568,6 +580,33 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
+  markAsRead(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    this.chatService.markChannelAsRead(room._id).subscribe({
+      next: () => {
+        try {
+          this.chatService.setUnreadForRoom(room._id, 0);
+        } catch {}
+        this.sortRoomsByUnread();
+      },
+      error: err => {
+        console.error('Failed to mark as read:', err);
+        this.openSnackBar('Failed to mark room as read', 'Close');
+      }
+    });
+  }
+
+  markAsUnread(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    try {
+      this.chatService.setUnreadForRoom(room._id, 1);
+    } catch (err) {
+      console.error('Failed to mark as unread:', err);
+      this.openSnackBar('Failed to mark room as unread', 'Close');
+    }
+    this.sortRoomsByUnread();
+  }
+
   getMessageTimestamp(message: RocketChatMessage): Date {
     if (typeof message.ts === 'string') {
       return new Date(message.ts);
@@ -719,6 +758,53 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       return this.chatService.loadChannelMessagesHistory(room._id);
     }
     return of([]);
+  }
+  
+  onDeleteRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.deleteRoom(room._id).subscribe({
+      next: success => {
+        if (success) {
+          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Chat deleted`, 'OK');
+        }
+      },
+      error: err => {
+        console.error('Error deleting chat:', err);
+        this.openSnackBar('Failed to delete chat', 'Close');
+      }
+    });
+  }
+
+  onLeaveRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.leaveRoom(room._id).subscribe({
+      next: success => {
+        if (success) {
+          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Left room`, 'OK');
+        }
+      },
+      error: err => {
+        console.error('Error leaving group:', err);
+        const errorType = err?.error?.errorType;
+        if (errorType === "error-you-are-last-owner") {
+          this.openSnackBar('You are the last owner. Delete the group instead.', 'Close');
+        } else {
+          this.openSnackBar('Could not leave the group.', 'Close');
+        }
+      }
+    });
   }
 
   getLastMessage(room: RocketChatRoom): string {
@@ -875,6 +961,14 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     } catch (err) {
       console.error('Error moving room to top:', err, roomId);
     }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 
   onMessageInput(): void {

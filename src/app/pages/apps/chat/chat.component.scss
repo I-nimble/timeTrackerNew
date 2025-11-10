@@ -128,13 +128,15 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
 
       .name {
         font-size: 16px;
         font-weight: 600;
         line-height: 1.2;
-        white-space: nowrap;
+        white-space: normal;
         overflow: hidden;
+        word-break: break-word;
       }
 
       .last-message {

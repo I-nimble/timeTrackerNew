@@ -1004,6 +1004,30 @@ export class RocketChatService {
       map(res => res.team as RocketChatTeam)
     );
   }
+  
+  leaveRoom(roomId: string): Observable<boolean> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.post<any>(
+      `${this.CHAT_API_URI}rooms.leave`,
+      { roomId },
+      { headers }
+    ).pipe(
+      map(res => !!res.success)
+    );
+  }
+
+  deleteRoom(roomId: string): Observable<boolean> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.post<any>(
+      `${this.CHAT_API_URI}rooms.delete`,
+      { roomId },
+      { headers }
+    ).pipe(
+      map(res => !!res.success)
+    );
+  }
 
   sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[]): Observable<any> {
     return this.http.post(
