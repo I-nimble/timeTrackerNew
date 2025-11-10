@@ -78,7 +78,7 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)],
+    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -93,7 +93,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
     address: ['', Validators.required],
     profile: ['']
   });
@@ -691,5 +691,12 @@ export class AppAccountSettingComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  restrictToNumbers(event: KeyboardEvent) {
+    const key = event.key;
+    if (/^\d$/.test(key)) return;
+    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
+    event.preventDefault();
   }
 } 
