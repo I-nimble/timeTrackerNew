@@ -14,6 +14,7 @@ import {
   throwError
 } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { WebSocketService } from './socket/web-socket.service';
 import {
   RocketChatCredentials,
   RocketChatUser,
@@ -23,8 +24,6 @@ import {
   RocketChatUserResponse,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
-import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
-import { C } from '@angular/cdk/keycodes';
 
 @Injectable({
   providedIn: 'root',
@@ -51,8 +50,8 @@ export class RocketChatService {
   private messageId = 0;
   private subscriptionId = 0;
 
-  private typingUsers = new Map<string, Set<string>>(); // roomId -> Set of usernames
-  private typingTimeout = new Map<string, NodeJS.Timeout>(); // userId -> timeout
+  private typingUsers = new Map<string, Set<string>>();
+  private typingTimeout = new Map<string, NodeJS.Timeout>();
   private typingSubject = new Subject<{
     roomId: string;
     username: string;
@@ -64,8 +63,28 @@ export class RocketChatService {
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private webSocketService: WebSocketService) {
     this.loadCredentials();
+
+    try {
+      this.webSocketService.getTypingStream().subscribe((evt) => {
+        try {
+          if (!evt || !evt.roomId) return;
+
+          if (this.loggedInUser && evt.username === this.loggedInUser.username) return;
+
+          this.typingSubject.next({
+            roomId: evt.roomId,
+            username: evt.username,
+            isTyping: !!evt.isTyping,
+          });
+        } catch (err) {
+          console.error('Error forwarding external typing event into RocketChatService', err, evt);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to WebSocketService typing stream', err);
+    }
   }
 
   public loadCredentials(): void {
@@ -85,154 +104,61 @@ export class RocketChatService {
 
   startTyping(roomId: string): void {
     if (!this.loggedInUser) return;
-    console.log('Start typing');
 
     const username = this.loggedInUser.username || this.loggedInUser.name;
     if (!username) return;
 
-    this.sendTypingNotification(roomId, username, true);
+    try {
+      this.webSocketService.emitTyping(roomId, username, true);
+    } catch (err) {
+      console.error('Failed to emit typing via WebSocketService', err);
+    }
 
-    // Clear existing timeout
     if (this.typingTimeout.has(this.loggedInUser._id)) {
       clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
     }
 
-    // Set timeout to stop typing after 3 seconds
     const timeout = setTimeout(() => {
-      console.log('Stop typing timeout');
       this.stopTyping(roomId);
     }, 3000);
 
     this.typingTimeout.set(this.loggedInUser._id, timeout);
   }
 
-  /**
-   * Notify room that user stopped typing
-   */
   stopTyping(roomId: string): void {
     if (!this.loggedInUser) return;
-    console.log('Stop typing');
 
     const username = this.loggedInUser.username || this.loggedInUser.name;
     if (!username) return;
 
-    this.sendTypingNotification(roomId, username, false);
+    try {
+      this.webSocketService.emitTyping(roomId, username, false);
+    } catch (err) {
+      console.error('Failed to emit stop-typing via WebSocketService', err);
+    }
 
-    // Clear timeout
     if (this.typingTimeout.has(this.loggedInUser._id)) {
       clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
       this.typingTimeout.delete(this.loggedInUser._id);
     }
   }
 
-  private sendTypingNotification(
-    roomId: string,
-    username: string,
-    isTyping: boolean
-  ): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-
-    // Use the simpler /typing method as per documentation
-    // const message = {
-    //   msg: 'method',
-    //   method: 'stream-notify-room',
-    //   id: this.generateMessageId(),
-    //   params: [`${roomId}/typing`, username, ["user-typing"], {}],
-    // };
-    const message = {
-      msg: 'method',
-      method: 'stream-notify-room',
-      id: this.generateMessageId(),
-      params: [`${roomId}/typing`, username, isTyping],
-    };
-
-    console.log('📨 Sending typing notification:', message);
-    this.sendWebSocketMessage(message);
-  }
-
   subscribeToTypingEvents(roomId: string): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      console.error('❌ WebSocket not connected for typing subscription');
-      // Try to reconnect and subscribe
-      setTimeout(() => {
-        this.subscribeToTypingEvents(roomId);
-      }, 1000);
-      return;
+    try {
+      this.unsubscribeFromTypingEvents(roomId);
+
+      this.activeSubscriptions.set(`typing-${roomId}`, `fallback-${roomId}`);
+    } catch (err) {
+      console.error('Error while registering fallback typing subscription:', err);
     }
-
-    // Unsubscribe first if already subscribed
-    this.unsubscribeFromTypingEvents(roomId);
-
-    const subscriptionId = this.generateSubscriptionId();
-    // const subscriptionId =  Math.random().toString(36).substring(2, 6);
-
-    // const message = {
-    //   msg: 'sub',
-    //   id: subscriptionId,
-    //   name: 'stream-notify-room',
-    //   params: [`${roomId}/typing`, false],
-    // };
-    const message = {
-      msg: 'sub',
-      id: subscriptionId,
-      name: 'stream-notify-room',
-      params: [`${roomId}/typing`, false],
-    };
-
-    console.log('📨 Subscribing to typing events:', message);
-    // TODO: This is the root of the error, message has incorrect format
-    this.sendWebSocketMessage(message);
-    this.activeSubscriptions.set(`typing-${roomId}`, subscriptionId);
-    console.log('✅ Typing subscription created for room:', roomId);
   }
 
   unsubscribeFromTypingEvents(roomId: string): void {
-    const subscriptionId = this.activeSubscriptions.get(`typing-${roomId}`);
-    if (subscriptionId) {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.sendWebSocketMessage({
-          msg: 'unsub',
-          id: subscriptionId,
-        });
-      }
-      this.activeSubscriptions.delete(`typing-${roomId}`);
-      console.log('✅ Unsubscribed from typing events for room:', roomId);
-    }
-  }
+    const subscriptionKey = `typing-${roomId}`;
+    const subscriptionId = this.activeSubscriptions.get(subscriptionKey);
+    if (!subscriptionId) return;
 
-  private handleTypingEvent(data: any): void {
-    console.log('🔧 Handling stream-notify-room event:', data);
-
-    if (data.msg === 'changed' && data.collection === 'stream-notify-room') {
-      const args = data.fields?.args;
-
-      if (!args || !Array.isArray(args) || args.length < 3) {
-        console.error('❌ Invalid stream-notify-room event format:', args);
-        return;
-      }
-
-      const [roomPath, username, isTyping] = args;
-      console.log('🔧 Typing event args:', { roomPath, username, isTyping });
-
-      // Check if this is a typing event
-      if (typeof roomPath === 'string' && roomPath.includes('/typing')) {
-        const roomId = roomPath.replace('/typing', '');
-
-        if (roomId && username && typeof isTyping === 'boolean') {
-          console.log(
-            `⌨️ Typing event: ${username} is ${
-              isTyping ? 'typing' : 'not typing'
-            } in ${roomId}`
-          );
-
-          this.typingSubject.next({
-            roomId,
-            username,
-            isTyping,
-          });
-        }
-      }
-    }
+    this.activeSubscriptions.delete(subscriptionKey);
   }
 
   private saveCredentials(credentials: RocketChatCredentials): void {
@@ -390,7 +316,7 @@ export class RocketChatService {
           : 0;
 
       await this.subscribeToRoomMessages(roomId);
-     this.subscribeToTypingEvents(roomId); // THIS is not working
+     this.subscribeToTypingEvents(roomId);
 
       return {
         history,
@@ -406,7 +332,6 @@ export class RocketChatService {
         typingStream: this.typing$.pipe(
           filter((event) => event.roomId === roomId)
         ),
-        // typingStream: this.typing$,
       };
     } catch (error) {
       console.error('Error loading room history:', error);
@@ -425,28 +350,51 @@ export class RocketChatService {
   }
 
   private handleWebSocketMessage(message: any): void {
-    console.log('📨 WebSocket message received:', message);
 
     if (message.msg === 'nosub') {
-      console.error('❌ Subscription rejected:', message);
-      if (message.error) {
-        console.error('❌ Error details:', {
-          error: message.error.error,
-          reason: message.error.reason,
-          message: message.error.message,
-        });
+      const err = message.error;
+      if (err && err.error === 'not-allowed') {
+        console.warn('⚠️ Subscription rejected (not-allowed):', message);
+      } else {
+        console.error('❌ Subscription rejected:', message);
       }
 
-      // Check if this is a typing subscription
+      if (err) {
+        if (err.error === 'not-allowed') {
+          console.warn('❌ Error details:', { error: err.error, message: err.message });
+        } else {
+          console.error('❌ Error details:', {
+            error: err.error,
+            reason: err.reason,
+            message: err.message,
+          });
+        }
+      }
+
+      let found = false;
       this.activeSubscriptions.forEach((value, key) => {
         if (value === message.id) {
-          console.error(`❌ Typing subscription failed for: ${key}`);
-          this.activeSubscriptions.delete(key);
+          found = true;
+          try {
+            if (err && err.error === 'not-allowed' && (key.startsWith('typing-') || key.startsWith('user:'))) {
+              console.warn(`⚠️ Subscription not allowed for ${key}. Removing local subscription and relying on fallback if available.`);
+              this.activeSubscriptions.delete(key);
+            } else {
+              console.error(`❌ Subscription failed for: ${key}`);
+              this.activeSubscriptions.delete(key);
+            }
+          } catch (e) {
+            console.error('Error handling nosub for subscription key:', key, e);
+            this.activeSubscriptions.delete(key);
+          }
         }
       });
+
+      if (!found && err && err.error === 'not-allowed') {
+        console.warn('⚠️ Received not-allowed nosub for unknown subscription id:', message.id);
+      }
     }
 
-    // Handle method call errors with more details
     if (message.msg === 'result' && message.error) {
       console.error('❌ Method call failed:', message.id, message.error);
       if (message.error) {
@@ -458,9 +406,7 @@ export class RocketChatService {
       }
     }
 
-    // Handle connection established
     if (message.msg === 'connected') {
-      console.log('✅ Rocket.Chat WebSocket authenticated');
       this.connectionSubject.next(true);
 
       this.subscribeToUserNotifications('message').catch((err) => {
@@ -487,41 +433,17 @@ export class RocketChatService {
       this.resubscribeToActiveRooms();
     }
 
-    // Handle subscription ready
-    if (message.msg === 'ready') {
-      console.log('✅ Subscriptions ready:', message.subs);
-      if (message.subs && Array.isArray(message.subs)) {
-        message.subs.forEach((subId: string) => {
-          console.log('📋 Active subscription ID:', subId);
-          // Check if this is one of our typing subscriptions
-          this.activeSubscriptions.forEach((value, key) => {
-            if (value === subId) {
-              console.log(
-                `✅ Confirmed active subscription: ${key} = ${subId}`
-              );
-            }
-          });
-        });
-      }
-    }
-
-    // Handle real-time message updates
     if (
       message.msg === 'changed' &&
       message.collection === 'stream-room-messages'
     ) {
       if (message.fields?.args?.[0]) {
         const messageData: RocketChatMessage = message.fields.args[0];
-        console.log('💬 New real-time message:', messageData);
         this.messageStreamSubject.next(messageData);
       }
     }
 
-    if (
-      message.msg === 'changed' &&
-      message.collection === 'stream-notify-room'
-    ) {
-      this.handleTypingEvent(message);
+    if (message.msg === 'changed' && message.collection === 'stream-notify-room') {
       this.roomUpdateSubject.next(message);
     }
 
@@ -578,37 +500,27 @@ export class RocketChatService {
         console.error('Failed to subscribe to user:message notifications:', error);
       });
     }
-
     if (this.activeSubscriptions.size > 0) {
       this.activeSubscriptions.forEach((subscriptionId, key) => {
         try {
-          if (!key.startsWith('typing-')) {
-            const roomId = key;
-            this.subscribeToRoomMessages(roomId).catch((error) => {
-              console.error(`Failed to resubscribe to room ${roomId}:`, error);
-            });
+          if (typeof key === 'string' && key.startsWith('typing-')) {
+            return;
           }
-          else if (typeof key === 'string' && key.startsWith('user:')) {
+
+          if (typeof key === 'string' && key.startsWith('user:')) {
             const event = key.slice(5);
             this.subscribeToUserNotifications(event).catch((error) => {
               console.error(`Failed to resubscribe to user event ${event}:`, error);
             });
-          } else {
-            this.subscribeToRoomMessages(key).catch((error) => {
-              console.error(`Failed to resubscribe to room ${key}:`, error);
-            });
+            return;
           }
+
+          const roomId = key;
+          this.subscribeToRoomMessages(roomId).catch((error) => {
+            console.error(`Failed to resubscribe to room ${roomId}:`, error);
+          });
         } catch (err) {
           console.error('Error while resubscribing active subscriptions:', err);
-        }
-      });
-
-      this.activeSubscriptions.forEach((subscriptionId, key) => {
-        if (key.startsWith('typing-')) {
-          const roomId = key.replace('typing-', '');
-          setTimeout(() => {
-            this.subscribeToTypingEvents(roomId);
-          }, 500); // Small delay to ensure room subscription is established first
         }
       });
     }
@@ -773,7 +685,6 @@ export class RocketChatService {
             console.error('❌ Server returned error:', wsMessage.error);
             observer.next({ success: false, error: wsMessage.error.message });
           } else {
-            console.log('✅ Server returned success:', wsMessage.result);
             observer.next({ success: true, message: wsMessage.result });
           }
           observer.complete();
@@ -783,19 +694,12 @@ export class RocketChatService {
       this.socket.addEventListener('message', handleConfirmation);
       const messageId = this.generateProperMessageId();
 
-      // Create the message object with proper timestamp format
       const messageData = {
         _id: messageId,
         rid: roomId,
         msg: message,
-        // Remove the ts field entirely - let Rocket.Chat set it automatically
-        ts: Date.now(), // Don't include timestamp, let server set it
+        // ts: Date.now(),
       };
-
-      console.log(
-        '📨 Sending WebSocket message with exact structure:',
-        JSON.stringify(messageData, null, 2)
-      );
 
       const websocketMessage = {
         msg: 'method',
@@ -804,11 +708,6 @@ export class RocketChatService {
         params: [messageData],
         ts: Date.now(),
       };
-
-      console.log(
-        '📨 Full WebSocket request:',
-        JSON.stringify(websocketMessage, null, 2)
-      );
 
       this.sendWebSocketMessage(websocketMessage);
 
@@ -824,7 +723,6 @@ export class RocketChatService {
   }
 
   private generateProperMessageId(): string {
-    // Rocket.Chat uses specific ID format, let's match it
     const chars =
       '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     let result = '';
@@ -866,20 +764,6 @@ export class RocketChatService {
       map((messages) => (messages.length > 0 ? messages[0] : null)),
       catchError(() => of(null))
     );
-  }
-
-  private setupConnectionMonitoring(): void {
-    this.connectionSubject.subscribe((isConnected) => {
-      if (isConnected) {
-        this.resubscribeToActiveRooms();
-      }
-    });
-
-    setInterval(() => {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.sendWebSocketMessage({ msg: 'ping' });
-      }
-    }, 30000);
   }
 
   playNotificationSound() {
