@@ -41,7 +41,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { dialogProviders } from './dialog.config';
-import { CometChatConversationsWithMessages } from '@cometchat/chat-uikit-angular'; //comet chat
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 // code view
@@ -98,7 +97,6 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     importProvidersFrom(
-      CometChatConversationsWithMessages,
       FormsModule,
       ToastrModule.forRoot(),
       ReactiveFormsModule,

@@ -62,10 +62,63 @@
               <div class="name">
                 {{ getConversationName(room) }}
               </div>
-              <div class="last-message">
-                {{ getLastMessage(room) }}
+              <div class="d-flex justify-content-between">
+                <div class="last-message">
+                  {{ getLastMessage(room).slice(0, 30) }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
+                </div>
+                <span
+                  *ngIf="getUnreadMessageCount(room) > 0" 
+                  class="badge badge-pill badge-success"
+                >
+                    {{ getUnreadMessageCount(room) }}
+                </span>
               </div>
             </div>
+            <button
+              mat-icon-button
+              class="conversation-menu-button"
+              [matMenuTriggerFor]="menu"
+              #menuTrigger="matMenuTrigger"
+              (click)="$event.stopPropagation()"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <mat-menu #menu="matMenu">
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) > 0"
+                (click)="markAsRead(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>done_all</mat-icon>
+                <span>Mark as Read</span>
+              </button>
+
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) === 0"
+                (click)="markAsUnread(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>markunread</mat-icon>
+                <span>Mark as Unread</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="room.t !== 'd' && !room.teamId"
+                (click)="onLeaveRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>logout</mat-icon>
+                <span>Leave Room</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="canDeleteRoom(room) && !room.teamId"
+                (click)="onDeleteRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>            
           </div>
         </div>
       </div>
@@ -91,10 +144,10 @@
           </div>
         </div>
         <div *ngIf="selectedConversation">
-          <button mat-icon-button class="m-l-auto" aria-label="Call" disabled>
+          <button mat-icon-button (click)="call('audio')" class="m-l-auto" aria-label="Call">
             <mat-icon>call</mat-icon>
           </button>
-          <button mat-icon-button (click)="call()" class="m-l-auto" aria-label="Video call">
+          <button mat-icon-button (click)="call('video')" class="m-l-auto" aria-label="Video call">
             <mat-icon>video_call</mat-icon>
           </button>
           <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
@@ -137,7 +190,7 @@
                         Join
                       </button>
                     }
-                    @else if(message.attachments) {
+                    @else if(message.attachments && message.attachments.length > 0) {
                       <img 
                         *ngIf="!isFromMe(message)" 
                         width="40" 
@@ -145,7 +198,7 @@
                         [src]="getConversationPicture(selectedConversation)" 
                       />
                       <span class="f-s-14">
-                        {{ message.attachments[0].title || 'File attachment' }}
+                        {{ message.attachments[0]?.title || 'File attachment' }}
                         <button mat-icon-button (click)="downloadFile(message.attachments[0])">
                           <mat-icon>download</mat-icon>
                         </button>
@@ -191,6 +244,17 @@
                   <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
                 </div>
             </div>
+
+            <div *ngIf="isUserTyping" class="typing-indicator">
+              <div class="d-flex align-items-center gap-8 p-8">
+                <div class="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <span class="f-s-12 text-muted">{{ getTypingText() }}</span>
+              </div>
+            </div>
           </ng-container>
           <ng-template #noConversation>
             <div class="empty-cta p-24 text-center">Select a contact on the left to view conversation</div>
@@ -204,67 +268,12 @@
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
           </button>
-          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" />
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
           <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>
       </div>
     </mat-sidenav-content>
-<!--       <mat-sidenav
-        #infoSidebar
-        position="end"
-        class="mat-sidenav bg-white info-sidebar"
-        [mode]="isMobile ? 'over' : 'side'"
-        [opened]="infoSidebarOpen"
-        (closedStart)="infoSidebarOpen = false"
-        [fixedInViewport]="isMobile"
-        style="width: 320px;"
-      >
-        <div class="p-16">
-          <div class="info-header">
-            <span class="info-title">Contact info</span>
-            <button mat-icon-button class="close-btn" (click)="infoSidebar.close()">
-              <mat-icon>close</mat-icon>
-            </button>
-          </div>
-          <div class="info-avatar-wrapper">
-            <img
-              [src]="selectedConversation?.t === 'd' ? selectedUserInfo?.avatarUrl : getConversationPicture(selectedConversation)"
-              class="info-avatar"
-              alt="avatar"
-            />
-          </div>
-          <ng-container *ngIf="selectedConversation?.t === 'd' && selectedUserInfo">
-            <div class="info-block">
-              <span class="field-label">Username</span>
-              <span class="field-value">{{ selectedUserInfo.username }}</span>
-            </div>
-            <div class="info-block" *ngIf="selectedUserInfo.email">
-              <span class="field-label">Email</span>
-              <span class="field-value">{{ selectedUserInfo.email }}</span>
-            </div>
-            <div class="info-block" *ngIf="selectedUserInfo.utcOffset !== undefined">
-              <span class="field-label">Local time</span>
-              <span class="field-value">{{ getLocalTime(selectedUserInfo.utcOffset) }}</span>
-            </div>
-            <div class="info-block" *ngIf="selectedUserInfo.lastLogin">
-              <span class="field-label">Last login</span>
-              <span class="field-value">{{ selectedUserInfo.lastLogin | date:'MMM d, yyyy HH:mm' }}</span>
-            </div>
-            <div class="info-block" *ngIf="selectedUserInfo.createdAt">
-              <span class="field-label">Created at</span>
-              <span class="field-value">{{ selectedUserInfo.createdAt | date:'MMM d, yyyy' }}</span>
-            </div>
-          </ng-container>
-          <ng-container *ngIf="(selectedConversation?.t === 'c' || selectedConversation?.t === 'p') && channelMembers">
-            <h4 class="members-title">Members ({{ channelMembers.length }})</h4>
-            <div *ngFor="let m of channelMembers" class="member-row">
-              <img [src]="m.avatarUrl" width="40" class="rounded-circle" />
-              <div>{{ m.username }}</div>
-            </div>
-          </ng-container>
-        </div>
-      </mat-sidenav> -->
   </mat-sidenav-container>
 </mat-card>

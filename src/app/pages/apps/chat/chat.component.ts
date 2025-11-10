@@ -14,7 +14,6 @@ import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import '@cometchat/uikit-elements';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -38,6 +37,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { CreateRoomComponent } from './create-room/create-room.component';
 import { ChatInfoComponent } from './chat-info/chat-info.component';
+import { JitsiMeetComponent } from '../../../components/jitsi-meet/jitsi-meet.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
@@ -79,13 +79,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
   @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
-  // infoSidebarOpen = false;
   selectedUserInfo: any = null;
   channelMembers: any[] = [];
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
+  private typingSubscription!: Subscription;
+  private typingTimeout: any;
+  typingUsers: string[] = [];
+  isUserTyping = false;
+  unreadMapSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
   isSendingMessage = false;
@@ -95,16 +99,42 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     this.loadRooms();
+    try {
+      this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
+        try {
+          if (!message || !message.rid) return;
+          const room = this.rooms.find(r => r._id === message.rid);
+          if (room) {
+            (room as any).lastMessage = message;
+            (room as any).lastMessageTs = message.ts || (room as any).ts || message.ts;
+            this.moveRoomToTop(message.rid);
+          }
+        } catch (err) {
+          console.error('Error updating room lastMessage from global stream:', err, message);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to global message stream:', err);
+    }
+
+    try {
+      this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
+        this.sortRoomsByUnread();
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to unread map stream:', err);
+    }
   }
 
   private loadRooms(): void {
     this.chatService.getRooms().subscribe({
       next: (rooms: any) => {
         this.rooms = rooms;
+        this.sortRoomsByUnread();
         this.loadAllRoomPictures();
         setTimeout(() => this.scrollToBottom(), 100);
       },
@@ -191,13 +221,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
       case 'ult':
         return `${actor} left the room`;
       case 'ru':
-        return `${actor} removed user "${target}"`;
+        return `${actor} removed user ${target}`;
       case 'au':
-        return `${actor} added user "${target}"`;
+        return `${actor} added user ${target}`;
       case 'added-user-to-team':
-        return `${actor} added user "${target}" to the team`;
+        return `${actor} added user ${target} to the team`;
       case 'removed-user-from-team':
-        return `${actor} removed user "${target}" from the team`;
+        return `${actor} removed user ${target} from the team`;
       case 'user-added-room-to-team':
         return `${actor} added room "${target}" to the team`;
       case 'r':
@@ -223,30 +253,79 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   canCreateChannel(): boolean {
-    return this.hasAnyRole(['leader']);
+    return this.hasAnyRole(['leader', 'admin']);
   }
 
   canCreateDirectMessage(): boolean {
-    return this.hasAnyRole(['user']);
+    return this.hasAnyRole(['user', 'admin']);
   }
 
-  call() {
-    this.chatService
-      .initializeJitsiMeeting(this.selectedConversation._id)
-      .subscribe((res: any) => {
-        if (!res.success) {
-          console.error('Error calling room', this.selectedConversation._id);
-        }
-        window.open(res.callUrl, '_blank');
+  canDeleteRoom(room: RocketChatRoom): boolean {
+    if (!room || !room.t) return false;
+    const roles = this.chatService.loggedInUser?.roles || [];
+
+    switch (room.t) {
+      case 'c': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
+      case 'p': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
+      case 'd': return true;
+      default: return false;
+    }
+  }
+
+  call(type: 'video' | 'audio') {
+    if (!this.selectedConversation) return;
+
+    const roomId = this.selectedConversation._id;
+    this.chatService.initializeJitsiMeeting(roomId).subscribe((res: any) => {
+      if (!res || !res.success) {
+        console.error('Error calling room', roomId, res?.error);
+        return;
+      }
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: { 
+          startWithAudioMuted: false, 
+          startWithVideoMuted: type === 'audio', 
+          prejoinPageEnabled: false 
+        },
+        interfaceConfigOverwrite: {}
       });
+    });
   }
 
   joinCall(message: RocketChatMessage) {
     this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
-      if (!res.success) {
-        console.error('Error joining room', message.u._id);
+      if (!res || !res.success) {
+        console.error('Error joining room', res?.error);
+        return;
       }
-      window.open(res.callUrl, '_blank');
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: { prejoinPageEnabled: false },
+        interfaceConfigOverwrite: {}
+      });
     });
   }
 
@@ -279,29 +358,22 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   const originalFileName = attachment.title || fileNameInS3;
 
   try {
-    // Fetch the file and convert to blob
     const response = await fetch(downloadUrl);
     const blob = await response.blob();
     
-    // Create object URL from blob
     const blobUrl = window.URL.createObjectURL(blob);
     
-    // Create download link
     const link = document.createElement('a');
     link.href = blobUrl;
-    link.download = originalFileName; // This forces download
+    link.download = originalFileName;
     
-    // Append to body, click, and clean up
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    // Clean up the blob URL
     window.URL.revokeObjectURL(blobUrl);
     
   } catch (error) {
-    console.error('Download failed:', error);
-    // Fallback to opening in new tab
     window.open(downloadUrl, '_blank');
   }
 }
@@ -376,7 +448,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     return `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
   }
 
-  // Helper method to format file size
   private formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -385,10 +456,10 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  openCreateRoomDialog(type: 'd' | 'c' | 't') {
+  openCreateRoomDialog(type: 'd' | 'c' | 't', teamId?: string, teamName?: string) {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
-      data: { type },
+      data: { type, teamId, teamName },
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -416,34 +487,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       }));
     });
   }
-
-/*   openInfoSidebar() {
-    if (!this.selectedConversation) return;
-
-    const room = this.selectedConversation;
-
-    if (room.t === 'd') {
-      const otherUsername = room.usernames?.find(
-        u => u !== this.chatService.loggedInUser?.username
-      );
-
-      if (otherUsername) {
-        this.loadUserInfo(otherUsername);
-      }
-
-    } else if (room.t === 'c') {
-      this.loadChannelMembers(room._id, 'c');
-
-    } else if (room.t === 'p') {
-      this.loadChannelMembers(room._id, 'p');
-    }
-    this.infoSidebarOpen = true;
-    this.infoSidebar.open();
-  }
-
-  closeInfoSidebar() {
-    this.infoSidebarOpen = false;
-  } */
   
   openInfoDialog() {
     if (!this.selectedConversation) return;
@@ -526,10 +569,52 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
+  getUnreadMessageCount(room: RocketChatRoom): number {
+    if (!room) return 0;
+    try {
+      const count = this.chatService.getUnreadForRoom(room._id);
+      return count || 0;
+    } catch (err) {
+      console.error('Error reading unread count from service for room', room._id, err);
+      return 0;
+    }
+  }
+
+  markAsRead(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    this.chatService.markChannelAsRead(room._id).subscribe({
+      next: () => {
+        try {
+          this.chatService.setUnreadForRoom(room._id, 0);
+        } catch {}
+        this.sortRoomsByUnread();
+      },
+      error: err => {
+        console.error('Failed to mark as read:', err);
+        this.openSnackBar('Failed to mark room as read', 'Close');
+      }
+    });
+  }
+
+  markAsUnread(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    try {
+      this.chatService.setUnreadForRoom(room._id, 1);
+    } catch (err) {
+      console.error('Failed to mark as unread:', err);
+      this.openSnackBar('Failed to mark room as unread', 'Close');
+    }
+    this.sortRoomsByUnread();
+  }
+
   getMessageTimestamp(message: RocketChatMessage): Date {
     if (typeof message.ts === 'string') {
       return new Date(message.ts);
-    } else if (message.ts && typeof message.ts === 'object' && '$date' in message.ts) {
+    } else if (
+      message.ts &&
+      typeof message.ts === 'object' &&
+      '$date' in message.ts
+    ) {
       const dateValue = message.ts.$date;
       return new Date(dateValue);
     }
@@ -550,12 +635,25 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
+    this.typingUsers = [];
+
+    try {
+      this.chatService.setActiveRoom(room._id);
+    } catch (err) {
+      console.error('Failed to notify active room:', err);
+    }
+
+    try {
+      this.chatService.markChannelAsRead(room._id);
+    } catch (err) {
+      console.error('Failed to mark channel as read:', err);
+    }
 
     if (this.roomSubscriptions.has(room._id)) {
       this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
 
-    const { history, realtimeStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
+    const { history, realtimeStream, typingStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
 
     this.messages = history;
     const existingMessageIds = new Set(this.messages.map(msg => msg._id));
@@ -565,9 +663,63 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         this.messages = [...this.messages, newMessage];
         existingMessageIds.add(newMessage._id);
         this.scrollToBottom();
+        try {
+          this.chatService.setUnreadForRoom(room._id, 0);
+        } catch (e) {}
+        try {
+          const roomIdx = this.rooms.findIndex(r => r._id === room._id);
+          if (roomIdx !== -1) {
+            (this.rooms[roomIdx] as any).lastMessage = newMessage;
+            (this.rooms[roomIdx] as any).lastMessageTs = newMessage.ts || (this.rooms[roomIdx] as any).ts;
+            this.moveRoomToTop(room._id);
+          }
+        } catch (err) {
+          console.error('Error updating room lastMessage after realtime message:', err, newMessage);
+        }
       }
     });
     this.roomSubscriptions.set(room._id, sub);
+
+    this.typingSubscription = typingStream.subscribe({
+      next: (typingEvent) => {
+        this.handleTypingEvent(typingEvent);
+      },
+      error: (error) => {
+        console.error('Error in typing stream:', error);
+      },
+    });
+
+    try {
+      this.chatService.markChannelAsRead(room._id).subscribe({
+        next: (res: any) => {
+          try {
+            this.chatService.setUnreadForRoom(room._id, 0);
+          } catch (e) {}
+
+          try {
+            this.chatService.getAllSubscriptions().subscribe({
+              next: (sres: any) => {
+                try {
+                  const payload = sres?.update || sres?.subscriptions || sres;
+                  const subsArray = Array.isArray(payload) ? payload : [payload];
+                  this.chatService.updateUnreadFromSubscriptions(subsArray);
+                } catch (e) {
+                  console.error('Error updating unread from subscriptions after mark-as-read:', e, sres);
+                }
+              },
+              error: (e) => console.error('Failed to refresh subscriptions after mark-as-read:', e)
+            });
+          } catch (e) {
+            console.error('Error calling getAllSubscriptions after markChannelAsRead:', e);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to mark room as read on server:', err);
+        }
+      });
+    } catch (err) {
+      console.error('Error calling markChannelAsRead:', err);
+    }
 
     if (room.t === 'd') {
       const otherUsername = room.usernames?.find(
@@ -580,12 +732,21 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       this.selectedUserInfo = null;
     }
 
-/*     if (this.isMobile) {
-      this.infoSidebarOpen = true;
-      this.infoSidebar?.open();
-    } */
-
     setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+    getTypingText(): string {
+    if (this.typingUsers.length === 0) return '';
+
+    if (this.typingUsers.length === 1) {
+      return `${this.typingUsers[0]} is typing...`;
+    } else if (this.typingUsers.length === 2) {
+      return `${this.typingUsers[0]} and ${this.typingUsers[1]} are typing...`;
+    } else {
+      return `${this.typingUsers[0]} and ${
+        this.typingUsers.length - 1
+      } others are typing...`;
+    }
   }
 
   loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
@@ -597,6 +758,53 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       return this.chatService.loadChannelMessagesHistory(room._id);
     }
     return of([]);
+  }
+  
+  onDeleteRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.deleteRoom(room._id).subscribe({
+      next: success => {
+        if (success) {
+          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Chat deleted`, 'OK');
+        }
+      },
+      error: err => {
+        console.error('Error deleting chat:', err);
+        this.openSnackBar('Failed to delete chat', 'Close');
+      }
+    });
+  }
+
+  onLeaveRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.leaveRoom(room._id).subscribe({
+      next: success => {
+        if (success) {
+          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Left room`, 'OK');
+        }
+      },
+      error: err => {
+        console.error('Error leaving group:', err);
+        const errorType = err?.error?.errorType;
+        if (errorType === "error-you-are-last-owner") {
+          this.openSnackBar('You are the last owner. Delete the group instead.', 'Close');
+        } else {
+          this.openSnackBar('Could not leave the group.', 'Close');
+        }
+      }
+    });
   }
 
   getLastMessage(room: RocketChatRoom): string {
@@ -617,9 +825,45 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
+  private handleTypingEvent(event: {
+    roomId: string;
+    username: string;
+    isTyping: boolean;
+  }): void {
+    if (event.roomId !== this.selectedConversation?._id) return;
+
+    if (event.isTyping) {
+      if (!this.typingUsers.includes(event.username)) {
+        this.typingUsers.push(event.username);
+      }
+    } else {
+      this.typingUsers = this.typingUsers.filter(
+        (user) => user !== event.username
+      );
+    }
+
+    this.isUserTyping = this.typingUsers.length > 0;
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    if (event.isTyping) {
+      this.typingTimeout = setTimeout(() => {
+        this.typingUsers = this.typingUsers.filter(
+          (user) => user !== event.username
+        );
+        this.isUserTyping = this.typingUsers.length > 0;
+      }, 3000);
+    }
+  }
+
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     this.isSendingMessage = true;
+
+    this.chatService.stopTyping(this.selectedConversation._id);
+    this.typingUsers = [];
 
     this.chatService
       .sendMessageWithConfirmation(
@@ -627,7 +871,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         this.newMessage
       )
       .subscribe({
-        next: (result: any) => {
+        next: (result) => {
           if (result.success) {
             this.newMessage = '';
           } else {
@@ -635,7 +879,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           }
           this.isSendingMessage = false;
         },
-        error: (error: any) => {
+        error: (error) => {
           console.error('Error sending message:', error);
           this.isSendingMessage = false;
         },
@@ -663,12 +907,81 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   ngOnDestroy() {
+    try {
+      this.chatService.setActiveRoom(null);
+    } catch (err) {}
     if (this.realtimeSubscription) {
       this.realtimeSubscription.unsubscribe();
     }
-    
-    if (this.selectedConversation) {
-      this.chatService.unsubscribeFromRoomMessages(this.selectedConversation._id);
+    if (this.typingSubscription) {
+      this.typingSubscription.unsubscribe();
     }
+    if (this.unreadMapSubscription) {
+      this.unreadMapSubscription.unsubscribe();
+    }
+    if (this.selectedConversation) {
+      this.chatService.unsubscribeFromRoomMessages(
+        this.selectedConversation._id
+      );
+      this.chatService.unsubscribeFromTypingEvents(
+        this.selectedConversation._id
+      );
+    }
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+  }
+
+  private sortRoomsByUnread(): void {
+    try {
+      this.rooms.sort((a, b) => {
+        const aUnread = this.chatService.getUnreadForRoom(a._id) || 0;
+        const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
+        if (aUnread !== bUnread) return bUnread - aUnread;
+
+        const aTs = a.lastMessage ? this.getMessageTimestamp(a.lastMessage).getTime() : 0;
+        const bTs = b.lastMessage ? this.getMessageTimestamp(b.lastMessage).getTime() : 0;
+        return bTs - aTs;
+      });
+      this.rooms = [...this.rooms];
+    } catch (err) {
+      console.error('Error sorting rooms by unread:', err);
+    }
+  }
+
+  private moveRoomToTop(roomId: string): void {
+    try {
+      const idx = this.rooms.findIndex(r => r._id === roomId);
+      if (idx === -1) return;
+      const [room] = this.rooms.splice(idx, 1);
+      this.rooms.unshift(room);
+      this.rooms = [...this.rooms];
+      try { this.cdr.detectChanges(); } catch (e) {}
+    } catch (err) {
+      console.error('Error moving room to top:', err, roomId);
+    }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
+  }
+
+  onMessageInput(): void {
+    if (!this.selectedConversation) return;
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    this.chatService.startTyping(this.selectedConversation._id);
+
+    this.typingTimeout = setTimeout(() => {
+      this.chatService.stopTyping(this.selectedConversation._id);
+    }, 1000);
   }
 }

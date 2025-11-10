@@ -10,9 +10,11 @@ import {
   switchMap,
   forkJoin,
   filter,
-  firstValueFrom
+  firstValueFrom,
+  throwError
 } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { WebSocketService } from './socket/web-socket.service';
 import {
   RocketChatCredentials,
   RocketChatUser,
@@ -22,8 +24,6 @@ import {
   RocketChatUserResponse,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
-import { AnyCatcher } from 'rxjs/internal/AnyCatcher';
-import { C } from '@angular/cdk/keycodes';
 
 @Injectable({
   providedIn: 'root',
@@ -38,18 +38,53 @@ export class RocketChatService {
     new BehaviorSubject<RocketChatCredentials | null>(null);
   private messageStreamSubject = new Subject<RocketChatMessage>();
   private roomUpdateSubject = new Subject<any>();
+  private userNotifySubject = new Subject<any>();
+  private activeRoomSubject = new Subject<string | null>();
+  private unreadMap: Record<string, number> = {};
+  private unreadMapSubject = new BehaviorSubject<Record<string, number>>({});
+  private activeJitsiSubject = new BehaviorSubject<any | null>(null);
+  private currentActiveRoom: string | null = null;
 
   private credentials: RocketChatCredentials | null = null;
   private activeSubscriptions = new Map<string, string>();
   private messageId = 0;
   private subscriptionId = 0;
 
+  private typingUsers = new Map<string, Set<string>>();
+  private typingTimeout = new Map<string, NodeJS.Timeout>();
+  private typingSubject = new Subject<{
+    roomId: string;
+    username: string;
+    isTyping: boolean;
+  }>();
+  public typing$ = this.typingSubject.asObservable();
+
   loggedInUser: RocketChatUser | null = null;
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private webSocketService: WebSocketService) {
     this.loadCredentials();
+
+    try {
+      this.webSocketService.getTypingStream().subscribe((evt) => {
+        try {
+          if (!evt || !evt.roomId) return;
+
+          if (this.loggedInUser && evt.username === this.loggedInUser.username) return;
+
+          this.typingSubject.next({
+            roomId: evt.roomId,
+            username: evt.username,
+            isTyping: !!evt.isTyping,
+          });
+        } catch (err) {
+          console.error('Error forwarding external typing event into RocketChatService', err, evt);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to WebSocketService typing stream', err);
+    }
   }
 
   public loadCredentials(): void {
@@ -65,6 +100,65 @@ export class RocketChatService {
         this.clearCredentials();
       }
     }
+  }
+
+  startTyping(roomId: string): void {
+    if (!this.loggedInUser) return;
+
+    const username = this.loggedInUser.username || this.loggedInUser.name;
+    if (!username) return;
+
+    try {
+      this.webSocketService.emitTyping(roomId, username, true);
+    } catch (err) {
+      console.error('Failed to emit typing via WebSocketService', err);
+    }
+
+    if (this.typingTimeout.has(this.loggedInUser._id)) {
+      clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
+    }
+
+    const timeout = setTimeout(() => {
+      this.stopTyping(roomId);
+    }, 3000);
+
+    this.typingTimeout.set(this.loggedInUser._id, timeout);
+  }
+
+  stopTyping(roomId: string): void {
+    if (!this.loggedInUser) return;
+
+    const username = this.loggedInUser.username || this.loggedInUser.name;
+    if (!username) return;
+
+    try {
+      this.webSocketService.emitTyping(roomId, username, false);
+    } catch (err) {
+      console.error('Failed to emit stop-typing via WebSocketService', err);
+    }
+
+    if (this.typingTimeout.has(this.loggedInUser._id)) {
+      clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
+      this.typingTimeout.delete(this.loggedInUser._id);
+    }
+  }
+
+  subscribeToTypingEvents(roomId: string): void {
+    try {
+      this.unsubscribeFromTypingEvents(roomId);
+
+      this.activeSubscriptions.set(`typing-${roomId}`, `fallback-${roomId}`);
+    } catch (err) {
+      console.error('Error while registering fallback typing subscription:', err);
+    }
+  }
+
+  unsubscribeFromTypingEvents(roomId: string): void {
+    const subscriptionKey = `typing-${roomId}`;
+    const subscriptionId = this.activeSubscriptions.get(subscriptionKey);
+    if (!subscriptionId) return;
+
+    this.activeSubscriptions.delete(subscriptionKey);
   }
 
   private saveCredentials(credentials: RocketChatCredentials): void {
@@ -103,7 +197,6 @@ export class RocketChatService {
     return headers;
   }
 
-  
   private normalizeTimestamp(ts: string | { $date: string | number }): Date {
     if (typeof ts === 'string') {
       return new Date(ts);
@@ -187,6 +280,11 @@ export class RocketChatService {
   ): Promise<{
     history: RocketChatMessage[];
     realtimeStream: Observable<RocketChatMessage>;
+    typingStream: Observable<{
+      roomId: string;
+      username: string;
+      isTyping: boolean;
+    }>;
   }> {
     try {
       let history: RocketChatMessage[];
@@ -212,21 +310,28 @@ export class RocketChatService {
         return dateA - dateB;
       });
 
-      const latestHistoryTimestamp = history.length > 0 
-      ? this.normalizeTimestamp(history[history.length - 1].ts).getTime()
-      : 0;
+      const latestHistoryTimestamp =
+        history.length > 0
+          ? this.normalizeTimestamp(history[history.length - 1].ts).getTime()
+          : 0;
 
       await this.subscribeToRoomMessages(roomId);
+     this.subscribeToTypingEvents(roomId);
 
       return {
         history,
         realtimeStream: this.getMessageStream().pipe(
-          filter(message => message.rid === roomId),
-          filter(message => {
-            const messageTimestamp = this.normalizeTimestamp(message.ts).getTime();
+          filter((message) => message.rid === roomId),
+          filter((message) => {
+            const messageTimestamp = this.normalizeTimestamp(
+              message.ts
+            ).getTime();
             return messageTimestamp > latestHistoryTimestamp;
           })
-        )
+        ),
+        typingStream: this.typing$.pipe(
+          filter((event) => event.roomId === roomId)
+        ),
       };
     } catch (error) {
       console.error('Error loading room history:', error);
@@ -245,8 +350,85 @@ export class RocketChatService {
   }
 
   private handleWebSocketMessage(message: any): void {
+
+    if (message.msg === 'nosub') {
+      const err = message.error;
+      if (err && err.error === 'not-allowed') {
+        console.warn('⚠️ Subscription rejected (not-allowed):', message);
+      } else {
+        console.error('❌ Subscription rejected:', message);
+      }
+
+      if (err) {
+        if (err.error === 'not-allowed') {
+          console.warn('❌ Error details:', { error: err.error, message: err.message });
+        } else {
+          console.error('❌ Error details:', {
+            error: err.error,
+            reason: err.reason,
+            message: err.message,
+          });
+        }
+      }
+
+      let found = false;
+      this.activeSubscriptions.forEach((value, key) => {
+        if (value === message.id) {
+          found = true;
+          try {
+            if (err && err.error === 'not-allowed' && (key.startsWith('typing-') || key.startsWith('user:'))) {
+              console.warn(`⚠️ Subscription not allowed for ${key}. Removing local subscription and relying on fallback if available.`);
+              this.activeSubscriptions.delete(key);
+            } else {
+              console.error(`❌ Subscription failed for: ${key}`);
+              this.activeSubscriptions.delete(key);
+            }
+          } catch (e) {
+            console.error('Error handling nosub for subscription key:', key, e);
+            this.activeSubscriptions.delete(key);
+          }
+        }
+      });
+
+      if (!found && err && err.error === 'not-allowed') {
+        console.warn('⚠️ Received not-allowed nosub for unknown subscription id:', message.id);
+      }
+    }
+
+    if (message.msg === 'result' && message.error) {
+      console.error('❌ Method call failed:', message.id, message.error);
+      if (message.error) {
+        console.error('❌ Method error details:', {
+          error: message.error.error,
+          reason: message.error.reason,
+          message: message.error.message,
+        });
+      }
+    }
+
     if (message.msg === 'connected') {
       this.connectionSubject.next(true);
+
+      this.subscribeToUserNotifications('message').catch((err) => {
+        console.error('Failed to subscribe to user:message on connect:', err);
+      });
+
+      this.getRooms().subscribe({
+        next: (rooms: any[]) => {
+          if (Array.isArray(rooms)) {
+            rooms.forEach((r: any) => {
+              const roomId = r && (r._id || r.id || r.roomId);
+              if (!roomId) return;
+              if (!this.activeSubscriptions.has(roomId)) {
+                this.subscribeToRoomMessages(roomId).catch((err) => {
+                  console.error(`Failed subscribing to room ${roomId} on connect:`, err);
+                });
+              }
+            });
+          }
+        },
+        error: (err) => console.error('Failed to load rooms on connect:', err),
+      });
 
       this.resubscribeToActiveRooms();
     }
@@ -261,11 +443,50 @@ export class RocketChatService {
       }
     }
 
-    if (
-      message.msg === 'changed' &&
-      message.collection === 'stream-notify-room'
-    ) {
+    if (message.msg === 'changed' && message.collection === 'stream-notify-room') {
       this.roomUpdateSubject.next(message);
+    }
+
+    if (message.msg === 'changed' && message.collection === 'stream-notify-user') {
+      try {
+        const args = message.fields?.args;
+
+        let payloadCandidate: any = null;
+        if (Array.isArray(args)) {
+          payloadCandidate = args[1] ?? args[0] ?? args;
+        } else {
+          payloadCandidate = args ?? message;
+        }
+
+        const looksLikeMessage = !!(
+          payloadCandidate &&
+          (payloadCandidate.rid || payloadCandidate.msg || payloadCandidate.message) &&
+          payloadCandidate.u
+        );
+
+        if (looksLikeMessage) {
+          const payload = payloadCandidate;
+          this.userNotifySubject.next(message);
+
+          try {
+            this.getMessage(payload._id).subscribe((message: RocketChatMessage) => {
+              const fromUserId = message.u?._id;
+              const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
+  
+              if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
+                this.playNotificationSound();
+              }
+            });
+          } catch (err) {
+            console.debug('Error while handling user notify payload for audio:', err);
+          }
+        } else {
+          this.userNotifySubject.next(message);
+        }
+      } catch (err) {
+        console.error('Error handling stream-notify-user message:', err, message);
+        this.userNotifySubject.next(message);
+      }
     }
 
     if (message.msg === 'ping') {
@@ -274,11 +495,38 @@ export class RocketChatService {
   }
 
   private resubscribeToActiveRooms(): void {
+    if (!this.activeSubscriptions.has('user:message')) {
+      this.subscribeToUserNotifications('message').catch((error) => {
+        console.error('Failed to subscribe to user:message notifications:', error);
+      });
+    }
     if (this.activeSubscriptions.size > 0) {
-      this.activeSubscriptions.forEach((subscriptionId, roomId) => {
-        this.subscribeToRoomMessages(roomId).catch((error) => {
-          console.error(`Failed to resubscribe to room ${roomId}:`, error);
-        });
+      this.activeSubscriptions.forEach((subscriptionId, key) => {
+        try {
+          if (typeof key === 'string' && key.startsWith('typing-')) {
+            return;
+          }
+
+          if (typeof key === 'string' && key.startsWith('user:')) {
+            const event = key.slice(5);
+            this.subscribeToUserNotifications(event).catch((error) => {
+              console.error(`Failed to resubscribe to user event ${event}:`, error);
+            });
+            return;
+          }
+          const roomId = key;
+          this.subscribeToRoomMessages(roomId);
+          try {
+            this.joinTypingRoom(roomId);
+          } catch (err) {
+            console.error('Failed to join typing room via WebSocketService:', err);
+          }
+          this.subscribeToRoomMessages(roomId).catch((error) => {
+            console.error(`Failed to resubscribe to room ${roomId}:`, error);
+          });
+        } catch (err) {
+          console.error('Error while resubscribing active subscriptions:', err);
+        }
       });
     }
   }
@@ -298,6 +546,113 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(roomId, subscriptionId);
+  }
+
+  public joinTypingRoom(roomId: string): void {
+    try {
+      if (!roomId) return;
+      this.webSocketService.joinRoom(roomId);
+    } catch (err) {
+      console.error('Error requesting joinTypingRoom:', err, roomId);
+    }
+  }
+
+  async subscribeToUserNotifications(event: string): Promise<void> {
+    if (!this.credentials) {
+      throw new Error('Not authenticated');
+    }
+
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      await this.connectWebSocket();
+    }
+
+    const subscriptionId = this.generateSubscriptionId();
+    const param = `${this.credentials.userId}/${event}`;
+
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-notify-user',
+      params: [param, false],
+    });
+
+    this.activeSubscriptions.set(`user:${event}`, subscriptionId);
+  }
+
+  unsubscribeUserNotifications(event: string): void {
+    const key = `user:${event}`;
+    const subscriptionId = this.activeSubscriptions.get(key);
+    if (subscriptionId && this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.sendWebSocketMessage({ msg: 'unsub', id: subscriptionId });
+      this.activeSubscriptions.delete(key);
+    }
+  }
+
+  getUserNotifyStream(): Observable<any> {
+    return this.userNotifySubject.asObservable();
+  }
+
+  private publishUnreadMap() {
+    this.unreadMapSubject.next({ ...this.unreadMap });
+  }
+
+  getUnreadMapStream(): Observable<Record<string, number>> {
+    return this.unreadMapSubject.asObservable();
+  }
+
+  getActiveJitsiStream(): Observable<any | null> {
+    return this.activeJitsiSubject.asObservable();
+  }
+
+  openJitsiMeeting(meetingData: any) {
+    this.activeJitsiSubject.next(meetingData || null);
+  }
+
+  closeJitsiMeeting() {
+    this.activeJitsiSubject.next(null);
+  }
+
+  getUnreadForRoom(roomId: string): number {
+    return this.unreadMap[roomId] || 0;
+  }
+
+  setUnreadForRoom(roomId: string, count: number): void {
+    if (!roomId) return;
+    this.unreadMap[roomId] = count || 0;
+    this.publishUnreadMap();
+  }
+
+  incrementUnreadForRoom(roomId: string, by: number = 1): void {
+    if (!roomId) return;
+    this.unreadMap[roomId] = (this.unreadMap[roomId] || 0) + by;
+    this.publishUnreadMap();
+  }
+
+  updateUnreadFromSubscriptions(subs: any[] | any): void {
+    try {
+      const arr = Array.isArray(subs) ? subs : [subs];
+      arr.forEach((s: any, idx: number) => {
+        const key = s?.rid || s?._id || `sub-${idx}`;
+        if (this.currentActiveRoom && key === this.currentActiveRoom) {
+          return;
+        }
+        if ('unread' in s) {
+          this.unreadMap[key] = s.unread || 0;
+        }
+      });
+      this.publishUnreadMap();
+    } catch (err) {
+      console.error('Failed to update unread map from subscriptions:', err, subs);
+    }
+  }
+
+  setActiveRoom(roomId: string | null): void {
+    this.currentActiveRoom = roomId;
+    this.activeRoomSubject.next(roomId);
+  }
+
+  getActiveRoomStream(): Observable<string | null> {
+    return this.activeRoomSubject.asObservable();
   }
 
   unsubscribeFromRoomMessages(roomId: string): void {
@@ -341,6 +696,7 @@ export class RocketChatService {
           clearTimeout(confirmationTimeout);
 
           if (wsMessage.error) {
+            console.error('❌ Server returned error:', wsMessage.error);
             observer.next({ success: false, error: wsMessage.error.message });
           } else {
             observer.next({ success: true, message: wsMessage.result });
@@ -350,19 +706,24 @@ export class RocketChatService {
       };
 
       this.socket.addEventListener('message', handleConfirmation);
+      const messageId = this.generateProperMessageId();
 
-      this.sendWebSocketMessage({
+      const messageData = {
+        _id: messageId,
+        rid: roomId,
+        msg: message,
+        // ts: Date.now(),
+      };
+
+      const websocketMessage = {
         msg: 'method',
         method: 'sendMessage',
         id: tempMessageId,
-        params: [
-          {
-            _id: this.generateMessageId(),
-            rid: roomId,
-            msg: message,
-          },
-        ],
-      });
+        params: [messageData],
+        ts: Date.now(),
+      };
+
+      this.sendWebSocketMessage(websocketMessage);
 
       confirmationTimeout = setTimeout(() => {
         this.socket?.removeEventListener('message', handleConfirmation);
@@ -373,6 +734,16 @@ export class RocketChatService {
         observer.complete();
       }, 10000);
     });
+  }
+
+  private generateProperMessageId(): string {
+    const chars =
+      '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < 17; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
   }
 
   getRoomsWithLastMessage(): Observable<RocketChatRoom[]> {
@@ -409,18 +780,9 @@ export class RocketChatService {
     );
   }
 
-  private setupConnectionMonitoring(): void {
-    this.connectionSubject.subscribe((isConnected) => {
-      if (isConnected) {
-        this.resubscribeToActiveRooms();
-      }
-    });
-
-    setInterval(() => {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.sendWebSocketMessage({ msg: 'ping' });
-      }
-    }, 30000);
+  playNotificationSound() {
+    const audio = new Audio(`${environment.mp3}/notification.mp3`);
+    audio.play();
   }
 
   private generateMessageId(): string {
@@ -566,7 +928,29 @@ export class RocketChatService {
     );
   }
 
-  createRoom(name: string, type: 'c' | 'p', members?: string[]): Observable<RocketChatRoom> {
+  getTeams(): Observable<RocketChatTeam[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.CHAT_API_URI}teams.list`, { headers }).pipe(
+      map(res => res.teams as RocketChatTeam[])
+    );
+  }
+
+  getTeamMembers(teamId: string): Observable<RocketChatUser[]> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.get<{ members: any[] }>(
+      `${this.CHAT_API_URI}teams.members?teamId=${teamId}`,
+      { headers }
+    ).pipe(
+      map(res =>
+        res.members
+          .map(m => m.user)
+          .filter(u => !!u)
+      )
+    );
+  }
+
+  createRoom(name: string, type: 'c' | 'p',  members?: string[],  teamId?: string): Observable<RocketChatRoom> {
     const headers = this.getAuthHeaders();
     const safeName = String(name || '')
       .trim()
@@ -576,42 +960,53 @@ export class RocketChatService {
       .replace(/^-+|-+$/g, '');
 
     if (!safeName) {
-      return new Observable<RocketChatRoom>((observer) => {
-        observer.error(new Error('Invalid room name'));
-      });
+      return of(null as any);
     }
+    const endpoint = type === 'c' ? 'channels.create' : 'groups.create';
+    const body: any = { name: safeName };
 
-    if (type === 'c') {
-      return this.http.post<any>(`${this.CHAT_API_URI}channels.create`, { name: safeName }, { headers }).pipe(
-        switchMap(res => {
-          const channel = res?.channel as RocketChatRoom;
-          if (members?.length) {
-            const roomId = channel._id;
-            return forkJoin(members.map(userId =>
-              this.http.post(`${this.CHAT_API_URI}channels.invite`, { roomId, userId }, { headers })
-            )).pipe(map(() => channel));
-          }
-          return of(channel);
-        }),
-        catchError(err => {
-          throw err;
-        })
-      );
-    } else {
-      const body: any = { name: safeName };
-      if (members?.length) body.members = members;
+    return this.http.post<any>(`${this.CHAT_API_URI}${endpoint}`, body, { headers }).pipe(
+      switchMap(res => {
+        const room: RocketChatRoom =
+          (res?.channel || res?.group) as RocketChatRoom;
+        if (!room || !room._id) {
+          return throwError(() => new Error('Room creation failed'));
+        }
+        const roomId = room._id;
+        if (!members?.length) {
+          return of(room);
+        }
+        const inviteEndpoint =
+          type === 'c' ? 'channels.invite' : 'groups.invite';
+        return forkJoin(
+          members.map(userId =>
+            this.http.post(
+              `${this.CHAT_API_URI}${inviteEndpoint}`,
+              { roomId, userId },
+              { headers }
+            )
+          )
+        ).pipe(map(() => room));
+      }),
+      switchMap((room: RocketChatRoom) => {
+        if (!teamId) return of(room);
 
-      return this.http.post<any>(`${this.CHAT_API_URI}groups.create`, body, { headers }).pipe(
-        switchMap(res => {
-          const group = res?.group as RocketChatRoom;
-          if (members?.length) {
-            return of(group);
-          }
-          return of(group);
-        }),
-        catchError(err => { throw err; })
-      );
-    }
+        return this.http.post(
+          `${this.CHAT_API_URI}teams.addRooms`,
+          {
+            teamId: teamId,
+            rooms: [room._id]
+          },
+          { headers }
+        ).pipe(
+          map(() => room)
+        );
+      }),
+      catchError(err => {
+        console.error('Error creating or attaching channel:', err);
+        return throwError(() => err);
+      })
+    );
   }
 
   createTeam(name: string, owner: string, members?: string[]): Observable<RocketChatTeam> {
@@ -621,6 +1016,30 @@ export class RocketChatService {
 
     return this.http.post<any>(`${this.CHAT_API_URI}teams.create`, body, { headers }).pipe(
       map(res => res.team as RocketChatTeam)
+    );
+  }
+  
+  leaveRoom(roomId: string): Observable<boolean> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.post<any>(
+      `${this.CHAT_API_URI}rooms.leave`,
+      { roomId },
+      { headers }
+    ).pipe(
+      map(res => !!res.success)
+    );
+  }
+
+  deleteRoom(roomId: string): Observable<boolean> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.post<any>(
+      `${this.CHAT_API_URI}rooms.delete`,
+      { roomId },
+      { headers }
+    ).pipe(
+      map(res => !!res.success)
     );
   }
 
@@ -742,6 +1161,12 @@ export class RocketChatService {
     return this.credentialsSubject.asObservable();
   }
 
+  getMessage(messageId: string): Observable<RocketChatMessage> {
+    return this.http.get<any>(`${this.CHAT_API_URI}chat.getMessage?msgId=${messageId}`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
   getMessageStream(): Observable<RocketChatMessage> {
     return this.messageStreamSubject.asObservable();
   }
@@ -854,5 +1279,17 @@ export class RocketChatService {
 
   getUserAvatarUrl(username: string): string {
     return `${environment.rocketChatUrl}/avatar/${username}`;
+  }
+
+  getAllSubscriptions(): Observable<any> {
+    return this.http.get(`${this.CHAT_API_URI}subscriptions.get`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  markChannelAsRead(roomId: string): Observable<any> {
+    return this.http.post(`${this.CHAT_API_URI}subscriptions.read`, { roomId }, {
+      headers: this.getAuthHeaders(),
+    });
   }
 }

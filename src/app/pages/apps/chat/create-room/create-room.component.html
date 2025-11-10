@@ -1,7 +1,7 @@
 <mat-dialog-content class="mat-typography trello-style p-24">
   <div class="dialog-header d-flex justify-between align-center mb-16">
     <h2 class="dialog-title f-w-600">
-      Create {{ roomType === 'd' ? 'Direct Message' : roomType === 'c' ? 'Channel' : 'Team' }}
+      Create {{ roomType === 'd' ? 'Direct Message' : roomType === 'c' ? 'Group' : 'Team' }}
     </h2>
     <button mat-icon-button mat-dialog-close class="close-btn">
       <mat-icon>close</mat-icon>
@@ -22,10 +22,10 @@
         <mat-label>Channel Name</mat-label>
         <input matInput [(ngModel)]="name" />
       </mat-form-field>
-      <mat-slide-toggle [(ngModel)]="isPrivate">Private</mat-slide-toggle>
-      <mat-form-field appearance="outline" class="w-100 mt-2">
+      <mat-slide-toggle *ngIf="!isLeader" [(ngModel)]="isPrivate">Private</mat-slide-toggle>
+      <mat-form-field appearance="outline" class="w-100 mt-2" *ngIf="selectedTeamId">
         <mat-label>Select users to add</mat-label>
-        <mat-select [(value)]="selectedUsers" multiple>
+        <mat-select [(value)]="selectedUsers" multiple [disabled]="!users.length">
           <mat-option *ngFor="let user of users" [value]="user">{{ user.name }}</mat-option>
         </mat-select>
       </mat-form-field>

@@ -345,10 +345,3 @@ export interface RocketChatSearchMessage {
 export interface RocketChatSearchMessagesResponse extends RocketChatApiResponse {
   messages: RocketChatSearchMessage[];
 }
-
-export {
-  RocketChatCredentials as CometChatCredentials,
-  RocketChatUser as CometChatUser,
-  RocketChatMessage as CometChatMessage,
-  RocketChatRoom as CometChatRoom,
-};
