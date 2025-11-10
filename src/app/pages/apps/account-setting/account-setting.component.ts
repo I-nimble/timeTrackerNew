@@ -702,16 +702,14 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   loadSubscriptionStatus(): void {
-    if (this.role === '3') {
-      this.subscriptionService.getSubscriptionStatus().subscribe({
-        next: (status) => {
-          this.sentinelSubscription = status;
-        },
-        error: (error) => {
-          console.error('Error loading subscription status:', error);
-        }
-      });
-    }
+    this.subscriptionService.getSubscriptionStatus().subscribe({
+      next: (status) => {
+        this.sentinelSubscription = status;
+      },
+      error: (error) => {
+        console.error('Error loading subscription status:', error);
+      }
+    });
   }
 
   enableSentinel(): void {
