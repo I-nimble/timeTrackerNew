@@ -99,10 +99,10 @@
           </div>
         </div>
         <div *ngIf="selectedConversation">
-          <button mat-icon-button class="m-l-auto" aria-label="Call" disabled>
+          <button mat-icon-button (click)="call('audio')" class="m-l-auto" aria-label="Call">
             <mat-icon>call</mat-icon>
           </button>
-          <button mat-icon-button (click)="call()" class="m-l-auto" aria-label="Video call">
+          <button mat-icon-button (click)="call('video')" class="m-l-auto" aria-label="Video call">
             <mat-icon>video_call</mat-icon>
           </button>
           <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">

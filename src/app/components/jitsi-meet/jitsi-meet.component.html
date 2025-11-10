@@ -9,13 +9,6 @@
             <mat-icon *ngIf="isMinimized">fullscreen</mat-icon>
             <mat-icon *ngIf="!isMinimized">fullscreen_exit</mat-icon>
         </button>
-        <button 
-            mat-icon-button 
-            class="close-btn"
-            (click)="closeMeeting()"
-        >
-            <mat-icon>close</mat-icon>
-        </button>
 	</div>
 
 	<div #meetContainer class="jitsi-container" style="flex:1; min-height:400px; width:100%;"></div>

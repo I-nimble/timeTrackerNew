@@ -256,7 +256,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return this.hasAnyRole(['user', 'admin']);
   }
 
-  call() {
+  call(type: 'video' | 'audio') {
     if (!this.selectedConversation) return;
 
     const roomId = this.selectedConversation._id;
@@ -278,7 +278,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
         externalApiUrl,
         displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
         email: this.getUserEmail(),
-        configOverwrite: { startWithAudioMuted: false, startWithVideoMuted: false, prejoinPageEnabled: false },
+        configOverwrite: { 
+          startWithAudioMuted: false, 
+          startWithVideoMuted: type === 'audio', 
+          prejoinPageEnabled: false 
+        },
         interfaceConfigOverwrite: {}
       });
     });
