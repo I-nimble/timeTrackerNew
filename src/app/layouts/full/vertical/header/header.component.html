@@ -115,10 +115,10 @@
     <a mat-button [routerLink]="['/apps/permission']" *ngIf="role == '1'">
       Permissions
     </a>
-    <a mat-button [routerLink]="['/apps/expert']" *ngIf="role == '3'">
+    <a mat-button [routerLink]="['/apps/expert']" *ngIf="canViewExpertMatch">
       Expert Match
     </a>
-    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="allowedContentCreatorEmails.includes(userEmail)">
+    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="canViewMySentinel">
       My Sentinel
     </a>
   </div>

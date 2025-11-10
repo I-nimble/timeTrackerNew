@@ -25,6 +25,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { environment } from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 export function jwtOptionsFactory() {
   return {
@@ -73,7 +74,9 @@ interface quicklinks {
   ],
   providers: [AuthService,WebSocketService,
         JwtHelperService,
-      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },],
+      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
+    provideNativeDateAdapter()  
+  ],
   standalone: true,
   templateUrl: './full.component.html',
   styleUrl: 'full.component.scss',

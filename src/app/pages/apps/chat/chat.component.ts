@@ -1,634 +1,674 @@
-import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA, ViewChild, TemplateRef, ElementRef, HostListener, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import { CometChatService } from '../../../services/apps/chat/chat.service';
-import { CometChatThemeService, CometChatTheme, CometChatConversationsWithMessages, CometChatGroupsWithMessages, CometChatUIKit } from '@cometchat/chat-uikit-angular';
 import '@cometchat/uikit-elements';
-import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { NewGroupDialogComponent } from './new-group-dialog/new-group-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { MessagesConfiguration, DetailsConfiguration, AddMembersConfiguration, MessageComposerConfiguration, MessageListConfiguration, ThreadedMessagesConfiguration, MessageHeaderConfiguration, ContactsConfiguration, UsersConfiguration, GroupsConfiguration, ConversationsConfiguration, ContactsStyle } from '@cometchat/uikit-shared';
-import { BackdropStyle, AvatarStyle } from "@cometchat/uikit-elements";
 import { Subscription } from 'rxjs';
-import { CometChatUIEvents, DatePatterns, TimestampAlignment } from "@cometchat/uikit-resources"
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
-import { emojisByCategory } from './emojisByCategory';
-import { CustomMessageComposerComponent } from './custom-message-composer/custom-message-composer.component';
-import { CometChatMessageTemplate, CometChatMessageOption } from "@cometchat/uikit-resources"
 import { environment } from 'src/environments/environment';
-
-interface InlineImage {
-  id: string;
-  file: File;
-  dataUrl: string;
-  position: number;
-}
+import { MatCardModule } from '@angular/material/card';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { MatSidenav } from '@angular/material/sidenav';
+import { MatMenuModule } from '@angular/material/menu';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { CreateRoomComponent } from './create-room/create-room.component';
+import { ChatInfoComponent } from './chat-info/chat-info.component';
+import {
+  RocketChatRoom,
+  RocketChatMessage,
+  RocketChatUser,
+  RocketChatMessageAttachment
+} from '../../../models/rocketChat.model';
+import { Observable, of } from 'rxjs';
 
 @Component({
-  standalone: true,
   selector: 'app-chat',
   imports: [
-    CometChatConversationsWithMessages,
-    CometChatGroupsWithMessages,
     CommonModule,
-    MaterialModule,
-    LoaderComponent,
-    CustomMessageComposerComponent
+    FormsModule,
+    MatCardModule,
+    MatSidenavModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatListModule,
+    MatToolbarModule,
+    MatDividerModule,
+    MatButtonModule,
+    MatMenuModule,
+    CreateRoomComponent,
+    ChatInfoComponent
   ],
   templateUrl: './chat.component.html',
-  styleUrl: './chat.component.scss',
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  styleUrls: ['./chat.component.scss'],
 })
-export class AppChatComponent implements OnInit {
-  @ViewChild('contactsView', { static: true }) contactsView!: TemplateRef<any>;
-  @ViewChild('customMenu', { static: true }) customMenu!: TemplateRef<any>;
-  @ViewChild('conversationsMenuTemplate', { static: true }) conversationsMenuTemplate!: TemplateRef<any>;
-  @ViewChild('customMessageComposerView', { static: true }) customMessageComposerView!: TemplateRef<any>;
-  @ViewChild('basicChat') basicChat: any;
-  @ViewChild('essentialChat') essentialChat: any;
-  @ViewChild('professionalChat') professionalChat: any;
-  @ViewChild('customHeaderView') customHeaderView: TemplateRef<any>;
+export class AppChatComponent implements OnInit, OnDestroy {
+  roomsFilter = '';
+  selectedConversation!: RocketChatRoom;
+  rooms: RocketChatRoom[] = [];
+  messages: RocketChatMessage[] = [];
+  newMessage = '';
+  isSidebarOpen = true;
+  @ViewChild('messagesContainer', { static: false })
+  messagesContainer?: ElementRef;
+  @ViewChild('sidebar') sidebar!: MatSidenav;
+  isMobile = window.innerWidth <= 768;
+  @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
+  // infoSidebarOpen = false;
+  selectedUserInfo: any = null;
+  channelMembers: any[] = [];
+  defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
+  defaultGroupPicUrl = environment.assets + '/group-icon.webp';
+  roomPictures: { [roomId: string]: string } = {};
+  realtimeSubscription: Subscription | null = null;
+  private roomSubscriptions = new Map<string, Subscription>();
+  rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
+  isSendingMessage = false;
 
-  plansService = inject(PlansService);
-  plan?: Plan;
-  userRole: string | null = localStorage.getItem('role');
-  userId: string | null = localStorage.getItem('id');
-  userEmail: string | null = localStorage.getItem('email');
-  groupCreatorEmails: string[] = environment.groupCreatorEmails;
-  companies: any[] = [];
-  selectedCompanyId: number = 1;
-  showContacts: boolean = false;
-  public ccActiveChatChanged: Subscription;
-  private themeMutationObserver: MutationObserver;
-  public loader: Loader = new Loader(true, false, false);
-  public chatInitError: string | null = null;
-  templates: CometChatMessageTemplate[] = [];
-  public replyMessage: any = null;
-
-  // BASIC PLAN CONFIGURATION
-  public basicMessagesConfig: MessagesConfiguration;
-  public backdropStyle = new BackdropStyle({
-    position: 'absolute',
-  });
-  // ESSENTIAL PLAN CONFIGURATION
-  public essentialMessagesConfig: MessagesConfiguration;
-  // PROFESSIONAL PLAN CONFIGURATION
-  public professionalMessagesConfig: MessagesConfiguration;
-
-  public StartConversationConfiguration: ContactsConfiguration = new ContactsConfiguration({
-      usersConfiguration: new UsersConfiguration({
-        onItemClick: (user) => {
-          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-          if (btn) btn.click();
-
-          this.user = user as CometChat.User;
-          this.group = null;
-        },
-        usersRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100),
-        searchRequestBuilder: new CometChat.UsersRequestBuilder()
-          .setLimit(100),
-        hideSeparator: true,
-      }),
-      groupsConfiguration: new GroupsConfiguration({
-        onItemClick: (group) => {
-          const btnContainer = document.querySelector("#chat-container > div > div.cc-with-messages__start-conversation.ng-star-inserted > cometchat-contacts > div > div.cc-close-button > cometchat-button") as HTMLElement;
-          const btn = btnContainer?.shadowRoot?.querySelector("button") as HTMLElement;
-          if (btn) btn.click();
-
-          this.user = null;
-          this.group = group as CometChat.Group;
-        },
-        menu: this.conversationsMenuTemplate,
-        groupsRequestBuilder: new CometChat.GroupsRequestBuilder()
-          .setLimit(100)
-          .joinedOnly(true),
-        searchRequestBuilder: new CometChat.GroupsRequestBuilder()
-          .setLimit(100)
-          .joinedOnly(true)
-      }),
-      contactsStyle: new ContactsStyle({
-        activeTabBackground: '#92b46c',
-        activeTabTitleTextColor: '#fff',
-        tabBorderRadius: '16px',
-        tabBorder: 'none'
-      })
-    });
-
-  public conversationConfiguration!: ConversationsConfiguration;
-  public groupsConfiguration: GroupsConfiguration;
-
-  user: CometChat.User | null = null;
-  group: CometChat.Group | null = null;
-  isSelect: boolean = false;
-
-  getButtonStyle() {
-    return {
-      height: '20px',
-      width: '20px',
-      border: 'none',
-      borderRadius: '0',
-      background: 'transparent',
-      padding: '0',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    };
-  }
-  getButtonIconStyle() {
-    return {
-      filter: 'invert(8%) sepia(18%) saturate(487%) hue-rotate(57deg) brightness(91%) contrast(88%)'
-    };
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(
-    private themeService: CometChatThemeService,
-    public chatService: CometChatService,
-    private companiesService: CompaniesService,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private employeesService: EmployeesService,
-    public ref: ChangeDetectorRef
-  ) { }
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog) {}
 
   ngOnInit(): void {
-    try {
-      this.configureTheme();
-      this.observeAppTheme();
-      this.createCustomMessageTemplates();
-      this.initPlanLogic();
-      this.getCompanies();
-    } catch (err) {
-      this.loader = new Loader(true, true, true);
-      this.chatInitError = 'There was an error initializing the chat.';
-      console.error('Chat initialization error:', err);
-    }
+    this.loadRooms();
   }
 
-  getCompanies() {
-    this.companiesService.getCompanies().subscribe((companies: any[]) => {
-      const credentialChecks = companies.map(company =>
-        this.chatService.getChatCredentials(company.id).toPromise()
-          .then((credentials: any) => ({
-            company,
-            hasCredentials: credentials?.api_key && !credentials.message
-          }))
-          .catch(() => ({ company, hasCredentials: false }))
-      );
-
-      Promise.all(credentialChecks).then(results => {
-        this.companies = results
-          .filter(result => result.hasCredentials)
-          .map(result => result.company);
-      });
-    });
-  }
-
-  async initializeCompanyChat(event: any) {
-    this.selectedCompanyId = event.value;
-    this.chatService.isChatAvailable = false;
-    this.loader = new Loader(true, false, false);
-    try {
-      await this.chatService.initializeCometChat(this.selectedCompanyId);
-      this.chatService.isChatAvailable = true;
-      this.loader = new Loader(true, true, false);
-    } catch (error) {
-      this.loader = new Loader(true, true, true);
-      this.chatInitError = 'There was an error initializing the chat.';
-      this.openSnackBar(this.chatInitError, 'Close');
-    }
-  }
-
-  private initPlanLogic() {
-    this.ccActiveChatChanged = CometChatUIEvents.ccActiveChatChanged.subscribe((event: any) => {
-      this.replyMessage = null;
-      if (event.group) {
-        this.group = event.group;
-        this.user = null;
-
-        this.essentialMessagesConfig = new MessagesConfiguration({
-          disableSoundForMessages: true,
-          messageListConfiguration: new MessageListConfiguration({
-            disableReactions: true,
-            templates: this.templates,
-            showAvatar: true,
-            scrollToBottomOnNewMessages: true,
-            datePattern: DatePatterns.DateTime,
-            timestampAlignment: TimestampAlignment.bottom,
-          }),
-          messageHeaderConfiguration: new MessageHeaderConfiguration({
-            menu: null // Hide call buttons for groups
-          }),
-          threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-            hideMessageComposer: true,
-          })
-        });
-      } else {
-        this.user = event.user;
-        this.group = null;
-
-        this.essentialMessagesConfig = new MessagesConfiguration({
-          disableSoundForMessages: true,
-          messageListConfiguration: new MessageListConfiguration({
-            disableReactions: true,
-            templates: this.templates,
-            showAvatar: true,
-            scrollToBottomOnNewMessages: true,
-            datePattern: DatePatterns.DateTime,
-            timestampAlignment: TimestampAlignment.bottom,
-          }),
-          threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-            hideMessageComposer: true,
-          }),
-          messageHeaderConfiguration: new MessageHeaderConfiguration({
-            menu: this.customMenu
-          }),
-        })
-      }
-    });
-
-    try {
-      this.conversationConfiguration = new ConversationsConfiguration({
-        onItemClick: async (conversation) => {
-          const conv = conversation.getConversationWith();
-          const convType = conversation.getConversationType();
-
-          if (convType === 'user') {
-            this.user = conv as CometChat.User;
-            this.group = null;
-          } else if (convType === 'group') {
-            this.group = conv as CometChat.Group;
-            this.user = null;
-          }
-        },
-        menu: this.conversationsMenuTemplate
-      });
-
-      if(this.userRole === '3') {
-        this.companiesService.getByOwner().subscribe({
-          next: (company: any) => {
-            this.plansService.getCurrentPlan(company.company.id).subscribe({
-              next: (companyPlan: any) => {
-                this.plan = companyPlan.plan || { id: companyPlan[0] };
-                this.loader = new Loader(true, true, false);
-              },
-              error: (err) => {
-                this.loader = new Loader(true, true, true);
-                this.chatInitError = 'There was an error loading the plan.';
-                console.error('Plan loading error:', err);
-              }
-            });
-          },
-          error: (err) => {
-            this.loader = new Loader(true, true, true);
-            this.chatInitError = 'There was an error loading the company.';
-            console.error('Company loading error:', err);
-          }
-        });
-      }
-      else if (this.userRole === '2') {
-        this.employeesService.getByEmployee().subscribe({
-          next: (employees: any) => {
-            this.plansService.getCurrentPlan(employees.company_id).subscribe({
-              next: (companyPlan: any) => {
-                this.plan = companyPlan.plan || { id: companyPlan[0] };
-                this.loader = new Loader(true, true, false);
-              },
-              error: (err) => {
-                this.loader = new Loader(true, true, true);
-                this.chatInitError = 'There was an error loading the plan.';
-                console.error('Plan loading error:', err);
-              }
-            });
-          },
-          error: (err) => {
-            this.loader = new Loader(true, true, true);
-            this.chatInitError = 'There was an error loading the employee.';
-            console.error('Employee loading error:', err);
-          }
-        });
-      } else {
-        this.plan = {
-          "name": "Professional",
-          "id": 3
-        }
-        this.loader = new Loader(true, true, false);
-      }
-    } catch (err) {
-      this.loader = new Loader(true, true, true);
-      this.chatInitError = 'There was an error initializing the chat.';
-      console.error('Chat initialization error:', err);
-    }
-  }
-
-  ngAfterViewInit() {
-    document.addEventListener('cc-image-clicked', () => {
-      const viewer = document.querySelector('cometchat-full-screen-viewer');
-      if (viewer) {
-        document.body.appendChild(viewer);
-      }
-    });
-
-    const component = this;
-
-    this.professionalMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageComposerView: this.customMessageComposerView,
-      messageListConfiguration: new MessageListConfiguration({
-        templates: this.templates,
-        showAvatar: true,
-        scrollToBottomOnNewMessages: true,
-        datePattern: DatePatterns.DateTime,
-        timestampAlignment: TimestampAlignment.bottom
-      }),
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: this.customMenu
-      }),
-      detailsConfiguration: new DetailsConfiguration({
-        addMembersConfiguration: new AddMembersConfiguration({
-          usersRequestBuilder: new CometChat.UsersRequestBuilder()
-            .setLimit(100)
-        })
-      })
-    })
-
-    this.essentialMessagesConfig = new MessagesConfiguration({
-      disableSoundForMessages: true,
-      messageComposerView: this.customMessageComposerView,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.templates,
-        showAvatar: true,
-        scrollToBottomOnNewMessages: true,
-        datePattern: DatePatterns.DateTime,
-        timestampAlignment: TimestampAlignment.bottom
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: this.customMenu
-      }),
-      detailsConfiguration: new DetailsConfiguration({
-        addMembersConfiguration: new AddMembersConfiguration({
-          usersRequestBuilder: new CometChat.UsersRequestBuilder()
-            .setLimit(100)
-        })
-      })
-    })
-
-    this.basicMessagesConfig = new MessagesConfiguration({
-      messageComposerView: this.customMessageComposerView,
-      messageHeaderConfiguration: new MessageHeaderConfiguration({
-        menu: null
-      }),
-      disableSoundForMessages: true,
-      messageListConfiguration: new MessageListConfiguration({
-        disableReactions: true,
-        templates: this.templates,
-        showAvatar: true,
-        scrollToBottomOnNewMessages: true,
-        datePattern: DatePatterns.DateTime,
-        timestampAlignment: TimestampAlignment.bottom
-      }),
-      threadedMessageConfiguration: new ThreadedMessagesConfiguration({
-        hideMessageComposer: true,
-      }),
-      messageComposerConfiguration: new MessageComposerConfiguration({
-        hideVoiceRecording: true
-      }),
-      detailsConfiguration: new DetailsConfiguration({
-        addMembersConfiguration: new AddMembersConfiguration({
-          onAddMembersButtonClick: function (guid: string, members: CometChat.User[]) {
-            const membersRequest = new CometChat.GroupMembersRequestBuilder(guid)
-              .setLimit(100)
-              .build();
-
-            membersRequest.fetchNext().then(response => {
-              const currentCount = response.length;
-              if (currentCount + members.length > 6) {
-                component.openSnackBar('You can only have up to 5 team members in a group.', 'Close');
-              } else {
-                const groupMembers = members.map(u => new CometChat.GroupMember((u as any).uid, CometChat.GROUP_MEMBER_SCOPE.PARTICIPANT));
-                CometChat.addMembersToGroup(
-                  guid,
-                  groupMembers,
-                  [] // empty bannedMembersList
-                ).then(() => {
-                  if (this.onClose) this.onClose();
-                });
-              }
-            });
-          },
-          usersRequestBuilder: new CometChat.UsersRequestBuilder()
-            .setLimit(100)
-        })
-      })
-    })
-
-    this.groupsConfiguration = new GroupsConfiguration({
-      onItemClick: async (group) => {
-        this.group = group as CometChat.Group;
-        this.user = null;
+  private loadRooms(): void {
+    this.chatService.getRooms().subscribe({
+      next: (rooms: any) => {
+        this.rooms = rooms;
+        this.loadAllRoomPictures();
+        setTimeout(() => this.scrollToBottom(), 100);
       },
-      menu: this.conversationsMenuTemplate,
-    })
+      error: (err) => {
+        console.error('Error loading rooms:', err);
+      },
+    });
   }
 
-  startVoiceCall() {
-    if (this.user) {
-      const receiverID = this.user.getUid();
-      const callType = CometChat.CALL_TYPE.AUDIO;
-      const receiverType = CometChat.RECEIVER_TYPE.USER;
-      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
-      CometChat.initiateCall(this.chatService.callObject).then(
-        (call: any) => {
-          this.chatService.outGoingCallObject = call;
-          this.chatService.callObject = call;
-        },
-        (error: any) => console.error("Voice call initiation failed:", error)
-      );
-    } else if (this.group) {
-      const receiverID = this.group.getGuid();
-      const callType = CometChat.CALL_TYPE.AUDIO;
-      const receiverType = CometChat.RECEIVER_TYPE.GROUP;
-      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
-      CometChat.initiateCall(this.chatService.callObject).then(
-        (call: any) => {
-          this.chatService.outGoingCallObject = call;
-          this.chatService.callObject = call;
-        },
-        (error: any) => console.error("Group voice call initiation failed:", error)
-      );
+  private loadAllRoomPictures() {
+    this.rooms.forEach((room) => {
+      this.chatService.getConversationPicture(room).subscribe((pictureUrl) => {
+        this.roomPictures[room._id] = pictureUrl;
+      });
+    });
+  }
+
+  getConversationPicture(room?: RocketChatRoom): string {
+    return this.roomPictures[room?._id || ''] || this.getDefaultPicture(room!);
+  }
+
+  private getDefaultPicture(room: RocketChatRoom): string {
+    switch (room.t) {
+      case 'd':
+        return this.defaultAvatarUrl;
+      case 'p':
+        return this.defaultGroupPicUrl;
+      case 'c':
+        return this.defaultGroupPicUrl;
+      case 'l':
+        return this.defaultAvatarUrl;
+      default:
+        return this.defaultAvatarUrl;
     }
   }
 
-  startVideoCall() {
-    if (this.user) {
-      const receiverID = this.user.getUid();
-      const callType = CometChat.CALL_TYPE.VIDEO;
-      const receiverType = CometChat.RECEIVER_TYPE.USER;
-      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
-      CometChat.initiateCall(this.chatService.callObject).then(
-        (call: any) => {
-          this.chatService.outGoingCallObject = call;
-          this.chatService.callObject = call;
-        },
-        (error: any) => console.error("Video call initiation failed:", error)
-      );
-    } else if (this.group) {
-      const receiverID = this.group.getGuid();
-      const callType = CometChat.CALL_TYPE.VIDEO;
-      const receiverType = CometChat.RECEIVER_TYPE.GROUP;
-      this.chatService.callObject = new CometChat.Call(receiverID, callType, receiverType);
-      CometChat.initiateCall(this.chatService.callObject).then(
-        (call: any) => {
-          this.chatService.outGoingCallObject = call;
-          this.chatService.callObject = call;
-        },
-        (error: any) => console.error("Group video call initiation failed:", error)
-      );
+  getUserEmail(): string {
+    const emails = this.chatService.loggedInUser?.emails;
+    return emails && emails.length > 0 ? emails[0].address : '';
+  }
+
+  getInfoTitle(): string {
+    if (!this.selectedConversation) return 'Info';
+
+    switch (this.selectedConversation.t) {
+      case 'd': return 'Contact Info';
+      case 'c': return 'Channel Info';
+      case 'p': return 'Team Info';
+      case 'l': return 'Support Info';
+      default: return 'Info';
     }
   }
 
-  openDialog(): void {
-    const dialogRef = this.dialog.open(NewGroupDialogComponent, {
-      data: {},
-      autoFocus: false,
+  private hasAnyRole(roles: string[]): boolean {
+    const userRoles = this.chatService.loggedInUser?.roles || [];
+    return userRoles.some(r => roles.includes(r));
+  }
+
+  isSystemMessage(message: RocketChatMessage): boolean {
+    const systemTypes = [
+      'rm', 'r',
+      'uj', 'ul', 'ult', 'ru',
+      'au',
+      'added-user-to-team',
+      'removed-user-from-team',
+      'user-added-room-to-team',
+      'room_changed_name',
+      'room_changed_description',
+      'room_changed_avatar'
+    ];
+    return systemTypes.includes(message.t || '');
+  }
+  
+  formatSystemMessage(message: RocketChatMessage): string {
+    const actor = this.getDisplayName(message.u);
+    const target = message.msg || '';
+
+    switch (message.t) {
+      case 'rm':
+        return `${actor} removed a message`;
+      case 'uj':
+        return `${actor} joined the room`;
+      case 'ul':
+      case 'ult':
+        return `${actor} left the room`;
+      case 'ru':
+        return `${actor} removed user "${target}"`;
+      case 'au':
+        return `${actor} added user "${target}"`;
+      case 'added-user-to-team':
+        return `${actor} added user "${target}" to the team`;
+      case 'removed-user-from-team':
+        return `${actor} removed user "${target}" from the team`;
+      case 'user-added-room-to-team':
+        return `${actor} added room "${target}" to the team`;
+      case 'r':
+      case 'room_changed_name':
+        return `${actor} changed the room name to "${target}"`;
+      case 'room_changed_description':
+        return `${actor} changed the description to "${target}"`;
+      case 'room_changed_avatar':
+        return `${actor} changed the room avatar`;
+      default:
+        return target || '';
+    }
+  }
+
+  getDisplayName(user: any): string {
+    if (!user) return 'Unknown';
+    if (user.name && user.name.trim().length > 0) return user.name.trim();
+    return user.username || 'Unknown';
+  }
+
+  canCreateTeam(): boolean {
+    return this.hasAnyRole(['moderator', 'admin']);
+  }
+
+  canCreateChannel(): boolean {
+    return this.hasAnyRole(['leader']);
+  }
+
+  canCreateDirectMessage(): boolean {
+    return this.hasAnyRole(['user']);
+  }
+
+  call() {
+    this.chatService
+      .initializeJitsiMeeting(this.selectedConversation._id)
+      .subscribe((res: any) => {
+        if (!res.success) {
+          console.error('Error calling room', this.selectedConversation._id);
+        }
+        window.open(res.callUrl, '_blank');
+      });
+  }
+
+  joinCall(message: RocketChatMessage) {
+    this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
+      if (!res.success) {
+        console.error('Error joining room', message.u._id);
+      }
+      window.open(res.callUrl, '_blank');
+    });
+  }
+
+  isFromMe(message: RocketChatMessage) {
+    return message.u._id === this.chatService.loggedInUser?._id;
+  }
+
+
+  getAttachmentType(attachment: RocketChatMessageAttachment): 'image' | 'video' | 'audio' | 'file' {
+    if (!attachment) return 'file';
+
+    if (attachment.image_url) return 'image';
+    if (attachment.video_url) return 'video';
+    if (attachment.audio_url) return 'audio';
+    return 'file';
+  }
+
+async downloadFile(attachment: RocketChatMessageAttachment) {
+  const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+  if (!fullFileName) return;
+
+  const fileNameInS3 = fullFileName.split('/')[2];
+  const groupId = this.selectedConversation?._id;
+  
+  if (!groupId) return;
+
+  const segment1 = groupId;
+  const segment2 = groupId.substring(17);
+  const downloadUrl = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+  const originalFileName = attachment.title || fileNameInS3;
+
+  try {
+    // Fetch the file and convert to blob
+    const response = await fetch(downloadUrl);
+    const blob = await response.blob();
+    
+    // Create object URL from blob
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = originalFileName; // This forces download
+    
+    // Append to body, click, and clean up
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the blob URL
+    window.URL.revokeObjectURL(blobUrl);
+    
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Fallback to opening in new tab
+    window.open(downloadUrl, '_blank');
+  }
+}
+
+  selectFile() {
+    this.isSendingMessage = true;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.click();
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      const roomId = this.selectedConversation?._id;
+      if (file) {
+        this.chatService.uploadFile(file, roomId).subscribe({
+          next: (res: any) => {
+            if (!res.success) {
+              console.error('Failed to upload file:', res.error);
+              return;
+            }
+            
+            const fileType = file.type.split('/')[0];
+            const attachment: RocketChatMessageAttachment = {
+              title: file.name,
+              title_link: res.file.url,
+              title_link_download: true,
+              ts: new Date().toISOString(),
+              
+              ...(fileType === 'image' && { 
+                image_url: res.file.url,
+                thumb_url: res.file.url 
+              }),
+              ...(fileType === 'video' && { 
+                video_url: res.file.url 
+              }),
+              ...(fileType === 'audio' && { 
+                audio_url: res.file.url 
+              }),
+              
+              ...(!['image', 'video', 'audio'].includes(fileType) && {
+                text: `File: ${file.name} (${this.formatFileSize(file.size)})`
+              })
+            };
+
+            this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
+              next: (res: any) => {
+                this.isSendingMessage = false;
+              },
+              error: (err: any) => {
+                console.error('Error sending message with attachment:', err);
+                this.isSendingMessage = false;
+              }
+            });
+          },
+          error: (err: any) => {
+            console.error('Error uploading file:', err);
+            this.isSendingMessage = false;
+          }
+        });
+      }
+    };
+  }
+
+  getFileUrl(attachment: RocketChatMessageAttachment) {
+    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+    if (!fullFileName) return;
+
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+    const segment1 = groupId;
+    const segment2 = groupId.substring(17);
+
+    return `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+  }
+
+  // Helper method to format file size
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  openCreateRoomDialog(type: 'd' | 'c' | 't') {
+    const dialogRef = this.dialog.open(CreateRoomComponent, {
+      width: '400px',
+      data: { type },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result?.group) {
-        this.openSnackBar('Group Created successfully!', 'Close');
-        this.chatService.isChatAvailable = false;
-        setTimeout(() => {
-          this.chatService.isChatAvailable = true;
-        }, 100);
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.loadRooms();
       }
     });
   }
 
-  private configureTheme(): void {
-    const htmlElement = document.querySelector('html');
-    if (htmlElement?.classList.contains('dark-theme')) {
-      this.themeService.theme.palette.setMode('dark');
-    } else {
-      this.themeService.theme.palette.setMode('light');
-    }
-    this.themeService.theme.palette.setPrimary({
-      light: '#92b46c',
-      dark: '#388E3C'
-    });
-    this.themeService.theme.palette.setBackground({
-      light: '#ffffff',
-      dark: "#111c2d"
-    });
-    this.themeService.theme.palette.setSecondary({
-      light: '#e5eaef',
-      dark: '#15263a'
-    })
-    this.themeService.theme.typography.setFontFamily('Montserrat, sans-serif');
-  }
-
-  private observeAppTheme(): void {
-    const htmlElement = document.querySelector('html');
-    if (!htmlElement) return;
-    this.themeMutationObserver = new MutationObserver(() => {
-      this.chatService.isChatAvailable = false;
-      setTimeout(() => {
-        if (htmlElement.classList.contains('dark-theme')) {
-          this.themeService.theme.palette.setMode('dark');
-        } else {
-          this.themeService.theme.palette.setMode('light');
-        }
-        this.chatService.isChatAvailable = true;
-      }, 100);
-    });
-    this.themeMutationObserver.observe(htmlElement, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  onMenuButtonClick() {
-    this.showContacts = !this.showContacts;
-    if (this.plan && this.plan.id === 2 && this.essentialChat) {
-      this.essentialChat.showStartConversation = this.showContacts;
-    }
-    if ((this.plan && this.plan.id === 3) && this.professionalChat) {
-      this.professionalChat.showStartConversation = this.showContacts;
-    }
-    this.ref.detectChanges();
-  }
-
-  private createCustomMessageTemplates() {
-    this.templates = CometChatUIKit.getDataSource().getAllMessageTemplates(this.themeService.theme);
-    this.templates = this.templates.map(template => {
-      const newTemplate = Object.assign(Object.create(Object.getPrototypeOf(template)), template);
-      // Dont allow group owner to edit/delete messages of other members
-      newTemplate.options = (
-        loggedInUser: CometChat.User,
-        message: CometChat.BaseMessage,
-        theme: CometChatTheme,
-        group?: CometChat.Group
-      ) => {
-        let options = CometChatUIKit.getDataSource().getMessageOptions(
-          loggedInUser,
-          message,
-          theme,
-          group
-        );
-        if (
-          group &&
-          group.getOwner &&
-          group.getOwner() === loggedInUser.getUid() &&
-          message.getSender().getUid() !== loggedInUser.getUid()
-        ) {
-          options = options.filter(
-            (option: CometChatMessageOption) =>
-              option.id !== 'edit' && option.id !== 'delete'
-          );
-        }
-        // Replace default thread reply with custom option
-        options = options.map((option: CometChatMessageOption) => {
-          if (option.id === 'replyInThread') {
-            option.onClick = async () => {
-              this.replyMessage = message;
-            }
-          }
-          // NOTE: Here i can modify the edit option to save the id of the message to be edited and fill the custom message composer with its text in edit mode, on send message modify it. This would fix the issue of editing messages.
-          return option;
-        });
-        return options;
+  loadUserInfo(username: string) {
+    this.chatService.getUserInfo(username).subscribe(user => {
+      this.selectedUserInfo = {
+        ...user,
+        email: user.emails?.[0]?.address,
+        avatarUrl: this.chatService.getUserAvatarUrl(user.username)
       };
-      newTemplate.headerView = () => this.customHeaderView;
-      return newTemplate;
     });
   }
 
-  toDate(timestamp: any) {
-		return new Date(timestamp * 1000);
-	}
-
-  openSnackBar(message: string, action: string) {
-    this.snackBar.open(message, action, {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
+  loadChannelMembers(roomId: string, type: 'c' | 'p') {
+    this.chatService.getRoomMembers(roomId, type).subscribe(members => {
+      this.channelMembers = members.map(m => ({
+        ...m,
+        avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+      }));
     });
+  }
+
+/*   openInfoSidebar() {
+    if (!this.selectedConversation) return;
+
+    const room = this.selectedConversation;
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+
+      if (otherUsername) {
+        this.loadUserInfo(otherUsername);
+      }
+
+    } else if (room.t === 'c') {
+      this.loadChannelMembers(room._id, 'c');
+
+    } else if (room.t === 'p') {
+      this.loadChannelMembers(room._id, 'p');
+    }
+    this.infoSidebarOpen = true;
+    this.infoSidebar.open();
+  }
+
+  closeInfoSidebar() {
+    this.infoSidebarOpen = false;
+  } */
+  
+  openInfoDialog() {
+    if (!this.selectedConversation) return;
+
+    const room = this.selectedConversation;
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+      if (otherUsername) {
+        this.chatService.getUserInfo(otherUsername).subscribe(user => {
+          const userInfo = {
+            ...user,
+            email: user.emails?.[0]?.address,
+            avatarUrl: this.chatService.getUserAvatarUrl(user.username)
+          };
+
+          this.dialog.open(ChatInfoComponent, {
+            width: this.isMobile ? '95vw' : '400px',
+            maxWidth: '95vw',
+            data: {
+              conversation: room,
+              userInfo,
+              channelMembers: []
+            },
+            panelClass: 'chat-info-dialog'
+          });
+        });
+      }
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.chatService.getRoomMembers(room._id, room.t).subscribe(members => {
+        const enrichedMembers = members.map(m => ({
+          ...m,
+          avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+        }));
+
+        this.dialog.open(ChatInfoComponent, {
+          width: this.isMobile ? '95vw' : '400px',
+          maxWidth: '95vw',
+          data: {
+            conversation: room,
+            userInfo: null,
+            channelMembers: enrichedMembers
+          },
+          panelClass: 'chat-info-dialog'
+        });
+      });
+    }
+  }
+
+  filteredRooms(): RocketChatRoom[] {
+    if (!this.roomsFilter) return this.rooms;
+    const q = this.roomsFilter.toLowerCase();
+    return this.rooms.filter(
+      (r) =>
+        r?.name?.toLowerCase().includes(q) ||
+        r.usernames
+          ?.filter(
+            (u: string) => u !== this.chatService.loggedInUser?.username
+          )[0]
+          .includes(q)
+    );
+  }
+
+  getConversationName(room: RocketChatRoom) {
+    switch (room?.t) {
+      case 'd': // direct message
+        return room.usernames?.filter(
+          (u: string) => u !== this.chatService.loggedInUser?.username
+        )[0];
+      case 'p': // private chat
+        return room.name;
+      case 'c': // channel
+        return room.name;
+      case 'l': // livechat
+        return 'Inimble Support';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  getMessageTimestamp(message: RocketChatMessage): Date {
+    if (typeof message.ts === 'string') {
+      return new Date(message.ts);
+    } else if (message.ts && typeof message.ts === 'object' && '$date' in message.ts) {
+      const dateValue = message.ts.$date;
+      return new Date(dateValue);
+    }
+    console.warn('Invalid timestamp format for message:', message._id);
+    return new Date();
+  }
+
+  getSenderAvatar(message: RocketChatMessage): string {
+    if (this.isFromMe(message)) {
+      return this.chatService.loggedInUser?.avatarUrl || this.defaultAvatarUrl;
+    }
+    return this.chatService.getUserAvatarUrl(message.u.username);
+  }
+    
+  getSenderName(message: RocketChatMessage): string {
+    return message.u?.name || message.u?.username || 'Unknown';
+  }
+
+  async selectRoom(room: RocketChatRoom) {
+    this.selectedConversation = room;
+
+    if (this.roomSubscriptions.has(room._id)) {
+      this.roomSubscriptions.get(room._id)?.unsubscribe();
+    }
+
+    const { history, realtimeStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
+
+    this.messages = history;
+    const existingMessageIds = new Set(this.messages.map(msg => msg._id));
+
+    const sub = realtimeStream.subscribe((newMessage) => {
+      if (!existingMessageIds.has(newMessage._id)) {
+        this.messages = [...this.messages, newMessage];
+        existingMessageIds.add(newMessage._id);
+        this.scrollToBottom();
+      }
+    });
+    this.roomSubscriptions.set(room._id, sub);
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        u => u !== this.chatService.loggedInUser?.username
+      );
+      if (otherUsername) this.loadUserInfo(otherUsername);
+      this.channelMembers = [];
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.loadChannelMembers(room._id, room.t);
+      this.selectedUserInfo = null;
+    }
+
+/*     if (this.isMobile) {
+      this.infoSidebarOpen = true;
+      this.infoSidebar?.open();
+    } */
+
+    setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
+    if (room.t === 'd') {
+      return this.chatService.loadDirectMessagesHistory(room._id);
+    } else if (room.t === 'p') {
+      return this.chatService.getGroupMessagesHistory(room._id);
+    } else if (room.t === 'c') {
+      return this.chatService.loadChannelMessagesHistory(room._id);
+    }
+    return of([]);
+  }
+
+  getLastMessage(room: RocketChatRoom): string {
+    const lastMessage = room.lastMessage;
+    switch (lastMessage?.t) {
+      case 'videoconf':
+        return 'Call started';
+      case 'd':
+        return lastMessage.msg || 'No messages yet';
+      case 'p':
+        return lastMessage.msg || 'No messages yet';
+      case 'c':
+        return lastMessage.msg || 'No messages yet';
+      case 'l':
+        return lastMessage.msg || 'No messages yet';
+      default:
+        return lastMessage?.msg || 'No messages yet';
+    }
+  }
+
+  sendMessage() {
+    if (!this.newMessage.trim() || !this.selectedConversation) return;
+    this.isSendingMessage = true;
+
+    this.chatService
+      .sendMessageWithConfirmation(
+        this.selectedConversation._id,
+        this.newMessage
+      )
+      .subscribe({
+        next: (result: any) => {
+          if (result.success) {
+            this.newMessage = '';
+          } else {
+            console.error('Failed to send message:', result.error);
+          }
+          this.isSendingMessage = false;
+        },
+        error: (error: any) => {
+          console.error('Error sending message:', error);
+          this.isSendingMessage = false;
+        },
+      });
+  }
+  
+  getLocalTime(offset: number | undefined): string {
+    if (offset === undefined || offset === null) return '';
+
+    const now = new Date();
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const local = new Date(utcTime + offset * 3600000);
+    return local.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  private scrollToBottom() {
+    try {
+      const el = this.messagesContainer?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    } catch (e) {}
   }
 
   ngOnDestroy() {
-    if (this.themeMutationObserver) {
-      this.themeMutationObserver.disconnect();
+    if (this.realtimeSubscription) {
+      this.realtimeSubscription.unsubscribe();
     }
-    if (this.ccActiveChatChanged) {
-      this.ccActiveChatChanged.unsubscribe();
+    
+    if (this.selectedConversation) {
+      this.chatService.unsubscribeFromRoomMessages(this.selectedConversation._id);
     }
   }
 }

@@ -22,4 +22,7 @@ export const environment = {
   allowedPaymentsEmails: ['jpalma@i-nimble.com', 'sgutierrez@i-nimble.com', 'ffernandez@i-nimble.com'],
   groupCreatorEmails: ['ffernandez@i-nimble.com', 'sgutierrez@i-nimble.com'],
   allowedContentCreatorEmails: ['apalma@i-nimble.com', 'pgimmigrationservices@gmail.com', 'pete@rollwithpunch.com', 'ffernandez@i-nimble.com'],
+  rocketChatUrl: 'https://chat.inimbleapp.com',
+  rocketChatWebSocketUrl: 'wss://chat.inimbleapp.com/websocket',
+  rocketChatS3Bucket: 'https://inimble-chat.s3.us-east-1.amazonaws.com/f87be79d-b1cc-41f7-922b-cf132b4199fb'
 };

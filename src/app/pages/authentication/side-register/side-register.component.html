@@ -214,7 +214,7 @@
                                   </mat-select>
                                 </mat-form-field>
                                 <mat-form-field appearance="outline" style="flex-grow: 1;">
-                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" required inputmode="numeric" (keypress)="restrictToNumbers($event)"/>
+                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" inputmode="numeric" (keypress)="restrictToNumbers($event)"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.touched">
                                     Enter a valid phone number

@@ -79,12 +79,27 @@ cometchat-groups-with-messages > div.cc-with-messages__wrapper > div.cc-with-mes
   margin-bottom: 1rem;
   display: flex;
 
+  > div {
+    max-width: 50%;
+  }
+
   &.even {
     -webkit-box-pack: end;
     -ms-flex-pack: end;
     -moz-justify-content: flex-end;
     justify-content: flex-end;
     text-align: right;
+  }
+  &.call {
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    padding: 10px;
+    border-radius: 12px;
+    div > div {
+      flex-direction: column!important;
+      padding: 10px 50px!important;
+    }
   }
 }
 

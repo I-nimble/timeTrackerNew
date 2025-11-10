@@ -68,6 +68,6 @@ export class ClientTableComponent implements OnChanges, AfterViewInit {
   }
 
   get canShowContact(): boolean {
-    return this.userPlanName.toLowerCase() !== 'basic';
+    return (this.userPlanName || '').toString().toLowerCase() !== 'basic';
   }
 }

@@ -8,6 +8,7 @@ import { CometChatCalls } from '@cometchat/calls-sdk-javascript-new';
 import { CometChatUIKitConstants, CometChatCallEvents } from '@cometchat/uikit-resources';
 import { StorageUtils } from '@cometchat/uikit-shared';
 import { CustomIncomingCallComponent } from './components/custom-incoming-call/custom-incoming-call.component';
+import { RocketChatService } from './services/rocket-chat.service';
 
 @Component({
   selector: 'app-root',
@@ -31,11 +32,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     public cometChatService: CometChatService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private rocketChatService: RocketChatService
   ) { }
 
   async ngOnInit() {
-    await this.cometChatService.initializeCometChat();
+    this.rocketChatService.loadCredentials();
+    this.rocketChatService.saveUserData();
+
+    // await this.cometChatService.initializeCometChat();
     this.callScreen = document.getElementById('callScreen') as HTMLElement;
 
     const user = await CometChat.getLoggedinUser();
@@ -48,9 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
         .catch(error => console.error('Service Worker registration failed:', error));
     }
 
-    CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
+    // CometChat.addMessageListener("UNIQUE_LISTENER_ID", this.createMessageListener());
 
-    CometChat.addCallListener(this.callListenerId, this.createCallListener());
+    // CometChat.addCallListener(this.callListenerId, this.createCallListener());
 
     this.ccCallEnded = CometChatCallEvents.ccCallEnded.subscribe(
       (call: CometChat.Call) => {

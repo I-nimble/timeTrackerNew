@@ -26,6 +26,7 @@ import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CometChatService } from 'src/app/services/apps/chat/chat.service';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -92,6 +93,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private chatService: CometChatService,
+     private rocketChatService: RocketChatService,
   ) {}
 
   form = new FormGroup({
@@ -130,6 +132,7 @@ export class AppSideLoginComponent {
           const email = v.email;
           const id = v.id;
           const isOrphan = v.isOrphan;
+          const chatCredentials = v.chatCredentials;
           localStorage.setItem('role', role);
           if (Number(role) === 1) {
             this.route = '/dashboards/admin';
@@ -143,6 +146,7 @@ export class AppSideLoginComponent {
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
+          this.rocketChatService.loginWithCredentials(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);
@@ -150,9 +154,9 @@ export class AppSideLoginComponent {
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
           this.router.navigate([this.route]);
-          this.authService.updateLiveChatBubbleVisibility(role);
-          this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
-          this.chatService.initializeCometChat();
+          // this.authService.updateLiveChatBubbleVisibility(role);
+          // this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
+          // this.chatService.initializeCometChat();
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;
