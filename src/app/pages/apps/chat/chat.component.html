@@ -74,6 +74,51 @@
                 </span>
               </div>
             </div>
+            <button
+              mat-icon-button
+              class="conversation-menu-button"
+              [matMenuTriggerFor]="menu"
+              #menuTrigger="matMenuTrigger"
+              (click)="$event.stopPropagation()"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+
+            <mat-menu #menu="matMenu">
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) > 0"
+                (click)="markAsRead(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>done_all</mat-icon>
+                <span>Mark as Read</span>
+              </button>
+
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) === 0"
+                (click)="markAsUnread(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>markunread</mat-icon>
+                <span>Mark as Unread</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="room.t !== 'd' && !room.teamId"
+                (click)="onLeaveRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>logout</mat-icon>
+                <span>Leave Room</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="canDeleteRoom(room) && !room.teamId"
+                (click)="onDeleteRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>            
           </div>
         </div>
       </div>
