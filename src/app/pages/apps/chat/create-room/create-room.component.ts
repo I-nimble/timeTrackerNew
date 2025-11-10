@@ -82,7 +82,16 @@ export class CreateRoomComponent implements OnInit {
           });
         }
       });
-    } else if (this.roomType === 'd' || this.roomType === 't') {
+    } else if (this.roomType === 'd') {
+      this.chatService.getTeams().subscribe(teams => {
+        if (!teams.length) return;
+        const firstTeam = teams[0];
+
+        this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+          this.users = users.filter(u => !exclude(u));
+        });
+      });
+    } else if (this.roomType === 't') {
       this.chatService.getUsers().subscribe(users => {
         this.users = users.filter(u => !exclude(u));
       });
