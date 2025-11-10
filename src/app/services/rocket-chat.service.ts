@@ -793,7 +793,7 @@ export class RocketChatService {
     );
   }
 
-  createRoom(name: string,  type: 'c' | 'p',  members?: string[],  teamId?: string): Observable<RocketChatRoom> {
+  createRoom(name: string, type: 'c' | 'p',  members?: string[],  teamId?: string): Observable<RocketChatRoom> {
     const headers = this.getAuthHeaders();
     const safeName = String(name || '')
       .trim()
@@ -802,23 +802,51 @@ export class RocketChatService {
       .replace(/[^a-z0-9_\-]/g, '')
       .replace(/^-+|-+$/g, '');
 
-    if (!safeName) return of(null as any);
-    const isPublic = type === 'c';
-    const endpoint = isPublic ? 'channels.create' : 'groups.create';
-    const body: any = {
-      name: safeName
-    };
-    if (members?.length) body.members = members;
-    if (!isPublic && teamId) {
-      body.extraData = { teamId };
+    if (!safeName) {
+      return of(null as any);
     }
+    const endpoint = type === 'c' ? 'channels.create' : 'groups.create';
+    const body: any = { name: safeName };
 
     return this.http.post<any>(`${this.CHAT_API_URI}${endpoint}`, body, { headers }).pipe(
-      map(res => {
-        return isPublic ? res.channel : res.group;
+      switchMap(res => {
+        const room: RocketChatRoom =
+          (res?.channel || res?.group) as RocketChatRoom;
+        if (!room || !room._id) {
+          return throwError(() => new Error('Room creation failed'));
+        }
+        const roomId = room._id;
+        if (!members?.length) {
+          return of(room);
+        }
+        const inviteEndpoint =
+          type === 'c' ? 'channels.invite' : 'groups.invite';
+        return forkJoin(
+          members.map(userId =>
+            this.http.post(
+              `${this.CHAT_API_URI}${inviteEndpoint}`,
+              { roomId, userId },
+              { headers }
+            )
+          )
+        ).pipe(map(() => room));
+      }),
+      switchMap((room: RocketChatRoom) => {
+        if (!teamId) return of(room);
+
+        return this.http.post(
+          `${this.CHAT_API_URI}teams.addRooms`,
+          {
+            teamId: teamId,
+            rooms: [room._id]
+          },
+          { headers }
+        ).pipe(
+          map(() => room)
+        );
       }),
       catchError(err => {
-        console.error('Error creating channel/group with teamId:', err);
+        console.error('Error creating or attaching channel:', err);
         return throwError(() => err);
       })
     );
