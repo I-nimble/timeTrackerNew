@@ -238,7 +238,7 @@
                       class="w-100"
                       color="primary"
                     >
-                      <input matInput type="text" placeholder="+1 (123) 456-7890" formControlName="phone" />
+                      <input matInput type="text" inputmode="numeric" formControlName="phone" (keypress)="restrictToNumbers($event)" />
                       <mat-error *ngIf="personalForm.get('phone')?.touched && personalForm.get('phone')?.errors">
                         <span class="f-s-12 m-t-0" *ngIf="personalForm.get('phone')?.errors?.['required']">Phone number is required</span>
                       </mat-error>
