@@ -101,7 +101,7 @@
       <!-- --------------------------------------------------------------- -->
       <!-- Messages Dropdown -->
       <!-- --------------------------------------------------------------- -->
-    <a mat-button [routerLink]="['/apps/candidates']" *ngIf="role == '1' || allowedTM">
+    <a mat-button [routerLink]="['/apps/candidates']" *ngIf="canViewCandidates">
       Candidates
     </a>
     <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="canViewTalentMatch"
