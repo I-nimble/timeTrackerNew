@@ -78,6 +78,31 @@
                         Canceled (Ends {{ sentinelSubscription?.current_period_end | date:'mediumDate' }})
                       </button>
                     </div>
+
+                    <div *ngIf="sentinelSubscription?.status === 'active'" class="m-t-24">
+                      <mat-card>
+                        <mat-card-content class="p-0 p-t-16">
+                          <mat-card-title>Payment Invoice</mat-card-title>
+                          
+                          <div *ngIf="isLoadingReceipt" class="text-center p-16">
+                            <p class="m-t-8">Loading invoice...</p>
+                          </div>
+
+                          <div *ngIf="subscriptionReceipt && !isLoadingReceipt" class="invoice-info">
+                            <div class="m-t-16">
+                              <button mat-stroked-button color="primary" class="m-r-8 m-b-8" (click)="viewReceipt()">
+                                <mat-icon>visibility</mat-icon>
+                                View Receipt
+                              </button>
+                            </div>
+                          </div>
+
+                          <div *ngIf="!subscriptionReceipt && !isLoadingReceipt" class="text-center p-16">
+                            <p class="text-muted">No receipt available</p>
+                          </div>
+                        </mat-card-content>
+                      </mat-card>
+                    </div>
                   </mat-card-content>
                 </mat-card>
               </div>

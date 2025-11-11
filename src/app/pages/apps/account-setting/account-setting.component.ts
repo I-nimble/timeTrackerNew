@@ -26,7 +26,7 @@ import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { SubscriptionService, SubscriptionStatus } from 'src/app/services/subscription.service';
+import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'src/app/services/subscription.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
@@ -179,6 +179,8 @@ export class AppAccountSettingComponent implements OnInit {
   isLoadingSubscription = false;
   formChanged: boolean = false;
   originalUserData: any = null;
+  subscriptionReceipt: SubscriptionReceipt | null = null;
+  isLoadingReceipt = false;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
@@ -701,10 +703,35 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
+  loadSubscriptionReceipt(): void {
+    if (!this.sentinelSubscription || this.sentinelSubscription.status !== 'active') {
+      return;
+    }
+
+    this.isLoadingReceipt = true;
+    this.subscriptionService.getSubscriptionReceipt().subscribe({
+      next: (receipt) => {
+        this.subscriptionReceipt = receipt;
+        this.isLoadingReceipt = false;
+      },
+      error: (error) => {
+        console.error('Error loading subscription receipt:', error);
+        this.isLoadingReceipt = false;
+      }
+    });
+  }
+
+  viewReceipt(): void {
+    if (this.subscriptionReceipt?.receipt_url) {
+      window.open(this.subscriptionReceipt.receipt_url, '_blank');
+    }
+  }
+
   loadSubscriptionStatus(): void {
     this.subscriptionService.getSubscriptionStatus().subscribe({
       next: (status) => {
         this.sentinelSubscription = status;
+        this.loadSubscriptionReceipt();
       },
       error: (error) => {
         console.error('Error loading subscription status:', error);
