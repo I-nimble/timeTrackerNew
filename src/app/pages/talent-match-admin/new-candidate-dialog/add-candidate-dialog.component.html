@@ -75,6 +75,43 @@
           </mat-select>
         </mat-form-field>
       </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description"></textarea>
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Talent Match Profile Summary</mat-label>
+          <textarea matInput formControlName="talent_match_profile_summary"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Ranking</mat-label>
+          <input matInput formControlName="ranking" />
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Profile Observation</mat-label>
+          <textarea matInput formControlName="profile_observation"></textarea>
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Interview Link</mat-label>
+          <input matInput formControlName="interview_link" />
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Inimble Academy</mat-label>
+          <input matInput formControlName="inimble_academy" />
+        </mat-form-field>
+      </div>
       <!-- Availability checkbox input -->
       <div class="col-12 m-b-16">
         <mat-checkbox formControlName="availability">Currently available</mat-checkbox>
@@ -93,7 +130,7 @@
           (click)="openMatchScoreModal()"
         >
           <mat-icon>score</mat-icon>
-          Update Match Scores
+          Negotiator Profile
         </button>
       </div>
       <!-- CV Upload -->
