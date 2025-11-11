@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostBinding, OnInit, inject } from '@angular/core';
+import { Component, HostBinding, OnInit, inject } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
@@ -7,21 +7,25 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { environment } from 'src/environments/environment';
 import {AuthService} from '../../../services/auth.service';
+import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { EntriesService } from 'src/app/services/entries.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { NgIf } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { Loader } from 'src/app/app.models';
+import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CometChatService } from 'src/app/services/apps/chat/chat.service';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -46,21 +50,35 @@ export function jwtOptionsFactory() {
     MatSnackBar,
   ],
   templateUrl: './side-login.component.html',
-  styleUrls: ['./side-login.component.scss']
 })
-export class AppSideLoginComponent implements AfterViewInit {
+export class AppSideLoginComponent {
   
   notificationStore = inject(NotificationStore);
+  //@HostBinding('class') classes = 'row';
+  // isSignUp: boolean = false;
+  // login: Login = {
+  //  email: '',
+  //  password: '',
+  // };
+  // signUp: SignUp = {
+  //   email: '',
+  //   password: '',
+  //   confirmPass: '',
+  //   name: '',
+  //   last_name: '',
+  // };
   message: any;
   passerror: boolean = false;
   emailerror: boolean = false;
   includeLiveChat: boolean = false
   liveChatScript?: any
   liveChatBubble?: any
+  //assetPath = environment.assets + '/resources/empleadossection.png';
   assetPath = 'assets/images/login.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
   route: any = ''
+  loginWithGoogle: boolean = false;
 
   constructor(
     private settings: CoreService,
@@ -68,9 +86,12 @@ export class AppSideLoginComponent implements AfterViewInit {
      private socketService: WebSocketService,
      private notificationsService:NotificationsService,
      private entriesService:EntriesService,
+     private signupDataService: SignupDataService,
+     private employeeService: UsersService,
+     private companieService: CompaniesService,
      private authService: AuthService,
      private snackBar: MatSnackBar,
-     private chatService: CometChatService,
+     private rocketChatService: RocketChatService,
   ) {}
 
   form = new FormGroup({
@@ -82,9 +103,25 @@ export class AppSideLoginComponent implements AfterViewInit {
     return this.form.controls;
   }
 
-  authLogin() {
-    if (this.form.value.email && this.form.value.password) {
-      this.authService.login(this.form.value.email, this.form.value.password).subscribe({
+  // googleLogin() {
+  //   this.loginWithGoogle = true;
+  //   this.authService.signInWithGoogle().subscribe({
+  //     next: (response: any) => {
+  //       this.loginWithGoogle = false;
+  //       this.authLogin(response.googleId);
+  //     },
+  //     error: (e) => {
+  //       this.loginWithGoogle = false;
+  //       this.openSnackBar("Error logging in with Google", "error");
+  //       console.error(e);
+  //       return;
+  //     },
+  //   });
+  // }
+
+  authLogin(googleId?: string) {
+    if ((this.form.value.email && this.form.value.password) || googleId) {
+      this.authService.login(this.form.value.email ?? undefined, this.form.value.password ?? undefined, googleId).subscribe({
         next: (v) => {
           const jwt = v.token;
           const name = v.username;
@@ -93,6 +130,7 @@ export class AppSideLoginComponent implements AfterViewInit {
           const email = v.email;
           const id = v.id;
           const isOrphan = v.isOrphan;
+          const chatCredentials = v.chatCredentials;
           localStorage.setItem('role', role);
           if (Number(role) === 1) {
             this.route = '/dashboards/admin';
@@ -106,6 +144,7 @@ export class AppSideLoginComponent implements AfterViewInit {
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
+          this.rocketChatService.loginWithCredentials(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);
@@ -113,9 +152,6 @@ export class AppSideLoginComponent implements AfterViewInit {
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
           this.router.navigate([this.route]);
-          this.authService.updateLiveChatBubbleVisibility(role);
-          this.authService.updateTawkVisitorAttributes(name + ' ' + last_name, email)
-          this.chatService.initializeCometChat();
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;
@@ -178,57 +214,5 @@ export class AppSideLoginComponent implements AfterViewInit {
   private validateEmail(email: string): boolean {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
-  }
-
-  ngAfterViewInit() {
-    this.setupMobileInputHandling();
-  }
-
-  private setupMobileInputHandling() {
-    const isRealMobile = window.innerWidth <= 768 && 
-                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
-    
-    if (isRealMobile) {
-      const passwordInput = document.querySelector('input[formControlName="password"]') as HTMLElement;
-      const emailInput = document.querySelector('input[formControlName="email"]') as HTMLElement;
-      
-      if (passwordInput) {
-        passwordInput.addEventListener('focus', () => {
-          this.scrollToPasswordField();
-        });
-      }
-      
-      if (emailInput) {
-        emailInput.addEventListener('focus', () => {
-          this.scrollToEmailField();
-        });
-      }
-    }
-  }
-
-  private scrollToPasswordField() {
-    setTimeout(() => {
-      const passwordField = document.querySelector('.mobile-password-input') as HTMLElement;
-      if (passwordField) {
-        passwordField.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
-    }, 300);
-  }
-
-  private scrollToEmailField() {
-    setTimeout(() => {
-      const emailField = document.querySelector('input[formControlName="email"]') as HTMLElement;
-      if (emailField) {
-        emailField.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
-    }, 300);
   }
 }

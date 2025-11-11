@@ -1,0 +1,59 @@
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .dialog-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+  }
+
+  .close-btn {
+    mat-icon {
+      font-size: 24px;
+      color: var(--mat-sys-on-background);
+    }
+  }
+}
+
+.info-avatar-wrapper {
+  margin-bottom: 24px;
+
+  .info-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.info-block {
+  margin-bottom: 16px;
+
+  .field-label {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .field-value {
+    font-size: 13px;
+    color: var(--chat-label-color);
+    display: block;
+  }
+}
+
+.members-title {
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}

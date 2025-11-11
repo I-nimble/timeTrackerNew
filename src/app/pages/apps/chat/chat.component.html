@@ -1,93 +1,279 @@
-<mat-card class="mat-card-top cardWithShadow communication-container p-0">
-  <ng-template #customMenu>
-    <div style="display: flex; gap: 12px; margin-right: 5px;">
-      <button [ngStyle]="getButtonStyle()" (click)="startVoiceCall()">
-        <img src="assets/images/svgs/phone-enabled.svg" [ngStyle]="getButtonIconStyle()" alt="Voice Call" />
-      </button>
-      <button [ngStyle]="getButtonStyle()" (click)="startVideoCall()">
-        <img src="assets/images/svgs/videocam.svg" [ngStyle]="getButtonIconStyle()" alt="Video Call" />
-      </button>
-    </div>
-  </ng-template>
+<mat-card class="mat-mdc-card mdc-card chat-app cardWithShadow overflow-hidden">
+  <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
+    <mat-sidenav #sidebar
+      class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
+      [mode]="'side'"
+      [opened]="!isMobile || isSidebarOpen"
+    >
+      <div class="mat-drawer-inner-container chat-sidebar-inner">
+        <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">
+          <div class="d-flex align-items-center gap-12">
+            <img [src]="chatService.loggedInUser?.avatarUrl || defaultAvatarUrl" alt="owner" width="50" height="50" />
+            <div class="sidebar-user-info">
+              <h4>{{ chatService.loggedInUser?.name }}</h4>
+              <span>{{ getUserEmail() }}</span>
+            </div>
+          </div>
+          <button
+            *ngIf="canCreateDirectMessage() || canCreateChannel() || canCreateTeam()"
+            mat-icon-button
+            [matMenuTriggerFor]="createMenu"
+            color="primary"
+            aria-label="Create new"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
 
-  <ng-template #conversationsMenuTemplate>
-    <div class="d-flex align-items-center gap-8">
-      <button
-        *ngIf="userRole !== '2' || (userId && groupCreatorUserIds.includes(userId))" 
-        [ngStyle]="getButtonStyle()"
-        (click)="openDialog()"
-      >
-        <img src="assets/images/svgs/add-group.svg" [ngStyle]="getButtonIconStyle()" alt="Create group" />
-      </button>
-      <button
-        [ngStyle]="getButtonStyle()"
-        (click)="onMenuButtonClick()"
-        *ngIf="this.plan && this.plan.id != 1"
-      >
-        <img src="assets/images/svgs/new-conversation.svg" [ngStyle]="getButtonIconStyle()" alt="Start new conversation" />
-      </button>
-    </div>
-  </ng-template>
-  
-  <ng-template #customMessageComposerView>
-    <app-custom-message-composer
-    [user]="user"
-    [group]="group"
-    ></app-custom-message-composer>
-  </ng-template>
+          <mat-menu #createMenu="matMenu">
+            <button *ngIf="canCreateDirectMessage()" mat-menu-item (click)="openCreateRoomDialog('d')">
+              <mat-icon>person</mat-icon>
+              <span>Direct Message</span>
+            </button>
+            <button *ngIf="canCreateChannel()" mat-menu-item (click)="openCreateRoomDialog('c')">
+              <mat-icon>group</mat-icon>
+              <span>Channel</span>
+            </button>
+            <button *ngIf="canCreateTeam()" mat-menu-item (click)="openCreateRoomDialog('t')">
+              <mat-icon>groups</mat-icon>
+              <span>Team</span>
+            </button>
+          </mat-menu>
+        </div>
+        <div class="sidebar-search">
+          <mat-form-field appearance="outline" class="w-100">
+            <input
+              matInput
+              placeholder="Search conversations"
+              [(ngModel)]="roomsFilter"
+            />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        
+        <div class="contacts-wrapper">
+          <div
+            class="contact-item"
+            *ngFor="let room of filteredRooms()"
+            [class.active]="selectedConversation?._id === room?._id"
+            (click)="selectRoom(room)"
+          >
+            <img [src]="getConversationPicture(room) || defaultAvatarUrl">
+            <div class="contact-info">
+              <div class="name">
+                {{ getConversationName(room) }}
+              </div>
+              <div class="d-flex justify-content-between">
+                <div class="last-message">
+                  {{ getLastMessage(room).slice(0, 30) }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
+                </div>
+                <span
+                  *ngIf="getUnreadMessageCount(room) > 0" 
+                  class="badge badge-pill badge-success"
+                >
+                    {{ getUnreadMessageCount(room) }}
+                </span>
+              </div>
+            </div>
+            <button
+              mat-icon-button
+              class="conversation-menu-button"
+              [matMenuTriggerFor]="menu"
+              #menuTrigger="matMenuTrigger"
+              (click)="$event.stopPropagation()"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
 
-  <app-loader *ngIf="loader.started && !loader.complete && !loader.error" [loader]="loader" style="margin: 2rem auto;">
-  </app-loader>
+            <mat-menu #menu="matMenu">
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) > 0"
+                (click)="markAsRead(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>done_all</mat-icon>
+                <span>Mark as Read</span>
+              </button>
 
-  <ng-container *ngIf="loader.complete">
-    @if(chatService.isChatAvailable && !chatInitError) {
-      <div class="chat-view-container">
-        <!-- BASIC PLAN CHAT -->
-        <cometchat-groups-with-messages 
-          *ngIf="plan && plan.id == 1"
-          id="chat-container"
-          [backdropStyle]="backdropStyle"
-          [hideCreateGroup]="true"
-          [messagesConfiguration]="basicMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [groupsConfiguration]="groupsConfiguration"
-          [user]="user"
-          [group]="group"
-          #basicChat
-        >
-        </cometchat-groups-with-messages>
-      
-        <!-- ESSENTIAL PLAN CHAT -->
-        <cometchat-conversations-with-messages 
-          *ngIf="plan && plan.id === 2"
-          id="chat-container"
-          [messagesConfiguration]="essentialMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [conversationConfiguration]="conversationConfiguration"
-          [user]="user"
-          [group]="group"
-          #essentialChat
-        >
-        </cometchat-conversations-with-messages>
-
-        <!-- PROFESSIONAL PLAN CHAT -->
-        <cometchat-conversations-with-messages 
-          *ngIf="(plan && plan.id === 3) || (userRole === '1' || userRole === '4')"
-          id="chat-container"
-          [messagesConfiguration]="professionalMessagesConfig"
-          [StartConversationConfiguration]="StartConversationConfiguration"
-          [conversationConfiguration]="conversationConfiguration"
-          [user]="user"
-          [group]="group"
-          #professionalChat
-        >
-        </cometchat-conversations-with-messages>
+              <button
+                mat-menu-item
+                *ngIf="getUnreadMessageCount(room) === 0"
+                (click)="markAsUnread(room); $event.stopPropagation(); menuTrigger.closeMenu()"
+              >
+                <mat-icon>markunread</mat-icon>
+                <span>Mark as Unread</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="room.t !== 'd' && !room.teamId"
+                (click)="onLeaveRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>logout</mat-icon>
+                <span>Leave Room</span>
+              </button>
+              <button
+                mat-menu-item
+                *ngIf="canDeleteRoom(room) && !room.teamId"
+                (click)="onDeleteRoom(room); $event.stopPropagation()"
+              >
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>            
+          </div>
+        </div>
       </div>
-    }
-    @else if (loader.complete && chatInitError) {
-    <div class="cta-message">
-      <p>{{ chatInitError }}</p>
-    </div>
-    }
-  </ng-container>
+    </mat-sidenav>
+
+    <mat-sidenav-content
+      class="mat-drawer-content mat-sidenav-content bg-white chat-main"
+      (click)="isMobile && isSidebarOpen ? sidebar.close() : null"   
+      [style.margin-left.px]="!isMobile && isSidebarOpen ? 320 : 0"
+    >
+      <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
+        <div class="d-flex">
+          <button mat-icon-button
+                  (click)="toggleSidebar(); sidebar.toggle()"
+                  class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
+            <mat-icon>short_text</mat-icon>
+          </button>
+          <div class="d-flex align-items-center gap-16">
+            <img *ngIf="selectedConversation" [src]="getConversationPicture(selectedConversation)" width="40" class="rounded-circle" alt="contact" />
+            <div class="f-s-16 f-w-600">
+              {{ selectedConversation ? getConversationName(selectedConversation) : 'Select a conversation' }}
+            </div>
+          </div>
+        </div>
+        <div *ngIf="selectedConversation">
+          <button mat-icon-button (click)="call('audio')" class="m-l-auto" aria-label="Call">
+            <mat-icon>call</mat-icon>
+          </button>
+          <button mat-icon-button (click)="call('video')" class="m-l-auto" aria-label="Video call">
+            <mat-icon>video_call</mat-icon>
+          </button>
+          <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #chatMenu="matMenu">
+            <button mat-menu-item (click)="openInfoDialog()">
+              {{ getInfoTitle() }}
+            </button>
+            <button mat-menu-item disabled>Mute</button>
+            <button mat-menu-item disabled>Delete Chat</button>
+          </mat-menu>
+        </div>
+      </mat-toolbar>
+
+      <div class="chat-messages-wrapper">
+        <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
+          <ng-container *ngIf="selectedConversation; else noConversation">
+            <div 
+              *ngFor="let message of messages" 
+              class="chat-list"
+              [ngClass]="
+                isSystemMessage(message) ? 'system-message' :
+                message.t === 'videoconf' ? 'call' :
+                !isFromMe(message) ? 'odd' : 'even'
+              ">
+                <div *ngIf="isSystemMessage(message)" class="system-message-text">
+                  {{ formatSystemMessage(message) }}
+                </div>
+
+                <div *ngIf="!isSystemMessage(message)" class="m-b-15">
+                  <div 
+                    [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'"
+                  >
+                    @if(message.t === 'videoconf') {
+                      <span class="f-s-14">
+                        Call ongoing
+                      </span>
+                      <button mat-flat-button color="primary" (click)="joinCall(message)">
+                        Join
+                      </button>
+                    }
+                    @else if(message.attachments && message.attachments.length > 0) {
+                      <img 
+                        *ngIf="!isFromMe(message)" 
+                        width="40" 
+                        class="rounded-circle" 
+                        [src]="getConversationPicture(selectedConversation)" 
+                      />
+                      <span class="f-s-14">
+                        {{ message.attachments[0]?.title || 'File attachment' }}
+                        <button mat-icon-button (click)="downloadFile(message.attachments[0])">
+                          <mat-icon>download</mat-icon>
+                        </button>
+                        <div class="attachment-preview">
+                          @switch (getAttachmentType(message.attachments[0])) {
+                            @case('image') {
+                              <img [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
+                            }
+                            @case('video') {
+                              <video [src]="getFileUrl(message.attachments[0])" controls></video>
+                            }
+                            @case('audio') {
+                              <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
+                            }
+                            @default {
+                              <span class="f-s-12 text-muted">
+                                <mat-icon>insert_drive_file</mat-icon>
+                                <a [href]="getFileUrl(message.attachments[0])" target="_blank" download>
+                                  {{ message.attachments[0].title }}
+                                </a>
+                              </span>
+                            }
+                          }
+                        </div>
+                      </span>
+                    }
+                    @else {
+                      <img 
+                        *ngIf="!isFromMe(message)" 
+                        width="40" 
+                        class="rounded-circle" 
+                        [src]="getSenderAvatar(message)" 
+                      />
+
+                      <div class="message-content">
+                        <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
+                          {{ getSenderName(message) }}
+                        </strong>
+                        <span class="f-s-14">{{ message.msg }}</span>
+                      </div>
+                    }
+                  </div>
+                  <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
+                </div>
+            </div>
+
+            <div *ngIf="isUserTyping" class="typing-indicator">
+              <div class="d-flex align-items-center gap-8 p-8">
+                <div class="typing-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <span class="f-s-12 text-muted">{{ getTypingText() }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noConversation>
+            <div class="empty-cta p-24 text-center">Select a contact on the left to view conversation</div>
+          </ng-template>
+        </mat-card-content>
+      </div>
+
+      <mat-divider></mat-divider>
+      <div class="p-t-20 p-x-24 bg-white chat-input" *ngIf="selectedConversation">
+        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
+          <button mat-icon-button matPrefix (click)="selectFile()">
+            <mat-icon>attach_file</mat-icon>
+          </button>
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
+          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
+            <mat-icon>send</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </mat-card>

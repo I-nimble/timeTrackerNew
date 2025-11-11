@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -13,20 +13,26 @@ import {
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { environment } from 'src/environments/environment';
 import { AuthService } from '../../../services/auth.service';
+import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { EntriesService } from 'src/app/services/entries.service';
 import { NgIf, CommonModule } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
 @Component({
   selector: 'app-side-register',
@@ -39,7 +45,8 @@ import { DepartmentsService } from 'src/app/services/departments.service';
     ReactiveFormsModule,
     BrandingComponent,
     NgIf,
-    RouterLink
+    RouterLink,
+    TablerIconsModule
   ],
   providers: [
     AuthService,
@@ -48,7 +55,7 @@ import { DepartmentsService } from 'src/app/services/departments.service';
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
 })
-export class AppSideRegisterComponent implements AfterViewInit {
+export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
@@ -70,6 +77,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
     company: ['', [Validators.required]],
     position: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    hourly_rate: [0, [Validators.min(0), Validators.max(1000)]],
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
@@ -91,11 +99,12 @@ export class AppSideRegisterComponent implements AfterViewInit {
     competencies: ['', Validators.required],
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
-    educationHistory: [''],
-    workExperience: [''],
+    educationHistory: ['', Validators.required],
+    workExperience: ['', Validators.required],
     workReferences: ['', Validators.required],
-    hobbies: [''],
+    hobbies: ['', Validators.required],
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
+    picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     google_user_id: [''],
   });
   userRole: string = '3';
@@ -103,9 +112,17 @@ export class AppSideRegisterComponent implements AfterViewInit {
   companies: any[] = [];
   positions: any[] = [];
   locations: any[] = [];
-  careerRoles: any[] = ["Virtual Assistant", "IT and Technology"];
+  careerRoles: any[] = [{
+    title: "Virtual Assistant",
+    position_id: 16
+  }, 
+  {
+    title: "IT and Technology",
+    position_id: 41
+  }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
+  isImportantInformationVisible: boolean = false;
   hasInvitation: boolean = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
@@ -125,11 +142,11 @@ export class AppSideRegisterComponent implements AfterViewInit {
     private route: ActivatedRoute,
     private positionsService: PositionsService,
     private employeesService: EmployeesService,
-    private chatService: CometChatService,
     private applicationsService: ApplicationsService,
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
     private cdr: ChangeDetectorRef,
+    private rocketChatService: RocketChatService,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -145,6 +162,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
           email: params['email'],
           name: params['name'].split(' ')[0],
           last_name: params['name'].split(' ')[1] || '',
+          hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
       }
@@ -175,49 +193,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
     };
   }
 
-  ngAfterViewInit() {
-    this.setupMobileInputHandling();
-  }
-
-  private setupMobileInputHandling() {
-    const isRealMobile = window.innerWidth <= 768 && 
-                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
-    
-    if (isRealMobile) {
-      this.setupFormInputHandling();
-    }
-  }
-
-  private setupFormInputHandling() {
-    const inputs = document.querySelectorAll('.mobile-form-input');
-    
-    inputs.forEach((input: Element) => {
-      input.addEventListener('focus', (event: Event) => {
-        this.scrollToInput(event.target as HTMLElement);
-      });
-    });
-
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    passwordInputs.forEach((input: Element) => {
-      input.addEventListener('focus', (event: Event) => {
-        this.scrollToInput(event.target as HTMLElement);
-      });
-    });
-  }
-
-  private scrollToInput(inputElement: HTMLElement) {
-    setTimeout(() => {
-      if (inputElement) {
-        inputElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
-    }, 300);
-  }
-
-
   crossFieldValidator(): ValidatorFn {
     return (formGroup: AbstractControl): ValidationErrors | null => {
       const departments = formGroup.get('departments')?.value;
@@ -246,7 +221,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
       return new Promise(resolve => {
         this.companiesService.checkCompanyExists(control.value).subscribe(
           ({ exists }: { exists: boolean }) => {
-            console.log(exists)
             resolve(exists ? { companyExists: true } : null);
           },
           () => resolve(null)
@@ -259,6 +233,10 @@ export class AppSideRegisterComponent implements AfterViewInit {
     this.applicationsService.getLocations().subscribe((locations: any) => {
       this.locations = locations;
     });
+  }
+
+  showImportantInformation() {
+    this.isImportantInformationVisible = true;
   }
 
   showRegisterForm(userRole: string) {
@@ -308,12 +286,12 @@ export class AppSideRegisterComponent implements AfterViewInit {
 
       if (!location || !role) return;
 
-      if (role === 'Virtual Assistant') {
+      if (role.title === 'Virtual Assistant') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl(
           'availability',
           this.fb.control('', [Validators.required, this.mustBeYesValidator()])
         );
-      } else if (role === 'IT and Technology' && location !== 'Medellin') {
+      } else if (role.title === 'IT and Technology' && location !== 'Medellin') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl(
           'availability',
           this.fb.control('', [Validators.required, this.mustBeYesValidator()])
@@ -327,11 +305,11 @@ export class AppSideRegisterComponent implements AfterViewInit {
         );
       }
 
-      if (role === 'Virtual Assistant') {
+      if (role.title === 'Virtual Assistant') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
       }
 
-      if (role === 'IT and Technology' && location !== 'Medellin') {
+      if (role.title === 'IT and Technology' && location !== 'Medellin') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
       }
     }
@@ -346,7 +324,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
       const role = roleControl.value;
 
       if (location === 'Maracaibo') {
-        return role === 'Virtual Assistant'
+        return role.title === 'Virtual Assistant'
           ? '$480-$560 USD'
           : '$400-$900 USD';
       } else if (location === 'Medellin') {
@@ -513,19 +491,20 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
-                this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -556,6 +535,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
         google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
+        hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
@@ -573,12 +553,14 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -586,7 +568,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -609,18 +590,18 @@ export class AppSideRegisterComponent implements AfterViewInit {
         return;
       }
 
-      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
+      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
         this.openSnackBar('Please accept the availability and salary range conditions', 'error');
         return;
       }
 
-      if (this.registerTeamMemberForm.value.role === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
+      if (this.registerTeamMemberForm.value.role.title === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
         this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
       }
 
       const teamMemberData = {
         location: this.registerTeamMemberForm.value.location,
-        role: this.registerTeamMemberForm.value.role,
+        position_id: this.registerTeamMemberForm.value.role.position_id,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
         applied_where: this.registerTeamMemberForm.value.appliedWhere,
@@ -664,12 +645,14 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -677,7 +660,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -709,7 +691,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
       otherDepartment: this.otherDepartment
     });
   }
-
   mustBeYesValidator(): ValidatorFn {
     return (control: AbstractControl) => {
       if (control.value === 'no') {
@@ -717,5 +698,12 @@ export class AppSideRegisterComponent implements AfterViewInit {
       }
       return null;
     };
+  }
+
+  restrictToNumbers(event: KeyboardEvent) {
+    const key = event.key;
+    if (/^\d$/.test(key)) return;
+    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
+    event.preventDefault();
   }
 }

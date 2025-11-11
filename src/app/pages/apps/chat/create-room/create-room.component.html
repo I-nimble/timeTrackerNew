@@ -1,0 +1,55 @@
+<mat-dialog-content class="mat-typography trello-style p-24">
+  <div class="dialog-header d-flex justify-between align-center mb-16">
+    <h2 class="dialog-title f-w-600">
+      Create {{ roomType === 'd' ? 'Direct Message' : roomType === 'c' ? 'Group' : 'Team' }}
+    </h2>
+    <button mat-icon-button mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="dialog-body d-flex flex-column gap-16">
+    <ng-container *ngIf="roomType === 'd'">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Select user</mat-label>
+        <mat-select [(value)]="name">
+          <mat-option *ngFor="let user of users" [value]="user.username">{{ user.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+    <ng-container *ngIf="roomType === 'c'">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Channel Name</mat-label>
+        <input matInput [(ngModel)]="name" />
+      </mat-form-field>
+      <mat-slide-toggle *ngIf="!isLeader" [(ngModel)]="isPrivate">Private</mat-slide-toggle>
+      <mat-form-field appearance="outline" class="w-100 mt-2" *ngIf="selectedTeamId">
+        <mat-label>Select users to add</mat-label>
+        <mat-select [(value)]="selectedUsers" multiple [disabled]="!users.length">
+          <mat-option *ngFor="let user of users" [value]="user">{{ user.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+    <ng-container *ngIf="roomType === 't'">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Team Name</mat-label>
+        <input matInput [(ngModel)]="name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-100 mt-2">
+        <mat-label>Select users to add</mat-label>
+        <mat-select [(value)]="selectedUsers" multiple>
+          <mat-option *ngFor="let user of users" [value]="user">{{ user.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+  </div>
+
+  <mat-dialog-actions class="dialog-actions mt-16 d-flex justify-end gap-8">
+    <button mat-flat-button color="primary" [disabled]="!name" (click)="createRoom()">
+      Create
+    </button>
+    <button mat-flat-button class="bg-error text-white" (click)="dialogRef.close()">
+      Cancel
+    </button>
+  </mat-dialog-actions>
+</mat-dialog-content>
