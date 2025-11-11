@@ -63,6 +63,12 @@ export class AddCandidateDialogComponent implements OnInit {
       company_id: [''],
       availability: [false, Validators.required],
       location_id: ['', Validators.required],
+      description: [''],
+      talent_match_profile_summary: [''],
+      ranking: [''],
+      profile_observation: [''],
+      interview_link: [''],
+      inimble_academy: ['']
     });
   }
 
@@ -86,6 +92,12 @@ export class AddCandidateDialogComponent implements OnInit {
             availability: this.data.candidate.availability,
             location_id: this.locations.find((l: any) => l.city == this.data.candidate.location).id,
             current_position: this.data.candidate.current_position,
+            description: this.data.candidate.description,
+            talent_match_profile_summary: this.data.candidate.talent_match_profile_summary,
+            ranking: this.data.candidate.ranking,
+            profile_observation: this.data.candidate.profile_observation,
+            interview_link: this.data.candidate.interview_link,
+            inimble_academy: this.data.candidate.inimble_academy
           });
         }
       });
@@ -165,6 +177,12 @@ export class AddCandidateDialogComponent implements OnInit {
       company_id: companyId,
       availability: formValue.availability,
       location_id: formValue.location_id,
+      description: formValue.description,
+      talent_match_profile_summary: formValue.talent_match_profile_summary,
+      ranking: formValue.ranking,
+      profile_observation: formValue.profile_observation,
+      interview_link: formValue.interview_link,
+      inimble_academy: formValue.inimble_academy,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
