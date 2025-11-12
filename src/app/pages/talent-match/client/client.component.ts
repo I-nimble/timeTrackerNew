@@ -26,6 +26,7 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { AIService } from 'src/app/services/ai.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -81,7 +82,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     public dialog: MatDialog,
     private companiesService: CompaniesService,
     private interviewsService: InterviewsService,
-    private aiService: AIService
+    private aiService: AIService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -326,6 +328,11 @@ export class AppTalentMatchClientComponent implements OnInit {
       this.selection.toggle(row);
       this.onRowSelectionChange();
     }
+  }
+
+  goToCandidate(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.router.navigate([`apps/talent-match/${id}`]);
   }
 
   handleImageError(event: Event) {

@@ -75,7 +75,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="f-w-600 f-s-15 col-3">
             Name
           </th>
-          <td mat-cell *matCellDef="let element" class="f-s-14">
+          <td mat-cell *matCellDef="let element" class="f-s-14 f-w-600 cursor pointer" (click)="goToCandidate(element.id, $event)">
             {{ element.name }}
           </td>
         </ng-container>

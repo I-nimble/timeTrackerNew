@@ -52,7 +52,7 @@
                     (error)="handleImageError($event)"
                   />
                   <div class="m-l-16">
-                    <h6 class="f-s-14 f-w-600">
+                    <h6 class="f-s-14 f-w-600 cursor-pointer" (click)="goToCandidate(element.id, $event)">
                       {{ element.name }}
                     </h6>
                     <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
