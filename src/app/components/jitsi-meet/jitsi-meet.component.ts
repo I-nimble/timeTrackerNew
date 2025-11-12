@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Inject, Input, Output, EventEmitter, Optional } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, ViewChild, ElementRef, Inject, Input, Output, EventEmitter, Optional } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { environment } from '../../../environments/environment';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-jitsi-meet',
@@ -25,7 +26,8 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
   constructor(
     private hostElement: ElementRef,
     @Optional() public dialogRef: MatDialogRef<JitsiMeetComponent>,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: any
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
+    private snackBar: MatSnackBar,
   ) {}
 
   async ngOnInit() {
@@ -40,10 +42,18 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
 
       this.data = this.data || this.dataInput || this.data;
 
-      this.initJitsi();
+      await this.initJitsi();
     } catch (err) {
       console.error('Failed to load Jitsi API', err);
     }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
   }
 
   loadExternalApi(): Promise<void> {
@@ -61,8 +71,19 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
     });
   }
 
-  initJitsi() {
+  async initJitsi() {
     const roomName = this.data?.roomName || `room-${this.data?.roomId || Date.now()}`;
+
+    const configOverwrite = Object.assign({}, this.data?.configOverwrite || {});
+    const interfaceConfigOverwrite = Object.assign({}, this.data?.interfaceConfigOverwrite || {});
+
+    if (this.isMobile) {
+      interfaceConfigOverwrite.MOBILE_APP_PROMO = false;
+
+      configOverwrite.prejoinPageEnabled = false;
+      (configOverwrite as any).disableDeepLinking = true;
+    }
+
     const options: any = {
       roomName,
       width: '100%',
@@ -72,16 +93,9 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
         displayName: this.data?.displayName,
         email: this.data?.email
       },
-      configOverwrite: this.data?.configOverwrite || {},
-      interfaceConfigOverwrite: this.data?.interfaceConfigOverwrite || {},
-      onload: () => {
-        try {
-          if (this.api && this.api.executeCommand) {
-            this.api.executeCommand('toggleLobby', false);
-          }
-        } catch (e) {
-        }
-      }
+      configOverwrite,
+      interfaceConfigOverwrite,
+      onload: () => {}
     };
 
     if (this.data?.jwt) {
@@ -89,8 +103,8 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
     }
 
     try {
-  const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
-  this.api = new JitsiMeetExternalAPI(this.domainHost || this.domain, options);
+      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+      this.api = new JitsiMeetExternalAPI(this.domainHost || this.domain, options);
 
       if (this.api && this.api.addEventListener) {
         this.api.addEventListener('readyToClose', () => {
@@ -99,14 +113,6 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
           } else {
             this.closed.emit();
           }
-        });
-
-        this.api.addEventListener('participantRoleChanged', (ev: any) => {
-          try {
-            if (ev && ev.role === 'moderator' && this.api && this.api.executeCommand) {
-              this.api.executeCommand('toggleLobby', false);
-            }
-          } catch (e) {}
         });
       }
     } catch (err) {

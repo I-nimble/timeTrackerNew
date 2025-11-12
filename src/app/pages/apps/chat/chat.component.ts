@@ -299,7 +299,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
           startWithVideoMuted: type === 'audio', 
           prejoinPageEnabled: false 
         },
-        interfaceConfigOverwrite: {}
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        }
       });
     });
   }
@@ -324,7 +326,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
         displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
         email: this.getUserEmail(),
         configOverwrite: { prejoinPageEnabled: false },
-        interfaceConfigOverwrite: {}
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        }
       });
     });
   }
