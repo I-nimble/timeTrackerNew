@@ -314,4 +314,9 @@ export class CandidatesComponent {
     };
     input.click();
   }
+
+  goToCandidate(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.router.navigate(['apps/candidates', id]);
+  }
 }

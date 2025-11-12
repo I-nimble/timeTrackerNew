@@ -36,6 +36,7 @@ import { PaymentsReportsComponent } from './invoice/payments-reports/payments-re
 import { ScrapperComponent } from './scrapper/scrapper.component';
 import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
+import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -178,25 +179,61 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'candidates',
-        component: CandidatesComponent,
-        data: {
-          title: 'Candidates',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'Candidates' },
-          ],
-        },
+        children: [
+          {
+            path: '',
+            component: CandidatesComponent,
+            data: {
+              title: 'Candidates',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates', url: '/candidates' },
+                { title: 'Details' },
+              ],
+            },
+          },
+        ],
       },
       {
         path: 'talent-match',
-        component: AppTalentMatchComponent,
-        data: {
-          title: 'Talent match',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'talent match' },
-          ],
-        },
+        children: [
+          {
+            path: '',
+            component: AppTalentMatchComponent,
+            data: {
+              title: 'Talent match',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Talent match' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Talent match', url: '/talent-match' },
+                { title: 'Details' },
+              ],
+            },
+          },
+        ],
       },
       {
         path: 'expert',
