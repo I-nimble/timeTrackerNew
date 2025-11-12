@@ -1,5 +1,5 @@
 <mat-card class="mat-mdc-card mdc-card chat-app cardWithShadow overflow-hidden">
-  <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
+  <mat-sidenav-container *ngIf="chatService.isChatAvailable; else noAvailableMessage" class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
       [mode]="'side'"
@@ -282,4 +282,11 @@
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
+  <ng-template #noAvailableMessage>
+    <div class="empty-cta p-24 text-center">
+      <mat-icon class="text-warning">error</mat-icon>
+      <h3>Chat is not available</h3>
+      <p>Please check your internet connection and try again.</p>
+    </div>
+  </ng-template>
 </mat-card>

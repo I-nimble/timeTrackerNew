@@ -24,6 +24,8 @@ import {
   RocketChatUserResponse,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { PlatformPermissionsService } from './permissions.service';
 
 @Injectable({
   providedIn: 'root',
@@ -63,7 +65,10 @@ export class RocketChatService {
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
 
-  constructor(private http: HttpClient, private webSocketService: WebSocketService) {
+  isChatAvailable: boolean = false;
+  callsAvailable: boolean = false;
+
+  constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
 
     try {
@@ -87,11 +92,47 @@ export class RocketChatService {
     }
   }
 
+   async initializeRocketChat(chatCredentials?: any): Promise<void> {
+    try {
+      await this.loginWithCredentials(chatCredentials);
+      this.isChatAvailable = true;
+
+      const permissionGranted = await this.requestMediaPermissions();
+      this.callsAvailable = permissionGranted;
+    } catch (error) {
+      console.error("Initialization failed with error:", error);
+    }
+  }
+
+  private async requestMediaPermissions(): Promise<boolean> {
+    try {
+      const granted = await this.platformPermissionsService.requestMediaPermissions(true);
+      
+      if (!granted) {
+        this.openSnackBar('Camera/microphone permissions are required for video calls.', 'Close');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Media permission error:", error);
+      return false;
+    }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
+  }
+
   public loadCredentials(): void {
     const stored = localStorage.getItem('rocketChatCredentials');
     if (stored) {
       try {
         this.credentials = JSON.parse(stored);
+        this.initializeRocketChat(this.credentials);
         this.credentialsSubject.next(this.credentials);
         this.connectionSubject.next(true);
         this.connectWebSocket();
