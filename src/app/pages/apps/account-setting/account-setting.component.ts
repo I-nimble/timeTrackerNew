@@ -13,7 +13,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { UsersService } from 'src/app/services/users.service';
 import { MatDialog } from '@angular/material/dialog';
-import { NgIf } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
@@ -23,14 +23,16 @@ import { environment } from 'src/environments/environment';
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'src/app/services/subscription.service';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar],
+  imports: [MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
@@ -78,7 +80,7 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)],
+    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -93,8 +95,8 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)],
-    address: [''],
+    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    address: ['', Validators.required],
     profile: ['']
   });
   medicalForm: FormGroup = this.fb.group({
@@ -173,6 +175,12 @@ export class AppAccountSettingComponent implements OnInit {
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
+  sentinelSubscription: SubscriptionStatus | null = null;
+  isLoadingSubscription = false;
+  formChanged: boolean = false;
+  originalUserData: any = null;
+  subscriptionReceipt: SubscriptionReceipt | null = null;
+  isLoadingReceipt = false;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
@@ -186,7 +194,9 @@ export class AppAccountSettingComponent implements OnInit {
             public snackBar: MatSnackBar,
             private cdr: ChangeDetectorRef,
             public applicationsService: ApplicationsService,
-            private route: ActivatedRoute
+            private route: ActivatedRoute,
+            private router: Router,
+            private subscriptionService: SubscriptionService,
           ) {}
 
   ngOnInit(): void {
@@ -199,7 +209,9 @@ export class AppAccountSettingComponent implements OnInit {
       if (tab !== undefined && !isNaN(tab)) {
         this.selectedTabIndex = +tab;
       }
-    });
+      this.checkSubscriptionSuccess();
+    }); 
+    this.loadSubscriptionStatus();
   }
 
   onTabChange(index: number) {
@@ -252,6 +264,7 @@ export class AppAccountSettingComponent implements OnInit {
 
     this.selectedVideoFile = file;
     this.previewVideo(file);
+    this.checkFormChanges();
   }
 
   previewVideo(file: File): void {
@@ -354,6 +367,31 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
+  checkFormChanges(): void {
+    if (!this.originalUserData) return;
+
+    const currentFormData = {
+      name: this.personalForm.get('name')?.value,
+      last_name: this.personalForm.get('last_name')?.value,
+      email: this.personalForm.get('email')?.value,
+      phone: this.personalForm.get('phone')?.value,
+      address: this.personalForm.get('address')?.value
+    };
+
+    // Check if any form field has changed
+    const formFieldsChanged = 
+      currentFormData.name !== this.originalUserData.name ||
+      currentFormData.last_name !== this.originalUserData.last_name ||
+      currentFormData.email !== this.originalUserData.email ||
+      currentFormData.phone !== this.originalUserData.phone ||
+      currentFormData.address !== this.originalUserData.address;
+
+    // Check if profile picture or video has changed
+    const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
+
+    this.formChanged = formFieldsChanged || mediaChanged;
+  }
+
   initializeForm() {
     if(this.role === '3') {
       this.profileForm.patchValue({
@@ -371,6 +409,14 @@ export class AppAccountSettingComponent implements OnInit {
       });
     }
     else {
+      this.originalUserData = {
+        name: this.user.name,
+        last_name: this.user.last_name,
+        email: this.user.email,
+        phone: this.user.phone,
+        address: this.user.address
+      };
+
       // Populate personal form
       this.personalForm.patchValue({
         name: this.user.name,
@@ -406,6 +452,10 @@ export class AppAccountSettingComponent implements OnInit {
           linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
+
+      this.personalForm.valueChanges.subscribe(() => {
+        this.checkFormChanges();
+      });
     }
   }
 
@@ -434,6 +484,7 @@ export class AppAccountSettingComponent implements OnInit {
       // if(this.role === '3') this.profileForm.patchValue({ logo: img })
       // else this.personalForm.patchValue({ profile: img });
       this.personalForm.patchValue({ profile: file });
+      this.checkFormChanges(); 
   }
 
   previewImage(file: File) {
@@ -461,6 +512,14 @@ export class AppAccountSettingComponent implements OnInit {
   resetFileInput() {
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  isSaveEnabled(): boolean {
+    if (this.role === '3') {
+      return this.profileForm.valid;
+    } else {
+      return this.personalForm.valid && this.formChanged;
     }
   }
   
@@ -642,5 +701,109 @@ export class AppAccountSettingComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  loadSubscriptionReceipt(): void {
+    if (!this.sentinelSubscription || this.sentinelSubscription.status !== 'active') {
+      return;
+    }
+
+    this.isLoadingReceipt = true;
+    this.subscriptionService.getSubscriptionReceipt().subscribe({
+      next: (receipt) => {
+        this.subscriptionReceipt = receipt;
+        this.isLoadingReceipt = false;
+      },
+      error: (error) => {
+        console.error('Error loading subscription receipt:', error);
+        this.isLoadingReceipt = false;
+      }
+    });
+  }
+
+  viewReceipt(): void {
+    if (this.subscriptionReceipt?.receipt_url) {
+      window.open(this.subscriptionReceipt.receipt_url, '_blank');
+    }
+  }
+
+  loadSubscriptionStatus(): void {
+    this.subscriptionService.getSubscriptionStatus().subscribe({
+      next: (status) => {
+        this.sentinelSubscription = status;
+        this.loadSubscriptionReceipt();
+      },
+      error: (error) => {
+        console.error('Error loading subscription status:', error);
+      }
+    });
+  }
+
+  enableSentinel(): void {
+    this.isLoadingSubscription = true;
+    
+    this.subscriptionService.createSubscription().subscribe({
+      next: (response) => {
+        // Stripe checkout
+        window.location.href = response.url;
+      },
+      error: (error) => {
+        console.error('Error creating subscription:', error);
+        this.openSnackBar('Error creating subscription. Please try again.', 'Close');
+        this.isLoadingSubscription = false;
+      }
+    });
+  }
+
+  disableSentinel(): void {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      width: '400px',
+      data: {
+        action: 'cancel',
+        subject: 'Sentinel subscription',
+        message: 'Note: You will have access until the end of your billing period.'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoadingSubscription = true;
+        
+        this.subscriptionService.cancelSubscription().subscribe({
+          next: (response) => {
+            this.openSnackBar('Subscription will be canceled at the end of the billing period.', 'Close');
+            this.loadSubscriptionStatus();
+            this.isLoadingSubscription = false;
+          },
+          error: (error) => {
+            console.error('Error canceling subscription:', error);
+            this.openSnackBar('Error canceling subscription. Please try again.', 'Close');
+            this.isLoadingSubscription = false;
+          }
+        });
+      }
+    });
+  }
+
+  checkSubscriptionSuccess(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['subscription'] === 'success') {
+        this.openSnackBar('Sentinel subscription activated successfully!', 'Close');
+        this.loadSubscriptionStatus();
+        this.router.navigate(['/apps/account-settings']);
+
+      } else if (params['subscription'] === 'canceled') {
+        this.openSnackBar('Subscription process was canceled.', 'Close');
+
+        this.router.navigate(['/apps/account-settings']);
+      }
+    });
+  }
+
+  restrictToNumbers(event: KeyboardEvent) {
+    const key = event.key;
+    if (/^\d$/.test(key)) return;
+    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
+    event.preventDefault();
   }
 } 

@@ -33,12 +33,15 @@
 
                       <p class="text-center m-t-16 m-b-16">or</p>
   
-                      <button mat-stroked-button class="w-100 m-b-45" (click)="showImportantInformation()">
+<!--                       <button mat-stroked-button class="w-100 m-b-45" (click)="showImportantInformation()">
+                        Apply for a Career Opportunity
+                      </button> -->
+                      <button mat-stroked-button class="w-100 m-b-45" (click)="showRegisterForm('2')">
                         Apply for a Career Opportunity
                       </button>
                     </div>
 
-                    <div *ngIf="!isRegisterFormVisible && isImportantInformationVisible">
+<!--                     <div *ngIf="!isRegisterFormVisible && isImportantInformationVisible">
                       <h4 class="f-w-700 f-s-26 lh-base m-0 m-t-32">IMPORTANT INFORMATION</h4>
                       <p class="m-t-16 m-b-16">
                         <b>INIMBLE</b> is an outsourcing company specialized in providing talented and skilled professionals in administrative and technological areas. We adapt to the specific needs of each client, offering customized solutions tailored to their requirements. We began operations in the <b>United States (Atlanta, Georgia)</b> several years ago, and we currently have offices in <b>Venezuela (Maracaibo, Maracay, Caracas, Barquisimeto and Valencia)</b> and <b>Colombia (Medellin)</b> 🚀
@@ -75,7 +78,7 @@
                       <button mat-flat-button color="primary" class="w-100" (click)="showRegisterForm('2')">
                         Start
                       </button>
-                    </div>
+                    </div> -->
 
                     <div *ngIf="isRegisterFormVisible">
                       <!-- Sign up with Google -->
@@ -214,7 +217,7 @@
                                   </mat-select>
                                 </mat-form-field>
                                 <mat-form-field appearance="outline" style="flex-grow: 1;">
-                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" required inputmode="numeric" (keypress)="restrictToNumbers($event)"/>
+                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" inputmode="numeric" (keypress)="restrictToNumbers($event)"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.touched">
                                     Enter a valid phone number

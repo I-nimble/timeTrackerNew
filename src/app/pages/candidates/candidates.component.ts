@@ -21,6 +21,8 @@ import { PositionsService } from 'src/app/services/positions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component'; 
 import { CompaniesService } from 'src/app/services/companies.service';
+import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   selector: 'app-candidates',
@@ -49,6 +51,9 @@ export class CandidatesComponent {
   endDate: Date | null = null;
   positions = signal<any[]>([]);
   companiesData: any[] = [];
+  canView: boolean = false;
+  canManage: boolean = false;
+  canEdit: boolean = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -60,28 +65,10 @@ export class CandidatesComponent {
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
     private companiesService: CompaniesService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
-    const email = localStorage.getItem('email');
-    const allowedPaymentsEmails = environment.allowedPaymentsEmails;
-    const allowedReportsEmails = environment.allowedReportEmails;
-    this.allowedTM = this.role === '2' && allowedReportsEmails.includes(email || '') || allowedPaymentsEmails.includes(email || '');
-
-    if (this.role != '1' && !this.allowedTM) {
-      this.router.navigate(['/dashboard']);
-    }
-
-    this.displayedColumns = [
-      'name',
-      'position',
-      'skills',
-      'location',
-      'submission_date',
-      'status',
-      'actions',
-    ];
-
     this.loadCandidates();
     this.loadPositions();
 
@@ -90,11 +77,66 @@ export class CandidatesComponent {
         this.companiesData = companies;
       },
     });
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('candidates.manage');
+        this.canEdit = effective.includes('candidates.edit');
+        this.canView = effective.includes('candidates.view');
+
+        if (this.role != '1' && !this.canView) {
+          this.router.navigate(['/dashboard']);
+        }
+
+        if (this.role == '1' || this.canView) {
+          this.displayedColumns = [
+            'name',
+            'position',
+            'skills',
+            'location',
+            'submission_date',
+            'status',
+            'actions',
+          ];
+        } else {
+          this.displayedColumns = [
+            'name',
+            'skills',
+            'location',
+            'submission_date',
+            'status',
+            'actions',
+          ];
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
   }
 
   ngAfterViewInit(): void {
     this.candidatesList.paginator = this.paginator;
     this.candidatesList.sort = this.sort;
+  }
+
+  shouldDisableActionsButton(element: any): boolean {
+    if (!this.canManage && !this.canEdit) {
+      return true;
+    }
+
+    if (this.canEdit && !this.canManage) {
+      const isEditableStatus = element.status === 'pending' || element.status === 'reviewing';
+      return !isEditableStatus;
+    }
+
+    if (this.canManage) {
+      return false;
+    }
+
+    return true;
   }
 
   onDateRangeChange(): void {
@@ -228,15 +270,34 @@ export class CandidatesComponent {
     });
   }
 
-  sendToTalentMatch(id: number): void {
-    this.applicationsService.sendToTalentMatch(id).subscribe({
-      next: () => {
-        this.showSnackbar('Candidate sent to talent match successfully!');
-        this.loadCandidates();
-        this.filterCandidates();
+  sendToTalentMatch(candidate: any): void {
+    const dialogRef = this.dialog.open(MatchPercentagesModalComponent, {
+      width: '600px',
+      maxHeight: '80vh',
+      data: {
+        candidate: {
+          id: candidate.id,
+          name: candidate.name,
+          email: candidate.email,
+          position_id: candidate.position_id
+        }
       },
-      error: () => {
-        this.showSnackbar('Error sending candidate to client.');
+      disableClose: false,
+      hasBackdrop: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result: string) => {
+      if (result === 'success') {
+        this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
+          next: () => {
+            this.showSnackbar('Candidate sent to talent match successfully!');
+            this.loadCandidates();
+            this.filterCandidates();
+          },
+          error: () => {
+            this.showSnackbar('Error sending candidate to talent match.');
+          }
+        });
       }
     });
   }
@@ -293,5 +354,10 @@ export class CandidatesComponent {
       });
     };
     input.click();
+  }
+
+  goToCandidate(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.router.navigate(['apps/candidates', id]);
   }
 }

@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -49,7 +50,8 @@ export class AddCandidateDialogComponent implements OnInit {
     private positionsService: PositionsService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddCandidateDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private dialog: MatDialog
   ) {
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
@@ -61,6 +63,15 @@ export class AddCandidateDialogComponent implements OnInit {
       company_id: [''],
       availability: [false, Validators.required],
       location_id: ['', Validators.required],
+      description: [''],
+      talent_match_profile_summary: [''],
+      hobbies: [''],
+      work_experience: [''],
+      education_history: [''],
+      ranking: [''],
+      profile_observation: [''],
+      interview_link: [''],
+      inimble_academy: ['']
     });
   }
 
@@ -84,6 +95,15 @@ export class AddCandidateDialogComponent implements OnInit {
             availability: this.data.candidate.availability,
             location_id: this.locations.find((l: any) => l.city == this.data.candidate.location).id,
             current_position: this.data.candidate.current_position,
+            description: this.data.candidate.description,
+            talent_match_profile_summary: this.data.candidate.talent_match_profile_summary,
+            hobbies: this.data.candidate.hobbies,
+            work_experience: this.data.candidate.work_experience,
+            education_history: this.data.candidate.education_history,
+            ranking: this.data.candidate.ranking,
+            profile_observation: this.data.candidate.profile_observation,
+            interview_link: this.data.candidate.interview_link,
+            inimble_academy: this.data.candidate.inimble_academy
           });
         }
       });
@@ -163,6 +183,15 @@ export class AddCandidateDialogComponent implements OnInit {
       company_id: companyId,
       availability: formValue.availability,
       location_id: formValue.location_id,
+      description: formValue.description,
+      talent_match_profile_summary: formValue.talent_match_profile_summary,
+      hobbies: formValue.hobbies,
+      work_experience: formValue.work_experience,
+      education_history: formValue.education_history,
+      ranking: formValue.ranking,
+      profile_observation: formValue.profile_observation,
+      interview_link: formValue.interview_link,
+      inimble_academy: formValue.inimble_academy,
       ...(this.selectedCVFile && { cv: this.selectedCVFile }),
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
@@ -194,5 +223,28 @@ export class AddCandidateDialogComponent implements OnInit {
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  openMatchScoreModal(): void {
+    const dialogRef = this.dialog.open(MatchPercentagesModalComponent, {
+      width: '600px',
+      maxHeight: '80vh',
+      data: {
+        candidate: {
+          id: this.data.candidate.id,
+          name: this.data.candidate.name,
+          email: this.data.candidate.email,
+          position_id: this.data.candidate.position_id
+        }
+      },
+      disableClose: false,
+      hasBackdrop: false
+    });
+
+    dialogRef.afterClosed().subscribe((result: string) => {
+      if (result === 'success') {
+        this.snackBar.open('Match scores updated successfully!', 'Close', { duration: 3000 });
+      }
+    });
   }
 }
