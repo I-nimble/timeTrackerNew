@@ -17,6 +17,9 @@ export class ApplicationsService {
   private applicationsSeenSource = new Subject<void>();
   applicationsSeen$ = this.applicationsSeenSource.asObservable();
 
+  private applicationsUpdatedSource = new Subject<any>();
+  applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
+
   reject(id: number): Observable<any[]> {
     return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
   }
@@ -162,7 +165,8 @@ export class ApplicationsService {
         : of(null);
     }
     else {
-      photoUpload$ = of(data.profile_pic_url);
+      // If profile_pic is a string URL (not a File), forward it. Fall back to profile_pic_url if present.
+      photoUpload$ = of(data.profile_pic || data.profile_pic_url || null);
     }
 
     return forkJoin([resumeUpload$, photoUpload$]).pipe(
@@ -179,6 +183,11 @@ export class ApplicationsService {
         return this.http.post(`${this.API_URI}/applications`, body);
       })
     );
+  }
+
+  // Notify other components that an application was updated
+  notifyApplicationUpdated(application: any) {
+    this.applicationsUpdatedSource.next(application);
   }
 
 
