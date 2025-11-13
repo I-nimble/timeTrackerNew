@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 export class WebSocketService {
   socket: Socket;
   private notificationsSubject = new Subject<any>();
+  private typingSubject = new Subject<{ roomId: string; username: string; isTyping: boolean }>();
   API_URI = environment.socket;
 
   constructor() {
@@ -47,9 +48,40 @@ export class WebSocketService {
     this.socket.on('server:newTalentMatch', (data) => {
       this.notificationsSubject.next('new-talent-match');
     });
+
+    this.socket.on('server:typing', (data: any) => {
+      try {
+        if (data && data.roomId && data.username != null && typeof data.isTyping !== 'undefined') {
+          this.typingSubject.next({ roomId: data.roomId, username: data.username, isTyping: !!data.isTyping });
+        }
+      } catch (err) {
+        console.error('Error processing server:typing event', err, data);
+      }
+    });
   }
 
   getNotifications() {
     return this.notificationsSubject.asObservable();
+  }
+
+  joinRoom(roomId: string) {
+    try {
+      if (!roomId) return;
+      this.socket.emit('client:joinChatRoom', roomId);
+    } catch (err) {
+      console.error('Failed to request join chat room', err, roomId);
+    }
+  }
+
+  emitTyping(roomId: string, username: string, isTyping: boolean) {
+    try {
+      this.socket.emit('client:typing', { roomId, username, isTyping });
+    } catch (err) {
+      console.error('Failed to emit typing event', err);
+    }
+  }
+
+  getTypingStream() {
+    return this.typingSubject.asObservable();
   }
 }
