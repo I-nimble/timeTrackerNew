@@ -123,9 +123,11 @@ export class AppTalentMatchClientComponent implements OnInit {
           selectedCandidates.push(match[1]);
         }
 
-        this.dataSource.data = candidates.filter(c =>
-          selectedCandidates.includes(c.name)
-        );
+        const orderedCandidates = selectedCandidates
+          .map(name => candidates.find(c => c.name === name))
+          .filter((c): c is any => c !== undefined);
+
+        this.dataSource.data = orderedCandidates;
 
         this.hasSearchResults = true;
         this.aiLoading = false;
