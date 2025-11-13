@@ -137,7 +137,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         this.rooms = rooms;
         this.sortRoomsByUnread();
         this.loadAllRoomPictures();
-        setTimeout(() => this.scrollToBottom(), 100);
+        this.scrollToBottom();
       },
       error: (err) => {
         console.error('Error loading rooms:', err);
@@ -755,7 +755,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       this.selectedUserInfo = null;
     }
 
-    setTimeout(() => this.scrollToBottom(), 100);
+    this.scrollToBottom();
   }
 
     getTypingText(): string {
@@ -926,7 +926,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     try {
       const el = this.messagesContainer?.nativeElement;
       if (el) {
-        setTimeout(() => el.scrollTop = el.scrollHeight, 100);
+        setTimeout(() => el.scrollTop = el.scrollHeight, 500);
       };
     } catch (e) {}
   }
