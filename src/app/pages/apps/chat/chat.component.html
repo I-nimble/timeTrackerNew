@@ -1,5 +1,5 @@
 <mat-card class="mat-mdc-card mdc-card chat-app cardWithShadow overflow-hidden">
-  <mat-sidenav-container class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
+  <mat-sidenav-container *ngIf="chatService.isChatAvailable; else noAvailableMessage" class="mat-drawer-container mat-sidenav-container mat-drawer-transition side-panel-opened chat-container">
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
       [mode]="'side'"
@@ -144,16 +144,22 @@
           </div>
         </div>
         <div *ngIf="selectedConversation">
-          <button mat-icon-button (click)="call('audio')" class="m-l-auto" aria-label="Call">
+          <button *ngIf="!isMobile" mat-icon-button (click)="call('audio')" class="m-l-auto" aria-label="Call">
             <mat-icon>call</mat-icon>
           </button>
-          <button mat-icon-button (click)="call('video')" class="m-l-auto" aria-label="Video call">
+          <button *ngIf="!isMobile" mat-icon-button (click)="call('video')" class="m-l-auto" aria-label="Video call">
             <mat-icon>video_call</mat-icon>
           </button>
           <button mat-icon-button [matMenuTriggerFor]="chatMenu" class="m-l-auto">
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
+            <button *ngIf="isMobile" mat-menu-item (click)="call('audio')">
+              Call
+            </button>
+            <button *ngIf="isMobile" mat-menu-item (click)="call('video')">
+              Video Call
+            </button>
             <button mat-menu-item (click)="openInfoDialog()">
               {{ getInfoTitle() }}
             </button>
@@ -276,4 +282,11 @@
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
+  <ng-template #noAvailableMessage>
+    <div class="empty-cta p-24 text-center">
+      <mat-icon class="text-warning">error</mat-icon>
+      <h3>Chat is not available</h3>
+      <p>Please check your internet connection and try again.</p>
+    </div>
+  </ng-template>
 </mat-card>

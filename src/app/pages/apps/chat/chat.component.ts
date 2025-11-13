@@ -45,6 +45,7 @@ import {
   RocketChatMessageAttachment
 } from '../../../models/rocketChat.model';
 import { Observable, of } from 'rxjs';
+import { PlatformPermissionsService } from '../../../services/permissions.service';
 
 @Component({
   selector: 'app-chat',
@@ -99,7 +100,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -136,7 +137,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         this.rooms = rooms;
         this.sortRoomsByUnread();
         this.loadAllRoomPictures();
-        setTimeout(() => this.scrollToBottom(), 100);
+        this.scrollToBottom();
       },
       error: (err) => {
         console.error('Error loading rooms:', err);
@@ -272,8 +273,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  call(type: 'video' | 'audio') {
+  async call(type: 'video' | 'audio') {
     if (!this.selectedConversation) return;
+
+    if(!this.chatService.callsAvailable) {
+      const permissionsGranted = await this.permissionsService.requestMediaPermissions(type === 'video');
+      
+      if (!permissionsGranted) {
+        this.openSnackBar('Camera/microphone permissions are required for calls.', 'Close');
+        return;
+      }
+    }
 
     const roomId = this.selectedConversation._id;
     this.chatService.initializeJitsiMeeting(roomId).subscribe((res: any) => {
@@ -299,12 +309,23 @@ export class AppChatComponent implements OnInit, OnDestroy {
           startWithVideoMuted: type === 'audio', 
           prejoinPageEnabled: false 
         },
-        interfaceConfigOverwrite: {}
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        }
       });
     });
   }
 
-  joinCall(message: RocketChatMessage) {
+  async joinCall(message: RocketChatMessage) {
+    if(!this.chatService.callsAvailable) {
+      const permissionsGranted = await this.permissionsService.requestMediaPermissions(true);
+      
+      if (!permissionsGranted) {
+        this.openSnackBar('Camera/microphone permissions are required for calls.', 'Close');
+        return;
+      }
+    }
+
     this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
       if (!res || !res.success) {
         console.error('Error joining room', res?.error);
@@ -324,7 +345,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
         displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
         email: this.getUserEmail(),
         configOverwrite: { prejoinPageEnabled: false },
-        interfaceConfigOverwrite: {}
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        }
       });
     });
   }
@@ -732,7 +755,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       this.selectedUserInfo = null;
     }
 
-    setTimeout(() => this.scrollToBottom(), 100);
+    this.scrollToBottom();
   }
 
     getTypingText(): string {
@@ -902,7 +925,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   private scrollToBottom() {
     try {
       const el = this.messagesContainer?.nativeElement;
-      if (el) el.scrollTop = el.scrollHeight;
+      if (el) {
+        setTimeout(() => el.scrollTop = el.scrollHeight, 500);
+      };
     } catch (e) {}
   }
 

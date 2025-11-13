@@ -144,7 +144,7 @@ export class AppSideLoginComponent {
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
-          this.rocketChatService.loginWithCredentials(chatCredentials);
+          this.rocketChatService.initializeRocketChat(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
           this.authService.userTypeRouting(role);

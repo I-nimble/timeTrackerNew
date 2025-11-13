@@ -498,7 +498,7 @@ export class AppSideRegisterComponent {
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
-                this.rocketChatService.loginWithCredentials(chatCredentials);
+                this.rocketChatService.initializeRocketChat(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
