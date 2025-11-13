@@ -925,7 +925,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   private scrollToBottom() {
     try {
       const el = this.messagesContainer?.nativeElement;
-      if (el) el.scrollTop = el.scrollHeight;
+      if (el) {
+        setTimeout(() => el.scrollTop = el.scrollHeight, 100);
+      };
     } catch (e) {}
   }
 
