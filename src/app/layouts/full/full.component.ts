@@ -20,11 +20,14 @@ import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.comp
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
+import { JitsiMeetComponent } from 'src/app/components/jitsi-meet/jitsi-meet.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { environment } from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 export function jwtOptionsFactory() {
   return {
@@ -62,6 +65,7 @@ interface quicklinks {
     MaterialModule,
     CommonModule,
     SidebarComponent,
+    JitsiMeetComponent,
     NgScrollbarModule,
     TablerIconsModule,
     HeaderComponent,
@@ -73,7 +77,9 @@ interface quicklinks {
   ],
   providers: [AuthService,WebSocketService,
         JwtHelperService,
-      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },],
+      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
+    provideNativeDateAdapter()  
+  ],
   standalone: true,
   templateUrl: './full.component.html',
   styleUrl: 'full.component.scss',
@@ -100,6 +106,9 @@ export class FullComponent implements OnInit {
   private isCollapsedWidthFixed = false;
   private htmlElement!: HTMLHtmlElement;
   @ViewChild('filterNavRight', { static: false }) filterNavRight: MatSidenav;
+  activeJitsi: any = null;
+  jitsiSub: Subscription | null = null;
+  jitsiMinimized = false;
 
   get isOver(): boolean {
     return this.isMobileScreen;
@@ -216,6 +225,7 @@ export class FullComponent implements OnInit {
     private breakpointObserver: BreakpointObserver,
     private authService: AuthService,
     private usersService: UsersService,
+    private chatService: RocketChatService,
   ) {
     this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
@@ -247,10 +257,22 @@ export class FullComponent implements OnInit {
       this.loadProfilePicture();
     });
     this.userData();
+
+    try {
+      this.jitsiSub = this.chatService.getActiveJitsiStream().subscribe((m) => {
+        this.activeJitsi = m;
+        this.jitsiMinimized = false;
+      });
+    } catch (e) {}
   }
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
+    try { this.jitsiSub?.unsubscribe(); } catch (e) {}
+  }
+
+  onJitsiClosed() {
+    try { this.chatService.closeJitsiMeeting(); } catch (e) {}
   }
 
   toggleCollapsed() {

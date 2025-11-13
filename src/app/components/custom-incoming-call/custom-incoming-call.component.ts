@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { Input, Output, EventEmitter } from '@angular/core';
-import { CometChat } from '@cometchat/chat-sdk-javascript-new';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -11,15 +10,15 @@ import { CommonModule } from '@angular/common';
   styleUrl: './custom-incoming-call.component.scss'
 })
 export class CustomIncomingCallComponent {
-  @Input() incomingCall: CometChat.Call;
-  @Output() incomingCallAccepted = new EventEmitter<any>();
-  @Output() incomingCallRejected = new EventEmitter<any>();
+  // @Input() incomingCall: CometChat.Call;
+  // @Output() incomingCallAccepted = new EventEmitter<any>();
+  // @Output() incomingCallRejected = new EventEmitter<any>();
 
-  acceptIncomingCall() {
-    this.incomingCallAccepted.emit(this.incomingCall);
-  }
+  // acceptIncomingCall() {
+  //   this.incomingCallAccepted.emit(this.incomingCall);
+  // }
 
-  rejectIncomingCall() {
-    this.incomingCallRejected.emit(this.incomingCall);
-  }
+  // rejectIncomingCall() {
+  //   this.incomingCallRejected.emit(this.incomingCall);
+  // }
 }

@@ -4,12 +4,13 @@ import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
+import { RocketChatService } from './rocket-chat.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsersService {
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) { }
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private chatService: RocketChatService) { }
   selectedUser: any = { id: null, name: '' };
   private teamMemberSource = new BehaviorSubject<number | null>(null);
   teamMember$ = this.teamMemberSource.asObservable();
@@ -127,7 +128,9 @@ export class UsersService {
       form.append('remove_picture', 'true');
     }
 
-    return this.http.patch(`${this.API_URI}/users`, form).pipe(
+    return this.http.patch(`${this.API_URI}/users`, form, {
+      headers: this.chatService.getAuthHeaders(false),
+    }).pipe(
       map((result) => {
         if (userData.profile || userData.profile === null) {
           this.profilePicUpdatedSource.next();
