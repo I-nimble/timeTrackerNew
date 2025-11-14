@@ -22,6 +22,8 @@ import {
   RocketChatMessage,
   RocketChatTeam,
   RocketChatUserResponse,
+  RocketChatMessageResponse,
+  RocketChatApiResponse,
   RocketChatMessageAttachment
 } from '../models/rocketChat.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -713,7 +715,8 @@ export class RocketChatService {
 
   sendMessageWithConfirmation(
     roomId: string,
-    message: string
+    message: string,
+    tmid?: string
   ): Observable<{
     success: boolean;
     message?: RocketChatMessage;
@@ -753,6 +756,7 @@ export class RocketChatService {
         _id: messageId,
         rid: roomId,
         msg: message,
+        ...(tmid && { tmid })
         // ts: Date.now(),
       };
 
@@ -976,6 +980,13 @@ export class RocketChatService {
     );
   }
 
+  getAllTeams(): Observable<RocketChatTeam[]> {
+    const headers = this.getAuthHeaders();
+    return this.http.get<any>(`${this.CHAT_API_URI}teams.listAll`, { headers }).pipe(
+      map(res => res.teams as RocketChatTeam[])
+    );
+  }
+
   getTeamMembers(teamId: string): Observable<RocketChatUser[]> {
     const headers = this.getAuthHeaders();
 
@@ -1084,14 +1095,60 @@ export class RocketChatService {
     );
   }
 
-  sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[]): Observable<any> {
+  sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[], tmid?: string): Observable<any> {
     return this.http.post(
       `${this.CHAT_API_URI}chat.postMessage`,
       {
         channel: roomId,
         text: message,
-        ...(attachments && { attachments })
+        ...(attachments && { attachments }),
+        ...(tmid && { tmid })
       },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  reactToMessage(messageId: string, emoji: string): Observable<RocketChatApiResponse> {
+    const body = { messageId, emoji };
+    return this.http.post<RocketChatApiResponse>(
+      `${this.CHAT_API_URI}chat.react`,
+      body,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  editMessage(roomId: string, msgId: string, text: string): Observable<RocketChatMessageResponse> {
+    const body = { roomId, msgId, text };
+    return this.http.post<RocketChatMessageResponse>(
+      `${this.CHAT_API_URI}chat.update`,
+      body,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  deleteMessage(msgId: string, roomId: string): Observable<RocketChatApiResponse> {
+    const body = { msgId, roomId };
+    return this.http.post<RocketChatApiResponse>(
+      `${this.CHAT_API_URI}chat.delete`,
+      body,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  pinMessage(messageId: string): Observable<RocketChatMessageResponse> {
+    const body = { messageId };
+    return this.http.post<RocketChatMessageResponse>(
+      `${this.CHAT_API_URI}chat.pinMessage`,
+      body,
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
+  unpinMessage(messageId: string): Observable<RocketChatMessageResponse> {
+    const body = { messageId };
+    return this.http.post<RocketChatMessageResponse>(
+      `${this.CHAT_API_URI}chat.unPinMessage`,
+      body,
       { headers: this.getAuthHeaders() }
     );
   }

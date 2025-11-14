@@ -202,6 +202,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       'added-user-to-team',
       'removed-user-from-team',
       'user-added-room-to-team',
+      'user-deleted-room-from-team',
       'room_changed_name',
       'room_changed_description',
       'room_changed_avatar'
@@ -231,6 +232,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
         return `${actor} removed user ${target} from the team`;
       case 'user-added-room-to-team':
         return `${actor} added room "${target}" to the team`;
+      case 'user-deleted-room-from-team':
+        return `${actor} removed room "${target}" from the team`;
       case 'r':
       case 'room_changed_name':
         return `${actor} changed the room name to "${target}"`;
@@ -254,11 +257,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   canCreateChannel(): boolean {
-    return this.hasAnyRole(['leader', 'admin']);
+    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
   }
 
   canCreateDirectMessage(): boolean {
-    return this.hasAnyRole(['user', 'admin']);
+    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
   }
 
   canDeleteRoom(room: RocketChatRoom): boolean {
@@ -866,6 +869,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
 
     this.isUserTyping = this.typingUsers.length > 0;
+    if (this.messagesContainer?.nativeElement.scrollTop + this.messagesContainer?.nativeElement.clientHeight >= this.messagesContainer?.nativeElement.scrollHeight) {
+      this.scrollToBottom();
+    }
 
     if (this.typingTimeout) {
       clearTimeout(this.typingTimeout);
@@ -877,6 +883,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           (user) => user !== event.username
         );
         this.isUserTyping = this.typingUsers.length > 0;
+        if (this.messagesContainer?.nativeElement.scrollTop + this.messagesContainer?.nativeElement.clientHeight >= this.messagesContainer?.nativeElement.scrollHeight) {
+          this.scrollToBottom();
+        }
       }, 3000);
     }
   }
