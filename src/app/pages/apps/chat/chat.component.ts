@@ -94,6 +94,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   private roomSubscriptions = new Map<string, Subscription>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
   isSendingMessage = false;
+  editingMessage: RocketChatMessage | null = null;
+  replyToMessage: RocketChatMessage | null = null;
+  pressedMessageId: string | null = null;
+  private touchTimer: any = null;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -202,10 +206,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
       'added-user-to-team',
       'removed-user-from-team',
       'user-added-room-to-team',
-      'user-deleted-room-from-team',
+      'user-deleted-room-from-team',    
       'room_changed_name',
       'room_changed_description',
-      'room_changed_avatar'
+      'room_changed_avatar',
+      'message_pinned',
     ];
     return systemTypes.includes(message.t || '');
   }
@@ -231,16 +236,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
       case 'removed-user-from-team':
         return `${actor} removed user ${target} from the team`;
       case 'user-added-room-to-team':
-        return `${actor} added room "${target}" to the team`;
+        return `${actor} added room ${target} to the team`;
       case 'user-deleted-room-from-team':
         return `${actor} removed room "${target}" from the team`;
       case 'r':
       case 'room_changed_name':
-        return `${actor} changed the room name to "${target}"`;
+        return `${actor} changed the room name to ${target}`;
       case 'room_changed_description':
         return `${actor} changed the description to "${target}"`;
       case 'room_changed_avatar':
         return `${actor} changed the room avatar`;
+      case 'message_pinned':
+        return `${actor} pinned a message`
       default:
         return target || '';
     }
@@ -567,31 +574,40 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   filteredRooms(): RocketChatRoom[] {
     if (!this.roomsFilter) return this.rooms;
     const q = this.roomsFilter.toLowerCase();
-    return this.rooms.filter(
-      (r) =>
-        r?.name?.toLowerCase().includes(q) ||
-        r.usernames
-          ?.filter(
-            (u: string) => u !== this.chatService.loggedInUser?.username
-          )[0]
-          .includes(q)
-    );
+    return this.rooms.filter((r) => {
+      try {
+        const nameMatch = !!r?.name && r.name.toLowerCase().includes(q);
+        let otherUsername = '';
+        if (Array.isArray(r?.usernames) && r.usernames.length > 0) {
+          const others = r.usernames.filter((u: string) => u !== this.chatService.loggedInUser?.username);
+          otherUsername = (others && others[0]) || '';
+        }
+        const usernameMatch = otherUsername.toLowerCase().includes(q);
+        return nameMatch || usernameMatch;
+      } catch (e) {
+        return false;
+      }
+    });
   }
 
   getConversationName(room: RocketChatRoom) {
-    switch (room?.t) {
-      case 'd': // direct message
-        return room.usernames?.filter(
-          (u: string) => u !== this.chatService.loggedInUser?.username
-        )[0];
-      case 'p': // private chat
-        return room.name;
-      case 'c': // channel
-        return room.name;
-      case 'l': // livechat
+    if (!room) return 'Unknown';
+    switch (room.t) {
+      case 'd': {
+        if (room.name && room.name.trim().length > 0) return room.name;
+        if (Array.isArray(room.usernames) && room.usernames.length > 0) {
+          const other = room.usernames.find((u: string) => u !== this.chatService.loggedInUser?.username);
+          return other || (room.usernames[0] || 'Direct Message');
+        }
+        return 'Direct Message';
+      }
+      case 'p':
+      case 'c':
+        return room.name || 'Unknown';
+      case 'l':
         return 'Inimble Support';
       default:
-        return 'Unknown';
+        return room.name || 'Unknown';
     }
   }
 
@@ -892,22 +908,47 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
+    if (this.editingMessage) {
+      const updatedText = this.newMessage.trim();
+
+      this.chatService
+        .editMessage(
+          this.selectedConversation._id,
+          this.editingMessage._id,
+          updatedText
+        )
+        .subscribe({
+          next: (res) => {
+            this.editingMessage!.msg = updatedText;
+            this.editingMessage = null;
+            this.newMessage = '';
+
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error editing message:', err);
+          },
+        });
+
+      return;
+    }
     this.isSendingMessage = true;
 
     this.chatService.stopTyping(this.selectedConversation._id);
     this.typingUsers = [];
+    const threadId = this.replyToMessage?._id;
 
     this.chatService
       .sendMessageWithConfirmation(
         this.selectedConversation._id,
-        this.newMessage
+        this.newMessage.trim(),
+        threadId
       )
       .subscribe({
         next: (result) => {
           if (result.success) {
             this.newMessage = '';
-          } else {
-            console.error('Failed to send message:', result.error);
+            this.replyToMessage = null;
           }
           this.isSendingMessage = false;
         },
@@ -1017,5 +1058,163 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     this.typingTimeout = setTimeout(() => {
       this.chatService.stopTyping(this.selectedConversation._id);
     }, 1000);
+  }
+
+  onMessageTouchStart(event: TouchEvent, message: RocketChatMessage) {
+    if (!this.isMobile) return;
+    this.clearTouchTimer();
+    const msgId = message?._id;
+    this.touchTimer = setTimeout(() => {
+      this.pressedMessageId = msgId || null;
+      setTimeout(() => {
+        if (this.pressedMessageId === msgId) {
+          this.pressedMessageId = null;
+          this.cdr.markForCheck();
+        }
+      }, 3000);
+      this.cdr.markForCheck();
+    }, 600);
+  }
+
+  onMessageTouchEnd(event: TouchEvent, message: RocketChatMessage) {
+    if (!this.isMobile) return;
+    if (this.touchTimer) {
+      this.clearTouchTimer();
+    }
+  }
+
+  onMessageTouchCancel(event: TouchEvent) {
+    this.clearTouchTimer();
+  }
+
+  private clearTouchTimer() {
+    if (this.touchTimer) {
+      clearTimeout(this.touchTimer);
+      this.touchTimer = null;
+    }
+  }
+
+/*   reactToMessage(message: RocketChatMessage) {
+    const emoji = ':smile:';
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      next: (res) => {
+        console.log('Reacted to message:', res);
+      },
+      error: (err) => {
+        console.error('Error reacting to message:', err);
+      }
+    });
+  } */
+
+  quoteMessage(message: RocketChatMessage) {
+    this.replyToMessage = message;
+    this.openSnackBar('Replying to message', 'OK');
+    this.scrollToBottom();
+  }
+
+  cancelReply() {
+    this.replyToMessage = null;
+  }
+
+  getRepliedMessage(message: RocketChatMessage): RocketChatMessage | null {
+    const anyMsg: any = message as any;
+    const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
+    const tmid = possibleIds.find((id) => !!id) as string | undefined;
+    if (!tmid) return null;
+    return this.messages.find((m) => m._id === tmid) || null;
+  }
+
+  getRepliedTextOrAttachment(msg: RocketChatMessage): string {
+    if (!msg) return '';
+    if (msg.msg && msg.msg.trim().length > 0) return msg.msg;
+    if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
+    return '';
+  }
+
+  pinnedMessage(): RocketChatMessage | null {
+    if (!this.messages || this.messages.length === 0) return null;
+    const pinned = this.messages.filter((m) => !!m.pinned);
+    if (pinned.length === 0) return null;
+
+    try {
+      pinned.sort((a, b) => this.getMessageTimestamp(a).getTime() - this.getMessageTimestamp(b).getTime());
+      return pinned[pinned.length - 1] || null;
+    } catch (e) {
+      return pinned[pinned.length - 1] || null;
+    }
+  }
+
+  pinnedPreview(msg: RocketChatMessage | null): string {
+    if (!msg) return '';
+    if (msg.msg && msg.msg.trim().length > 0) {
+      const txt = msg.msg.trim();
+      return txt.length > 120 ? txt.slice(0, 120) + '...' : txt;
+    }
+    if (msg.attachments && msg.attachments.length > 0) {
+      const a: any = msg.attachments[0];
+      const title = a?.title || a?.text || a?.description || '';
+      if (title && title.trim().length > 0) {
+        return title.length > 120 ? title.slice(0, 120) + '...' : title;
+      }
+      return a?.title || 'Attachment';
+    }
+    return '';
+  }
+
+  scrollToMessage(id?: string | null) {
+    if (!id) return;
+    try {
+      const container = this.messagesContainer?.nativeElement;
+      if (!container) return;
+      const el = container.querySelector(`#msg-${id}`) as HTMLElement | null;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('replied-highlight');
+        setTimeout(() => {
+          el.classList.remove('replied-highlight');
+        }, 1400);
+      }
+    } catch (err) {
+      console.error('scrollToMessage error', err);
+    }
+  }
+
+  togglePin(message: RocketChatMessage) {
+    const action$ = message.pinned
+      ? this.chatService.unpinMessage(message._id)
+      : this.chatService.pinMessage(message._id);
+
+    action$.subscribe({
+      next: (res) => {
+        message.pinned = !message.pinned;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error pinning/unpinning message:', err);
+      }
+    });
+  }
+
+  editMessage(message: RocketChatMessage) {
+    this.replyToMessage = null;
+    this.editingMessage = message;
+    this.newMessage = message.msg;
+  }
+  
+  cancelEditing() {
+    this.editingMessage = null;
+    this.newMessage = '';
+  }
+
+  deleteMessage(message: RocketChatMessage) {
+    this.chatService.deleteMessage(message._id, message.rid).subscribe({
+      next: (res) => {
+        this.messages = this.messages.filter((m) => m._id !== message._id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error deleting message:', err);
+      }
+    });
   }
 }

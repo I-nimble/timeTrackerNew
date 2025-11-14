@@ -292,9 +292,21 @@ export class RocketChatService {
         this.handleWebSocketMessage(JSON.parse(event.data));
       };
 
-      this.socket.onerror = (error) => {
-        console.error('Rocket.Chat WebSocket error:', error);
-        reject(error);
+      this.socket.onerror = (errorEvent: Event) => {
+        // Check if the event is an ErrorEvent and has a message property
+        if (errorEvent instanceof ErrorEvent && errorEvent.message) {
+          console.error('Rocket.Chat WebSocket error:', errorEvent.message);
+        } else {
+          // For generic Event objects, try to infer context or log the object itself
+          console.error('Rocket.Chat WebSocket error: Connection failed or interrupted.', errorEvent);
+        }
+        // It's good practice to reject the promise only with an Error object
+        // or a string to provide clearer information to the consumer.
+        reject(new Error(
+            (errorEvent instanceof ErrorEvent && errorEvent.message)
+                ? errorEvent.message
+                : 'WebSocket connection failed'
+        ));
       };
 
       this.socket.onclose = (event) => {
