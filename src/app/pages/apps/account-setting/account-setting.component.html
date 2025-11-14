@@ -46,7 +46,7 @@
 
                     <div class="m-t-24">
                       <button 
-                        *ngIf="!sentinelSubscription || sentinelSubscription.status === 'inactive' || sentinelSubscription.status === 'incomplete' || sentinelSubscription.status === 'canceled'"
+                        *ngIf="!sentinelSubscription || sentinelSubscription.status === 'inactive' || sentinelSubscription.status === 'incomplete' || sentinelSubscription.status === 'past_due' || sentinelSubscription.status === 'canceled'"
                         mat-flat-button 
                         color="primary" 
                         (click)="enableSentinel()"
