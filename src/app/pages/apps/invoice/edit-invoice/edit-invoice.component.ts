@@ -31,7 +31,8 @@ import { Loader } from 'src/app/app.models';
     ReactiveFormsModule,
     TablerIconsModule,
     LoaderComponent
-  ]
+  ],
+  providers: [DatePipe] 
 })
 export class AppEditInvoiceComponent {
   id = signal<number>(0);
