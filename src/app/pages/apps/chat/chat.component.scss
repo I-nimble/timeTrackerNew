@@ -295,6 +295,11 @@
   margin-bottom: 10px;
   position: relative;
   flex-grow: 1;
+  overflow: visible;
+
+  .message-bubble {
+    position: relative;
+  }
 
   .p-10 {
     padding: 10px;
@@ -315,8 +320,8 @@
 
 .message-actions {
   position: absolute;
-  top: 6px;
-  right: 8px;
+  top: -4rem;
+  right: .5rem;
   display: flex;
   gap: 6px;
   align-items: center;
@@ -345,17 +350,17 @@
   right: 8px;
 }
 
-.message-actions.from-me {
-  right: auto;
-  left: 8px;
-}
+// .message-actions.from-me {
+//   right: auto;
+//   left: 8px;
+// }
 
-@media (max-width: 768px) {
-  .message-actions {
-    top: 6px;
-    right: 6px;
-  }
-}
+// @media (max-width: 768px) {
+//   .message-actions {
+//     top: 6px;
+//     right: 6px;
+//   }
+// }
 
 .bg-light-primary {
   background: color-mix(in srgb, var(--mat-sys-on-primary) 10%, var(--mat-sys-surface));
