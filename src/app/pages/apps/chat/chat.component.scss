@@ -255,18 +255,21 @@
 
 .chat-messages-wrapper {
   background: var(--mat-sys-surface);
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+  height: 100%;
   overflow-y: hidden;
 }
 
 .chat-messages {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  height: 100%;
   background: var(--mat-sys-surface);
   padding: 24px;
-  max-height: none;
+}
+
+.messages-list {
+  flex-grow: 1;
 }
 
 .message-content {
@@ -287,8 +290,9 @@
   line-height: 1.3;
 }
 
-.chat-list {
+.message {
   margin-bottom: 10px;
+  flex-grow: 1;
 
   .p-10 {
     padding: 10px;
