@@ -142,6 +142,9 @@ export interface RocketChatMessage {
   urls?: RocketChatMessageUrl[];
   md?: RocketChatMessageMarkdownElement[];
   drid?: string;
+  pinned?: boolean;
+  isEditing?: boolean;
+  editText?: string;
 }
 
 export interface RocketChatMessageResponse extends RocketChatApiResponse {
