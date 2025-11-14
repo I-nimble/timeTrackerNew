@@ -13,13 +13,89 @@
         <mat-card-content class="p-y-24">
           <div class="row">
             <div class="col-sm-6" *ngIf="role === '3'">
-              <mat-card class="cardWithShadow">
-                <mat-card-content class="p-y-24">
-                  <mat-card-title
-                    >Current Plan: <span class="text-success">{{ currentPlan?.name }}</span>
-                  </mat-card-title>
-                  <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
-                    >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
+              <div class="col-12">
+                <mat-card class="cardWithShadow">
+                  <mat-card-content class="p-y-24">
+                    <mat-card-title
+                      >Current Plan: <span class="text-success">{{ currentPlan?.name }}</span>
+                    </mat-card-title>
+                    <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
+                      >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
+
+                    <div class="m-t-24">
+                      <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
+                        <span>
+                          Go Premium
+                        </span>
+                        <i-tabler name="diamond" class="icon-20 f-w-600 f-s-5 m-l-8"></i-tabler>
+                      </button>
+                      <button mat-stroked-button class="m-l-8" color="warn" *ngIf="currentPlan?.id !== 1">
+                        Reset Plan
+                      </button>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              <div class="col-12">
+                <mat-card class="cardWithShadow">
+                  <mat-card-content class="p-y-24">
+                    <mat-card-title>My Sentinel</mat-card-title>
+                    <mat-card-subtitle class="f-s-14">
+                      AI content monitoring that tracks trending topics, analyzes posts automatically, and generates actionable suggestions for content opportunities.
+                    </mat-card-subtitle>
+
+                    <div class="m-t-24">
+                      <button 
+                        *ngIf="!sentinelSubscription || sentinelSubscription.status === 'inactive' || sentinelSubscription.status === 'incomplete' || sentinelSubscription.status === 'past_due' || sentinelSubscription.status === 'canceled'"
+                        mat-flat-button 
+                        color="primary" 
+                        (click)="enableSentinel()"
+                        [disabled]="isLoadingSubscription"
+                      >
+                        <span *ngIf="!isLoadingSubscription">Enable</span>
+                        <span *ngIf="isLoadingSubscription">Processing...</span>
+                      </button>
+                      
+                      <button 
+                        *ngIf="sentinelSubscription?.status === 'active' && !sentinelSubscription?.cancel_at_period_end"
+                        mat-stroked-button 
+                        class="m-l-8" 
+                        color="warn" 
+                        (click)="disableSentinel()"
+                        [disabled]="isLoadingSubscription"
+                      >
+                        <span *ngIf="!isLoadingSubscription">Disable</span>
+                        <span *ngIf="isLoadingSubscription">Processing...</span>
+                      </button>
+
+                      <button 
+                        *ngIf="sentinelSubscription?.status === 'active' && sentinelSubscription?.cancel_at_period_end"
+                        mat-stroked-button 
+                        class="m-l-8" 
+                        color="primary"
+                        disabled
+                      >
+                        Canceled (Ends {{ sentinelSubscription?.current_period_end | date:'mediumDate' }})
+                      </button>
+                    </div>
+
+                    <div *ngIf="sentinelSubscription?.status === 'active'" class="m-t-24">
+                      <mat-card>
+                        <mat-card-content class="p-0 p-t-16">
+                          <mat-card-title>Payment Invoice</mat-card-title>
+                          
+                          <div *ngIf="isLoadingReceipt" class="text-center p-16">
+                            <p class="m-t-8">Loading invoice...</p>
+                          </div>
+
+                          <div *ngIf="subscriptionReceipt && !isLoadingReceipt" class="invoice-info">
+                            <div class="m-t-16">
+                              <button mat-stroked-button color="primary" class="m-r-8 m-b-8" (click)="viewReceipt()">
+                                <mat-icon>visibility</mat-icon>
+                                View Receipt
+                              </button>
+                            </div>
+                          </div>
 
                   <div class="m-t-24">
                     <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
@@ -290,7 +366,20 @@
                 <mat-card-subtitle class="f-s-14">
                   Upload your introduction video in English
                 </mat-card-subtitle>
-                
+                <div class="m-t-16">
+                  <p class="f-s-14 text-muted">
+                    Please answer the following questions as detailed as possible and submit an
+                    audio or video of yourself <strong><u>(IN ENGLISH, BE SPONTANEOUS)</u></strong>.
+                    The audio or video must be at least 1 minute long and should not exceed
+                    3 minutes.
+                  </p>
+                  <ol class="f-s-14 text-muted m-l-16 m-t-8">
+                    <li>Who are you? (Name, age, profession)</li>
+                    <li>What are your three top priorities in your life and why?</li>
+                    <li>What do you admire about yourself? and why?</li>
+                    <li>Would you hire a person like yourself to join your team? why?</li>
+                  </ol>
+                </div>
                 <div class="text-center m-t-24 logo-upload">
                   <!-- Video preview -->
                   <video 
