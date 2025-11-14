@@ -98,6 +98,8 @@ export class HeaderComponent implements OnInit {
   profiledd: profiledd[] = [];
   canViewTalentMatch: boolean = false;
   canViewCandidates: boolean = false;
+  canViewExpertMatch: boolean = false;
+  canViewMySentinel: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -205,6 +207,8 @@ export class HeaderComponent implements OnInit {
         this.canViewTalentMatch =
           this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view');
         this.canViewCandidates = this.userPermissions.includes('candidates.view');
+        this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
+        this.canViewMySentinel = this.userPermissions.includes('my-sentinel.view');
       },
       error: (err) => {
         console.error('Error fetching user permissions', err);

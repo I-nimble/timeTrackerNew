@@ -144,6 +144,9 @@
                       color="primary"
                     >
                       <input matInput type="text" formControlName="name" />
+                       <mat-error *ngIf="personalForm.get('name')?.touched && personalForm.get('name')?.errors">
+                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('name')?.errors?.['required']">Name is required</span>
+                      </mat-error>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-sm-6">
@@ -157,6 +160,9 @@
                         color="primary"
                       >
                         <input matInput type="text" formControlName="last_name" />
+                        <mat-error *ngIf="personalForm.get('last_name')?.touched && personalForm.get('last_name')?.errors">
+                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('last_name')?.errors?.['required']">Last name is required</span>
+                      </mat-error>
                       </mat-form-field>
                   </div>
                   <div class="col-12">
@@ -185,11 +191,11 @@
                       class="w-100"
                       color="primary"
                     >
-                      <input matInput type="text" placeholder="+1 (123) 456-7890" formControlName="phone" />
+                      <input matInput type="text" inputmode="numeric" formControlName="phone" (keypress)="restrictToNumbers($event)" />
+                      <mat-error *ngIf="personalForm.get('phone')?.touched && personalForm.get('phone')?.errors">
+                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('phone')?.errors?.['required']">Phone number is required</span>
+                      </mat-error>
                     </mat-form-field>
-                    <div *ngIf="personalForm.get('phone')?.touched && personalForm.get('phone')?.errors">
-                      <p class="text-danger f-s-12 m-t-0" *ngIf="personalForm.get('phone')?.errors?.['pattern']">Please enter a valid phone number (e.g., +1 (123) 456-7890)</p> 
-                    </div>
                   </div>
                   <div class="col-12">
                     <!-- input -->
@@ -207,6 +213,9 @@
                         placeholder="Address"
                         formControlName="address"
                       />
+                      <mat-error *ngIf="personalForm.get('address')?.touched && personalForm.get('address')?.errors">
+                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('address')?.errors?.['required']">Address is required</span>
+                      </mat-error>
                     </mat-form-field>
                   </div>
                 </form>
@@ -269,9 +278,6 @@
                         formControlName="phone" />
 
                       </mat-form-field>
-                      <div *ngIf="profileForm.get('phone')?.touched && profileForm.get('phone')?.errors">
-                        <p class="text-danger f-s-12 m-t-0" *ngIf="profileForm.get('phone')?.errors?.['pattern']">Please enter a valid phone number (e.g., +1 (123) 456-7890)</p> 
-                      </div>
                     </div>
                   </form>
               </mat-card-content>
@@ -924,7 +930,7 @@
     </mat-tab-group>
     <div class="text-right p-24 p-t-0">
       <ng-container *ngIf="!(role === '2' && isOrphan && selectedTabIndex === 1)">
-        <button mat-flat-button class="m-r-8" (click)="saveProfile()" [disabled]="isSubmitting">Save</button>
+        <button mat-flat-button class="m-r-8" (click)="saveProfile()" [disabled]="!isSaveEnabled() || isSubmitting">Save</button>
         <button mat-flat-button class="bg-error text-white">Cancel</button>
       </ng-container>
     </div>
