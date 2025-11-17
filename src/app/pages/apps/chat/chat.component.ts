@@ -688,6 +688,42 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     return new Date();
   }
 
+  formatMessageTime(message: RocketChatMessage): string {
+    const date = this.getMessageTimestamp(message);
+    return date.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  isSameDay(date1: Date, date2: Date): boolean {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  }
+
+  getDateLabel(date: Date): string {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (this.isSameDay(date, today)) {
+      return 'Today';
+    } else if (this.isSameDay(date, yesterday)) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+  }
+
   getSenderAvatar(message: RocketChatMessage): string {
     if (this.isFromMe(message)) {
       return this.chatService.loggedInUser?.avatarUrl || this.defaultAvatarUrl;
@@ -875,20 +911,13 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   getLastMessage(room: RocketChatRoom): string {
     const lastMessage = room.lastMessage;
-    switch (lastMessage?.t) {
-      case 'videoconf':
-        return 'Call started';
-      case 'd':
-        return lastMessage.msg || 'No messages yet';
-      case 'p':
-        return lastMessage.msg || 'No messages yet';
-      case 'c':
-        return lastMessage.msg || 'No messages yet';
-      case 'l':
-        return lastMessage.msg || 'No messages yet';
-      default:
-        return lastMessage?.msg || 'No messages yet';
+    if (!lastMessage) return 'No messages yet';
+    if (lastMessage.t === 'videoconf') return 'Call started';
+    const msgText = lastMessage.msg || '';
+    if (room.t !== 'd' && lastMessage.u?.username) {
+      return `${lastMessage.u.username}: ${msgText}`;
     }
+    return msgText || 'No messages yet';
   }
 
   private handleTypingEvent(event: {
@@ -1152,6 +1181,22 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     if (msg.msg && msg.msg.trim().length > 0) return msg.msg;
     if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
     return '';
+  }
+  
+  isReplyMessage(message: RocketChatMessage): boolean {
+    if (!message) return false;
+
+    const anyMsg: any = message;
+
+    const possibleIds = [
+      anyMsg.tmid,
+      anyMsg.tmidString,
+      anyMsg.threadId,
+      anyMsg.tmid_id,
+      anyMsg.tmidId
+    ];
+
+    return possibleIds.some(id => typeof id === 'string' && id.trim().length > 0);
   }
 
   pinnedMessage(): RocketChatMessage | null {
