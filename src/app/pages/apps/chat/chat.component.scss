@@ -231,6 +231,18 @@
   }
 }
 
+.date-separator {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  font-size: 12px;
+
+  span {
+    padding: 4px 12px;
+    border-radius: 12px !important;
+  }
+}
+
 .chat-main {
   display: flex;
   flex-direction: column;
