@@ -1131,7 +1131,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   quoteMessage(message: RocketChatMessage) {
     this.replyToMessage = message;
-    this.openSnackBar('Replying to message', 'OK');
     this.scrollToBottom();
   }
 
