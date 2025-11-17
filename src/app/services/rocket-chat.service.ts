@@ -804,7 +804,7 @@ export class RocketChatService {
         _id: messageId,
         rid: roomId,
         msg: message,
-        ...(tmid && { tmid })
+        ...(tmid && { tmid, tshow: true })
         // ts: Date.now(),
       };
 
