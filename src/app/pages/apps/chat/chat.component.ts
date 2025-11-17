@@ -46,6 +46,7 @@ import {
 } from '../../../models/rocketChat.model';
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-chat',
@@ -105,7 +106,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -1229,13 +1230,23 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   deleteMessage(message: RocketChatMessage) {
-    this.chatService.deleteMessage(message._id, message.rid).subscribe({
-      next: (res) => {
-        this.messages = this.messages.filter((m) => m._id !== message._id);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error deleting message:', err);
+    this.confirmationModal.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'message',
+        message: `This action will be permanent.`,
+      }
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.chatService.deleteMessage(message._id, message.rid).subscribe({
+          next: (res) => {
+            this.messages = this.messages.filter((m) => m._id !== message._id);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error deleting message:', err);
+          }
+        });
       }
     });
   }
