@@ -98,6 +98,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   replyToMessage: RocketChatMessage | null = null;
   pressedMessageId: string | null = null;
   private touchTimer: any = null;
+  userNameCache = new Map<string, string>();
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -590,14 +591,22 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     });
   }
 
-  getConversationName(room: RocketChatRoom) {
+  getConversationName(room: RocketChatRoom): string {
     if (!room) return 'Unknown';
+    
     switch (room.t) {
       case 'd': {
         if (room.name && room.name.trim().length > 0) return room.name;
         if (Array.isArray(room.usernames) && room.usernames.length > 0) {
           const other = room.usernames.find((u: string) => u !== this.chatService.loggedInUser?.username);
-          return other || (room.usernames[0] || 'Direct Message');
+          if (!other) return (room.usernames[0] || 'Direct Message');
+          
+          if (this.userNameCache.has(other)) {
+            return this.userNameCache.get(other)!;
+          }
+          
+          this.loadUserName(other);
+          return other; 
         }
         return 'Direct Message';
       }
@@ -609,6 +618,20 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       default:
         return room.name || 'Unknown';
     }
+  }
+
+  private loadUserName(username: string): void {
+    this.chatService.getUserInfo(username).subscribe({
+      next: (user: RocketChatUser) => {
+        const displayName = user.name && user.name.trim().length > 0 ? user.name : username;
+        this.userNameCache.set(username, displayName);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.userNameCache.set(username, username);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   getUnreadMessageCount(room: RocketChatRoom): number {
