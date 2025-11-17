@@ -170,7 +170,7 @@
       </mat-toolbar>
       <mat-toolbar *ngIf="pinnedMessage()" class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
         <div class="pinned-message-bar" (click)="scrollToMessage(pinnedMessage()?._id)">
-          <mat-icon>push_pin</mat-icon>
+          <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem;"></i>
           <div class="pinned-message-content">
             <div class="pinned-label">Pinned message</div>
             <div class="pinned-preview">{{ pinnedPreview(pinnedMessage()) }}</div>
@@ -222,7 +222,12 @@
                         <mat-icon>format_quote</mat-icon>
                       </button>
                       <button mat-icon-button aria-label="Pin" (click)="$event.stopPropagation(); togglePin(message)">
-                        <mat-icon>push_pin</mat-icon>
+                        @if(message.pinned) {
+                          <i class="fa-solid fa-thumbtack-slash" style="font-size: 1.25rem;"></i>
+                        }
+                        @else {
+                          <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem;"></i>
+                        }
                       </button>
                       <button mat-icon-button aria-label="Edit" *ngIf="isFromMe(message)" (click)="$event.stopPropagation(); editMessage(message)">
                         <mat-icon>edit</mat-icon>
