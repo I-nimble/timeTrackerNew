@@ -1153,6 +1153,22 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
     return '';
   }
+  
+  isReplyMessage(message: RocketChatMessage): boolean {
+    if (!message) return false;
+
+    const anyMsg: any = message;
+
+    const possibleIds = [
+      anyMsg.tmid,
+      anyMsg.tmidString,
+      anyMsg.threadId,
+      anyMsg.tmid_id,
+      anyMsg.tmidId
+    ];
+
+    return possibleIds.some(id => typeof id === 'string' && id.trim().length > 0);
+  }
 
   pinnedMessage(): RocketChatMessage | null {
     if (!this.messages || this.messages.length === 0) return null;
