@@ -214,7 +214,7 @@
                       </div>
                     </div>
                     <div class="message-bubble" [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
-                    <div class="message-actions" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf'" [class.from-me]="isFromMe(message)">
+                    <div class="message-actions" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
 <!--                       <button mat-icon-button aria-label="React" (click)="$event.stopPropagation(); reactToMessage(message)">
                         <mat-icon>emoji_emotions</mat-icon>
                       </button> -->
