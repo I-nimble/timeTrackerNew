@@ -984,7 +984,7 @@ export class RocketChatService {
   
   getUsers(): Observable<RocketChatUser[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<RocketChatUser[]>(`${this.CHAT_API_URI}users.list`, { headers }).pipe(
+    return this.http.get<RocketChatUser[]>(`${this.CHAT_API_URI}users.list?count=0`, { headers }).pipe(
       map((res: any) => res.users as RocketChatUser[])
     );
   }
@@ -1010,8 +1010,8 @@ export class RocketChatService {
   ): Observable<RocketChatUser[]> {
     const endpoint =
       type === 'c'
-        ? `channels.members?roomId=${roomId}`
-        : `groups.members?roomId=${roomId}`;
+        ? `channels.members?roomId=${roomId}&count=0`
+        : `groups.members?roomId=${roomId}&count=0`;
 
     return this.http.get<{ members: RocketChatUser[] }>(
       `${this.CHAT_API_URI}${endpoint}`,
@@ -1023,14 +1023,14 @@ export class RocketChatService {
 
   getTeams(): Observable<RocketChatTeam[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.CHAT_API_URI}teams.list`, { headers }).pipe(
+    return this.http.get<any>(`${this.CHAT_API_URI}teams.list?count=0`, { headers }).pipe(
       map(res => res.teams as RocketChatTeam[])
     );
   }
 
   getAllTeams(): Observable<RocketChatTeam[]> {
     const headers = this.getAuthHeaders();
-    return this.http.get<any>(`${this.CHAT_API_URI}teams.listAll`, { headers }).pipe(
+    return this.http.get<any>(`${this.CHAT_API_URI}teams.listAll?count=0`, { headers }).pipe(
       map(res => res.teams as RocketChatTeam[])
     );
   }
@@ -1039,7 +1039,7 @@ export class RocketChatService {
     const headers = this.getAuthHeaders();
 
     return this.http.get<{ members: any[] }>(
-      `${this.CHAT_API_URI}teams.members?teamId=${teamId}`,
+      `${this.CHAT_API_URI}teams.members?teamId=${teamId}&count=0`,
       { headers }
     ).pipe(
       map(res =>
