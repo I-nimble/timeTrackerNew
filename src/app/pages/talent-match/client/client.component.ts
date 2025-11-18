@@ -75,7 +75,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     'position',
     'alignment',
     'experience',
-    'location',
+    'rate',
     'actions',
   ];
   dataSource!: MatTableDataSource<any>;
