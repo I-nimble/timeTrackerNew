@@ -15,7 +15,7 @@
         <div class="header-row mb-4">
           <div class="left-ghost"></div>
           <h4 class="header-title">TALENT MATCH</h4>
-          <div class="action-buttons" *ngIf="userRole !== '3'">
+          <div class="action-buttons" *ngIf="userRole !== '3' && canEdit">
             <button mat-flat-button color="primary" *ngIf="!editMode" (click)="enterEditMode()">
               Edit
             </button>
