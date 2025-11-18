@@ -69,6 +69,7 @@ export class RocketChatService {
 
   isChatAvailable: boolean = false;
   callsAvailable: boolean = false;
+  private connectionInProgress = false;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
@@ -137,7 +138,6 @@ export class RocketChatService {
         this.initializeRocketChat(this.credentials);
         this.credentialsSubject.next(this.credentials);
         this.connectionSubject.next(true);
-        this.connectWebSocket();
       } catch (error) {
         console.error('Error loading Rocket.Chat credentials:', error);
         this.clearCredentials();
@@ -209,7 +209,12 @@ export class RocketChatService {
     localStorage.setItem('rocketChatCredentials', JSON.stringify(credentials));
     this.credentialsSubject.next(credentials);
     this.connectionSubject.next(true);
-    this.connectWebSocket();
+
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      this.connectWebSocket().catch(error => {
+        console.error('Failed to connect WebSocket:', error);
+      });
+    }
   }
 
   private clearCredentials(): void {
@@ -259,53 +264,96 @@ export class RocketChatService {
       throw new Error('Not authenticated');
     }
 
+    if (this.connectionInProgress) {
+      // console.log('WebSocket connection already in progress, skipping...');
+      return;
+    }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      // console.log('WebSocket already connected, skipping...');
+      return;
+    }
+
+    this.connectionInProgress = true;
+
     return new Promise((resolve, reject) => {
-      if (this.socket) {
-        this.socket.close();
-      }
-
-      const wsUrl = environment.rocketChatWebSocketUrl;
-      this.socket = new WebSocket(wsUrl);
-
-      this.socket.onopen = () => {
-        this.sendWebSocketMessage({
-          msg: 'connect',
-          version: '1',
-          support: ['1'],
-        });
-
-        this.sendWebSocketMessage({
-          msg: 'method',
-          method: 'login',
-          id: this.generateMessageId(),
-          params: [
-            {
-              resume: this.credentials!.authToken,
-            },
-          ],
-        });
-
-        resolve();
-      };
-
-      this.socket.onmessage = (event) => {
-        this.handleWebSocketMessage(JSON.parse(event.data));
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('Rocket.Chat WebSocket error:', error);
-        reject(error);
-      };
-
-      this.socket.onclose = (event) => {
-        this.connectionSubject.next(false);
-
-        if (this.credentials) {
-          setTimeout(() => {
-            this.connectWebSocket();
-          }, 5000);
+      try {
+        if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
+            this.socket.close(1000, 'Reconnecting');
         }
-      };
+
+        const wsUrl = environment.rocketChatWebSocketUrl;
+        this.socket = new WebSocket(wsUrl);
+
+        let connectionTimeout: NodeJS.Timeout;
+
+        this.socket.onopen = () => {
+            clearTimeout(connectionTimeout);
+            this.connectionInProgress = false;
+            
+            this.sendWebSocketMessage({
+                msg: 'connect',
+                version: '1',
+                support: ['1'],
+            });
+
+            this.sendWebSocketMessage({
+                msg: 'method',
+                method: 'login',
+                id: this.generateMessageId(),
+                params: [
+                    {
+                        resume: this.credentials!.authToken,
+                    },
+                ],
+            });
+
+            resolve();
+        };
+
+        this.socket.onmessage = (event) => {
+            this.handleWebSocketMessage(JSON.parse(event.data));
+        };
+
+        this.socket.onerror = (errorEvent: Event) => {
+            console.error('WebSocket error details:', errorEvent);
+            clearTimeout(connectionTimeout);
+            this.connectionInProgress = false;
+            
+            reject(new Error(
+                (errorEvent instanceof ErrorEvent && errorEvent.message)
+                    ? errorEvent.message
+                    : 'WebSocket connection failed'
+            ));
+        };
+
+        this.socket.onclose = (event) => {            
+            clearTimeout(connectionTimeout);
+            this.connectionInProgress = false;
+            this.connectionSubject.next(false);
+
+            if (this.credentials && event.code !== 1000) {
+              setTimeout(() => {
+                this.connectWebSocket().catch(err => {
+                  console.error('Reconnection failed:', err);
+                });
+              }, 5000);
+            }
+        };
+
+        connectionTimeout = setTimeout(() => {
+            if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
+                console.error('WebSocket connection timeout');
+                this.socket.close();
+                this.connectionInProgress = false;
+                reject(new Error('WebSocket connection timeout'));
+            }
+        }, 10000);
+
+    } catch (error) {
+        this.connectionInProgress = false;
+        reject(error);
+    }
     });
   }
 
