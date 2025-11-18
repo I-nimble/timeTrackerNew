@@ -16,8 +16,24 @@ export class AIService {
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
-    return this.http.post<{ answer: { parts: { text: string }[] } }>(
+  evaluateCandidates(candidates: any[], question: string): Observable<{ 
+    answer: { parts: { text: string }[] }; 
+    enhanced_results: Array<{
+      name: string;
+      match_percentage: number;
+      position_category: string;
+      category_description: string;
+    }>
+  }> {
+    return this.http.post<{ 
+      answer: { parts: { text: string }[] }; 
+      enhanced_results: Array<{
+        name: string;
+        match_percentage: number;
+        position_category: string;
+        category_description: string;
+      }>
+    }>(
       `${this.API_URI}/ai/candidate-evaluation`,
       { candidates, question }
     );
