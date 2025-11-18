@@ -149,7 +149,7 @@
             </ng-template>
             <mat-step [completed]="true">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(0); $event.stopPropagation()">Register & Login</span>
+                <span style="cursor: default;">Register & Login</span>
               </ng-template>
               <p>
                 <strong>Welcome to the platform!</strong><br>
@@ -164,9 +164,13 @@
               </div>
             </mat-step>
 
-            <mat-step [completed]="pictureUploaded && videoUploaded">
+            <mat-step [completed]="pictureUploaded || videoUploaded">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(0); $event.stopPropagation()">Configure Profile</span>
+                <span 
+                  [style.cursor]="(pictureUploaded && videoUploaded) ? 'default' : 'pointer'" 
+                  (click)="!(pictureUploaded && videoUploaded) ? goToAccountSettings(0) : null; $event.stopPropagation()">
+                  Configure Profile
+                </span>
               </ng-template>
               <p>
                 <strong>Get your profile ready.</strong><br>
@@ -188,7 +192,11 @@
 
             <mat-step [completed]="olympiaSubmitted">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(1); $event.stopPropagation()">Complete the Olympia test</span>
+                <span 
+                  [style.cursor]="olympiaSubmitted ? 'default' : 'pointer'" 
+                  (click)="!olympiaSubmitted ? goToAccountSettings(1) : null; $event.stopPropagation()">
+                  Complete the Olympia test
+                </span>
               </ng-template>
               <p>
                 <strong>Submit the Olympia test</strong><br>
