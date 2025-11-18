@@ -12,10 +12,19 @@
   <mat-card class="cardWithShadow" id="candidate-view">
     <mat-card-content>
       <div class="container">
-        <div class="d-flex justify-between align-center mb-3">
-          <h4>TALENT MATCH</h4>
+        <div class="header-row mb-4">
+          <div class="left-ghost"></div>
+          <h4 class="header-title">TALENT MATCH</h4>
+          <div class="action-buttons" *ngIf="userRole !== '3'">
+            <button mat-flat-button color="primary" *ngIf="!editMode" (click)="enterEditMode()">
+              Edit
+            </button>
+            <ng-container *ngIf="editMode">
+              <button mat-flat-button color="primary" (click)="save()">Save</button>
+              <button mat-flat-button class="bg-error text-white" (click)="cancelEdit()">Cancel</button>
+            </ng-container>
+          </div>
         </div>
-
         <table class="table table-bordered w-100 mb-4">
           <tr>
             <td><b>Name</b></td>
@@ -172,15 +181,6 @@
           </tr>
         </table>
       </div>
-        <div *ngIf="userRole !== '3'" class="d-flex justify-content-end mb-4 gap-8">
-          <button mat-flat-button color="primary" *ngIf="!editMode" (click)="enterEditMode()">
-            Edit
-          </button>
-          <ng-container *ngIf="editMode">
-            <button mat-flat-button color="primary" (click)="save()">Save</button>
-            <button mat-flat-button class="bg-error text-white" (click)="cancelEdit()">Cancel</button>
-          </ng-container>
-        </div>
     </mat-card-content>
   </mat-card>
 </div>
