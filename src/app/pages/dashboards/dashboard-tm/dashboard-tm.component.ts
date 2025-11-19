@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, type AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { Entries } from 'src/app/models/Entries';
@@ -28,7 +28,7 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
   templateUrl: './dashboard-tm.component.html',
   styleUrl: './dashboard-tm.component.scss',
 })
-export class AppDashboardTMComponent implements OnInit {
+export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   role: string | null = localStorage.getItem('role');
   employees: any = [];
   user: any = {
@@ -117,10 +117,7 @@ export class AppDashboardTMComponent implements OnInit {
     this.getUser();
     this.getEntries();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
-    this.checkOlympiaStatus();
-    this.checkPictureUploaded();
-    this.checkVideoStatus();
-    this.setStepperToLastCompletedStep();
+    // this.setStepperToLastCompletedStep();
     this.socketService.socket?.on('server:start_timer', (data) => {
       if (data.length !== 0) {
         this.currentEntryId = data.id;
@@ -165,6 +162,12 @@ export class AppDashboardTMComponent implements OnInit {
         });
       }
     });
+  }
+
+  ngAfterViewInit() {
+    this.checkOlympiaStatus();
+    this.checkPictureUploaded();
+    this.checkVideoStatus();
   }
 
   getUser() {
