@@ -64,7 +64,7 @@
               </div>
               <div class="d-flex justify-content-between">
                 <div class="last-message">
-                  {{ getLastMessage(room).slice(0, 30) }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
+                  {{ getLastMessage(room) | slice:0:30 }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
                 </div>
                 <span
                   *ngIf="getUnreadMessageCount(room) > 0" 
@@ -168,89 +168,141 @@
           </mat-menu>
         </div>
       </mat-toolbar>
+      <mat-toolbar *ngIf="pinnedMessage()" class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
+        <div class="pinned-message-bar" (click)="scrollToMessage(pinnedMessage()?._id)">
+          <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem;"></i>
+          <div class="pinned-message-content">
+            <div class="pinned-label">Pinned message</div>
+            <div class="pinned-preview">{{ pinnedPreview(pinnedMessage()) }}</div>
+          </div>
+        </div>            
+      </mat-toolbar>
 
       <div class="chat-messages-wrapper">
         <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
           <ng-container *ngIf="selectedConversation; else noConversation">
             <div class="messages-list">
-              <div 
-                *ngFor="let message of messages" 
-                class="message"
-                [ngClass]="
-                  isSystemMessage(message) ? 'system-message' :
-                  message.t === 'videoconf' ? 'call' :
-                  !isFromMe(message) ? 'odd' : 'even'
-                ">
-                  <div *ngIf="isSystemMessage(message)" class="system-message-text">
-                    {{ formatSystemMessage(message) }}
-                  </div>
-  
-                  <div *ngIf="!isSystemMessage(message)" class="m-b-15">
-                    <div 
-                      [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'"
-                    >
-                      @if(message.t === 'videoconf') {
-                        <span class="f-s-14">
-                          Call ongoing
-                        </span>
-                        <button mat-flat-button color="primary" (click)="joinCall(message)">
-                          Join
-                        </button>
-                      }
-                      @else if(message.attachments && message.attachments.length > 0) {
-                        <img 
-                          *ngIf="!isFromMe(message)" 
-                          width="40" 
-                          class="rounded-circle" 
-                          [src]="getConversationPicture(selectedConversation)" 
-                        />
-                        <span class="f-s-14">
-                          {{ message.attachments[0]?.title || 'File attachment' }}
-                          <button mat-icon-button (click)="downloadFile(message.attachments[0])">
-                            <mat-icon>download</mat-icon>
-                          </button>
-                          <div class="attachment-preview">
-                            @switch (getAttachmentType(message.attachments[0])) {
-                              @case('image') {
-                                <img [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
-                              }
-                              @case('video') {
-                                <video [src]="getFileUrl(message.attachments[0])" controls></video>
-                              }
-                              @case('audio') {
-                                <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
-                              }
-                              @default {
-                                <span class="f-s-12 text-muted">
-                                  <mat-icon>insert_drive_file</mat-icon>
-                                  <a [href]="getFileUrl(message.attachments[0])" target="_blank" download>
-                                    {{ message.attachments[0].title }}
-                                  </a>
-                                </span>
-                              }
-                            }
-                          </div>
-                        </span>
-                      }
-                      @else {
-                        <img 
-                          *ngIf="!isFromMe(message)" 
-                          width="40" 
-                          class="rounded-circle" 
-                          [src]="getSenderAvatar(message)" 
-                        />
-  
-                        <div class="message-content">
-                          <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
-                            {{ getSenderName(message) }}
-                          </strong>
-                          <span class="f-s-14">{{ message.msg }}</span>
-                        </div>
-                      }
+              <ng-container *ngFor="let message of messages; let i = index">
+                <div *ngIf="i === 0 || !isSameDay(getMessageTimestamp(message), getMessageTimestamp(messages[i-1]))"
+                    class="date-separator">
+                  <span class="bg-light-primary">{{ getDateLabel(getMessageTimestamp(message)) }}</span>
+                </div>
+                <div 
+                  class="message"
+                  [attr.id]="'msg-'+message._id"
+                  [ngClass]="
+                    isSystemMessage(message) ? 'system-message' :
+                    message.t === 'videoconf' ? 'call' :
+                    !isFromMe(message) ? 'odd' : 'even'
+                  "
+                  (touchstart)="onMessageTouchStart($event, message)"
+                  (touchend)="onMessageTouchEnd($event, message)"
+                  (touchcancel)="onMessageTouchCancel($event)"
+                  [class.show-actions]="pressedMessageId === message?._id"
+                  [class.from-me]="isFromMe(message)"
+                >
+                    <div *ngIf="isSystemMessage(message)" class="system-message-text">
+                      {{ formatSystemMessage(message) }}
                     </div>
-                    <span class="f-s-12">{{ getMessageTimestamp(message) | date:'HH:ss' }}</span>
-                  </div>
-              </div>
+    
+                    <div *ngIf="!isSystemMessage(message)" class="m-b-15">
+                      <div *ngIf="getRepliedMessage(message)" class="reply-preview-inside mb-8 p-8 rounded" (click)="scrollToMessage(getRepliedMessage(message)?._id)">
+                        <div class="f-s-12 text-muted">
+                          <strong class="f-s-12">
+                            {{ getSenderName(getRepliedMessage(message)!) }}:
+                          </strong>
+                          <span class="f-s-12">
+                            {{ getRepliedTextOrAttachment(getRepliedMessage(message)!) | slice:0:120 }}
+                            {{ getRepliedTextOrAttachment(getRepliedMessage(message)!).length > 120 ? '...' : '' }}
+                          </span>
+                        </div>
+                      </div>
+                      <div class="message-bubble" [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
+                      <div class="message-actions" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
+  <!--                       <button mat-icon-button aria-label="React" (click)="$event.stopPropagation(); reactToMessage(message)">
+                          <mat-icon>emoji_emotions</mat-icon>
+                        </button> -->
+                        <button mat-icon-button aria-label="Quote" (click)="$event.stopPropagation(); quoteMessage(message)">
+                          <mat-icon>format_quote</mat-icon>
+                        </button>
+                        <button mat-icon-button aria-label="Pin" (click)="$event.stopPropagation(); togglePin(message)">
+                          @if(message.pinned) {
+                            <i class="fa-solid fa-thumbtack-slash" style="font-size: 1.25rem;"></i>
+                          }
+                          @else {
+                            <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem;"></i>
+                          }
+                        </button>
+                        <button mat-icon-button aria-label="Edit" *ngIf="isFromMe(message)" (click)="$event.stopPropagation(); editMessage(message)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button aria-label="Delete" *ngIf="isFromMe(message)" (click)="$event.stopPropagation(); deleteMessage(message)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+                        @if(message.t === 'videoconf') {
+                          <span class="f-s-14">
+                            Call ongoing
+                          </span>
+                          <button mat-flat-button color="primary" (click)="joinCall(message)">
+                            Join
+                          </button>
+                        }
+                        @else if(message.attachments && message.attachments.length > 0) {
+                          <img 
+                            *ngIf="!isFromMe(message)" 
+                            width="40" 
+                            class="rounded-circle" 
+                            [src]="getConversationPicture(selectedConversation)" 
+                          />
+                          <span class="f-s-14">
+                            {{ message.attachments[0]?.title || 'File attachment' }}
+                            <button mat-icon-button (click)="downloadFile(message.attachments[0])">
+                              <mat-icon>download</mat-icon>
+                            </button>
+                            <div class="attachment-preview">
+                              @switch (getAttachmentType(message.attachments[0])) {
+                                @case('image') {
+                                  <img [src]="getFileUrl(message.attachments[0])" alt="Attachment" />
+                                }
+                                @case('video') {
+                                  <video [src]="getFileUrl(message.attachments[0])" controls></video>
+                                }
+                                @case('audio') {
+                                  <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
+                                }
+                                @default {
+                                  <span class="f-s-12 text-muted">
+                                    <mat-icon>insert_drive_file</mat-icon>
+                                    <a [href]="getFileUrl(message.attachments[0])" target="_blank" download>
+                                      {{ message.attachments[0].title }}
+                                    </a>
+                                  </span>
+                                }
+                              }
+                            </div>
+                          </span>
+                        }
+                        @else {
+                          <img 
+                            *ngIf="!isFromMe(message)" 
+                            width="40" 
+                            class="rounded-circle" 
+                            [src]="getSenderAvatar(message)" 
+                          />
+    
+                          <div class="message-content">
+                            <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
+                              {{ getSenderName(message) }}
+                            </strong>
+                            <span class="f-s-14">{{ message.msg }}</span>
+                          </div>
+                        }
+                      </div>
+                      <span class="f-s-12">{{ getMessageTimestamp(message) | date:"hh:mm a" }}</span>
+                    </div>
+                </div>
+              </ng-container>
             </div>
 
             <div *ngIf="isUserTyping" class="typing-indicator">
@@ -272,6 +324,32 @@
 
       <mat-divider></mat-divider>
       <div class="p-t-20 p-x-24 bg-white chat-input" *ngIf="selectedConversation">
+        <div *ngIf="replyToMessage" class="reply-preview p-8 mb-8 d-flex">
+          <div class="d-flex gap-8 align-items-center">
+            <div class="reply-info">
+              <div class="reply-author f-s-12 f-w-600">Replying to {{ getSenderName(replyToMessage) }}</div>
+              <div class="reply-text f-s-12 text-muted">{{ replyToMessage.msg || (replyToMessage.attachments && (replyToMessage.attachments[0]?.title || 'Attachment')) }}</div>
+            </div>
+          </div>
+          <div>
+            <button mat-icon-button aria-label="Cancel reply" (click)="cancelReply()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="editingMessage" class="editing-preview p-8 mb-8 d-flex w-100 justify-content-between">
+          <div>
+            <div class="f-s-12 f-w-600">Editing message</div>
+            <div class="f-s-12 text-muted">
+              {{ editingMessage.msg }}
+            </div>
+          </div>
+
+          <button mat-icon-button aria-label="Cancel editing" (click)="cancelEditing()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
