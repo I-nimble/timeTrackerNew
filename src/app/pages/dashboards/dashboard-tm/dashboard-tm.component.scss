@@ -1,165 +1,170 @@
 .card {
-    --bs-card-spacer-y: 30px;
-    --bs-card-spacer-x: 30px;
-    --bs-card-title-spacer-y: 0.5rem;
-    --bs-card-title-color: #111c2d;
-    --bs-card-subtitle-color: #707a82;
-    --bs-card-border-width: 0px;
-    --bs-card-border-color: var(--bs-border-color-translucent);
-    --bs-card-border-radius: 1.125rem;
-    --bs-card-box-shadow: 0px 2px 6px rgba(37, 83, 185, 0.1);
-    --bs-card-inner-border-radius: calc(1.125rem - 0px);
-    --bs-card-cap-padding-y: 15px;
-    --bs-card-cap-padding-x: 30px;
-    --bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
-    --bs-card-bg: var(--bs-body-bg);
-    --bs-card-img-overlay-padding: 1rem;
-    --bs-card-group-margin: 12px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    height: var(--bs-card-height);
-    color: var(--bs-body-color);
-    word-wrap: break-word;
-    background-color: var(--bs-card-bg);
-    background-clip: border-box;
-    border: var(--bs-card-border-width) solid var(--bs-card-border-color);
-    border-radius: var(--bs-card-border-radius);
-    box-shadow: var(--bs-card-box-shadow);
+  --bs-card-spacer-y: 30px;
+  --bs-card-spacer-x: 30px;
+  --bs-card-title-spacer-y: 0.5rem;
+  --bs-card-title-color: #111c2d;
+  --bs-card-subtitle-color: #707a82;
+  --bs-card-border-width: 0px;
+  --bs-card-border-color: var(--bs-border-color-translucent);
+  --bs-card-border-radius: 1.125rem;
+  --bs-card-box-shadow: 0px 2px 6px rgba(37, 83, 185, 0.1);
+  --bs-card-inner-border-radius: calc(1.125rem - 0px);
+  --bs-card-cap-padding-y: 15px;
+  --bs-card-cap-padding-x: 30px;
+  --bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
+  --bs-card-bg: var(--bs-body-bg);
+  --bs-card-img-overlay-padding: 1rem;
+  --bs-card-group-margin: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: var(--bs-card-height);
+  color: var(--bs-body-color);
+  word-wrap: break-word;
+  background-color: var(--bs-card-bg);
+  background-clip: border-box;
+  border: var(--bs-card-border-width) solid var(--bs-card-border-color);
+  border-radius: var(--bs-card-border-radius);
+  box-shadow: var(--bs-card-box-shadow);
 }
 
 .card-body {
-    flex: 1 1 auto;
-    padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
-    color: var(--bs-card-color);
-    background-color: var(--bs-card-body-bg);
-    box-shadow: var(--bs-card-box-shadow);
-    border-radius: var(--bs-card-border-radius);
+  flex: 1 1 auto;
+  padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
+  color: var(--bs-card-color);
+  background-color: var(--bs-card-body-bg);
+  box-shadow: var(--bs-card-box-shadow);
+  border-radius: var(--bs-card-border-radius);
 }
 
 .img-fluid {
-    max-width: 100%;
-    height: auto;
+  max-width: 100%;
+  height: auto;
 }
 
-img, svg {
-    vertical-align: middle;
+img,
+svg {
+  vertical-align: middle;
 }
 
 img {
-    overflow-clip-margin: content-box;
-    overflow: clip;
+  overflow-clip-margin: content-box;
+  overflow: clip;
 }
 
 .mt-n5 {
-    margin-top: -3rem !important;
+  margin-top: -3rem !important;
 }
 
 .mb-2 {
-    margin-bottom: .5rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .align-items-center {
-    align-items: center !important;
+  align-items: center !important;
 }
 
 .justify-content-center {
-    justify-content: center !important;
+  justify-content: center !important;
 }
 
 .d-flex {
-    display: flex !important;
+  display: flex !important;
 }
 
 .h-100 {
-    height: 100% !important;
+  height: 100% !important;
 }
 
 .w-100 {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 .round-110 {
-    width: 110px;
-    height: 110px;
+  width: 110px;
+  height: 110px;
 }
 
 .rounded-circle {
-    border-radius: 50% !important;
+  border-radius: 50% !important;
 }
 
 .border-4 {
-    border-width: 4px !important;
+  border-width: 4px !important;
 }
 
 .border-white {
-    --bs-border-opacity: 1;
-    border-color: rgba(var(#fff), var(--bs-border-opacity)) !important;
+  --bs-border-opacity: 1;
+  border-color: rgba(var(#fff), var(--bs-border-opacity)) !important;
 }
 
-.h5, h5 {
-    font-size: 1.125rem;
+.h5,
+h5 {
+  font-size: 1.125rem;
 }
 
 .position {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: .9rem;
-    color: #707A82;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #707a82;
 }
 
 // company information
 .mt-4 {
-    margin-top: 2rem !important;
+  margin-top: 2rem !important;
 }
 .border {
-    border: 1px solid var(--bs-card-body-bg) !important;
+  border: 1px solid var(--bs-card-body-bg) !important;
 }
 
 .shadow-none {
-    box-shadow: none !important;
+  box-shadow: none !important;
 }
 
-.company, .tm-photos, .tasks {
-    border-radius: 1.125rem!important;
+.company,
+.tm-photos,
+.tasks {
+  border-radius: 1.125rem !important;
 }
 
 .fw-semibold {
-    font-weight: 600 !important;
+  font-weight: 600 !important;
 }
 
 .mb-3 {
-    margin-bottom: 1rem !important;
+  margin-bottom: 1rem !important;
 }
-.h4, h4 {
-    font-size: calc(1.26rem + .12vw);
+.h4,
+h4 {
+  font-size: calc(1.26rem + 0.12vw);
 }
 
 .rounded-1 {
-    border-radius: 0.5rem !important;
+  border-radius: 0.5rem !important;
 }
 .mb-9 {
-    margin-bottom: 20px !important;
+  margin-bottom: 20px !important;
 }
 .tm {
-    font-size: .8rem;
+  font-size: 0.8rem;
 }
 mat-icon {
-    color: #707A82!important;
-    font-size: 1.3rem;
-    display: flex;
-    align-items: center;
+  color: #707a82 !important;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
 }
 .small {
-    font-size: .9rem;
-    display: flex;
-    align-items: center;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
 }
 .btnTasks {
-    display: flex;
-    justify-content: center;
-    margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
 }
 
 .onboarding-stepper {
@@ -182,7 +187,7 @@ mat-icon {
     justify-content: flex-end;
     margin-top: 2rem;
   }
-  
+
   .mat-step-icon {
     background-color: #9cb764;
     color: #fff;
@@ -227,6 +232,14 @@ mat-icon {
     font-weight: 500;
     font-size: 1rem;
     margin-bottom: 1rem;
+  }
+
+  ::ng-deep .mat-step-header[ng-reflect-selected="false"] {
+    pointer-events: none !important;
+  }
+
+  ::ng-deep .mat-step-header[ng-reflect-selected="false"]:focus {
+    outline: none;
   }
 
   @media screen and (max-width: 768px) {

@@ -27,6 +27,10 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
 import { AIService } from 'src/app/services/ai.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
+import { MatTabHeader } from '@angular/material/tabs';
+import { MatTabBody } from '@angular/material/tabs';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
 
 @Component({
   standalone: true,
@@ -45,10 +49,19 @@ import { Router } from '@angular/router';
     FormsModule,
     MatchComponent,
     MarkdownPipe,
-    LinebreakPipe
+    LinebreakPipe,
+    MatTabHeader,
+    MatTabBody
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ])
+  ]
 })
 export class AppTalentMatchClientComponent implements OnInit {
   userRole = localStorage.getItem('role');
@@ -75,6 +88,10 @@ export class AppTalentMatchClientComponent implements OnInit {
   hasSearchResults = false;
   allCandidates: any[] = [];
   useManualSearch = false;
+  expandedElement: any | null = null;
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
+  positionCategories: PositionCategory[] = [];
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -83,7 +100,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     private companiesService: CompaniesService,
     private interviewsService: InterviewsService,
     private aiService: AIService,
-    private router: Router
+    private router: Router,
+    private matchScoresService: ApplicationMatchScoresService
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +109,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositions();
     this.getCompany();
     this.getInterviews();
+    this.getPositionCategories();
   }
 
   searchCandidatesWithAI(question: string) {
@@ -253,9 +272,10 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   getApplications() {
     this.applicationsService.get().subscribe({
-      next: (applications: any) => {
-        this.allCandidates = applications;
-        this.dataSource = new MatTableDataSource(applications);
+      next: (applications: any[]) => {
+        this.allCandidates = applications.map((a: any) => ({ ...a }));
+        this.dataSource = new MatTableDataSource(this.allCandidates);
+        this.getAllMatchScores();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -276,6 +296,51 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   getPositionTitle(positionId: any) {
     return this.positions.find((p: any) => p.id == positionId)?.title;
+  }
+
+  getAllMatchScores() {
+    this.allCandidates.forEach(candidate => {
+      this.getMatchScores(candidate.id);
+    });
+  }
+
+  getMatchScores(applicationId: number) {
+    this.matchScoresService.getByApplicationId(applicationId).subscribe({
+      next: (scores) => {
+        this.matchStats[applicationId] = scores.map(score => {
+          const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
+          return {
+            icon: this.getIconForCategory(category?.category_name || 'Unknown'),
+            value: score.match_percentage,
+            label: category?.category_name || 'Unknown'
+          };
+        });
+      },
+      error: (err) => {
+        console.error(`Error fetching match scores for application ${applicationId}:`, err);
+        this.matchStats[applicationId] = [];
+      }
+    });
+  }
+
+  getPositionCategories() {
+    this.matchScoresService.getPositionCategories().subscribe({
+      next: (categories) => {
+        this.positionCategories = categories;
+      },
+      error: (err) => {
+        console.error('Error loading position categories:', err);
+      }
+    });
+  }
+
+  getIconForCategory(categoryName: string): string {
+    switch (categoryName.toLowerCase()) {
+      case 'legal': return 'file-description';
+      case 'technical': return 'device-desktop';
+      case 'marketing': return 'user-check';
+      default: return 'user-circle';
+    }
   }
 
   downloadFile(url: string, filename: string) {
@@ -328,6 +393,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   onRowClick(row: any) {
+    this.expandedElement = this.expandedElement === row ? null : row;
     if (!this.getInterviewDateTime(row.id)) {
       this.selection.toggle(row);
       this.onRowSelectionChange();
