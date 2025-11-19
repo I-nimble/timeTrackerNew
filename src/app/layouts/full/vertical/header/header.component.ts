@@ -165,7 +165,9 @@ export class HeaderComponent implements OnInit {
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
-
+    this.usersService.username$.subscribe(name => {
+      this.userName = name;
+    });
     this.getUserData();
     this.getApplications();
     this.loadNotifications();
