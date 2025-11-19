@@ -555,6 +555,7 @@ export class AppAccountSettingComponent implements OnInit {
   
       this.usersService.updateProfile(userData).subscribe({
         next: () => {
+            this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
                   this.openSnackBar('Profile updated successfully', 'Close');
@@ -625,13 +626,16 @@ export class AppAccountSettingComponent implements OnInit {
           })
         )
         .subscribe(response => {
-          if (this.selectedVideoFile) {
-            this.uploadVideo();
-          } else {
-            this.openSnackBar('User data updated successfully!', 'Close');
-            this.user = response;
-            this.isSubmitting = false;
-            this.getUser();
+          if (response){
+            this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
+            if (this.selectedVideoFile) {
+              this.uploadVideo();
+            } else {
+              this.openSnackBar('User data updated successfully!', 'Close');
+              this.user = response;
+              this.isSubmitting = false;
+              this.getUser();
+            }
           }
         });
     }
