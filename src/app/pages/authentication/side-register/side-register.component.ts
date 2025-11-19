@@ -106,6 +106,7 @@ export class AppSideRegisterComponent {
     resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
     google_user_id: [''],
+    salaryRange: [null, [Validators.required, Validators.min(1), Validators.max(1000000)]],
   });
   userRole: string = '3';
   companyId: string = '';
@@ -280,7 +281,7 @@ export class AppSideRegisterComponent {
       const location = locationControl.value;
       const role = roleControl.value;
 
-      ['availability', 'salaryRange', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
+      ['availability', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
         (this.registerTeamMemberForm as FormGroup<any>).removeControl(ctrl);
       });
 
@@ -298,13 +299,6 @@ export class AppSideRegisterComponent {
         );
       }
 
-      if (location && role) {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'salaryRange',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
       if (role.title === 'Virtual Assistant') {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
       }
@@ -313,26 +307,6 @@ export class AppSideRegisterComponent {
         (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
       }
     }
-  }
-
-  getSalaryRangeText(): string {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      if (location === 'Maracaibo') {
-        return role.title === 'Virtual Assistant'
-          ? '$480-$560 USD'
-          : '$400-$900 USD';
-      } else if (location === 'Medellin') {
-        return '$700-$800 USD';
-      }
-      return '$400-$900 USD';
-    }
-    return '';
   }
 
   onFileChange(event: Event, controlName: string): void {
@@ -590,8 +564,8 @@ export class AppSideRegisterComponent {
         return;
       }
 
-      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
-        this.openSnackBar('Please accept the availability and salary range conditions', 'error');
+      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology")) {
+        this.openSnackBar('Please accept the availability conditions', 'error');
         return;
       }
 
