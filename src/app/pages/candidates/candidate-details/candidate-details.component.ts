@@ -8,10 +8,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule, DatePipe, UpperCasePipe } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
-import { InterviewsService } from 'src/app/services/interviews.service';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { PermissionService } from 'src/app/services/permission.service';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 @Component({
@@ -48,6 +48,10 @@ export class CandidateDetailsComponent implements OnInit {
   locations: any[] = [];
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   userRole: string | null = null;
+  userId: number;
+  canView: boolean = false;
+  canManage: boolean = false;
+  canEdit: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -56,6 +60,7 @@ export class CandidateDetailsComponent implements OnInit {
     private snackBar: MatSnackBar,
     private applicationMatchScoreService: ApplicationMatchScoresService,
     private fb: FormBuilder,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit(): void {
@@ -88,6 +93,18 @@ export class CandidateDetailsComponent implements OnInit {
     this.loadPositions();
     this.loadCandidateApplications(candidateId);
     this.userRole = localStorage.getItem('role');
+    this.userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(this.userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('candidates.manage');
+        this.canEdit = effective.includes('candidates.edit');
+        this.canView = effective.includes('candidates.view');
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
   }
 
   private loadPositions() {

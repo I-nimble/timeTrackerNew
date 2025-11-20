@@ -1,11 +1,67 @@
 ::ng-deep {
-    .table-responsive td, .table-responsive mat-cell {
-    white-space: normal!important;
-    padding: 16px;
-    }
+  .table-responsive td, .table-responsive th, .table-responsive mat-cell {
+    white-space: normal !important;
+    padding: 8px 16px;
+    border: none;
+  }
+
+  .table-responsive table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+  }
+
+  .table-responsive table tr {
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    margin: 0;
+  }
+
+  .mat-row, .mat-header-row {
+    height: auto !important;
+  }
+
+  .status-cell {
+    text-align: center !important;
+    align-items: center !important;
+  }
 }
 
-::ng-deep .status-cell {
-  text-align: center !important;
-  align-items: center !important;
+.example-detail-row .expanded-detail-wrapper {
+  padding: 0;
+}
+
+.expanded-detail-row {
+  display: none;
+}
+.expanded-detail-row.expanded-visible {
+  display: table-row;
+}
+.expanded-detail-row.expanded-visible td {
+  padding: 0 !important;
+}
+
+.expanded-detail-wrapper {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  tabler-icon {
+    margin-bottom: 4px;
+  }
+  h6 {
+    margin-bottom: 2px;
+  }
+  p {
+    margin: 0;
+  }
 }

@@ -52,7 +52,7 @@
                 </mat-card>
                 </div>
                 <div class="table-responsive" *ngIf="hasSearchResults && dataSource?.data && dataSource.data.length > 0">
-                    <table mat-table [dataSource]="dataSource" class="w-100">
+                    <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="w-100">
                         <ng-container matColumnDef="select">
                             <th mat-header-cell *matHeaderCellDef class="p-l-0">
                                 <mat-checkbox (change)="$event ? masterToggleAndSyncSelection() : null"
@@ -93,7 +93,7 @@
                                         style="object-fit: cover; aspect-ratio: 1 / 1;"
                                         (error)="handleImageError($event)" />
                                     <div class="m-l-16">
-                                        <h6 class=" f-s-14 f-w-600 cursor-pointer" (click)="goToCandidate(element.id, $event)">
+                                        <h6 class="f-s-14 f-w-600 cursor-pointer">
                                             {{ element.name }}
                                         </h6>
                                         <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
@@ -147,6 +147,16 @@
                             </td>
                         </ng-container>
 
+                        <ng-container matColumnDef="expand">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let row">
+                            <button mat-icon-button (click)="expandedElement = expandedElement === row ? null : row; $event.stopPropagation()">
+                            <mat-icon *ngIf="expandedElement !== row">keyboard_arrow_down</mat-icon>
+                            <mat-icon *ngIf="expandedElement === row">keyboard_arrow_up</mat-icon>
+                            </button>
+                        </td>
+                        </ng-container>
+
                         <ng-container matColumnDef="actions">
                             <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
                                 Actions
@@ -183,11 +193,106 @@
                                 </mat-menu>
                             </td>
                         </ng-container>
+                        <ng-container matColumnDef="expandedDetail">
+                            <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length + 1">
+                            <div
+                            class="expanded-detail-wrapper"
+                            [@detailExpand]="expandedElement === element ? 'expanded' : 'collapsed'"
+                            >
+                                <div class="expand-wrapper p-16">
+                                    <mat-card class="mat-mdc-card mdc-card cardWithShadow overflow-visible">
+                                        <div class="row align-items-center g-0">
+                                            
+                                            <div class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-center m-b-24 stats-column order-2 order-lg-1 ">
+                                            <ng-container *ngFor="let stat of matchStats[element.id]; let i = index">
+                                                <ng-container *ngIf="i < 2">
+                                                <div class="text-center stat-item mb-16">
+                                                    <tabler-icon [name]="stat.icon" class="icon-20 mb-2"></tabler-icon>
+                                                    <h6 class="mb-0 f-s-18 f-w-500">{{ stat.value }}%</h6>
+                                                    <p class="m-0 f-s-14">{{ stat.label }}</p>
+                                                </div>
+                                                </ng-container>
+                                            </ng-container>
+                                            </div>
 
+                                            <div class="col-12 col-lg-4 d-flex flex-column align-items-center order-1 order-lg-2 mb-16 mb-lg-0">
+                                            <div class="profile-border-bg rounded-circle d-flex align-items-center justify-content-center" 
+                                                style="width: 120px; height: 120px; background: #e0e0e0;">
+                                                <div class="profile-border rounded-circle d-flex align-items-center justify-content-center" 
+                                                    style="width: 108px; height: 108px; border: 2px solid #ffffff;">
+                                                <img 
+                                                    [src]="element.profile_pic_url ? picturesUrl + '/' + element.profile_pic_url : assetsPath" 
+                                                    alt="users"
+                                                    class="profile-pic rounded-circle"
+                                                    style="width: 100%; height: 100%; object-fit: cover; aspect-ratio: 1 / 1;"
+                                                    (error)="handleImageError($event)">
+                                                </div>
+                                            </div>
+                                            <h4 class="f-s-18 f-w-600 mt-2 text-center">{{ element.name }}</h4>
+                                            <p class="m-0 text-center">{{ getPositionTitle(element.position_id) }}</p>
+                                            </div>
+
+                                            <div class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-center m-b-24 stats-column order-3 order-lg-3">
+                                            <ng-container *ngFor="let stat of matchStats[element.id]; let i = index">
+                                                <ng-container *ngIf="i >= 2">
+                                                <div class="text-center stat-item mb-16">
+                                                    <tabler-icon [name]="stat.icon" class="icon-20 mb-2"></tabler-icon>
+                                                    <h6 class="mb-0 f-s-18 f-w-500">{{ stat.value }}%</h6>
+                                                    <p class="m-0 f-s-14">{{ stat.label }}</p>
+                                                </div>
+                                                </ng-container>
+                                            </ng-container>
+                                            </div>
+                                        </div>
+                                    </mat-card>
+
+                                    <mat-card class="mat-mdc-card mdc-card cardWithShadow shadow-none b-1 mt-16">
+                                        <mat-card-content class="mat-mdc-card-content">
+                                            <h5 class="f-s-21 f-w-600 m-b-16">Resume</h5>
+                                            <ng-container *ngIf="element">
+                                                <div class="d-flex align-items-center gap-16 m-b-24">
+                                                    <i-tabler name="file-description" class="icon-20"></i-tabler>
+                                                    <h6 class="f-s-16">
+                                                    <strong>Description:</strong> {{ element.description || 'No description' }}
+                                                    </h6>
+                                                </div>
+
+                                                <div class="d-flex align-items-center gap-16 m-b-24">
+                                                    <i-tabler name="text-caption" class="icon-20"></i-tabler>
+                                                    <h6 class="f-s-16">
+                                                    <strong>Profile observation:</strong> {{ element.profile_observation || 'No observation' }}
+                                                    </h6>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-16 m-b-24">
+                                                    <i-tabler name="settings" class="icon-20"></i-tabler>
+                                                    <h6 class="f-s-16">
+                                                    <strong>Skills:</strong> {{ element.skills || 'No skills listed' }}
+                                                    </h6>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-16">
+                                                    <i-tabler name="world" class="icon-20"></i-tabler>
+                                                    <h6 class="f-s-16">
+                                                    <strong>English level:</strong> {{ element.english_level || 'Not specified' }}
+                                                    </h6>
+                                                </div>
+                                            </ng-container>
+                                        </mat-card-content>
+                                    </mat-card>
+                                </div>
+                                </div>
+                            </td>
+                        </ng-container>
                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                        <tr mat-row *matRowDef="let row; columns: displayedColumns"
+                        <tr mat-row 
+                            *matRowDef="let row; columns: columnsToDisplayWithExpand"
                             (click)="onRowClick(row)"
-                            [class.disabled]="getInterviewDateTime(row.id)"></tr>
+                            [class.disabled]="getInterviewDateTime(row.id)">
+                        </tr>
+                        <tr mat-row 
+                            *matRowDef="let row; columns: ['expandedDetail']"
+                            class="expanded-detail-row"
+                            [class.expanded-visible]="expandedElement === row">
+                        </tr>
                         <tr *ngIf="dataSource?.data?.length === 0">
                             <td colspan="8">
                                 <p>No candidates available.</p>
