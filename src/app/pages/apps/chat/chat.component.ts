@@ -743,8 +743,8 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
     this.typingUsers = [];
-    if (this.isMobile && this.sidebar) {
-      this.sidebar.close();
+    if (this.isMobile) {
+      this.sidebar?.close();
     }
 
     try {
@@ -1031,6 +1031,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarOpen ? this.sidebar.open() : this.sidebar.close();
   }
 
   private scrollToBottom() {
