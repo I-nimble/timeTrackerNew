@@ -184,7 +184,7 @@
             <div class="comment-header d-flex justify-between align-center">
               <div class="user-info">
                 <span class="user-name">{{ c.user.name }} {{ c.user.last_name }}</span>
-                <span class="comment-date">{{ c.createdAt | date:'dd MMM yyyy, HH:mm' }}</span>
+                <span class="comment-date">{{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
               </div>
 
               <div *ngIf="c.user_id === userId">
@@ -202,9 +202,7 @@
                 </mat-menu>
               </div>
             </div>
-            <div class="comment-text">
-              {{ c.comment }}
-            </div>
+            <div class="comment-text">{{ c.comment }}</div>
           </div>
         </div>
       </div>

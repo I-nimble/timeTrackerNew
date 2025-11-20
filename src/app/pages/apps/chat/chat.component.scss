@@ -231,6 +231,18 @@
   }
 }
 
+.date-separator {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  font-size: 12px;
+
+  span {
+    padding: 4px 12px;
+    border-radius: 12px !important;
+  }
+}
+
 .chat-main {
   display: flex;
   flex-direction: column;
@@ -276,6 +288,7 @@
   display: flex;
   flex-direction: column;
   padding-top: 0; 
+  width: 100%;
 }
 
 .message-content strong {
@@ -292,7 +305,13 @@
 
 .message {
   margin-bottom: 10px;
+  position: relative;
   flex-grow: 1;
+  overflow: visible;
+
+  .message-bubble {
+    position: relative;
+  }
 
   .p-10 {
     padding: 10px;
@@ -307,19 +326,70 @@
     height: 40px;
     object-fit: cover;
     border-radius: 50%;
+    align-self: start;
   }
 }
+
+.message-actions {
+  position: absolute;
+  top: -4rem;
+  right: .5rem;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 20;
+  background: var(--mat-sys-surface);
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.message:hover .message-actions,
+.message:focus-within .message-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.message.show-actions .message-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.message.message-out .message-actions {
+  right: 8px;
+}
+
+// .message-actions.from-me {
+//   right: auto;
+//   left: 8px;
+// }
+
+// @media (max-width: 768px) {
+//   .message-actions {
+//     top: 6px;
+//     right: 6px;
+//   }
+// }
 
 .bg-light-primary {
   background: color-mix(in srgb, var(--mat-sys-on-primary) 10%, var(--mat-sys-surface));
   padding: 10px 14px !important;
   border-radius: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .bg-light-secondary {
   background: var(--mat-menu-item-hover-state-layer-color);
   padding: 10px 14px !important;
   border-radius: 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .system-message {
@@ -392,6 +462,102 @@
       &:nth-child(3) { animation-delay: 0s; }
     }
   }
+}
+
+.reply-preview {
+  border-left: 4px solid var(--mat-sys-primary);
+  padding: 8px;
+}
+
+.replied-to {
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, white);
+}
+
+.replied-highlight {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+  transition: box-shadow 0.25s ease-in-out;
+}
+
+.reply-preview-inside {
+  border-left: 3px solid var(--mat-sys-outline-variant);
+  background: color-mix(in srgb, var(--mat-sys-surface) 92%, white);
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.message > .reply-preview-inside {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+}
+
+.pinned-message-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.pinned-message-bar mat-icon {
+  color: var(--mat-sys-on-primary);
+}
+
+.pinned-message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pinned-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.pinned-preview {
+  font-size: 13px;
+  color: var(--chat-label-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinned-go mat-icon {
+  color: var(--mat-sys-on-surface);
+}
+
+.message-out .reply-preview-inside {
+  background: color-mix(in srgb, var(--mat-sys-surface) 90%, white);
+  border-left-color: var(--mat-sys-primary);
+}
+
+.reply-preview-inside strong {
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--mat-sys-on-background);
+}
+
+.reply-preview-inside span {
+  font-size: 12px;
+  color: var(--chat-label-color);
+}
+
+.reply-preview-inside:hover {
+  background: color-mix(in srgb, var(--mat-sys-surface) 88%, white);
 }
 
 @keyframes typing-bounce {

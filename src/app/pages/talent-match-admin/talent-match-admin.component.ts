@@ -18,7 +18,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { PermissionService } from 'src/app/services/permission.service';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
+import { Router } from '@angular/router';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
@@ -56,8 +56,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
     // 'select',
     'name',
     'position',
-    'skills',
-    'location',
+    'alignment',
+    'experience',
+    'rate',
     'status',
     'interviewing on',
     'actions',
@@ -83,7 +84,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
     private positionsService: PositionsService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private router: Router
   ) { }
   
   
@@ -217,7 +219,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
         });
       }
     });
+  }
 
+  goToCandidate(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.router.navigate([`apps/talent-match/${id}`]);
   }
 
   openSnackBar(message: string, action: string) {

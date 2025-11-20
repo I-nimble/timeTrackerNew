@@ -36,7 +36,7 @@
             
             <!-- Name Column -->
             <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-3">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-2">
                 Name
               </th>
               <td mat-cell *matCellDef="let element">
@@ -52,7 +52,7 @@
                     (error)="handleImageError($event)"
                   />
                   <div class="m-l-16">
-                    <h6 class="f-s-14 f-w-600">
+                    <h6 class="f-s-14 f-w-600 cursor-pointer" (click)="goToCandidate(element.id, $event)">
                       {{ element.name }}
                     </h6>
                     <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
@@ -65,7 +65,7 @@
 
             <!-- Position Column -->
             <ng-container matColumnDef="position">
-                <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-2">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-1">
                     Position
                 </th>
                 <td mat-cell *matCellDef="let element">
@@ -75,22 +75,32 @@
                 </td>
             </ng-container>
 
-            <!-- Skills Column -->
-            <ng-container matColumnDef="skills">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-2">Skills</th>
+            <!-- Alignment Column -->
+            <ng-container matColumnDef="alignment">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-2">Alignment</th>
               <td mat-cell *matCellDef="let element">
-                {{ element.skills || "N/A" }}
+                <span class="f-w-600">{{ element.match_percentage || "0" }}% </span> {{ element.position_category }}
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="location">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-1">
-                Location
+            <!-- Experience Column -->
+            <ng-container matColumnDef="experience">
+                <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 col-3">
+                    Experience
+                </th>
+                <td mat-cell *matCellDef="let element" class="f-s-14">
+                    {{ element.work_experience }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="rate">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-1">
+                Rate
               </th>
               <td mat-cell *matCellDef="let element">
                 <p class="f-s-14 m-0">
-                    <span *ngIf="element.location">
-                        {{ element.location | titlecase }}
+                    <span>
+                        $3-$6
                     </span>
                 </p>
               </td>
@@ -98,7 +108,7 @@
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-2 status-cell">Status</th>
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-2 status-cell">Status</th>
               <td mat-cell *matCellDef="let element" class="f-s-14 status-cell">
                 <span class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12 status-pill" [ngStyle]="{
                   'background-color':
@@ -119,7 +129,7 @@
             </ng-container>
 
             <ng-container matColumnDef="interviewing on">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-2">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-3 text-center">
                   Interviewing on
               </th>
               <td mat-cell *matCellDef="let element">
@@ -130,7 +140,7 @@
             
             <!-- Edit Column -->
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-16 col-1">Actions</th>
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-16 col-1">Actions</th>
               <td mat-cell *matCellDef="let element">
                 <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
                   <mat-icon>more_vert</mat-icon>

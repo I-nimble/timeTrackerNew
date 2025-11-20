@@ -152,12 +152,12 @@
             <mat-menu #optionsMenu="matMenu">
               <button 
                 mat-menu-item 
-                (click)="openEditCandidateDialog(element)"
+                (click)="goToCandidate(element.id, $event)"
                 class="d-flex align-items-center justify-content-center" 
-                *ngIf="canEdit && (element.status == 'pending' || element.status == 'reviewing')"
+                *ngIf="(element.status == 'pending' || element.status == 'reviewing')"
               >
-                <mat-icon>edit</mat-icon>
-                <span>Edit</span>
+                <mat-icon>visibility</mat-icon>
+                <span>View</span>
               </button>
               <!-- <button mat-menu-item (click)="deleteApplication(element.id)"
                 class="d-flex align-items-center justify-content-center" 

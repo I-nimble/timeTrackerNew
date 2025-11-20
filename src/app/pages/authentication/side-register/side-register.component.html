@@ -621,14 +621,14 @@
                           <form [formGroup]="registerTeamMemberForm">
                             <!-- Dynamic Salary Question -->
                             <div *ngIf="registerTeamMemberForm.contains('salaryRange')">
-                              <p class="fs-12 f-w-600">Are you willing to accept a monthly salary range between {{getSalaryRangeText()}}?</p>
-                              <mat-radio-group formControlName="salaryRange" required>
-                                <mat-radio-button value="yes">Yes</mat-radio-button>
-                                <mat-radio-button value="no">No</mat-radio-button>
-                              </mat-radio-group>
-                              <mat-error class="text-danger f-s-12 m-t-0" *ngIf="registerTeamMemberForm.get('salaryRange')?.hasError('mustBeYes')">
-                                You must accept the salary range to apply.
-                              </mat-error>
+                              <mat-form-field appearance="outline" class="w-100">
+                                <mat-label>What are your monthly salary expectations? (USD)</mat-label>
+                                <input matInput type="number" formControlName="salaryRange" required />
+                                <mat-error class="text-danger f-s-12 m-t-0"
+                                  *ngIf="registerTeamMemberForm.get('salaryRange')?.invalid && registerTeamMemberForm.get('salaryRange')?.touched">
+                                  Please enter a valid salary amount.
+                                </mat-error>
+                              </mat-form-field>
                             </div>
 
                             <mat-form-field appearance="outline" class="w-100">

@@ -26,6 +26,11 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { AIService } from 'src/app/services/ai.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { Router } from '@angular/router';
+import { MatTabHeader } from '@angular/material/tabs';
+import { MatTabBody } from '@angular/material/tabs';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
 
 @Component({
   standalone: true,
@@ -44,10 +49,19 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
     FormsModule,
     MatchComponent,
     MarkdownPipe,
-    LinebreakPipe
+    LinebreakPipe,
+    MatTabHeader,
+    MatTabBody
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ])
+  ]
 })
 export class AppTalentMatchClientComponent implements OnInit {
   userRole = localStorage.getItem('role');
@@ -59,9 +73,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     'select',
     'name',
     'position',
-    'skills',
-    'location',
-    'interviewing on',
+    'alignment',
+    'experience',
+    'rate',
     'actions',
   ];
   dataSource!: MatTableDataSource<any>;
@@ -74,6 +88,10 @@ export class AppTalentMatchClientComponent implements OnInit {
   hasSearchResults = false;
   allCandidates: any[] = [];
   useManualSearch = false;
+  expandedElement: any | null = null;
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
+  positionCategories: PositionCategory[] = [];
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -81,7 +99,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     public dialog: MatDialog,
     private companiesService: CompaniesService,
     private interviewsService: InterviewsService,
-    private aiService: AIService
+    private aiService: AIService,
+    private router: Router,
+    private matchScoresService: ApplicationMatchScoresService
   ) {}
 
   ngOnInit(): void {
@@ -89,6 +109,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositions();
     this.getCompany();
     this.getInterviews();
+    this.getPositionCategories();
   }
 
   searchCandidatesWithAI(question: string) {
@@ -107,29 +128,43 @@ export class AppTalentMatchClientComponent implements OnInit {
       id: c.id,
       name: c.name,
       skills: c.skills,
+      work_experience: c.work_experience,
       position: this.getPositionTitle(c.position_id) ?? '',
       location: c.location,
     }));
 
     this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
       next: (res) => {
-        const rawText = res.answer?.parts?.[0]?.text ?? '';
-        const selectedCandidates: string[] = [];
-        const regex = /"([^"]+)"/g;
-        let match;
-        while ((match = regex.exec(rawText)) !== null) {
-          selectedCandidates.push(match[1]);
-        }
+        const enhancedResults = res.enhanced_results || [];
 
-        const orderedCandidates = selectedCandidates
-          .map(name => candidates.find(c => c.name === name))
+        const enhancedMap = new Map();
+        enhancedResults.forEach(enhanced => {
+          enhancedMap.set(enhanced.name, enhanced);
+        });
+
+        const orderedCandidates = enhancedResults
+          .map(enhanced => {
+            const originalCandidate = candidates.find(c => 
+              c.name.toLowerCase() === enhanced.name.toLowerCase()
+            );
+            if (originalCandidate) {
+              return { 
+                ...originalCandidate,
+                match_percentage: enhanced.match_percentage,
+                overall_match_percentage: enhanced.overall_match_percentage || enhanced.match_percentage,
+                position_category: enhanced.position_category,
+                best_position_category_id: enhanced.best_position_category_id
+              };
+            }
+            return null;
+          })
           .filter((c): c is any => c !== undefined);
 
         this.dataSource.data = orderedCandidates;
 
         this.hasSearchResults = true;
         this.aiLoading = false;
-        if (selectedCandidates.length > 0) {
+        if (orderedCandidates.length > 0) {
           this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
@@ -142,6 +177,7 @@ export class AppTalentMatchClientComponent implements OnInit {
           this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
+          console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
       }
@@ -247,9 +283,10 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   getApplications() {
     this.applicationsService.get().subscribe({
-      next: (applications: any) => {
-        this.allCandidates = applications;
-        this.dataSource = new MatTableDataSource(applications);
+      next: (applications: any[]) => {
+        this.allCandidates = applications.map((a: any) => ({ ...a }));
+        this.dataSource = new MatTableDataSource(this.allCandidates);
+        this.getAllMatchScores();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -270,6 +307,51 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   getPositionTitle(positionId: any) {
     return this.positions.find((p: any) => p.id == positionId)?.title;
+  }
+
+  getAllMatchScores() {
+    this.allCandidates.forEach(candidate => {
+      this.getMatchScores(candidate.id);
+    });
+  }
+
+  getMatchScores(applicationId: number) {
+    this.matchScoresService.getByApplicationId(applicationId).subscribe({
+      next: (scores) => {
+        this.matchStats[applicationId] = scores.map(score => {
+          const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
+          return {
+            icon: this.getIconForCategory(category?.category_name || 'Unknown'),
+            value: score.match_percentage,
+            label: category?.category_name || 'Unknown'
+          };
+        });
+      },
+      error: (err) => {
+        console.error(`Error fetching match scores for application ${applicationId}:`, err);
+        this.matchStats[applicationId] = [];
+      }
+    });
+  }
+
+  getPositionCategories() {
+    this.matchScoresService.getPositionCategories().subscribe({
+      next: (categories) => {
+        this.positionCategories = categories;
+      },
+      error: (err) => {
+        console.error('Error loading position categories:', err);
+      }
+    });
+  }
+
+  getIconForCategory(categoryName: string): string {
+    switch (categoryName.toLowerCase()) {
+      case 'legal': return 'file-description';
+      case 'technical': return 'device-desktop';
+      case 'marketing': return 'user-check';
+      default: return 'user-circle';
+    }
   }
 
   downloadFile(url: string, filename: string) {
@@ -322,10 +404,16 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   onRowClick(row: any) {
+    this.expandedElement = this.expandedElement === row ? null : row;
     if (!this.getInterviewDateTime(row.id)) {
       this.selection.toggle(row);
       this.onRowSelectionChange();
     }
+  }
+
+  goToCandidate(id: number, event: MouseEvent) {
+    event.stopPropagation();
+    this.router.navigate([`apps/talent-match/${id}`]);
   }
 
   handleImageError(event: Event) {
