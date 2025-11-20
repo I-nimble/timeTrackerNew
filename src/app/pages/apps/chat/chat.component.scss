@@ -239,7 +239,7 @@
 
   span {
     padding: 4px 12px;
-    border-radius: 12px !important;
+    border-radius: 20px !important;
   }
 }
 
@@ -358,10 +358,28 @@
   transform: translateY(0);
 }
 
+@media (min-width: 769px) {
+  .message-container:hover .message-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .message.message-out .message-actions {
   right: 8px;
 }
 
+.message-actions.hidden {
+  opacity: 0;
+  pointer-events: none !important;
+}
+
+@media (min-width: 769px) {
+  .message-container:hover .message-actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
 // .message-actions.from-me {
 //   right: auto;
 //   left: 8px;

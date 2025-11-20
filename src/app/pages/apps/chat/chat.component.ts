@@ -200,6 +200,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return userRoles.some(r => roles.includes(r));
   }
 
+  isActionsVisible(message: RocketChatMessage) {
+    if (!this.isMobile) return true;
+    return this.pressedMessageId === message._id;
+  }
+
   isSystemMessage(message: RocketChatMessage): boolean {
     const systemTypes = [
       'rm', 'r',
@@ -738,6 +743,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   async selectRoom(room: RocketChatRoom) {
     this.selectedConversation = room;
     this.typingUsers = [];
+    if (this.isMobile && this.sidebar) {
+      this.sidebar.close();
+    }
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -837,7 +845,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     this.scrollToBottom();
   }
 
-    getTypingText(): string {
+  getTypingText(): string {
     if (this.typingUsers.length === 0) return '';
 
     if (this.typingUsers.length === 1) {
