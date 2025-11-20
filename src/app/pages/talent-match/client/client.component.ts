@@ -401,6 +401,11 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.router.navigate([`apps/talent-match/${id}`]);
   }
 
+  goToCustomSearch() {
+    this.router.navigate([`apps/talent-match/custom-search`]);
+    console.log('click')
+  }
+
   handleImageError(event: Event) {
     const imgElement = event.target as HTMLImageElement;
     imgElement.src = this.assetsPath;

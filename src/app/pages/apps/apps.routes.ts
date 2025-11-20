@@ -37,6 +37,7 @@ import { ScrapperComponent } from './scrapper/scrapper.component';
 import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
+import { CustomSearchComponent } from '../custom-search/custom-search.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -230,6 +231,18 @@ export const AppsRoutes: Routes = [
                 { title: 'Dashboard', url: '/dashboards/dashboard1' },
                 { title: 'Talent match', url: '/talent-match' },
                 { title: 'Details' },
+              ],
+            },
+          },
+          {
+            path: 'custom-search',
+            component: CustomSearchComponent,
+            data: {
+              title: 'Custom Search',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Talent match', url: '/talent-match' },
               ],
             },
           },
