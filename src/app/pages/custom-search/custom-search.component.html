@@ -5,32 +5,38 @@
         <mat-stepper #stepper *ngIf="!formSubmitted">
           <!-- Step 1: Client & Contact Information -->
           <mat-step [stepControl]="contactInfoGroup">
+            <!-- Toggle -->
+            <div class="d-flex align-items-center m-b-24">
+               <mat-slide-toggle [formControl]="showInfoControl" color="primary" class="m-r-16">
+                Use my information
+              </mat-slide-toggle>
+            </div>
             <form [formGroup]="contactInfoGroup">
               <ng-template matStepLabel>Client & Contact Information</ng-template>
               <div class="row">
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Client</mat-label>
-                    <input matInput formControlName="client" placeholder="Client's company name" required>
+                    <input matInput formControlName="client" placeholder="Client's company name" required [readonly]="showInfoControl.value">
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Contact Person</mat-label>
-                    <input matInput formControlName="contactPerson" placeholder="Who can we contact you at?" required>
+                    <input matInput formControlName="contactPerson" placeholder="Who can we contact you at?" required  [readonly]="showInfoControl.value">
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Email</mat-label>
-                    <input matInput formControlName="email" required type="email">
-                    <mat-error *ngIf="intakeForm.get('contactInfo.email')?.hasError('email')">Invalid email</mat-error>
+                    <input matInput formControlName="email" required type="email" [readonly]="showInfoControl.value">
+                    <mat-error *ngIf="contactInfoGroup.get('email')?.hasError('email')">Invalid email</mat-error>
                   </mat-form-field>
                 </div>
                 <div class="col-12 col-md-4">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Country Code</mat-label>
-                    <mat-select formControlName="countryCode">
+                    <mat-select formControlName="countryCode" [disabled]="showInfoControl.value">
                       <mat-option value="+1">+1 (US)</mat-option>
                     </mat-select>
                   </mat-form-field>
@@ -38,20 +44,20 @@
                 <div class="col-12 col-md-8">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Phone Number</mat-label>
-                    <input matInput formControlName="phone" required type="tel" />
-                    <mat-error *ngIf="intakeForm.get('contactInfo.phone')?.hasError('pattern')">Invalid phone number</mat-error>
+                    <input matInput formControlName="phone" required type="tel" [readonly]="showInfoControl.value"/>
+                    <mat-error *ngIf="contactInfoGroup.get('phone')?.hasError('pattern')">Invalid phone number</mat-error>
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Website</mat-label>
-                    <input matInput formControlName="website" type="url">
+                    <input matInput formControlName="website" type="url" [readonly]="showInfoControl.value">
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Industry</mat-label>
-                    <mat-select formControlName="industry" required>
+                    <mat-select formControlName="industry" required [disabled]="showInfoControl.value">
                       <mat-option *ngFor="let industry of industries" [value]="industry">{{ industry }}</mat-option>
                     </mat-select>
                   </mat-form-field>
@@ -59,7 +65,7 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Number of Employees to Hire</mat-label>
-                    <input matInput formControlName="numberOfEmployees" type="number" min="0" step="1" required>
+                    <input matInput formControlName="numberOfEmployees" type="number" min="0" step="1" required [readonly]="showInfoControl.value">
                   </mat-form-field>
                 </div>
               </div>
@@ -239,27 +245,13 @@
               </p>
               <div class="d-flex justify-content-between m-t-16">
                 <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
-               <div class="d-flex gap-8">
-                  <button mat-stroked-button color="primary" (click)="saveDraft()">Save</button>
-                  <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!intakeForm.valid">Finish</button>
+                <div class="d-flex gap-8">
+                  <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!customSearchForm.valid">Finish</button>
                 </div>
               </div>
             </form>
           </mat-step>
         </mat-stepper>
-        <div class="d-flex flex-column justify-content-center align-items-center p-24" *ngIf="formSubmitted">
-          <h2 class="m-b-16 color-primary text-center">Thanks for your submission!</h2>
-          <p>We will get in touch with you shortly.</p>
-
-          <div class="d-flex gap-16 m-t-16">
-            <button mat-flat-button routerLink="/landingpage">
-              Go back
-            </button>
-            <button mat-flat-button color="primary" (click)="downloadPdf()" [disabled]="!lastIntakeId">
-              Download Intake
-            </button>
-          </div>
-        </div>
       </mat-card>
     </div>
   </div>

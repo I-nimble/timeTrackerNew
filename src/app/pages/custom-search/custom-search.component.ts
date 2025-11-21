@@ -10,15 +10,16 @@ import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { CommonModule, NgIf } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { IntakeService } from 'src/app/services/intake.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { Positions } from '../../models/Position.model';
-import { FormGroup, FormArray, FormControl } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 import { startWith, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { CustomSearchService } from 'src/app/services/custom-search.service';
 
 @Component({
   standalone: true,
@@ -34,7 +35,8 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
     MatChipsModule,
     MatAutocompleteModule,
     RouterLink,
-    NgIf
+    NgIf,
+    MatSlideToggleModule
   ],
   templateUrl: './custom-search.component.html',
   styleUrl: './custom-search.component.scss',
@@ -82,17 +84,21 @@ export class CustomSearchComponent implements OnInit {
   competencyCtrl = new FormControl('');
   filteredCompetencies: Observable<string[]>;
 
-  intakeForm = this.fb.group({
+  clientInfo: any = null;
+  isLoading = false;
+
+  customSearchForm = this.fb.group({
+    show_info: [true],
     contactInfo: this.fb.group({
-      client: ['', Validators.required],
-      contactPerson: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      countryCode: ['+1', Validators.required],
-      phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]],
-      website: [''],
-      industry: ['', Validators.required],
-      numberOfEmployees: [1, [Validators.required, Validators.min(1)]],
-    }),
+      client: [{ value: '', disabled: false }, Validators.required],
+      contactPerson: [{ value: '', disabled: false }, Validators.required],
+      email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
+      countryCode: [{ value: '+1', disabled: false }, Validators.required],
+      phone: [{ value: '', disabled: false }, [Validators.required, Validators.pattern(/^\d{7,11}$/)]],
+      website: [{ value: '', disabled: false }],
+      industry: [{ value: '', disabled: false }, Validators.required],
+      numberOfEmployees: [{ value: 1, disabled: false }, [Validators.required, Validators.min(1)]],
+  }),
     positionInfo: this.fb.group({
       jobTitle: ['', Validators.required],
       jobDescription: ['', Validators.required],
@@ -118,14 +124,12 @@ export class CustomSearchComponent implements OnInit {
 
   formSubmitted = false;
   showVideo: boolean = false;
-  lastIntakeId: number | null = null;
-  lastIntakeUuid: number | null = null;
   lastClientName: string = '';
 
   constructor(
     private fb: FormBuilder,
     public snackBar: MatSnackBar,
-    private intakeService: IntakeService,
+    private customSearchService: CustomSearchService,
     private positionsService: PositionsService,
     private router: Router,
     private route: ActivatedRoute
@@ -147,15 +151,104 @@ export class CustomSearchComponent implements OnInit {
       }
     });
 
-    const uuid = this.route.snapshot.paramMap.get('uuid');
-    if (uuid) {
-      this.loadIntake(uuid);
+    this.loadClientInfo();
+
+    this.showInfoControl.valueChanges.subscribe(showInfo => {
+      if (showInfo) {
+        this.populateClientInfo();
+      } else {
+        this.clearContactInfo();
+      }
+    });
+  }
+
+  loadClientInfo(): void {
+    this.isLoading = true;
+    const userId = localStorage.getItem('id');
+    
+    if (!userId) {
+      this.openSnackBar('User ID not found in localStorage', 'Close');
+      this.isLoading = false;
+      return;
     }
 
-    const competencies = this.intakeForm.get('positionInfo.competencies')?.value;
-    if (Array.isArray(competencies)) {
-      this.selectedCompetencies = competencies;
+    this.customSearchService.getClientInfo(userId).subscribe({
+      next: (response: any) => {
+        this.isLoading = false;
+        if (response.success) {
+          this.clientInfo = response.data;
+          if (this.customSearchForm.get('show_info')?.value) {
+            this.populateClientInfo();
+          }
+        } else {
+          this.openSnackBar('Error loading client information', 'Close');
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error loading client info:', err);
+        this.openSnackBar('Error loading client information', 'Close');
+      }
+    });
+  }
+
+  populateClientInfo(): void {
+    if (this.clientInfo) {
+      const industry = this.industries.includes(this.clientInfo.industry) 
+        ? this.clientInfo.industry 
+        : 'Other';
+
+      this.contactInfoGroup.patchValue({
+        client: this.clientInfo.client || '',
+        contactPerson: this.clientInfo.contact_person || '',
+        email: this.clientInfo.email || '',
+        countryCode: '+1',
+        phone: this.clientInfo.phone || '',
+        website: this.clientInfo.website || '',
+        industry: industry,
+        numberOfEmployees: this.clientInfo.number_of_employees || 1
+      });
     }
+  }
+
+  clearContactInfo(): void {
+    this.contactInfoGroup.patchValue({
+      client: '',
+      contactPerson: '',
+      email: '',
+      countryCode: '+1',
+      phone: '',
+      website: '',
+      industry: '',
+      numberOfEmployees: 1
+    });
+  }
+
+  sendForm() {
+    if (!this.customSearchForm.valid) {
+      this.openSnackBar('Please fill all required fields', 'Close');
+      return;
+    }
+
+    const formValue = this.customSearchForm.value;
+    const data = {
+      ...formValue.contactInfo,
+      ...formValue.positionInfo,
+      ...formValue.scheduleInfo,
+    };
+
+    this.customSearchService.saveSubmission(data).subscribe({
+      next: (response: any) => {
+        this.openSnackBar('Form submitted successfully', 'Close');
+        this.formSubmitted = true;
+        this.router.navigate([`apps/talent-match`]);
+        
+      },
+      error: (err) => {
+        console.error('Error submitting form:', err);
+        this.openSnackBar('Error submitting form', 'Close');
+      },
+    });
   }
 
   private _filter(value: string): string[] {
@@ -214,129 +307,12 @@ export class CustomSearchComponent implements OnInit {
   }
 
   private _updateCompetenciesForm() {
-    const competenciesControl = this.intakeForm.get('positionInfo.competencies');
+    const competenciesControl = this.customSearchForm.get('positionInfo.competencies');
     if (competenciesControl) {
       competenciesControl.setValue(this.selectedCompetencies || []);
       competenciesControl.markAsDirty();
       competenciesControl.updateValueAndValidity();
     }
-  }
-
-  loadIntake(uuid: string): void {
-    this.intakeService.getIntake(uuid).subscribe({
-      next: (data: any) => {
-        this.intakeForm.patchValue({
-          contactInfo: {
-            client: data.client,
-            contactPerson: data.contact_person,
-            email: data.email,
-            countryCode: data.phone?.split(' ')[0] || '+1',
-            phone: data.phone?.split(' ')[1] || '',
-            website: data.website,
-            industry: data.industry,
-            numberOfEmployees: data.number_of_employees,
-          },
-          positionInfo: {
-            jobTitle: data.job_title,
-            jobDescription: data.job_description,
-            kpi: data.kpi,
-            competencies: data.competencies?.split(', ') || [],
-            trainingContact: data.training_contact,
-            itContact: data.it_contact,
-            techNeeds: data.tech_needs,
-            additionalInfo: data.additional_info,
-          },
-          scheduleInfo: {
-            scheduleDays: data.schedule_days?.split(', ') || [],
-            scheduleStart: data.schedule?.split(' - ')[0] || '',
-            scheduleEnd: data.schedule?.split(' - ')[1] || '',
-            lunchTime: data.lunchtime,
-            holidaysObserved: data.holidays_observed?.split(', ') || [],
-          },
-        });
-        this.selectedCompetencies = data.competencies?.split(', ') || [];
-        if (data.status == "submitted"){
-          this.formSubmitted = true;
-        }
-        this.lastIntakeId = data.id || null;
-        this.lastClientName = (data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
-      },
-      error: (err) => {
-        console.error('Error loading intake:', err);
-        this.openSnackBar('Error loading intake data', 'Close');
-      },
-    });
-  }
-
-  saveDraft() {
-    const formValue = this.intakeForm.value;
-    const data = {
-      ...formValue.contactInfo,
-      ...formValue.positionInfo,
-      ...formValue.scheduleInfo,
-      status: 'draft',
-      uuid: this.lastIntakeUuid || null,
-    };
-
-    this.intakeService.saveIntake(data).subscribe({
-      next: (response: any) => {
-        this.openSnackBar('Intake saved successfully', 'Close');
-        this.lastIntakeId = response?.id || null;
-        this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
-        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
-      },
-      error: () => {
-        this.openSnackBar('Error saving intake', 'Close');
-      },
-    });
-  }
-
-  sendForm() {
-    if (!this.intakeForm.valid) {
-      this.openSnackBar('Please fill all required fields', 'Close');
-      return;
-    }
-
-    const formValue = this.intakeForm.value;
-    const data = {
-      ...formValue.contactInfo,
-      ...formValue.positionInfo,
-      ...formValue.scheduleInfo,
-      status: 'submitted',
-      uuid: this.lastIntakeUuid || null,
-    };
-
-    this.intakeService.saveIntake(data).subscribe({
-      next: (response: any) => {
-        this.openSnackBar('Form submitted successfully', 'Close');
-        this.formSubmitted = true;
-        this.lastIntakeId = response?.id || null;
-        this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
-        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
-        this.intakeForm.reset();
-      },
-      error: () => {
-        this.openSnackBar('Error submitting form', 'Close');
-      },
-    });
-  }
-
-  downloadPdf() {
-    if (!this.lastIntakeId) return;
-    const filename = `intake_${this.lastClientName || this.lastIntakeId}.pdf`;
-    this.intakeService.downloadIntakePdf(this.lastIntakeId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        this.openSnackBar('Error downloading PDF', 'Close');
-      }
-    });
   }
 
   openSnackBar(message: string, action: string): void {
@@ -348,15 +324,18 @@ export class CustomSearchComponent implements OnInit {
   }
 
   get contactInfoGroup(): FormGroup {
-    return this.intakeForm.get('contactInfo') as FormGroup;
+    return this.customSearchForm.get('contactInfo') as FormGroup;
   }
   get positionInfoGroup(): FormGroup {
-    return this.intakeForm.get('positionInfo') as FormGroup;
+    return this.customSearchForm.get('positionInfo') as FormGroup;
   }
   get scheduleInfoGroup(): FormGroup {
-    return this.intakeForm.get('scheduleInfo') as FormGroup;
+    return this.customSearchForm.get('scheduleInfo') as FormGroup;
   }
   get termsInfoGroup(): FormGroup {
-    return this.intakeForm.get('termsInfo') as FormGroup;
+    return this.customSearchForm.get('termsInfo') as FormGroup;
+  }
+  get showInfoControl(): FormControl {
+    return this.customSearchForm.get('show_info') as FormControl;
   }
 }
