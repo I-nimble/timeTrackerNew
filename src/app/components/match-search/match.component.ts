@@ -21,6 +21,7 @@ export class MatchComponent {
   @Input() loading = false;
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
+  @Input() showCustomSearch: boolean = true;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();

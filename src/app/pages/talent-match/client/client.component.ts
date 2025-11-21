@@ -92,6 +92,10 @@ export class AppTalentMatchClientComponent implements OnInit {
   columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
   matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
   positionCategories: PositionCategory[] = [];
+  selectedPositionFilter: string = '';
+  customPositionFilter: string = '';
+  showCustomFilterInput: boolean = false;
+  filterPositions: any[] = [];
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -279,10 +283,56 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
+  togglePositionFilter(position: string): void {
+    if (this.selectedPositionFilter === position) {
+      this.selectedPositionFilter = '';
+      this.showCustomFilterInput = false;
+    } else {
+      this.selectedPositionFilter = position;
+      this.showCustomFilterInput = false;
+      this.customPositionFilter = '';
+    }
+  }
+
+  toggleOtherFilter(): void {
+    if (this.selectedPositionFilter === 'other') {
+      this.selectedPositionFilter = '';
+      this.showCustomFilterInput = false;
+      this.customPositionFilter = '';
+    } else {
+      this.selectedPositionFilter = 'other';
+      this.showCustomFilterInput = true;
+      this.customPositionFilter = '';
+    }
+  }
+
+  applyPositionFilter(): void {
+    let filteredData = [...this.allCandidates];
+    
+    if (this.selectedPositionFilter && this.selectedPositionFilter !== 'other') {
+      filteredData = filteredData.filter(candidate => 
+        this.getPositionTitle(candidate.position_id) === this.selectedPositionFilter
+      );
+    } else if (this.selectedPositionFilter === 'other' && this.customPositionFilter) {
+      const customFilter = this.customPositionFilter.toLowerCase();
+      filteredData = filteredData.filter(candidate => 
+        this.getPositionTitle(candidate.position_id)?.toLowerCase().includes(customFilter) ||
+        candidate.name?.toLowerCase().includes(customFilter) ||
+        candidate.skills?.toLowerCase().includes(customFilter) ||
+        candidate.current_position?.toLowerCase().includes(customFilter)
+      );
+    }
+    
+    this.dataSource.data = filteredData;
+    this.hasSearchResults = filteredData.length > 0;
+  }
+
+
   getPositions() {
     this.positionsService.get().subscribe({
       next: (positions: any) => {
         this.positions = positions;
+        this.filterPositions = [...new Set(positions.map((p: any) => p.title))];
       },
       error: (err: any) => {
         console.error('Error fetching positions:', err);
