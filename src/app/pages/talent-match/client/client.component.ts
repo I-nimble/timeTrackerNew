@@ -92,10 +92,11 @@ export class AppTalentMatchClientComponent implements OnInit {
   columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
   matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
   positionCategories: PositionCategory[] = [];
-  selectedPositionFilter: string = '';
+  selectedPositionFilters: any[] = [];
   customPositionFilter: string = '';
   showCustomFilterInput: boolean = false;
   filterPositions: any[] = [];
+  query: string = '';
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -117,7 +118,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   searchCandidatesWithAI(question: string) {
-    if (!question?.trim()) return;
+    const searchQuery = question || this.query;
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
@@ -136,7 +137,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       location: c.location,
     }));
 
-    this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
+    this.aiService.evaluateCandidates(simplifiedCandidates, searchQuery).subscribe({
       next: (res) => {
         const rawText = res.answer?.parts?.[0]?.text ?? '';
         const selectedCandidates: string[] = [];
@@ -173,8 +174,10 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  onManualSearch(query: string) {
-    const lower = query.toLowerCase();
+  onManualSearch(query?: string) {
+    const searchQuery = query || this.query;
+    this.query = searchQuery;
+    const lower = searchQuery.toLowerCase();
     this.dataSource.data = this.allCandidates.filter(c =>
       c.name?.toLowerCase().includes(lower) ||
       this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
@@ -284,47 +287,81 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   togglePositionFilter(position: string): void {
-    if (this.selectedPositionFilter === position) {
-      this.selectedPositionFilter = '';
-      this.showCustomFilterInput = false;
+    const index = this.selectedPositionFilters.indexOf(position);
+    if (index > -1) {
+      this.selectedPositionFilters.splice(index, 1);
     } else {
-      this.selectedPositionFilter = position;
-      this.showCustomFilterInput = false;
-      this.customPositionFilter = '';
+      this.selectedPositionFilters.push(position);
     }
+    this.showCustomFilterInput = false;
+    this.customPositionFilter = '';
+    
+    this.updateSearchQueryFromFilters();
   }
 
   toggleOtherFilter(): void {
-    if (this.selectedPositionFilter === 'other') {
-      this.selectedPositionFilter = '';
+    if (this.selectedPositionFilters.includes('other')) {
+      const index = this.selectedPositionFilters.indexOf('other');
+      this.selectedPositionFilters.splice(index, 1);
       this.showCustomFilterInput = false;
       this.customPositionFilter = '';
     } else {
-      this.selectedPositionFilter = 'other';
+      this.selectedPositionFilters.push('other');
       this.showCustomFilterInput = true;
       this.customPositionFilter = '';
     }
+    this.updateSearchQueryFromFilters();
   }
 
-  applyPositionFilter(): void {
-    let filteredData = [...this.allCandidates];
-    
-    if (this.selectedPositionFilter && this.selectedPositionFilter !== 'other') {
-      filteredData = filteredData.filter(candidate => 
-        this.getPositionTitle(candidate.position_id) === this.selectedPositionFilter
-      );
-    } else if (this.selectedPositionFilter === 'other' && this.customPositionFilter) {
-      const customFilter = this.customPositionFilter.toLowerCase();
-      filteredData = filteredData.filter(candidate => 
-        this.getPositionTitle(candidate.position_id)?.toLowerCase().includes(customFilter) ||
-        candidate.name?.toLowerCase().includes(customFilter) ||
-        candidate.skills?.toLowerCase().includes(customFilter) ||
-        candidate.current_position?.toLowerCase().includes(customFilter)
-      );
+  executeFilterSearch(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
     }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  updateSearchQueryFromFilters(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.query = '';
+      return;
+    }
+
+    let searchText = '';
     
-    this.dataSource.data = filteredData;
-    this.hasSearchResults = filteredData.length > 0;
+    if (this.selectedPositionFilters.includes('other') && this.customPositionFilter) {
+      searchText = this.customPositionFilter;
+    } else {
+      const positions = this.selectedPositionFilters.filter(filter => filter !== 'other');
+      searchText = positions.join(', ');
+    }
+
+    this.query = searchText;
+  }
+
+  onCustomFilterChange(): void {
+    this.updateSearchQueryFromFilters();
+  }
+
+
+  applyPositionFilter(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
+    }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  isPositionSelected(position: string): boolean {
+    return this.selectedPositionFilters.includes(position);
   }
 
 

@@ -23,7 +23,7 @@
                     <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
                     <button
                         mat-stroked-button
-                        [ngClass]="selectedPositionFilter === position ? 'primary' : 'disabled'"
+                        [color]="isPositionSelected(position) ? 'primary' : ''"
                         *ngFor="let position of filterPositions"
                         (click)="togglePositionFilter(position); $event.preventDefault()"
                     >
@@ -31,7 +31,7 @@
                     </button>
                     <button
                         mat-stroked-button
-                        [ngClass]="selectedPositionFilter === 'other' ? 'primary' : 'disabled'"
+                        [color]="isPositionSelected('other') ? 'primary' : ''"
                         (click)="toggleOtherFilter(); $event.preventDefault()"
                     >
                         Other
@@ -51,6 +51,7 @@
                         [interviewDisabled]="selection.selected.length === 0"
                         [showCustomSearch]="!showCustomFilterInput"
                         (interview)="openDialog('Schedule')"
+                        [query]="query"
                         placeholder="What position are you looking for?"
                         (askAI)="searchCandidatesWithAI($event)"
                         (searchChange)="useManualSearch ? onManualSearch($event) : null">

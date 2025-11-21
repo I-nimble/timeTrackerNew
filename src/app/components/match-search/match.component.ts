@@ -27,7 +27,7 @@ export class MatchComponent {
   @Output() searchChange = new EventEmitter<string>();
   @Output() interview = new EventEmitter<void>();
 
-  query: string = '';
+  @Input() query: string = '';
   cooldownActive = false;
 
   onSearchChange() {
