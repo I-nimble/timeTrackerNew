@@ -177,20 +177,6 @@ export class NotificationsService {
             recent: recentNotifications,
             earlier: earlierNotifications
           };
-  
-          if (this.notifications.recent.some(category => category.notifications.length > 0)) {
-            const dialogId = 'notificationsPopup';
-            const existingDialog = this.dialog.getDialogById(dialogId);
-  
-            if (!existingDialog) {
-              this.dialog.open(NotificationsPopupComponent, {
-                id: dialogId,
-                data: {
-                  notifications: this.recentNotifications
-                }
-              });
-            }
-          }
         }
       }
     });
