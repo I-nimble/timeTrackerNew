@@ -117,7 +117,6 @@ export class CustomSearchComponent implements OnInit {
   });
 
   formSubmitted = false;
-  showForm: boolean = true;
   showVideo: boolean = false;
   lastIntakeId: number | null = null;
   lastIntakeUuid: number | null = null;
@@ -135,7 +134,6 @@ export class CustomSearchComponent implements OnInit {
       startWith(''),
       map(value => this._filter(value || ''))
     );
-    this.showForm = !this.router.url.includes('/talent-match');
     this.showVideo = this.router.url.includes('/talent-match');
   }
 
