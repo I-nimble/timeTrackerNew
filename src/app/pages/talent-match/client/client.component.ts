@@ -403,7 +403,6 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   goToCustomSearch() {
     this.router.navigate([`apps/talent-match/custom-search`]);
-    console.log('click')
   }
 
   handleImageError(event: Event) {

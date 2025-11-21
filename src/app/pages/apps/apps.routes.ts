@@ -222,6 +222,18 @@ export const AppsRoutes: Routes = [
             },
           },
           {
+            path: 'custom-search',
+            component: CustomSearchComponent,
+            data: {
+              title: 'Custom Search',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Talent match', url: '/talent-match' },
+              ],
+            },
+          },
+          {
             path: ':id',
             component: CandidateDetailsComponent,
             data: {
@@ -231,18 +243,6 @@ export const AppsRoutes: Routes = [
                 { title: 'Dashboard', url: '/dashboards/dashboard1' },
                 { title: 'Talent match', url: '/talent-match' },
                 { title: 'Details' },
-              ],
-            },
-          },
-          {
-            path: 'custom-search',
-            component: CustomSearchComponent,
-            data: {
-              title: 'Custom Search',
-              showGoBack: true,
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Talent match', url: '/talent-match' },
               ],
             },
           },
