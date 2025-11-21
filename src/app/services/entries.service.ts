@@ -73,16 +73,6 @@ export class EntriesService {
                 name: user.name
               };
             });   
-            if(this.reviewEntries.length > 0 && showPopup) {
-              const dialogId = 'notificationsPopup';
-              const existingDialog = this.dialog.getDialogById(dialogId);
-  
-              if (!existingDialog) {
-                const dialogRef = this.dialog.open(NotificationsPopupComponent, {
-                    id: dialogId,
-                });
-              }
-            }
           }
         });
       }
