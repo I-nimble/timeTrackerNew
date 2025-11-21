@@ -83,7 +83,7 @@ export class CreateRoomComponent implements OnInit {
           }
 
           this.chatService.getUsers().subscribe(users => {
-            this.users = users.filter(u => !exclude(u));
+            this.includeModerators(users);
           });
         } else {
           if (teams.length > 0) {
@@ -92,7 +92,7 @@ export class CreateRoomComponent implements OnInit {
             this.selectedTeamName = firstTeam.name;
 
             this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
-              this.users = users.filter(u => !exclude(u));
+              this.includeModerators(users);
             });
           }
         }
@@ -106,7 +106,7 @@ export class CreateRoomComponent implements OnInit {
         } else if (teams.length > 0) {
           const firstTeam = teams[0];
           this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
-            this.users = users.filter(u => !exclude(u));
+            this.includeModerators(users);
           });
         }
       }
@@ -129,6 +129,18 @@ export class CreateRoomComponent implements OnInit {
 
   get isModerator(): boolean {
     return this.chatService.loggedInUser?.roles?.includes('moderator') || false;
+  }
+
+  includeModerators(users: RocketChatUser[]) {
+    this.chatService.getUsers().subscribe(all => {
+      const moderators = all.filter(u => u.roles?.includes('moderator'));
+      moderators.forEach(mod => {
+        if (!users.some(u => u._id === mod._id)) {
+          users.push(mod);
+        }
+      });
+      this.users = users.filter(u => !this.isExcluded(u));
+    });
   }
 
   createRoom() {
@@ -185,7 +197,7 @@ export class CreateRoomComponent implements OnInit {
       });
     } else {
       this.chatService.getTeamMembers(teamId).subscribe(users => {
-        this.users = users.filter(u => !this.isExcluded(u));
+        this.includeModerators(users);
         this.selectedUsers = [];
       });
     }

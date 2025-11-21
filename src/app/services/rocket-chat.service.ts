@@ -265,12 +265,12 @@ export class RocketChatService {
     }
 
     if (this.connectionInProgress) {
-      console.log('WebSocket connection already in progress, skipping...');
+      // console.log('WebSocket connection already in progress, skipping...');
       return;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      console.log('WebSocket already connected, skipping...');
+      // console.log('WebSocket already connected, skipping...');
       return;
     }
 

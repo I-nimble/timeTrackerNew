@@ -73,9 +73,9 @@ export class AppTalentMatchClientComponent implements OnInit {
     'select',
     'name',
     'position',
-    'skills',
-    'location',
-    'interviewing on',
+    'alignment',
+    'experience',
+    'rate',
     'actions',
   ];
   dataSource!: MatTableDataSource<any>;
@@ -133,29 +133,43 @@ export class AppTalentMatchClientComponent implements OnInit {
       id: c.id,
       name: c.name,
       skills: c.skills,
+      work_experience: c.work_experience,
       position: this.getPositionTitle(c.position_id) ?? '',
       location: c.location,
     }));
 
     this.aiService.evaluateCandidates(simplifiedCandidates, searchQuery).subscribe({
       next: (res) => {
-        const rawText = res.answer?.parts?.[0]?.text ?? '';
-        const selectedCandidates: string[] = [];
-        const regex = /"([^"]+)"/g;
-        let match;
-        while ((match = regex.exec(rawText)) !== null) {
-          selectedCandidates.push(match[1]);
-        }
+        const enhancedResults = res.enhanced_results || [];
 
-        const orderedCandidates = selectedCandidates
-          .map(name => candidates.find(c => c.name === name))
+        const enhancedMap = new Map();
+        enhancedResults.forEach(enhanced => {
+          enhancedMap.set(enhanced.name, enhanced);
+        });
+
+        const orderedCandidates = enhancedResults
+          .map(enhanced => {
+            const originalCandidate = candidates.find(c => 
+              c.name.toLowerCase() === enhanced.name.toLowerCase()
+            );
+            if (originalCandidate) {
+              return { 
+                ...originalCandidate,
+                match_percentage: enhanced.match_percentage,
+                overall_match_percentage: enhanced.overall_match_percentage || enhanced.match_percentage,
+                position_category: enhanced.position_category,
+                best_position_category_id: enhanced.best_position_category_id
+              };
+            }
+            return null;
+          })
           .filter((c): c is any => c !== undefined);
 
         this.dataSource.data = orderedCandidates;
 
         this.hasSearchResults = true;
         this.aiLoading = false;
-        if (selectedCandidates.length > 0) {
+        if (orderedCandidates.length > 0) {
           this.aiAnswer = '';
         } else {
           this.aiAnswer = 'No matches.';
@@ -168,6 +182,7 @@ export class AppTalentMatchClientComponent implements OnInit {
           this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
+          console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
       }
