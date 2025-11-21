@@ -4,6 +4,7 @@
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
       [mode]="'side'"
       [opened]="!isMobile || isSidebarOpen"
+      (closedStart)="isSidebarOpen = false"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
         <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">
@@ -132,7 +133,7 @@
       <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
         <div class="d-flex">
           <button mat-icon-button
-                  (click)="toggleSidebar(); sidebar.toggle()"
+                  (click)="toggleSidebar()"
                   class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
             <mat-icon>short_text</mat-icon>
           </button>
@@ -185,7 +186,7 @@
               <ng-container *ngFor="let message of messages; let i = index">
                 <div *ngIf="i === 0 || !isSameDay(getMessageTimestamp(message), getMessageTimestamp(messages[i-1]))"
                     class="date-separator">
-                  <span class="bg-light-primary">{{ getDateLabel(getMessageTimestamp(message)) }}</span>
+                  <span class="bg-light-secondary">{{ getDateLabel(getMessageTimestamp(message)) }}</span>
                 </div>
                 <div 
                   class="message"
@@ -218,7 +219,7 @@
                         </div>
                       </div>
                       <div class="message-bubble" [ngClass]="!isFromMe(message) ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16' : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'">
-                      <div class="message-actions" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
+                      <div class="message-actions" [class.visible]="isActionsVisible(message)" [class.hidden]="!isActionsVisible(message)" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
   <!--                       <button mat-icon-button aria-label="React" (click)="$event.stopPropagation(); reactToMessage(message)">
                           <mat-icon>emoji_emotions</mat-icon>
                         </button> -->
@@ -353,6 +354,9 @@
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
+          </button>
+          <button mat-icon-button matPrefix>
+            <mat-icon>emoji_emotions</mat-icon>
           </button>
           <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
           <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
