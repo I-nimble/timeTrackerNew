@@ -18,6 +18,30 @@
                 <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
             </div>
 
+            <div class="row align-items-center m-b-16 m-t-24">
+                <div class="col-12">
+                    <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
+                    <button
+                        mat-stroked-button
+                        class="position-btn"
+                        [ngClass]="isPositionSelected(position) ? 'primary' : 'disabled'"
+                        *ngFor="let position of filterPositions"
+                        (click)="togglePositionFilter(position); $event.preventDefault()"
+                    >
+                        {{ position }}
+                    </button>
+                    <button
+                        mat-stroked-button
+                        class="position-btn"
+                        [ngClass]="isPositionSelected('other') ? 'primary' : 'disabled'"
+                        (click)="toggleOtherFilter(); $event.preventDefault()"
+                    >
+                        Other
+                    </button>
+                    </div>
+                </div>
+            </div>
+
             <div output>
                     <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
                         <app-match 
@@ -27,7 +51,9 @@
                         [aiEnabled]="!useManualSearch"
                         [showInterviewButton]="true"
                         [interviewDisabled]="selection.selected.length === 0"
+                        [showCustomSearch]="!showCustomFilterInput"
                         (interview)="openDialog('Schedule')"
+                        [query]="query"
                         placeholder="What position are you looking for?"
                         (askAI)="searchCandidatesWithAI($event)"
                         (searchChange)="useManualSearch ? onManualSearch($event) : null">
