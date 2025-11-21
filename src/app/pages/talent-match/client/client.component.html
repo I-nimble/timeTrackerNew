@@ -18,12 +18,13 @@
                 <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
             </div>
 
-            <div class="row align-items-center m-b-16">
+            <div class="row align-items-center m-b-16 m-t-24">
                 <div class="col-12">
                     <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
                     <button
                         mat-stroked-button
-                        [color]="isPositionSelected(position) ? 'primary' : ''"
+                        class="position-btn"
+                        [ngClass]="isPositionSelected(position) ? 'primary' : 'disabled'"
                         *ngFor="let position of filterPositions"
                         (click)="togglePositionFilter(position); $event.preventDefault()"
                     >
@@ -31,7 +32,8 @@
                     </button>
                     <button
                         mat-stroked-button
-                        [color]="isPositionSelected('other') ? 'primary' : ''"
+                        class="position-btn"
+                        [ngClass]="isPositionSelected('other') ? 'primary' : 'disabled'"
                         (click)="toggleOtherFilter(); $event.preventDefault()"
                     >
                         Other
