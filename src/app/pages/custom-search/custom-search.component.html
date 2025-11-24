@@ -44,7 +44,7 @@
                 <div class="col-12 col-md-8">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Phone Number</mat-label>
-                    <input matInput formControlName="phone" required type="tel" [readonly]="showInfoControl.value"/>
+                    <input matInput formControlName="phone" required type="tel" placeholder="+1 (123) 456-7890" (keypress)="restrictPhoneInput($event)" [readonly]="showInfoControl.value"/>
                     <mat-error *ngIf="contactInfoGroup.get('phone')?.hasError('pattern')">Invalid phone number</mat-error>
                   </mat-form-field>
                 </div>

@@ -66,7 +66,7 @@ export class AppSideRegisterComponent {
     departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
   }, { validators: this.crossFieldValidator() });
@@ -90,7 +90,7 @@ export class AppSideRegisterComponent {
     referredName: [''],
     fullName: ['', Validators.required],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    contactPhone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     additionalPhone: ['', [Validators.pattern(/^\+?\d{7,15}$/)]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
@@ -674,10 +674,18 @@ export class AppSideRegisterComponent {
     };
   }
 
-  restrictToNumbers(event: KeyboardEvent) {
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
     const key = event.key;
-    if (/^\d$/.test(key)) return;
-    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
-    event.preventDefault();
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+    
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
 }
