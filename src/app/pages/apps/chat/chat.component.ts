@@ -94,6 +94,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   isUserTyping = false;
   unreadMapSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
+  private pendingPinActions = new Map<string, boolean>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
   isSendingMessage = false;
   editingMessage: RocketChatMessage | null = null;
@@ -166,6 +167,54 @@ export class AppChatComponent implements OnInit, OnDestroy {
             if (!this.selectedConversation || this.selectedConversation._id !== roomId) return;
 
             const incoming: RocketChatMessage = maybeMsg as RocketChatMessage;
+            try {
+              const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+              if (looksLikePinnedEvent) {
+                const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+                const pendingExpected = this.pendingPinActions.get(incoming._id);
+
+                if (typeof pendingExpected !== 'undefined') {
+                  if (pendingExpected === isPinned) {
+                    const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                    if (idx2 !== -1) {
+                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                    } else if (this.selectedConversation) {
+                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                    this.pendingPinActions.delete(incoming._id);
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  } else {
+                    this.pendingPinActions.delete(incoming._id);
+                  }
+                } else {
+                  const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                  if (idx2 !== -1) {
+                    const localPinned = !!this.messages[idx2].pinned;
+                    if (localPinned !== isPinned) {
+                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                    }
+                  } else {
+                    if (this.selectedConversation) {
+                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                  }
+                  this.sortMessagesAscending();
+                  this.cdr.detectChanges();
+                }
+              }
+            } catch (err) {
+              console.error('Error handling pin/unpin detection:', err, incoming);
+            }
+ 
             const idx = this.messages.findIndex(m => m._id === incoming._id);
             if (idx !== -1) {
               this.messages[idx] = { ...this.messages[idx], ...incoming };
@@ -848,6 +897,53 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
       try {
         if (!newMessage || !newMessage._id) return;
 
+        try {
+          const incoming: RocketChatMessage = newMessage as RocketChatMessage;
+          const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+          if (looksLikePinnedEvent) {
+            const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+            const pendingExpected = this.pendingPinActions.get(incoming._id);
+
+            if (typeof pendingExpected !== 'undefined') {
+              if (pendingExpected === isPinned) {
+                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                if (idx2 !== -1) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                }
+                this.pendingPinActions.delete(incoming._id);
+                this.sortMessagesAscending();
+                this.cdr.detectChanges();
+              } else {
+                this.pendingPinActions.delete(incoming._id);
+                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                if (idx2 !== -1) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.cdr.detectChanges();
+                }
+              }
+            } else {
+              const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+              if (idx2 !== -1) {
+                const localPinned = !!this.messages[idx2].pinned;
+                if (localPinned !== isPinned) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.cdr.detectChanges();
+                }
+              } else {
+                if (this.selectedConversation) {
+                  this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                    this.messages = msgs || [];
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  });
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Error handling pin/unpin detection for realtime message:', err, newMessage);
+        }
+
         if (existingMessageIds.has(newMessage._id)) {
           // update existing message
           const idx = this.messages.findIndex(m => m._id === newMessage._id);
@@ -1358,17 +1454,25 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   togglePin(message: RocketChatMessage) {
+    const expectedPinnedState = !message.pinned;
+    this.pendingPinActions.set(message._id, expectedPinnedState);
+
     const action$ = message.pinned
-      ? this.chatService.unpinMessage(message._id)
-      : this.chatService.pinMessage(message._id);
+      ? this.chatService.unpinMessage(message)
+      : this.chatService.pinMessage(message);
 
     action$.subscribe({
       next: (res) => {
-        message.pinned = !message.pinned;
-        this.cdr.detectChanges();
+        try {
+          message.pinned = expectedPinnedState;
+          this.cdr.detectChanges();
+        } finally {
+          this.pendingPinActions.delete(message._id);
+        }
       },
       error: (err) => {
         console.error('Error pinning/unpinning message:', err);
+        this.pendingPinActions.delete(message._id);
       }
     });
   }

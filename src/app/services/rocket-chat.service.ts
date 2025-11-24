@@ -57,7 +57,7 @@ export class RocketChatService {
   private messageId = 0;
   private subscriptionId = 0;
 
-  private wsMethodHandlers = new Map<string, { resolve: (v: any) => void; reject: (err: any) => void; timeout?: any }>();
+  private wsMethodHandlers = new Map<string, { resolve: (v: any) => void; reject: (err: any) => void; timeout?: any; method?: string; params?: any[] }>();
 
   private typingUsers = new Map<string, Set<string>>();
   private typingTimeout = new Map<string, NodeJS.Timeout>();
@@ -460,6 +460,21 @@ export class RocketChatService {
           } else {
             handler.resolve(message.result);
           }
+
+          try {
+            const methodName = handler.method;
+            const handlerParams = handler.params;
+            if (methodName === 'pinMessage' || methodName === 'unpinMessage') {
+              const paramMsg = handlerParams && handlerParams[0];
+              if (paramMsg && paramMsg._id) {
+                const update: any = { _id: paramMsg._id, rid: paramMsg.rid, pinned: methodName === 'pinMessage' };
+                this.messageStreamSubject.next(update as any);
+              }
+            }
+          } catch (e) {
+            console.error('Error emitting pin/unpin message update:', e);
+          }
+
           return;
         }
       }
@@ -950,6 +965,8 @@ export class RocketChatService {
               observer.complete();
             },
             timeout,
+            method,
+            params,
           });
 
           try {
@@ -1332,21 +1349,27 @@ export class RocketChatService {
     );
   }
 
-  pinMessage(messageId: string): Observable<RocketChatMessageResponse> {
-    const body = { messageId };
-    return this.http.post<RocketChatMessageResponse>(
-      `${this.CHAT_API_URI}chat.pinMessage`,
-      body,
-      { headers: this.getAuthHeaders() }
+  pinMessage(message: any): Observable<any> {
+    const params = Array.isArray(message) ? message : [message];
+    return this.callWebSocketMethod('pinMessage', params).pipe(
+      map((res: any) => res as RocketChatMessageResponse),
+      catchError(() => {
+        const messageId = typeof message === 'string' ? message : message && message._id;
+        const body = { messageId };
+        return this.http.post<RocketChatMessageResponse>(`${this.CHAT_API_URI}chat.pinMessage`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
-  unpinMessage(messageId: string): Observable<RocketChatMessageResponse> {
-    const body = { messageId };
-    return this.http.post<RocketChatMessageResponse>(
-      `${this.CHAT_API_URI}chat.unPinMessage`,
-      body,
-      { headers: this.getAuthHeaders() }
+  unpinMessage(message: any): Observable<any> {
+    const params = Array.isArray(message) ? message : [message];
+    return this.callWebSocketMethod('unpinMessage', params).pipe(
+      map((res: any) => res as any),
+      catchError(() => {
+        const messageId = typeof message === 'string' ? message : message && message._id;
+        const body = { messageId };
+        return this.http.post<RocketChatMessageResponse>(`${this.CHAT_API_URI}chat.unPinMessage`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
