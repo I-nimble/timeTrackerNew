@@ -101,6 +101,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
 
+  protected mediaPlayable = new Map<string, boolean>();
+
+  isRecording: boolean = false;
+  mediaRecorder: any = null;
+  recordedChunks: BlobPart[] = [];
+  recordedAudioUrl: string | null = null;
+  voiceRecorderStartTime: number = 0;
+  voiceRecorderInterval: any = null;
+  voiceRecorderTime: string = '00:00';
+  shouldSendAfterStop: boolean = false;
+  currentAudioMimeType: string | null = null;
+
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
@@ -135,6 +147,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
     }
+  }
+
+  get isEmptyText(): boolean {
+    return this.newMessage.trim().length === 0;
   }
 
   private loadRooms(): void {
@@ -476,16 +492,244 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     };
   }
 
-  getFileUrl(attachment: RocketChatMessageAttachment) {
+  onVoiceButtonClick(event: Event) {
+    event.stopPropagation();
+    if (!this.selectedConversation) {
+      this.openSnackBar('Select a conversation to send a voice message', 'Close');
+      return;
+    }
+
+    if (!this.isRecording) {
+      this.startVoiceRecording();
+    } else {
+      this.stopVoiceRecordingAndSend();
+    }
+  }
+
+  startVoiceRecording() {
+    this.recordedChunks = [];
+    this.recordedAudioUrl = null;
+    this.isRecording = true;
+    this.voiceRecorderStartTime = Date.now();
+    this.startVoiceRecorderTimer();
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      try {
+        const mime = this.getSupportedAudioMimeType();
+        this.currentAudioMimeType = mime;
+        this.mediaRecorder = new (window as any).MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      } catch (e) {
+        this.openSnackBar('Could not start recorder on this browser.', 'Close');
+        this.isRecording = false;
+        this.stopVoiceRecorderTimer();
+        stream.getTracks().forEach((t: any) => t.stop());
+        return;
+      }
+
+      this.mediaRecorder.ondataavailable = (e: any) => {
+        if (e.data && e.data.size > 0) {
+          this.recordedChunks.push(e.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = () => {
+        try {
+          const type = this.currentAudioMimeType || 'audio/webm';
+          const audioBlob = new Blob(this.recordedChunks, { type });
+          this.recordedAudioUrl = URL.createObjectURL(audioBlob);
+          if (this.shouldSendAfterStop) {
+            this.shouldSendAfterStop = false;
+            this.uploadAndSendAudio(audioBlob);
+          }
+        } catch (e) {
+          console.error('Error creating audio blob url', e);
+        }
+        try { stream.getTracks().forEach((t: any) => t.stop()); } catch (e) {}
+      };
+
+      try {
+        this.mediaRecorder.start();
+      } catch (e) {
+        console.error('Failed to start MediaRecorder', e);
+        this.isRecording = false;
+        this.stopVoiceRecorderTimer();
+      }
+    }).catch((err) => {
+      console.error('Microphone permission denied or not available', err);
+      this.openSnackBar('Microphone access is required to record voice messages.', 'Close');
+      this.isRecording = false;
+      this.stopVoiceRecorderTimer();
+    });
+  }
+
+  stopVoiceRecordingAndSend() {
+    if (!this.isRecording) return;
+    this.isRecording = false;
+    this.stopVoiceRecorderTimer();
+    try {
+      this.shouldSendAfterStop = true;
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+      } else {
+        if (!this.recordedChunks || this.recordedChunks.length === 0) {
+          this.openSnackBar('No audio recorded', 'Close');
+          this.discardVoiceRecording();
+        } else {
+          const type = this.currentAudioMimeType || 'audio/webm';
+          const audioBlob = new Blob(this.recordedChunks, { type });
+          this.shouldSendAfterStop = false;
+          this.uploadAndSendAudio(audioBlob);
+        }
+      }
+    } catch (e) {
+      console.warn('Error stopping mediaRecorder', e);
+      this.openSnackBar('Failed to stop recording', 'Close');
+      this.discardVoiceRecording();
+    }
+  }
+
+  discardVoiceRecording() {
+    try {
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
+    } catch (e) {}
+    this.isRecording = false;
+    this.recordedChunks = [];
+    this.recordedAudioUrl = null;
+    this.shouldSendAfterStop = false;
+    this.stopVoiceRecorderTimer();
+  }
+
+  private uploadAndSendAudio(blob: Blob) {
+    if (!this.selectedConversation) return;
+    const roomId = this.selectedConversation._id;
+    const mime = this.currentAudioMimeType || blob.type || 'audio/webm';
+    const ext = mime.includes('ogg') ? 'ogg' : mime.includes('wav') ? 'wav' : 'webm';
+    const fileName = `voice-message-${Date.now()}.${ext}`;
+    const file = new File([blob], fileName, { type: mime });
+
+    this.isSendingMessage = true;
+    this.chatService.uploadFile(file, roomId).subscribe({
+      next: (res: any) => {
+        if (!res || !res.success) {
+          console.error('Failed to upload voice file', res);
+          this.openSnackBar('Failed to upload voice message', 'Close');
+          this.isSendingMessage = false;
+          return;
+        }
+
+        const attachment: RocketChatMessageAttachment = {
+          title: file.name,
+          title_link: res.file.url,
+          title_link_download: true,
+          ts: new Date().toISOString(),
+          audio_url: res.file.url
+        };
+
+        this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
+          next: (sres: any) => {
+            this.isSendingMessage = false;
+            this.discardVoiceRecording();
+          },
+          error: (err: any) => {
+            console.error('Error sending voice message:', err);
+            this.openSnackBar('Failed to send voice message', 'Close');
+            this.isSendingMessage = false;
+          }
+        });
+      },
+      error: (err: any) => {
+        console.error('Error uploading voice file:', err);
+        this.openSnackBar('Failed to upload voice message', 'Close');
+        this.isSendingMessage = false;
+      }
+    });
+  }
+
+  private startVoiceRecorderTimer() {
+    this.stopVoiceRecorderTimer();
+    this.voiceRecorderStartTime = Date.now();
+    this.voiceRecorderInterval = setInterval(() => {
+      const diff = Date.now() - this.voiceRecorderStartTime;
+      this.voiceRecorderTime = this.formatDuration(diff);
+      try { this.cdr.detectChanges(); } catch (e) {}
+    }, 500);
+  }
+
+  private stopVoiceRecorderTimer() {
+    if (this.voiceRecorderInterval) {
+      clearInterval(this.voiceRecorderInterval);
+      this.voiceRecorderInterval = null;
+    }
+    this.voiceRecorderTime = '00:00';
+  }
+
+  private formatDuration(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+
+  private getSupportedAudioMimeType(): string | null {
+    try {
+      const candidates = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/ogg',
+        'audio/wav'
+      ];
+      const MR = (window as any).MediaRecorder;
+      if (!MR || !MR.isTypeSupported) return null;
+      for (const m of candidates) {
+        try {
+          if (MR.isTypeSupported(m)) return m;
+        } catch (e) {}
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  getFileUrl(attachment: RocketChatMessageAttachment, urlVariant: number = 1) {
     const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
     if (!fullFileName) return;
 
     const fileNameInS3 = fullFileName.split('/')[2];
     const groupId = this.selectedConversation?._id;
     const segment1 = groupId;
-    const segment2 = groupId.substring(17);
+    const segment2 = groupId.substring(0, 17);
+    const segment3 = groupId.substring(17);
 
-    return `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const fullUrl1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const fullUrl2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
+
+    if (urlVariant === 1) return fullUrl1;
+    return fullUrl2;
+  }
+
+  onMediaPlayable(messageId: string, variant: number) {
+    try {
+      const key = `${messageId}|${variant}`;
+      this.mediaPlayable.set(key, true);
+      try { this.cdr.detectChanges(); } catch (e) {}
+    } catch (e) {}
+  }
+
+  onMediaError(messageId: string, variant: number) {
+    try {
+      const key = `${messageId}|${variant}`;
+      this.mediaPlayable.set(key, false);
+      try { this.cdr.detectChanges(); } catch (e) {}
+    } catch (e) {}
+  }
+
+  private async checkUrlExists(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.status === 200 || response.status !== 403;
+    } catch (error) {
+      return false;
+    }
   }
 
   private formatFileSize(bytes: number): string {
