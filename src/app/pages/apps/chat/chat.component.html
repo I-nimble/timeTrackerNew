@@ -392,8 +392,22 @@
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
           </button>
-          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
-          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
+          <button mat-icon-button matPrefix>
+            <mat-icon>emoji_emotions</mat-icon>
+          </button>
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" [disabled]="isRecording" />
+          <button 
+            *ngIf="isEmptyText"
+            mat-icon-button 
+            matSuffix
+            class="voice-btn"
+            (click)="onVoiceButtonClick($event)"
+            aria-label="Voice message"
+          >
+            <mat-icon *ngIf="!isRecording">mic</mat-icon>
+            <mat-icon *ngIf="isRecording">stop</mat-icon>
+          </button>
+          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage" *ngIf="!isEmptyText">
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>

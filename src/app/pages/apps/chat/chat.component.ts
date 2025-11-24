@@ -300,6 +300,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return this.newMessage.trim().length === 0;
   }
 
+  get isEmptyText(): boolean {
+    return this.newMessage.trim().length === 0;
+  }
+
   private loadRooms(): void {
     this.chatService.getRooms().subscribe({
       next: (rooms: any) => {
