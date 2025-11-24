@@ -579,22 +579,30 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   filteredRooms(): RocketChatRoom[] {
-    if (!this.roomsFilter) return this.rooms;
-    const q = this.roomsFilter.toLowerCase();
-    return this.rooms.filter((r) => {
-      try {
-        const nameMatch = !!r?.name && r.name.toLowerCase().includes(q);
-        let otherUsername = '';
-        if (Array.isArray(r?.usernames) && r.usernames.length > 0) {
-          const others = r.usernames.filter((u: string) => u !== this.chatService.loggedInUser?.username);
-          otherUsername = (others && others[0]) || '';
-        }
-        const usernameMatch = otherUsername.toLowerCase().includes(q);
-        return nameMatch || usernameMatch;
-      } catch (e) {
+    return this.rooms
+      .filter(r => {
+        if (r.teamMain) return false;
+        if (r.t === 'd') return true;
+        if (r.t === 'c') return true;
+        if (r.t === 'p') return true;
         return false;
-      }
-    });
+      })
+      .filter((r) => {
+        if (!this.roomsFilter) return true;
+        const q = this.roomsFilter.toLowerCase();
+        try {
+          const nameMatch = !!r?.name && r.name.toLowerCase().includes(q);
+          let otherUsername = '';
+          if (Array.isArray(r?.usernames) && r.usernames.length > 0) {
+            const others = r.usernames.filter((u: string) => u !== this.chatService.loggedInUser?.username);
+            otherUsername = (others && others[0]) || '';
+          }
+          const usernameMatch = otherUsername.toLowerCase().includes(q);
+          return nameMatch || usernameMatch;
+        } catch (e) {
+          return false;
+        }
+      });
   }
 
   getConversationName(room: RocketChatRoom): string {
