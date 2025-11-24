@@ -217,7 +217,7 @@
                                   </mat-select>
                                 </mat-form-field>
                                 <mat-form-field appearance="outline" style="flex-grow: 1;">
-                                  <input matInput formControlName="phone" type="phone" placeholder="Phone number" required inputmode="numeric" (keypress)="restrictToNumbers($event)"/>
+                                  <input matInput formControlName="phone" type="phone" placeholder="+1 (123) 456-7890" inputmode="numeric" (keypress)="restrictPhoneInput($event)"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.touched">
                                     Enter a valid phone number
@@ -517,7 +517,7 @@
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Contact Phone</mat-label>
-                              <input matInput formControlName="contactPhone" required inputmode="numeric" (keypress)="restrictToNumbers($event)">
+                              <input matInput formControlName="contactPhone" type="phone" placeholder="+1 (123) 456-7890" required inputmode="numeric" (keypress)="restrictPhoneInput($event)" />
                               <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('required') && registerTeamMemberForm.get('contactPhone')?.touched">
                                 Contact phone is required
@@ -530,7 +530,7 @@
 
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Additional Phone</mat-label>
-                              <input matInput formControlName="additionalPhone" required inputmode="numeric" (keypress)="restrictToNumbers($event)">
+                              <input matInput formControlName="additionalPhone" required inputmode="numeric" placeholder="+1 (123) 456-7890" (keypress)="restrictPhoneInput($event)">
                               <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerTeamMemberForm.get('additionalPhone')?.hasError('pattern') && registerTeamMemberForm.get('additionalPhone')?.touched">
                                 Please enter a valid phone number

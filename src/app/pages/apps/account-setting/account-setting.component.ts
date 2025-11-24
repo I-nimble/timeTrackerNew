@@ -78,7 +78,7 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -93,7 +93,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: ['']
   });
@@ -102,7 +102,7 @@ export class AppAccountSettingComponent implements OnInit {
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', Validators.pattern(/^\+\d{1,4}\s\(\d{1,4}\)\s\d{3}(?:-\d{4})?$/)]
+      phone: ['', Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]
     }),
     insurance_data: this.fb.group({
       provider: [''],
@@ -697,10 +697,18 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  restrictToNumbers(event: KeyboardEvent) {
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
     const key = event.key;
-    if (/^\d$/.test(key)) return;
-    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
-    event.preventDefault();
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+    
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
 } 

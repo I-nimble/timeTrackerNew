@@ -94,7 +94,7 @@ export class CustomSearchComponent implements OnInit {
       contactPerson: [{ value: '', disabled: false }, Validators.required],
       email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
       countryCode: [{ value: '+1', disabled: false }, Validators.required],
-      phone: [{ value: '', disabled: false }, [Validators.required, Validators.pattern(/^\d{7,11}$/)]],
+      phone: [{ value: '', disabled: false }, [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
       website: [{ value: '', disabled: false }],
       industry: [{ value: '', disabled: false }, Validators.required],
       numberOfEmployees: [{ value: 1, disabled: false }, [Validators.required, Validators.min(1)]],
@@ -337,5 +337,20 @@ export class CustomSearchComponent implements OnInit {
   }
   get showInfoControl(): FormControl {
     return this.customSearchForm.get('show_info') as FormControl;
+  }
+
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const key = event.key;
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+    
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
 }
