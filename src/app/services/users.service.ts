@@ -17,6 +17,13 @@ export class UsersService {
   private API_URI = environment.apiUrl;
   private profilePicUpdatedSource = new Subject<void>();
   profilePicUpdated$ = this.profilePicUpdatedSource.asObservable();
+  private usernameSource = new BehaviorSubject<string>(localStorage.getItem('username') || '');
+  username$ = this.usernameSource.asObservable();
+
+  public updateUsername(name: string) {
+    localStorage.setItem('username', name);
+    this.usernameSource.next(name);
+  }
 
   public updatePassword(passwordData: any) {
     return this.http.put(`${this.API_URI}/users/password`, passwordData);
