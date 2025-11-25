@@ -87,12 +87,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
   roomPictures: { [roomId: string]: string } = {};
   realtimeSubscription: Subscription | null = null;
+  private serverUpdatedSubscription: Subscription | null = null;
   private typingSubscription!: Subscription;
   private typingTimeout: any;
   typingUsers: string[] = [];
   isUserTyping = false;
   unreadMapSubscription: Subscription | null = null;
   private roomSubscriptions = new Map<string, Subscription>();
+  private pendingPinActions = new Map<string, boolean>();
   rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
   isSendingMessage = false;
   editingMessage: RocketChatMessage | null = null;
@@ -131,12 +133,132 @@ export class AppChatComponent implements OnInit, OnDestroy {
       console.error('Failed to subscribe to global message stream:', err);
     }
 
+    // listen for low-level room notify events (deleteMessage, editMessage) and handle them
+    try {
+      this.chatService.getRoomUpdateStream().subscribe((ev: any) => {
+        try {
+          if (!ev || !ev.collection) return;
+          if (ev.collection === 'stream-notify-room' && ev.fields && ev.fields.eventName && Array.isArray(ev.fields.args)) {
+            const eventName: string = ev.fields.eventName;
+            const args = ev.fields.args;
+            if (eventName.includes('/deleteMessage')) {
+              const roomId = eventName.split('/')[0];
+              if (this.selectedConversation && this.selectedConversation._id === roomId) {
+                const maybeId = args?.[0]?._id || args?.[0]?.messageId || null;
+                if (maybeId) {
+                  this.messages = this.messages.filter((m) => m._id !== maybeId);
+                  this.cdr.detectChanges();
+                } else if (this.selectedConversation) {
+                  this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                    this.messages = msgs || [];
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  });
+                }
+              }
+            }
+          }
+
+          if (ev.collection === 'stream-room-messages' && ev.fields && ev.fields.eventName && Array.isArray(ev.fields.args)) {
+            const args = ev.fields.args;
+            const maybeMsg = args?.[0];
+            if (!maybeMsg || !maybeMsg._id) return;
+            const roomId = (ev.fields.eventName || '').split('/')[0];
+            if (!this.selectedConversation || this.selectedConversation._id !== roomId) return;
+
+            const incoming: RocketChatMessage = maybeMsg as RocketChatMessage;
+            try {
+              const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+              if (looksLikePinnedEvent) {
+                const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+                const pendingExpected = this.pendingPinActions.get(incoming._id);
+
+                if (typeof pendingExpected !== 'undefined') {
+                  if (pendingExpected === isPinned) {
+                    const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                    if (idx2 !== -1) {
+                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                    } else if (this.selectedConversation) {
+                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                    this.pendingPinActions.delete(incoming._id);
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  } else {
+                    this.pendingPinActions.delete(incoming._id);
+                  }
+                } else {
+                  const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                  if (idx2 !== -1) {
+                    const localPinned = !!this.messages[idx2].pinned;
+                    if (localPinned !== isPinned) {
+                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                    }
+                  } else {
+                    if (this.selectedConversation) {
+                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                  }
+                  this.sortMessagesAscending();
+                  this.cdr.detectChanges();
+                }
+              }
+            } catch (err) {
+              console.error('Error handling pin/unpin detection:', err, incoming);
+            }
+ 
+            const idx = this.messages.findIndex(m => m._id === incoming._id);
+            if (idx !== -1) {
+              this.messages[idx] = { ...this.messages[idx], ...incoming };
+            } else {
+              this.messages.push(incoming);
+            }
+            this.sortMessagesAscending();
+            this.cdr.detectChanges();
+          }
+        } catch (err) {
+          console.error('Error handling room update event in component:', err, ev);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to room update stream:', err);
+    }
+
     try {
       this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
         this.sortRoomsByUnread();
       });
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
+    }
+
+    // reload messages when server sends an 'updated' notification
+    try {
+      this.serverUpdatedSubscription = this.chatService.getServerUpdatedStream().subscribe((methods: any) => {
+        try {
+          if (!this.selectedConversation) return;
+          this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+            this.messages = msgs || [];
+            this.sortMessagesAscending();
+            this.cdr.detectChanges();
+            this.scrollToBottom();
+          }, (err) => {
+            console.error('Failed to reload room messages after server updated event:', err);
+          });
+        } catch (err) {
+          console.error('Error handling server updated event in component:', err, methods);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to server updated stream:', err);
     }
   }
 
@@ -775,28 +897,89 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
 
     const { history, realtimeStream, typingStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
-
     this.messages = history;
+    this.sortMessagesAscending();
     const existingMessageIds = new Set(this.messages.map(msg => msg._id));
 
     const sub = realtimeStream.subscribe((newMessage) => {
-      if (!existingMessageIds.has(newMessage._id)) {
-        this.messages = [...this.messages, newMessage];
-        existingMessageIds.add(newMessage._id);
-        this.scrollToBottom();
+      try {
+        if (!newMessage || !newMessage._id) return;
+
         try {
-          this.chatService.setUnreadForRoom(room._id, 0);
-        } catch (e) {}
-        try {
-          const roomIdx = this.rooms.findIndex(r => r._id === room._id);
-          if (roomIdx !== -1) {
-            (this.rooms[roomIdx] as any).lastMessage = newMessage;
-            (this.rooms[roomIdx] as any).lastMessageTs = newMessage.ts || (this.rooms[roomIdx] as any).ts;
-            this.moveRoomToTop(room._id);
+          const incoming: RocketChatMessage = newMessage as RocketChatMessage;
+          const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+          if (looksLikePinnedEvent) {
+            const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+            const pendingExpected = this.pendingPinActions.get(incoming._id);
+
+            if (typeof pendingExpected !== 'undefined') {
+              if (pendingExpected === isPinned) {
+                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                if (idx2 !== -1) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                }
+                this.pendingPinActions.delete(incoming._id);
+                this.sortMessagesAscending();
+                this.cdr.detectChanges();
+              } else {
+                this.pendingPinActions.delete(incoming._id);
+                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                if (idx2 !== -1) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.cdr.detectChanges();
+                }
+              }
+            } else {
+              const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+              if (idx2 !== -1) {
+                const localPinned = !!this.messages[idx2].pinned;
+                if (localPinned !== isPinned) {
+                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.cdr.detectChanges();
+                }
+              } else {
+                if (this.selectedConversation) {
+                  this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                    this.messages = msgs || [];
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  });
+                }
+              }
+            }
           }
         } catch (err) {
-          console.error('Error updating room lastMessage after realtime message:', err, newMessage);
+          console.error('Error handling pin/unpin detection for realtime message:', err, newMessage);
         }
+
+        if (existingMessageIds.has(newMessage._id)) {
+          // update existing message
+          const idx = this.messages.findIndex(m => m._id === newMessage._id);
+          if (idx !== -1) {
+            this.messages[idx] = { ...this.messages[idx], ...newMessage };
+            this.cdr.detectChanges();
+          }
+        } else {
+          // append new message
+          this.messages = [...this.messages, newMessage];
+          existingMessageIds.add(newMessage._id);
+          this.scrollToBottom();
+          try {
+            this.chatService.setUnreadForRoom(room._id, 0);
+          } catch (e) {}
+          try {
+            const roomIdx = this.rooms.findIndex(r => r._id === room._id);
+            if (roomIdx !== -1) {
+              (this.rooms[roomIdx] as any).lastMessage = newMessage;
+              (this.rooms[roomIdx] as any).lastMessageTs = newMessage.ts || (this.rooms[roomIdx] as any).ts;
+              this.moveRoomToTop(room._id);
+            }
+          } catch (err) {
+            console.error('Error updating room lastMessage after realtime message:', err, newMessage);
+          }
+        }
+      } catch (err) {
+        console.error('Error handling realtime message in room subscription:', err, newMessage);
       }
     });
     this.roomSubscriptions.set(room._id, sub);
@@ -854,6 +1037,15 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
 
     this.scrollToBottom();
+  }
+
+  private sortMessagesAscending(): void {
+    try {
+      this.messages.sort((a, b) => this.getMessageTimestamp(a).getTime() - this.getMessageTimestamp(b).getTime());
+      this.messages = [...this.messages];
+    } catch (err) {
+      console.error('Error sorting messages ascending:', err);
+    }
   }
 
   getTypingText(): string {
@@ -1067,6 +1259,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     if (this.unreadMapSubscription) {
       this.unreadMapSubscription.unsubscribe();
     }
+    if (this.serverUpdatedSubscription) {
+      this.serverUpdatedSubscription.unsubscribe();
+    }
     if (this.selectedConversation) {
       this.chatService.unsubscribeFromRoomMessages(
         this.selectedConversation._id
@@ -1268,17 +1463,25 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   togglePin(message: RocketChatMessage) {
+    const expectedPinnedState = !message.pinned;
+    this.pendingPinActions.set(message._id, expectedPinnedState);
+
     const action$ = message.pinned
-      ? this.chatService.unpinMessage(message._id)
-      : this.chatService.pinMessage(message._id);
+      ? this.chatService.unpinMessage(message)
+      : this.chatService.pinMessage(message);
 
     action$.subscribe({
       next: (res) => {
-        message.pinned = !message.pinned;
-        this.cdr.detectChanges();
+        try {
+          message.pinned = expectedPinnedState;
+          this.cdr.detectChanges();
+        } finally {
+          this.pendingPinActions.delete(message._id);
+        }
       },
       error: (err) => {
         console.error('Error pinning/unpinning message:', err);
+        this.pendingPinActions.delete(message._id);
       }
     });
   }
