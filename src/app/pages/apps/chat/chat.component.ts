@@ -127,13 +127,34 @@ export class AppChatComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Failed to subscribe to global message stream:', err);
     }
-
     try {
       this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
         this.sortRoomsByUnread();
       });
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
+    }
+    try {
+      this.rooms.forEach(r => this.chatService.subscribeToCallEvents(r._id));
+    } catch (err) {
+      console.error('Failed to subscribe to call notifications:', err);
+    }
+    try {
+      this.chatService.getUserNotifyStream().subscribe(async (notification: any) => {
+        if (notification.type === 'call-started') {
+          const roomName = notification.roomName || 'a room';
+          const title = `Active call in ${roomName}`;
+          const body = 'Click to join the call';
+          await this.chatService.showPushNotification(title, body, undefined, {
+            type: 'call',
+            roomId: notification.roomId,
+            callData: notification.callData,
+          });
+          this.openSnackBar(`Call started in ${roomName}`, 'Join');
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to call notifications stream:', err);
     }
   }
 
