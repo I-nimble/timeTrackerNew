@@ -236,7 +236,10 @@
                         class="w-100"
                         color="primary"
                       >
-                        <input matInput type="text" formControlName="name" placeholder="First name" />
+                        <input matInput type="text" formControlName="name" placeholder="First name" required />
+                        <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
+                        This field is required
+                        </mat-error>
                       </mat-form-field>
                     </div>
                     <div class="col-12 col-sm-6">
@@ -249,7 +252,10 @@
                           class="w-100"
                           color="primary"
                         >
-                          <input matInput type="text" formControlName="last_name" placeholder="Last name" />
+                          <input matInput type="text" formControlName="last_name" placeholder="Last name" required/>
+                          <mat-error *ngIf="profileForm.get('last_name')?.hasError('required')">
+                          This field is required
+                          </mat-error>
                         </mat-form-field>
                     </div>
                     <div class="col-12">
@@ -285,7 +291,9 @@
                           placeholder="+1 (123) 456-7890" 
                           formControlName="phone"
                           (keypress)="restrictPhoneInput($event)" />
-
+                          <mat-error *ngIf="profileForm.get('phone')?.hasError('pattern')">
+                            Invalid phone number format. +1 (123) 456-7890
+                          </mat-error>
                       </mat-form-field>
                     </div>
                   </form>
