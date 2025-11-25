@@ -67,6 +67,8 @@ export class RocketChatService {
     isTyping: boolean;
   }>();
   public typing$ = this.typingSubject.asObservable();
+  private notificationAudio: HTMLAudioElement | null = null;
+  private callAudio: HTMLAudioElement | null = null;
 
   loggedInUser: RocketChatUser | null = null;
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
@@ -78,6 +80,7 @@ export class RocketChatService {
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
+    this.initNotificationSounds();
 
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
@@ -97,6 +100,45 @@ export class RocketChatService {
       });
     } catch (err) {
       console.error('Failed to subscribe to WebSocketService typing stream', err);
+    }
+  }
+
+  private initNotificationSounds() {
+    try {
+      if (!this.notificationAudio) {
+        this.notificationAudio = new Audio(`${environment.mp3}/message.mp3`);
+        this.notificationAudio.preload = 'auto';
+        this.notificationAudio.load();
+        this.notificationAudio.muted = false;
+        this.notificationAudio.volume = 1.0;
+      }
+
+      if (!this.callAudio) {
+        this.callAudio = new Audio(`${environment.mp3}/ringtone.mp3`);
+        this.callAudio.preload = 'auto';
+        this.callAudio.load();
+        this.callAudio.muted = false;
+        this.callAudio.volume = 1.0;
+      }
+      try {
+        if (this.notificationAudio) {
+          const na = this.notificationAudio;
+          const p: any = na.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => { try { na.pause(); na.currentTime = 0; } catch (e) {} }).catch(() => {});
+          }
+        }
+        if (this.callAudio) {
+          const ca = this.callAudio;
+          const p2: any = ca.play();
+          if (p2 && typeof p2.then === 'function') {
+            p2.then(() => { try { ca.pause(); ca.currentTime = 0; } catch (e) {} }).catch(() => {});
+          }
+        }
+      } catch (e) {
+      }
+    } catch (err) {
+      console.error('Failed to init notification sounds:', err);
     }
   }
 
@@ -572,10 +614,58 @@ export class RocketChatService {
       if (message.fields?.args?.[0]) {
         const messageData: RocketChatMessage = message.fields.args[0];
         this.messageStreamSubject.next(messageData);
+        try {
+          const fromUserId = messageData.u?._id;
+          const isFromCurrentUser = !!(
+            fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id
+          );
+          if (!isFromCurrentUser && messageData.rid !== this.currentActiveRoom) {
+            const icon = messageData.u?.username ? this.getUserAvatarUrl(messageData.u.username) : undefined;
+            const text = (messageData.msg && String(messageData.msg).slice(0, 200)) || '';
+
+            const isCallMessage =
+              messageData.t === 'videoconf' ||
+              (typeof text === 'string' && /jitsi|call/i.test(text)) ||
+              (!!messageData.attachments && messageData.attachments.some((a: any) => (a.title || '').toLowerCase().includes('call')));
+
+            if (isCallMessage) {
+              this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: messageData.rid, messageId: messageData._id });
+              try { this.playCallSound(); } catch (e) { }
+            } else {
+              const title = messageData.u?.name || messageData.u?.username || 'New message';
+              const body = text || 'New message';
+              try { this.incrementUnreadForRoom(messageData.rid); } catch (e) {}
+              try { this.playNotificationSound(); } catch (e) {}
+              this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
+            }
+          }
+        } catch (err) {
+          console.error('Error showing push for room message:', err);
+        }
       }
     }
 
     if (message.msg === 'changed' && message.collection === 'stream-notify-room') {
+      const args = message.fields?.args ?? [];
+      const event = args[0];
+
+      if (event?.type === 'call' || event === 'call') {
+        const callData = args[1];
+        this.userNotifySubject.next({
+          type: 'call-started',
+          roomId: message.roomId,
+          callData
+        });
+        try {
+          const title = 'Call ongoing';
+          const caller = callData?.from || callData?.callerName || '';
+          const body = caller ? `${caller} is calling` : 'Call ongoing';
+          this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData });
+          try { this.playCallSound(); } catch (e) {}
+        } catch (err) {
+          console.error('Error showing push for call-started:', err);
+        }
+      }
       this.roomUpdateSubject.next(message);
     }
 
@@ -604,9 +694,29 @@ export class RocketChatService {
             this.getMessage(payload._id).subscribe((message: RocketChatMessage) => {
               const fromUserId = message.u?._id;
               const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
-  
               if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
-                this.playNotificationSound();
+                const text = (message.msg && String(message.msg).slice(0, 200)) || '';
+                const isCallMessage = message.t === 'videoconf' || (typeof text === 'string' && /jitsi|call/i.test(text));
+                const icon = message.u?.username ? this.getUserAvatarUrl(message.u.username) : undefined;
+                  if (isCallMessage) {
+                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                    try { this.playCallSound(); } catch (e) {}
+                    try {
+                      this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: payload._id });
+                    } catch (err) {
+                      console.debug('Error showing push for call user notify message:', err);
+                    }
+                  } else {
+                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                    try { this.playNotificationSound(); } catch (e) {}
+                    try {
+                      const title = message.u?.name || message.u?.username || 'New message';
+                      const body = text || 'New message';
+                      this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: payload._id });
+                    } catch (err) {
+                      console.debug('Error showing push for user notify message:', err);
+                    }
+                  }
               }
             });
           } catch (err) {
@@ -745,6 +855,21 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(`user:${event}`, subscriptionId);
+  }
+
+  subscribeToCallEvents(roomId: string): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket not connected yet, cannot subscribe to calls');
+      return;
+    }
+    const subscriptionId = this.generateSubscriptionId();
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-notify-room',
+      params: [`${roomId}/call`, false],
+    });
+    this.activeSubscriptions.set(`room-call:${roomId}`, subscriptionId);
   }
 
   unsubscribeUserNotifications(event: string): void {
@@ -1032,8 +1157,74 @@ export class RocketChatService {
   }
 
   playNotificationSound() {
-    const audio = new Audio(`${environment.mp3}/notification.mp3`);
-    audio.play();
+    try {
+      if (this.notificationAudio) {
+        try { this.notificationAudio.currentTime = 0; } catch (e) {}
+        const p = this.notificationAudio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } else {
+        const audio = new Audio(`${environment.mp3}/message.mp3`);
+        audio.play().catch(() => {});
+      }
+    } catch (err) {
+      console.debug('playNotificationSound error:', err);
+    }
+  }
+
+  playCallSound() {
+    try {
+      if (this.callAudio) {
+        try { this.callAudio.currentTime = 0; } catch (e) {}
+        const p = this.callAudio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } else {
+        const audio = new Audio(`${environment.mp3}/ringtone.mp3`);
+        audio.play().catch(() => {});
+      }
+    } catch (err) {
+      console.debug('playCallSound error:', err);
+    }
+  }
+
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if (!('Notification' in window)) return false;
+      if (Notification.permission === 'granted') return true;
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (err) {
+      console.error('Notification permission error:', err);
+      return false;
+    }
+  }
+
+  public async showPushNotification(title: string, body: string, icon?: string, data?: any) {
+    try {
+      if (!('Notification' in window)) return;
+      const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());
+      if (!granted) return;
+
+      const options: any = { body };
+      if (icon) options.icon = icon;
+      if (data) options.data = data;
+
+      const notif = new Notification(title, options);
+      notif.onclick = (ev: any) => {
+        try {
+          if (window && (window as any).focus) (window as any).focus();
+        } catch (e) {
+        }
+        if (typeof ev?.target?.close === 'function') ev.target.close();
+      };
+      setTimeout(() => {
+        try {
+          notif.close();
+        } catch (e) {
+        }
+      }, 8000);
+    } catch (err) {
+      console.error('Failed to show push notification:', err);
+    }
   }
 
   private generateMessageId(): string {
