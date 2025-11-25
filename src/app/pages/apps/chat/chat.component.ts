@@ -47,6 +47,10 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-chat',
@@ -64,7 +68,12 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MatButtonModule,
     MatMenuModule,
     CreateRoomComponent,
-    ChatInfoComponent
+    ChatInfoComponent,
+    MarkdownPipe,
+    LinebreakPipe,
+    PickerModule,
+    EmojiMartPipe,
+    MatTooltip
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -102,13 +111,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
   pressedMessageId: string | null = null;
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
+  showEmojiPicker = false;
+  reactionTargetMessage: RocketChatMessage | null = null;
+  showReactionPicker = false;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog, public emojiPipe: EmojiMartPipe) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -1244,7 +1256,15 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         },
       });
   }
-  
+
+  onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.sendMessage();
+    }
+  }
+
   getLocalTime(offset: number | undefined): string {
     if (offset === undefined || offset === null) return '';
 
@@ -1384,17 +1404,59 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
-/*   reactToMessage(message: RocketChatMessage) {
-    const emoji = ':smile:';
-    this.chatService.reactToMessage(message._id, emoji).subscribe({
-      next: (res) => {
-        console.log('Reacted to message:', res);
-      },
+  toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  openReactionPicker(message: RocketChatMessage) {
+    this.reactionTargetMessage = message;
+    this.showReactionPicker = true;
+    
+  }
+
+  addEmoji(event: any) {
+    const emoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!emoji) return;
+    this.newMessage = (this.newMessage || '') + emoji;
+  }
+
+  sendReaction(event: any) {
+    if (!this.reactionTargetMessage) return;
+    const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!nativeEmoji) return;
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
+    this.chatService.reactToMessage(this.reactionTargetMessage._id, shortcode).subscribe({
       error: (err) => {
         console.error('Error reacting to message:', err);
       }
     });
-  } */
+    this.showReactionPicker = false;
+    this.reactionTargetMessage = null;
+  }
+
+  getReactionKeys(message: RocketChatMessage): string[] {
+    return message.reactions ? Object.keys(message.reactions) : [];
+  }
+
+  getReactionUsernames(message: RocketChatMessage, emoji: string): string {
+    const users = message.reactions?.[emoji]?.usernames || [];
+    return users.length > 0 ? users.join(', ') : '';
+  }
+
+  didIReact(message: RocketChatMessage, emoji: string): boolean {
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return false;
+    return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
+  }
+
+  toggleReaction(message: RocketChatMessage, emoji: string) {
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      next: () => {
+      },
+      error: err => console.error('Error toggling reaction:', err)
+    });
+  }
 
   quoteMessage(message: RocketChatMessage) {
     this.replyToMessage = message;
