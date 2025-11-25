@@ -80,7 +80,7 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -95,7 +95,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: ['']
   });
