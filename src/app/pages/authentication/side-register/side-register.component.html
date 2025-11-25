@@ -219,13 +219,13 @@
                                 <mat-form-field appearance="outline" style="flex-grow: 1;">
                                   <input matInput formControlName="phone" type="phone" placeholder="+1 (123) 456-7890" inputmode="numeric" (keypress)="restrictPhoneInput($event)"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
-                                    *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.touched">
+                                    *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.value && registerClientForm.get('phone')?.touched">
                                     Enter a valid phone number
                                   </mat-error>
                                 </mat-form-field>
                               </div>
       
-                              <button class="w-100" mat-flat-button matStepperNext [disabled]="!registerClientForm.get('phone')?.valid">Next</button>
+                              <button class="w-100" mat-flat-button matStepperNext>Next</button>
                             </form>
                           </div>
                         </mat-step>
