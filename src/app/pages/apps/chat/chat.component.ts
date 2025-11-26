@@ -120,6 +120,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
             (room as any).lastMessageTs = message.ts || (room as any).ts || message.ts;
             this.moveRoomToTop(message.rid);
           }
+          else {
+            this.loadRooms();
+          }
         } catch (err) {
           console.error('Error updating room lastMessage from global stream:', err, message);
         }
