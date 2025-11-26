@@ -445,14 +445,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return this.hasAnyRole(['moderator', 'admin']);
   }
 
-  canCreateChannel(): boolean {
-    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
-  }
-
-  canCreateDirectMessage(): boolean {
-    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
-  }
-
   canDeleteRoom(room: RocketChatRoom): boolean {
     if (!room || !room.t) return false;
     const roles = this.chatService.loggedInUser?.roles || [];
