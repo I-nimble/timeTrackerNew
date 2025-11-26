@@ -501,7 +501,7 @@ export class HeaderComponent implements OnInit {
       );
       const isNew = notifications.length > this.previousNotificationCount;
       if (isNew && this.hasPendingNotifications) {
-      this.playNotificationSound();
+      // this.playNotificationSound();
       }
       this.previousNotificationCount = notifications.length;
     });
