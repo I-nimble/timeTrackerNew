@@ -1194,6 +1194,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   async selectRoom(room: RocketChatRoom) {
+    const previousRoomId = this.selectedConversation?._id;
+    if (previousRoomId && previousRoomId !== room._id) {
+      try {
+        const prevSub = this.roomSubscriptions.get(previousRoomId);
+        if (prevSub) {
+          prevSub.unsubscribe();
+          this.roomSubscriptions.delete(previousRoomId);
+        }
+      } catch (e) {
+        console.error('Failed to unsubscribe previous room subscription', e);
+      }
+
+      try {
+        if (this.typingSubscription) {
+          this.typingSubscription.unsubscribe();
+        }
+      } catch (e) {
+      }
+    }
     this.selectedConversation = room;
     this.typingUsers = [];
     if (this.isMobile) {
