@@ -27,9 +27,6 @@
             </div>
           </div>
           <button
-            *ngIf="
-              canCreateDirectMessage() || canCreateChannel() || canCreateTeam()
-            "
             mat-icon-button
             [matMenuTriggerFor]="createMenu"
             color="primary"
@@ -40,7 +37,6 @@
 
           <mat-menu #createMenu="matMenu">
             <button
-              *ngIf="canCreateDirectMessage()"
               mat-menu-item
               (click)="openCreateRoomDialog('d')"
             >
@@ -48,7 +44,6 @@
               <span>Direct Message</span>
             </button>
             <button
-              *ngIf="canCreateChannel()"
               mat-menu-item
               (click)="openCreateRoomDialog('c')"
             >
