@@ -66,7 +66,7 @@ export class AppSideRegisterComponent {
     departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
   }, { validators: this.crossFieldValidator() });

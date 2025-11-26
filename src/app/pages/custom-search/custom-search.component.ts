@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormsModule,
   ReactiveFormsModule,
@@ -158,6 +159,22 @@ export class CustomSearchComponent implements OnInit {
         this.populateClientInfo();
       } else {
         this.clearContactInfo();
+      }
+    });
+
+    setTimeout(() => {
+      this.markAllFormControlsAsTouched(this.contactInfoGroup);
+    });
+  }
+
+  markAllFormControlsAsTouched(formGroup: FormGroup | FormArray) {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      if (control instanceof FormControl) {
+        control.markAsTouched();
+        control.updateValueAndValidity();
+      } else if (control instanceof FormGroup || control instanceof FormArray) {
+        this.markAllFormControlsAsTouched(control);
       }
     });
   }
