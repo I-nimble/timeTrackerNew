@@ -1494,12 +1494,14 @@ export class RocketChatService {
 
   sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[], tmid?: string): Observable<any> {
     return this.http.post(
-      `${this.CHAT_API_URI}chat.postMessage`,
+      `${this.CHAT_API_URI}chat.sendMessage`,
       {
-        channel: roomId,
-        text: message,
-        ...(attachments && { attachments }),
-        ...(tmid && { tmid })
+        message: {
+          rid: roomId,
+          msg: message,
+          ...(attachments && { attachments }),
+          ...(tmid && { tmid, tshow: true })
+        }
       },
       { headers: this.getAuthHeaders() }
     );
