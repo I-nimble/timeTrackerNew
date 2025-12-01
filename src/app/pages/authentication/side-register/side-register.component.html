@@ -220,12 +220,12 @@
                                   <input matInput formControlName="phone" type="phone" placeholder="+1 (123) 456-7890" inputmode="numeric" (keypress)="restrictPhoneInput($event)"/>
                                   <mat-error class="text-danger f-s-12 m-t-0"
                                     *ngIf="registerClientForm.get('phone')?.hasError('pattern') && registerClientForm.get('phone')?.value && registerClientForm.get('phone')?.touched">
-                                    Enter a valid phone number
+                                    Invalid phone number format. <br/> +1 (123) 456-7890
                                   </mat-error>
                                 </mat-form-field>
                               </div>
       
-                              <button class="w-100" mat-flat-button matStepperNext>Next</button>
+                              <button class="w-100 m-t-16" mat-flat-button matStepperNext [disabled]="registerClientForm.get('phone')?.hasError('pattern')">Next</button>
                             </form>
                           </div>
                         </mat-step>
@@ -524,7 +524,7 @@
                               </mat-error>
                               <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerTeamMemberForm.get('contactPhone')?.hasError('pattern') && registerTeamMemberForm.get('contactPhone')?.touched">
-                                Please enter a valid phone number
+                                Invalid phone number format. +1 (123) 456-7890
                               </mat-error>
                             </mat-form-field>
 
@@ -533,7 +533,7 @@
                               <input matInput formControlName="additionalPhone" required inputmode="numeric" placeholder="+1 (123) 456-7890" (keypress)="restrictPhoneInput($event)">
                               <mat-error class="text-danger f-s-12 m-t-0"
                                 *ngIf="registerTeamMemberForm.get('additionalPhone')?.hasError('pattern') && registerTeamMemberForm.get('additionalPhone')?.touched">
-                                Please enter a valid phone number
+                                Invalid phone number format. +1 (123) 456-7890
                               </mat-error>
                             </mat-form-field>
 
