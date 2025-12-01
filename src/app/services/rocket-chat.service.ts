@@ -49,10 +49,15 @@ export class RocketChatService {
   private activeJitsiSubject = new BehaviorSubject<any | null>(null);
   private currentActiveRoom: string | null = null;
 
+  private serverUpdatedSubject = new Subject<any>();
+
+
   private credentials: RocketChatCredentials | null = null;
   private activeSubscriptions = new Map<string, string>();
   private messageId = 0;
   private subscriptionId = 0;
+
+  private wsMethodHandlers = new Map<string, { resolve: (v: any) => void; reject: (err: any) => void; timeout?: any; method?: string; params?: any[] }>();
 
   private typingUsers = new Map<string, Set<string>>();
   private typingTimeout = new Map<string, NodeJS.Timeout>();
@@ -62,6 +67,8 @@ export class RocketChatService {
     isTyping: boolean;
   }>();
   public typing$ = this.typingSubject.asObservable();
+  private notificationAudio: HTMLAudioElement | null = null;
+  private callAudio: HTMLAudioElement | null = null;
 
   loggedInUser: RocketChatUser | null = null;
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
@@ -73,6 +80,7 @@ export class RocketChatService {
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
+    this.initNotificationSounds();
 
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
@@ -92,6 +100,45 @@ export class RocketChatService {
       });
     } catch (err) {
       console.error('Failed to subscribe to WebSocketService typing stream', err);
+    }
+  }
+
+  private initNotificationSounds() {
+    try {
+      if (!this.notificationAudio) {
+        this.notificationAudio = new Audio(`${environment.mp3}/message.mp3`);
+        this.notificationAudio.preload = 'auto';
+        this.notificationAudio.load();
+        this.notificationAudio.muted = false;
+        this.notificationAudio.volume = 1.0;
+      }
+
+      if (!this.callAudio) {
+        this.callAudio = new Audio(`${environment.mp3}/ringtone.mp3`);
+        this.callAudio.preload = 'auto';
+        this.callAudio.load();
+        this.callAudio.muted = false;
+        this.callAudio.volume = 1.0;
+      }
+      try {
+        if (this.notificationAudio) {
+          const na = this.notificationAudio;
+          const p: any = na.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => { try { na.pause(); na.currentTime = 0; } catch (e) {} }).catch(() => {});
+          }
+        }
+        if (this.callAudio) {
+          const ca = this.callAudio;
+          const p2: any = ca.play();
+          if (p2 && typeof p2.then === 'function') {
+            p2.then(() => { try { ca.pause(); ca.currentTime = 0; } catch (e) {} }).catch(() => {});
+          }
+        }
+      } catch (e) {
+      }
+    } catch (err) {
+      console.error('Failed to init notification sounds:', err);
     }
   }
 
@@ -442,6 +489,42 @@ export class RocketChatService {
 
   private handleWebSocketMessage(message: any): void {
 
+    
+    try {
+      if (message && message.msg === 'result') {
+        const id = message.id;
+        if (id && this.wsMethodHandlers.has(id)) {
+          const handler = this.wsMethodHandlers.get(id)!;
+          try { if (handler.timeout) clearTimeout(handler.timeout); } catch (e) {}
+          this.wsMethodHandlers.delete(id);
+          if (message.error) {
+            handler.reject(message.error);
+          } else {
+            handler.resolve(message.result);
+          }
+
+          try {
+            const methodName = handler.method;
+            const handlerParams = handler.params;
+            if (methodName === 'pinMessage' || methodName === 'unpinMessage') {
+              const paramMsg = handlerParams && handlerParams[0];
+              if (paramMsg && paramMsg._id) {
+                const update: any = { _id: paramMsg._id, rid: paramMsg.rid, pinned: methodName === 'pinMessage' };
+                this.messageStreamSubject.next(update as any);
+              }
+            }
+          } catch (e) {
+            console.error('Error emitting pin/unpin message update:', e);
+          }
+
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error routing websocket method response:', e, message);
+    }
+
+
     if (message.msg === 'nosub') {
       const err = message.error;
       if (err && err.error === 'not-allowed') {
@@ -531,10 +614,58 @@ export class RocketChatService {
       if (message.fields?.args?.[0]) {
         const messageData: RocketChatMessage = message.fields.args[0];
         this.messageStreamSubject.next(messageData);
+        try {
+          const fromUserId = messageData.u?._id;
+          const isFromCurrentUser = !!(
+            fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id
+          );
+          if (!isFromCurrentUser && messageData.rid !== this.currentActiveRoom) {
+            const icon = messageData.u?.username ? this.getUserAvatarUrl(messageData.u.username) : undefined;
+            const text = (messageData.msg && String(messageData.msg).slice(0, 200)) || '';
+
+            const isCallMessage =
+              messageData.t === 'videoconf' ||
+              (typeof text === 'string' && /jitsi|call/i.test(text)) ||
+              (!!messageData.attachments && messageData.attachments.some((a: any) => (a.title || '').toLowerCase().includes('call')));
+
+            if (isCallMessage) {
+              this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: messageData.rid, messageId: messageData._id });
+              try { this.playCallSound(); } catch (e) { }
+            } else {
+              const title = messageData.u?.name || messageData.u?.username || 'New message';
+              const body = text || 'New message';
+              try { this.incrementUnreadForRoom(messageData.rid); } catch (e) {}
+              try { this.playNotificationSound(); } catch (e) {}
+              this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
+            }
+          }
+        } catch (err) {
+          console.error('Error showing push for room message:', err);
+        }
       }
     }
 
     if (message.msg === 'changed' && message.collection === 'stream-notify-room') {
+      const args = message.fields?.args ?? [];
+      const event = args[0];
+
+      if (event?.type === 'call' || event === 'call') {
+        const callData = args[1];
+        this.userNotifySubject.next({
+          type: 'call-started',
+          roomId: message.roomId,
+          callData
+        });
+        try {
+          const title = 'Call ongoing';
+          const caller = callData?.from || callData?.callerName || '';
+          const body = caller ? `${caller} is calling` : 'Call ongoing';
+          this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData });
+          try { this.playCallSound(); } catch (e) {}
+        } catch (err) {
+          console.error('Error showing push for call-started:', err);
+        }
+      }
       this.roomUpdateSubject.next(message);
     }
 
@@ -563,9 +694,29 @@ export class RocketChatService {
             this.getMessage(payload._id).subscribe((message: RocketChatMessage) => {
               const fromUserId = message.u?._id;
               const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
-  
               if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
-                this.playNotificationSound();
+                const text = (message.msg && String(message.msg).slice(0, 200)) || '';
+                const isCallMessage = message.t === 'videoconf' || (typeof text === 'string' && /jitsi|call/i.test(text));
+                const icon = message.u?.username ? this.getUserAvatarUrl(message.u.username) : undefined;
+                  if (isCallMessage) {
+                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                    try { this.playCallSound(); } catch (e) {}
+                    try {
+                      this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: payload._id });
+                    } catch (err) {
+                      console.debug('Error showing push for call user notify message:', err);
+                    }
+                  } else {
+                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                    try { this.playNotificationSound(); } catch (e) {}
+                    try {
+                      const title = message.u?.name || message.u?.username || 'New message';
+                      const body = text || 'New message';
+                      this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: payload._id });
+                    } catch (err) {
+                      console.debug('Error showing push for user notify message:', err);
+                    }
+                  }
               }
             });
           } catch (err) {
@@ -582,6 +733,9 @@ export class RocketChatService {
 
     if (message.msg === 'ping') {
       this.sendWebSocketMessage({ msg: 'pong' });
+    }
+    if (message.msg === 'updated' && Array.isArray(message.methods)) {
+      this.serverUpdatedSubject.next(message.methods);
     }
   }
 
@@ -605,6 +759,17 @@ export class RocketChatService {
             });
             return;
           }
+    
+          if (typeof key === 'string' && key.includes(':notify:')) {
+            const parts = key.split(':notify:');
+            const parsedRoomId = parts[0];
+            const eventName = parts[1];
+            if (parsedRoomId && eventName) {
+              this.subscribeToRoomNotifications(parsedRoomId, eventName).catch(() => {});
+              return;
+            }
+          }
+
           const roomId = key;
           this.subscribeToRoomMessages(roomId);
           try {
@@ -637,6 +802,28 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(roomId, subscriptionId);
+    
+    await this.subscribeToRoomNotifications(roomId, 'deleteMessage');
+  }
+
+  async subscribeToRoomNotifications(roomId: string, eventName: string): Promise<void> {
+    if (!roomId || !eventName) return;
+
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      await this.connectWebSocket();
+    }
+
+    const subscriptionId = this.generateSubscriptionId();
+    const param = `${roomId}/${eventName}`;
+
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-notify-room',
+      params: [param, false],
+    });
+    
+    this.activeSubscriptions.set(`${roomId}:notify:${eventName}`, subscriptionId);
   }
 
   public joinTypingRoom(roomId: string): void {
@@ -668,6 +855,21 @@ export class RocketChatService {
     });
 
     this.activeSubscriptions.set(`user:${event}`, subscriptionId);
+  }
+
+  subscribeToCallEvents(roomId: string): void {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket not connected yet, cannot subscribe to calls');
+      return;
+    }
+    const subscriptionId = this.generateSubscriptionId();
+    this.sendWebSocketMessage({
+      msg: 'sub',
+      id: subscriptionId,
+      name: 'stream-notify-room',
+      params: [`${roomId}/call`, false],
+    });
+    this.activeSubscriptions.set(`room-call:${roomId}`, subscriptionId);
   }
 
   unsubscribeUserNotifications(event: string): void {
@@ -746,6 +948,14 @@ export class RocketChatService {
     return this.activeRoomSubject.asObservable();
   }
 
+  getRoomUpdateStream(): Observable<any> {
+    return this.roomUpdateSubject.asObservable();
+  }
+
+  getServerUpdatedStream(): Observable<any> {
+    return this.serverUpdatedSubject.asObservable();
+  }
+
   unsubscribeFromRoomMessages(roomId: string): void {
     const subscriptionId = this.activeSubscriptions.get(roomId);
     if (
@@ -758,6 +968,20 @@ export class RocketChatService {
         id: subscriptionId,
       });
       this.activeSubscriptions.delete(roomId);
+    }
+    
+    try {
+      Array.from(this.activeSubscriptions.keys()).forEach((key) => {
+        if (typeof key === 'string' && key.startsWith(`${roomId}:notify:`)) {
+          const subId = this.activeSubscriptions.get(key);
+          if (subId && this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.sendWebSocketMessage({ msg: 'unsub', id: subId });
+          }
+          this.activeSubscriptions.delete(key);
+        }
+      });
+    } catch (err) {
+      console.error('Error while unsubscribing from room notifications:', err);
     }
   }
 
@@ -805,7 +1029,7 @@ export class RocketChatService {
         rid: roomId,
         msg: message,
         ...(tmid && { tmid, tshow: true })
-        // ts: Date.now(),
+        
       };
 
       const websocketMessage = {
@@ -829,6 +1053,66 @@ export class RocketChatService {
     });
   }
 
+  callWebSocketMethod(method: string, params: any[] = [], timeoutMs: number = 10000): Observable<any> {
+    return new Observable((observer) => {
+      (async () => {
+        try {
+          
+          if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            try {
+              await this.connectWebSocket();
+            } catch (connectErr) {
+              observer.error('WebSocket not connected: ' + String(connectErr));
+              observer.complete();
+              return;
+            }
+          }
+
+          const id = this.generateMessageId();
+
+          const timeout = setTimeout(() => {
+            if (this.wsMethodHandlers.has(id)) {
+              const h = this.wsMethodHandlers.get(id)!;
+              this.wsMethodHandlers.delete(id);
+              try { h.reject({ error: 'timeout' }); } catch (e) {}
+            }
+            observer.error('WebSocket method timeout');
+            observer.complete();
+          }, timeoutMs);
+
+          this.wsMethodHandlers.set(id, {
+            resolve: (res: any) => {
+              observer.next(res);
+              observer.complete();
+            },
+            reject: (err: any) => {
+              observer.error(err);
+              observer.complete();
+            },
+            timeout,
+            method,
+            params,
+          });
+
+          try {
+            this.sendWebSocketMessage({ msg: 'method', method, id, params });
+          } catch (err) {
+            if (this.wsMethodHandlers.has(id)) {
+              const h = this.wsMethodHandlers.get(id)!;
+              clearTimeout(h.timeout);
+              this.wsMethodHandlers.delete(id);
+            }
+            observer.error(err);
+            observer.complete();
+          }
+        } catch (err) {
+          observer.error(err);
+          observer.complete();
+        }
+      })();
+    });
+  }
+
   private generateProperMessageId(): string {
     const chars =
       '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -842,22 +1126,21 @@ export class RocketChatService {
   getRoomsWithLastMessage(): Observable<RocketChatRoom[]> {
     return this.getRooms().pipe(
       switchMap((rooms) => {
-        const enhancedRooms: RocketChatRoom[] = rooms.map(
-          (room: RocketChatRoom) =>
-            this.getRoomLastMessage(room._id).pipe(
-              map((lastMessage) => ({
+        const enhancedRooms: any[] = rooms.map((room: RocketChatRoom) =>
+          this.getRoomLastMessage(room._id).pipe(
+            map((lastMessage) => ({
+              ...room,
+              lastMessage: lastMessage?.msg || 'No messages yet',
+              lastMessageTs: lastMessage?.ts || room.ts,
+            })),
+            catchError(() =>
+              of({
                 ...room,
-                lastMessage: lastMessage?.msg || 'No messages yet',
-                lastMessageTs: lastMessage?.ts || room.ts,
-              })),
-              catchError(() =>
-                of({
-                  ...room,
-                  lastMessage: 'No messages yet',
-                  lastMessageTs: room.ts,
-                })
-              )
+                lastMessage: 'No messages yet',
+                lastMessageTs: room.ts,
+              })
             )
+          )
         );
         return forkJoin(enhancedRooms);
       })
@@ -874,8 +1157,74 @@ export class RocketChatService {
   }
 
   playNotificationSound() {
-    const audio = new Audio(`${environment.mp3}/notification.mp3`);
-    audio.play();
+    try {
+      if (this.notificationAudio) {
+        try { this.notificationAudio.currentTime = 0; } catch (e) {}
+        const p = this.notificationAudio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } else {
+        const audio = new Audio(`${environment.mp3}/message.mp3`);
+        audio.play().catch(() => {});
+      }
+    } catch (err) {
+      console.debug('playNotificationSound error:', err);
+    }
+  }
+
+  playCallSound() {
+    try {
+      if (this.callAudio) {
+        try { this.callAudio.currentTime = 0; } catch (e) {}
+        const p = this.callAudio.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      } else {
+        const audio = new Audio(`${environment.mp3}/ringtone.mp3`);
+        audio.play().catch(() => {});
+      }
+    } catch (err) {
+      console.debug('playCallSound error:', err);
+    }
+  }
+
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if (!('Notification' in window)) return false;
+      if (Notification.permission === 'granted') return true;
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (err) {
+      console.error('Notification permission error:', err);
+      return false;
+    }
+  }
+
+  public async showPushNotification(title: string, body: string, icon?: string, data?: any) {
+    try {
+      if (!('Notification' in window)) return;
+      const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());
+      if (!granted) return;
+
+      const options: any = { body };
+      if (icon) options.icon = icon;
+      if (data) options.data = data;
+
+      const notif = new Notification(title, options);
+      notif.onclick = (ev: any) => {
+        try {
+          if (window && (window as any).focus) (window as any).focus();
+        } catch (e) {
+        }
+        if (typeof ev?.target?.close === 'function') ev.target.close();
+      };
+      setTimeout(() => {
+        try {
+          notif.close();
+        } catch (e) {
+        }
+      }, 8000);
+    } catch (err) {
+      console.error('Failed to show push notification:', err);
+    }
   }
 
   private generateMessageId(): string {
@@ -1166,38 +1515,52 @@ export class RocketChatService {
   }
 
   editMessage(roomId: string, msgId: string, text: string): Observable<RocketChatMessageResponse> {
-    const body = { roomId, msgId, text };
-    return this.http.post<RocketChatMessageResponse>(
-      `${this.CHAT_API_URI}chat.update`,
-      body,
-      { headers: this.getAuthHeaders() }
+    const payload = { _id: msgId, rid: roomId, msg: text };
+
+    return this.callWebSocketMethod('updateMessage', [payload]).pipe(
+      map((res: any) => res as RocketChatMessageResponse),
+      catchError((err) => {
+        
+        const body = { roomId, msgId, text };
+        return this.http.post<RocketChatMessageResponse>(`${this.CHAT_API_URI}chat.update`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
   deleteMessage(msgId: string, roomId: string): Observable<RocketChatApiResponse> {
-    const body = { msgId, roomId };
-    return this.http.post<RocketChatApiResponse>(
-      `${this.CHAT_API_URI}chat.delete`,
-      body,
-      { headers: this.getAuthHeaders() }
+    const payload = { _id: msgId, rid: roomId };
+
+    return this.callWebSocketMethod('deleteMessage', [payload]).pipe(
+      map((res: any) => res as RocketChatApiResponse),
+      catchError((err) => {
+        
+        const body = { msgId, roomId };
+        return this.http.post<RocketChatApiResponse>(`${this.CHAT_API_URI}chat.delete`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
-  pinMessage(messageId: string): Observable<RocketChatMessageResponse> {
-    const body = { messageId };
-    return this.http.post<RocketChatMessageResponse>(
-      `${this.CHAT_API_URI}chat.pinMessage`,
-      body,
-      { headers: this.getAuthHeaders() }
+  pinMessage(message: any): Observable<any> {
+    const params = Array.isArray(message) ? message : [message];
+    return this.callWebSocketMethod('pinMessage', params).pipe(
+      map((res: any) => res as RocketChatMessageResponse),
+      catchError(() => {
+        const messageId = typeof message === 'string' ? message : message && message._id;
+        const body = { messageId };
+        return this.http.post<RocketChatMessageResponse>(`${this.CHAT_API_URI}chat.pinMessage`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
-  unpinMessage(messageId: string): Observable<RocketChatMessageResponse> {
-    const body = { messageId };
-    return this.http.post<RocketChatMessageResponse>(
-      `${this.CHAT_API_URI}chat.unPinMessage`,
-      body,
-      { headers: this.getAuthHeaders() }
+  unpinMessage(message: any): Observable<any> {
+    const params = Array.isArray(message) ? message : [message];
+    return this.callWebSocketMethod('unpinMessage', params).pipe(
+      map((res: any) => res as any),
+      catchError(() => {
+        const messageId = typeof message === 'string' ? message : message && message._id;
+        const body = { messageId };
+        return this.http.post<RocketChatMessageResponse>(`${this.CHAT_API_URI}chat.unPinMessage`, body, { headers: this.getAuthHeaders() });
+      })
     );
   }
 
