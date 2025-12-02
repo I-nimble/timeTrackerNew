@@ -98,7 +98,19 @@
             <th mat-header-cell *matHeaderCellDef>Clock-in</th>
             <td mat-cell *matCellDef="let entry">
               <div class="d-flex align-items-center gap-2">
-                <span>{{ formatTime(entry.start_time) }}</span>
+                <ng-container *ngIf="editingRowId !== entry.id; else editStartTime">
+                  <span>{{ entry.start_time_display || formatTime(entry.start_time) }}</span>
+                </ng-container>
+                <ng-template #editStartTime>
+                  <mat-form-field appearance="outline" class="w-100">
+                    <input
+                      matInput
+                      type="datetime-local"
+                      [formControl]="getFormControl(entry.id, 'start_time')"
+                      (change)="startEdit(entry)"
+                    />
+                  </mat-form-field>
+                </ng-template>
               </div>
             </td>
           </ng-container>
@@ -108,7 +120,19 @@
             <th mat-header-cell *matHeaderCellDef>Clock-out</th>
             <td mat-cell *matCellDef="let entry">
               <div class="d-flex align-items-center gap-2">
-                <span>{{ formatTime(entry.end_time) }}</span>
+                <ng-container *ngIf="editingRowId !== entry.id; else editEndTime">
+                  <span>{{ entry.end_time_display || formatTime(entry.end_time) }}</span>
+                </ng-container>
+                <ng-template #editEndTime>
+                  <mat-form-field appearance="outline" class="w-100">
+                    <input
+                      matInput
+                      type="datetime-local"
+                      [formControl]="getFormControl(entry.id, 'end_time')"
+                      (change)="startEdit(entry)"
+                    />
+                  </mat-form-field>
+                </ng-template>
               </div>
             </td>
           </ng-container>
@@ -121,6 +145,56 @@
                 <span class="badge bg-secondary rounded-pill p-x-12 p-y-4">
                   {{ entry.total_hours }} hrs
                 </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex gap-2">
+                <ng-container *ngIf="editingRowId === entry.id; else notEditing">
+                  <button 
+                    mat-flat-button 
+                    color="primary" 
+                    size="small"
+                    (click)="saveEdit(entry)"
+                    [disabled]="!canSave(entry.id)"
+                    matTooltip="Save changes"
+                  >
+                    Save
+                  </button>
+                  <button 
+                    mat-stroked-button 
+                    size="small"
+                    (click)="cancelEdit(entry.id)"
+                    matTooltip="Cancel editing"
+                  >
+                    Cancel
+                  </button>
+                </ng-container>
+                <ng-template #notEditing>
+                  <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="m-l-10">
+                <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button
+                    mat-menu-item
+                    (click)="startEdit(entry)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit entry</span>
+                  </button>
+                  <button
+                    mat-menu-item
+                    (click)="deleteEntry(entry)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete entry</span>
+                  </button>
+                </mat-menu>
+                </ng-template>
               </div>
             </td>
           </ng-container>

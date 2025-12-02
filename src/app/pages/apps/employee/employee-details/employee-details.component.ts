@@ -24,15 +24,21 @@ import { UsersService } from 'src/app/services/users.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EntriesService } from 'src/app/services/entries.service';
-import { switchMap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+
+interface EditEntryForm {
+  start_time: FormControl<string>;
+  end_time: FormControl<string>;
+}
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -67,8 +73,11 @@ export type ChartOptions = {
     MatFormFieldModule,
     MatInputModule,
     FormsModule,
+    ReactiveFormsModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatMenuModule
   ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy {
@@ -87,8 +96,13 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   startDate: Date = new Date();
   endDate: Date = new Date();
   weekEntries: any[] = [];
-  displayedColumns: string[] = ['date', 'start_time', 'end_time', 'total_hours'];
+  displayedColumns: string[] = ['date', 'start_time', 'end_time', 'total_hours', 'actions'];
   isEntriesLoading: boolean = false;
+  
+  editingRowId: number | null = null;
+  editForms: Map<number, FormGroup<EditEntryForm>> = new Map();
+  hasChanges: Map<number, boolean> = new Map();
+  originalValues: Map<number, any> = new Map();
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -105,6 +119,76 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.setDefaultDateRange();
+    this.initializeCharts();
+  }
+
+  ngOnInit(): void {
+    if(this.userRole === '2') {
+      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
+        next: (res: any) => {
+          this.user = res[0];
+          this.userId = this.user.id;
+          this.defaultWeek();
+          this.getDailyHours();
+          this.loadWeekEntries();
+        }
+      })
+    }
+    else {
+      this.user = this.userService.getSelectedUser();
+      this.userId = this.user.id;
+      this.defaultWeek();
+      this.getDailyHours();
+      this.loadWeekEntries();
+
+      if (!this.user.name || !this.userId) {
+        this.openSnackBar("Click a user to see their report", "Close");
+        this.router.navigate(['/apps/time-tracker']);
+        return;
+      }
+    }
+
+    this.refreshInterval = setInterval(() => {
+      this.defaultWeek();
+      this.getDailyHours();
+      this.loadWeekEntries();
+    }, 300000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  initializeEditForm(entry: any): void { 
+    const startTime = this.getTimeFromDateTime(entry.start_time);
+    const endTime = this.getTimeFromDateTime(entry.end_time);
+    
+    const entryDate = moment(entry.date).format('YYYY-MM-DD');
+    
+    const editableStart = `${entryDate}T${startTime}`;
+    const editableEnd = `${entryDate}T${endTime}`;
+    
+    const form = new FormGroup<EditEntryForm>({
+      start_time: new FormControl<string>(editableStart, { nonNullable: true }),
+      end_time: new FormControl<string>(editableEnd, { nonNullable: true })
+    });
+
+    this.originalValues.set(entry.id, {
+      start_time: form.value.start_time,
+      end_time: form.value.end_time
+    });
+
+    form.valueChanges.subscribe(() => {
+      this.checkForChanges(entry.id);
+    });
+
+    this.editForms.set(entry.id, form);
+    this.hasChanges.set(entry.id, false);
+  }
+
+  private initializeCharts(): void {
     this.weeklyHoursChart = {
       series: [
         {
@@ -182,43 +266,157 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
-  ngOnInit(): void {
-    if(this.userRole === '2') {
-      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
-        next: (res: any) => {
-          this.user = res[0];
-          this.userId = this.user.id;
-          this.defaultWeek();
-          this.getDailyHours();
-          this.loadWeekEntries();
-        }
-      })
+  getFormControl(entryId: number, controlName: 'start_time' | 'end_time'): FormControl<string> {
+    const form = this.editForms.get(entryId);
+    if (form) {
+      return form.get(controlName) as FormControl<string>;
     }
-    else {
-      this.user = this.userService.getSelectedUser();
-      this.userId = this.user.id;
-      this.defaultWeek();
-      this.getDailyHours();
-      this.loadWeekEntries();
-
-      if (!this.user.name || !this.userId) {
-        this.openSnackBar("Click a user to see their report", "Close");
-        this.router.navigate(['/apps/time-tracker']);
-        return;
-      }
-    }
-
-    this.refreshInterval = setInterval(() => {
-      this.defaultWeek();
-      this.getDailyHours();
-      this.loadWeekEntries();
-    }, 300000);
+    return new FormControl<string>('', { nonNullable: true });
   }
 
-  ngOnDestroy(): void {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
+  getTimezoneInfo(): string {
+    return `Times displayed as stored in database`;
+  }
+
+  getTimeFromDateTime(dateTime: string): string {
+    try {
+      if (!dateTime) return '00:00';
+      const timePart = dateTime.split('T')[1] || dateTime.split(' ')[1] || '00:00';
+      return timePart.substring(0, 5); // Get HH:mm
+    } catch (error) {
+      console.error('Error extracting time:', error);
+      return '00:00';
     }
+  }
+
+  createDateTime(dateStr: string, timeStr: string): string {
+    try {
+      const date = moment(dateStr).format('YYYY-MM-DD');
+      const time = timeStr.substring(0, 5); // Get HH:mm
+      return `${date} ${time}:00`;
+    } catch (error) {
+      console.error('Error creating datetime:', error);
+      return `${dateStr} 00:00:00`;
+    }
+  }
+
+  formatTime(timeString: string): string {
+    if (!timeString) return '';
+    
+    const timePart = this.getTimeFromDateTime(timeString);
+    
+    if (timePart.includes(':')) {
+      const [hours, minutes] = timePart.split(':');
+      const hourNum = parseInt(hours, 10);
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      const hour12 = hourNum % 12 || 12;
+      return `${hour12}:${minutes.padStart(2, '0')} ${ampm}`;
+    }
+    
+    return timeString;
+  }
+
+  checkForChanges(entryId: number): void {
+    const form = this.editForms.get(entryId);
+    const original = this.originalValues.get(entryId);
+    
+    if (form && original) {
+      const hasChanges = 
+        form.value.start_time !== original.start_time ||
+        form.value.end_time !== original.end_time;
+      
+      this.hasChanges.set(entryId, hasChanges);
+    }
+  }
+
+  startEdit(entry: any): void {
+    if (this.editingRowId && this.editingRowId !== entry.id) {
+      this.cancelEdit(this.editingRowId);
+    }
+    
+    this.editingRowId = entry.id;
+    if (!this.editForms.has(entry.id)) {
+      this.initializeEditForm(entry);
+    }
+  }
+
+  cancelEdit(entryId: number): void {
+    if (this.editingRowId === entryId) {
+      this.editingRowId = null;
+    }
+    this.editForms.delete(entryId);
+    this.hasChanges.delete(entryId);
+    this.originalValues.delete(entryId);
+  }
+
+  saveEdit(entry: any): void {
+    const form = this.editForms.get(entry.id);
+    if (!form || form.invalid) {
+      this.openSnackBar('Please enter valid times', 'Close');
+      return;
+    }
+
+    const formValue = form.value;
+    
+    const startDateTime = formValue.start_time || '';
+    const endDateTime = formValue.end_time || '';
+    
+    const startTime = this.getTimeFromDateTime(startDateTime);
+    const endTime = this.getTimeFromDateTime(endDateTime);
+
+    const entryDate = moment(entry.date).format('YYYY-MM-DD');
+    
+    const utcStartDateTime = this.createDateTime(entryDate, startTime);
+    const utcEndDateTime = this.createDateTime(entryDate, endTime);
+    
+    const updateData = {
+      start_time: utcStartDateTime,
+      end_time: utcEndDateTime,
+      date: entryDate,
+      description: entry.description,
+      task_id: entry.task_id,
+      status: entry.status
+    };
+
+    this.isEntriesLoading = true;
+    
+    this.entriesService.updateEntry(entry.id, updateData).subscribe({
+      next: (response: any) => {
+        this.openSnackBar('Entry updated successfully!', 'Close');
+        this.cancelEdit(entry.id);
+        this.loadWeekEntries();
+        this.isEntriesLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating entry:', error);
+        this.openSnackBar('Error updating entry: ' + (error.error?.message || error.message), 'Close');
+        this.isEntriesLoading = false;
+      }
+    });
+  }
+
+  deleteEntry(entry: any): void {
+    if (confirm('Are you sure you want to delete this entry?')) {
+      this.isEntriesLoading = true;
+      
+      this.entriesService.deleteEntry(entry.id).subscribe({
+        next: (response: any) => {
+          this.openSnackBar('Entry deleted successfully!', 'Close');
+          this.cancelEdit(entry.id);
+          this.loadWeekEntries(); // Refresh data
+          this.isEntriesLoading = false;
+        },
+        error: (error) => {
+          console.error('Error deleting entry:', error);
+          this.openSnackBar('Error deleting entry', 'Close');
+          this.isEntriesLoading = false;
+        }
+      });
+    }
+  }
+
+  canSave(entryId: number): boolean {
+    return this.hasChanges.get(entryId) || false;
   }
 
   private setDefaultDateRange(): void {
@@ -229,10 +427,13 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
 
   onDateRangeChange(): void {
     if (this.startDate && this.endDate) {
+      this.editForms.clear();
+      this.hasChanges.clear();
+      this.originalValues.clear();
+      this.editingRowId = null;
       this.loadWeekEntries();
     }
   }
-
 
   loadWeekEntries(): void {
     if (!this.userId) {
@@ -258,7 +459,9 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
             
             return {
               ...entry,
-              total_hours: totalHours.toFixed(2)
+              total_hours: totalHours.toFixed(2),
+              start_time_display: this.formatTime(entry.start_time),
+              end_time_display: this.formatTime(entry.end_time)
             };
           })
           .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -271,10 +474,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
         this.isEntriesLoading = false;
       }
     });
-  }
-
-  formatTime(dateTimeString: string): string {
-    return moment(dateTimeString).format('HH:mm');
   }
 
   formatDate(dateString: string): string {
@@ -448,7 +647,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
         });
       }
     });
-
   }
 
   goBack(): void {
