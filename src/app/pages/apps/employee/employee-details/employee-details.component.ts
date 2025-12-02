@@ -16,7 +16,7 @@ import {
   NgApexchartsModule,
 } from 'ng-apexcharts';
 import { MatIconModule } from '@angular/material/icon'; 
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import moment from 'moment-timezone';
@@ -26,6 +26,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { EntriesService } from 'src/app/services/entries.service';
 import { switchMap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { MatTableModule } from '@angular/material/table';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -50,7 +57,19 @@ export type ChartOptions = {
   selector: 'app-employee-details',
   templateUrl: './employee-details.component.html',
   styleUrls: ['./employee-details.component.scss'],
-  imports: [MatCardModule, NgApexchartsModule,MatIconModule],
+  imports: [  
+    CommonModule,
+    MatCardModule, 
+    NgApexchartsModule,
+    MatIconModule,
+    MatTableModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    MatNativeDateModule,
+    MatProgressSpinnerModule
+  ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   userId: string | null = null;
@@ -64,6 +83,12 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   schedules: any = [];
   userRole: string | null = localStorage.getItem('role');
   refreshInterval: any;
+
+  startDate: Date = new Date();
+  endDate: Date = new Date();
+  weekEntries: any[] = [];
+  displayedColumns: string[] = ['date', 'start_time', 'end_time', 'total_hours'];
+  isEntriesLoading: boolean = false;
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -79,6 +104,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     private entriesService: EntriesService,
     private router: Router
   ) {
+    this.setDefaultDateRange();
     this.weeklyHoursChart = {
       series: [
         {
@@ -164,6 +190,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
           this.userId = this.user.id;
           this.defaultWeek();
           this.getDailyHours();
+          this.loadWeekEntries();
         }
       })
     }
@@ -172,6 +199,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
       this.userId = this.user.id;
       this.defaultWeek();
       this.getDailyHours();
+      this.loadWeekEntries();
 
       if (!this.user.name || !this.userId) {
         this.openSnackBar("Click a user to see their report", "Close");
@@ -183,6 +211,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     this.refreshInterval = setInterval(() => {
       this.defaultWeek();
       this.getDailyHours();
+      this.loadWeekEntries();
     }, 300000);
   }
 
@@ -190,6 +219,76 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+  }
+
+  private setDefaultDateRange(): void {
+    const today = moment();
+    this.startDate = today.startOf('isoWeek').toDate(); // Monday
+    this.endDate = today.endOf('isoWeek').toDate(); // Sunday
+  }
+
+  onDateRangeChange(): void {
+    if (this.startDate && this.endDate) {
+      this.loadWeekEntries();
+    }
+  }
+
+
+  loadWeekEntries(): void {
+    if (!this.userId) {
+      return;
+    }
+
+    this.isEntriesLoading = true;
+    
+    this.entriesService.getUsersEntries(this.userId).subscribe({
+      next: (response: any) => {
+        const startOfRange = moment(this.startDate).startOf('day').toDate();
+        const endOfRange = moment(this.endDate).endOf('day').toDate();
+        
+        this.weekEntries = response.entries
+          .filter((entry: any) => {
+            const entryDate = new Date(entry.date);
+            return entryDate >= startOfRange && entryDate <= endOfRange;
+          })
+          .map((entry: any) => {
+            const startTime = new Date(entry.start_time);
+            const endTime = new Date(entry.end_time);
+            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            
+            return {
+              ...entry,
+              total_hours: totalHours.toFixed(2)
+            };
+          })
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        this.isEntriesLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading entries:', err);
+        this.openSnackBar('Error loading entries', 'Close');
+        this.isEntriesLoading = false;
+      }
+    });
+  }
+
+  formatTime(dateTimeString: string): string {
+    return moment(dateTimeString).format('HH:mm');
+  }
+
+  formatDate(dateString: string): string {
+    return moment(dateString).format('MMM DD, YYYY');
+  }
+
+  getDayName(dateString: string): string {
+    return moment(dateString).format('dddd');
+  }
+
+  getTotalWeekHours(): number {
+    return this.weekEntries.reduce((total: number, entry: any) => {
+      return total + parseFloat(entry.total_hours || 0);
+    }, 0);
   }
 
   private defaultWeek(): void {
