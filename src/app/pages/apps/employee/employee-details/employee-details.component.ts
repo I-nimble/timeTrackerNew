@@ -34,6 +34,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { TimezoneService } from 'src/app/services/timezone.service';
+import { Subscription } from 'rxjs';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { PermissionService } from 'src/app/services/permission.service';
 
 interface EditEntryForm {
   start_time: FormControl<string>;
@@ -77,7 +81,8 @@ export type ChartOptions = {
     MatNativeDateModule,
     MatProgressSpinnerModule,
     MatButtonModule,
-    MatMenuModule
+    MatMenuModule,
+    TablerIconsModule
   ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy {
@@ -103,6 +108,11 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   editForms: Map<number, FormGroup<EditEntryForm>> = new Map();
   hasChanges: Map<number, boolean> = new Map();
   originalValues: Map<number, any> = new Map();
+  userTimezone: string = 'UTC';
+  timezoneOffset: string = '';
+  private timezoneSubscription!: Subscription;
+  userPermissions: string[] = [];
+  canManageTeamMembers: boolean = false;
 
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
@@ -116,7 +126,9 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private snackBar: MatSnackBar,
     private entriesService: EntriesService,
-    private router: Router
+    private timezoneService: TimezoneService,
+    private permissionService: PermissionService,
+    private router: Router,
   ) {
     this.setDefaultDateRange();
     this.initializeCharts();
@@ -153,26 +165,52 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
       this.getDailyHours();
       this.loadWeekEntries();
     }, 300000);
+
+    this.timezoneSubscription = this.timezoneService.userTimezone$.subscribe(timezone => {
+      this.userTimezone = timezone;
+      this.timezoneOffset = this.timezoneService.getCurrentTimezoneOffset();
+    });
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.canManageTeamMembers = this.userPermissions.includes('users.manage');
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
   }
 
   ngOnDestroy(): void {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    if (this.timezoneSubscription) {
+      this.timezoneSubscription.unsubscribe();
+    }
   }
 
   initializeEditForm(entry: any): void { 
-    const startTime = this.getTimeFromDateTime(entry.start_time);
-    const endTime = this.getTimeFromDateTime(entry.end_time);
+    const entryDate = moment.utc(entry.date).format('YYYY-MM-DD');
     
-    const entryDate = moment(entry.date).format('YYYY-MM-DD');
+    let startDateTime = entry.local_start_time || entry.start_time;
+    let endDateTime = entry.local_end_time || entry.end_time;
     
-    const editableStart = `${entryDate}T${startTime}`;
-    const editableEnd = `${entryDate}T${endTime}`;
+    if (startDateTime && !startDateTime.startsWith(entryDate)) {
+      const startTime = this.getTimeFromDateTime(startDateTime);
+      startDateTime = `${entryDate}T${startTime}`;
+    }
+    
+    if (endDateTime && !endDateTime.startsWith(entryDate)) {
+      const endTime = this.getTimeFromDateTime(endDateTime);
+      endDateTime = `${entryDate}T${endTime}`;
+    }
     
     const form = new FormGroup<EditEntryForm>({
-      start_time: new FormControl<string>(editableStart, { nonNullable: true }),
-      end_time: new FormControl<string>(editableEnd, { nonNullable: true })
+      start_time: new FormControl<string>(startDateTime, { nonNullable: true }),
+      end_time: new FormControl<string>(endDateTime, { nonNullable: true })
     });
 
     this.originalValues.set(entry.id, {
@@ -275,7 +313,15 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   }
 
   getTimezoneInfo(): string {
-    return `Times displayed as stored in database`;
+    return `${this.userTimezone} (${this.timezoneOffset})`;
+  }
+
+  convertUTCToLocalDateTime(utcTime: string): string {  
+    return this.timezoneService.convertUTCToLocalDateTime(utcTime, this.userTimezone);
+  }
+
+  convertLocalDateTimeToUTC(localTime: string): string {    
+    return this.timezoneService.convertLocalDateTimeToUTC(localTime, this.userTimezone);
   }
 
   getTimeFromDateTime(dateTime: string): string {
@@ -303,17 +349,21 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   formatTime(timeString: string): string {
     if (!timeString) return '';
     
-    const timePart = this.getTimeFromDateTime(timeString);
-    
-    if (timePart.includes(':')) {
-      const [hours, minutes] = timePart.split(':');
-      const hourNum = parseInt(hours, 10);
-      const ampm = hourNum >= 12 ? 'PM' : 'AM';
-      const hour12 = hourNum % 12 || 12;
-      return `${hour12}:${minutes.padStart(2, '0')} ${ampm}`;
+    try {
+      let localTime: moment.Moment;
+      
+      if (timeString.includes('T')) {
+        localTime = moment(timeString);
+      } else {
+        const convertedTime = this.convertUTCToLocalDateTime(timeString);
+        localTime = moment(convertedTime);
+      }
+
+      return localTime.format('hh:mm A');
+    } catch (error) {
+      console.error('Error formatting time:', error, timeString);
+      return '--:--';
     }
-    
-    return timeString;
   }
 
   checkForChanges(entryId: number): void {
@@ -357,21 +407,20 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     }
 
     const formValue = form.value;
-    
-    const startDateTime = formValue.start_time || '';
-    const endDateTime = formValue.end_time || '';
-    
-    const startTime = this.getTimeFromDateTime(startDateTime);
-    const endTime = this.getTimeFromDateTime(endDateTime);
 
-    const entryDate = moment(entry.date).format('YYYY-MM-DD');
+    const startDateTime = formValue.start_time || '';
+    const endDateTime = formValue.end_time || ''; 
+
+    const startDateTimeLocal = formValue.start_time || '';
+
+    const startDateFromInput = startDateTimeLocal.split('T')[0];
     
-    const utcStartDateTime = this.createDateTime(entryDate, startTime);
-    const utcEndDateTime = this.createDateTime(entryDate, endTime);
+    const entryDate = startDateFromInput || moment(entry.date).format('YYYY-MM-DD');
+    
     
     const updateData = {
-      start_time: utcStartDateTime,
-      end_time: utcEndDateTime,
+      start_time: startDateTime,
+      end_time: endDateTime,
       date: entryDate,
       description: entry.description,
       task_id: entry.task_id,
@@ -395,25 +444,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteEntry(entry: any): void {
-    if (confirm('Are you sure you want to delete this entry?')) {
-      this.isEntriesLoading = true;
-      
-      this.entriesService.deleteEntry(entry.id).subscribe({
-        next: (response: any) => {
-          this.openSnackBar('Entry deleted successfully!', 'Close');
-          this.cancelEdit(entry.id);
-          this.loadWeekEntries(); // Refresh data
-          this.isEntriesLoading = false;
-        },
-        error: (error) => {
-          console.error('Error deleting entry:', error);
-          this.openSnackBar('Error deleting entry', 'Close');
-          this.isEntriesLoading = false;
-        }
-      });
-    }
-  }
 
   canSave(entryId: number): boolean {
     return this.hasChanges.get(entryId) || false;
@@ -436,52 +466,57 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadWeekEntries(): void {
-    if (!this.userId) {
-      return;
-    }
-
-    this.isEntriesLoading = true;
-    
-    this.entriesService.getUsersEntries(this.userId).subscribe({
-      next: (response: any) => {
-        const startOfRange = moment(this.startDate).startOf('day').toDate();
-        const endOfRange = moment(this.endDate).endOf('day').toDate();
-        
-        this.weekEntries = response.entries
-          .filter((entry: any) => {
-            const entryDate = new Date(entry.date);
-            return entryDate >= startOfRange && entryDate <= endOfRange;
-          })
-          .map((entry: any) => {
-            const startTime = new Date(entry.start_time);
-            const endTime = new Date(entry.end_time);
-            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-            
-            return {
-              ...entry,
-              total_hours: totalHours.toFixed(2),
-              start_time_display: this.formatTime(entry.start_time),
-              end_time_display: this.formatTime(entry.end_time)
-            };
-          })
-          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        
-        this.isEntriesLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading entries:', err);
-        this.openSnackBar('Error loading entries', 'Close');
-        this.isEntriesLoading = false;
-      }
-    });
+  if (!this.userId) {
+    return;
   }
+
+  this.isEntriesLoading = true;
+  
+  this.entriesService.getUsersEntries(this.userId).subscribe({
+    next: (response: any) => {
+      const startOfRange = moment.utc(this.startDate).startOf('day').toDate();
+      const endOfRange = moment.utc(this.endDate).endOf('day').toDate();
+      
+      this.weekEntries = response.entries
+        .filter((entry: any) => {
+          const entryDate = moment.utc(entry.date).toDate();
+          return entryDate >= startOfRange && entryDate <= endOfRange;
+        })
+        .map((entry: any) => {
+          const startTime = new Date(entry.start_time);
+          const endTime = new Date(entry.end_time);
+          const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+          
+          const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
+          const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
+          
+          return {
+            ...entry,
+            total_hours: totalHours.toFixed(2),
+            start_time_display: this.formatTime(localStartTime),
+            end_time_display: this.formatTime(localEndTime),
+            local_start_time: localStartTime,
+            local_end_time: localEndTime
+          };
+        })
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      this.isEntriesLoading = false;
+    },
+    error: (err) => {
+      console.error('Error loading entries:', err);
+      this.openSnackBar('Error loading entries', 'Close');
+      this.isEntriesLoading = false;
+    }
+  });
+}
 
   formatDate(dateString: string): string {
-    return moment(dateString).format('MMM DD, YYYY');
+    return moment.utc(dateString).format('MMM DD, YYYY');
   }
 
+
   getDayName(dateString: string): string {
-    return moment(dateString).format('dddd');
+    return moment.utc(dateString).format('dddd');
   }
 
   getTotalWeekHours(): number {
