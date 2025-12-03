@@ -134,6 +134,7 @@ export class UsersService {
     } else if (userData.profile === null) {
       form.append('remove_picture', 'true');
     }
+    if (userData.availability) form.append('availability', userData.availability);
 
     return this.http.patch(`${this.API_URI}/users`, form, {
       headers: this.chatService.getAuthHeaders(false),

@@ -28,6 +28,7 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'src/app/services/subscription.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 
 @Component({
   standalone: true,
@@ -97,7 +98,8 @@ export class AppAccountSettingComponent implements OnInit {
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
-    profile: ['']
+    profile: [''],
+    availability: [false]
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
@@ -216,6 +218,13 @@ export class AppAccountSettingComponent implements OnInit {
 
   onTabChange(index: number) {
     this.selectedTabIndex = index;
+  }
+
+  availabilityChange(event: MatSlideToggleChange): void {
+    this.user.availability = event.checked;
+    this.formChanged = true;
+    this.personalForm.get('availability')?.setValue(event.checked);
+    this.checkFormChanges();
   }
 
   checkOlympiaStatus(): void {
@@ -375,7 +384,8 @@ export class AppAccountSettingComponent implements OnInit {
       last_name: this.personalForm.get('last_name')?.value,
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
-      address: this.personalForm.get('address')?.value
+      address: this.personalForm.get('address')?.value,
+      availability: this.personalForm.get('availability')?.value,
     };
 
     // Check if any form field has changed
@@ -384,7 +394,8 @@ export class AppAccountSettingComponent implements OnInit {
       currentFormData.last_name !== this.originalUserData.last_name ||
       currentFormData.email !== this.originalUserData.email ||
       currentFormData.phone !== this.originalUserData.phone ||
-      currentFormData.address !== this.originalUserData.address;
+      currentFormData.address !== this.originalUserData.address ||
+      currentFormData.availability !== this.originalUserData.availability;
 
     // Check if profile picture or video has changed
     const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
@@ -414,7 +425,8 @@ export class AppAccountSettingComponent implements OnInit {
         last_name: this.user.last_name,
         email: this.user.email,
         phone: this.user.phone,
-        address: this.user.address
+        address: this.user.address,
+        availability: this.user.availability
       };
 
       // Populate personal form
@@ -424,7 +436,8 @@ export class AppAccountSettingComponent implements OnInit {
         email: this.user.email,
         phone: this.user.phone,
         address: this.user.address,
-        picture: this.picture
+        picture: this.picture,
+        availability: this.user.availability
       });
 
       // Populate medical form
