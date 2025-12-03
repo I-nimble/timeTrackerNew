@@ -28,6 +28,7 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'src/app/services/subscription.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 
 @Component({
   standalone: true,
@@ -97,7 +98,8 @@ export class AppAccountSettingComponent implements OnInit {
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
-    profile: ['']
+    profile: [''],
+    availability: [false]
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
@@ -216,6 +218,12 @@ export class AppAccountSettingComponent implements OnInit {
 
   onTabChange(index: number) {
     this.selectedTabIndex = index;
+  }
+
+  availabilityChange(event: MatSlideToggleChange): void {
+    this.user.availability = event.checked;
+    this.formChanged = true;
+    this.personalForm.get('availability')?.setValue(event.checked);
   }
 
   checkOlympiaStatus(): void {
