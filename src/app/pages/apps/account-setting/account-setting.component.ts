@@ -432,7 +432,8 @@ export class AppAccountSettingComponent implements OnInit {
         email: this.user.email,
         phone: this.user.phone,
         address: this.user.address,
-        picture: this.picture
+        picture: this.picture,
+        availability: this.user.availability
       });
 
       // Populate medical form

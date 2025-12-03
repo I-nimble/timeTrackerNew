@@ -270,21 +270,6 @@
           <div [class]="role === '3' ? 'col-sm-8' : 'col-sm-8'">
             <mat-card class="cardWithShadow">
               <mat-card-content>
-                <div *ngIf="role === '2'">
-                  <mat-card-title>Availability</mat-card-title>
-                  <mat-card-subtitle class="f-s-14">
-                    Are you currently open to work?
-                  </mat-card-subtitle>
-                  <mat-slide-toggle
-                    class="m-t-24 m-b-24"
-                    color="primary"
-                    (change)="availabilityChange($event)"
-                    [checked]="user.availability"
-                  >
-                    Open to work
-                  </mat-slide-toggle>
-                </div>
-
                 <mat-card-title>Personal Details</mat-card-title>
                 <mat-card-subtitle class="f-s-14"
                   >To change your personal details, edit and save from here
@@ -295,6 +280,20 @@
                   class="row m-t-24"
                   *ngIf="role !== '3'"
                 >
+                  <div class="col-12" *ngIf="role === '2'">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Are you currently open to work?</mat-label
+                    >
+                    <mat-slide-toggle
+                      class="m-t-8 m-b-24"
+                      color="primary"
+                      (change)="availabilityChange($event)"
+                      formControlName="availability"
+                    >
+                      Open to work
+                    </mat-slide-toggle>
+                  </div>
                   <div class="col-12 col-sm-6">
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
