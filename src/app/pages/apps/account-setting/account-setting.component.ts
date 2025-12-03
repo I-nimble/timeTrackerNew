@@ -268,77 +268,18 @@ export class AppAccountSettingComponent implements OnInit {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
         this.selectedTabIndex = +tab;
-        this.selectedTabLabel = '';
       }
     }); 
-
-    if (this.isOrphan) {
-      this.getLocations();
-      this.getPositions();
-      this.setupConditionalValidation();
-      
-      this.personalForm.get('phone')?.clearValidators();
-      this.personalForm.get('address')?.clearValidators();
-      this.personalForm.get('phone')?.updateValueAndValidity();
-      this.personalForm.get('address')?.updateValueAndValidity();
-    }
-
-    this.setupNameTrimming(this.personalForm, 'name');
-    this.setupNameTrimming(this.personalForm, 'last_name');
-    this.setupNameTrimming(this.profileForm, 'name');
-    this.setupNameTrimming(this.profileForm, 'last_name');
   }
 
-  getLocations(): void {
-    this.applicationsService.getLocations().subscribe((locations: any) => {
-      this.locations = locations;
-    });
-  }
-
-  getPositions(): void {
-    // Using careerRoles directly instead of positions from API
-    // since we only need VA and IT positions for orphan TM
-  }
-
-  setupConditionalValidation(): void {
-    const referredControl = this.applicationForm.get('referred');
-    if (referredControl) {
-      referredControl.valueChanges.subscribe(value => {
-        const referredNameControl = this.applicationForm.get('referredName');
-        if (value === 'yes') {
-          referredNameControl?.setValidators(Validators.required);
-        } else {
-          referredNameControl?.clearValidators();
-        }
-        referredNameControl?.updateValueAndValidity();
-      });
-    }
-
-    const roleControl = this.applicationForm.get('role');
-    if (roleControl) {
-      roleControl.valueChanges.subscribe(value => {
-        const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
-        if (value && value.position_id === 41) {
-          programmingLanguagesControl?.setValidators(Validators.required);
-        } else {
-          programmingLanguagesControl?.clearValidators();
-        }
-        programmingLanguagesControl?.updateValueAndValidity();
-      });
-    }
-  }
-
-
-  onTabChange(event: MatTabChangeEvent) {
-    this.selectedTabLabel = event.tab.textLabel;
-    this.selectedTabIndex = event.index;
+  onTabChange(index: number) {
+    this.selectedTabIndex = index;
   }
 
   availabilityChange(event: MatSlideToggleChange): void {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
-    this.checkFormChanges();
   }
 
   checkOlympiaStatus(): void {
