@@ -224,6 +224,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.checkFormChanges();
   }
 
   checkOlympiaStatus(): void {
@@ -383,7 +384,8 @@ export class AppAccountSettingComponent implements OnInit {
       last_name: this.personalForm.get('last_name')?.value,
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
-      address: this.personalForm.get('address')?.value
+      address: this.personalForm.get('address')?.value,
+      availability: this.personalForm.get('availability')?.value,
     };
 
     // Check if any form field has changed
@@ -392,7 +394,8 @@ export class AppAccountSettingComponent implements OnInit {
       currentFormData.last_name !== this.originalUserData.last_name ||
       currentFormData.email !== this.originalUserData.email ||
       currentFormData.phone !== this.originalUserData.phone ||
-      currentFormData.address !== this.originalUserData.address;
+      currentFormData.address !== this.originalUserData.address ||
+      currentFormData.availability !== this.originalUserData.availability;
 
     // Check if profile picture or video has changed
     const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
@@ -422,7 +425,8 @@ export class AppAccountSettingComponent implements OnInit {
         last_name: this.user.last_name,
         email: this.user.email,
         phone: this.user.phone,
-        address: this.user.address
+        address: this.user.address,
+        availability: this.user.availability
       };
 
       // Populate personal form
