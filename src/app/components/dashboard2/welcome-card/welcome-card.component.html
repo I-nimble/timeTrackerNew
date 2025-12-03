@@ -1,24 +1,39 @@
 <mat-card class="cardWithShadow card-dashboard">
   <mat-card-content>
-    <div class="row justify-content-between">
-      <div class="col-sm-6">
-        <mat-card-title>Welcome {{userName}}</mat-card-title>
-        <mat-card-subtitle class="m-b-30"
-          >Check all the statistics</mat-card-subtitle
-        >
-        <a [routerLink]="['/apps/chat/support']">
-          <button mat-flat-button>
-            Contact Support
-          </button>
-        </a>
-      </div>
-      <div class="col-sm-5">
-        <img
-          src="assets/images/backgrounds/welcome.png"
-          alt="welcome"
-          width="280"
-          class="welcome-img d-none d-lg-flex"
-        />
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <mat-card-title>Notifications</mat-card-title>
+        </div>
+      
+        <div class="notifications-scroll-container">
+          
+          <div *ngFor="let notification of allNotifications" 
+               class="notification-item d-flex align-items-start gap-3 p-3 border-bottom"
+               [ngClass]="{
+                 'sentinel-notification': notification.message.includes('My Sentinel'),
+                 'talent-notification': notification.message.includes('Talent Match'),
+                 'expert-notification': notification.message.includes('Expert Match')
+               }">
+          
+            <div class="flex-grow-1">
+              <div class="f-w-500 f-s-14">{{notification.message}}</div>
+              <div class="f-s-12 text-muted mt-1">
+                {{notification.createdAt | date: 'MMM d, y, h:mm a'}}
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="allNotifications.length === 0 && !isLoading" 
+              class="text-center p-4 text-muted">
+            No notifications available
+          </div>
+          
+        </div>
+        
+        <div *ngIf="isLoading" class="text-center">
+          <div class="mt-2 f-s-14 text-muted">Loading notifications...</div>
+        </div>
       </div>
     </div>
   </mat-card-content>
