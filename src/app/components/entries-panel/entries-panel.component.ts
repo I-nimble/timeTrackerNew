@@ -163,7 +163,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
         this.UTCStartTime = this.strToDate(moment.utc(active.start_time).format('MM-DD-YYYY HH:mm:ss'));
         const utcStartTime = moment.utc(active.start_time, true);
         if (utcStartTime.isValid()) {
-          const convertedStartTime = utcStartTime.tz(this.timeZone);
+          const convertedStartTime = utcStartTime.tz(this.timeZone || 'UTC');
           if (convertedStartTime && convertedStartTime.isValid()) {
             this.startTime = this.strToDate(convertedStartTime.format('MM-DD-YYYY HH:mm:ss'));
           }
@@ -199,17 +199,19 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
   validateStartTime() {
     this.schedulesService.get().subscribe({
-      next: (schedules:any) => {
+      next: (schedules: any) => {
         const fiveMinutes = 5 * 60 * 1000;
 
-        schedules = schedules.schedules
-        if(schedules.length <= 0 ) {
+        schedules = schedules.schedules;
+        if (schedules.length <= 0) {
           this.showSnackbar("You don't have a defined schedule.");
+          this.loading = false;
+          return;
         } else {
-          let dayOfWeek:any = null
-          if (this.entry.date)  dayOfWeek = new Date(`${this.entry.date}T00:00:00`).getUTCDay()
-          else dayOfWeek = new Date().getUTCDay()
-          if (dayOfWeek == 0) dayOfWeek = 7
+          let dayOfWeek: any = null;
+          if (this.entry.date) dayOfWeek = new Date(`${this.entry.date}T00:00:00`).getUTCDay();
+          else dayOfWeek = new Date().getUTCDay();
+          if (dayOfWeek == 0) dayOfWeek = 7;
 
           schedules.forEach((schedule: any) => {
             const scheduleDays = schedule.days;
@@ -223,45 +225,56 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
               this.loading = false
             }
           });
-  
           this.ngZone.runOutsideAngular(() => {
+            if (this.intervalId) {
+              clearInterval(this.intervalId);
+            }
+
             this.intervalId = setInterval(() => {
               this.ngZone.run(() => {
                 const UTCTime = moment.utc().format('MM-DD-YYYY HH:mm:ss');
                 this.currentDateTime = this.strToDate(UTCTime);
-      
                 if (this.validStartTime !== null) {
                   if (this.currentDateTime.getTime() <= (this.UTCValidStartTime.getTime() + fiveMinutes)
                       && this.currentDateTime.getTime() >= this.UTCValidStartTime.getTime()) {
-                    this.justInTime = true
+                    this.justInTime = true;
                   } else {
-                    this.justInTime = false
+                    this.justInTime = false;
                   }
                 }
-                if (this.endOfShift !== null && (!this.notificationsService.ToDoNotificationSent || 
+                if (this.endOfShift !== null && (!this.notificationsService.ToDoNotificationSent ||
                     (localStorage.getItem('toDoNotificationSent') && localStorage.getItem('toDoNotificationSent') == 'false'))) {
                   if (this.currentDateTime.getTime() >= (this.endOfShift.getTime() - fiveMinutes)
                       && this.currentDateTime.getTime() <= this.endOfShift.getTime()) {
 
-                    this.notificationsService.ToDoNotificationSent = true
+                    this.notificationsService.ToDoNotificationSent = true;
                     Cookies.set('toDoNotificationSent', 'true', { expires: 1 });
                     this.notificationsService.rememberToDo({}).subscribe({
-                      error: (res:any) => {
+                      error: (res: any) => {
                         this.showSnackbar("Remember to log your achieved goals.");
                       }
-                    })
+                    });
                   }
                 }
-                if(this.currentDateTime && this.validStartTime && this.loading) {
-                  this.loading = false
-                  this.cdr.detectChanges()
+                if (this.currentDateTime && this.validStartTime && this.loading) {
+                  this.loading = false;
+                  this.cdr.detectChanges();
+                  if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                  }
                 }
               });
             }, 1000);
           });
         }
+      },
+      error: (error) => {
+        this.showSnackbar("Error loading schedule");
+        this.loading = false;
+        this.cdr.detectChanges();
       }
-    })
+    });
   }
 
   parseStartTime(startTime:any) {
@@ -277,6 +290,12 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
       if(this.entryCheck && this.currentTime == null && this.justInTime && this.UTCValidStartTime) {
         this.startTimer(this.UTCValidStartTime)
+      }
+      if (this.validStartTime && this.UTCValidStartTime && this.loading) {
+      setTimeout(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        }, 100);
       }
       return this.validStartTime
     } else {
