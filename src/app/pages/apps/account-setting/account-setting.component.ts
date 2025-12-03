@@ -280,6 +280,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.checkFormChanges();
   }
 
   checkOlympiaStatus(): void {
