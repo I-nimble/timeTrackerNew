@@ -555,7 +555,7 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
-        availability: this.user.availability == 1
+        availability: this.user.availability
       });
 
 
