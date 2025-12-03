@@ -49,9 +49,15 @@
   </mat-card>
 
   
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow" *ngIf="canManageTeamMembers">
     <mat-card-header>
       <mat-card-title>Worked Hours</mat-card-title>
+      <mat-card-subtitle>
+        <div class="d-flex align-items-start">
+            <i-tabler name="clock" class="icon-16 m-r-5 text-primary"></i-tabler>
+            <span class="f-s-12 text-muted">{{ getTimezoneInfo() }}</span>
+        </div>
+      </mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
       <!-- Date Range selection -->
@@ -185,13 +191,6 @@
                   >
                     <mat-icon>edit</mat-icon>
                     <span>Edit entry</span>
-                  </button>
-                  <button
-                    mat-menu-item
-                    (click)="deleteEntry(entry)"
-                  >
-                    <mat-icon>delete</mat-icon>
-                    <span>Delete entry</span>
                   </button>
                 </mat-menu>
                 </ng-template>
