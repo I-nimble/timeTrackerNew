@@ -23,6 +23,7 @@ import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-kanban',
@@ -50,6 +51,8 @@ export class AppKanbanComponent implements OnInit {
   isLoading = true;
   userId: string | null;
   taskSearch: string = '';
+  developmentTeamEmails: string[] = environment.developmentTeamEmails;
+  userEmail: string = localStorage.getItem('email') || '';
 
   constructor(
     public dialog: MatDialog,

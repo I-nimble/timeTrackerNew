@@ -269,7 +269,25 @@
                                   <video [src]="getFileUrl(message.attachments[0])" controls></video>
                                 }
                                 @case('audio') {
-                                  <audio [src]="getFileUrl(message.attachments[0])" controls></audio>
+                                  <div class="d-flex flex-column gap-8">
+                                    <audio
+                                      [src]="getFileUrl(message.attachments[0], 1)"
+                                      controls
+                                      (canplay)="onMediaPlayable(message._id, 1)"
+                                      (loadedmetadata)="onMediaPlayable(message._id, 1)"
+                                      (error)="onMediaError(message._id, 1)"
+                                      [hidden]="mediaPlayable.get(message._id + '|' + 1) === false"
+                                    ></audio>
+
+                                    <audio
+                                      [src]="getFileUrl(message.attachments[0], 2)"
+                                      controls
+                                      (canplay)="onMediaPlayable(message._id, 2)"
+                                      (loadedmetadata)="onMediaPlayable(message._id, 2)"
+                                      (error)="onMediaError(message._id, 2)"
+                                      [hidden]="mediaPlayable.get(message._id + '|' + 2) === false"
+                                    ></audio>
+                                  </div>
                                 }
                                 @default {
                                   <span class="f-s-12 text-muted">
@@ -348,6 +366,21 @@
           <button mat-icon-button aria-label="Cancel editing" (click)="cancelEditing()">
             <mat-icon>close</mat-icon>
           </button>
+        </div>
+
+        <div *ngIf="isRecording" class="voice-recording-bar p-8 mb-8 d-flex align-items-center justify-content-between bg-light-danger rounded">
+          <div class="d-flex align-items-center gap-8">
+            <span class="record-dot" style="width:10px;height:10px;background:#e53935;border-radius:50%;display:inline-block;"></span>
+            <div class="recording-text">
+              <div class="f-s-12 f-w-600">Recording</div>
+              <div class="f-s-12 text-muted">{{ voiceRecorderTime }}</div>
+            </div>
+          </div>
+          <div>
+            <button mat-icon-button aria-label="Cancel recording" (click)="discardVoiceRecording()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
         </div>
 
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
