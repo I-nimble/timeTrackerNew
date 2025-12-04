@@ -20,6 +20,10 @@ export class ApplicationsService {
   private applicationsUpdatedSource = new Subject<any>();
   applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
 
+  getUserApplication(id: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
+  }
+
   reject(id: number): Observable<any[]> {
     return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
   }
