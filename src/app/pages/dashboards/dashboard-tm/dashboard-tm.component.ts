@@ -20,6 +20,7 @@ import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympi
 import { MatStepperModule } from '@angular/material/stepper';
 import { ReactiveFormsModule } from '@angular/forms';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -93,6 +94,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   userCompletedProfile: boolean = false;
   olympiaSubmitted: boolean = false;
   pictureUploaded: boolean = false;
+  applicationDetailsSubmitted: boolean = false;
   profileCompleted: boolean = false;
   videoUploaded: boolean = false;
   matchRequested: boolean = false;
@@ -110,7 +112,8 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
     public ratingsService: RatingsService,
     private olympiaService: OlympiaService,
     public dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private applicationsService: ApplicationsService
   ) {}
 
   ngOnInit(): void {
@@ -160,6 +163,36 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
             this.checkPictureUploaded();
           }
         });
+
+        if(this.isOrphan) {
+          this.applicationsService.getUserApplication(this.user.id).subscribe({
+            next: (applicationDetails: any) => {
+              this.applicationDetailsSubmitted = !!(
+                applicationDetails.location_id &&
+                applicationDetails.current_position &&
+                applicationDetails.applied_where && 
+                applicationDetails.referred &&
+                applicationDetails.age &&
+                applicationDetails.phone &&
+                applicationDetails.current_residence &&
+                applicationDetails.address &&
+                applicationDetails.english_level &&
+                applicationDetails.competencies &&
+                applicationDetails.skills &&
+                applicationDetails.education_history &&
+                applicationDetails.work_experience &&
+                applicationDetails.work_references &&
+                applicationDetails.hobbies &&
+                applicationDetails.salary_range
+              );
+              this.setStepperToLastCompletedStep();
+            },
+            error: () => {
+              this.applicationDetailsSubmitted = false;
+              this.setStepperToLastCompletedStep();
+            }
+          });
+        }
       }
     });
   }
@@ -190,7 +223,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
               this.user.picture = url;
             }
             this.checkPictureUploaded();
-            this.checkMatchRequestStatus(); 
+            this.checkMatchRequestStatus();
           },
           error: () => {
             this.checkPictureUploaded();
@@ -371,22 +404,23 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   }
 
   setStepperToLastCompletedStep() {
-    if (!this.pictureUploaded && !this.videoUploaded) {
+    const profileConfigured = this.pictureUploaded && this.videoUploaded && this.applicationDetailsSubmitted;
+
+    if (!profileConfigured) {
       this.selectedStepperIndex = 0;
-    } else if (this.pictureUploaded && this.videoUploaded && !this.olympiaSubmitted) {
-      this.selectedStepperIndex = 2;
-    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && !this.matchRequested) {
-      this.selectedStepperIndex = 3;
-    } else if (this.pictureUploaded && this.videoUploaded && this.olympiaSubmitted && this.matchRequested) {
-      this.selectedStepperIndex = -1;
+    } else if (profileConfigured && !this.olympiaSubmitted) {
+      this.selectedStepperIndex = 1; // Assuming Olympia is step 2 (index 1)
+    } else if (profileConfigured && this.olympiaSubmitted && !this.matchRequested) {
+      this.selectedStepperIndex = 2; // Assuming Request Match is step 3 (index 2)
+    } else if (profileConfigured && this.olympiaSubmitted && this.matchRequested) {
+      this.selectedStepperIndex = -1; // Completed
     } else {
-      this.selectedStepperIndex = 1;
+      this.selectedStepperIndex = 0;
     }
   }
 
   checkMatchRequestStatus() {
     if (!this.user?.id) return;
-    
     this.usersService.checkMatchStatus(this.user.id).subscribe({
       next: (status: boolean) => {
         this.matchRequested = status;
@@ -403,7 +437,6 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
 
   requestMatch() {
     if (!this.user?.id || this.matchRequested) return;
-    
     this.usersService.requestMatch(this.user.id).subscribe({
       next: () => {
         this.matchRequested = true;

@@ -132,7 +132,11 @@
                     >To change your personal details, edit and save from here
                   </mat-card-subtitle>
 
-                <form [formGroup]="personalForm" class="row m-t-24" *ngIf="role !== '3'">
+                <form
+                  [formGroup]="personalForm"
+                  class="row m-t-24"
+                  *ngIf="role !== '3'"
+                >
                   <div class="col-12 col-sm-6">
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
@@ -166,44 +170,56 @@
                       </mat-form-field>
                   </div>
                   <div class="col-12">
-                       <!-- input -->
-                       <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                       >Email</mat-label
-                     >
-                     <mat-form-field
-                       appearance="outline"
-                       class="w-100"
-                       color="primary"
-                     >
-                       <input
-                         matInput
-                         type="email"
-                         formControlName="email"
-                         readonly
-                       />
-                     </mat-form-field>
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                      >Phone</mat-label
+                      >Email</mat-label
                     >
                     <mat-form-field
                       appearance="outline"
                       class="w-100"
                       color="primary"
                     >
-                      <input 
+                      <input
                         matInput
-                        type="tel" 
-                        placeholder="+1 (123) 456-7890" 
-                        formControlName="phone"
-                        (keypress)="restrictPhoneInput($event)" />
-                      <mat-error *ngIf="personalForm.get('phone')?.touched && personalForm.get('phone')?.errors">
-                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('phone')?.errors?.['required']">Phone number is required</span>
-                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('phone')?.errors?.['pattern']"> Invalid phone number format. +1 (123) 456-7890</span>
-                      </mat-error>
+                        type="email"
+                        formControlName="email"
+                        readonly
+                      />
                     </mat-form-field>
+                    <!-- Hide phone and address for orphan TMs since they have these in the application form -->
+                    <ng-container *ngIf="!isOrphan">
+                      <!-- input -->
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                        >Phone</mat-label
+                      >
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input
+                          matInput
+                          type="tel"
+                          placeholder="+1 (123) 456-7890"
+                          formControlName="phone"
+                          (keypress)="restrictPhoneInput($event)"
+                        />
+                        <mat-error
+                          *ngIf="
+                            personalForm.get('phone')?.touched &&
+                            personalForm.get('phone')?.errors
+                          "
+                        >
+                          <span
+                            class="f-s-12 m-t-0"
+                            *ngIf="personalForm.get('phone')?.errors?.['required']"
+                            >Phone number is required</span
+                          >
+                        </mat-error>
+                      </mat-form-field>
+                    </ng-container>
                   </div>
-                  <div class="col-12">
+                  <div class="col-12" *ngIf="!isOrphan">
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
                       >Address</mat-label
@@ -240,64 +256,655 @@
                         <input matInput type="text" formControlName="name" placeholder="First name" required />
                         <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
                         This field is required
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Last name</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="text"
+                        formControlName="last_name"
+                        placeholder="Last name"
+                        required
+                      />
+                      <mat-error
+                        *ngIf="
+                          profileForm.get('last_name')?.hasError('required')
+                        "
+                      >
+                        This field is required
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                  <div class="col-12">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Email</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="email"
+                        formControlName="email"
+                        placeholder="Email address"
+                        readonly
+                      />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Phone</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="tel"
+                        placeholder="+1 (123) 456-7890"
+                        formControlName="phone"
+                        (keypress)="restrictPhoneInput($event)"
+                      />
+                      <mat-error
+                        *ngIf="profileForm.get('phone')?.hasError('pattern')"
+                      >
+                        Invalid phone number format. +1 (123) 456-7890
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <div class="col-12">
+            <mat-card class="cardWithShadow" *ngIf="role === '2' && isOrphan">
+              <mat-card-content class="p-y-24">
+                <mat-card-title>Application details</mat-card-title>
+                <mat-card-subtitle class="f-s-14">
+                  Tell us more about yourself
+                </mat-card-subtitle>
+                <!-- Application Details Form -->
+                <form
+                  [formGroup]="applicationForm"
+                  (ngSubmit)="submitApplicationDetails()"
+                >
+                  <div class="row">
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Location</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-select
+                          formControlName="location"
+                          placeholder="Select your location"
+                        >
+                          <mat-option
+                            *ngFor="let loc of locations"
+                            [value]="loc.id"
+                          >
+                            {{ loc.city }}, {{ loc.country }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('location')
+                              ?.hasError('required')
+                          "
+                        >
+                          Location is required
                         </mat-error>
                       </mat-form-field>
                     </div>
-                    <div class="col-12 col-sm-6">
-                          <!-- input -->
-                          <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                          >Last name</mat-label
-                        >
-                        <mat-form-field
-                          appearance="outline"
-                          class="w-100"
-                          color="primary"
-                        >
-                          <input matInput type="text" formControlName="last_name" placeholder="Last name" required/>
-                          <mat-error *ngIf="profileForm.get('last_name')?.hasError('required')">
-                          This field is required
-                          </mat-error>
-                        </mat-form-field>
-                    </div>
-                    <div class="col-12">
-                          <!-- input -->
-                          <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                          >Email</mat-label
-                        >
-                        <mat-form-field
-                          appearance="outline"
-                          class="w-100"
-                          color="primary"
-                        >
-                          <input
-                            matInput
-                            type="email"
-                            formControlName="email"
-                            placeholder="Email address"
-                            readonly
-                          />
-                        </mat-form-field>
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Phone</mat-label
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Role</mat-label
                       >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input  
-                          matInput
-                          type="tel" 
-                          placeholder="+1 (123) 456-7890" 
-                          formControlName="phone"
-                          (keypress)="restrictPhoneInput($event)" />
-                          <mat-error *ngIf="profileForm.get('phone')?.hasError('pattern')">
-                            Invalid phone number format. +1 (123) 456-7890
-                          </mat-error>
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-select
+                          formControlName="role"
+                          placeholder="Select role"
+                        >
+                          <mat-option
+                            *ngFor="let role of careerRoles"
+                            [value]="role"
+                          >
+                            {{ role.title }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-error
+                          *ngIf="
+                            applicationForm.get('role')?.hasError('required')
+                          "
+                        >
+                          Role is required
+                        </mat-error>
                       </mat-form-field>
                     </div>
-                  </form>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >How did you hear about us?</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          formControlName="appliedWhere"
+                          placeholder="e.g., LinkedIn, Indeed, Referral, etc."
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('appliedWhere')
+                              ?.hasError('required')
+                          "
+                        >
+                          This field is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Were you referred?</mat-label
+                      >
+                      <mat-radio-group
+                        formControlName="referred"
+                        class="d-flex gap-16"
+                      >
+                        <mat-radio-button value="yes" color="primary"
+                          >Yes</mat-radio-button
+                        >
+                        <mat-radio-button value="no" color="primary"
+                          >No</mat-radio-button
+                        >
+                      </mat-radio-group>
+                    </div>
+
+                    <div
+                      class="col-md-12 m-b-16"
+                      *ngIf="applicationForm.get('referred')?.value === 'yes'"
+                    >
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Referred Name
+                        <span class="text-danger">*</span></mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          formControlName="referredName"
+                          placeholder="Name of referrer"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('referredName')
+                              ?.hasError('required')
+                          "
+                        >
+                          Referrer name is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Age</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="age"
+                          placeholder="Age"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm.get('age')?.hasError('required')
+                          "
+                        >
+                          Age is required
+                        </mat-error>
+                        <mat-error
+                          *ngIf="applicationForm.get('age')?.hasError('min')"
+                        >
+                          Must be at least 18
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Contact Phone</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          formControlName="contactPhone"
+                          placeholder="+1 (123) 456-7890"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('contactPhone')
+                              ?.hasError('required')
+                          "
+                        >
+                          Phone is required
+                        </mat-error>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('contactPhone')
+                              ?.hasError('pattern')
+                          "
+                        >
+                          Invalid format
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Additional Phone
+                        <span class="text-danger">*</span></mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          formControlName="additionalPhone"
+                          placeholder="+1234567890123"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('additionalPhone')
+                              ?.hasError('required')
+                          "
+                        >
+                          Phone is required
+                        </mat-error>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('additionalPhone')
+                              ?.hasError('pattern')
+                          "
+                        >
+                          Invalid format (7-15 digits)
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Current Residence</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          formControlName="currentResidence"
+                          placeholder="City, Country"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('currentResidence')
+                              ?.hasError('required')
+                          "
+                        >
+                          Residence is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Address</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="address"
+                          rows="2"
+                          placeholder="Full Address"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm.get('address')?.hasError('required')
+                          "
+                        >
+                          Address is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Number of Children</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="children"
+                          placeholder="0"
+                          min="0"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('children')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                        <mat-error
+                          *ngIf="
+                            applicationForm.get('children')?.hasError('min')
+                          "
+                        >
+                          Must be 0 or greater
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >English Level</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-select
+                          formControlName="englishLevel"
+                          placeholder="Select level"
+                        >
+                          <mat-option
+                            *ngFor="let level of englishLevels"
+                            [value]="level"
+                          >
+                            {{ level }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('englishLevel')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Competencies</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="competencies"
+                          rows="3"
+                          placeholder="List your key competencies"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('competencies')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Technical Skills</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="technicalSkills"
+                          rows="3"
+                          placeholder="List your technical skills"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('technicalSkills')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Tech Proficiency (1-10)</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="techProficiency"
+                          min="1"
+                          max="10"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('techProficiency')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('techProficiency')
+                              ?.hasError('min') ||
+                            applicationForm
+                              .get('techProficiency')
+                              ?.hasError('max')
+                          "
+                        >
+                          Must be between 1 and 10
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Are you available to work Pacific Time hours
+                        (11:30am-8:00pm, Mon-Fri)?</mat-label
+                      >
+                      <mat-radio-group
+                        formControlName="availability"
+                        class="d-flex gap-16"
+                      >
+                        <mat-radio-button value="yes" color="primary"
+                          >Yes</mat-radio-button
+                        >
+                        <mat-radio-button value="no" color="primary"
+                          >No</mat-radio-button
+                        >
+                      </mat-radio-group>
+                      <mat-error
+                        *ngIf="
+                          applicationForm.get('availability')?.value === 'no'
+                        "
+                        class="f-s-12"
+                      >
+                        You must be available to work Pacific Time hours to
+                        apply.</mat-error
+                      >
+                    </div>
+
+                    <div class="col-md-6 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >What are your monthly salary expectations?
+                        (USD)</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="salaryRange"
+                          placeholder="Expected salary"
+                        />
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('salaryRange')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Education History</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="educationHistory"
+                          rows="3"
+                          placeholder="Describe your education history"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('educationHistory')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Work Experience</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="workExperience"
+                          rows="3"
+                          placeholder="Describe your work experience"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('workExperience')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Work References</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="workReferences"
+                          rows="3"
+                          placeholder="List work references"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('workReferences')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Hobbies</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="hobbies"
+                          rows="2"
+                          placeholder="Your hobbies"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm.get('hobbies')?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
+                    <div class="col-md-12 m-b-16">
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Resume</mat-label
+                      >
+                      <div class="d-flex align-items-center">
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          color="primary"
+                          (click)="resumeInput.click()"
+                        >
+                          Upload Resume
+                        </button>
+                        <input
+                          #resumeInput
+                          type="file"
+                          hidden
+                          (change)="onResumeSelected($event)"
+                          accept=".pdf,.doc,.docx"
+                        />
+                        <span class="m-l-16" *ngIf="resumeFileName">{{
+                          resumeFileName
+                        }}</span>
+                      </div>
+                      <mat-error *ngIf="!resumeFileName" class="f-s-12"
+                        >Required</mat-error
+                      >
+                    </div>
+                  </div>
+                </form>
               </mat-card-content>
             </mat-card>
           </div>
