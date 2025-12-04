@@ -1,0 +1,70 @@
+<mat-card class="cardWithShadow">
+    <mat-card-content>
+        <div class="pricing-page">
+            <div class="container">
+                <div class="text-center m-b-48">
+                    <h2 class="m-b-16 f-s-44 lh-normal f-w-700 section-sub-title">
+                        R3
+                    </h2>
+                    <p class="m-0 f-s-18">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                    </p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Vision</h6>
+                                </div>
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Define the long-term direction for your team. Align purpose, impact, and the future you're building.
+                                </p>
+                                <div class="m-y-20"></div>
+                                <button mat-flat-button class="w-100 bg-dark-200" [routerLink]="['vision']">
+                                    View Vision
+                                </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Traction</h6>
+                                </div>
+
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Establish the focus, discipline, and accountability needed to bring the Vision to life.
+                                </p>
+
+                                <div class="m-y-20"></div>
+
+                                <button mat-flat-button class="w-100 bg-dark-200" [routerLink]="['traction']">
+                                    View Traction
+                                </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Action</h6>
+                                </div>
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Identify and track your top quarterly priorities to ensure measurable team progress.
+                                </p>
+                                <div class="m-y-20"></div>
+                                    <button mat-flat-button color="primary" class="w-100" [routerLink]="['action']">
+                                    View Action
+                                    </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>
+<router-outlet></router-outlet>

@@ -1,0 +1,113 @@
+<mat-card class="mat-mdc-card b-1 rounded p-30">
+  <div class="row" [formGroup]="form">
+    <div class="col-lg-8">
+      <mat-card class="mat-mdc-card mdc-card b-1 shadow-none">
+        <div class="p-16 b-b-1">
+          <h4>Vision / Traction Organizer</h4>
+        </div>
+        <div class="p-16" formGroupName="oneYearPlan">
+          <h4 class="m-b-20">1 Year Plan</h4>
+          <div class="row">
+            <div class="col-sm-4 d-flex align-items-center">
+              <mat-label class="f-s-14 f-w-600">Future Date</mat-label>
+            </div>
+            <div class="col-sm-8">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Choose a date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="futureDatePicker"
+                  formControlName="future_date"
+                  placeholder="MM/DD/YYYY"
+                />
+                <mat-datepicker-toggle matSuffix [for]="futureDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #futureDatePicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-4 d-flex align-items-center">
+              <mat-label class="f-s-14 f-w-600">Revenue</mat-label>
+            </div>
+            <div class="col-sm-8">
+              <mat-form-field appearance="outline" class="w-100">
+                <input matInput formControlName="revenue" placeholder="Enter revenue amount">
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-4 d-flex align-items-center">
+              <mat-label class="f-s-14 f-w-600">Net Margin</mat-label>
+            </div>
+            <div class="col-sm-8">
+              <mat-form-field appearance="outline" class="w-100">
+                <input matInput formControlName="net_margin" placeholder="Enter margin %">
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </mat-card>
+      <mat-card class="mat-mdc-card cardWithShadow b-1 rounded p-30 mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <h4>Goals For This Year</h4>
+          <button mat-mini-fab color="primary" (click)="addAnnualGoal()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        <div formArrayName="annualGoals">
+          <div *ngFor="let g of annualGoals.controls; let i = index" [formGroupName]="i" class="m-t-20">
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Goal {{ i + 1 }}</mat-label>
+              <input matInput formControlName="goal_text">
+            </mat-form-field>
+            <button
+              mat-flat-button
+              color="warn"
+              class="bg-error icon-37"
+              (click)="removeAnnualGoal(i)"
+            >
+              X
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+    <div class="col-lg-4">
+      <mat-card class="mat-mdc-card cardWithShadow b-1 rounded p-30">
+        <div class="d-flex justify-content-between align-items-center">
+          <h4>Traction</h4>
+          <button mat-mini-fab color="primary" (click)="addRock()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+        <h5 class="m-t-20 f-w-600">Rocks for This Quarter</h5>
+        <div formArrayName="rocks">
+          <div *ngFor="let r of rocks.controls; let i = index" [formGroupName]="i" class="m-t-20">
+            <mat-form-field appearance="outline" class="w-100 m-b-10">
+              <mat-label>Rock {{ i + 1 }}</mat-label>
+              <input matInput formControlName="title">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Who</mat-label>
+              <mat-select formControlName="assigned_user_id">
+                <mat-option *ngFor="let user of users" [value]="user.id">
+                  {{ user.name }} {{ user.last_name || '' }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <button
+              mat-flat-button
+              class="bg-error text-white icon-37"
+              (click)="removeRock(i)"
+            >
+              X
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+  <div class="text-end m-t-20">
+    <button mat-flat-button color="primary" (click)="save()">Save</button>
+  </div>
+</mat-card>

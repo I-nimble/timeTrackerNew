@@ -38,6 +38,10 @@ import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 import { CustomSearchComponent } from '../custom-search/custom-search.component';
+import { R3Component } from './r3/r3.component';
+import { R3ActionComponent } from './r3/action/r3.action.component';
+import { R3TractionComponent } from './r3/traction/r3.traction.component';
+import { R3VisionComponent } from './r3/vision/r3.vision.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -498,6 +502,56 @@ export const AppsRoutes: Routes = [
             { title: 'Pricing' },
           ],
         },
+      },
+      {
+        path: 'r3',
+        component: R3Component,
+        data: {
+          title: 'R3',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3' },
+          ],
+        }
+      },
+      {
+        path: 'r3/vision',
+        component: R3VisionComponent,
+        data: {
+          title: 'Vision',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Vision' }
+          ]
+        }
+      },
+      {
+        path: 'r3/traction',
+        component: R3TractionComponent,
+        data: {
+          title: 'Traction',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Traction' }
+          ]
+        }
+      },
+      {
+        path: 'r3/action',
+        component: R3ActionComponent,
+        data: {
+          title: 'Action',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Action' }
+          ]
+        }
       },
       {
         path: 'scrapper',
