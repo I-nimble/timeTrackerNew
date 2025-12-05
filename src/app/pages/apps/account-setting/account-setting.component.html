@@ -347,38 +347,41 @@
                         readonly
                       />
                     </mat-form-field>
-                    <!-- Hide phone and address for orphan TMs since they have these in the application form -->
-                    <ng-container *ngIf="!isOrphan">
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Phone</mat-label
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Phone</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="tel"
+                        placeholder="+1 (123) 456-7890"
+                        formControlName="phone"
+                        (keypress)="restrictPhoneInput($event)"
+                      />
+                      <mat-error
+                        *ngIf="
+                          personalForm.get('phone')?.touched &&
+                          personalForm.get('phone')?.errors
+                        "
                       >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input
-                          matInput
-                          type="tel"
-                          placeholder="+1 (123) 456-7890"
-                          formControlName="phone"
-                          (keypress)="restrictPhoneInput($event)"
-                        />
-                        <mat-error
-                          *ngIf="
-                            personalForm.get('phone')?.touched &&
-                            personalForm.get('phone')?.errors
-                          "
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('phone')?.errors?.['required']"
+                          >Phone number is required</span
                         >
-                          <span
-                            class="f-s-12 m-t-0"
-                            *ngIf="personalForm.get('phone')?.errors?.['required']"
-                            >Phone number is required</span
-                          >
-                        </mat-error>
-                      </mat-form-field>
-                    </ng-container>
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('phone')?.errors?.['pattern']"
+                        >
+                          Invalid phone number format. +1 (123) 456-7890</span
+                        >
+                      </mat-error>
+                    </mat-form-field>
                   </div>
                   <div class="col-12" *ngIf="!isOrphan">
                     <!-- input -->
