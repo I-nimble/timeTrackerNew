@@ -31,6 +31,11 @@ import { MatTabHeader } from '@angular/material/tabs';
 import { MatTabBody } from '@angular/material/tabs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
+import { Options } from '@angular-slider/ngx-slider';
 
 @Component({
   standalone: true,
@@ -51,7 +56,11 @@ import { ApplicationMatchScoresService, PositionCategory } from 'src/app/service
     MarkdownPipe,
     LinebreakPipe,
     MatTabHeader,
-    MatTabBody
+    MatTabBody,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatChipsModule,
+    NgxSliderModule
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -97,6 +106,146 @@ export class AppTalentMatchClientComponent implements OnInit {
   showCustomFilterInput: boolean = false;
   filterPositions: any[] = [];
   query: string = '';
+  selectedRole: string | null = null;
+  selectedPracticeArea: string | null = null;
+  selectedPersonality: string[] = [];
+  selectedSkillsTools: string[] = [];
+  selectedExperienceLevel: string | null = null;
+  selectedCertifications: string[] = [];
+  selectedBackground: string[] = [];
+  roleDescription: string = '';
+  budgetMin: number = 4;
+  budgetMax: number = 15;
+  originalBudgetRange = { 
+    min: 4, 
+    max: 15 
+  };
+  budgetRange = {
+    min: 4,
+    max: 15
+  };
+  isMonthlyRate: boolean = false;
+  budgetPresets = [
+    { label: 'Entry level (6–7/hr)', min: 6, max: 7 },
+    { label: 'Standard (7–9/hr)', min: 7, max: 9 },
+    { label: 'Senior (9–12/hr)', min: 9, max: 12 },
+    { label: 'Expert (12–15/hr)', min: 12, max: 15 }
+  ];
+
+  budgetOptions: Options = {
+    floor: this.budgetMin,
+    ceil: this.budgetMax,
+    step: 0.5,
+    showSelectionBar: true,
+    translate: (value: number): string => {
+      return this.isMonthlyRate ? `$${value * 160}` : `$${value}/hr`;
+    }
+  };
+
+  positionsOptions: string[] = [
+    'Legal Assistant',
+    'Paralegal',
+    'Case Manager',
+    'Intake Specialist',
+    'Demand Writer',
+    'Medical Records Specialist',
+    'Litigation Support Assistant',
+    'Executive Assistant',
+    'Administrative Assistant',
+    'Virtual Assistant (General)'
+  ];
+
+  practiceAreas: string[] = [
+    'Personal Injury',
+    'Immigration Law',
+    'Family Law',
+    'Criminal Defense',
+    'Real Estate Law',
+    'Civil Litigation',
+    'Employment Law',
+    'Estate Planning',
+    'Bankruptcy Law',
+    'Corporate / Business Law',
+    'General Practice'
+  ];
+
+  personalityTypes: string[] = [
+    'Driver (fast and decisive)',
+    'Organizer (systems and order)',
+    'Communicator (client-facing)',
+    'Analytical (detail and research)'
+  ];
+
+  skillsList: string[] = [
+    'Intake',
+    'Client Communication',
+    'Case Management',
+    'Legal Research',
+    'Drafting',
+    'Demand Letter Drafting',
+    'Discovery',
+    'Medical Records Review',
+    'Billing and Invoicing',
+    'Calendar Management',
+    'CRM Management',
+    'Lead Intake',
+    'Trial Preparation'
+  ];
+
+  toolsList: string[] = [
+    'Clio',
+    'CASEpeer',
+    'Filevine',
+    'MyCase',
+    'RingCentral',
+    'Dialpad',
+    'Zoom',
+    'Google Workspace',
+    'Microsoft Office',
+    'Slack',
+    'Notion',
+    'Trello',
+    'QuickBooks'
+  ];
+
+  experienceLevels: string[] = [
+    'Intermediate (3–6 years)',
+    'Senior (6–9 years)',
+    'Expert (10+ years)'
+  ];
+
+  certificationsOptions: string[] = [
+    'Paralegal Certificate',
+    'Bilingual Certification',
+    'Medical Background',
+    'Accounting / Finance Training',
+    'Customer Support Training',
+    'AI Tools Training'
+  ];
+
+  relatedBackgroundOptions: string[] = [
+    'Law Student / Pre-Law',
+    'Legal Studies',
+    'Criminology',
+    'Political Science',
+    'Sociology',
+    'Psychology',
+    'Public Administration',
+    'Business Administration',
+    'Accounting',
+    'Finance',
+    'Human Resources',
+    'Communications',
+    'Journalism',
+    'English / Literature',
+    'Healthcare Administration',
+    'Medical Assistant / Nursing Assistant',
+    'Customer Service / Call Center',
+    'Marketing / Advertising',
+    'Project Management',
+    'Office Administration',
+    'International Relations'
+  ];
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -118,7 +267,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   searchCandidatesWithAI(question: string) {
-    const searchQuery = question || this.query;
+    const searchQuery = question || this.buildFullSearchQuery();
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
@@ -187,6 +336,38 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.aiLoading = false;
       }
     });
+  }
+
+  buildFullSearchQuery(): string {
+    const parts: string[] = [];
+    if (this.query) {
+      parts.push(`Original matching criteria: ${this.query}`);
+    }
+    if (this.selectedRole) {
+      parts.push(`Role: ${this.selectedRole}`);
+    }
+    if (this.roleDescription) {
+      parts.push(`Role details: ${this.roleDescription}`);
+    }
+    if (this.selectedPracticeArea) {
+      parts.push(`Practice area: ${this.selectedPracticeArea}`);
+    }
+    if (this.selectedPersonality?.length > 0) {
+      parts.push(`Personality traits: ${this.selectedPersonality.join(', ')}`);
+    }
+    if (this.selectedSkillsTools?.length > 0) {
+      parts.push(`Skills & Tools: ${this.selectedSkillsTools.join(', ')}`);
+    }
+    if (this.selectedExperienceLevel) {
+      parts.push(`Experience level: ${this.selectedExperienceLevel}`);
+    }
+    if (this.selectedCertifications?.length > 0) {
+      parts.push(`Certifications: ${this.selectedCertifications.join(', ')}`);
+    }
+    if (this.selectedBackground?.length > 0) {
+      parts.push(`Related background: ${this.selectedBackground.join(', ')}`);
+    }
+    return parts.join('; ');
   }
 
   onManualSearch(query?: string) {
@@ -505,6 +686,79 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   goToCustomSearch() {
     this.router.navigate([`apps/talent-match/custom-search`]);
+  }
+
+  convertToMonthly(value: number): number {
+    return value * 160;
+  }
+
+  convertToHourly(value: number): number {
+    return value / 160;
+  }
+
+  toggleRateType() {
+    this.isMonthlyRate = !this.isMonthlyRate;
+    if (this.isMonthlyRate) {
+      const min = this.originalBudgetRange.min * 160;
+      const max = this.originalBudgetRange.max * 160;
+      this.budgetOptions = {
+        ...this.budgetOptions,
+        floor: this.budgetMin * 160,
+        ceil: this.budgetMax * 160,
+        translate: (value: number): string => `$${value}`
+      };
+      this.budgetRange = { min, max };
+    } else {
+      const min = this.originalBudgetRange.min;
+      const max = this.originalBudgetRange.max;
+      this.budgetOptions = {
+        ...this.budgetOptions,
+        floor: this.budgetMin,
+        ceil: this.budgetMax,
+        translate: (value: number): string => `$${value}/hr`
+      };
+      this.budgetRange = { min, max };
+    }
+  }
+
+  onPresetClick(preset: any) {
+    if (this.isMonthlyRate) {
+      this.budgetRange.min = preset.min * 160;
+      this.budgetRange.max = preset.max * 160;
+    } else {
+      this.budgetRange.min = preset.min;
+      this.budgetRange.max = preset.max;
+    }
+    this.originalBudgetRange = { min: preset.min, max: preset.max };
+  }
+
+  onBudgetChange(event: any) {
+    this.budgetRange = event;
+    if (!this.isMonthlyRate) {
+      this.originalBudgetRange = { ...this.budgetRange };
+    } else {
+      this.originalBudgetRange = {
+        min: this.budgetRange.min / 160,
+        max: this.budgetRange.max / 160
+      };
+    }
+  }
+  
+  get canSearchAI(): boolean {
+    const hasFilters = !!(
+      this.selectedRole ||
+      this.selectedPracticeArea ||
+      (this.selectedPersonality?.length ?? 0) > 0 ||
+      (this.selectedSkillsTools?.length ?? 0) > 0 ||
+      this.selectedExperienceLevel ||
+      (this.selectedCertifications?.length ?? 0) > 0 ||
+      (this.selectedBackground?.length ?? 0) > 0 ||
+      this.budgetRange?.min !== this.budgetMin ||
+      this.budgetRange?.max !== this.budgetMax ||
+      this.roleDescription
+    );
+
+    return !!this.query || hasFilters;
   }
 
   handleImageError(event: Event) {

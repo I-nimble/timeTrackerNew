@@ -18,30 +18,124 @@
                 <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
             </div>
 
-            <div class="row align-items-center m-b-16 m-t-24">
-                <div class="col-12">
-                    <div class="d-flex flex-wrap gap-8 justify-content-center m-b-16">
-                    <button
-                        mat-stroked-button
-                        class="position-btn"
-                        [ngClass]="isPositionSelected(position) ? 'primary' : 'disabled'"
-                        *ngFor="let position of filterPositions"
-                        (click)="togglePositionFilter(position); $event.preventDefault()"
-                    >
-                        {{ position }}
-                    </button>
-                    <button
-                        mat-stroked-button
-                        class="position-btn"
-                        [ngClass]="isPositionSelected('other') ? 'primary' : 'disabled'"
-                        (click)="toggleOtherFilter(); $event.preventDefault()"
-                    >
-                        Other
-                    </button>
+            <div class="p-16">
+                <h4 class="f-w-700 m-b-16">Main Filters</h4>
+                <div class="row m-t-10">
+                    <div class="col-lg-6">
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedRole">
+                                <mat-option *ngFor="let role of positionsOptions" [value]="role">
+                                {{ role }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Practice Area</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedPracticeArea">
+                                <mat-option *ngFor="let area of practiceAreas" [value]="area">
+                                {{ area }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Personality Match</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedPersonality" multiple>
+                                <mat-option *ngFor="let type of personalityTypes" [value]="type">
+                                {{ type }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-lg-6">
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Budget Range</mat-label>
+                        <div class="m-b-12">
+                            <mat-chip-listbox selectable>
+                                <mat-chip-option
+                                    *ngFor="let preset of budgetPresets"
+                                    (click)="onPresetClick(preset)"
+                                >
+                                    {{ preset.label }}
+                                </mat-chip-option>
+                            </mat-chip-listbox>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 m-b-16">
+                            <mat-slide-toggle (change)="toggleRateType()">
+                            {{ isMonthlyRate ? 'Monthly (160 hrs)' : 'Hourly' }}
+                            </mat-slide-toggle>
+                        </div>
+                        <ngx-slider
+                            [(value)]="budgetRange.min"
+                            [(highValue)]="budgetRange.max"
+                            [options]="budgetOptions"
+                            (userChangeEnd)="onBudgetChange({ min: budgetRange.min, max: budgetRange.max })"
+                        ></ngx-slider>
                     </div>
                 </div>
+                <h4 class="f-w-700 m-b-16">Advanced Filters</h4>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Skills & Tools</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedSkillsTools" multiple>
+                                <mat-optgroup label="Skills">
+                                <mat-option *ngFor="let skill of skillsList" [value]="skill">
+                                    {{ skill }}
+                                </mat-option>
+                                </mat-optgroup>
+                                <mat-optgroup label="Tools">
+                                <mat-option *ngFor="let tool of toolsList" [value]="tool">
+                                    {{ tool }}
+                                </mat-option>
+                                </mat-optgroup>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Experience Level</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedExperienceLevel">
+                                <mat-option *ngFor="let exp of experienceLevels" [value]="exp">
+                                {{ exp }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="col-lg-6">
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Certifications</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedCertifications" multiple>
+                                <mat-option *ngFor="let cert of certificationsOptions" [value]="cert">
+                                    {{ cert }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Related Background</mat-label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-select [(ngModel)]="selectedBackground" multiple>
+                                <mat-option *ngFor="let bg of relatedBackgroundOptions" [value]="bg">
+                                {{ bg }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <h4 class="f-w-700 m-b-16">Role Description</h4>
+                <mat-form-field appearance="outline" class="w-100">
+                    <textarea
+                        matInput
+                        rows="4"
+                        placeholder="Tell us more about what you need for this role."
+                        [(ngModel)]="roleDescription"
+                        name="roleDescription"
+                        #roleDescModel="ngModel"
+                        maxlength="200"
+                        required
+                    ></textarea>
+                    <mat-hint align="end">{{ roleDescription?.length || 0 }}/200</mat-hint>
+                    <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
+                        Maximum 200 characters allowed.
+                    </mat-error>
+                </mat-form-field>
             </div>
-
             <div output>
                     <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
                         <app-match 
@@ -49,6 +143,7 @@
                         class="flex-grow-1 hide-hint m-b-0"
                         [loading]="aiLoading"
                         [aiEnabled]="!useManualSearch"
+                        [canSearch]="canSearchAI"
                         [showInterviewButton]="true"
                         [interviewDisabled]="selection.selected.length === 0"
                         [showCustomSearch]="!showCustomFilterInput"
