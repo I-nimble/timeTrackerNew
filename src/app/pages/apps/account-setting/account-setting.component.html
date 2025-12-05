@@ -286,7 +286,12 @@
                           *ngIf="personalForm.get('phone')?.errors?.['required']"
                           >Phone number is required</span
                         >
-                      </mat-error>
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('phone')?.errors?.['pattern']"
+                          > Invalid phone number format. +1 (123) 456-7890</span
+                        >
+                        </mat-error>
                     </mat-form-field>
                   </div>
                   <div class="col-12" *ngIf="!isOrphan">
