@@ -6,6 +6,7 @@
   height: 100%;
   
   .notifications-scroll-container {
+    height: 130px; 
     max-height: 130px; 
     overflow-y: auto;
     padding-right: 8px; 
@@ -44,7 +45,7 @@
     }
     
     &:hover {
-      background-color: rgba(0, 0, 0, 0.03);
+      background-color: rgba(0, 0, 0, 0.04);
     }
     
     &:last-child {
