@@ -347,19 +347,20 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   }
 
   formatTime(timeString: string): string {
-    if (!timeString) return '';
+    if (!timeString) return '--:--';
     
     try {
-      let localTime: moment.Moment;
+      if (timeString.includes('AM') || timeString.includes('PM')) {
+        return timeString;
+      }
+      let momentTime: moment.Moment;
       
       if (timeString.includes('T')) {
-        localTime = moment(timeString);
+        momentTime = moment(timeString);
       } else {
-        const convertedTime = this.convertUTCToLocalDateTime(timeString);
-        localTime = moment(convertedTime);
+        momentTime = moment(timeString, ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'HH:mm']);
       }
-
-      return localTime.format('hh:mm A');
+      return momentTime.format('hh:mm A');
     } catch (error) {
       console.error('Error formatting time:', error, timeString);
       return '--:--';
@@ -409,18 +410,21 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     const formValue = form.value;
 
     const startDateTime = formValue.start_time || '';
-    const endDateTime = formValue.end_time || ''; 
-
-    const startDateTimeLocal = formValue.start_time || '';
-
-    const startDateFromInput = startDateTimeLocal.split('T')[0];
+    const endDateTime = formValue.end_time || '';
     
-    const entryDate = startDateFromInput || moment(entry.date).format('YYYY-MM-DD');
+    const startDateTimeUTC = startDateTime 
+      ? moment.tz(startDateTime, this.userTimezone).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      : '';
+      
+    const endDateTimeUTC = endDateTime 
+      ? moment.tz(endDateTime, this.userTimezone).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      : '';
     
+    const entryDate = formValue.start_time?.split('T')[0] || moment(entry.date).format('YYYY-MM-DD');
     
     const updateData = {
-      start_time: startDateTime,
-      end_time: endDateTime,
+      start_time: startDateTimeUTC,
+      end_time: endDateTimeUTC,
       date: entryDate,
       description: entry.description,
       task_id: entry.task_id,
@@ -444,7 +448,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
-
   canSave(entryId: number): boolean {
     return this.hasChanges.get(entryId) || false;
   }
@@ -466,49 +469,49 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   }
 
   loadWeekEntries(): void {
-  if (!this.userId) {
-    return;
-  }
-
-  this.isEntriesLoading = true;
-  
-  this.entriesService.getUsersEntries(this.userId).subscribe({
-    next: (response: any) => {
-      const startOfRange = moment.utc(this.startDate).startOf('day').toDate();
-      const endOfRange = moment.utc(this.endDate).endOf('day').toDate();
-      
-      this.weekEntries = response.entries
-        .filter((entry: any) => {
-          const entryDate = moment.utc(entry.date).toDate();
-          return entryDate >= startOfRange && entryDate <= endOfRange;
-        })
-        .map((entry: any) => {
-          const startTime = new Date(entry.start_time);
-          const endTime = new Date(entry.end_time);
-          const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-          
-          const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
-          const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
-          
-          return {
-            ...entry,
-            total_hours: totalHours.toFixed(2),
-            start_time_display: this.formatTime(localStartTime),
-            end_time_display: this.formatTime(localEndTime),
-            local_start_time: localStartTime,
-            local_end_time: localEndTime
-          };
-        })
-        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      this.isEntriesLoading = false;
-    },
-    error: (err) => {
-      console.error('Error loading entries:', err);
-      this.openSnackBar('Error loading entries', 'Close');
-      this.isEntriesLoading = false;
+    if (!this.userId) {
+      return;
     }
-  });
-}
+
+    this.isEntriesLoading = true;
+    
+    this.entriesService.getUsersEntries(this.userId).subscribe({
+      next: (response: any) => {
+        const startOfRange = moment.utc(this.startDate).startOf('day').toDate();
+        const endOfRange = moment.utc(this.endDate).endOf('day').toDate();
+        
+        this.weekEntries = response.entries
+          .filter((entry: any) => {
+            const entryDate = moment.utc(entry.date).toDate();
+            return entryDate >= startOfRange && entryDate <= endOfRange;
+          })
+          .map((entry: any) => {
+            const startTime = new Date(entry.start_time);
+            const endTime = new Date(entry.end_time);
+            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            
+            const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
+            const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
+            
+            return {
+              ...entry,
+              total_hours: totalHours.toFixed(2),
+              start_time_display: this.formatTime(localStartTime),
+              end_time_display: this.formatTime(localEndTime),
+              local_start_time: localStartTime,
+              local_end_time: localEndTime
+            };
+          })
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        this.isEntriesLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading entries:', err);
+        this.openSnackBar('Error loading entries', 'Close');
+        this.isEntriesLoading = false;
+      }
+    });
+  }
 
   formatDate(dateString: string): string {
     return moment.utc(dateString).format('MMM DD, YYYY');
