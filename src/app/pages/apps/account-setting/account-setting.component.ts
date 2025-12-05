@@ -29,7 +29,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
-import { catchError, finalize } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -39,16 +39,22 @@ import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'sr
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MaterialModule } from '../../../material.module';
+import { CertificationsService } from 'src/app/services/certifications.service';
+import { MatMenuModule } from '@angular/material/menu';
+import { AppCertificationModalComponent } from './certification-modal.component';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { Loader } from 'src/app/app.models';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MaterialModule, MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule],
+  imports: [MaterialModule, MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule, MatMenuModule, LoaderComponent, ModalComponent],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
   notificationStore = inject(NotificationStore);
+  private fb = inject(FormBuilder);
   user: any = {
     name: '',
     last_name: '',
@@ -234,13 +240,15 @@ export class AppAccountSettingComponent implements OnInit {
   originalUserData: any = null;
   subscriptionReceipt: SubscriptionReceipt | null = null;
   isLoadingReceipt = false;
+  certifications: any[] = [];
+  isLoadingCertifications = false;
+  loader: Loader = new Loader(false, false, false);
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
-            private fb: FormBuilder,
             private dialog: MatDialog,
             private plansService: PlansService,
             private olympiaService: OlympiaService,
@@ -250,6 +258,7 @@ export class AppAccountSettingComponent implements OnInit {
             private route: ActivatedRoute,
             private router: Router,
             private subscriptionService: SubscriptionService,
+            private certificationsService: CertificationsService
           ) {}
 
   ngOnInit(): void {
@@ -461,6 +470,9 @@ export class AppAccountSettingComponent implements OnInit {
           this.loadExistingVideo();
           this.checkMatchRequestStatus() 
           this.initializeForm();
+          if (this.role === '2') {
+             this.loadCertifications();
+          }
           if (this.role === '2' && this.isOrphan) {
             this.loadApplicationDetails(this.user.id);
           }
@@ -1094,5 +1106,131 @@ export class AppAccountSettingComponent implements OnInit {
     if (!/^\d$/.test(key)) {
       event.preventDefault();
     }
+  }
+  loadCertifications() {
+    this.isLoadingCertifications = true;
+    this.loader.started = true;
+    this.certificationsService.getAll().subscribe({
+      next: (res: any) => {
+        this.certifications = res;
+        this.isLoadingCertifications = false;
+        this.loader.started = false;
+      },
+      error: (err) => {
+        console.error('Error loading certifications', err);
+        this.openSnackBar('Error loading certifications', 'Close');
+        this.isLoadingCertifications = false;
+        this.loader.started = false;
+      }
+    });
+  }
+
+  deleteCertification(id: number) {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'certification'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loader.started = true;
+        this.certificationsService.delete(id).subscribe({
+            next: () => {
+                this.openSnackBar('Certification deleted successfully', 'Close');
+                this.loadCertifications();
+            },
+            error: () => {
+                 this.openSnackBar('Error deleting certification', 'Close');
+                 this.loader.started = false;
+            }
+        })
+      }
+    });
+  }
+
+  openCertificationDialog(action: string, obj: any): void {
+    obj.action = action;
+    const dialogRef = this.dialog.open(AppCertificationModalComponent, {
+      data: obj,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result && result.event !== 'Cancel') {
+          this.handleCertificationAction(result);
+      }
+    });
+  }
+
+  handleCertificationAction(result: any) {
+     const { event, data, file } = result;
+     this.loader.started = true;
+
+     if (event === 'Add') {
+        const createObs = file
+          ? this.certificationsService.uploadAttachment(file).pipe(
+              switchMap((uploadRes: any) => {
+                  data.attachment_url = uploadRes.url;
+                  return this.certificationsService.create(data);
+              })
+            )
+          : this.certificationsService.create(data);
+
+        createObs.subscribe({
+            next: () => {
+                this.openSnackBar('Certification added successfully', 'Close');
+                this.loadCertifications();
+            },
+             error: (err) => {
+                console.error(err);
+                this.openSnackBar('Error adding certification', 'Close');
+                this.loader.started = false;
+            }
+        });
+
+     } else if (event === 'Edit') {
+        const updateObs = file
+          ? this.certificationsService.uploadAttachment(file).pipe(
+              switchMap((uploadRes: any) => {
+                  data.attachment_url = uploadRes.url;
+                  return this.certificationsService.update(data.id, data);
+              })
+            )
+          : this.certificationsService.update(data.id, data);
+          
+        updateObs.subscribe({
+            next: () => {
+                this.openSnackBar('Certification updated successfully', 'Close');
+                this.loadCertifications();
+            },
+             error: (err) => {
+                console.error(err);
+                this.openSnackBar('Error updating certification', 'Close');
+                this.loader.started = false;
+            }
+        });
+     }
+  }
+
+  editCertification(cert: any) {
+    this.openCertificationDialog('Edit', cert);
+  }
+
+  addCertification() {
+    this.openCertificationDialog('Add', {});
+  }
+
+  isImage(url: string | undefined): boolean {
+    if (!url) return false;
+    const imageExtensions = ['jpg', 'jpeg', 'png'];
+    const extension = url.split('.').pop()?.toLowerCase();
+    return extension ? imageExtensions.includes(extension) : false;
+  }
+
+  getFileName(url: string | undefined): string {
+    if (!url) return '';
+    const decodedUrl = decodeURIComponent(url);
+    return decodedUrl.split('/').pop() || 'Attachment';
   }
 } 
