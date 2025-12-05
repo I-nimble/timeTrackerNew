@@ -559,6 +559,9 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability
       });
 
+      this.personalForm.get('phone')?.markAsTouched();
+      this.personalForm.get('address')?.markAsTouched();
+
 
       this.personalForm.markAllAsTouched();
 
