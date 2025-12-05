@@ -96,7 +96,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: [''],
     availability: [false]
@@ -439,6 +439,9 @@ export class AppAccountSettingComponent implements OnInit {
         picture: this.picture,
         availability: this.user.availability
       });
+
+      this.personalForm.get('phone')?.markAsTouched();
+      this.personalForm.get('address')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
