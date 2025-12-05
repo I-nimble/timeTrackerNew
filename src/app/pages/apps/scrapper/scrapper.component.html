@@ -6,6 +6,7 @@
         class="flex-grow-1 hide-hint m-b-0 m-r-20"
         [loading]="aiLoading"
         [aiEnabled]="!useManualSearch"
+        [showCustomSearch]="false"
         placeholder="Search posts..."
         (askAI)="askGemini($event)"
         (searchChange)="useManualSearch ? onManualSearch($event) : null">

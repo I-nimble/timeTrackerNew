@@ -14,7 +14,9 @@
                  'sentinel-notification': notification.message.includes('My Sentinel'),
                  'talent-notification': notification.message.includes('Talent Match'),
                  'expert-notification': notification.message.includes('Expert Match')
-               }">
+               }"
+               (click)="handleNotificationClick(notification)"
+               style="cursor: pointer;">
           
             <div class="flex-grow-1">
               <div class="f-w-500 f-s-14">{{notification.message}}</div>
@@ -29,11 +31,10 @@
             No notifications available
           </div>
           
-        </div>
-        
-        <div *ngIf="isLoading" class="text-center">
-          <div class="mt-2 f-s-14 text-muted">Loading notifications...</div>
-        </div>
+          <div *ngIf="isLoading">
+            <div class="text-center p-4 text-muted">Loading notifications...</div>
+          </div>
+        </div>        
       </div>
     </div>
   </mat-card-content>
