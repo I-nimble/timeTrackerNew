@@ -17,6 +17,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 })
 export class MatchComponent {
   @Input() aiEnabled: boolean = false;
+  @Input() canSearch: boolean = false;
   @Input() placeholder: string = 'Search...';
   @Input() loading = false;
   @Input() showInterviewButton = false;
@@ -34,7 +35,7 @@ export class MatchComponent {
   }
 
   onAskAI() {
-    if (!this.query || this.cooldownActive) return;
+    if ((!this.query && !this.canSearch) || this.cooldownActive) return;
     this.loading = true;
     this.askAI.emit(this.query);
     this.cooldownActive = true;
