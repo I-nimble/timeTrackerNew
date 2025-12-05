@@ -29,7 +29,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
-import { catchError, finalize } from 'rxjs/operators';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -39,16 +39,22 @@ import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'sr
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MaterialModule } from '../../../material.module';
+import { CertificationsService } from 'src/app/services/certifications.service';
+import { MatMenuModule } from '@angular/material/menu';
+import { AppCertificationModalComponent } from './certification-modal.component';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { Loader } from 'src/app/app.models';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MaterialModule, MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule],
+  imports: [MaterialModule, MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule, MatMenuModule, LoaderComponent, ModalComponent],
   templateUrl: './account-setting.component.html'
 })
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
   notificationStore = inject(NotificationStore);
+  private fb = inject(FormBuilder);
   user: any = {
     name: '',
     last_name: '',
@@ -230,20 +236,27 @@ export class AppAccountSettingComponent implements OnInit {
   maxVideoSize: number = 100 * 1024 * 1024; 
   formChanged: boolean = false;
   originalUserData: any = null;
+  subscriptionReceipt: SubscriptionReceipt | null = null;
+  isLoadingReceipt = false;
+  certifications: any[] = [];
+  isLoadingCertifications = false;
+  loader: Loader = new Loader(false, false, false);
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
   
   constructor(public companiesService: CompaniesService,  
             private usersService: UsersService, 
-            private fb: FormBuilder,
             private dialog: MatDialog,
             private plansService: PlansService,
             private olympiaService: OlympiaService,
             public snackBar: MatSnackBar,
             private cdr: ChangeDetectorRef,
             public applicationsService: ApplicationsService,
-            private route: ActivatedRoute
+            private route: ActivatedRoute,
+            private router: Router,
+            private subscriptionService: SubscriptionService,
+            private certificationsService: CertificationsService
           ) {}
 
   ngOnInit(): void {
@@ -448,6 +461,9 @@ export class AppAccountSettingComponent implements OnInit {
           this.loadExistingVideo();
           this.checkMatchRequestStatus() 
           this.initializeForm();
+          if (this.role === '2') {
+             this.loadCertifications();
+          }
           if (this.role === '2' && this.isOrphan) {
             this.loadApplicationDetails(this.user.id);
           }
@@ -967,18 +983,232 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  restrictPhoneInput(event: KeyboardEvent) {
-    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
-    const key = event.key;
-    
-    // Allow control keys
-    if (allowedKeys.includes(key)) {
+  loadSubscriptionReceipt(): void {
+    if (!this.sentinelSubscription || this.sentinelSubscription.status !== 'active') {
       return;
     }
-    
-    // Allow only numbers
-    if (!/^\d$/.test(key)) {
-      event.preventDefault();
+
+    this.isLoadingReceipt = true;
+    this.subscriptionService.getSubscriptionReceipt().subscribe({
+      next: (receipt) => {
+        this.subscriptionReceipt = receipt;
+        this.isLoadingReceipt = false;
+      },
+      error: (error) => {
+        console.error('Error loading subscription receipt:', error);
+        this.isLoadingReceipt = false;
+      }
+    });
+  }
+
+  viewReceipt(): void {
+    if (this.subscriptionReceipt?.receipt_url) {
+      window.open(this.subscriptionReceipt.receipt_url, '_blank');
     }
+  }
+
+  loadSubscriptionStatus(): void {
+    this.subscriptionService.getSubscriptionStatus().subscribe({
+      next: (status) => {
+        this.sentinelSubscription = status;
+        this.loadSubscriptionReceipt();
+      },
+      error: (error) => {
+        console.error('Error loading subscription status:', error);
+      }
+    });
+  }
+
+  enableSentinel(): void {
+    this.isLoadingSubscription = true;
+    
+    this.subscriptionService.createSubscription().subscribe({
+      next: (response) => {
+        // Stripe checkout
+        window.location.href = response.url;
+      },
+      error: (error) => {
+        console.error('Error creating subscription:', error);
+        this.openSnackBar('Error creating subscription. Please try again.', 'Close');
+        this.isLoadingSubscription = false;
+      }
+    });
+  }
+
+  disableSentinel(): void {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      width: '400px',
+      data: {
+        action: 'cancel',
+        subject: 'Sentinel subscription',
+        message: 'Note: You will have access until the end of your billing period.'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoadingSubscription = true;
+        
+        this.subscriptionService.cancelSubscription().subscribe({
+          next: (response) => {
+            this.openSnackBar('Subscription will be canceled at the end of the billing period.', 'Close');
+            this.loadSubscriptionStatus();
+            this.isLoadingSubscription = false;
+          },
+          error: (error) => {
+            console.error('Error canceling subscription:', error);
+            this.openSnackBar('Error canceling subscription. Please try again.', 'Close');
+            this.isLoadingSubscription = false;
+          }
+        });
+      }
+    });
+  }
+
+  checkSubscriptionSuccess(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['subscription'] === 'success') {
+        this.openSnackBar('Sentinel subscription activated successfully!', 'Close');
+        this.loadSubscriptionStatus();
+        this.router.navigate(['/apps/account-settings']);
+
+      } else if (params['subscription'] === 'canceled') {
+        this.openSnackBar('Subscription process was canceled.', 'Close');
+
+        this.router.navigate(['/apps/account-settings']);
+      }
+    });
+  }
+
+  getFileName(url: string | undefined): string {
+    if (!url) return '';
+    const decodedUrl = decodeURIComponent(url);
+    return decodedUrl.split('/').pop() || 'Attachment';
+  }
+  loadCertifications() {
+    this.isLoadingCertifications = true;
+    this.loader.started = true;
+    this.certificationsService.getAll().subscribe({
+      next: (res: any) => {
+        this.certifications = res;
+        this.isLoadingCertifications = false;
+        this.loader.started = false;
+      },
+      error: (err) => {
+        console.error('Error loading certifications', err);
+        this.openSnackBar('Error loading certifications', 'Close');
+        this.isLoadingCertifications = false;
+        this.loader.started = false;
+      }
+    });
+  }
+
+  deleteCertification(id: number) {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'certification'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loader.started = true;
+        this.certificationsService.delete(id).subscribe({
+            next: () => {
+                this.openSnackBar('Certification deleted successfully', 'Close');
+                this.loadCertifications();
+            },
+            error: () => {
+                 this.openSnackBar('Error deleting certification', 'Close');
+                 this.loader.started = false;
+            }
+        })
+      }
+    });
+  }
+
+  openCertificationDialog(action: string, obj: any): void {
+    obj.action = action;
+    const dialogRef = this.dialog.open(AppCertificationModalComponent, {
+      data: obj,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result && result.event !== 'Cancel') {
+          this.handleCertificationAction(result);
+      }
+    });
+  }
+
+  handleCertificationAction(result: any) {
+     const { event, data, file } = result;
+     this.loader.started = true;
+
+     if (event === 'Add') {
+        const createObs = file
+          ? this.certificationsService.uploadAttachment(file).pipe(
+              switchMap((uploadRes: any) => {
+                  data.attachment_url = uploadRes.url;
+                  return this.certificationsService.create(data);
+              })
+            )
+          : this.certificationsService.create(data);
+
+        createObs.subscribe({
+            next: () => {
+                this.openSnackBar('Certification added successfully', 'Close');
+                this.loadCertifications();
+            },
+             error: (err) => {
+                console.error(err);
+                this.openSnackBar('Error adding certification', 'Close');
+                this.loader.started = false;
+            }
+        });
+
+     } else if (event === 'Edit') {
+        const updateObs = file
+          ? this.certificationsService.uploadAttachment(file).pipe(
+              switchMap((uploadRes: any) => {
+                  data.attachment_url = uploadRes.url;
+                  return this.certificationsService.update(data.id, data);
+              })
+            )
+          : this.certificationsService.update(data.id, data);
+          
+        updateObs.subscribe({
+            next: () => {
+                this.openSnackBar('Certification updated successfully', 'Close');
+                this.loadCertifications();
+            },
+             error: (err) => {
+                console.error(err);
+                this.openSnackBar('Error updating certification', 'Close');
+                this.loader.started = false;
+            }
+        });
+     }
+  }
+
+  editCertification(cert: any) {
+    this.openCertificationDialog('Edit', cert);
+  }
+
+  addCertification() {
+    this.openCertificationDialog('Add', {});
+  }
+
+  isImage(url: string | undefined): boolean {
+    if (!url) return false;
+    const imageExtensions = ['jpg', 'jpeg', 'png'];
+    const extension = url.split('.').pop()?.toLowerCase();
+    return extension ? imageExtensions.includes(extension) : false;
+  }
+
+  getFileName(url: string | undefined): string {
+    if (!url) return '';
+    const decodedUrl = decodeURIComponent(url);
+    return decodedUrl.split('/').pop() || 'Attachment';
   }
 } 

@@ -1565,11 +1565,179 @@
           </div>
         </mat-card-content>
     </mat-tab>
-    </mat-tab-group>
-    <div class="text-right p-24 p-t-0">
-      <ng-container *ngIf="!(role === '2' && isOrphan && selectedTabIndex === 1)">
-        <button mat-flat-button class="m-r-8" (click)="saveProfile()" [disabled]="!isSaveEnabled() || isSubmitting">Save</button>
-        <button mat-flat-button class="bg-error text-white">Cancel</button>
-      </ng-container>
-    </div>
+    <mat-tab label="Certifications" *ngIf="role === '2'">
+      <ng-template mat-tab-label>
+        <div class="d-flex align-items-center">
+          <mat-icon class="d-flex align-items-center">
+            <i-tabler
+              name="certificate"
+              class="icon-20 m-r-8 d-flex"
+            ></i-tabler>
+          </mat-icon>
+        </div>
+        Certifications
+      </ng-template>
+      <mat-card-content class="p-y-24">
+        <div *ngIf="isLoadingCertifications">
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div>
+
+        <div
+          *ngIf="!isLoadingCertifications && certifications.length === 0"
+          class="text-center p-20"
+        >
+          <p>No certifications found.</p>
+        </div>
+
+        <div *ngIf="!isLoadingCertifications && certifications.length > 0">
+          <mat-card
+            class="cardWithShadow m-b-20"
+            *ngFor="let cert of certifications"
+          >
+            <mat-card-content class="p-20">
+              <div class="d-flex align-items-start">
+                <div class="m-r-16">
+                  <div
+                    class="bg-light-primary rounded d-flex align-items-center justify-content-center"
+                    style="width: 48px; height: 48px"
+                  >
+                    <i-tabler
+                      name="certificate"
+                      class="icon-24 text-primary"
+                    ></i-tabler>
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h4 class="m-0 f-w-600">{{ cert.name }}</h4>
+                  <div class="f-s-14 m-t-4">
+                    {{ cert.issuer }}
+                    <span class="text-muted m-l-4">
+                      Issued {{ cert.date | date : "MMM yyyy" }}
+                      <span *ngIf="cert.expiration_date">
+                        · Expires {{ cert.expiration_date | date : "MMM yyyy" }}
+                      </span>
+                    </span>
+                  </div>
+
+                  <div class="m-t-8" *ngIf="cert.url">
+                    <a
+                      [href]="cert.url"
+                      target="_blank"
+                      mat-stroked-button
+                      color="primary"
+                      class="custom-btn"
+                    >
+                      Mostrar credencial
+                      <i-tabler
+                        name="external-link"
+                        class="icon-16 m-l-4"
+                      ></i-tabler>
+                    </a>
+                  </div>
+
+                  <div
+                    class="m-t-8 f-s-14"
+                    *ngIf="cert.description"
+                    style="white-space: pre-wrap"
+                  >
+                    {{ cert.description }}
+                  </div>
+
+                  <div class="m-t-12" *ngIf="cert.attachment_url">
+                    <div *ngIf="isImage(cert.attachment_url)">
+                      <img
+                        [src]="cert.attachment_url"
+                        class="rounded m-b-4"
+                        style="
+                          max-height: 150px;
+                          max-width: 100%;
+                          object-fit: contain;
+                          border: 1px solid #eee;
+                        "
+                      />
+                      <div class="f-s-12 text-muted">
+                        {{ getFileName(cert.attachment_url) }}
+                      </div>
+                    </div>
+                    <div
+                      *ngIf="!isImage(cert.attachment_url)"
+                      class="d-flex align-items-center p-8 bg-light rounded border"
+                      style="width: fit-content; max-width: 100%"
+                    >
+                      <i-tabler
+                        name="file-description"
+                        class="icon-24 m-r-8 text-primary"
+                      ></i-tabler>
+                      <div class="m-r-16 overflow-hidden">
+                        <div
+                          class="f-s-14 f-w-500 text-truncate"
+                          [matTooltip]="getFileName(cert.attachment_url)"
+                        >
+                          {{ getFileName(cert.attachment_url) }}
+                        </div>
+                      </div>
+                      <a
+                        [href]="cert.attachment_url"
+                        target="_blank"
+                        mat-icon-button
+                        color="primary"
+                        matTooltip="Open File"
+                      >
+                        <i-tabler
+                          name="external-link"
+                          class="icon-20"
+                        ></i-tabler>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <button mat-icon-button [matMenuTriggerFor]="menu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="editCertification(cert)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      (click)="deleteCertification(cert.id)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="d-flex justify-content-center">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="addCertification()"
+          >
+            <mat-icon>add</mat-icon>
+            Add Certification
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-tab>
+  </mat-tab-group>
+  <div class="text-right p-24 p-t-0">
+    <ng-container *ngIf="!(role === '2' && isOrphan && selectedTabIndex === 1)">
+      <button
+        mat-flat-button
+        class="m-r-8"
+        (click)="saveProfile()"
+        [disabled]="!isSaveEnabled() || isSubmitting"
+      >
+        Save
+      </button>
+      <button mat-flat-button class="bg-error text-white">Cancel</button>
+    </ng-container>
+  </div>
 </mat-card>
