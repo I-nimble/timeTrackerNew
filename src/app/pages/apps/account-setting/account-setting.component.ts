@@ -9,6 +9,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import {
   FormBuilder,
   Validators,
@@ -53,6 +54,7 @@ import { Loader } from 'src/app/app.models';
 })
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
+  selectedTabLabel: string = '';
   notificationStore = inject(NotificationStore);
   private fb = inject(FormBuilder);
   user: any = {
@@ -215,7 +217,7 @@ export class AppAccountSettingComponent implements OnInit {
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
     availability: ['no', Validators.required],
-    // TODO: add conditionally programming_languages
+    programmingLanguages: ['']
   });
   locations: any[] = [];
   positions: any[] = [];
@@ -270,6 +272,7 @@ export class AppAccountSettingComponent implements OnInit {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
         this.selectedTabIndex = +tab;
+        this.selectedTabLabel = '';
       }
       this.checkSubscriptionSuccess();
     }); 
@@ -320,11 +323,25 @@ export class AppAccountSettingComponent implements OnInit {
         referredNameControl?.updateValueAndValidity();
       });
     }
+
+    const roleControl = this.applicationForm.get('role');
+    if (roleControl) {
+      roleControl.valueChanges.subscribe(value => {
+        const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
+        if (value && value.position_id === 41) {
+          programmingLanguagesControl?.setValidators(Validators.required);
+        } else {
+          programmingLanguagesControl?.clearValidators();
+        }
+        programmingLanguagesControl?.updateValueAndValidity();
+      });
+    }
   }
 
 
-  onTabChange(index: number) {
-    this.selectedTabIndex = index;
+  onTabChange(event: MatTabChangeEvent) {
+    this.selectedTabLabel = event.tab.textLabel;
+    this.selectedTabIndex = event.index;
   }
 
   availabilityChange(event: MatSlideToggleChange): void {
@@ -521,7 +538,8 @@ export class AppAccountSettingComponent implements OnInit {
             workReferences: application.work_references,
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
-            salaryRange: application.salary_range
+            salaryRange: application.salary_range,
+            programmingLanguages: application.programming_languages
           });
           if (application.resume) {
             this.resumeFileName = application.resume;
@@ -896,9 +914,10 @@ export class AppAccountSettingComponent implements OnInit {
       work_references: formValues.workReferences,
       hobbies: formValues.hobbies,
       salary_range: formValues.salaryRange,
-      availability: formValues.availability
+      availability: formValues.availability,
+      programming_languages: formValues.programmingLanguages,
     };
-    
+
     if (this.resumeFile) {
       formData.resume = this.resumeFile;
     }

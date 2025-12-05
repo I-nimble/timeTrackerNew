@@ -50,13 +50,11 @@ export class AppCertificationModalComponent {
   }
 
   handleDateChange(event: any): void {
-    console.log(event.value);
     this.local_data.date = event.value;
     this.validateDates();
   }
 
   handleExpirationDateChange(event: any): void {
-    console.log(event.value);
     this.local_data.expiration_date = event.value;
     this.validateDates();
   }

@@ -3,9 +3,9 @@
     [(selectedIndex)]="selectedTabIndex"
     mat-stretch-tabs="false"
     animationDuration="0ms"
-    (selectedIndexChange)="onTabChange($event)"
+    (selectedTabChange)="onTabChange($event)"
   >
-    <mat-tab>
+    <mat-tab label="Account">
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
@@ -530,7 +530,7 @@
                   <div class="row">
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Location</mat-label
+                        >Location *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <mat-select
@@ -557,7 +557,7 @@
                     </div>
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Role</mat-label
+                        >Role *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <mat-select
@@ -583,7 +583,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >How did you hear about us?</mat-label
+                        >How did you hear about us? *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -605,7 +605,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Were you referred?</mat-label
+                        >Were you referred? *</mat-label
                       >
                       <mat-radio-group
                         formControlName="referred"
@@ -648,7 +648,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Age</mat-label
+                        >Age *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -674,7 +674,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Contact Phone</mat-label
+                        >Contact Phone *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -698,7 +698,7 @@
                               ?.hasError('pattern')
                           "
                         >
-                          Invalid format
+                          Invalid format (e.g., +1 (123) 456-7890)
                         </mat-error>
                       </mat-form-field>
                     </div>
@@ -730,14 +730,14 @@
                               ?.hasError('pattern')
                           "
                         >
-                          Invalid format (7-15 digits)
+                          Invalid format (e.g., +1 (123) 456-7890)
                         </mat-error>
                       </mat-form-field>
                     </div>
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Current Residence</mat-label
+                        >Current Residence *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -759,7 +759,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Address</mat-label
+                        >Address *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -780,7 +780,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Number of Children</mat-label
+                        >Number of Children *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -811,7 +811,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >English Level</mat-label
+                        >English Level *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <mat-select
@@ -839,7 +839,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Competencies</mat-label
+                        >Competencies *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -860,9 +860,37 @@
                       </mat-form-field>
                     </div>
 
+                    <div
+                      class="col-md-12 m-b-16"
+                      *ngIf="
+                        applicationForm.get('role')?.value?.position_id === 41
+                      "
+                    >
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
+                        >Programming Languages *</mat-label
+                      >
+                      <mat-form-field appearance="outline" class="w-100">
+                        <textarea
+                          matInput
+                          formControlName="programmingLanguages"
+                          rows="3"
+                          placeholder="List your programming languages"
+                        ></textarea>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('programmingLanguages')
+                              ?.hasError('required')
+                          "
+                        >
+                          Required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Technical Skills</mat-label
+                        >Technical Skills *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -885,7 +913,7 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Tech Proficiency (1-10)</mat-label
+                        >Tech Proficiency (1-10) *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -948,8 +976,8 @@
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >What are your monthly salary expectations?
-                        (USD)</mat-label
+                        >What are your monthly salary expectations? (USD)
+                        *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <input
@@ -972,7 +1000,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Education History</mat-label
+                        >Education History *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -995,7 +1023,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Work Experience</mat-label
+                        >Work Experience *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -1018,7 +1046,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Work References</mat-label
+                        >Work References *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -1041,7 +1069,7 @@
 
                     <div class="col-md-12 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Hobbies</mat-label
+                        >Hobbies *</mat-label
                       >
                       <mat-form-field appearance="outline" class="w-100">
                         <textarea
@@ -1190,7 +1218,7 @@
         </div>
       </mat-card-content>
     </mat-tab>
-    <mat-tab *ngIf="role === '2' && isOrphan">
+    <mat-tab label="Olympia" *ngIf="role === '2' && isOrphan">
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
@@ -1898,7 +1926,7 @@
         </div>
       </mat-card-content>
     </mat-tab>
-    <mat-tab *ngIf="role === '2'">
+    <mat-tab label="Social Media" *ngIf="role === '2'">
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
@@ -1995,7 +2023,7 @@
         </div>
       </mat-card-content>
     </mat-tab>
-    <mat-tab *ngIf="role === '3'">
+    <mat-tab label="Company" *ngIf="role === '3'">
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
@@ -2296,7 +2324,12 @@
     </mat-tab>
   </mat-tab-group>
   <div class="text-right p-24 p-t-0">
-    <ng-container *ngIf="!(role === '2' && isOrphan && selectedTabIndex === 1)">
+    <ng-container
+      *ngIf="
+        !(role === '2' && isOrphan && selectedTabIndex === 1) &&
+        !(selectedTabLabel === 'Certifications')
+      "
+    >
       <button
         mat-flat-button
         class="m-r-8"
