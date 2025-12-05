@@ -564,15 +564,6 @@ export class AppSideRegisterComponent {
         return;
       }
 
-      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology")) {
-        this.openSnackBar('Please accept the availability conditions', 'error');
-        return;
-      }
-
-      if (this.registerTeamMemberForm.value.role.title === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
-        this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
-      }
-
       const teamMemberData = {
         location: this.registerTeamMemberForm.value.location,
         position_id: this.registerTeamMemberForm.value.role.position_id,

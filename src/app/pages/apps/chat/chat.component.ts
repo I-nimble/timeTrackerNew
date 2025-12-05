@@ -428,14 +428,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return this.hasAnyRole(['moderator', 'admin']);
   }
 
-  canCreateChannel(): boolean {
-    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
-  }
-
-  canCreateDirectMessage(): boolean {
-    return this.hasAnyRole(['user', 'leader', 'admin', 'moderator']);
-  }
-
   canDeleteRoom(room: RocketChatRoom): boolean {
     if (!room || !room.t) return false;
     const roles = this.chatService.loggedInUser?.roles || [];
@@ -1135,6 +1127,25 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   }
 
   async selectRoom(room: RocketChatRoom) {
+    const previousRoomId = this.selectedConversation?._id;
+    if (previousRoomId && previousRoomId !== room._id) {
+      try {
+        const prevSub = this.roomSubscriptions.get(previousRoomId);
+        if (prevSub) {
+          prevSub.unsubscribe();
+          this.roomSubscriptions.delete(previousRoomId);
+        }
+      } catch (e) {
+        console.error('Failed to unsubscribe previous room subscription', e);
+      }
+
+      try {
+        if (this.typingSubscription) {
+          this.typingSubscription.unsubscribe();
+        }
+      } catch (e) {
+      }
+    }
     this.selectedConversation = room;
     this.typingUsers = [];
 

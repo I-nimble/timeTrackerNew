@@ -15,7 +15,6 @@
             </div>
           </div>
           <button
-            *ngIf="canCreateDirectMessage() || canCreateChannel() || canCreateTeam()"
             mat-icon-button
             [matMenuTriggerFor]="createMenu"
             color="primary"
@@ -25,11 +24,17 @@
           </button>
 
           <mat-menu #createMenu="matMenu">
-            <button *ngIf="canCreateDirectMessage()" mat-menu-item (click)="openCreateRoomDialog('d')">
+            <button
+              mat-menu-item
+              (click)="openCreateRoomDialog('d')"
+            >
               <mat-icon>person</mat-icon>
               <span>Direct Message</span>
             </button>
-            <button *ngIf="canCreateChannel()" mat-menu-item (click)="openCreateRoomDialog('c')">
+            <button
+              mat-menu-item
+              (click)="openCreateRoomDialog('c')"
+            >
               <mat-icon>group</mat-icon>
               <span>Channel</span>
             </button>
@@ -387,8 +392,22 @@
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
           </button>
-          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
-          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage">
+          <button mat-icon-button matPrefix>
+            <mat-icon>emoji_emotions</mat-icon>
+          </button>
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" [disabled]="isRecording" />
+          <button 
+            *ngIf="isEmptyText"
+            mat-icon-button 
+            matSuffix
+            class="voice-btn"
+            (click)="onVoiceButtonClick($event)"
+            aria-label="Voice message"
+          >
+            <mat-icon *ngIf="!isRecording">mic</mat-icon>
+            <mat-icon *ngIf="isRecording">stop</mat-icon>
+          </button>
+          <button mat-icon-button matSuffix (click)="sendMessage()" [disabled]="isSendingMessage" *ngIf="!isEmptyText">
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>
