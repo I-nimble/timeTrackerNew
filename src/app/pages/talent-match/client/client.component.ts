@@ -267,7 +267,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   searchCandidatesWithAI(question: string) {
-    const searchQuery = question || this.query;
+    const searchQuery = question || this.buildFullSearchQuery();
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
@@ -336,6 +336,38 @@ export class AppTalentMatchClientComponent implements OnInit {
         this.aiLoading = false;
       }
     });
+  }
+
+  buildFullSearchQuery(): string {
+    const parts: string[] = [];
+    if (this.query) {
+      parts.push(`Original matching criteria: ${this.query}`);
+    }
+    if (this.selectedRole) {
+      parts.push(`Role: ${this.selectedRole}`);
+    }
+    if (this.roleDescription) {
+      parts.push(`Role details: ${this.roleDescription}`);
+    }
+    if (this.selectedPracticeArea) {
+      parts.push(`Practice area: ${this.selectedPracticeArea}`);
+    }
+    if (this.selectedPersonality?.length > 0) {
+      parts.push(`Personality traits: ${this.selectedPersonality.join(', ')}`);
+    }
+    if (this.selectedSkillsTools?.length > 0) {
+      parts.push(`Skills & Tools: ${this.selectedSkillsTools.join(', ')}`);
+    }
+    if (this.selectedExperienceLevel) {
+      parts.push(`Experience level: ${this.selectedExperienceLevel}`);
+    }
+    if (this.selectedCertifications?.length > 0) {
+      parts.push(`Certifications: ${this.selectedCertifications.join(', ')}`);
+    }
+    if (this.selectedBackground?.length > 0) {
+      parts.push(`Related background: ${this.selectedBackground.join(', ')}`);
+    }
+    return parts.join('; ');
   }
 
   onManualSearch(query?: string) {
@@ -710,6 +742,23 @@ export class AppTalentMatchClientComponent implements OnInit {
         max: this.budgetRange.max / 160
       };
     }
+  }
+  
+  get canSearchAI(): boolean {
+    const hasFilters = !!(
+      this.selectedRole ||
+      this.selectedPracticeArea ||
+      (this.selectedPersonality?.length ?? 0) > 0 ||
+      (this.selectedSkillsTools?.length ?? 0) > 0 ||
+      this.selectedExperienceLevel ||
+      (this.selectedCertifications?.length ?? 0) > 0 ||
+      (this.selectedBackground?.length ?? 0) > 0 ||
+      this.budgetRange?.min !== this.budgetMin ||
+      this.budgetRange?.max !== this.budgetMax ||
+      this.roleDescription
+    );
+
+    return !!this.query || hasFilters;
   }
 
   handleImageError(event: Event) {
