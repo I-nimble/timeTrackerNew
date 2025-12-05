@@ -125,7 +125,15 @@
                         rows="4"
                         placeholder="Tell us more about what you need for this role."
                         [(ngModel)]="roleDescription"
+                        name="roleDescription"
+                        #roleDescModel="ngModel"
+                        maxlength="200"
+                        required
                     ></textarea>
+                    <mat-hint align="end">{{ roleDescription?.length || 0 }}/200</mat-hint>
+                    <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
+                        Maximum 200 characters allowed.
+                    </mat-error>
                 </mat-form-field>
             </div>
             <div output>
