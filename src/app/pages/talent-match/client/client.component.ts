@@ -31,6 +31,11 @@ import { MatTabHeader } from '@angular/material/tabs';
 import { MatTabBody } from '@angular/material/tabs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { NgxSliderModule } from '@angular-slider/ngx-slider';
+import { Options } from '@angular-slider/ngx-slider';
 
 @Component({
   standalone: true,
@@ -51,7 +56,11 @@ import { ApplicationMatchScoresService, PositionCategory } from 'src/app/service
     MarkdownPipe,
     LinebreakPipe,
     MatTabHeader,
-    MatTabBody
+    MatTabBody,
+    MatSliderModule,
+    MatSlideToggleModule,
+    MatChipsModule,
+    NgxSliderModule
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -92,6 +101,151 @@ export class AppTalentMatchClientComponent implements OnInit {
   columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
   matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
   positionCategories: PositionCategory[] = [];
+  selectedPositionFilters: any[] = [];
+  customPositionFilter: string = '';
+  showCustomFilterInput: boolean = false;
+  filterPositions: any[] = [];
+  query: string = '';
+  selectedRole: string | null = null;
+  selectedPracticeArea: string | null = null;
+  selectedPersonality: string[] = [];
+  selectedSkillsTools: string[] = [];
+  selectedExperienceLevel: string | null = null;
+  selectedCertifications: string[] = [];
+  selectedBackground: string[] = [];
+  roleDescription: string = '';
+  budgetMin: number = 4;
+  budgetMax: number = 15;
+  originalBudgetRange = { 
+    min: 4, 
+    max: 15 
+  };
+  budgetRange = {
+    min: 4,
+    max: 15
+  };
+  isMonthlyRate: boolean = false;
+  budgetPresets = [
+    { label: 'Entry level (6–7/hr)', min: 6, max: 7 },
+    { label: 'Standard (7–9/hr)', min: 7, max: 9 },
+    { label: 'Senior (9–12/hr)', min: 9, max: 12 },
+    { label: 'Expert (12–15/hr)', min: 12, max: 15 }
+  ];
+
+  budgetOptions: Options = {
+    floor: this.budgetMin,
+    ceil: this.budgetMax,
+    step: 0.5,
+    showSelectionBar: true,
+    translate: (value: number): string => {
+      return this.isMonthlyRate ? `$${value * 160}` : `$${value}/hr`;
+    }
+  };
+
+  positionsOptions: string[] = [
+    'Legal Assistant',
+    'Paralegal',
+    'Case Manager',
+    'Intake Specialist',
+    'Demand Writer',
+    'Medical Records Specialist',
+    'Litigation Support Assistant',
+    'Executive Assistant',
+    'Administrative Assistant',
+    'Virtual Assistant (General)'
+  ];
+
+  practiceAreas: string[] = [
+    'Personal Injury',
+    'Immigration Law',
+    'Family Law',
+    'Criminal Defense',
+    'Real Estate Law',
+    'Civil Litigation',
+    'Employment Law',
+    'Estate Planning',
+    'Bankruptcy Law',
+    'Corporate / Business Law',
+    'General Practice'
+  ];
+
+  personalityTypes: string[] = [
+    'Driver (fast and decisive)',
+    'Organizer (systems and order)',
+    'Communicator (client-facing)',
+    'Analytical (detail and research)'
+  ];
+
+  skillsList: string[] = [
+    'Intake',
+    'Client Communication',
+    'Case Management',
+    'Legal Research',
+    'Drafting',
+    'Demand Letter Drafting',
+    'Discovery',
+    'Medical Records Review',
+    'Billing and Invoicing',
+    'Calendar Management',
+    'CRM Management',
+    'Lead Intake',
+    'Trial Preparation'
+  ];
+
+  toolsList: string[] = [
+    'Clio',
+    'CASEpeer',
+    'Filevine',
+    'MyCase',
+    'RingCentral',
+    'Dialpad',
+    'Zoom',
+    'Google Workspace',
+    'Microsoft Office',
+    'Slack',
+    'Notion',
+    'Trello',
+    'QuickBooks'
+  ];
+
+  experienceLevels: string[] = [
+    'Intermediate (3–6 years)',
+    'Senior (6–9 years)',
+    'Expert (10+ years)'
+  ];
+
+  certificationsOptions: string[] = [
+    'Paralegal Certificate',
+    'Bilingual Certification',
+    'Medical Background',
+    'Accounting / Finance Training',
+    'Customer Support Training',
+    'AI Tools Training'
+  ];
+
+  relatedBackgroundOptions: string[] = [
+    'Law Student / Pre-Law',
+    'Legal Studies',
+    'Criminology',
+    'Political Science',
+    'Sociology',
+    'Psychology',
+    'Public Administration',
+    'Business Administration',
+    'Accounting',
+    'Finance',
+    'Human Resources',
+    'Communications',
+    'Journalism',
+    'English / Literature',
+    'Healthcare Administration',
+    'Medical Assistant / Nursing Assistant',
+    'Customer Service / Call Center',
+    'Marketing / Advertising',
+    'Project Management',
+    'Office Administration',
+    'International Relations'
+  ];
 
   constructor(
     private applicationsService: ApplicationsService,
@@ -113,7 +267,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   searchCandidatesWithAI(question: string) {
-    if (!question?.trim()) return;
+    const searchQuery = question || this.buildFullSearchQuery();
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
@@ -133,7 +287,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       location: c.location,
     }));
 
-    this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
+    this.aiService.evaluateCandidates(simplifiedCandidates, searchQuery).subscribe({
       next: (res) => {
         const enhancedResults = res.enhanced_results || [];
 
@@ -184,8 +338,42 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
-  onManualSearch(query: string) {
-    const lower = query.toLowerCase();
+  buildFullSearchQuery(): string {
+    const parts: string[] = [];
+    if (this.query) {
+      parts.push(`Original matching criteria: ${this.query}`);
+    }
+    if (this.selectedRole) {
+      parts.push(`Role: ${this.selectedRole}`);
+    }
+    if (this.roleDescription) {
+      parts.push(`Role details: ${this.roleDescription}`);
+    }
+    if (this.selectedPracticeArea) {
+      parts.push(`Practice area: ${this.selectedPracticeArea}`);
+    }
+    if (this.selectedPersonality?.length > 0) {
+      parts.push(`Personality traits: ${this.selectedPersonality.join(', ')}`);
+    }
+    if (this.selectedSkillsTools?.length > 0) {
+      parts.push(`Skills & Tools: ${this.selectedSkillsTools.join(', ')}`);
+    }
+    if (this.selectedExperienceLevel) {
+      parts.push(`Experience level: ${this.selectedExperienceLevel}`);
+    }
+    if (this.selectedCertifications?.length > 0) {
+      parts.push(`Certifications: ${this.selectedCertifications.join(', ')}`);
+    }
+    if (this.selectedBackground?.length > 0) {
+      parts.push(`Related background: ${this.selectedBackground.join(', ')}`);
+    }
+    return parts.join('; ');
+  }
+
+  onManualSearch(query?: string) {
+    const searchQuery = query || this.query;
+    this.query = searchQuery;
+    const lower = searchQuery.toLowerCase();
     this.dataSource.data = this.allCandidates.filter(c =>
       c.name?.toLowerCase().includes(lower) ||
       this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
@@ -294,10 +482,90 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
+  togglePositionFilter(position: string): void {
+    const index = this.selectedPositionFilters.indexOf(position);
+    if (index > -1) {
+      this.selectedPositionFilters.splice(index, 1);
+    } else {
+      this.selectedPositionFilters.push(position);
+    }
+    this.showCustomFilterInput = false;
+    this.customPositionFilter = '';
+    
+    this.updateSearchQueryFromFilters();
+  }
+
+  toggleOtherFilter(): void {
+    if (this.selectedPositionFilters.includes('other')) {
+      const index = this.selectedPositionFilters.indexOf('other');
+      this.selectedPositionFilters.splice(index, 1);
+      this.showCustomFilterInput = false;
+      this.customPositionFilter = '';
+    } else {
+      this.selectedPositionFilters.push('other');
+      this.showCustomFilterInput = true;
+      this.customPositionFilter = '';
+    }
+    this.updateSearchQueryFromFilters();
+  }
+
+  executeFilterSearch(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
+    }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  updateSearchQueryFromFilters(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.query = '';
+      return;
+    }
+
+    let searchText = '';
+    
+    if (this.selectedPositionFilters.includes('other') && this.customPositionFilter) {
+      searchText = this.customPositionFilter;
+    } else {
+      const positions = this.selectedPositionFilters.filter(filter => filter !== 'other');
+      searchText = positions.join(', ');
+    }
+
+    this.query = searchText;
+  }
+
+  onCustomFilterChange(): void {
+    this.updateSearchQueryFromFilters();
+  }
+
+
+  applyPositionFilter(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
+    }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  isPositionSelected(position: string): boolean {
+    return this.selectedPositionFilters.includes(position);
+  }
+
+
   getPositions() {
     this.positionsService.get().subscribe({
       next: (positions: any) => {
         this.positions = positions;
+        this.filterPositions = [...new Set(positions.map((p: any) => p.title))];
       },
       error: (err: any) => {
         console.error('Error fetching positions:', err);
@@ -418,6 +686,79 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   goToCustomSearch() {
     this.router.navigate([`apps/talent-match/custom-search`]);
+  }
+
+  convertToMonthly(value: number): number {
+    return value * 160;
+  }
+
+  convertToHourly(value: number): number {
+    return value / 160;
+  }
+
+  toggleRateType() {
+    this.isMonthlyRate = !this.isMonthlyRate;
+    if (this.isMonthlyRate) {
+      const min = this.originalBudgetRange.min * 160;
+      const max = this.originalBudgetRange.max * 160;
+      this.budgetOptions = {
+        ...this.budgetOptions,
+        floor: this.budgetMin * 160,
+        ceil: this.budgetMax * 160,
+        translate: (value: number): string => `$${value}`
+      };
+      this.budgetRange = { min, max };
+    } else {
+      const min = this.originalBudgetRange.min;
+      const max = this.originalBudgetRange.max;
+      this.budgetOptions = {
+        ...this.budgetOptions,
+        floor: this.budgetMin,
+        ceil: this.budgetMax,
+        translate: (value: number): string => `$${value}/hr`
+      };
+      this.budgetRange = { min, max };
+    }
+  }
+
+  onPresetClick(preset: any) {
+    if (this.isMonthlyRate) {
+      this.budgetRange.min = preset.min * 160;
+      this.budgetRange.max = preset.max * 160;
+    } else {
+      this.budgetRange.min = preset.min;
+      this.budgetRange.max = preset.max;
+    }
+    this.originalBudgetRange = { min: preset.min, max: preset.max };
+  }
+
+  onBudgetChange(event: any) {
+    this.budgetRange = event;
+    if (!this.isMonthlyRate) {
+      this.originalBudgetRange = { ...this.budgetRange };
+    } else {
+      this.originalBudgetRange = {
+        min: this.budgetRange.min / 160,
+        max: this.budgetRange.max / 160
+      };
+    }
+  }
+  
+  get canSearchAI(): boolean {
+    const hasFilters = !!(
+      this.selectedRole ||
+      this.selectedPracticeArea ||
+      (this.selectedPersonality?.length ?? 0) > 0 ||
+      (this.selectedSkillsTools?.length ?? 0) > 0 ||
+      this.selectedExperienceLevel ||
+      (this.selectedCertifications?.length ?? 0) > 0 ||
+      (this.selectedBackground?.length ?? 0) > 0 ||
+      this.budgetRange?.min !== this.budgetMin ||
+      this.budgetRange?.max !== this.budgetMax ||
+      this.roleDescription
+    );
+
+    return !!this.query || hasFilters;
   }
 
   handleImageError(event: Event) {

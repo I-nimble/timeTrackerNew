@@ -17,16 +17,18 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 })
 export class MatchComponent {
   @Input() aiEnabled: boolean = false;
+  @Input() canSearch: boolean = false;
   @Input() placeholder: string = 'Search...';
   @Input() loading = false;
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
+  @Input() showCustomSearch: boolean = true;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
   @Output() interview = new EventEmitter<void>();
 
-  query: string = '';
+  @Input() query: string = '';
   cooldownActive = false;
 
   onSearchChange() {
@@ -34,7 +36,7 @@ export class MatchComponent {
   }
 
   onAskAI() {
-    if (!this.query || this.cooldownActive) return;
+    if ((!this.query && !this.canSearch) || this.cooldownActive) return;
     this.loading = true;
     this.askAI.emit(this.query);
     this.cooldownActive = true;
