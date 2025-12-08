@@ -36,6 +36,34 @@ export class R3Service {
     );
   }
 
+  getVisionItemUploadUrl(fileType: string, originalFileName: string) {
+    return this.http.get<{ uploadURL: string; key: string }>(
+      `${this.API_URI}/vision/upload-url`,
+      {
+        params: { fileType, originalFileName },
+      }
+    );
+  }
+
+  uploadFileToS3(file: File, uploadURL: string) {
+    return this.http.put(uploadURL, file, {
+      headers: { 'Content-Type': file.type },
+      responseType: 'text',
+    });
+  }
+
+  uploadVisionItem(file: File) {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<{ key: string }>(`${this.API_URI}/vision/upload`, form).pipe(
+      tap(() => this.getR3Module().subscribe()),
+      catchError(err => {
+        console.error('Error uploading vision item', err);
+        return of(null);
+      })
+    );
+  }
+
   saveTraction(payload: any) {
     return this.http.post(`${this.API_URI}/traction`, payload).pipe(
       tap(() => this.getR3Module().subscribe()),
