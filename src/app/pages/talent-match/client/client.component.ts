@@ -337,7 +337,6 @@ export class AppTalentMatchClientComponent implements OnInit {
       }
     });
   }
-
   buildFullSearchQuery(): string {
     const parts: string[] = [];
     if (this.query) {
