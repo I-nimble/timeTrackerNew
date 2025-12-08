@@ -52,7 +52,7 @@
                     (error)="handleImageError($event)"
                   />
                   <div class="m-l-16">
-                    <h6 class="f-s-14 f-w-600 cursor-pointer" (click)="goToCandidate(element.id, $event)">
+                    <h6 class="f-s-14 f-w-600">
                       {{ element.name }}
                     </h6>
                     <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
@@ -150,7 +150,7 @@
                     <mat-icon>visibility</mat-icon>
                       <span>View</span>
                     </button>
-                  <button mat-menu-item (click)="openEditCandidateDialog(element)" *ngIf="canEdit">
+                  <button mat-menu-item (click)="goToCandidate(element.id, $event)" *ngIf="canEdit">
                     <mat-icon>edit</mat-icon>
                     <span>Edit</span>
                   </button>
