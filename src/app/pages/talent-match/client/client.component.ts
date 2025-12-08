@@ -287,7 +287,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       location: c.location,
     }));
 
-    this.aiService.evaluateCandidates(simplifiedCandidates, question).subscribe({
+    this.aiService.evaluateCandidates(simplifiedCandidates, searchQuery).subscribe({
       next: (res) => {
         const enhancedResults = res.enhanced_results || [];
 
@@ -370,8 +370,10 @@ export class AppTalentMatchClientComponent implements OnInit {
     return parts.join('; ');
   }
 
-  onManualSearch(query: string) {
-    const lower = query.toLowerCase();
+  onManualSearch(query?: string) {
+    const searchQuery = query || this.query;
+    this.query = searchQuery;
+    const lower = searchQuery.toLowerCase();
     this.dataSource.data = this.allCandidates.filter(c =>
       c.name?.toLowerCase().includes(lower) ||
       this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
@@ -480,10 +482,90 @@ export class AppTalentMatchClientComponent implements OnInit {
     });
   }
 
+  togglePositionFilter(position: string): void {
+    const index = this.selectedPositionFilters.indexOf(position);
+    if (index > -1) {
+      this.selectedPositionFilters.splice(index, 1);
+    } else {
+      this.selectedPositionFilters.push(position);
+    }
+    this.showCustomFilterInput = false;
+    this.customPositionFilter = '';
+    
+    this.updateSearchQueryFromFilters();
+  }
+
+  toggleOtherFilter(): void {
+    if (this.selectedPositionFilters.includes('other')) {
+      const index = this.selectedPositionFilters.indexOf('other');
+      this.selectedPositionFilters.splice(index, 1);
+      this.showCustomFilterInput = false;
+      this.customPositionFilter = '';
+    } else {
+      this.selectedPositionFilters.push('other');
+      this.showCustomFilterInput = true;
+      this.customPositionFilter = '';
+    }
+    this.updateSearchQueryFromFilters();
+  }
+
+  executeFilterSearch(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
+    }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  updateSearchQueryFromFilters(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.query = '';
+      return;
+    }
+
+    let searchText = '';
+    
+    if (this.selectedPositionFilters.includes('other') && this.customPositionFilter) {
+      searchText = this.customPositionFilter;
+    } else {
+      const positions = this.selectedPositionFilters.filter(filter => filter !== 'other');
+      searchText = positions.join(', ');
+    }
+
+    this.query = searchText;
+  }
+
+  onCustomFilterChange(): void {
+    this.updateSearchQueryFromFilters();
+  }
+
+
+  applyPositionFilter(): void {
+    if (this.selectedPositionFilters.length === 0) {
+      this.dataSource.data = [...this.allCandidates];
+      this.hasSearchResults = false;
+      return;
+    }
+
+    if (this.query.trim()) {
+      this.searchCandidatesWithAI(this.query);
+    }
+  }
+
+  isPositionSelected(position: string): boolean {
+    return this.selectedPositionFilters.includes(position);
+  }
+
+
   getPositions() {
     this.positionsService.get().subscribe({
       next: (positions: any) => {
         this.positions = positions;
+        this.filterPositions = [...new Set(positions.map((p: any) => p.title))];
       },
       error: (err: any) => {
         console.error('Error fetching positions:', err);

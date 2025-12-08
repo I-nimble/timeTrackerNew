@@ -146,7 +146,9 @@
                         [canSearch]="canSearchAI"
                         [showInterviewButton]="true"
                         [interviewDisabled]="selection.selected.length === 0"
+                        [showCustomSearch]="!showCustomFilterInput"
                         (interview)="openDialog('Schedule')"
+                        [query]="query"
                         placeholder="What position are you looking for?"
                         (askAI)="searchCandidatesWithAI($event)"
                         (searchChange)="useManualSearch ? onManualSearch($event) : null">

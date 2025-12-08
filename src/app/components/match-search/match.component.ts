@@ -22,12 +22,13 @@ export class MatchComponent {
   @Input() loading = false;
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
+  @Input() showCustomSearch: boolean = true;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
   @Output() interview = new EventEmitter<void>();
 
-  query: string = '';
+  @Input() query: string = '';
   cooldownActive = false;
 
   onSearchChange() {
