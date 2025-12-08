@@ -65,41 +65,82 @@ export class CreateRoomComponent implements OnInit {
   ngOnInit() {
     const exclude = (u: RocketChatUser) =>
       u._id === this.chatService.loggedInUser?._id ||
-      u.roles?.includes('bot') || u.roles?.includes('app');
+      u.roles?.includes('bot') ||
+      u.roles?.includes('app');
 
-    if (this.roomType === 'c') {
-      this.chatService.getTeams().subscribe(teams => {
-        this.teams = teams;
+    const teams$ = (this.isAdmin || this.isModerator)
+      ? this.chatService.getAllTeams()
+      : this.chatService.getTeams();
 
-        if (this.isLeader && teams.length > 0) {
-          const firstTeam = teams[0];
-          this.selectedTeamId = firstTeam._id;
-          this.selectedTeamName = firstTeam.name;
-          this.isPrivate = true;
-          this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+    teams$.subscribe(teams => {
+      this.teams = teams;
+
+      if (this.roomType === 'c') {
+        if (this.isAdmin || this.isModerator) {
+          if (teams.length > 0) {
+            this.selectedTeamId = teams[0]._id;
+            this.selectedTeamName = teams[0].name;
+          }
+
+          this.chatService.getUsers().subscribe(users => {
+            this.includeModerators(users);
+          });
+        } else {
+          if (teams.length > 0) {
+            const firstTeam = teams[0];
+            this.selectedTeamId = firstTeam._id;
+            this.selectedTeamName = firstTeam.name;
+
+            this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+              this.includeModerators(users);
+            });
+          }
+        }
+      }
+
+      if (this.roomType === 'd') {
+        if (this.isAdmin || this.isModerator) {
+          this.chatService.getUsers().subscribe(users => {
             this.users = users.filter(u => !exclude(u));
-            this.selectedUsers = [];
+          });
+        } else if (teams.length > 0) {
+          const firstTeam = teams[0];
+          this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+            this.includeModerators(users);
           });
         }
-      });
-    } else if (this.roomType === 'd') {
-      this.chatService.getTeams().subscribe(teams => {
-        if (!teams.length) return;
-        const firstTeam = teams[0];
+      }
 
-        this.chatService.getTeamMembers(firstTeam._id).subscribe(users => {
+      if (this.roomType === 't') {
+        this.chatService.getUsers().subscribe(users => {
           this.users = users.filter(u => !exclude(u));
         });
-      });
-    } else if (this.roomType === 't') {
-      this.chatService.getUsers().subscribe(users => {
-        this.users = users.filter(u => !exclude(u));
-      });
-    }
+      }
+    });
   }
   
   get isLeader(): boolean {
     return this.chatService.loggedInUser?.roles?.includes('leader') || false;
+  }
+
+  get isAdmin(): boolean {
+    return this.chatService.loggedInUser?.roles?.includes('admin') || false;
+  }
+
+  get isModerator(): boolean {
+    return this.chatService.loggedInUser?.roles?.includes('moderator') || false;
+  }
+
+  includeModerators(users: RocketChatUser[]) {
+    this.chatService.getUsers().subscribe(all => {
+      const moderators = all.filter(u => u.roles?.includes('moderator'));
+      moderators.forEach(mod => {
+        if (!users.some(u => u._id === mod._id)) {
+          users.push(mod);
+        }
+      });
+      this.users = users.filter(u => !this.isExcluded(u));
+    });
   }
 
   createRoom() {
@@ -144,5 +185,27 @@ export class CreateRoomComponent implements OnInit {
         break;
       }
     }
+  }
+
+  onTeamChange(teamId: string) {
+    this.selectedTeamId = teamId;
+
+    if (this.isAdmin || this.isModerator) {
+      this.chatService.getUsers().subscribe(users => {
+        this.users = users.filter(u => !this.isExcluded(u));
+        this.selectedUsers = [];
+      });
+    } else {
+      this.chatService.getTeamMembers(teamId).subscribe(users => {
+        this.includeModerators(users);
+        this.selectedUsers = [];
+      });
+    }
+  }
+
+  isExcluded(u: RocketChatUser) {
+    return u._id === this.chatService.loggedInUser?._id ||
+          u.roles?.includes('bot') ||
+          u.roles?.includes('app');
   }
 }

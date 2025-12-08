@@ -66,7 +66,7 @@ export class AppSideRegisterComponent {
     departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
+    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
   }, { validators: this.crossFieldValidator() });
@@ -81,31 +81,9 @@ export class AppSideRegisterComponent {
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
-    location: ['', Validators.required],
-    role: ['', Validators.required],
+    fullName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    appliedWhere: ['', Validators.required],
-    referred: ['no', Validators.required],
-    referredName: [''],
-    fullName: ['', Validators.required],
-    age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
-    additionalPhone: ['', [Validators.pattern(/^\+?\d{7,15}$/)]],
-    currentResidence: ['', Validators.required],
-    address: ['', Validators.required],
-    children: ['0', Validators.required],
-    englishLevel: ['', Validators.required],
-    competencies: ['', Validators.required],
-    technicalSkills: ['', Validators.required],
-    techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
-    educationHistory: ['', Validators.required],
-    workExperience: ['', Validators.required],
-    workReferences: ['', Validators.required],
-    hobbies: ['', Validators.required],
-    resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    google_user_id: [''],
   });
   userRole: string = '3';
   companyId: string = '';
@@ -244,140 +222,7 @@ export class AppSideRegisterComponent {
     this.userRole = userRole;
     if (userRole === '2' && !this.hasInvitation) {
       this.getLocations();
-      this.setupConditionalValidation();
     }
-  }
-
-  private setupConditionalValidation() {
-    if (!this.registerTeamMemberForm) return;
-
-    const referredControl = this.registerTeamMemberForm?.get('referred');
-    if (referredControl) {
-      referredControl.valueChanges.subscribe(value => {
-        if (value === 'yes') {
-          this.registerTeamMemberForm?.get('referredName')?.setValidators(Validators.required);
-        } else {
-          this.registerTeamMemberForm?.get('referredName')?.clearValidators();
-        }
-        this.registerTeamMemberForm?.get('referredName')?.updateValueAndValidity();
-      });
-    }
-
-    const locationControl = this.registerTeamMemberForm?.get('location');
-    if (locationControl) {
-      locationControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-    const roleControl = this.registerTeamMemberForm?.get('role');
-    if (roleControl) {
-      roleControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-  }
-
-  private updateConditionalControls() {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      ['availability', 'salaryRange', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
-        (this.registerTeamMemberForm as FormGroup<any>).removeControl(ctrl);
-      });
-
-      if (!location || !role) return;
-
-      if (role.title === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      } else if (role.title === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
-      if (location && role) {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'salaryRange',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
-      if (role.title === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
-      }
-
-      if (role.title === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
-      }
-    }
-  }
-
-  getSalaryRangeText(): string {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      if (location === 'Maracaibo') {
-        return role.title === 'Virtual Assistant'
-          ? '$480-$560 USD'
-          : '$400-$900 USD';
-      } else if (location === 'Medellin') {
-        return '$700-$800 USD';
-      }
-      return '$400-$900 USD';
-    }
-    return '';
-  }
-
-  onFileChange(event: Event, controlName: string): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-
-      if (file.size > 10737418240) {
-        this.registerTeamMemberForm.get(controlName)?.setErrors({ maxFileSize: true });
-      } else {
-        this.registerTeamMemberForm.get(controlName)?.setValue(file);
-      }
-      this.registerTeamMemberForm.get(controlName)?.updateValueAndValidity();
-    }
-  }
-
-
-  maxFileSizeValidator(maxSizeBytes: number): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) {
-        return null;
-      }
-
-      const file = control.value as File;
-      if (file.size > maxSizeBytes) {
-        return {
-          maxFileSize: {
-            requiredSize: maxSizeBytes,
-            actualSize: file.size,
-            message: `File size exceeds the maximum allowed size of ${this.formatFileSize(maxSizeBytes)}`
-          }
-        };
-      }
-      return null;
-    };
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   getCompanies() {
@@ -590,44 +435,10 @@ export class AppSideRegisterComponent {
         return;
       }
 
-      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role.title !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
-        this.openSnackBar('Please accept the availability and salary range conditions', 'error');
-        return;
-      }
-
-      if (this.registerTeamMemberForm.value.role.title === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
-        this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
-      }
-
       const teamMemberData = {
-        location: this.registerTeamMemberForm.value.location,
-        position_id: this.registerTeamMemberForm.value.role.position_id,
+        full_name: this.registerTeamMemberForm.value.fullName,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
-        applied_where: this.registerTeamMemberForm.value.appliedWhere,
-        referred: this.registerTeamMemberForm.value.referred,
-        referrer_name: this.registerTeamMemberForm.value.referredName,
-        full_name: this.registerTeamMemberForm.value.fullName,
-        age: this.registerTeamMemberForm.value.age,
-        contact_phone: this.registerTeamMemberForm.value.contactPhone,
-        additional_phone: this.registerTeamMemberForm.value.additionalPhone || '',
-        current_residence: this.registerTeamMemberForm.value.currentResidence,
-        address: this.registerTeamMemberForm.value.address,
-        children: this.registerTeamMemberForm.value.children,
-        english_level: this.registerTeamMemberForm.value.englishLevel,
-        competencies: this.registerTeamMemberForm.value.competencies,
-        technical_skills: this.registerTeamMemberForm.value.technicalSkills,
-        tech_proficiency: this.registerTeamMemberForm.value.techProficiency,
-        education_history: this.registerTeamMemberForm.value.educationHistory || '',
-        work_experience: this.registerTeamMemberForm.value.workExperience || '',
-        work_references: this.registerTeamMemberForm.value.workReferences,
-        hobbies: this.registerTeamMemberForm.value.hobbies || '',
-        availability: this.registerTeamMemberForm.value.availability,
-        salary_range: this.registerTeamMemberForm.value.salaryRange,
-        programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
-        google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
 
       this.usersService.registerOrphanTeamMember(teamMemberData).subscribe({
@@ -700,10 +511,18 @@ export class AppSideRegisterComponent {
     };
   }
 
-  restrictToNumbers(event: KeyboardEvent) {
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
     const key = event.key;
-    if (/^\d$/.test(key)) return;
-    if (key === '+' && (event.target as HTMLInputElement).value.length === 0) return;
-    event.preventDefault();
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+    
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
 }
