@@ -202,7 +202,7 @@ export class UsersService {
     );
   }
 
-  public registerOrphanTeamMember(data: any) {
+  public submitApplicationDetails(data: any) {
     let resumeUpload$ = of(null);
     let pictureUpload$ = of(null);
     let introVideoUpload$ = of(null);
@@ -281,9 +281,20 @@ export class UsersService {
         form.append('picture_file_name', pictureFileName ?? '');
         form.append('introduction_video_file_name', introVideoFileName ?? '');
         form.append('portfolio_file_name', portfolioFileName ?? '');
-        return this.http.post(`${this.API_URI}/users/register/orphan`, form);
+        return this.http.post(`${this.API_URI}/users/register/orphan`, form); // TODO: Use a different endpoint in the applications route, the controller should update the application
       })
     );
+  }
+
+  public registerOrphanTeamMember(data: any) {
+    const form = new FormData();
+    Object.keys(data).forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) {
+        form.append(key, data[key]);
+      }
+    });
+
+    return this.http.post(`${this.API_URI}/users/register/orphan`, form);
   }
 
   checkEmailExists(email: string): Observable<{ exists: boolean }> {
