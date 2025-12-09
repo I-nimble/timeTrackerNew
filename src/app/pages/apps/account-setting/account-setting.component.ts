@@ -530,7 +530,8 @@ export class AppAccountSettingComponent implements OnInit {
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            programmingLanguages: application.programming_languages
+            availability: application.inmediate_availability ? 'yes' : 'no',
+            programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
             this.resumeFileName = application.resume;
