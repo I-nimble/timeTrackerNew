@@ -704,25 +704,15 @@
                     </div>
 
                     <div class="col-md-6 m-b-16">
-                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Additional Phone
-                        <span class="text-danger">*</span></mat-label
-                      >
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">
+                        Additional Phone
+                      </mat-label>
                       <mat-form-field appearance="outline" class="w-100">
                         <input
                           matInput
                           formControlName="additionalPhone"
                           placeholder="+1 (123) 456-7890"
                         />
-                        <mat-error
-                          *ngIf="
-                            applicationForm
-                              .get('additionalPhone')
-                              ?.hasError('required')
-                          "
-                        >
-                          Phone is required
-                        </mat-error>
                         <mat-error
                           *ngIf="
                             applicationForm
