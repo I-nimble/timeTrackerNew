@@ -378,7 +378,7 @@
                           class="f-s-12 m-t-0"
                           *ngIf="personalForm.get('phone')?.errors?.['pattern']"
                         >
-                          Invalid phone number format. +1 (123) 456-7890</span
+                          Invalid format (e.g., +1 (123) 456-7890)</span
                         >
                       </mat-error>
                     </mat-form-field>
@@ -507,7 +507,7 @@
                       <mat-error
                         *ngIf="profileForm.get('phone')?.hasError('pattern')"
                       >
-                        Invalid phone number format. +1 (123) 456-7890
+                        Invalid format (e.g., +1 (123) 456-7890)
                       </mat-error>
                     </mat-form-field>
                   </div>
@@ -704,25 +704,15 @@
                     </div>
 
                     <div class="col-md-6 m-b-16">
-                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Additional Phone
-                        <span class="text-danger">*</span></mat-label
-                      >
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">
+                        Additional Phone
+                      </mat-label>
                       <mat-form-field appearance="outline" class="w-100">
                         <input
                           matInput
                           formControlName="additionalPhone"
                           placeholder="+1 (123) 456-7890"
                         />
-                        <mat-error
-                          *ngIf="
-                            applicationForm
-                              .get('additionalPhone')
-                              ?.hasError('required')
-                          "
-                        >
-                          Phone is required
-                        </mat-error>
                         <mat-error
                           *ngIf="
                             applicationForm
