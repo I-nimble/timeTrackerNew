@@ -45,6 +45,7 @@ export class R3TractionComponent implements OnInit {
   companies: any[] = [];
   deletedAnnualGoalIds: number[] = [];
   deletedRockIds: number[] = [];
+  today = new Date();
 
   constructor(
     private fb: FormBuilder,
@@ -107,14 +108,24 @@ export class R3TractionComponent implements OnInit {
     });
   }
 
-
   buildForm() {
     this.form = this.fb.group({
       oneYearPlan: this.fb.group({
         id: [null],
         future_date: [null],
-        revenue: [''],
-        net_margin: ['']
+        revenue: [
+          '',
+          [
+            Validators.min(0)
+          ]
+        ],
+        net_margin: [
+          '',
+          [
+            Validators.min(0),
+            Validators.max(100)
+          ]
+        ]
       }),
       annualGoals: this.fb.array([]),
       rocks: this.fb.array([])
@@ -132,6 +143,7 @@ export class R3TractionComponent implements OnInit {
   async loadData() {
     const data: any = await this.r3Service.getR3Module().toPromise();
     if (!data) return;
+    await this.getCompany();
     const traction = data.traction?.[0];
     if (traction) {
       this.annualGoals.clear();
@@ -144,7 +156,6 @@ export class R3TractionComponent implements OnInit {
       traction.r3_annual_goals?.forEach((g: any) => this.addAnnualGoal(g));
     }
     this.rocks.clear();
-    await this.getCompany();
     data.rocks?.forEach((r: any) => {
       if (r.assigned_user_id && !this.users.find(u => u.id === r.assigned_user_id)) {
         this.users.push({ id: r.assigned_user_id, name: 'Unknown' });
@@ -204,6 +215,7 @@ export class R3TractionComponent implements OnInit {
       this.openSnackBar('Traction saved!', 'close');
       this.deletedAnnualGoalIds = [];
       this.deletedRockIds = [];
+      this.loadData();
     });
   }
 

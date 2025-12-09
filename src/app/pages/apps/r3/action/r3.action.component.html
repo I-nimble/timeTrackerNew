@@ -45,7 +45,7 @@
         </div>
       </div>
       <div class="p-16">
-        <div class="table-responsive">
+        <div class="table-responsive" *ngIf="rock.rock_items?.length; else noSubtasks">
           <table mat-table [dataSource]="rock.rock_items" class="mat-mdc-table mat-elevation-z8" style="table-layout: fixed; width: 100%;" role="table">
             <ng-container matColumnDef="subtask">
               <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Subtask</th>
@@ -106,16 +106,16 @@
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-            <tr *ngIf="!rock.rock_items || rock.rock_items.length === 0">
-              <td colspan="4" style="padding:12px;">
-                No subtasks yet.
-                <button *ngIf="isEditing" mat-button color="primary" (click)="addSubtaskByRock(rock)">
-                  + Add first subtask
-                </button>
-              </td>
-            </tr>
           </table>
         </div>
+        <ng-template #noSubtasks>
+          <div class="text-center p-12">
+            No subtasks yet.
+            <button *ngIf="isEditing" mat-button color="primary" (click)="addSubtaskByRock(rock)">
+              + Add first subtask
+            </button>
+          </div>
+        </ng-template>
       </div>
     </mat-card>
   </div>

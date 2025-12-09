@@ -19,6 +19,7 @@
                   [matDatepicker]="futureDatePicker"
                   formControlName="future_date"
                   placeholder="MM/DD/YYYY"
+                  [min]="today"
                 />
                 <mat-datepicker-toggle matSuffix [for]="futureDatePicker"></mat-datepicker-toggle>
                 <mat-datepicker #futureDatePicker></mat-datepicker>
@@ -31,7 +32,10 @@
             </div>
             <div class="col-sm-8">
               <mat-form-field appearance="outline" class="w-100">
-                <input matInput formControlName="revenue" placeholder="Enter revenue amount">
+                <input matInput formControlName="revenue" type="number" placeholder="Enter revenue amount">
+                <mat-error *ngIf="form.get('oneYearPlan.revenue')?.hasError('min')">
+                  Revenue cannot be negative.
+                </mat-error>
               </mat-form-field>
             </div>
           </div>
@@ -41,7 +45,16 @@
             </div>
             <div class="col-sm-8">
               <mat-form-field appearance="outline" class="w-100">
-                <input matInput formControlName="net_margin" placeholder="Enter margin %">
+                <div class="net-margin-wrapper" style="position: relative;">
+                  <input matInput formControlName="net_margin" type="number" placeholder="Enter margin" style="padding-right: 25px;">
+                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);">%</span>
+                </div>
+                <mat-error *ngIf="form.get('oneYearPlan.net_margin')?.hasError('min')">
+                  Margin cannot be negative.
+                </mat-error>
+                <mat-error *ngIf="form.get('oneYearPlan.net_margin')?.hasError('max')">
+                  Margin cannot exceed 100%.
+                </mat-error>
               </mat-form-field>
             </div>
           </div>
