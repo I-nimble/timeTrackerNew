@@ -42,6 +42,7 @@ import { R3Component } from './r3/r3.component';
 import { R3ActionComponent } from './r3/action/r3.action.component';
 import { R3TractionComponent } from './r3/traction/r3.traction.component';
 import { R3VisionComponent } from './r3/vision/r3.vision.component';
+import { AppEventsComponent } from './events/events.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -408,6 +409,17 @@ export const AppsRoutes: Routes = [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee Details' },
           ] 
+        },
+      },
+      {
+        path: 'events',
+        component: AppEventsComponent,
+        data: {
+          title: 'Events',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Events' },
+          ],
         },
       },
       {
