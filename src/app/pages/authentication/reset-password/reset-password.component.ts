@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import {
   FormGroup,
   FormControl,
@@ -30,6 +30,7 @@ export class AppResetPasswordComponent implements OnInit {
   email: string = '';
   hideConfirm = true;
   invalidLink = false;
+  showImage = false;
 
   constructor(
     private router: Router,
@@ -43,7 +44,10 @@ export class AppResetPasswordComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngOnInit() {  
+    this.checkWindowSize();
+    this.authService.logout(false);
+    
     this.route.queryParams.subscribe(params => {
       this.token = params['token'] || '';
       this.email = params['email'] || '';
@@ -55,6 +59,15 @@ export class AppResetPasswordComponent implements OnInit {
 
   get f() {
     return this.form.controls;
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkWindowSize();
+  }
+  
+  checkWindowSize() {
+    this.showImage = window.innerWidth >= 1280;
   }
 
   submit() {
