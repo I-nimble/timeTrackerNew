@@ -38,6 +38,7 @@ import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 import { CustomSearchComponent } from '../custom-search/custom-search.component';
+import { AppEventsComponent } from './events/events.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -404,6 +405,17 @@ export const AppsRoutes: Routes = [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee Details' },
           ] 
+        },
+      },
+      {
+        path: 'events',
+        component: AppEventsComponent,
+        data: {
+          title: 'Events',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Events' },
+          ],
         },
       },
       {
