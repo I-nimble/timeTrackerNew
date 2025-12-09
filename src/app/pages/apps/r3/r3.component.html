@@ -1,0 +1,70 @@
+<mat-card class="cardWithShadow">
+    <mat-card-content>
+        <div class="pricing-page">
+            <div class="container">
+                <div class="text-center m-b-48">
+                    <h2 class="m-b-16 f-s-44 lh-normal f-w-700 section-sub-title">
+                        R3
+                    </h2>
+                    <p class="m-0 f-s-18">
+                        A framework to align your team’s vision, focus, and execution for maximum impact.
+                    </p>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Vision</h6>
+                                </div>
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Clarify your team’s long-term purpose and direction. Define the impact you want to create and the future you’re striving to build.
+                                </p>
+                                <div class="m-y-20"></div>
+                                <button mat-flat-button class="w-100 bg-dark-200" [routerLink]="['vision']">
+                                    View Vision
+                                </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Traction</h6>
+                                </div>
+
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Create the structure, focus, and accountability to turn your vision into reality. Ensure consistent progress and team alignment.
+                                </p>
+
+                                <div class="m-y-20"></div>
+
+                                <button mat-flat-button class="w-100 bg-dark-200" [routerLink]="['traction']">
+                                    View Traction
+                                </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-6 p-x-12">
+                        <mat-card class="mat-mdc-card mdc-card cardWithShadow b-1">
+                            <mat-card-content>
+                                <div class="d-flex align-items-center">
+                                    <h6 class="f-s-20 f-w-600 m-b-16 lh-normal">Action</h6>
+                                </div>
+                                <p class="f-s-14 m-0 lh-normal">
+                                    Set, track, and measure your team’s top quarterly priorities. Break down goals into clear tasks, assign ownership, and monitor progress to ensure tangible results.
+                                </p>
+                                <div class="m-y-20"></div>
+                                    <button mat-flat-button color="primary" class="w-100" [routerLink]="['action']">
+                                    View Action
+                                    </button>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>
+<router-outlet></router-outlet>
