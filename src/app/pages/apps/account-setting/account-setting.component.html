@@ -378,7 +378,7 @@
                           class="f-s-12 m-t-0"
                           *ngIf="personalForm.get('phone')?.errors?.['pattern']"
                         >
-                          Invalid phone number format. +1 (123) 456-7890</span
+                          Invalid format (e.g., +1 (123) 456-7890)</span
                         >
                       </mat-error>
                     </mat-form-field>
@@ -507,7 +507,7 @@
                       <mat-error
                         *ngIf="profileForm.get('phone')?.hasError('pattern')"
                       >
-                        Invalid phone number format. +1 (123) 456-7890
+                        Invalid format (e.g., +1 (123) 456-7890)
                       </mat-error>
                     </mat-form-field>
                   </div>
