@@ -269,6 +269,14 @@ export class HeaderComponent implements OnInit {
           subtitle: 'Document your future plans',
           link: 'apps/r3',
         },
+        {
+          id: 6,
+          img: 'shield',
+          color: 'success',
+          title: 'Events',
+          subtitle: 'Events',
+          link: 'apps/events',
+        },
       ];
     }
 
