@@ -407,43 +407,30 @@
                               <p class="text-center m-b-24 label-subtitle">
                                 (This field is optional)
                               </p>
-
-                              <div class="d-flex flex-row">
-                                <mat-form-field
-                                  appearance="outline"
-                                  style="width: 100px"
-                                  class="m-r-16"
+                              <mat-form-field
+                                appearance="outline"
+                                class="w-100"
+                              >
+                                <input
+                                  matInput
+                                  formControlName="phone"
+                                  type="tel"
+                                  placeholder="11234567890"
+                                  (keypress)="restrictPhoneInput($event)"
+                                />
+                                <mat-error
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="
+                                    (registerClientForm.get('phone')?.errors?.['pattern'] ||
+                                    registerClientForm.get('phone')?.errors?.['maxlength'] ||
+                                    registerClientForm.get('phone')?.errors?.['minlength']) &&
+                                    registerClientForm.get('phone')?.value &&
+                                    registerClientForm.get('phone')?.touched
+                                  "
                                 >
-                                  <mat-select formControlName="countryCode">
-                                    <mat-option value="+1">+1 (US)</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-                                <mat-form-field
-                                  appearance="outline"
-                                  style="flex-grow: 1"
-                                >
-                                  <input
-                                    matInput
-                                    formControlName="phone"
-                                    type="phone"
-                                    placeholder="+1 (123) 456-7890"
-                                    inputmode="numeric"
-                                    (keypress)="restrictPhoneInput($event)"
-                                  />
-                                  <mat-error
-                                    class="text-danger f-s-12 m-t-0"
-                                    *ngIf="
-                                      registerClientForm
-                                        .get('phone')
-                                        ?.hasError('pattern') &&
-                                      registerClientForm.get('phone')?.value &&
-                                      registerClientForm.get('phone')?.touched
-                                    "
-                                  >
-                                    Enter a valid phone number
-                                  </mat-error>
-                                </mat-form-field>
-                              </div>
+                                  Invalid format (e.g., 11234567890)
+                                </mat-error>
+                              </mat-form-field>
 
                               <button
                                 class="w-100"
