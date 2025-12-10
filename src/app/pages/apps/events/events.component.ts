@@ -40,37 +40,34 @@ interface Event {
 })
 
 export class AppEventsComponent implements OnInit {
-//   displayedColumns: string[] = ['event', 'date', 'description', 'actions'];
-//   events: MatTableDataSource<Event>;
+  displayedColumns: string[] = ['event', 'date', 'description', 'actions'];
+  events: MatTableDataSource<Event>;
 
-//   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-//   constructor() {
-//     const initialEvents: Event[] = [
-//       { name: 'Annual Meeting', date: new Date('2025-12-15'), description: 'Company-wide meeting' },
-//       { name: 'Project Launch', date: new Date('2025-12-20'), description: 'Launch of new project' },
-//       { name: 'Team Outing', date: new Date('2025-12-25'), description: 'Fun outing with the team' },
-//     ];
+  constructor() {
+    const initialEvents: Event[] = [
+      { name: 'Annual Meeting', date: new Date('2025-12-15'), description: 'Company-wide meeting' },
+      { name: 'Project Launch', date: new Date('2025-12-20'), description: 'Launch of new project' },
+      { name: 'Team Outing', date: new Date('2025-12-25'), description: 'Fun outing with the team' },
+    ];
 
-//     this.events = new MatTableDataSource(initialEvents);
-//   }
-
-  ngOnInit(): void {
-    // this.events.paginator = this.paginator;
+    this.events = new MatTableDataSource(initialEvents);
   }
 
-//   addEvent() {
-//     console.log('Add event clicked');
-//     // Implement add event logic here
-//   }
+  ngOnInit(): void {
+    this.events.paginator = this.paginator;
+  }
 
-//   editEvent(event: Event) {
-//     console.log('Edit event', event);
-//     // Implement edit logic here
-//   }
+  addEvent() {
+    console.log('Add event clicked');
+  }
 
-//   deleteEvent(event: Event) {
-//     console.log('Delete event', event);
-//     // Implement delete logic here
-//   }
+  editEvent(event: Event) {
+    console.log('Edit event', event);
+  }
+
+  deleteEvent(event: Event) {
+    console.log('Delete event', event);
+  }
 }
