@@ -99,7 +99,7 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -114,7 +114,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: [''],
     availability: [false, [Validators.required, this.mustBeYesValidator()]]
@@ -124,7 +124,7 @@ export class AppAccountSettingComponent implements OnInit {
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]
+      phone: ['', Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]
     }),
     insurance_data: this.fb.group({
       provider: [''],
@@ -198,8 +198,8 @@ export class AppAccountSettingComponent implements OnInit {
     referred: ['no', Validators.required],
     referredName: [''],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    additionalPhone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
@@ -539,7 +539,8 @@ export class AppAccountSettingComponent implements OnInit {
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            programmingLanguages: application.programming_languages
+            availability: application.inmediate_availability ? 'yes' : 'no',
+            programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
             this.resumeFileName = application.resume;

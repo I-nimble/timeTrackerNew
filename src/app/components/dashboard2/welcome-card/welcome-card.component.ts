@@ -79,6 +79,20 @@ export class AppWelcomeCardComponent implements OnInit {
     return '#757575';
   }
 
+  getNotificationType(notification: any): string {
+    const message = notification.message || '';
+    
+    if (message.includes('My Sentinel')) {
+      return 'sentinel';
+    } else if (message.includes('Talent Match')) {
+      return 'talent';
+    } else if (message.includes('Expert Match')) {
+      return 'expert';
+    }
+    
+    return 'other';
+  }
+
   handleNotificationClick(notification: any): void {
     this.markAsRead(notification);
     this.navigateToSection(notification);
@@ -101,17 +115,48 @@ export class AppWelcomeCardComponent implements OnInit {
     });
   }
 
+  markAllAsReadBySection(sectionType: string): void {
+    const sectionNotifications = this.allNotifications.filter(notification => 
+      this.getNotificationType(notification) === sectionType
+    );
+
+    if (sectionNotifications.length === 0) {
+      return;
+    }
+
+    this.notificationsService.update(sectionNotifications, 2).subscribe({
+      next: () => {
+        this.allNotifications = this.allNotifications.filter(notification => 
+          this.getNotificationType(notification) !== sectionType
+        );
+      },
+      error: (error) => {
+        console.error('Error marking all section notifications as read:', error);
+      }
+    });
+  }
+
   navigateToSection(notification: any): void {
     const message = notification.message || '';
-    
+    let sectionType = '';
+    let route = '';
+
     if (message.includes('My Sentinel')) {
-      this.router.navigate(['/apps/scrapper']);
+      sectionType = 'sentinel';
+      route = '/apps/scrapper';
     } else if (message.includes('Talent Match')) {
-      this.router.navigate(['/apps/talent-match']);
+      sectionType = 'talent';
+      route = '/apps/talent-match';
     } else if (message.includes('Expert Match')) {
-      this.router.navigate(['/apps/expert']);
+      sectionType = 'expert';
+      route = '/apps/expert';
     } else {
       this.router.navigate(['/notifications']);
+      return;
     }
+
+    this.markAllAsReadBySection(sectionType);
+    
+    this.router.navigate([route]);
   }
 }

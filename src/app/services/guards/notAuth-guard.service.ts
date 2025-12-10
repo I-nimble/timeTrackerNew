@@ -1,34 +1,42 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from "@angular/router";
-import { Observable } from 'rxjs';
+import { Observable, map, take } from 'rxjs';
 import { AuthService } from "../auth.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class notAuthGuard {
-  loggedIn: boolean= true
-  isAdmin!: boolean
-
-    constructor(private authService: AuthService, private router: Router) { }
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree | Observable<boolean | UrlTree> | Promise<boolean | UrlTree> {
-      this.authService.isLoggedIn().subscribe(isLogged =>{
-        this.loggedIn = isLogged
-      })
-      this.authService.verifyAdmin().subscribe(isAdmin =>{
-        this.isAdmin = isAdmin
-      })
-      if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '2'){
-        this.router.navigate(['dashboards/tm'])
-        return false;
-      }else if(localStorage.getItem('role') !== null && this.loggedIn == true && (localStorage.getItem('role') === '1' || localStorage.getItem('role') === '4')){
-        this.router.navigate(['dashboards/admin'])
-        return false
-      }else if(localStorage.getItem('role') !== null && this.loggedIn == true && localStorage.getItem('role') === '3'){
-        this.router.navigate(['dashboards/dashboard2'])
-        return false
-      }else{
-        return true
-      }
+  
+  constructor(private authService: AuthService, private router: Router) { }
+  
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    if (state.url.includes('/authentication/reset')) {
+      return new Observable(subscriber => {
+        subscriber.next(true);
+        subscriber.complete();
+      });
     }
+    
+    return this.authService.isLoggedIn().pipe(
+      take(1),
+      map(isLogged => {
+        if (!isLogged) {
+          return true;
+        }
+      
+        const role = localStorage.getItem('role');
+        
+        if (role === '2') {
+          return this.router.createUrlTree(['/dashboards/tm']);
+        } else if (role === '1' || role === '4') {
+          return this.router.createUrlTree(['/dashboards/admin']);
+        } else if (role === '3') {
+          return this.router.createUrlTree(['/dashboards/dashboard2']);
+        }
+        
+        return true;
+      })
+    );
+  }
 }

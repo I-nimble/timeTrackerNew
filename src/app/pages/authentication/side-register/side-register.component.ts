@@ -81,7 +81,8 @@ export class AppSideRegisterComponent {
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
-    fullName: ['', Validators.required],
+    name: ['', [Validators.required]],
+    last_name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
@@ -436,7 +437,8 @@ export class AppSideRegisterComponent {
       }
 
       const teamMemberData = {
-        full_name: this.registerTeamMemberForm.value.fullName,
+        name: this.registerTeamMemberForm.value.name,
+        last_name: this.registerTeamMemberForm.value.last_name,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
       };

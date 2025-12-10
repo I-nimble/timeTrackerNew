@@ -54,13 +54,35 @@
               <div *ngFor="let score of matchScores">
                 {{ getCategoryName(score) }}: {{ score.match_percentage | number:'1.2-2' }}%
               </div>
+              <div *ngIf="matchScores.length === 0" class="text-muted">
+                No match percentages set
+              </div>
             </td>
             <td *ngIf="editMode && userRole !== '3'" colspan="2">
-              <div *ngFor="let score of matchScores">
-                <span>{{ getCategoryName(score) }}</span>
-                <ng-container *ngIf="f['matchScores_' + score.id]">
-                  <input type="number" matInput [formControl]="f['matchScores_' + score.id]" style="width: 80px;" class="mat-input"/> %
-                </ng-container>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <button 
+                  mat-stroked-button 
+                  color="primary" 
+                  (click)="openMatchPercentagesModal()"
+                  type="button">
+                  <mat-icon>percent</mat-icon>
+                  Edit Match Percentages
+                </button>
+              </div>
+              
+              <div class="current-scores mt-3" *ngIf="matchScores.length > 0">
+                <h6 class="mb-2">Current Scores:</h6>
+                <div *ngFor="let score of matchScores" class="d-flex align-items-center gap-2 mb-1">
+                  <span class="text-dark">{{ getCategoryName(score) }}</span>
+                  <span class="fw-bold">{{ score.match_percentage | number:'1.2-2' }}%</span>
+                </div>
+              </div>
+              <div class="d-none">
+                <div *ngFor="let score of matchScores">
+                  <ng-container *ngIf="f['matchScores_' + score.id]">
+                    <input type="number" matInput [formControl]="f['matchScores_' + score.id]"/>
+                  </ng-container>
+                </div>
               </div>
             </td>
           </tr>
