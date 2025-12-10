@@ -268,18 +268,81 @@ export class AppAccountSettingComponent implements OnInit {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
         this.selectedTabIndex = +tab;
+        this.selectedTabLabel = '';
       }
     }); 
+
+    if (this.isOrphan) {
+      this.getLocations();
+      this.getPositions();
+      this.setupConditionalValidation();
+      
+      this.personalForm.get('phone')?.clearValidators();
+      this.personalForm.get('address')?.clearValidators();
+      this.personalForm.get('phone')?.updateValueAndValidity();
+      this.personalForm.get('address')?.updateValueAndValidity();
+    }
   }
 
-  onTabChange(index: number) {
-    this.selectedTabIndex = index;
+  getLocations(): void {
+    this.applicationsService.getLocations().subscribe((locations: any) => {
+      this.locations = locations;
+    });
+  }
+
+  getPositions(): void {
+    // Using careerRoles directly instead of positions from API
+    // since we only need VA and IT positions for orphan TM
+  }
+
+  mustBeTrueValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      if (!control.value) {
+        return { mustBeTrue: true };
+      }
+      return null;
+    };
+  }
+
+  setupConditionalValidation(): void {
+    const referredControl = this.applicationForm.get('referred');
+    if (referredControl) {
+      referredControl.valueChanges.subscribe(value => {
+        const referredNameControl = this.applicationForm.get('referredName');
+        if (value === 'yes') {
+          referredNameControl?.setValidators(Validators.required);
+        } else {
+          referredNameControl?.clearValidators();
+        }
+        referredNameControl?.updateValueAndValidity();
+      });
+    }
+
+    const roleControl = this.applicationForm.get('role');
+    if (roleControl) {
+      roleControl.valueChanges.subscribe(value => {
+        const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
+        if (value && value.position_id === 41) {
+          programmingLanguagesControl?.setValidators(Validators.required);
+        } else {
+          programmingLanguagesControl?.clearValidators();
+        }
+        programmingLanguagesControl?.updateValueAndValidity();
+      });
+    }
+  }
+
+
+  onTabChange(event: MatTabChangeEvent) {
+    this.selectedTabLabel = event.tab.textLabel;
+    this.selectedTabIndex = event.index;
   }
 
   availabilityChange(event: MatSlideToggleChange): void {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
   }
 
@@ -556,14 +619,16 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
+        availability: this.user.availability == 1
+      });
+
+      this.applicationForm.patchValue({
         availability: this.user.availability
       });
 
       this.personalForm.get('phone')?.markAsTouched();
       this.personalForm.get('address')?.markAsTouched();
-
-
-      this.personalForm.markAllAsTouched();
+      this.personalForm.get('availability')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -592,7 +657,8 @@ export class AppAccountSettingComponent implements OnInit {
       });
 
       if(this.isOrphan) {
-        this.applicationForm.markAllAsTouched();
+        console.log('user is orphan, setting availability validator')
+        this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
       }
 
       this.personalForm.valueChanges.subscribe(() => {
