@@ -553,6 +553,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
             
             return {
               ...entry,
+              is_active: isActive, 
               total_hours: totalHours.toFixed(2),
               start_time_display: this.formatTime(localStartTime),
               end_time_display: entry.end_time ? this.formatTime(localEndTime || '') : null,
@@ -582,7 +583,10 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
 
   getTotalWeekHours(): number {
     return this.weekEntries.reduce((total: number, entry: any) => {
-      return total + parseFloat(entry.total_hours || 0);
+      if (entry.end_time) {
+        return total + parseFloat(entry.total_hours || 0);
+      }
+      return total;
     }, 0);
   }
 
@@ -631,6 +635,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                     entry.status === 0 && 
                     !entry.end_time
     );
+    
     if (activeEntry) {
       const startTime = moment.utc(activeEntry.start_time);
       const currentTime = moment.utc(); // Usar UTC
@@ -699,7 +704,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
             const todaySchedule = this.schedules.find(
               (schedule: any) => schedule.days.some((day: any) => day.id === dayOfWeek)
             );
-    
+
             if (todaySchedule) {
               const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
               const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
@@ -716,7 +721,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                 date: currentTime.date(),
               });
               if (end.isBefore(start)) end.add(1, 'day');
-    
+
               const totalWorkHours = end.diff(start, 'hours', true);
 
               this.entriesService.getUsersEntries(this.userId).subscribe({
@@ -725,6 +730,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   const entriesToday = entries.entries.filter(
                     (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day')
                   );
+                  
                   // sum up the hours of today's entries
                   this.hoursElapsed = entriesToday.reduce((acc: number, entry: any) => {
                     // SOLO calcular horas si tiene end_time
@@ -740,13 +746,17 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   const activeEntry = entriesToday.find(
                     (entry: any) => entry.status === 0 && !entry.end_time
                   );
+                  
                   // sum up the hours of today's active entries
                   if (activeEntry) {
                     const startTime = moment.utc(activeEntry.start_time);
                     const currentTime = moment.utc(); // Usar UTC para consistencia
                     this.hoursElapsed += currentTime.diff(startTime, 'hours', true);
                   }
-                  this.hoursRemaining = totalWorkHours - this.hoursElapsed;
+                  
+                  // Asegurar que no sea negativo
+                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
+                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
 
                   // Asegurar que no sea negativo
                   this.hoursElapsed = Math.max(0, this.hoursElapsed);
