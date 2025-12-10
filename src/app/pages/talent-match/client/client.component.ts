@@ -108,9 +108,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   query: string = '';
   selectedRole: string | null = null;
   selectedPracticeArea: string | null = null;
-  selectedPersonality: string[] = [];
   selectedSkillsTools: string[] = [];
-  selectedExperienceLevel: string | null = null;
   selectedCertifications: string[] = [];
   selectedBackground: string[] = [];
   roleDescription: string = '';
@@ -169,13 +167,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     'General Practice'
   ];
 
-  personalityTypes: string[] = [
-    'Driver (fast and decisive)',
-    'Organizer (systems and order)',
-    'Communicator (client-facing)',
-    'Analytical (detail and research)'
-  ];
-
   skillsList: string[] = [
     'Intake',
     'Client Communication',
@@ -206,12 +197,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     'Notion',
     'Trello',
     'QuickBooks'
-  ];
-
-  experienceLevels: string[] = [
-    'Intermediate (3–6 years)',
-    'Senior (6–9 years)',
-    'Expert (10+ years)'
   ];
 
   certificationsOptions: string[] = [
@@ -326,7 +311,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
           this.useManualSearch = true;
           this.aiLoading = false;
         } else {
@@ -339,35 +324,38 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   buildFullSearchQuery(): string {
-    const parts: string[] = [];
-    if (this.query) {
-      parts.push(`Original matching criteria: ${this.query}`);
-    }
+    const stage1: string[] = [];
+    const stage2: string[] = [];
     if (this.selectedRole) {
-      parts.push(`Role: ${this.selectedRole}`);
-    }
-    if (this.roleDescription) {
-      parts.push(`Role details: ${this.roleDescription}`);
+      stage1.push(`Primary role: ${this.selectedRole}`);
     }
     if (this.selectedPracticeArea) {
-      parts.push(`Practice area: ${this.selectedPracticeArea}`);
+      stage1.push(`Practice area: ${this.selectedPracticeArea}`);
     }
-    if (this.selectedPersonality?.length > 0) {
-      parts.push(`Personality traits: ${this.selectedPersonality.join(', ')}`);
+    if (this.roleDescription) {
+      stage1.push(`Role description: ${this.roleDescription}`);
     }
     if (this.selectedSkillsTools?.length > 0) {
-      parts.push(`Skills & Tools: ${this.selectedSkillsTools.join(', ')}`);
-    }
-    if (this.selectedExperienceLevel) {
-      parts.push(`Experience level: ${this.selectedExperienceLevel}`);
+      stage2.push(`Preferred skills/tools: ${this.selectedSkillsTools.join(', ')}`);
     }
     if (this.selectedCertifications?.length > 0) {
-      parts.push(`Certifications: ${this.selectedCertifications.join(', ')}`);
+      stage2.push(`Relevant certifications: ${this.selectedCertifications.join(', ')}`);
     }
     if (this.selectedBackground?.length > 0) {
-      parts.push(`Related background: ${this.selectedBackground.join(', ')}`);
+      stage2.push(`Related background: ${this.selectedBackground.join(', ')}`);
     }
-    return parts.join('; ');
+    if (this.budgetRange.min !== this.budgetMin || this.budgetRange.max !== this.budgetMax) {
+      stage2.push(
+        this.isMonthlyRate
+          ? `Budget range: $${this.budgetRange.min}–$${this.budgetRange.max} monthly`
+          : `Budget range: $${this.budgetRange.min}/hr – $${this.budgetRange.max}/hr`
+      );
+    }
+    let finalQuery = `FIRST filter candidates ONLY by the following primary criteria: 
+  ${stage1.join('; ') || 'None provided'}
+  THEN refine the remaining candidates using these optional preferences (only if available):
+  ${stage2.join('; ') || 'No additional refinements'}`;
+    return finalQuery;
   }
 
   onManualSearch(query?: string) {
@@ -746,11 +734,9 @@ export class AppTalentMatchClientComponent implements OnInit {
   
   get canSearchAI(): boolean {
     const hasFilters = !!(
-      this.selectedRole ||
+      this.selectedRole &&
       this.selectedPracticeArea ||
-      (this.selectedPersonality?.length ?? 0) > 0 ||
       (this.selectedSkillsTools?.length ?? 0) > 0 ||
-      this.selectedExperienceLevel ||
       (this.selectedCertifications?.length ?? 0) > 0 ||
       (this.selectedBackground?.length ?? 0) > 0 ||
       this.budgetRange?.min !== this.budgetMin ||
