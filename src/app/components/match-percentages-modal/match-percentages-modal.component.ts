@@ -61,7 +61,27 @@ export class MatchPercentagesModalComponent implements OnInit {
     this.loading = true;
     this.matchScoresService.getPositionCategories().subscribe({
       next: (categories) => {
-        this.positionCategories = categories;
+        this.positionCategories = categories.sort((a, b) => {
+          const order = [
+            'Lien Negotiator - Office Manager/Administrative Coordinator',
+            'Intake Specialist',
+            'Medical Records Clerk - Case Manager - Receptionist',
+            'Paralegal Personal Injury - Litigation Assistant'
+          ];
+          
+          const indexA = order.indexOf(a.category_name);
+          const indexB = order.indexOf(b.category_name);
+          
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          }
+          
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          
+          return 0;
+        });
+        
         this.initializeMatchScores();
         this.loading = false;
       },
