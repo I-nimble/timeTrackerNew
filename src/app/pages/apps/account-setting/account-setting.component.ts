@@ -116,7 +116,7 @@ export class AppAccountSettingComponent implements OnInit {
     phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: [''],
-    availability: [false, [Validators.required, this.mustBeYesValidator()]]
+    availability: [false]
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
@@ -215,7 +215,7 @@ export class AppAccountSettingComponent implements OnInit {
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    availability: ['no', Validators.required],
+    availability: [false, Validators.requiredTrue],
     programmingLanguages: ['']
   });
   locations: any[] = [];
@@ -295,10 +295,10 @@ export class AppAccountSettingComponent implements OnInit {
     // since we only need VA and IT positions for orphan TM
   }
 
-  mustBeYesValidator(): ValidatorFn {
+  mustBeTrueValidator(): ValidatorFn {
     return (control: AbstractControl) => {
-      if (control.value === 'no') {
-        return { mustBeYes: true };
+      if (!control.value) {
+        return { mustBeTrue: true };
       }
       return null;
     };
@@ -342,6 +342,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
   }
 
@@ -533,7 +534,7 @@ export class AppAccountSettingComponent implements OnInit {
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            availability: application.inmediate_availability ? 'yes' : 'no',
+            availability: application.inmediate_availability,
             programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
@@ -612,11 +613,16 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
+        availability: this.user.availability == 1
+      });
+
+      this.applicationForm.patchValue({
         availability: this.user.availability
       });
 
       this.personalForm.get('phone')?.markAsTouched();
       this.personalForm.get('address')?.markAsTouched();
+      this.personalForm.get('availability')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -643,6 +649,11 @@ export class AppAccountSettingComponent implements OnInit {
           linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
+
+      if(this.isOrphan) {
+        console.log('user is orphan, setting availability validator')
+        this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
+      }
 
       this.personalForm.valueChanges.subscribe(() => {
         this.checkFormChanges();
