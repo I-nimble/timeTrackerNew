@@ -847,26 +847,64 @@
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Full Name</mat-label>
                               <input
                                 matInput
-                                formControlName="fullName"
+                                formControlName="name"
                                 required
+                                type="text"
+                                placeholder="First name"
                               />
                               <mat-error
                                 class="text-danger f-s-12 m-t-0"
                                 *ngIf="
                                   registerTeamMemberForm
-                                    .get('fullName')
+                                    .get('name')
                                     ?.hasError('required') &&
-                                  registerTeamMemberForm.get('fullName')
+                                  registerTeamMemberForm.get('name')?.touched
+                                "
+                              >
+                                First name is required
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input
+                                matInput
+                                formControlName="last_name"
+                                required
+                                type="text"
+                                placeholder="Last name"
+                              />
+                              <mat-error
+                                class="text-danger f-s-12 m-t-0"
+                                *ngIf="
+                                  registerTeamMemberForm
+                                    .get('last_name')
+                                    ?.hasError('required') &&
+                                  registerTeamMemberForm.get('last_name')
                                     ?.touched
                                 "
                               >
-                                Full name is required
+                                Last name is required
                               </mat-error>
                             </mat-form-field>
 
+                            <button
+                              mat-flat-button
+                              color="primary"
+                              class="w-100"
+                              matStepperNext
+                              [disabled]="
+                                !registerTeamMemberForm.get('name')?.valid ||
+                                !registerTeamMemberForm.get('last_name')?.valid
+                              "
+                            >
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Email</mat-label>
                               <input
@@ -913,23 +951,6 @@
                               </mat-error>
                             </mat-form-field>
 
-                            <button
-                              mat-flat-button
-                              color="primary"
-                              class="w-100"
-                              matStepperNext
-                              [disabled]="
-                                !registerTeamMemberForm.get('email')?.valid ||
-                                !registerTeamMemberForm.get('fullName')?.valid
-                              "
-                            >
-                              Next
-                            </button>
-                          </form>
-                        </mat-step>
-
-                        <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Password</mat-label>
                               <input
@@ -970,6 +991,7 @@
                               class="w-100 m-t-16"
                               (click)="submit()"
                               [disabled]="
+                                !registerTeamMemberForm.get('email')?.valid ||
                                 !registerTeamMemberForm.get('password')?.valid
                               "
                             >
