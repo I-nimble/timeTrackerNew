@@ -200,7 +200,7 @@ export class AppAccountSettingComponent implements OnInit {
     age: ['', [Validators.required, Validators.min(18)]],
     contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    currentResidence: ['', Validators.required],
+    // currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
     englishLevel: ['', Validators.required],
@@ -288,6 +288,11 @@ export class AppAccountSettingComponent implements OnInit {
       this.personalForm.get('phone')?.updateValueAndValidity();
       this.personalForm.get('address')?.updateValueAndValidity();
     }
+
+    this.setupNameTrimming(this.personalForm, 'name');
+    this.setupNameTrimming(this.personalForm, 'last_name');
+    this.setupNameTrimming(this.profileForm, 'name');
+    this.setupNameTrimming(this.profileForm, 'last_name');
   }
 
   getLocations(): void {
@@ -549,6 +554,12 @@ export class AppAccountSettingComponent implements OnInit {
           if (application.portfolio) {
             this.portfolioFileName = application.portfolio;
           }
+
+          this.olympiaForm.patchValue({
+            full_name: this.user.name + ' ' + this.user.last_name,
+            location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
+            application_area: roleFromPosition.title || null,
+          })
         }
       },
       error: (error) => {
@@ -626,9 +637,7 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability
       });
 
-      this.personalForm.get('phone')?.markAsTouched();
-      this.personalForm.get('address')?.markAsTouched();
-      this.personalForm.get('availability')?.markAsTouched();
+      this.personalForm.markAllAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -657,8 +666,8 @@ export class AppAccountSettingComponent implements OnInit {
       });
 
       if(this.isOrphan) {
-        console.log('user is orphan, setting availability validator')
         this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
+        this.applicationForm.markAllAsTouched();
       }
 
       this.personalForm.valueChanges.subscribe(() => {
@@ -914,7 +923,7 @@ export class AppAccountSettingComponent implements OnInit {
       age: formValues.age,
       phone: formValues.contactPhone,
       additional_phone: formValues.additionalPhone,
-      current_residence: formValues.currentResidence,
+      current_residence: `${this.locations[formValues.location - 1].city}, ${this.locations[formValues.location - 1].country}`,
       address: formValues.address,
       children: formValues.children,
       english_level: formValues.englishLevel,
@@ -1266,5 +1275,16 @@ export class AppAccountSettingComponent implements OnInit {
     if (!url) return '';
     const decodedUrl = decodeURIComponent(url);
     return decodedUrl.split('/').pop() || 'Attachment';
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
+    }
   }
 } 
