@@ -1,73 +1,107 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
-import { NgModule } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { MaterialModule } from 'src/app/material.module';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { RouterModule } from '@angular/router';
+import { EventsService } from 'src/app/services/events.service';
+import { MatDialog } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormsModule } from '@angular/forms';
-
-interface Event {
-  name: string;
-  date: Date;
-  description: string;
-}
+import { AppEventsDialogComponent } from './events-dialog/events-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-events',
-  standalone: true,
   templateUrl: './events.component.html',
+  standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    BrowserAnimationsModule,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
+    MaterialModule,
     MatTableModule,
-    MatPaginatorModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-  ],
+    MarkdownPipe,
+    LinebreakPipe,
+    RouterModule,
+  ]
 })
-
 export class AppEventsComponent implements OnInit {
-  displayedColumns: string[] = ['event', 'date', 'description', 'actions'];
-  events: MatTableDataSource<Event>;
+  displayedColumns: string[] = ['event', 'description', 'date', 'actions'];
+  events: any[] = [];
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  constructor() {
-    const initialEvents: Event[] = [
-      { name: 'Annual Meeting', date: new Date('2025-12-15'), description: 'Company-wide meeting' },
-      { name: 'Project Launch', date: new Date('2025-12-20'), description: 'Launch of new project' },
-      { name: 'Team Outing', date: new Date('2025-12-25'), description: 'Fun outing with the team' },
-    ];
-
-    this.events = new MatTableDataSource(initialEvents);
-  }
+  constructor(private snackBar: MatSnackBar, private dialog: MatDialog, private eventsService: EventsService) {}
 
   ngOnInit(): void {
-    this.events.paginator = this.paginator;
+    this.loadEvents();
+  }
+
+  loadEvents() {
+    this.eventsService.getEvents().subscribe({
+      next: (res) => {
+        this.events = res.events || res; 
+      },
+      error: (err) => {
+        console.error('Error loading events:', err);
+      }
+    });
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
   }
 
   addEvent() {
-    console.log('Add event clicked');
+    const dialogRef = this.dialog.open(AppEventsDialogComponent, {
+      width: '500px',
+      data: { action: 'add' },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.eventsService.createEvent(result).subscribe(() => {
+        this.loadEvents();
+        this.openSnackBar('Event created!', 'Close');
+      });
+    });
   }
 
-  editEvent(event: Event) {
-    console.log('Edit event', event);
+  editEvent(event: any) {
+    const dialogRef = this.dialog.open(AppEventsDialogComponent, {
+      width: '500px',
+      data: { action: 'edit', event },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.eventsService.updateEvent(event.id, result).subscribe(() => {
+        this.loadEvents();
+        this.openSnackBar('Event updated!', 'Close');
+      });
+    });
   }
 
-  deleteEvent(event: Event) {
-    console.log('Delete event', event);
+  deleteEvent(event: any) {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      width: '400px',
+      data: {
+        action: 'delete',
+        subject: 'event',
+        message: ''
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.eventsService.deleteEvent(event.id).subscribe(() => {
+          this.loadEvents();
+        });
+        this.openSnackBar('Event deleted!', 'Close');
+      }
+    });
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
   }
 }
