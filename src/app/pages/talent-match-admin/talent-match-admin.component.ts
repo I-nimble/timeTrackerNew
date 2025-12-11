@@ -76,6 +76,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
   positions: any[] = [];
+  departments: any[] = [];
   userRole = localStorage.getItem('role');
   canManage: boolean = false;
   canEdit: boolean = false;
@@ -97,9 +98,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
   
   
   ngOnInit(): void {
-    this.getApplications();
     this.getPositions();
     this.getInterviews();
+    this.getDepartments();
 
     const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
@@ -108,9 +109,12 @@ export class AppTalentMatchAdminComponent implements OnInit {
         this.canManage = effective.includes('talent-match.manage');
         this.canEdit = effective.includes('talent-match.edit');
         this.canDelete = effective.includes('talent-match.delete');
+        this.getApplications();
       },
       error: (err) => {
         console.error('Error fetching user permissions', err);
+        this.canManage = false;
+        this.getApplications();
       },
     });
   }
@@ -126,13 +130,20 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
-  getApplications() {
-    this.applicationService.get(true).subscribe((applications) => {
-      this.applicationsData = applications;
-      this.dataSource.data = applications;
+  getDepartments() {
+    this.departmentsService.get().subscribe({
+      next: (departments: any) => {
+        this.departments = departments;
+      },
+      error: (err: any) => {
+        console.error('Error fetching departments:', err);
+      },
     });
+  }
+
+  getApplications() {
     this.companiesService.getCompanies().subscribe({
-      next: companies => {
+      next: (companies) => {
         this.companiesData = companies;
       },
       error: (err) => {
