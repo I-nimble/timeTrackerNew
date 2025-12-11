@@ -282,6 +282,11 @@ export class AppAccountSettingComponent implements OnInit {
       this.personalForm.get('phone')?.updateValueAndValidity();
       this.personalForm.get('address')?.updateValueAndValidity();
     }
+
+    this.setupNameTrimming(this.personalForm, 'name');
+    this.setupNameTrimming(this.personalForm, 'last_name');
+    this.setupNameTrimming(this.profileForm, 'name');
+    this.setupNameTrimming(this.profileForm, 'last_name');
   }
 
   getLocations(): void {
@@ -626,9 +631,7 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability
       });
 
-      this.personalForm.get('phone')?.markAsTouched();
-      this.personalForm.get('address')?.markAsTouched();
-      this.personalForm.get('availability')?.markAsTouched();
+      this.personalForm.markAllAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -657,8 +660,8 @@ export class AppAccountSettingComponent implements OnInit {
       });
 
       if(this.isOrphan) {
-        console.log('user is orphan, setting availability validator')
         this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
+        this.applicationForm.markAllAsTouched();
       }
 
       this.personalForm.valueChanges.subscribe(() => {
