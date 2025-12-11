@@ -37,7 +37,7 @@
           </div>  
           </mat-card-content>
         </mat-card>
-        <mat-card class="mt-4 cardWithShadow" *ngIf="!isEventLoading && eventData.length > 0">
+        <mat-card class="mt-4 cardWithShadow">
           <mat-card-content class="mat-mdc-card-content p-y-24">
             <div class="d-flex justify-content-between align-items-center">
               <mat-card-title class="mat-mdc-card-title f-s-16">
@@ -57,6 +57,7 @@
               class="rounded w-100 m-t-8 p-3 border d-flex flex-column justify-content-center align-items-center"
               style="height: 200px; text-align:center;"
               [@fade]="currentEventIndex"
+              *ngIf="!isEventLoading && eventData.length > 0"
             >
               <div class="f-s-13 mat-mdc-card-title mb-2">
                 {{ eventData[currentEventIndex].event }}
@@ -73,15 +74,17 @@
               color="primary"
               class="mdc-button mat-mdc-button-base w-100 m-t-8 mdc-button--unelevated mat-mdc-unelevated-button mat-primary"
               mat-ripple-loader-class-name="mat-mdc-button-ripple"
+              *ngIf="!isEventLoading && eventData.length > 0"
+              [disabled]="isRegistered(eventData[currentEventIndex])"
               (click)="registerCurrentEvent()"
             >
               <span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span>
-              <span class="mdc-button__label">Register</span>
+              <span class="mdc-button__label">{{ isRegistered(eventData[currentEventIndex]) ? 'Registered' : 'Register' }}</span>
               <span class="mat-focus-indicator"></span>
               <span class="mat-mdc-button-touch-target"></span>
               <span class="mat-ripple mat-mdc-button-ripple"></span>
             </button>
-            <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="!isEventLoading && eventData.length > 0">
               <button mat-icon-button (click)="previousEvent()">
                 <mat-icon>chevron_left</mat-icon>
               </button>
@@ -90,13 +93,13 @@
               </button>
             </div>
           </mat-card-content>
+          <div *ngIf="isEventLoading" class="events-empty-state">
+            Loading events...
+          </div>
+          <div *ngIf="!isEventLoading && eventData.length === 0" class="events-empty-state">
+            No upcoming events
+          </div>          
         </mat-card>
-        <div *ngIf="isEventLoading" class="text-center p-3 text-muted">
-          Loading events...
-        </div>
-        <div *ngIf="!isEventLoading && eventData.length === 0" class="text-center p-3 text-muted">
-          No upcoming events
-        </div>
       </div>
     </div>
   </mat-card-content>

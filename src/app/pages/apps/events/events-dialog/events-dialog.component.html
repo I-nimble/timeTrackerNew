@@ -28,11 +28,40 @@
 
       <div class="col-12 mb-3">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Date</mat-label>
-          <input matInput type="datetime-local" formControlName="date" />
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let t of types" [value]="t">
+              {{ t.replace('_', ' ') | titlecase }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="eventForm.get('type')?.invalid">
+            Type is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Pick a date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="picker"
+            placeholder="Select a date"
+            [min]="today"
+            formControlName="date"
+            required
+          />
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker (dateChange)="onDateChange($event)"></mat-datepicker>
           <mat-error *ngIf="eventForm.get('date')?.invalid">
             Date is required
           </mat-error>
+          <mat-error *ngIf="eventForm.get('date')?.hasError('minDate')">
+            Date cannot be in the past
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Time</mat-label>
+          <input matInput type="time" formControlName="time">
         </mat-form-field>
       </div>
     </div>

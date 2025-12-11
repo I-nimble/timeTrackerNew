@@ -34,7 +34,7 @@ export class EventsService {
     return this.http.delete<any>(`${this.API_URI}/events/${id}`);
   }
 
-  registerToEvent(id: number, data: any): Observable<any> {
-    return this.http.post<any>(`${this.API_URI}/events/${id}/register`, data);
+  registerToEvent(eventId: number): Observable<any> {
+    return this.http.post<any>(`${this.API_URI}/events/${eventId}/register`, {});
   }
 }
