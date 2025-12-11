@@ -37,6 +37,7 @@ export class AppWelcomeCardComponent implements OnInit {
   eventData: any[] = [];
   currentEventIndex: number = 0;
   isEventLoading: boolean = true;
+  currentUserId: number | null = null;
 
   constructor(
     private notificationsService: NotificationsService,
@@ -48,6 +49,7 @@ export class AppWelcomeCardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.currentUserId = Number(localStorage.getItem('id')) || null;
     this.loadNotifications();
     this.loadEvents();
     this.webSocketService.getNotifications().subscribe((event) => {
@@ -76,11 +78,15 @@ export class AppWelcomeCardComponent implements OnInit {
     this.eventsService.getEvents().subscribe({
       next: (events) => {
         if (events && events.length > 0) {
-          this.eventData = events.sort((a: any, b: any) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-          );
+          const now = new Date();
+          this.eventData = events
+            .filter((event: any) => new Date(event.date) > now)
+            .sort((a: any, b: any) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime()
+            );
         }
         this.isEventLoading = false;
+        this.currentEventIndex = 0;
       },
       error: (error) => {
         console.error('Error loading events:', error);
@@ -108,31 +114,34 @@ export class AppWelcomeCardComponent implements OnInit {
       width: '400px',
       data: {
         subject: 'event',
-        action: 'register',
-        message: ''
+        action: 'register'
       }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const full_name = localStorage.getItem('username') || '';
-        const email = localStorage.getItem('email') || '';
-        if (!full_name || !email) {
-          this.openSnackBar('User info not found', 'Close');
-          return;
-        }
-        const payload = { full_name, email };
-        this.eventsService.registerToEvent(currentEvent.id, payload).subscribe({
-          next: (res) => {
-            this.openSnackBar(`Successfully registered to ${currentEvent.event}`, 'Close');
-          },
-          error: (err) => {
-            console.error('Error registering to event:', err);
-            this.openSnackBar('Failed registering to event', 'Close');
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.eventsService.registerToEvent(currentEvent.id).subscribe({
+        next: (res) => {
+          this.openSnackBar(res.message || `Successfully registered to ${currentEvent.event}`, 'Close');
+          if (res.registered_user) {
+            if (!currentEvent.attendees) {
+              currentEvent.attendees = [];
+            }
+            currentEvent.attendees.push(res.registered_user);
           }
-        });
-      }
+        },
+        error: (err) => {
+          console.error('Error registering to event:', err);
+          const msg = err.error?.message || 'Failed registering to event';
+          this.openSnackBar(msg, 'Close');
+        }
+      });
     });
+  }
+
+  isRegistered(event: any): boolean {
+    if (!this.currentUserId || !event.attendees) return false;
+    return event.attendees.some((u: any) => u.id === this.currentUserId);
   }
 
   filterAndSortNotifications(notifications: any[]): any[] {

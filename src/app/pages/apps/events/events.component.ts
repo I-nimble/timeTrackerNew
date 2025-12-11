@@ -24,7 +24,7 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
   ]
 })
 export class AppEventsComponent implements OnInit {
-  displayedColumns: string[] = ['event', 'description', 'date', 'actions'];
+  displayedColumns: string[] = ['event', 'description', 'type', 'date', 'attendees', 'actions'];
   events: any[] = [];
 
   constructor(private snackBar: MatSnackBar, private dialog: MatDialog, private eventsService: EventsService) {}
@@ -43,10 +43,20 @@ export class AppEventsComponent implements OnInit {
       }
     });
   }
+  
+  getAttendeesList(attendees: any[]): string {
+    if (!attendees || attendees.length === 0) return '-';
+    return attendees.map(a => `${a.name} ${a.last_name}`).join(', ');
+  }
 
   formatDate(dateStr: string): string {
     const date = new Date(dateStr);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    const options: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    };
+    return date.toLocaleDateString() + ' - ' + date.toLocaleTimeString([], options);
   }
 
   addEvent() {
@@ -83,7 +93,6 @@ export class AppEventsComponent implements OnInit {
       data: {
         action: 'delete',
         subject: 'event',
-        message: ''
       }
     });
 
