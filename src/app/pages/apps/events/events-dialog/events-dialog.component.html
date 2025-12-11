@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>
+  {{ action === 'edit' ? 'Edit Event' : 'Add New Event' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="eventForm">
+    <div class="row">
+
+      <div class="col-12 m-t-5">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Event</mat-label>
+          <input matInput formControlName="event" />
+          <mat-error *ngIf="eventForm.get('event')?.invalid">
+            Event name is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description"></textarea>
+          <mat-error *ngIf="eventForm.get('description')?.invalid">
+            Description is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 mb-3">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Date</mat-label>
+          <input matInput type="datetime-local" formControlName="date" />
+          <mat-error *ngIf="eventForm.get('date')?.invalid">
+            Date is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="eventForm.invalid"
+  >
+    Save
+  </button>
+
+  <button mat-button (click)="onCancel()" class="bg-error text-white">
+    Cancel
+  </button>
+</mat-dialog-actions>
