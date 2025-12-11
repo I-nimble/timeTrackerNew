@@ -1,4 +1,4 @@
-<h2 mat-dialog-title>{{ action == 'edit' ? 'Edit' : 'Add new' }} Candidate</h2>
+<h2 mat-dialog-title>{{ action == "edit" ? "Edit" : "Add new" }} Candidate</h2>
 <mat-dialog-content>
   <form [formGroup]="candidateForm">
     <div class="row">
@@ -84,7 +84,10 @@
       <div class="col-12 mb-3">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Talent Match Profile Summary</mat-label>
-          <textarea matInput formControlName="talent_match_profile_summary"></textarea>
+          <textarea
+            matInput
+            formControlName="talent_match_profile_summary"
+          ></textarea>
         </mat-form-field>
       </div>
       <div class="col-12 mb-3">
@@ -96,7 +99,19 @@
       <div class="col-12 mb-3">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Work Experience</mat-label>
-          <input matInput formControlName="work_experience" />
+          <textarea
+            matInput
+            formControlName="work_experience"
+            rows="3"
+            placeholder="Describe the applicant work experience"
+          ></textarea>
+          <mat-error
+            *ngIf="candidateForm.get('work_experience')?.hasError('maxlength')"
+          >
+            Text is too long. Please reduce your description from
+            {{ candidateForm.get("work_experience")?.value.length }}
+            to 1000 characters.
+          </mat-error>
         </mat-form-field>
       </div>
       <div class="col-12 mb-3">
@@ -131,7 +146,9 @@
       </div>
       <!-- Availability checkbox input -->
       <div class="col-12 m-b-16">
-        <mat-checkbox formControlName="availability">Currently available</mat-checkbox>
+        <mat-checkbox formControlName="availability"
+          >Currently available</mat-checkbox
+        >
       </div>
       <!-- Update Match Scores Button -->
       <div class="col-12 mb-3" *ngIf="data.candidate && data.candidate.id">

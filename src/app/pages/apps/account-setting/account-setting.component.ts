@@ -117,7 +117,7 @@ export class AppAccountSettingComponent implements OnInit {
     phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: [''],
-    availability: [false, [Validators.required, this.mustBeYesValidator()]]
+    availability: [false]
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
@@ -200,7 +200,7 @@ export class AppAccountSettingComponent implements OnInit {
     age: ['', [Validators.required, Validators.min(18)]],
     contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    currentResidence: ['', Validators.required],
+    // currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
     englishLevel: ['', Validators.required],
@@ -208,7 +208,7 @@ export class AppAccountSettingComponent implements OnInit {
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
     educationHistory: ['', Validators.required],
-    workExperience: ['', [Validators.required, Validators.maxLength(50)]],
+    workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
     resume: [null],
@@ -216,7 +216,7 @@ export class AppAccountSettingComponent implements OnInit {
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    availability: ['no', Validators.required],
+    availability: [false, Validators.requiredTrue],
     programmingLanguages: ['']
   });
   locations: any[] = [];
@@ -301,10 +301,10 @@ export class AppAccountSettingComponent implements OnInit {
     // since we only need VA and IT positions for orphan TM
   }
 
-  mustBeYesValidator(): ValidatorFn {
+  mustBeTrueValidator(): ValidatorFn {
     return (control: AbstractControl) => {
-      if (control.value === 'no') {
-        return { mustBeYes: true };
+      if (!control.value) {
+        return { mustBeTrue: true };
       }
       return null;
     };
@@ -348,6 +348,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
   }
 
@@ -539,7 +540,7 @@ export class AppAccountSettingComponent implements OnInit {
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            availability: application.inmediate_availability ? 'yes' : 'no',
+            availability: application.inmediate_availability,
             programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
@@ -548,6 +549,12 @@ export class AppAccountSettingComponent implements OnInit {
           if (application.portfolio) {
             this.portfolioFileName = application.portfolio;
           }
+
+          this.olympiaForm.patchValue({
+            full_name: this.user.name + ' ' + this.user.last_name,
+            location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
+            application_area: roleFromPosition.title || null,
+          })
         }
       },
       error: (error) => {
@@ -618,11 +625,14 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
+        availability: this.user.availability == 1
+      });
+
+      this.applicationForm.patchValue({
         availability: this.user.availability
       });
 
-      this.personalForm.get('phone')?.markAsTouched();
-      this.personalForm.get('address')?.markAsTouched();
+      this.personalForm.markAllAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -649,6 +659,11 @@ export class AppAccountSettingComponent implements OnInit {
           linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
+
+      if(this.isOrphan) {
+        this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
+        this.applicationForm.markAllAsTouched();
+      }
 
       this.personalForm.valueChanges.subscribe(() => {
         this.checkFormChanges();
@@ -903,7 +918,7 @@ export class AppAccountSettingComponent implements OnInit {
       age: formValues.age,
       phone: formValues.contactPhone,
       additional_phone: formValues.additionalPhone,
-      current_residence: formValues.currentResidence,
+      current_residence: `${this.locations[formValues.location - 1].city}, ${this.locations[formValues.location - 1].country}`,
       address: formValues.address,
       children: formValues.children,
       english_level: formValues.englishLevel,

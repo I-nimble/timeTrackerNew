@@ -12,7 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { PermissionService } from 'src/app/services/permission.service';
-import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 
@@ -54,6 +54,7 @@ export class CandidateDetailsComponent implements OnInit {
   canView: boolean = false;
   canManage: boolean = false;
   canEdit: boolean = false;
+  showFullWorkExperience: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -86,7 +87,7 @@ export class CandidateDetailsComponent implements OnInit {
       profile_pic: [''],
       interview_link: [''],
       hobbies: [''],
-      work_experience: [''],
+      work_experience: ['', Validators.maxLength(1000)],
       skills: [''],
       education_history: [''],
       inimble_academy: [''],
