@@ -154,6 +154,15 @@ export class AppSideRegisterComponent {
     this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
       this.registerClientForm.updateValueAndValidity();
     });
+
+    this.setupNameTrimming(this.registerClientForm, 'name');
+    this.setupNameTrimming(this.registerClientForm, 'last_name');
+
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'last_name');
+
+    this.setupNameTrimming(this.registerTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerTeamMemberForm, 'last_name');
   }
 
   emailTakenValidator(): ValidatorFn {
@@ -525,6 +534,17 @@ export class AppSideRegisterComponent {
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();
+    }
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
     }
   }
 }
