@@ -121,6 +121,9 @@
     <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="canViewMySentinel">
       My Sentinel
     </a>
+    <a mat-button [routerLink]="['/apps/events']" *ngIf="role == '1'">
+      Events
+    </a>
   </div>
 
   <span class="flex-1-auto"></span>
