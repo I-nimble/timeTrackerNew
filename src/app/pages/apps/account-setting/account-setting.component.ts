@@ -125,7 +125,7 @@ export class AppAccountSettingComponent implements OnInit {
     ]],
     address: [''],
     profile: [''],
-    availability: [false, [Validators.required, this.mustBeYesValidator()]]
+    availability: [false]
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
@@ -221,7 +221,7 @@ export class AppAccountSettingComponent implements OnInit {
       Validators.minLength(10),
       Validators.maxLength(15)
     ]],
-    currentResidence: ['', Validators.required],
+    // currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
     englishLevel: ['', Validators.required],
@@ -237,7 +237,7 @@ export class AppAccountSettingComponent implements OnInit {
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    availability: ['no', Validators.required],
+    availability: [false, Validators.requiredTrue],
     programmingLanguages: ['']
   });
   locations: any[] = [];
@@ -309,6 +309,11 @@ export class AppAccountSettingComponent implements OnInit {
       this.personalForm.get('phone')?.updateValueAndValidity();
       this.personalForm.get('address')?.updateValueAndValidity();
     }
+
+    this.setupNameTrimming(this.personalForm, 'name');
+    this.setupNameTrimming(this.personalForm, 'last_name');
+    this.setupNameTrimming(this.profileForm, 'name');
+    this.setupNameTrimming(this.profileForm, 'last_name');
   }
 
   getLocations(): void {
@@ -320,15 +325,6 @@ export class AppAccountSettingComponent implements OnInit {
   getPositions(): void {
     // Using careerRoles directly instead of positions from API
     // since we only need VA and IT positions for orphan TM
-  }
-
-  mustBeYesValidator(): ValidatorFn {
-    return (control: AbstractControl) => {
-      if (control.value === 'no') {
-        return { mustBeYes: true };
-      }
-      return null;
-    };
   }
 
   setupConditionalValidation(): void {
@@ -560,7 +556,7 @@ export class AppAccountSettingComponent implements OnInit {
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            availability: application.inmediate_availability ? 'yes' : 'no',
+            availability: application.inmediate_availability,
             programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
@@ -569,6 +565,12 @@ export class AppAccountSettingComponent implements OnInit {
           if (application.portfolio) {
             this.portfolioFileName = application.portfolio;
           }
+
+          this.olympiaForm.patchValue({
+            full_name: this.user.name + ' ' + this.user.last_name,
+            location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
+            application_area: roleFromPosition.title || null,
+          })
         }
       },
       error: (error) => {
@@ -639,13 +641,11 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
-        availability: this.user.availability
+        availability: this.user.availability == 1
       });
 
-      this.personalForm.get('phone')?.markAsTouched();
-      this.personalForm.get('address')?.markAsTouched();
-      this.applicationForm.get('contactPhone')?.markAsTouched();
-      this.applicationForm.get('additionalPhone')?.markAsTouched();
+
+      this.personalForm.markAllAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -672,6 +672,10 @@ export class AppAccountSettingComponent implements OnInit {
           linkedin: this.user.employee?.social_media?.linkedin || ''
         }
       });
+
+      if(this.isOrphan) {
+        this.applicationForm.markAllAsTouched();
+      }
 
       this.personalForm.valueChanges.subscribe(() => {
         this.checkFormChanges();
@@ -926,7 +930,7 @@ export class AppAccountSettingComponent implements OnInit {
       age: formValues.age,
       phone: formValues.contactPhone,
       additional_phone: formValues.additionalPhone,
-      current_residence: formValues.currentResidence,
+      current_residence: `${this.locations[formValues.location - 1].city}, ${this.locations[formValues.location - 1].country}`,
       address: formValues.address,
       children: formValues.children,
       english_level: formValues.englishLevel,
@@ -1278,5 +1282,16 @@ export class AppAccountSettingComponent implements OnInit {
     if (!url) return '';
     const decodedUrl = decodeURIComponent(url);
     return decodedUrl.split('/').pop() || 'Attachment';
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
+    }
   }
 } 
