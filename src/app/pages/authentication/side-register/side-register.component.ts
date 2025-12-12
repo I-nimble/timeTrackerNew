@@ -81,32 +81,10 @@ export class AppSideRegisterComponent {
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
-    location: ['', Validators.required],
-    role: ['', Validators.required],
+    name: ['', [Validators.required]],
+    last_name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    appliedWhere: ['', Validators.required],
-    referred: ['no', Validators.required],
-    referredName: [''],
-    fullName: ['', Validators.required],
-    age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    currentResidence: ['', Validators.required],
-    address: ['', Validators.required],
-    children: ['0', Validators.required],
-    englishLevel: ['', Validators.required],
-    competencies: ['', Validators.required],
-    technicalSkills: ['', Validators.required],
-    techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
-    educationHistory: ['', Validators.required],
-    workExperience: ['', Validators.required],
-    workReferences: ['', Validators.required],
-    hobbies: ['', Validators.required],
-    resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    picture: [null, [this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    google_user_id: [''],
-    salaryRange: [null, [Validators.required, Validators.min(1), Validators.max(1000000)]],
   });
   userRole: string = '3';
   companyId: string = '';
@@ -176,6 +154,15 @@ export class AppSideRegisterComponent {
     this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
       this.registerClientForm.updateValueAndValidity();
     });
+
+    this.setupNameTrimming(this.registerClientForm, 'name');
+    this.setupNameTrimming(this.registerClientForm, 'last_name');
+
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'last_name');
+
+    this.setupNameTrimming(this.registerTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerTeamMemberForm, 'last_name');
   }
 
   emailTakenValidator(): ValidatorFn {
@@ -245,113 +232,7 @@ export class AppSideRegisterComponent {
     this.userRole = userRole;
     if (userRole === '2' && !this.hasInvitation) {
       this.getLocations();
-      this.setupConditionalValidation();
     }
-  }
-
-  private setupConditionalValidation() {
-    if (!this.registerTeamMemberForm) return;
-
-    const referredControl = this.registerTeamMemberForm?.get('referred');
-    if (referredControl) {
-      referredControl.valueChanges.subscribe(value => {
-        if (value === 'yes') {
-          this.registerTeamMemberForm?.get('referredName')?.setValidators(Validators.required);
-        } else {
-          this.registerTeamMemberForm?.get('referredName')?.clearValidators();
-        }
-        this.registerTeamMemberForm?.get('referredName')?.updateValueAndValidity();
-      });
-    }
-
-    const locationControl = this.registerTeamMemberForm?.get('location');
-    if (locationControl) {
-      locationControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-    const roleControl = this.registerTeamMemberForm?.get('role');
-    if (roleControl) {
-      roleControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-  }
-
-  private updateConditionalControls() {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      ['availability', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
-        (this.registerTeamMemberForm as FormGroup<any>).removeControl(ctrl);
-      });
-
-      if (!location || !role) return;
-
-      if (role.title === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      } else if (role.title === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
-      if (role.title === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
-      }
-
-      if (role.title === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
-      }
-    }
-  }
-
-  onFileChange(event: Event, controlName: string): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-
-      if (file.size > 10737418240) {
-        this.registerTeamMemberForm.get(controlName)?.setErrors({ maxFileSize: true });
-      } else {
-        this.registerTeamMemberForm.get(controlName)?.setValue(file);
-      }
-      this.registerTeamMemberForm.get(controlName)?.updateValueAndValidity();
-    }
-  }
-
-
-  maxFileSizeValidator(maxSizeBytes: number): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) {
-        return null;
-      }
-
-      const file = control.value as File;
-      if (file.size > maxSizeBytes) {
-        return {
-          maxFileSize: {
-            requiredSize: maxSizeBytes,
-            actualSize: file.size,
-            message: `File size exceeds the maximum allowed size of ${this.formatFileSize(maxSizeBytes)}`
-          }
-        };
-      }
-      return null;
-    };
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   getCompanies() {
@@ -565,34 +446,10 @@ export class AppSideRegisterComponent {
       }
 
       const teamMemberData = {
-        location: this.registerTeamMemberForm.value.location,
-        position_id: this.registerTeamMemberForm.value.role.position_id,
+        name: this.registerTeamMemberForm.value.name,
+        last_name: this.registerTeamMemberForm.value.last_name,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
-        applied_where: this.registerTeamMemberForm.value.appliedWhere,
-        referred: this.registerTeamMemberForm.value.referred,
-        referrer_name: this.registerTeamMemberForm.value.referredName,
-        full_name: this.registerTeamMemberForm.value.fullName,
-        age: this.registerTeamMemberForm.value.age,
-        contact_phone: this.registerTeamMemberForm.value.contactPhone,
-        additional_phone: this.registerTeamMemberForm.value.additionalPhone || '',
-        current_residence: this.registerTeamMemberForm.value.currentResidence,
-        address: this.registerTeamMemberForm.value.address,
-        children: this.registerTeamMemberForm.value.children,
-        english_level: this.registerTeamMemberForm.value.englishLevel,
-        competencies: this.registerTeamMemberForm.value.competencies,
-        technical_skills: this.registerTeamMemberForm.value.technicalSkills,
-        tech_proficiency: this.registerTeamMemberForm.value.techProficiency,
-        education_history: this.registerTeamMemberForm.value.educationHistory || '',
-        work_experience: this.registerTeamMemberForm.value.workExperience || '',
-        work_references: this.registerTeamMemberForm.value.workReferences,
-        hobbies: this.registerTeamMemberForm.value.hobbies || '',
-        availability: this.registerTeamMemberForm.value.availability,
-        salary_range: this.registerTeamMemberForm.value.salaryRange,
-        programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
-        google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
 
       this.usersService.registerOrphanTeamMember(teamMemberData).subscribe({
@@ -677,6 +534,17 @@ export class AppSideRegisterComponent {
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();
+    }
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
     }
   }
 }

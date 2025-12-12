@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, Optional, Inject } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
@@ -11,14 +11,9 @@ import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { PositionsService } from 'src/app/services/positions.service';
-import { FormsModule } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDialogRef } from '@angular/material/dialog';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NgModel } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Optional, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
@@ -27,8 +22,7 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
 import { AIService } from 'src/app/services/ai.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
-import { MatTabHeader } from '@angular/material/tabs';
-import { MatTabBody } from '@angular/material/tabs';
+import { MatTabHeader, MatTabBody } from '@angular/material/tabs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { MatSliderModule } from '@angular/material/slider';
@@ -108,9 +102,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   query: string = '';
   selectedRole: string | null = null;
   selectedPracticeArea: string | null = null;
-  selectedPersonality: string[] = [];
   selectedSkillsTools: string[] = [];
-  selectedExperienceLevel: string | null = null;
   selectedCertifications: string[] = [];
   selectedBackground: string[] = [];
   roleDescription: string = '';
@@ -169,13 +161,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     'General Practice'
   ];
 
-  personalityTypes: string[] = [
-    'Driver (fast and decisive)',
-    'Organizer (systems and order)',
-    'Communicator (client-facing)',
-    'Analytical (detail and research)'
-  ];
-
   skillsList: string[] = [
     'Intake',
     'Client Communication',
@@ -206,12 +191,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     'Notion',
     'Trello',
     'QuickBooks'
-  ];
-
-  experienceLevels: string[] = [
-    'Intermediate (3–6 years)',
-    'Senior (6–9 years)',
-    'Expert (10+ years)'
   ];
 
   certificationsOptions: string[] = [
@@ -258,12 +237,26 @@ export class AppTalentMatchClientComponent implements OnInit {
     private matchScoresService: ApplicationMatchScoresService
   ) {}
 
+  @ViewChild('roleModel') roleModel!: NgModel;
+  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
+
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
     this.getCompany();
     this.getInterviews();
     this.getPositionCategories();
+  }
+
+  ngAfterViewInit(): void {
+    Promise.resolve().then(() => {
+      if (this.roleModel) {
+        this.roleModel.control.markAsTouched();
+      }
+      if (this.practiceAreaModel) {
+        this.practiceAreaModel.control.markAsTouched();
+      }
+    });
   }
 
   searchCandidatesWithAI(question: string) {
@@ -326,7 +319,7 @@ export class AppTalentMatchClientComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
           this.useManualSearch = true;
           this.aiLoading = false;
         } else {
@@ -339,35 +332,38 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   buildFullSearchQuery(): string {
-    const parts: string[] = [];
-    if (this.query) {
-      parts.push(`Original matching criteria: ${this.query}`);
-    }
+    const stage1: string[] = [];
+    const stage2: string[] = [];
     if (this.selectedRole) {
-      parts.push(`Role: ${this.selectedRole}`);
-    }
-    if (this.roleDescription) {
-      parts.push(`Role details: ${this.roleDescription}`);
+      stage1.push(`Primary role: ${this.selectedRole}`);
     }
     if (this.selectedPracticeArea) {
-      parts.push(`Practice area: ${this.selectedPracticeArea}`);
+      stage1.push(`Practice area: ${this.selectedPracticeArea}`);
     }
-    if (this.selectedPersonality?.length > 0) {
-      parts.push(`Personality traits: ${this.selectedPersonality.join(', ')}`);
+    if (this.roleDescription) {
+      stage1.push(`Role description: ${this.roleDescription}`);
     }
     if (this.selectedSkillsTools?.length > 0) {
-      parts.push(`Skills & Tools: ${this.selectedSkillsTools.join(', ')}`);
-    }
-    if (this.selectedExperienceLevel) {
-      parts.push(`Experience level: ${this.selectedExperienceLevel}`);
+      stage2.push(`Preferred skills/tools: ${this.selectedSkillsTools.join(', ')}`);
     }
     if (this.selectedCertifications?.length > 0) {
-      parts.push(`Certifications: ${this.selectedCertifications.join(', ')}`);
+      stage2.push(`Relevant certifications: ${this.selectedCertifications.join(', ')}`);
     }
     if (this.selectedBackground?.length > 0) {
-      parts.push(`Related background: ${this.selectedBackground.join(', ')}`);
+      stage2.push(`Related background: ${this.selectedBackground.join(', ')}`);
     }
-    return parts.join('; ');
+    if (this.budgetRange.min !== this.budgetMin || this.budgetRange.max !== this.budgetMax) {
+      stage2.push(
+        this.isMonthlyRate
+          ? `Budget range: $${this.budgetRange.min}–$${this.budgetRange.max} monthly`
+          : `Budget range: $${this.budgetRange.min}/hr – $${this.budgetRange.max}/hr`
+      );
+    }
+    let finalQuery = `FIRST filter candidates ONLY by the following primary criteria: 
+  ${stage1.join('; ') || 'None provided'}
+  THEN refine the remaining candidates using these optional preferences (only if available):
+  ${stage2.join('; ') || 'No additional refinements'}`;
+    return finalQuery;
   }
 
   onManualSearch(query?: string) {
@@ -745,20 +741,19 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
   
   get canSearchAI(): boolean {
-    const hasFilters = !!(
-      this.selectedRole ||
-      this.selectedPracticeArea ||
-      (this.selectedPersonality?.length ?? 0) > 0 ||
+    const hasRequiredFilters =
+      !!this.selectedRole &&
+      !!this.selectedPracticeArea;
+    const hasOptionalFilters = !!(
       (this.selectedSkillsTools?.length ?? 0) > 0 ||
-      this.selectedExperienceLevel ||
       (this.selectedCertifications?.length ?? 0) > 0 ||
       (this.selectedBackground?.length ?? 0) > 0 ||
       this.budgetRange?.min !== this.budgetMin ||
       this.budgetRange?.max !== this.budgetMax ||
       this.roleDescription
     );
-
-    return !!this.query || hasFilters;
+    if (!!this.query) return true;
+    return hasRequiredFilters && hasOptionalFilters;
   }
 
   handleImageError(event: Event) {

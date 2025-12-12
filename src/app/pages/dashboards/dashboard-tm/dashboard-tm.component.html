@@ -25,14 +25,16 @@
                   alt="{{ user.name }} {{ user.last_name }}"
                   width="100"
                   height="100"
-                  style="object-fit: cover; aspect-ratio: 1 / 1;"
+                  style="object-fit: cover; aspect-ratio: 1 / 1"
                 />
               </div>
             </div>
           </div>
           <div class="text-center mt-2">
             <h5 class="mb-2">{{ user.name }} {{ user.last_name }}</h5>
-            <p class="mb-0 position" *ngIf="!isOrphan">{{ user.employee.position_name }}</p>
+            <p class="mb-0 position" *ngIf="!isOrphan">
+              {{ user.employee.position_name }}
+            </p>
           </div>
         </div>
       </div>
@@ -59,82 +61,90 @@
 <div class="row mt-4 m-b-20" *ngIf="!isOrphan">
   <div class="col-md-5 m-b-20">
     <div class="card shadow-none h-100">
-       <div class="card-body tasks">
-          <p class="mb-3">My Tasks for Today</p>
-            <div
-              class="list-group-item d-flex align-items-center justify-content-between"
-              *ngFor="let task of todayTasks"
-            >
-              <div class="d-flex align-items-center m-t-10">
-                <mat-icon color="primary" class="me-2">check</mat-icon>
-                <div>
-                  <div class="fw-semibold">{{ task.goal }}</div>
-                  <div class="text-muted small" *ngIf="task.due_date">
-                    <mat-icon class="me-1" style="font-size: 16px"
-                      >event</mat-icon
-                    >
-                    Due: {{ task.due_date | date: "mediumDate" }}
-                  </div>
-                </div>
+      <div class="card-body tasks">
+        <p class="mb-3">My Tasks for Today</p>
+        <div
+          class="list-group-item d-flex align-items-center justify-content-between"
+          *ngFor="let task of todayTasks"
+        >
+          <div class="d-flex align-items-center m-t-10">
+            <mat-icon color="primary" class="me-2">check</mat-icon>
+            <div>
+              <div class="fw-semibold">{{ task.goal }}</div>
+              <div class="text-muted small" *ngIf="task.due_date">
+                <mat-icon class="me-1" style="font-size: 16px">event</mat-icon>
+                Due: {{ task.due_date | date : "mediumDate" }}
               </div>
-                <span class="rounded f-s-12 p-x-8 text-white bg-primary" *ngIf="task.priorityAssociation">
-                  {{ task.priorityAssociation.name }}
-                </span>
             </div>
-            <p
-              *ngIf="!todayTasks || todayTasks.length === 0"
-              class="list-group-item text-center text-muted"
-            >
-              No tasks for Today
-          </p>
-          <div class="text-end btnTasks">
-            <button mat-stroked-button class="btn btn-primary" [routerLink]="['/apps/todo']">
-              See All Tasks
-            </button>
           </div>
-      </div>
-    </div> 
-  </div>
-  <div class="col-md-7 m-b-20" *ngIf="employees.length > 0 || employer">
-  <div class="card shadow-none border">
-    <div class="card-body tm-photos">
-      <div class="row">
-        <!-- Employer -->
-        <div class="col-4" *ngIf="employer">
-          <div style="display: flex; justify-content: center">
-            <img
-              [src]="employer.picture || 'assets/images/default-logo.jpg'"
-              [alt]="employer.name"
-              width="100"
-              height="100"
-              class="rounded-circle"
-              style="object-fit: cover; aspect-ratio: 1 / 1;"
-            />
-          </div>
-          <p class="text-center tm fw-bold">
-            {{ employer.name }} {{ employer.last_name }}
-          </p>
+          <span
+            class="rounded f-s-12 p-x-8 text-white bg-primary"
+            *ngIf="task.priorityAssociation"
+          >
+            {{ task.priorityAssociation.name }}
+          </span>
         </div>
-        <!-- Employees -->
-        <div class="col-4" *ngFor="let employee of employees">
-          <div style="display: flex; justify-content: center">
-            <img
-              [src]="employee.user.picture || 'assets/images/default-user-profile-pic.png'"
-              [alt]="employee.user.name"
-              width="100"
-              height="100"
-              class="rounded-circle"
-              style="object-fit: cover; aspect-ratio: 1 / 1;"
-            />
-          </div>
-          <p class="text-center tm">
-            {{ employee.user.name }} {{ employee.user.last_name }}
-          </p>
+        <p
+          *ngIf="!todayTasks || todayTasks.length === 0"
+          class="list-group-item text-center text-muted"
+        >
+          No tasks for Today
+        </p>
+        <div class="text-end btnTasks">
+          <button
+            mat-stroked-button
+            class="btn btn-primary"
+            [routerLink]="['/apps/todo']"
+          >
+            See All Tasks
+          </button>
         </div>
       </div>
     </div>
   </div>
-</div>
+  <div class="col-md-7 m-b-20" *ngIf="employees.length > 0 || employer">
+    <div class="card shadow-none border">
+      <div class="card-body tm-photos">
+        <div class="row">
+          <!-- Employer -->
+          <div class="col-4" *ngIf="employer">
+            <div style="display: flex; justify-content: center">
+              <img
+                [src]="employer.picture || 'assets/images/default-logo.jpg'"
+                [alt]="employer.name"
+                width="100"
+                height="100"
+                class="rounded-circle"
+                style="object-fit: cover; aspect-ratio: 1 / 1"
+              />
+            </div>
+            <p class="text-center tm fw-bold">
+              {{ employer.name }} {{ employer.last_name }}
+            </p>
+          </div>
+          <!-- Employees -->
+          <div class="col-4" *ngFor="let employee of employees">
+            <div style="display: flex; justify-content: center">
+              <img
+                [src]="
+                  employee.user.picture ||
+                  'assets/images/default-user-profile-pic.png'
+                "
+                [alt]="employee.user.name"
+                width="100"
+                height="100"
+                class="rounded-circle"
+                style="object-fit: cover; aspect-ratio: 1 / 1"
+              />
+            </div>
+            <p class="text-center tm">
+              {{ employee.user.name }} {{ employee.user.last_name }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div *ngIf="isOrphan" class="row mt-4 m-b-20">
@@ -142,20 +152,29 @@
     <div class="card shadow-none h-100">
       <div class="card-body">
         <p class="mb-3 fw-semibold">Get Started</p>
-        <ng-container *ngIf="selectedStepperIndex !== -1; else completedMessage">
-          <mat-horizontal-stepper linear class="onboarding-stepper" [selectedIndex]="selectedStepperIndex" (selectionChange)="preventStepperBack($event)">
+        <ng-container
+          *ngIf="selectedStepperIndex !== -1; else completedMessage"
+        >
+          <mat-horizontal-stepper
+            linear
+            class="onboarding-stepper"
+            [selectedIndex]="selectedStepperIndex"
+            (selectionChange)="preventStepperBack($event)"
+          >
             <ng-template matStepperIcon="edit">
               <mat-icon>check</mat-icon>
             </ng-template>
             <mat-step [completed]="true">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(0); $event.stopPropagation()">Register & Login</span>
+                <span style="cursor: default">Register & Login</span>
               </ng-template>
               <p>
-                <strong>Welcome to the platform!</strong><br>
-                You’ve successfully created your account and logged in. 
-                Your credentials are now active, giving you access to the features available to your role. 
-                Keep your login information secure. Once you’re ready, click “Next” to proceed to setting up your profile.
+                <strong>Welcome to the platform!</strong><br />
+                You’ve successfully created your account and logged in. Your
+                credentials are now active, giving you access to the features
+                available to your role. Keep your login information secure. Once
+                you’re ready, click “Next” to proceed to setting up your
+                profile.
               </p>
               <div class="step-button-container">
                 <button mat-flat-button color="primary" matStepperNext>
@@ -164,23 +183,47 @@
               </div>
             </mat-step>
 
-            <mat-step [completed]="pictureUploaded && videoUploaded">
+            <mat-step [completed]="pictureUploaded || videoUploaded">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(0); $event.stopPropagation()">Configure Profile</span>
+                <span
+                  [style.cursor]="
+                    pictureUploaded && videoUploaded ? 'default' : 'pointer'
+                  "
+                  (click)="
+                    !(pictureUploaded && videoUploaded)
+                      ? goToAccountSettings(0)
+                      : null;
+                    $event.stopPropagation()
+                  "
+                >
+                  Configure Profile
+                </span>
               </ng-template>
               <p>
-                <strong>Get your profile ready.</strong><br>
-                Go to the 
-                <span 
-                  style="color: #9cb764; cursor: pointer;" 
-                  (click)="goToAccountSettings(0)">
+                <strong>Get your profile ready.</strong><br />
+                Go to the
+                <span
+                  style="color: #9cb764; cursor: pointer"
+                  (click)="goToAccountSettings(0)"
+                >
                   user profile section.
-                </span> 
-                Upload your profile picture and an introduction video so we can recognize you and get to know you better.
-                Once your picture and video are uploaded, you can proceed with the next step.
+                </span>
+                Submit more information about yourself, your profile picture and
+                an introduction video so we can recognize you and get to know
+                you better. Once your profile is ready, you can proceed with the
+                next step.
               </p>
               <div class="step-button-container">
-                <button mat-flat-button color="primary" matStepperNext [disabled]="!pictureUploaded || !videoUploaded">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  matStepperNext
+                  [disabled]="
+                    !pictureUploaded ||
+                    !videoUploaded ||
+                    !applicationDetailsSubmitted
+                  "
+                >
                   Next
                 </button>
               </div>
@@ -188,21 +231,37 @@
 
             <mat-step [completed]="olympiaSubmitted">
               <ng-template matStepLabel>
-                <span style="cursor: pointer;" (click)="goToAccountSettings(1); $event.stopPropagation()">Complete the Olympia test</span>
+                <span
+                  [style.cursor]="olympiaSubmitted ? 'default' : 'pointer'"
+                  (click)="
+                    !olympiaSubmitted ? goToAccountSettings(1) : null;
+                    $event.stopPropagation()
+                  "
+                >
+                  Complete the Olympia test
+                </span>
               </ng-template>
               <p>
-                <strong>Submit the Olympia test</strong><br>
-                Fill out the 
-                <span 
-                  style="color: #9cb764; cursor: pointer;" 
-                  (click)="goToAccountSettings(1)">
+                <strong>Submit the Olympia test</strong><br />
+                Fill out the
+                <span
+                  style="color: #9cb764; cursor: pointer"
+                  (click)="goToAccountSettings(1)"
+                >
                   Olympia assessment form
-                </span> 
-                with honest and thoughtful responses. Your answers will help us better understand your working style and compatibility with the role.
-                Our HR team will carefully review your responses. Once submitted, you can continue and request a match.
+                </span>
+                with honest and thoughtful responses. Your answers will help us
+                better understand your working style and compatibility with the
+                role. Our HR team will carefully review your responses. Once
+                submitted, you can continue and request a match.
               </p>
               <div class="step-button-container">
-                <button mat-flat-button color="primary" matStepperNext [disabled]="!olympiaSubmitted">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  matStepperNext
+                  [disabled]="!olympiaSubmitted"
+                >
                   Next
                 </button>
               </div>
@@ -211,24 +270,32 @@
             <mat-step [completed]="matchRequested">
               <ng-template matStepLabel>Ask for a Match</ng-template>
               <p>
-                <strong>Almost done!</strong><br>
-                Click the “Request Match” button below to notify the team that you have completed all the previous steps. 
-                This will trigger the talent matching process and connect you with clients. 
-                Once the request is sent, we will be contacting you if you're matched.
+                <strong>Almost done!</strong><br />
+                Click the “Request Match” button below to notify the team that
+                you have completed all the previous steps. This will trigger the
+                talent matching process and connect you with clients. Once the
+                request is sent, we will be contacting you if you're matched.
               </p>
               <div class="step-button-container">
-                <button mat-flat-button color="primary" (click)="requestMatch()" [disabled]="matchRequested">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  (click)="requestMatch()"
+                  [disabled]="matchRequested"
+                >
                   Request Match
                 </button>
               </div>
             </mat-step>
-
           </mat-horizontal-stepper>
         </ng-container>
         <ng-template #completedMessage>
           <div class="text-center p-4">
             <h5 class="fw-semibold">You're all set!</h5>
-            <p>We’ll be contacting you soon. Thank you for completing all the steps.</p>
+            <p>
+              We’ll be contacting you soon. Thank you for completing all the
+              steps.
+            </p>
           </div>
         </ng-template>
       </div>

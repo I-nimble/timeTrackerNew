@@ -134,6 +134,7 @@ export class UsersService {
     } else if (userData.profile === null) {
       form.append('remove_picture', 'true');
     }
+    if (userData.availability) form.append('availability', userData.availability);
 
     return this.http.patch(`${this.API_URI}/users`, form, {
       headers: this.chatService.getAuthHeaders(false),
@@ -224,7 +225,7 @@ export class UsersService {
     );
   }
 
-  public registerOrphanTeamMember(data: any) {
+  public submitApplicationDetails(data: any, applicationId: number) {
     let resumeUpload$ = of(null);
     let pictureUpload$ = of(null);
     let introVideoUpload$ = of(null);
@@ -299,13 +300,24 @@ export class UsersService {
 
     return forkJoin([resumeUpload$, pictureUpload$, introVideoUpload$, portfolioUpload$]).pipe(
       switchMap(([resumeFileName, pictureFileName, introVideoFileName, portfolioFileName]) => {
-        form.append('resume_file_name', resumeFileName ?? '');
-        form.append('picture_file_name', pictureFileName ?? '');
-        form.append('introduction_video_file_name', introVideoFileName ?? '');
-        form.append('portfolio_file_name', portfolioFileName ?? '');
-        return this.http.post(`${this.API_URI}/users/register/orphan`, form);
+        if (resumeFileName) form.append('file_name', resumeFileName);
+        if (pictureFileName) form.append('profile_pic', pictureFileName);
+        if (introVideoFileName) form.append('introduction_video_file_name', introVideoFileName);
+        if (portfolioFileName) form.append('portfolio_file_name', portfolioFileName);
+        
+        const updateData = { ...data };
+        if (resumeFileName) updateData.file_name = resumeFileName;
+        if (pictureFileName) updateData.profile_pic = pictureFileName;
+        if (introVideoFileName) updateData.introduction_video = introVideoFileName;
+        if (portfolioFileName) updateData.portfolio = portfolioFileName;
+        
+        return this.http.put(`${this.API_URI}/applications/${applicationId}`, updateData);
       })
     );
+  }
+
+  public registerOrphanTeamMember(data: any) {
+    return this.http.post(`${this.API_URI}/users/register/orphan`, data);
   }
 
   checkEmailExists(email: string): Observable<{ exists: boolean }> {
