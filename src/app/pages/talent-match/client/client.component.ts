@@ -95,6 +95,7 @@ export class AppTalentMatchClientComponent implements OnInit {
   columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
   matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
   positionCategories: PositionCategory[] = [];
+  expandedWorkExp: { [key: number]: boolean } = {};
   selectedPositionFilters: any[] = [];
   customPositionFilter: string = '';
   showCustomFilterInput: boolean = false;

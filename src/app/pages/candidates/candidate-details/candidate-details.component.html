@@ -2,7 +2,11 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="d-flex justify-content-center align-items-center">
-        <app-loader [loader]="loader" [message]="message" [diameter]="44"></app-loader>
+        <app-loader
+          [loader]="loader"
+          [message]="message"
+          [diameter]="44"
+        ></app-loader>
       </div>
     </mat-card-content>
   </mat-card>
@@ -16,43 +20,62 @@
           <div class="left-ghost"></div>
           <h4 class="header-title">TALENT MATCH</h4>
           <div class="action-buttons" *ngIf="userRole !== '3' && canEdit">
-            <button mat-flat-button color="primary" *ngIf="!editMode" (click)="enterEditMode()">
+            <button
+              mat-flat-button
+              color="primary"
+              *ngIf="!editMode"
+              (click)="enterEditMode()"
+            >
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button mat-flat-button color="primary" (click)="save()">Save</button>
-              <button mat-flat-button class="bg-error text-white" (click)="cancelEdit()">Cancel</button>
+              <button mat-flat-button color="primary" (click)="save()">
+                Save
+              </button>
+              <button
+                mat-flat-button
+                class="bg-error text-white"
+                (click)="cancelEdit()"
+              >
+                Cancel
+              </button>
             </ng-container>
           </div>
         </div>
         <table class="table table-bordered w-100 mb-4">
           <tr>
             <td><b>Name</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.name || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.name || "" }}</td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['name']">
+              <input matInput [formControl]="f['name']" />
             </td>
           </tr>
 
           <tr>
             <td><b>Description</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.description || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.description || "" }}</td>
             <td *ngIf="editMode">
               <textarea matInput [formControl]="f['description']"></textarea>
             </td>
           </tr>
           <tr *ngIf="userRole !== '3'">
             <td><b>Talent Match Profile Summary</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || '' }}</td>
+            <td *ngIf="!editMode">
+              {{ candidate()?.talent_match_profile_summary || "" }}
+            </td>
             <td *ngIf="editMode">
-              <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
+              <textarea
+                matInput
+                [formControl]="f['talent_match_profile_summary']"
+              ></textarea>
             </td>
           </tr>
           <tr>
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
               <div *ngFor="let score of matchScores">
-                {{ getCategoryName(score) }}: {{ score.match_percentage | number:'1.2-2' }}%
+                {{ getCategoryName(score) }}:
+                {{ score.match_percentage | number : "1.2-2" }}%
               </div>
               <div *ngIf="matchScores.length === 0" class="text-muted">
                 No match percentages set
@@ -60,27 +83,37 @@
             </td>
             <td *ngIf="editMode && userRole !== '3'" colspan="2">
               <div class="d-flex align-items-center gap-2 mb-2">
-                <button 
-                  mat-stroked-button 
-                  color="primary" 
+                <button
+                  mat-stroked-button
+                  color="primary"
                   (click)="openMatchPercentagesModal()"
-                  type="button">
+                  type="button"
+                >
                   <mat-icon>percent</mat-icon>
                   Edit Match Percentages
                 </button>
               </div>
-              
+
               <div class="current-scores mt-3" *ngIf="matchScores.length > 0">
                 <h6 class="mb-2">Current Scores:</h6>
-                <div *ngFor="let score of matchScores" class="d-flex align-items-center gap-2 mb-1">
+                <div
+                  *ngFor="let score of matchScores"
+                  class="d-flex align-items-center gap-2 mb-1"
+                >
                   <span class="text-dark">{{ getCategoryName(score) }}</span>
-                  <span class="fw-bold">{{ score.match_percentage | number:'1.2-2' }}%</span>
+                  <span class="fw-bold"
+                    >{{ score.match_percentage | number : "1.2-2" }}%</span
+                  >
                 </div>
               </div>
               <div class="d-none">
                 <div *ngFor="let score of matchScores">
                   <ng-container *ngIf="f['matchScores_' + score.id]">
-                    <input type="number" matInput [formControl]="f['matchScores_' + score.id]"/>
+                    <input
+                      type="number"
+                      matInput
+                      [formControl]="f['matchScores_' + score.id]"
+                    />
                   </ng-container>
                 </div>
               </div>
@@ -92,26 +125,35 @@
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
             <td><b>Ranking</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.ranking || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.ranking || "" }}</td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['ranking']">
+              <input matInput [formControl]="f['ranking']" />
             </td>
           </tr>
 
           <tr>
             <td><b>Profile Observation</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.profile_observation || '' }}</td>
+            <td *ngIf="!editMode">
+              {{ candidate()?.profile_observation || "" }}
+            </td>
             <td *ngIf="editMode">
-              <textarea matInput [formControl]="f['profile_observation']"></textarea>
+              <textarea
+                matInput
+                [formControl]="f['profile_observation']"
+              ></textarea>
             </td>
           </tr>
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Position</b></td>
-            <td *ngIf="!editMode">{{ getPositionTitle(candidate()?.position_id) }}</td>
+            <td *ngIf="!editMode">
+              {{ getPositionTitle(candidate()?.position_id) }}
+            </td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['position_id']">
-                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{ pos.title }}</mat-option>
+                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{
+                  pos.title
+                }}</mat-option>
               </mat-select>
             </td>
           </tr>
@@ -119,30 +161,49 @@
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
             <td *ngIf="!editMode">
-              <a *ngIf="(candidate()?.picture || candidate()?.profile_pic_url)" [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)" target="_blank" rel="noopener noreferrer">
+              <a
+                *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
+                [href]="
+                  getSafeLink(
+                    candidate()?.picture || candidate()?.profile_pic_url
+                  )
+                "
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ candidate()?.picture || candidate()?.profile_pic_url }}
               </a>
             </td>
             <td *ngIf="editMode">
-              <input matInput type="text" [formControl]="f['profile_pic']" placeholder="Picture URL">
+              <input
+                matInput
+                type="text"
+                [formControl]="f['profile_pic']"
+                placeholder="Picture URL"
+              />
             </td>
           </tr>
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Interview</b></td>
             <td *ngIf="!editMode">
-              <a *ngIf="candidate()?.interview_link" [href]="getSafeLink(candidate()?.interview_link)" target="_blank" rel="noopener noreferrer">
+              <a
+                *ngIf="candidate()?.interview_link"
+                [href]="getSafeLink(candidate()?.interview_link)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ candidate()?.interview_link }}
               </a>
             </td>
             <td *ngIf="editMode">
-              <input matInput type="text" [formControl]="f['interview_link']">
+              <input matInput type="text" [formControl]="f['interview_link']" />
             </td>
           </tr>
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Hobbies</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.hobbies || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.hobbies || "" }}</td>
             <td *ngIf="editMode">
               <textarea matInput [formControl]="f['hobbies']"></textarea>
             </td>
@@ -152,20 +213,67 @@
             <td><b>Work Experience</b></td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.work_experience; else emptyWork">
-                <div *ngFor="let line of breakLines(candidate()?.work_experience)">
-                  {{ line }}
-                </div>
+                <ng-container
+                  *ngIf="
+                    !showFullWorkExperience &&
+                    candidate()?.work_experience?.length > 200
+                  "
+                >
+                  {{ candidate()?.work_experience | slice : 0 : 200 }}...
+                  <button
+                    mat-button
+                    color="primary"
+                    class="p-0"
+                    (click)="showFullWorkExperience = true"
+                  >
+                    Read more
+                  </button>
+                </ng-container>
+                <ng-container
+                  *ngIf="
+                    showFullWorkExperience ||
+                    candidate()?.work_experience?.length <= 200
+                  "
+                >
+                  <div
+                    *ngFor="
+                      let line of breakLines(candidate()?.work_experience)
+                    "
+                  >
+                    {{ line }}
+                  </div>
+                  <button
+                    *ngIf="candidate()?.work_experience?.length > 200"
+                    mat-button
+                    color="primary"
+                    class="p-0"
+                    (click)="showFullWorkExperience = false"
+                  >
+                    Show less
+                  </button>
+                </ng-container>
               </div>
               <ng-template #emptyWork></ng-template>
             </td>
             <td *ngIf="editMode">
-              <textarea matInput [formControl]="f['work_experience']"></textarea>
+              <textarea
+                matInput
+                [formControl]="f['work_experience']"
+                maxLength="1000"
+              ></textarea>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['work_experience'].hasError('maxlength')"
+              >
+                Text is too long. Please reduce your description from
+                {{ f["work_experience"]?.value.length }} to 1000 characters.
+              </p>
             </td>
           </tr>
 
           <tr>
             <td><b>Skills</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.skills || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.skills || "" }}</td>
             <td *ngIf="editMode && userRole !== '3'">
               <textarea matInput [formControl]="f['skills']"></textarea>
             </td>
@@ -175,30 +283,37 @@
             <td><b>Education</b></td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.education_history; else emptyEdu">
-                <div *ngFor="let line of breakLines(candidate()?.education_history)">
+                <div
+                  *ngFor="
+                    let line of breakLines(candidate()?.education_history)
+                  "
+                >
                   {{ line }}
                 </div>
               </div>
               <ng-template #emptyEdu></ng-template>
             </td>
             <td *ngIf="editMode">
-              <textarea matInput [formControl]="f['education_history']"></textarea>
+              <textarea
+                matInput
+                [formControl]="f['education_history']"
+              ></textarea>
             </td>
           </tr>
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Inimble Academy</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.inimble_academy || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.inimble_academy || "" }}</td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['inimble_academy']">
+              <input matInput [formControl]="f['inimble_academy']" />
             </td>
           </tr>
 
           <tr>
             <td><b>English Level</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.english_level || '' }}</td>
+            <td *ngIf="!editMode">{{ candidate()?.english_level || "" }}</td>
             <td *ngIf="editMode && userRole !== '3'">
-              <input matInput [formControl]="f['english_level']">
+              <input matInput [formControl]="f['english_level']" />
             </td>
           </tr>
         </table>

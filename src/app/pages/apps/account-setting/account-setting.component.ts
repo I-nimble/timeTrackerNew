@@ -229,7 +229,7 @@ export class AppAccountSettingComponent implements OnInit {
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
     educationHistory: ['', Validators.required],
-    workExperience: ['', Validators.required],
+    workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
     resume: [null],
@@ -365,6 +365,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
+    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
   }
 

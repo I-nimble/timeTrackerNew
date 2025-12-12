@@ -1052,6 +1052,19 @@
                         >
                           Required
                         </mat-error>
+                        <mat-error
+                          *ngIf="
+                            applicationForm
+                              .get('workExperience')
+                              ?.hasError('maxlength')
+                          "
+                        >
+                          Text is too long. Please reduce your description from
+                          {{
+                            applicationForm.get("workExperience")?.value.length
+                          }}
+                          to 1000 characters.
+                        </mat-error>
                       </mat-form-field>
                     </div>
 

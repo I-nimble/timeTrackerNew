@@ -79,6 +79,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   canManage: boolean = false;
   canEdit: boolean = false;
   canDelete: boolean = false;
+  expandedWorkExp: { [key: number]: boolean } = {};
   
   constructor(
     private applicationService: ApplicationsService,
