@@ -96,6 +96,7 @@ export class HeaderComponent implements OnInit {
   allowedContentCreatorEmails: string[] = environment.allowedContentCreatorEmails;
   userPermissions: string[] = [];
   profiledd: profiledd[] = [];
+  isOrphan: boolean = false;
   canViewTalentMatch: boolean = false;
   canViewExpertMatch: boolean = false;
   canViewMySentinel: boolean = false;
@@ -201,13 +202,14 @@ export class HeaderComponent implements OnInit {
     });
     const allowedTM = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
     this.permissionService.getUserPermissions(userId).subscribe({
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
         this.buildProfileMenu();
         this.canViewTalentMatch =
-          this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view');
+          !this.isOrphan && (this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view'));
         this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
         this.canViewMySentinel = this.userPermissions.includes('my-sentinel.view');
         this.canViewCandidates = this.userPermissions.includes('candidates.view');
@@ -261,14 +263,18 @@ export class HeaderComponent implements OnInit {
               },
             ]
           : []),
-        {
-          id: 5,
-          img: 'target',
-          color: 'success',
-          title: 'R3',
-          subtitle: 'Document your future plans',
-          link: 'apps/r3',
-        },
+        ...((!this.isOrphan)
+          ? [
+              {
+                id: 5,
+                img: 'target',
+                color: 'success',
+                title: 'R3',
+                subtitle: 'Document your future plans',
+                link: 'apps/r3',
+              },
+            ]
+          : []),
       ];
     }
 
