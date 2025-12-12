@@ -50,9 +50,12 @@ export class AppWelcomeCardComponent implements OnInit {
   filterAndSortNotifications(notifications: any[]): any[] {
     const filtered = notifications.filter(notification => {
       const message = notification.message || '';
-      return message.includes('My Sentinel') || 
-             message.includes('Talent Match') || 
-             message.includes('Expert Match');
+      const status = notification.users_notifications?.status;
+      
+      return (message.includes('My Sentinel') || 
+              message.includes('Talent Match') || 
+              message.includes('Expert Match')) &&
+             status !== 2;
     });
 
     return filtered.sort((a, b) => {
@@ -91,7 +94,6 @@ export class AppWelcomeCardComponent implements OnInit {
   }
 
   handleNotificationClick(notification: any): void {
-    this.markAsRead(notification);
     this.navigateToSection(notification);
   }
 
@@ -121,7 +123,15 @@ export class AppWelcomeCardComponent implements OnInit {
       return;
     }
 
-    this.notificationsService.update(sectionNotifications, 2).subscribe({
+    const notificationsToUpdate = sectionNotifications.filter(
+      notification => notification.users_notifications?.status !== 2
+    );
+
+    if (notificationsToUpdate.length === 0) {
+      return;
+    }
+
+    this.notificationsService.update(notificationsToUpdate, 2).subscribe({
       next: () => {
         this.allNotifications = this.allNotifications.filter(notification => 
           this.getNotificationType(notification) !== sectionType
