@@ -65,8 +65,11 @@ export class AppSideRegisterComponent {
     company_name: ['', [Validators.required], [this.companyExistsValidator()]],
     departments: [[''], [Validators.required]],
     otherDepartment: [''],
-    countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
   }, { validators: this.crossFieldValidator() });
@@ -154,6 +157,15 @@ export class AppSideRegisterComponent {
     this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
       this.registerClientForm.updateValueAndValidity();
     });
+
+    this.setupNameTrimming(this.registerClientForm, 'name');
+    this.setupNameTrimming(this.registerClientForm, 'last_name');
+
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerInvitedTeamMemberForm, 'last_name');
+
+    this.setupNameTrimming(this.registerTeamMemberForm, 'name');
+    this.setupNameTrimming(this.registerTeamMemberForm, 'last_name');
   }
 
   emailTakenValidator(): ValidatorFn {
@@ -304,11 +316,6 @@ export class AppSideRegisterComponent {
         return;
       }
 
-      let phone = this.registerClientForm.value.phone;
-      if (phone && this.registerClientForm.controls.phone.valid) {
-        phone = `${this.registerClientForm.value.countryCode}${phone}`;
-      }
-
       const clientData = {
         firstName: this.registerClientForm.value.name,
         lastName: this.registerClientForm.value.last_name,
@@ -316,7 +323,7 @@ export class AppSideRegisterComponent {
         departments: this.registerClientForm.value.departments,
         otherDepartment: this.registerClientForm.value.otherDepartment,
         email: this.registerClientForm.value.email,
-        phone: phone,
+        phone: this.registerClientForm.value.phone,
         password: this.registerClientForm.value.password,
         google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
       };
@@ -525,6 +532,17 @@ export class AppSideRegisterComponent {
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();
+    }
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
     }
   }
 }

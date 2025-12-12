@@ -99,7 +99,11 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -114,8 +118,12 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    address: ['', Validators.required],
+    phone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
+    address: [''],
     profile: [''],
     availability: [false]
   });
@@ -124,7 +132,11 @@ export class AppAccountSettingComponent implements OnInit {
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]
+      phone: ['', [
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15)
+      ]]
     }),
     insurance_data: this.fb.group({
       provider: [''],
@@ -198,8 +210,17 @@ export class AppAccountSettingComponent implements OnInit {
     referred: ['no', Validators.required],
     referredName: [''],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    contactPhone: ['', [
+      Validators.required,
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
+    additionalPhone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
     // currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
@@ -288,6 +309,11 @@ export class AppAccountSettingComponent implements OnInit {
       this.personalForm.get('phone')?.updateValueAndValidity();
       this.personalForm.get('address')?.updateValueAndValidity();
     }
+
+    this.setupNameTrimming(this.personalForm, 'name');
+    this.setupNameTrimming(this.personalForm, 'last_name');
+    this.setupNameTrimming(this.profileForm, 'name');
+    this.setupNameTrimming(this.profileForm, 'last_name');
   }
 
   getLocations(): void {
@@ -299,15 +325,6 @@ export class AppAccountSettingComponent implements OnInit {
   getPositions(): void {
     // Using careerRoles directly instead of positions from API
     // since we only need VA and IT positions for orphan TM
-  }
-
-  mustBeTrueValidator(): ValidatorFn {
-    return (control: AbstractControl) => {
-      if (!control.value) {
-        return { mustBeTrue: true };
-      }
-      return null;
-    };
   }
 
   setupConditionalValidation(): void {
@@ -628,9 +645,6 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability == 1
       });
 
-      this.applicationForm.patchValue({
-        availability: this.user.availability
-      });
 
       this.personalForm.markAllAsTouched();
 
@@ -661,7 +675,6 @@ export class AppAccountSettingComponent implements OnInit {
       });
 
       if(this.isOrphan) {
-        this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
         this.applicationForm.markAllAsTouched();
       }
 
@@ -1270,5 +1283,16 @@ export class AppAccountSettingComponent implements OnInit {
     if (!url) return '';
     const decodedUrl = decodeURIComponent(url);
     return decodedUrl.split('/').pop() || 'Attachment';
+  }
+
+  setupNameTrimming(form: FormGroup, controlName: string) {
+    const control = form.get(controlName);
+    if (control) {
+      control.valueChanges.subscribe(value => {
+        if (value && typeof value === 'string' && value !== value.trim()) {
+          control.setValue(value.trim(), { emitEvent: false });
+        }
+      });
+    }
   }
 } 

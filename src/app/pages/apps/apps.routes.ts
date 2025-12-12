@@ -38,6 +38,7 @@ import { CandidatesComponent } from '../candidates/candidates.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 import { CustomSearchComponent } from '../custom-search/custom-search.component';
+import { AppEventsComponent } from './events/events.component';
 import { R3Component } from './r3/r3.component';
 import { R3ActionComponent } from './r3/action/r3.action.component';
 import { R3TractionComponent } from './r3/traction/r3.traction.component';
@@ -408,6 +409,17 @@ export const AppsRoutes: Routes = [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Employee Details' },
           ] 
+        },
+      },
+      {
+        path: 'events',
+        component: AppEventsComponent,
+        data: {
+          title: 'Events',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Events' },
+          ],
         },
       },
       {

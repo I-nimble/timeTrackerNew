@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, Optional, Inject } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
@@ -11,14 +11,9 @@ import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { PositionsService } from 'src/app/services/positions.service';
-import { FormsModule } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDialogRef } from '@angular/material/dialog';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NgModel } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Optional, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
@@ -27,8 +22,7 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
 import { AIService } from 'src/app/services/ai.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
-import { MatTabHeader } from '@angular/material/tabs';
-import { MatTabBody } from '@angular/material/tabs';
+import { MatTabHeader, MatTabBody } from '@angular/material/tabs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { MatSliderModule } from '@angular/material/slider';
@@ -244,12 +238,26 @@ export class AppTalentMatchClientComponent implements OnInit {
     private matchScoresService: ApplicationMatchScoresService
   ) {}
 
+  @ViewChild('roleModel') roleModel!: NgModel;
+  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
+
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
     this.getCompany();
     this.getInterviews();
     this.getPositionCategories();
+  }
+
+  ngAfterViewInit(): void {
+    Promise.resolve().then(() => {
+      if (this.roleModel) {
+        this.roleModel.control.markAsTouched();
+      }
+      if (this.practiceAreaModel) {
+        this.practiceAreaModel.control.markAsTouched();
+      }
+    });
   }
 
   searchCandidatesWithAI(question: string) {
@@ -734,9 +742,10 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
   
   get canSearchAI(): boolean {
-    const hasFilters = !!(
-      this.selectedRole &&
-      this.selectedPracticeArea ||
+    const hasRequiredFilters =
+      !!this.selectedRole &&
+      !!this.selectedPracticeArea;
+    const hasOptionalFilters = !!(
       (this.selectedSkillsTools?.length ?? 0) > 0 ||
       (this.selectedCertifications?.length ?? 0) > 0 ||
       (this.selectedBackground?.length ?? 0) > 0 ||
@@ -744,8 +753,8 @@ export class AppTalentMatchClientComponent implements OnInit {
       this.budgetRange?.max !== this.budgetMax ||
       this.roleDescription
     );
-
-    return !!this.query || hasFilters;
+    if (!!this.query) return true;
+    return hasRequiredFilters && hasOptionalFilters;
   }
 
   handleImageError(event: Event) {
