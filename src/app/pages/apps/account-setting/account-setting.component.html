@@ -190,12 +190,6 @@
                     >
                       Open to work
                     </mat-slide-toggle>
-                    <mat-error
-                      class="f-s-12 m-t-0"
-                      *ngIf="personalForm.get('availability')?.errors?.['required']"
-                    >
-                      You must be available to apply.
-                    </mat-error>
                   </div>
 
                   <div class="col-12 col-sm-6">
@@ -855,7 +849,7 @@
                       </mat-form-field>
                     </div>
 
-                    <!-- <div class="col-md-6 m-b-16">
+                    <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
                         >Are you available to work Pacific Time hours
                         (11:30am-8:00pm, Mon-Fri)?</mat-label
@@ -864,10 +858,10 @@
                         formControlName="availability"
                         class="d-flex gap-16"
                       >
-                        <mat-radio-button value="true" color="primary"
+                        <mat-radio-button [value]="true" color="primary"
                           >Yes</mat-radio-button
                         >
-                        <mat-radio-button value="false" color="primary"
+                        <mat-radio-button [value]="false" color="primary"
                           >No</mat-radio-button
                         >
                       </mat-radio-group>
@@ -880,7 +874,7 @@
                         You must be available to work Pacific Time hours to
                         apply.</mat-error
                       >
-                    </div> -->
+                    </div>
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"

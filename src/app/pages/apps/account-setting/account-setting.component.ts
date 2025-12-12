@@ -300,15 +300,6 @@ export class AppAccountSettingComponent implements OnInit {
     // since we only need VA and IT positions for orphan TM
   }
 
-  mustBeTrueValidator(): ValidatorFn {
-    return (control: AbstractControl) => {
-      if (!control.value) {
-        return { mustBeTrue: true };
-      }
-      return null;
-    };
-  }
-
   setupConditionalValidation(): void {
     const referredControl = this.applicationForm.get('referred');
     if (referredControl) {
@@ -347,7 +338,6 @@ export class AppAccountSettingComponent implements OnInit {
     this.user.availability = event.checked;
     this.formChanged = true;
     this.personalForm.get('availability')?.setValue(event.checked);
-    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
   }
 
@@ -627,9 +617,6 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability == 1
       });
 
-      this.applicationForm.patchValue({
-        availability: this.user.availability
-      });
 
       this.personalForm.markAllAsTouched();
 
@@ -660,7 +647,6 @@ export class AppAccountSettingComponent implements OnInit {
       });
 
       if(this.isOrphan) {
-        this.personalForm.get('availability')?.setValidators([Validators.requiredTrue]);
         this.applicationForm.markAllAsTouched();
       }
 
