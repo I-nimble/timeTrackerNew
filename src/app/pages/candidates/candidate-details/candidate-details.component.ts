@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { PermissionService } from 'src/app/services/permission.service';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 
 @Component({
   selector: 'app-candidate-details',
@@ -61,6 +63,7 @@ export class CandidateDetailsComponent implements OnInit {
     private applicationMatchScoreService: ApplicationMatchScoresService,
     private fb: FormBuilder,
     private permissionService: PermissionService,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -226,15 +229,7 @@ export class CandidateDetailsComponent implements OnInit {
         }
         updatedCandidate.profile_pic_url = updatedCandidate.picture;
         this.candidate.set(updatedCandidate);
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));
-        this.matchScores.forEach(score => {
-          const controlName = 'matchScores_' + score.id;
-          const newValue = this.form.get(controlName)?.value;
-          if (newValue != null) {
-            score.match_percentage = newValue;
-            this.applicationMatchScoreService.updateMatchScore(score.id!, newValue).subscribe();
-          }
-        });
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));        
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.applicationService.notifyApplicationUpdated(updatedCandidate);
         this.editMode = false;
@@ -271,5 +266,41 @@ export class CandidateDetailsComponent implements OnInit {
       return `${this.picturesUrl}/${trimmed}`;
     }
     return `https://${trimmed}`;
+  }
+
+  openMatchPercentagesModal(): void {
+    const candidate = this.candidate();
+    if (!candidate) return;
+
+    const dialogData: MatchPercentagesModalData = {
+      candidate: {
+        id: candidate.id,
+        name: candidate.name,
+        email: candidate.email || '',
+        position_id: candidate.position_id
+      }
+    };
+
+    const dialogRef = this.dialog.open(MatchPercentagesModalComponent, {
+      width: '600px',
+      data: dialogData,
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+    if (result === 'success') {
+      this.applicationMatchScoreService.getByApplicationId(candidate.id)
+        .subscribe(scores => {
+          this.matchScores = scores;
+          scores.forEach(score => {
+            const controlName = 'matchScores_' + score.id;
+            if (this.form.get(controlName)) {
+              this.form.get(controlName)?.setValue(score.match_percentage);
+            }
+          });
+          this.snackBar.open('Match percentages updated!', 'Close', { duration: 3000 });
+        });
+      }
+    });
   }
 }

@@ -407,43 +407,30 @@
                               <p class="text-center m-b-24 label-subtitle">
                                 (This field is optional)
                               </p>
-
-                              <div class="d-flex flex-row">
-                                <mat-form-field
-                                  appearance="outline"
-                                  style="width: 100px"
-                                  class="m-r-16"
+                              <mat-form-field
+                                appearance="outline"
+                                class="w-100"
+                              >
+                                <input
+                                  matInput
+                                  formControlName="phone"
+                                  type="tel"
+                                  placeholder="11234567890"
+                                  (keypress)="restrictPhoneInput($event)"
+                                />
+                                <mat-error
+                                  class="text-danger f-s-12 m-t-0"
+                                  *ngIf="
+                                    (registerClientForm.get('phone')?.errors?.['pattern'] ||
+                                    registerClientForm.get('phone')?.errors?.['maxlength'] ||
+                                    registerClientForm.get('phone')?.errors?.['minlength']) &&
+                                    registerClientForm.get('phone')?.value &&
+                                    registerClientForm.get('phone')?.touched
+                                  "
                                 >
-                                  <mat-select formControlName="countryCode">
-                                    <mat-option value="+1">+1 (US)</mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-                                <mat-form-field
-                                  appearance="outline"
-                                  style="flex-grow: 1"
-                                >
-                                  <input
-                                    matInput
-                                    formControlName="phone"
-                                    type="phone"
-                                    placeholder="+1 (123) 456-7890"
-                                    inputmode="numeric"
-                                    (keypress)="restrictPhoneInput($event)"
-                                  />
-                                  <mat-error
-                                    class="text-danger f-s-12 m-t-0"
-                                    *ngIf="
-                                      registerClientForm
-                                        .get('phone')
-                                        ?.hasError('pattern') &&
-                                      registerClientForm.get('phone')?.value &&
-                                      registerClientForm.get('phone')?.touched
-                                    "
-                                  >
-                                    Enter a valid phone number
-                                  </mat-error>
-                                </mat-form-field>
-                              </div>
+                                  Invalid format (e.g., 11234567890)
+                                </mat-error>
+                              </mat-form-field>
 
                               <button
                                 class="w-100"
@@ -847,26 +834,64 @@
                         <mat-step [stepControl]="registerTeamMemberForm">
                           <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
-                              <mat-label>Full Name</mat-label>
                               <input
                                 matInput
-                                formControlName="fullName"
+                                formControlName="name"
                                 required
+                                type="text"
+                                placeholder="First name"
                               />
                               <mat-error
                                 class="text-danger f-s-12 m-t-0"
                                 *ngIf="
                                   registerTeamMemberForm
-                                    .get('fullName')
+                                    .get('name')
                                     ?.hasError('required') &&
-                                  registerTeamMemberForm.get('fullName')
+                                  registerTeamMemberForm.get('name')?.touched
+                                "
+                              >
+                                First name is required
+                              </mat-error>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="w-100">
+                              <input
+                                matInput
+                                formControlName="last_name"
+                                required
+                                type="text"
+                                placeholder="Last name"
+                              />
+                              <mat-error
+                                class="text-danger f-s-12 m-t-0"
+                                *ngIf="
+                                  registerTeamMemberForm
+                                    .get('last_name')
+                                    ?.hasError('required') &&
+                                  registerTeamMemberForm.get('last_name')
                                     ?.touched
                                 "
                               >
-                                Full name is required
+                                Last name is required
                               </mat-error>
                             </mat-form-field>
 
+                            <button
+                              mat-flat-button
+                              color="primary"
+                              class="w-100"
+                              matStepperNext
+                              [disabled]="
+                                !registerTeamMemberForm.get('name')?.valid ||
+                                !registerTeamMemberForm.get('last_name')?.valid
+                              "
+                            >
+                              Next
+                            </button>
+                          </form>
+                        </mat-step>
+
+                        <mat-step [stepControl]="registerTeamMemberForm">
+                          <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Email</mat-label>
                               <input
@@ -913,23 +938,6 @@
                               </mat-error>
                             </mat-form-field>
 
-                            <button
-                              mat-flat-button
-                              color="primary"
-                              class="w-100"
-                              matStepperNext
-                              [disabled]="
-                                !registerTeamMemberForm.get('email')?.valid ||
-                                !registerTeamMemberForm.get('fullName')?.valid
-                              "
-                            >
-                              Next
-                            </button>
-                          </form>
-                        </mat-step>
-
-                        <mat-step [stepControl]="registerTeamMemberForm">
-                          <form [formGroup]="registerTeamMemberForm">
                             <mat-form-field appearance="outline" class="w-100">
                               <mat-label>Password</mat-label>
                               <input
@@ -970,6 +978,7 @@
                               class="w-100 m-t-16"
                               (click)="submit()"
                               [disabled]="
+                                !registerTeamMemberForm.get('email')?.valid ||
                                 !registerTeamMemberForm.get('password')?.valid
                               "
                             >

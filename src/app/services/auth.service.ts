@@ -42,12 +42,15 @@ export class AuthService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
-  async logout() {
+  async logout(redirect: boolean = true) {
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
-    this.routes.navigate(['/authentication/login']);
+    
+    if (redirect) {
+      this.routes.navigate(['/authentication/login']);
+    }
   }
 
  checkTokenExpiration(): void {
