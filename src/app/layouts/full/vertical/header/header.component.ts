@@ -263,14 +263,18 @@ export class HeaderComponent implements OnInit {
               },
             ]
           : []),
-        {
-          id: 5,
-          img: 'target',
-          color: 'success',
-          title: 'R3',
-          subtitle: 'Document your future plans',
-          link: 'apps/r3',
-        },
+        ...((!this.isOrphan)
+          ? [
+              {
+                id: 5,
+                img: 'target',
+                color: 'success',
+                title: 'R3',
+                subtitle: 'Document your future plans',
+                link: 'apps/r3',
+              },
+            ]
+          : []),
       ];
     }
 
