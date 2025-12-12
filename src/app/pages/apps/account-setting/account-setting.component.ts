@@ -915,6 +915,7 @@ export class AppAccountSettingComponent implements OnInit {
     const formValues = this.applicationForm.value;
     
     const formData: any = {
+      name: this.user.name + ' ' + this.user.last_name,
       location_id: formValues.location,
       position_id: formValues.role?.position_id,
       current_position: formValues.role?.title,
