@@ -23,7 +23,7 @@ import {
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { UsersService } from 'src/app/services/users.service';
 import { MatDialog } from '@angular/material/dialog';
-import { NgIf } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CompaniesService } from 'src/app/services/companies.service';
@@ -33,10 +33,9 @@ import { environment } from 'src/environments/environment';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { SubscriptionService, SubscriptionStatus, SubscriptionReceipt } from 'src/app/services/subscription.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MaterialModule } from '../../../material.module';
@@ -114,7 +113,7 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     address: ['', Validators.required],
     profile: [''],
     availability: [false, [Validators.required, this.mustBeYesValidator()]]
@@ -124,7 +123,7 @@ export class AppAccountSettingComponent implements OnInit {
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)],
+      phone: ['', Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]
     }),
     insurance_data: this.fb.group({
       provider: [''],
@@ -198,8 +197,8 @@ export class AppAccountSettingComponent implements OnInit {
     referred: ['no', Validators.required],
     referredName: [''],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    additionalPhone: ['', [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
@@ -236,9 +235,9 @@ export class AppAccountSettingComponent implements OnInit {
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
+  isLoadingSubscription = false;
   formChanged: boolean = false;
   originalUserData: any = null;
-  subscriptionReceipt: SubscriptionReceipt | null = null;
   isLoadingReceipt = false;
   certifications: any[] = [];
   isLoadingCertifications = false;
@@ -257,7 +256,6 @@ export class AppAccountSettingComponent implements OnInit {
             public applicationsService: ApplicationsService,
             private route: ActivatedRoute,
             private router: Router,
-            private subscriptionService: SubscriptionService,
             private certificationsService: CertificationsService
           ) {}
 
@@ -272,9 +270,7 @@ export class AppAccountSettingComponent implements OnInit {
         this.selectedTabIndex = +tab;
         this.selectedTabLabel = '';
       }
-      this.checkSubscriptionSuccess();
     }); 
-    this.loadSubscriptionStatus();
 
     if (this.isOrphan) {
       this.getLocations();
@@ -340,6 +336,13 @@ export class AppAccountSettingComponent implements OnInit {
   onTabChange(event: MatTabChangeEvent) {
     this.selectedTabLabel = event.tab.textLabel;
     this.selectedTabIndex = event.index;
+  }
+
+  availabilityChange(event: MatSlideToggleChange): void {
+    this.user.availability = event.checked;
+    this.formChanged = true;
+    this.personalForm.get('availability')?.setValue(event.checked);
+    this.checkFormChanges();
   }
 
   checkOlympiaStatus(): void {
@@ -556,7 +559,8 @@ export class AppAccountSettingComponent implements OnInit {
       last_name: this.personalForm.get('last_name')?.value,
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
-      address: this.personalForm.get('address')?.value
+      address: this.personalForm.get('address')?.value,
+      availability: this.personalForm.get('availability')?.value,
     };
 
     // Check if any form field has changed
@@ -565,7 +569,8 @@ export class AppAccountSettingComponent implements OnInit {
       currentFormData.last_name !== this.originalUserData.last_name ||
       currentFormData.email !== this.originalUserData.email ||
       currentFormData.phone !== this.originalUserData.phone ||
-      currentFormData.address !== this.originalUserData.address;
+      currentFormData.address !== this.originalUserData.address ||
+      currentFormData.availability !== this.originalUserData.availability;
 
     // Check if profile picture or video has changed
     const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
@@ -595,7 +600,8 @@ export class AppAccountSettingComponent implements OnInit {
         last_name: this.user.last_name,
         email: this.user.email,
         phone: this.user.phone,
-        address: this.user.address
+        address: this.user.address,
+        availability: this.user.availability
       };
 
       // Populate personal form
@@ -605,8 +611,12 @@ export class AppAccountSettingComponent implements OnInit {
         email: this.user.email,
         phone: this.user.phone,
         address: this.user.address,
-        picture: this.picture
+        picture: this.picture,
+        availability: this.user.availability
       });
+
+      this.personalForm.get('phone')?.markAsTouched();
+      this.personalForm.get('address')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
@@ -1003,107 +1013,19 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  loadSubscriptionReceipt(): void {
-    if (!this.sentinelSubscription || this.sentinelSubscription.status !== 'active') {
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const key = event.key;
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
       return;
     }
-
-    this.isLoadingReceipt = true;
-    this.subscriptionService.getSubscriptionReceipt().subscribe({
-      next: (receipt) => {
-        this.subscriptionReceipt = receipt;
-        this.isLoadingReceipt = false;
-      },
-      error: (error) => {
-        console.error('Error loading subscription receipt:', error);
-        this.isLoadingReceipt = false;
-      }
-    });
-  }
-
-  viewReceipt(): void {
-    if (this.subscriptionReceipt?.receipt_url) {
-      window.open(this.subscriptionReceipt.receipt_url, '_blank');
-    }
-  }
-
-  loadSubscriptionStatus(): void {
-    this.subscriptionService.getSubscriptionStatus().subscribe({
-      next: (status) => {
-        this.sentinelSubscription = status;
-        this.loadSubscriptionReceipt();
-      },
-      error: (error) => {
-        console.error('Error loading subscription status:', error);
-      }
-    });
-  }
-
-  enableSentinel(): void {
-    this.isLoadingSubscription = true;
     
-    this.subscriptionService.createSubscription().subscribe({
-      next: (response) => {
-        // Stripe checkout
-        window.location.href = response.url;
-      },
-      error: (error) => {
-        console.error('Error creating subscription:', error);
-        this.openSnackBar('Error creating subscription. Please try again.', 'Close');
-        this.isLoadingSubscription = false;
-      }
-    });
-  }
-
-  disableSentinel(): void {
-    const dialogRef = this.dialog.open(ModalComponent, {
-      width: '400px',
-      data: {
-        action: 'cancel',
-        subject: 'Sentinel subscription',
-        message: 'Note: You will have access until the end of your billing period.'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.isLoadingSubscription = true;
-        
-        this.subscriptionService.cancelSubscription().subscribe({
-          next: (response) => {
-            this.openSnackBar('Subscription will be canceled at the end of the billing period.', 'Close');
-            this.loadSubscriptionStatus();
-            this.isLoadingSubscription = false;
-          },
-          error: (error) => {
-            console.error('Error canceling subscription:', error);
-            this.openSnackBar('Error canceling subscription. Please try again.', 'Close');
-            this.isLoadingSubscription = false;
-          }
-        });
-      }
-    });
-  }
-
-  checkSubscriptionSuccess(): void {
-    this.route.queryParams.subscribe(params => {
-      if (params['subscription'] === 'success') {
-        this.openSnackBar('Sentinel subscription activated successfully!', 'Close');
-        this.loadSubscriptionStatus();
-        this.router.navigate(['/apps/account-settings']);
-
-      } else if (params['subscription'] === 'canceled') {
-        this.openSnackBar('Subscription process was canceled.', 'Close');
-
-        this.router.navigate(['/apps/account-settings']);
-      }
-    });
-  }
-
-  getFileName(url: string | undefined): string {
-    if (!url) return '';
-    const decodedUrl = decodeURIComponent(url);
-    return decodedUrl.split('/').pop() || 'Attachment';
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
   loadCertifications() {
     this.isLoadingCertifications = true;

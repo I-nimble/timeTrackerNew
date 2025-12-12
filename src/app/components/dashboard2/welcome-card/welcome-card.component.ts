@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { NotificationsService } from '../../../services/notifications.service';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../../services/socket/web-socket.service';
@@ -20,6 +20,7 @@ export class AppWelcomeCardComponent implements OnInit {
   constructor(
     private notificationsService: NotificationsService,
     private webSocketService: WebSocketService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {

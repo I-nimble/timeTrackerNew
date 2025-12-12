@@ -24,58 +24,84 @@
               <mat-card class="cardWithShadow">
                 <mat-card-content class="p-y-24">
                   <mat-card-title
-                    >Current Plan: <span class="text-success">{{ currentPlan?.name }}</span>
+                    >Current Plan:
+                    <span class="text-success">{{ currentPlan?.name }}</span>
                   </mat-card-title>
-                  <mat-card-subtitle class="f-s-14" *ngIf="currentPlan?.id !== 1"
-                    >Thanks for being a premium member and supporting Inimble.</mat-card-subtitle>
+                  <mat-card-subtitle
+                    class="f-s-14"
+                    *ngIf="currentPlan?.id !== 1"
+                    >Thanks for being a premium member and supporting
+                    Inimble.</mat-card-subtitle
+                  >
 
                   <div class="m-t-24">
-                    <button mat-flat-button color="primary" *ngIf="currentPlan?.id === 1">
-                      <span>
-                        Go Premium
-                      </span>
-                      <i-tabler name="diamond" class="icon-20 f-w-600 f-s-5 m-l-8"></i-tabler>
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      *ngIf="currentPlan?.id === 1"
+                    >
+                      <span> Go Premium </span>
+                      <i-tabler
+                        name="diamond"
+                        class="icon-20 f-w-600 f-s-5 m-l-8"
+                      ></i-tabler>
                     </button>
-                    <button mat-stroked-button class="m-l-8" color="warn" *ngIf="currentPlan?.id !== 1">
+                    <button
+                      mat-stroked-button
+                      class="m-l-8"
+                      color="warn"
+                      *ngIf="currentPlan?.id !== 1"
+                    >
                       Reset Plan
                     </button>
                   </div>
                 </mat-card-content>
               </mat-card>
             </div>
-            <div class="col-sm-6" *ngIf="role === '3'">
-              <mat-card class="cardWithShadow">
-                <mat-card-content class="p-y-24">
-                  <mat-card-title>Change Password</mat-card-title>
-                  <mat-card-subtitle class="f-s-14"
-                    >To change your password please confirm
-                    here</mat-card-subtitle
+          </div>
+          <div class="col-sm-6" *ngIf="role === '3'">
+            <mat-card class="cardWithShadow">
+              <mat-card-content class="p-y-24">
+                <mat-card-title>Change Password</mat-card-title>
+                <mat-card-subtitle class="f-s-14"
+                  >To change your password please confirm
+                  here</mat-card-subtitle
+                >
+                <form class="m-t-24" [formGroup]="profileForm">
+                  <!-- input -->
+                  <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                    >Current Password</mat-label
                   >
-                    <form class="m-t-24" [formGroup]="profileForm">
-                    <!-- input -->
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                      >Current Password</mat-label
-                    >
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="password" placeholder="Current password" formControlName="old_password" />
-                    </mat-form-field>
-                    <!-- input -->
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                      >New Password</mat-label
-                    >
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input matInput type="password" placeholder="New password" formControlName="new_password" />
-                    </mat-form-field>
-                    <!-- input -->
-                    <!-- <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-100"
+                    color="primary"
+                  >
+                    <input
+                      matInput
+                      type="password"
+                      placeholder="Current password"
+                      formControlName="old_password"
+                    />
+                  </mat-form-field>
+                  <!-- input -->
+                  <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                    >New Password</mat-label
+                  >
+                  <mat-form-field
+                    appearance="outline"
+                    class="w-100"
+                    color="primary"
+                  >
+                    <input
+                      matInput
+                      type="password"
+                      placeholder="New password"
+                      formControlName="new_password"
+                    />
+                  </mat-form-field>
+                  <!-- input -->
+                  <!-- <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
                       >Confirm Password</mat-label
                     >
                     <mat-form-field
@@ -85,60 +111,67 @@
                     >
                       <input matInput type="password" value="password" />
                     </mat-form-field> -->
-                  </form>
-                </mat-card-content>
-              </mat-card>
-            </div>
-            <div class="col-sm-4">
-              <mat-card class="cardWithShadow">
-                <mat-card-content class="p-y-24">
-                  <mat-card-title>Change Profile</mat-card-title>
-                  <mat-card-subtitle class="f-s-14"
-                    >Change your profile picture from here</mat-card-subtitle
-                  >
-                  <div class="text-center m-t-24 logo-upload">
-                    <img
-                          [src]="picture"
-                          class="rounded-circle"
-                          width="120"
-                          height="120"
-                          style="object-fit: cover; aspect-ratio: 1 / 1;"
-                    />
-                    <div class="m-t-24">
-                      <button mat-flat-button color="primary" class="m-r-8 file">
-                        Upload
-                        <input
-                          #fileInput
-                          type="file"
-                          name="logo"
-                          (change)="onFileSelected($event)"
-                          accept="image/jpeg, image/jpg, image/png"
-                          style="
-                            position: absolute;
-                            display: block;
-                            width: 100%;
-                            opacity: 0;
-                            top: 0;
-                            left: 0;
-                            cursor: pointer;"
-                        />
-                      </button>
-                      <button mat-stroked-button color="warn" (click)="deleteImage()">Reset</button>
-                    </div>
-                    <span class="f-s-14 m-t-24 d-block"
-                      >Allowed JPG, PNG. Max size of 1MB</span
+                </form>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <div class="col-sm-4">
+            <mat-card class="cardWithShadow">
+              <mat-card-content class="p-y-24">
+                <mat-card-title>Change Profile</mat-card-title>
+                <mat-card-subtitle class="f-s-14"
+                  >Change your profile picture from here</mat-card-subtitle
+                >
+                <div class="text-center m-t-24 logo-upload">
+                  <img
+                    [src]="picture"
+                    class="rounded-circle"
+                    width="120"
+                    height="120"
+                    style="object-fit: cover; aspect-ratio: 1 / 1"
+                  />
+                  <div class="m-t-24">
+                    <button mat-flat-button color="primary" class="m-r-8 file">
+                      Upload
+                      <input
+                        #fileInput
+                        type="file"
+                        name="logo"
+                        (change)="onFileSelected($event)"
+                        accept="image/jpeg, image/jpg, image/png"
+                        style="
+                          position: absolute;
+                          display: block;
+                          width: 100%;
+                          opacity: 0;
+                          top: 0;
+                          left: 0;
+                          cursor: pointer;
+                        "
+                      />
+                    </button>
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      (click)="deleteImage()"
                     >
+                      Reset
+                    </button>
                   </div>
-                </mat-card-content>
-              </mat-card>
-            </div>
-            <div [class]="role === '3' ? 'col-sm-8' : 'col-sm-8'">
-              <mat-card class="cardWithShadow">
-                <mat-card-content>
-                  <mat-card-title>Personal Details</mat-card-title>
-                  <mat-card-subtitle class="f-s-14"
-                    >To change your personal details, edit and save from here
-                  </mat-card-subtitle>
+                  <span class="f-s-14 m-t-24 d-block"
+                    >Allowed JPG, PNG. Max size of 1MB</span
+                  >
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <div [class]="role === '3' ? 'col-sm-8' : 'col-sm-8'">
+            <mat-card class="cardWithShadow">
+              <mat-card-content>
+                <mat-card-title>Personal Details</mat-card-title>
+                <mat-card-subtitle class="f-s-14"
+                  >To change your personal details, edit and save from here
+                </mat-card-subtitle>
 
                 <form
                   [formGroup]="personalForm"
@@ -156,26 +189,44 @@
                       color="primary"
                     >
                       <input matInput type="text" formControlName="name" />
-                       <mat-error *ngIf="personalForm.get('name')?.touched && personalForm.get('name')?.errors">
-                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('name')?.errors?.['required']">Name is required</span>
+                      <mat-error
+                        *ngIf="
+                          personalForm.get('name')?.touched &&
+                          personalForm.get('name')?.errors
+                        "
+                      >
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('name')?.errors?.['required']"
+                          >Name is required</span
+                        >
                       </mat-error>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-sm-6">
-                        <!-- input -->
-                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Last name</mat-label
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Last name</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input matInput type="text" formControlName="last_name" />
+                      <mat-error
+                        *ngIf="
+                          personalForm.get('last_name')?.touched &&
+                          personalForm.get('last_name')?.errors
+                        "
                       >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input matInput type="text" formControlName="last_name" />
-                        <mat-error *ngIf="personalForm.get('last_name')?.touched && personalForm.get('last_name')?.errors">
-                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('last_name')?.errors?.['required']">Last name is required</span>
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('last_name')?.errors?.['required']"
+                          >Last name is required</span
+                        >
                       </mat-error>
-                      </mat-form-field>
+                    </mat-form-field>
                   </div>
                   <div class="col-12">
                     <!-- input -->
@@ -194,38 +245,41 @@
                         readonly
                       />
                     </mat-form-field>
-                    <!-- Hide phone and address for orphan TMs since they have these in the application form -->
-                    <ng-container *ngIf="!isOrphan">
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Phone</mat-label
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Phone</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="tel"
+                        placeholder="+1 (123) 456-7890"
+                        formControlName="phone"
+                        (keypress)="restrictPhoneInput($event)"
+                      />
+                      <mat-error
+                        *ngIf="
+                          personalForm.get('phone')?.touched &&
+                          personalForm.get('phone')?.errors
+                        "
                       >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input
-                          matInput
-                          type="tel"
-                          placeholder="+1 (123) 456-7890"
-                          formControlName="phone"
-                          (keypress)="restrictPhoneInput($event)"
-                        />
-                        <mat-error
-                          *ngIf="
-                            personalForm.get('phone')?.touched &&
-                            personalForm.get('phone')?.errors
-                          "
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('phone')?.errors?.['required']"
+                          >Phone number is required</span
                         >
-                          <span
-                            class="f-s-12 m-t-0"
-                            *ngIf="personalForm.get('phone')?.errors?.['required']"
-                            >Phone number is required</span
-                          >
-                        </mat-error>
-                      </mat-form-field>
-                    </ng-container>
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('phone')?.errors?.['pattern']"
+                        >
+                          Invalid format (e.g., +1 (123) 456-7890)</span
+                        >
+                      </mat-error>
+                    </mat-form-field>
                   </div>
                   <div class="col-12" *ngIf="!isOrphan">
                     <!-- input -->
@@ -243,26 +297,47 @@
                         placeholder="Address"
                         formControlName="address"
                       />
-                      <mat-error *ngIf="personalForm.get('address')?.touched && personalForm.get('address')?.errors">
-                        <span class="f-s-12 m-t-0" *ngIf="personalForm.get('address')?.errors?.['required']">Address is required</span>
+                      <mat-error
+                        *ngIf="
+                          personalForm.get('address')?.touched &&
+                          personalForm.get('address')?.errors
+                        "
+                      >
+                        <span
+                          class="f-s-12 m-t-0"
+                          *ngIf="personalForm.get('address')?.errors?.['required']"
+                          >Address is required</span
+                        >
                       </mat-error>
                     </mat-form-field>
                   </div>
                 </form>
 
-                <form class="row m-t-24" [formGroup]="profileForm" *ngIf="role === '3'">
-                    <div class="col-12 col-sm-6">
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Name</mat-label
+                <form
+                  class="row m-t-24"
+                  [formGroup]="profileForm"
+                  *ngIf="role === '3'"
+                >
+                  <div class="col-12 col-sm-6">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Name</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="text"
+                        formControlName="name"
+                        placeholder="First name"
+                        required
+                      />
+                      <mat-error
+                        *ngIf="profileForm.get('name')?.hasError('required')"
                       >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input matInput type="text" formControlName="name" placeholder="First name" required />
-                        <mat-error *ngIf="profileForm.get('name')?.hasError('required')">
                         This field is required
                       </mat-error>
                     </mat-form-field>
@@ -330,7 +405,7 @@
                       <mat-error
                         *ngIf="profileForm.get('phone')?.hasError('pattern')"
                       >
-                        Invalid phone number format. +1 (123) 456-7890
+                        Invalid format (e.g., +1 (123) 456-7890)
                       </mat-error>
                     </mat-form-field>
                   </div>
@@ -527,25 +602,15 @@
                     </div>
 
                     <div class="col-md-6 m-b-16">
-                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
-                        >Additional Phone
-                        <span class="text-danger">*</span></mat-label
-                      >
+                      <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block">
+                        Additional Phone
+                      </mat-label>
                       <mat-form-field appearance="outline" class="w-100">
                         <input
                           matInput
                           formControlName="additionalPhone"
                           placeholder="+1 (123) 456-7890"
                         />
-                        <mat-error
-                          *ngIf="
-                            applicationForm
-                              .get('additionalPhone')
-                              ?.hasError('required')
-                          "
-                        >
-                          Phone is required
-                        </mat-error>
                         <mat-error
                           *ngIf="
                             applicationForm
@@ -945,7 +1010,7 @@
             </mat-card>
           </div>
           <div class="col-12">
-             <mat-card class="cardWithShadow" *ngIf="role === '2' && isOrphan">
+            <mat-card class="cardWithShadow" *ngIf="role === '2' && isOrphan">
               <mat-card-content class="p-y-24">
                 <mat-card-title>Introduction Video (English)</mat-card-title>
                 <mat-card-subtitle class="f-s-14">
@@ -953,37 +1018,47 @@
                 </mat-card-subtitle>
                 <div class="m-t-16">
                   <p class="f-s-14 text-muted">
-                    Please answer the following questions as detailed as possible and submit an
-                    audio or video of yourself <strong><u>(IN ENGLISH, BE SPONTANEOUS)</u></strong>.
-                    The audio or video must be at least 1 minute long and should not exceed
-                    3 minutes.
+                    Please answer the following questions as detailed as
+                    possible and submit an audio or video of yourself
+                    <strong><u>(IN ENGLISH, BE SPONTANEOUS)</u></strong
+                    >. The audio or video must be at least 1 minute long and
+                    should not exceed 3 minutes.
                   </p>
                   <ol class="f-s-14 text-muted m-l-16 m-t-8">
                     <li>Who are you? (Name, age, profession)</li>
-                    <li>What are your three top priorities in your life and why?</li>
+                    <li>
+                      What are your three top priorities in your life and why?
+                    </li>
                     <li>What do you admire about yourself? and why?</li>
-                    <li>Would you hire a person like yourself to join your team? why?</li>
+                    <li>
+                      Would you hire a person like yourself to join your team?
+                      why?
+                    </li>
                   </ol>
                 </div>
                 <div class="text-center m-t-24 logo-upload">
                   <!-- Video preview -->
-                  <video 
-                    *ngIf="videoPreview" 
-                    [src]="videoPreview" 
+                  <video
+                    *ngIf="videoPreview"
+                    [src]="videoPreview"
                     controls
                     width="300"
                     height="200"
                     class="m-b-16"
-                    style="border-radius: 8px; background: #f5f5f5;">
-                  </video>
-                  
+                    style="border-radius: 8px; background: #f5f5f5"
+                  ></video>
+
                   <div *ngIf="!videoPreview" class="video-placeholder m-b-16">
                     <mat-icon class="icon-40 text-muted">videocam</mat-icon>
                     <p class="f-s-14 text-muted m-t-8">No video uploaded</p>
                   </div>
 
                   <div class="m-t-24">
-                    <button mat-flat-button color="primary" class="m-r-8 file video-upload-btn">
+                    <button
+                      mat-flat-button
+                      color="primary"
+                      class="m-r-8 file video-upload-btn"
+                    >
                       Upload Video
                       <input
                         #videoInput
@@ -998,24 +1073,29 @@
                           opacity: 0;
                           top: 0;
                           left: 0;
-                          cursor: pointer;"
+                          cursor: pointer;
+                        "
                       />
                     </button>
-<!--                     <button mat-stroked-button color="warn" (click)="deleteVideo()" [disabled]="!videoPreview">Delete</button> -->
+                    <!--                     <button mat-stroked-button color="warn" (click)="deleteVideo()" [disabled]="!videoPreview">Delete</button> -->
                   </div>
-                  
+
                   <div class="m-t-16">
-                    <mat-progress-bar 
-                      *ngIf="videoUploadProgress > 0" 
-                      mode="determinate" 
+                    <mat-progress-bar
+                      *ngIf="videoUploadProgress > 0"
+                      mode="determinate"
                       [value]="videoUploadProgress"
-                      class="m-b-8">
+                      class="m-b-8"
+                    >
                     </mat-progress-bar>
-                    <span class="f-s-12 text-muted" *ngIf="videoUploadProgress > 0">
+                    <span
+                      class="f-s-12 text-muted"
+                      *ngIf="videoUploadProgress > 0"
+                    >
                       Uploading: {{ videoUploadProgress }}%
                     </span>
                   </div>
-                  
+
                   <span class="f-s-14 m-t-24 d-block text-muted">
                     Allowed video formats: MP4, MOV, AVI. Max size of 100MB
                   </span>
@@ -1738,7 +1818,10 @@
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
-            <i-tabler name="user-circle" class="icon-20 m-r-8 d-flex"></i-tabler>
+            <i-tabler
+              name="user-circle"
+              class="icon-20 m-r-8 d-flex"
+            ></i-tabler>
           </mat-icon>
         </div>
         Social Media
@@ -1750,57 +1833,77 @@
               <mat-card-content>
                 <form [formGroup]="socialMediaForm" class="row m-t-24">
                   <div class="col-12" formGroupName="social_media">
-                     <!-- input -->
-                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                     >Facebook Profile</mat-label
-                   >
-                   <mat-form-field
-                     appearance="outline"
-                     class="w-100"
-                     color="primary"
-                   >
-                     <input matInput placeholder="https://www.facebook.com/username/" type="text" formControlName="facebook" />
-                   </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Facebook Profile</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        placeholder="https://www.facebook.com/username/"
+                        type="text"
+                        formControlName="facebook"
+                      />
+                    </mat-form-field>
                   </div>
                   <div class="col-12" formGroupName="social_media">
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                    >Instagram Profile</mat-label
-                  >
-                  <mat-form-field
-                    appearance="outline"
-                    class="w-100"
-                    color="primary"
-                  >
-                    <input matInput placeholder="https://www.instagram.com/username/" type="text" formControlName="instagram" />
-                  </mat-form-field>
-                 </div>
-                 <div class="col-12" formGroupName="social_media">
-                  <!-- input -->
-                  <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                  >X Profile</mat-label
-                >
-                <mat-form-field
-                  appearance="outline"
-                  class="w-100"
-                  color="primary"
-                >
-                  <input matInput placeholder="https://www.x.com/username/" type="text" formControlName="twitter" />
-                </mat-form-field>
-               </div>
-               <div class="col-12" formGroupName="social_media">
-                <!-- input -->
-                <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                >LinkedIn Profile</mat-label
-              >
-              <mat-form-field
-                appearance="outline"
-                class="w-100"
-                color="primary"
-              >
-                <input matInput placeholder="https://www.linkedin.com/username/" type="text" formControlName="linkedin" />
-              </mat-form-field>
-             </div>
+                      >Instagram Profile</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        placeholder="https://www.instagram.com/username/"
+                        type="text"
+                        formControlName="instagram"
+                      />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-12" formGroupName="social_media">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >X Profile</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        placeholder="https://www.x.com/username/"
+                        type="text"
+                        formControlName="twitter"
+                      />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-12" formGroupName="social_media">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >LinkedIn Profile</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        placeholder="https://www.linkedin.com/username/"
+                        type="text"
+                        formControlName="linkedin"
+                      />
+                    </mat-form-field>
+                  </div>
                 </form>
               </mat-card-content>
             </mat-card>
@@ -1869,66 +1972,82 @@
                   >Company Information</mat-card-title
                 >
 
-                  <form class="row" [formGroup]="profileForm">
-                    <div class="col-sm-12">
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Company Name*</mat-label
-                      >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input matInput type="text" value="Visitor Analytics" formControlName="companyName" />
-                      </mat-form-field>
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Headquarter</mat-label
-                      >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input matInput type="text" formControlName="headquarter" />
-                      </mat-form-field>
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Team Members amount</mat-label
-                      >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input matInput type="number" formControlName="employees_amount" />
-                      </mat-form-field>
-                      <!-- input -->
-                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                        >Business Segment</mat-label
-                      >
-                      <mat-form-field
-                        appearance="outline"
-                        class="w-100"
-                        color="primary"
-                      >
-                        <input
-                          matInput
-                          type="text"
-                          formControlName="bussiness_segment"
-                        />
-                      </mat-form-field>
-                      <mat-slide-toggle formControlName="show_info" color="primary">
-                         Show company information in the Expert Match section
-                      </mat-slide-toggle>
-                    </div>
-                  </form>
-                </mat-card-content>
-              </mat-card>
-            </div>
+                <form class="row" [formGroup]="profileForm">
+                  <div class="col-sm-12">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Company Name*</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="text"
+                        value="Visitor Analytics"
+                        formControlName="companyName"
+                      />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Headquarter</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="text"
+                        formControlName="headquarter"
+                      />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Team Members amount</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="number"
+                        formControlName="employees_amount"
+                      />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                      >Business Segment</mat-label
+                    >
+                    <mat-form-field
+                      appearance="outline"
+                      class="w-100"
+                      color="primary"
+                    >
+                      <input
+                        matInput
+                        type="text"
+                        formControlName="bussiness_segment"
+                      />
+                    </mat-form-field>
+                    <mat-slide-toggle
+                      formControlName="show_info"
+                      color="primary"
+                    >
+                      Show company information in the Expert Match section
+                    </mat-slide-toggle>
+                  </div>
+                </form>
+              </mat-card-content>
+            </mat-card>
           </div>
-        </mat-card-content>
+        </div>
+      </mat-card-content>
     </mat-tab>
     <mat-tab label="Certifications" *ngIf="role === '2'">
       <ng-template mat-tab-label>
