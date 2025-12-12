@@ -99,7 +99,11 @@ export class AppAccountSettingComponent implements OnInit {
     last_name: [''],
     logo: [''],
     email: [''],
-    phone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    phone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
     companyName: [''],
     headquarter: [''],
     employees_amount: [null, [Validators.min(0)]],
@@ -114,8 +118,12 @@ export class AppAccountSettingComponent implements OnInit {
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    address: ['', Validators.required],
+    phone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
+    address: [''],
     profile: [''],
     availability: [false, [Validators.required, this.mustBeYesValidator()]]
   });
@@ -124,7 +132,11 @@ export class AppAccountSettingComponent implements OnInit {
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]
+      phone: ['', [
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15)
+      ]]
     }),
     insurance_data: this.fb.group({
       provider: [''],
@@ -198,8 +210,17 @@ export class AppAccountSettingComponent implements OnInit {
     referred: ['no', Validators.required],
     referredName: [''],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
-    additionalPhone: ['', [Validators.pattern(/^\+\d{1,3}\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+    contactPhone: ['', [
+      Validators.required,
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
+    additionalPhone: ['', [
+      Validators.pattern(/^[0-9]+$/),
+      Validators.minLength(10),
+      Validators.maxLength(15)
+    ]],
     currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
@@ -623,6 +644,8 @@ export class AppAccountSettingComponent implements OnInit {
 
       this.personalForm.get('phone')?.markAsTouched();
       this.personalForm.get('address')?.markAsTouched();
+      this.applicationForm.get('contactPhone')?.markAsTouched();
+      this.applicationForm.get('additionalPhone')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({

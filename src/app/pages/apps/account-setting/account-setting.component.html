@@ -348,40 +348,45 @@
                       />
                     </mat-form-field>
                     <!-- input -->
-                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-                      >Phone</mat-label
-                    >
-                    <mat-form-field
-                      appearance="outline"
-                      class="w-100"
-                      color="primary"
-                    >
-                      <input
-                        matInput
-                        type="tel"
-                        placeholder="+1 (123) 456-7890"
-                        formControlName="phone"
-                        (keypress)="restrictPhoneInput($event)"
-                      />
-                      <mat-error
-                        *ngIf="
-                          personalForm.get('phone')?.touched &&
-                          personalForm.get('phone')?.errors
-                        "
+
+                    <ng-container *ngIf="!isOrphan">
+                      <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+                        >Phone</mat-label
                       >
-                        <span
-                          class="f-s-12 m-t-0"
-                          *ngIf="personalForm.get('phone')?.errors?.['required']"
-                          >Phone number is required</span
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        color="primary"
+                      >
+                        <input
+                          matInput
+                          type="tel"
+                          placeholder="11234567890"
+                          formControlName="phone"
+                          (keypress)="restrictPhoneInput($event)"
+                        />
+                        <mat-error
+                          *ngIf="
+                            personalForm.get('phone')?.touched &&
+                            personalForm.get('phone')?.errors
+                          "
                         >
-                        <span
-                          class="f-s-12 m-t-0"
-                          *ngIf="personalForm.get('phone')?.errors?.['pattern']"
-                        >
-                          Invalid format (e.g., +1 (123) 456-7890)</span
-                        >
-                      </mat-error>
-                    </mat-form-field>
+                          <span
+                            class="f-s-12 m-t-0"
+                            *ngIf="personalForm.get('phone')?.errors?.['required']"
+                            >Phone number is required</span
+                          >
+                          <span
+                            class="f-s-12 m-t-0"
+                            *ngIf="personalForm.get('phone')?.errors?.['pattern'] ||
+                                   personalForm.get('phone')?.errors?.['maxlength'] ||
+                                   personalForm.get('phone')?.errors?.['minlength']"
+                          >
+                            Invalid format (e.g., 11234567890)</span
+                          >
+                        </mat-error>
+                      </mat-form-field>
+                    </ng-container>
                   </div>
                   <div class="col-12" *ngIf="!isOrphan">
                     <!-- input -->
@@ -500,14 +505,16 @@
                       <input
                         matInput
                         type="tel"
-                        placeholder="+1 (123) 456-7890"
+                        placeholder="11234567890"
                         formControlName="phone"
                         (keypress)="restrictPhoneInput($event)"
                       />
                       <mat-error
-                        *ngIf="profileForm.get('phone')?.hasError('pattern')"
+                        *ngIf="profileForm.get('phone')?.errors?.['pattern'] ||
+                               profileForm.get('phone')?.errors?.['maxlength'] ||
+                               profileForm.get('phone')?.errors?.['minlength']"
                       >
-                        Invalid format (e.g., +1 (123) 456-7890)
+                        Invalid format (e.g., 11234567890)
                       </mat-error>
                     </mat-form-field>
                   </div>
@@ -680,7 +687,7 @@
                         <input
                           matInput
                           formControlName="contactPhone"
-                          placeholder="+1 (123) 456-7890"
+                          placeholder="11234567890"
                         />
                         <mat-error
                           *ngIf="
@@ -693,12 +700,12 @@
                         </mat-error>
                         <mat-error
                           *ngIf="
-                            applicationForm
-                              .get('contactPhone')
-                              ?.hasError('pattern')
+                            applicationForm.get('contactPhone')?.errors?.['pattern'] ||
+                            applicationForm.get('contactPhone')?.errors?.['maxlength'] ||
+                            applicationForm.get('contactPhone')?.errors?.['minlength']
                           "
                         >
-                          Invalid format (e.g., +1 (123) 456-7890)
+                          Invalid format (e.g., 11234567890)
                         </mat-error>
                       </mat-form-field>
                     </div>
@@ -711,16 +718,16 @@
                         <input
                           matInput
                           formControlName="additionalPhone"
-                          placeholder="+1 (123) 456-7890"
+                          placeholder="11234567890"
                         />
                         <mat-error
                           *ngIf="
-                            applicationForm
-                              .get('additionalPhone')
-                              ?.hasError('pattern')
+                            applicationForm.get('additionalPhone')?.errors?.['pattern'] ||
+                            applicationForm.get('additionalPhone')?.errors?.['maxlength'] ||
+                            applicationForm.get('additionalPhone')?.errors?.['minlength']
                           "
                         >
-                          Invalid format (e.g., +1 (123) 456-7890)
+                          Invalid format (e.g., 11234567890)
                         </mat-error>
                       </mat-form-field>
                     </div>
