@@ -1,24 +1,41 @@
 <div class="container justify-content-center">
   <div class="row">
     <div class="col-12 p-0">
-      <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-16">
+      <mat-card
+        class="mat-card-top cardWithShadow position-relative overflow-hidden p-16"
+      >
         <mat-stepper #stepper *ngIf="!formSubmitted">
           <!-- Step 1: Client & Contact Information -->
           <mat-step [stepControl]="contactInfoGroup">
             <!-- Toggle -->
             <div class="d-flex align-items-center m-b-24">
-               <mat-slide-toggle [formControl]="showInfoControl" color="primary" class="m-r-16">
+              <mat-slide-toggle
+                [formControl]="showInfoControl"
+                color="primary"
+                class="m-r-16"
+              >
                 Use my information
               </mat-slide-toggle>
             </div>
             <form [formGroup]="contactInfoGroup">
-              <ng-template matStepLabel>Client & Contact Information</ng-template>
+              <ng-template matStepLabel
+                >Client & Contact Information</ng-template
+              >
               <div class="row">
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Client</mat-label>
-                    <input matInput formControlName="client" placeholder="Client's company name" required>
-                    <mat-error *ngIf="contactInfoGroup.get('client')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="client"
+                      placeholder="Client's company name"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup.get('client')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -26,8 +43,19 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Contact Person</mat-label>
-                    <input matInput formControlName="contactPerson" placeholder="Who can we contact you at?" required>
-                    <mat-error *ngIf="contactInfoGroup.get('contactPerson')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="contactPerson"
+                      placeholder="Who can we contact you at?"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup
+                          .get('contactPerson')
+                          ?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -35,46 +63,77 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Email</mat-label>
-                    <input matInput formControlName="email" required type="email">
-                    <mat-error *ngIf="contactInfoGroup.get('email')?.hasError('email')">Invalid email</mat-error>
-                    <mat-error *ngIf="contactInfoGroup.get('email')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="email"
+                      required
+                      type="email"
+                    />
+                    <mat-error
+                      *ngIf="contactInfoGroup.get('email')?.hasError('email')"
+                      >Invalid email</mat-error
+                    >
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup.get('email')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
-                  </mat-form-field>
-                </div>
-                <div class="col-12 col-md-4">
-                  <mat-form-field appearance="outline" class="w-100 m-b-16">
-                    <mat-label>Country Code</mat-label>
-                    <mat-select formControlName="countryCode" [disabled]="showInfoControl.value">
-                      <mat-option value="+1">+1 (US)</mat-option>
-                    </mat-select>
                   </mat-form-field>
                 </div>
                 <div class="col-12 col-md-8">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Phone Number</mat-label>
-                    <input matInput formControlName="phone" required type="tel" placeholder="+1 (123) 456-7890" (keypress)="restrictPhoneInput($event)"/>
-                    <mat-error *ngIf="contactInfoGroup.get('phone')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="phone"
+                      required
+                      placeholder="11234567890"
+                    />
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup.get('phone')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
-                    <mat-error *ngIf="contactInfoGroup.get('phone')?.hasError('pattern')">
-                      Invalid phone number format. +1 (123) 456-7890
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup.get('phone')?.errors?.['pattern']
+                        || contactInfoGroup.get('phone')?.errors?.['maxlength']
+                        || contactInfoGroup.get('phone')?.errors?.['minlength']
+                      "
+                    >
+                      Invalid format (e.g., 11234567890)
                     </mat-error>
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Website</mat-label>
-                    <input matInput formControlName="website" type="url">
+                    <input matInput formControlName="website" type="url" />
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Industry</mat-label>
-                    <mat-select formControlName="industry" required [disabled]="showInfoControl.value">
-                      <mat-option *ngFor="let industry of industries" [value]="industry">{{ industry }}</mat-option>
+                    <mat-select
+                      formControlName="industry"
+                      required
+                      [disabled]="showInfoControl.value"
+                    >
+                      <mat-option
+                        *ngFor="let industry of industries"
+                        [value]="industry"
+                        >{{ industry }}</mat-option
+                      >
                     </mat-select>
-                    <mat-error *ngIf="contactInfoGroup.get('industry')?.hasError('required')">
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup.get('industry')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -82,19 +141,44 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Number of Employees to Hire</mat-label>
-                    <input matInput formControlName="numberOfEmployees" type="number" min="0" step="1" required>
-                    <mat-error *ngIf="contactInfoGroup.get('numberOfEmployees')?.hasError('required')">
-                    Hiring quantity is required to proceed with your search
-                  </mat-error>
-                  
-                  <mat-error *ngIf="contactInfoGroup.get('numberOfEmployees')?.hasError('min')">
-                    Please enter a number greater than 0
-                  </mat-error>
+                    <input
+                      matInput
+                      formControlName="numberOfEmployees"
+                      type="number"
+                      min="0"
+                      step="1"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup
+                          .get('numberOfEmployees')
+                          ?.hasError('required')
+                      "
+                    >
+                      Hiring quantity is required to proceed with your search
+                    </mat-error>
+
+                    <mat-error
+                      *ngIf="
+                        contactInfoGroup
+                          .get('numberOfEmployees')
+                          ?.hasError('min')
+                      "
+                    >
+                      Please enter a number greater than 0
+                    </mat-error>
                   </mat-form-field>
                 </div>
               </div>
               <div class="text-right">
-                <button mat-flat-button matStepperNext [disabled]="!contactInfoGroup.valid">Next</button>
+                <button
+                  mat-flat-button
+                  matStepperNext
+                  [disabled]="!contactInfoGroup.valid"
+                >
+                  Next
+                </button>
               </div>
             </form>
           </mat-step>
@@ -108,9 +192,17 @@
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Job Title</mat-label>
                     <mat-select formControlName="jobTitle" required>
-                      <mat-option *ngFor="let pos of positionsList" [value]="pos.title">{{ pos.title }}</mat-option>
+                      <mat-option
+                        *ngFor="let pos of positionsList"
+                        [value]="pos.title"
+                        >{{ pos.title }}</mat-option
+                      >
                     </mat-select>
-                    <mat-error *ngIf="positionInfoGroup.get('jobTitle')?.hasError('required')">
+                    <mat-error
+                      *ngIf="
+                        positionInfoGroup.get('jobTitle')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -118,8 +210,19 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Job Description</mat-label>
-                    <textarea matInput formControlName="jobDescription" rows="4" required></textarea>
-                    <mat-error *ngIf="positionInfoGroup.get('jobDescription')?.hasError('required')">
+                    <textarea
+                      matInput
+                      formControlName="jobDescription"
+                      rows="4"
+                      required
+                    ></textarea>
+                    <mat-error
+                      *ngIf="
+                        positionInfoGroup
+                          .get('jobDescription')
+                          ?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -127,17 +230,31 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>KPI (Key Performance Indicators)</mat-label>
-                    <textarea matInput formControlName="kpi" rows="2" required></textarea>
-                    <mat-error *ngIf="positionInfoGroup.get('kpi')?.hasError('required')">
+                    <textarea
+                      matInput
+                      formControlName="kpi"
+                      rows="2"
+                      required
+                    ></textarea>
+                    <mat-error
+                      *ngIf="positionInfoGroup.get('kpi')?.hasError('required')"
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
                 </div>
                 <div class="col-12 m-b-16">
                   <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>Add five Competencies required for the Position</mat-label>
+                    <mat-label
+                      >Add five Competencies required for the
+                      Position</mat-label
+                    >
                     <mat-chip-grid #chipList>
-                      <mat-chip *ngFor="let competency of selectedCompetencies" [removable]="true" (removed)="removeCompetency(competency)">
+                      <mat-chip
+                        *ngFor="let competency of selectedCompetencies"
+                        [removable]="true"
+                        (removed)="removeCompetency(competency)"
+                      >
                         {{ competency }}
                         <button matChipRemove>
                           <mat-icon>cancel</mat-icon>
@@ -152,16 +269,28 @@
                         [matChipInputSeparatorKeyCodes]="[13, 188]"
                         (matChipInputTokenEnd)="addCustomCompetency()"
                         [disabled]="selectedCompetencies.length >= 5"
-                      >
+                      />
                     </mat-chip-grid>
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addFromDropdown($event)">
-                      <mat-option *ngFor="let competency of filteredCompetencies | async" [value]="competency">
+                    <mat-autocomplete
+                      #auto="matAutocomplete"
+                      (optionSelected)="addFromDropdown($event)"
+                    >
+                      <mat-option
+                        *ngFor="let competency of filteredCompetencies | async"
+                        [value]="competency"
+                      >
                         {{ competency }}
                       </mat-option>
-                      <mat-option *ngIf="(competencyCtrl.value?.length || 0) >= 2 && 
-                                        !isInList(competencyCtrl.value ?? '') && 
-                                        !selectedCompetencies.includes(competencyCtrl.value ?? '')"
-                                  (onSelectionChange)="addCustomCompetency()">
+                      <mat-option
+                        *ngIf="
+                          (competencyCtrl.value?.length || 0) >= 2 &&
+                          !isInList(competencyCtrl.value ?? '') &&
+                          !selectedCompetencies.includes(
+                            competencyCtrl.value ?? ''
+                          )
+                        "
+                        (onSelectionChange)="addCustomCompetency()"
+                      >
                         <em (click)="addCustomCompetency()">
                           Add "{{ competencyCtrl.value }}" as new competency
                         </em>
@@ -178,31 +307,51 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Training Contact</mat-label>
-                    <input matInput formControlName="trainingContact">
+                    <input matInput formControlName="trainingContact" />
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>IT Contact</mat-label>
-                    <input matInput formControlName="itContact">
+                    <input matInput formControlName="itContact" />
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Tech Needs</mat-label>
-                    <input matInput formControlName="techNeeds" placeholder="Will you need a client specific email address, etc.?">
+                    <input
+                      matInput
+                      formControlName="techNeeds"
+                      placeholder="Will you need a client specific email address, etc.?"
+                    />
                   </mat-form-field>
                 </div>
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Additional Information</mat-label>
-                    <textarea matInput formControlName="additionalInfo" rows="3"></textarea>
+                    <textarea
+                      matInput
+                      formControlName="additionalInfo"
+                      rows="3"
+                    ></textarea>
                   </mat-form-field>
                 </div>
               </div>
               <div class="d-flex align-items-center justify-content-between">
-                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
-                <button mat-flat-button matStepperNext [disabled]="!positionInfoGroup.valid">Next</button>
+                <button
+                  mat-flat-button
+                  class="bg-error text-white"
+                  matStepperPrevious
+                >
+                  Back
+                </button>
+                <button
+                  mat-flat-button
+                  matStepperNext
+                  [disabled]="!positionInfoGroup.valid"
+                >
+                  Next
+                </button>
               </div>
             </form>
           </mat-step>
@@ -215,10 +364,22 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Work Days</mat-label>
-                    <mat-select formControlName="scheduleDays" multiple required>
-                      <mat-option *ngFor="let day of weekDays" [value]="day">{{ day }}</mat-option>
+                    <mat-select
+                      formControlName="scheduleDays"
+                      multiple
+                      required
+                    >
+                      <mat-option *ngFor="let day of weekDays" [value]="day">{{
+                        day
+                      }}</mat-option>
                     </mat-select>
-                    <mat-error *ngIf="scheduleInfoGroup.get('scheduleDays')?.hasError('required')">
+                    <mat-error
+                      *ngIf="
+                        scheduleInfoGroup
+                          .get('scheduleDays')
+                          ?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -226,8 +387,19 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Start Hour</mat-label>
-                    <input matInput formControlName="scheduleStart" type="time" required>
-                    <mat-error *ngIf="scheduleInfoGroup.get('scheduleStart')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="scheduleStart"
+                      type="time"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="
+                        scheduleInfoGroup
+                          .get('scheduleStart')
+                          ?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -235,8 +407,19 @@
                 <div class="col-12">
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>End Hour</mat-label>
-                    <input matInput formControlName="scheduleEnd" type="time" required>
-                    <mat-error *ngIf="scheduleInfoGroup.get('scheduleEnd')?.hasError('required')">
+                    <input
+                      matInput
+                      formControlName="scheduleEnd"
+                      type="time"
+                      required
+                    />
+                    <mat-error
+                      *ngIf="
+                        scheduleInfoGroup
+                          .get('scheduleEnd')
+                          ?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -245,9 +428,17 @@
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Lunch Time</mat-label>
                     <mat-select formControlName="lunchTime" required>
-                      <mat-option *ngFor="let l of lunchTimes" [value]="l.value">{{ l.label }}</mat-option>
+                      <mat-option
+                        *ngFor="let l of lunchTimes"
+                        [value]="l.value"
+                        >{{ l.label }}</mat-option
+                      >
                     </mat-select>
-                    <mat-error *ngIf="scheduleInfoGroup.get('lunchTime')?.hasError('required')">
+                    <mat-error
+                      *ngIf="
+                        scheduleInfoGroup.get('lunchTime')?.hasError('required')
+                      "
+                    >
                       This field is required
                     </mat-error>
                   </mat-form-field>
@@ -256,14 +447,30 @@
                   <mat-form-field appearance="outline" class="w-100 m-b-16">
                     <mat-label>Holidays Observed</mat-label>
                     <mat-select formControlName="holidaysObserved" multiple>
-                      <mat-option *ngFor="let holiday of holidaysList" [value]="holiday">{{ holiday }}</mat-option>
+                      <mat-option
+                        *ngFor="let holiday of holidaysList"
+                        [value]="holiday"
+                        >{{ holiday }}</mat-option
+                      >
                     </mat-select>
                   </mat-form-field>
                 </div>
               </div>
               <div class="d-flex align-items-center justify-content-between">
-                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
-                <button mat-flat-button matStepperNext [disabled]="!scheduleInfoGroup.valid">Next</button>
+                <button
+                  mat-flat-button
+                  class="bg-error text-white"
+                  matStepperPrevious
+                >
+                  Back
+                </button>
+                <button
+                  mat-flat-button
+                  matStepperNext
+                  [disabled]="!scheduleInfoGroup.valid"
+                >
+                  Next
+                </button>
               </div>
             </form>
           </mat-step>
@@ -274,24 +481,57 @@
               <ng-template matStepLabel>Terms and Submit</ng-template>
               <h4 class="mat-headline-6 m-t-24">Terms and condition</h4>
               <p class="m-t-8 f-s-14">
-                Inimble is committed to protecting and respecting your privacy, and we'll only use your personal information to administer your account and to provide the products and services you requested from us. From time to time, we would like to contact you about our products and services, as well as other content that may be of interest to you. If you consent to us contacting you for this purpose, please tick below to say how you would like us to contact you:
+                Inimble is committed to protecting and respecting your privacy,
+                and we'll only use your personal information to administer your
+                account and to provide the products and services you requested
+                from us. From time to time, we would like to contact you about
+                our products and services, as well as other content that may be
+                of interest to you. If you consent to us contacting you for this
+                purpose, please tick below to say how you would like us to
+                contact you:
               </p>
-              <mat-checkbox color="primary" formControlName="acceptOtherCommunications">
+              <mat-checkbox
+                color="primary"
+                formControlName="acceptOtherCommunications"
+              >
                 I agree to receive other communications from Inimble.
               </mat-checkbox>
               <p class="m-t-8 f-s-14">
-                In order to provide you the content requested, we need to store and process your personal data. If you consent to us storing your personal data for this purpose, please tick the checkbox below.
+                In order to provide you the content requested, we need to store
+                and process your personal data. If you consent to us storing
+                your personal data for this purpose, please tick the checkbox
+                below.
               </p>
-              <mat-checkbox color="primary" required formControlName="acceptPersonalData">
+              <mat-checkbox
+                color="primary"
+                required
+                formControlName="acceptPersonalData"
+              >
                 I agree to allow Inimble to store and process my personal data.
               </mat-checkbox>
               <p class="m-t-8 f-s-14">
-                You can unsubscribe from these communications at any time. For more information on how to unsubscribe, our privacy practices, and how we are committed to protecting and respecting your privacy, please review our Privacy Policy.
+                You can unsubscribe from these communications at any time. For
+                more information on how to unsubscribe, our privacy practices,
+                and how we are committed to protecting and respecting your
+                privacy, please review our Privacy Policy.
               </p>
               <div class="d-flex justify-content-between m-t-16">
-                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
+                <button
+                  mat-flat-button
+                  class="bg-error text-white"
+                  matStepperPrevious
+                >
+                  Back
+                </button>
                 <div class="d-flex gap-8">
-                  <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!customSearchForm.valid">Finish</button>
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    (click)="sendForm()"
+                    [disabled]="!customSearchForm.valid"
+                  >
+                    Finish
+                  </button>
                 </div>
               </div>
             </form>

@@ -94,8 +94,11 @@ export class CustomSearchComponent implements OnInit {
       client: [{ value: '', disabled: false }, Validators.required],
       contactPerson: [{ value: '', disabled: false }, Validators.required],
       email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
-      countryCode: [{ value: '+1', disabled: false }, Validators.required],
-      phone: [{ value: '', disabled: false }, [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+      phone: [{ value: '', disabled: false }, [
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15)
+      ]],
       website: [{ value: '', disabled: false }],
       industry: [{ value: '', disabled: false }, Validators.required],
       numberOfEmployees: [{ value: 1, disabled: false }, [Validators.required, Validators.min(1)]],
@@ -219,7 +222,6 @@ export class CustomSearchComponent implements OnInit {
         client: this.clientInfo.client || '',
         contactPerson: this.clientInfo.contact_person || '',
         email: this.clientInfo.email || '',
-        countryCode: '+1',
         phone: this.clientInfo.phone || '',
         website: this.clientInfo.website || '',
         industry: industry,
@@ -233,7 +235,6 @@ export class CustomSearchComponent implements OnInit {
       client: '',
       contactPerson: '',
       email: '',
-      countryCode: '+1',
       phone: '',
       website: '',
       industry: '',
@@ -354,20 +355,5 @@ export class CustomSearchComponent implements OnInit {
   }
   get showInfoControl(): FormControl {
     return this.customSearchForm.get('show_info') as FormControl;
-  }
-
-  restrictPhoneInput(event: KeyboardEvent) {
-    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
-    const key = event.key;
-    
-    // Allow control keys
-    if (allowedKeys.includes(key)) {
-      return;
-    }
-    
-    // Allow only numbers
-    if (!/^\d$/.test(key)) {
-      event.preventDefault();
-    }
   }
 }
