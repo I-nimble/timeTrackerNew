@@ -29,7 +29,9 @@
     }
 
     td {
+      max-width: 0;
       font-weight: normal;
+      word-break: break-word;
     }
 
     tr td:first-child {
@@ -60,6 +62,16 @@
       border: 1px solid #ccc;
       border-radius: 3px;
     }
+
+    mat-select {
+      width: 100%;
+    }
+
+    .mat-select-value-text {
+      white-space: normal !important;
+      word-break: break-word;
+      line-height: 1.4;
+    }    
   }
 
   a {

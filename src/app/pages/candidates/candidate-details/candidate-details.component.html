@@ -192,7 +192,14 @@
             <td><b>Ranking</b></td>
             <td *ngIf="!editMode">{{ candidate()?.ranking || '' }}</td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['ranking']">
+              <mat-select [formControl]="f['ranking']" placeholder="Select ranking">
+                <mat-option
+                  *ngFor="let profile of rankingProfiles"
+                  [value]="profile.key"
+                >
+                  {{ profile.label }}
+                </mat-option>
+              </mat-select>
             </td>
           </tr>
 
@@ -200,6 +207,17 @@
             <td><b>Profile Observation</b></td>
             <td *ngIf="!editMode">{{ candidate()?.profile_observation || '' }}</td>
             <td *ngIf="editMode">
+              <mat-select
+                [formControl]="f['profile_observation']"
+                placeholder="Select profile observation"
+              >
+                <mat-option
+                  *ngFor="let profile of rankingProfiles"
+                  [value]="profile.description"
+                >
+                  {{ profile.description }}
+                </mat-option>
+              </mat-select>
               <textarea matInput [formControl]="f['profile_observation']"></textarea>
             </td>
           </tr>
