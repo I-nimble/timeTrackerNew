@@ -264,10 +264,17 @@ export class CandidateDetailsComponent implements OnInit {
       return trimmed;
     }
     if (trimmed.startsWith('/')) return trimmed;
-    if (!trimmed.includes('/')) {
-      return `${this.picturesUrl}/${trimmed}`;
+    
+    if (!trimmed.includes('/') && this.candidate()) {
+       const userId = this.candidate().user?.id || this.candidate().user_id;
+       if (userId) {
+          return `${this.applicationService.API_URI}/profile/${userId}`;
+       } else {
+          return `${this.applicationService.API_URI}/profile/app-${this.candidate().id}`;
+       }
     }
-    return `https://${trimmed}`;
+    
+    return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
 
   openDialogUploadFiles() {
@@ -284,12 +291,22 @@ export class CandidateDetailsComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result?.success && result.profile_pic) {
-        const updatedCandidate = {
-          ...this.candidate(),
-          picture: result.profile_pic,
-          profile_pic_url: result.profile_pic
-        };
+      if (result?.success) {
+        let updatedCandidate = { ...this.candidate() };
+        
+        if (result.candidate) {
+            updatedCandidate = { ...updatedCandidate, ...result.candidate };
+        }
+        
+        if (result.profile_pic) {
+            updatedCandidate.picture = result.profile_pic;
+        }
+
+        const userId = updatedCandidate.user?.id || updatedCandidate.user_id;
+        updatedCandidate.profile_pic_url = userId 
+            ? `${this.applicationService.API_URI}/profile/${userId}`
+            : `${this.applicationService.API_URI}/profile/app-${updatedCandidate.id}`;
+
         this.candidate.set(updatedCandidate);
         this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
       }

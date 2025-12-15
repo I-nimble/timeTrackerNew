@@ -213,7 +213,8 @@ export class AddCandidateDialogComponent implements OnInit {
         });
         this.dialogRef.close({
           success: true,
-          profile_pic: this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null
+          profile_pic: response?.picture || (this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null),
+          candidate: response
         });
       },
       error: (error) => {

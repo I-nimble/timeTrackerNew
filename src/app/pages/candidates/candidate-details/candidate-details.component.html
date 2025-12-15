@@ -29,16 +29,16 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  (click)="openDialogUploadFiles()"
-                  type="button"
-                  *ngIf="editMode"
-                >
-                  <mat-icon>upload</mat-icon>
-                  Upload Files
-                </button>
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="openDialogUploadFiles()"
+                type="button"
+                *ngIf="editMode"
+              >
+                <mat-icon>upload</mat-icon>
+                Upload Files
+              </button>
               <button mat-flat-button color="primary" (click)="save()">
                 Save
               </button>
@@ -171,12 +171,14 @@
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
             <td>
-              <div class="d-flex align-items-center gap-2 mb-2">
-
-              </div>              
+              <div class="d-flex align-items-center gap-2 mb-2"></div>
               <a
                 *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
-                [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
+                [href]="
+                  getSafeLink(
+                    candidate()?.profile_pic_url || candidate()?.picture
+                  )
+                "
                 target="_blank"
                 rel="noopener noreferrer"
               >
