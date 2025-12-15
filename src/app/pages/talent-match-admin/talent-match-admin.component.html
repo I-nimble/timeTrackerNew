@@ -17,7 +17,12 @@
             appearance="outline"
             class="flex-grow-1 hide-hint m-b-0"
           >
-            <input matInput type="text" placeholder="Search Candidate" />
+            <input
+              matInput
+              type="text"
+              placeholder="Search Candidate"
+              (keyup)="applyFilter($event)"
+            />
             <mat-icon matSuffix>
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
             </mat-icon>

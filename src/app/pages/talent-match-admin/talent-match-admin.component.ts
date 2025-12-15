@@ -135,8 +135,100 @@ export class AppTalentMatchAdminComponent implements OnInit {
       next: companies => {
         this.companiesData = companies;
       },
+      error: (err) => {
+        console.error('Error fetching companies:', err);
+      },
+    });
+
+    this.applicationService.get(true).subscribe({
+      next: (applications: any[]) => {
+        if (this.canManage) {
+          this.applicationsData = applications;
+          this.dataSource.data = applications;
+          return;
+        }
+        const userId = Number(localStorage.getItem('id'));
+        const proceedWithFiltering = () => {
+          const lsKeys = ['position_id', 'positionId', 'position'];
+          let userPositionId: any = null;
+          for (const k of lsKeys) {
+            const v = localStorage.getItem(k);
+            if (v) {
+              const n = Number(v);
+              userPositionId = isNaN(n) ? v : n;
+              break;
+            }
+          }
+          const handlePositionId = (posId: any) => {
+            const userPosition = this.positions.find((p: any) => p.id == posId);
+            const userDepartmentId = userPosition?.department_id ?? userPosition?.department?.id ?? null;
+            if (!userDepartmentId) {
+              this.applicationsData = [];
+              this.dataSource.data = [];
+              return;
+            }
+            const allowedPositionIds = this.positions
+              .filter((p: any) => (p.department_id ?? p.department?.id) == userDepartmentId)
+              .map((p: any) => p.id);
+            const filtered = applications.filter((a: any) => allowedPositionIds.includes(a.position ?? a.position_id));
+            this.applicationsData = filtered;
+            this.dataSource.data = filtered;
+          };
+          if (userPositionId) {
+            handlePositionId(userPositionId);
+            return;
+          }
+          this.employeesService.getById(userId).subscribe({
+            next: (employeeRaw: any) => {
+              const employee = Array.isArray(employeeRaw) ? employeeRaw[0] : employeeRaw;
+              const posId = employee?.position?.id ?? employee?.position ?? employee?.position_id ?? employee?.positionId ?? null;
+              if (posId) {
+                handlePositionId(posId);
+                return;
+              }
+              const nested = employee?.user ?? {};
+              const nestedPos = nested?.position?.id ?? nested?.position ?? nested?.position_id ?? nested?.positionId ?? null;
+              if (nestedPos) {
+                handlePositionId(nestedPos);
+                return;
+              }
+              this.applicationsData = [];
+              this.dataSource.data = [];
+            },
+            error: (err: any) => {
+              console.error('Error fetching employee:', err);
+              this.applicationsData = [];
+              this.dataSource.data = [];
+            },
+          });
+        };
+        if (this.positions && this.positions.length > 0) {
+          proceedWithFiltering();
+        } else {
+          this.positionsService.get().subscribe({
+            next: (positions: any[]) => {
+              this.positions = positions;
+              proceedWithFiltering();
+            },
+            error: (err: any) => {
+              console.error('Error fetching positions:', err);
+              this.applicationsData = [];
+              this.dataSource.data = [];
+            },
+          });
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching applications:', err);
+      },
     });
   }
+  
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   getInterviews() {
     this.interviewsService.get().subscribe({
       next: interviews => {
