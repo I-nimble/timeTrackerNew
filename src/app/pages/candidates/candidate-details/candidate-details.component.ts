@@ -60,22 +60,18 @@ export class CandidateDetailsComponent implements OnInit {
   rankingProfiles = [
     {
       key: 'ORO',
-      label: 'ORO',
       description: `The candidate shows a high level of compatibility with the position, proven experience, and an adequate level of English. They correspond to the ideal profile for the role.`
     },
     {
       key: 'PLATA A',
-      label: 'PLATA A',
       description: `The candidate shows good compatibility with the position, although they have little to no previous experience. They demonstrate growth potential and an adequate level of English.`
     },
     {
       key: 'PLATA B',
-      label: 'PLATA B',
       description: `The candidate shows partial compatibility with the position. Their behavior does not fully align with the role’s requirements, although they have relevant experience and an adequate level of English.`
     },
     {
       key: 'BRONCE',
-      label: 'BRONCE',
       description: `The candidate does not show reliable compatibility with the position. The information obtained is insufficient or not representative, possibly due to a lack of self-awareness or a personal transition process, although they have experience and an adequate level of English.`
     }
   ];
