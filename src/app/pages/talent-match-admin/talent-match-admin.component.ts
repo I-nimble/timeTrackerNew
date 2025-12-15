@@ -233,6 +233,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
   
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   getInterviews() {
     this.interviewsService.get().subscribe({
       next: interviews => {
