@@ -14,47 +14,56 @@
                 <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
             </div>
 
-            <div class="p-16">
-                <h4 class="f-w-700 m-b-16">Main Filters</h4>
-                <div class="row m-t-10">
-                    <div class="col-lg-6">
-                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role</mat-label>
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-select
-                                [(ngModel)]="selectedRole"
-                                name="selectedRole"
-                                #roleModel="ngModel"
-                                required
-                            >
-                                <mat-option *ngFor="let role of positionsOptions" [value]="role">
-                                {{ role }}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error *ngIf="roleModel.invalid && roleModel.touched">
-                                Role is required.
-                            </mat-error>
-                        </mat-form-field>
-                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Practice Area</mat-label>
-                        <mat-form-field appearance="outline" class="w-100">
-                            <mat-select
-                                [(ngModel)]="selectedPracticeArea"
-                                name="selectedPracticeArea"
-                                #practiceAreaModel="ngModel"
-                                required
-                            >
-                                <mat-option *ngFor="let area of practiceAreas" [value]="area">
-                                {{ area }}
-                                </mat-option>
-                            </mat-select>
-                            <mat-error *ngIf="practiceAreaModel.invalid && practiceAreaModel.touched">
-                                Practice Area is required.
-                            </mat-error>
-                        </mat-form-field>
-                    </div>
-                    <div class="col-lg-6">
-                        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Budget Range</mat-label>
-                        <div class="m-b-12">
-                            <!-- <mat-chip-listbox selectable>
+      <div class="p-16">
+        <h4 class="f-w-700 m-b-16">Main Filters</h4>
+        <div class="row m-t-10">
+          <div class="col-lg-6">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role *</mat-label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select
+                [(ngModel)]="selectedRole"
+                name="selectedRole"
+                #roleModel="ngModel"
+                required
+              >
+                <mat-option
+                  *ngFor="let role of positionsOptions"
+                  [value]="role"
+                >
+                  {{ role }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="roleModel.invalid && roleModel.touched">
+                Role is required.
+              </mat-error>
+            </mat-form-field>
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+              >Practice Area *</mat-label
+            >
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select
+                [(ngModel)]="selectedPracticeArea"
+                name="selectedPracticeArea"
+                #practiceAreaModel="ngModel"
+                required
+              >
+                <mat-option *ngFor="let area of practiceAreas" [value]="area">
+                  {{ area }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="practiceAreaModel.invalid && practiceAreaModel.touched"
+              >
+                Practice Area is required.
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="col-lg-6">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+              >Budget Range</mat-label
+            >
+            <div class="m-b-12">
+              <!-- <mat-chip-listbox selectable>
                                 <mat-chip-option
                                     *ngFor="let preset of budgetPresets"
                                     (click)="onPresetClick(preset)"

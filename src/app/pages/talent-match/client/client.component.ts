@@ -239,10 +239,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     private matchScoresService: ApplicationMatchScoresService,
     private discProfilesService: DiscProfilesService
   ) {}
-
-  @ViewChild('roleModel') roleModel!: NgModel;
-  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
-
+  
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
@@ -251,16 +248,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositionCategories();
   }
 
-  ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      if (this.roleModel) {
-        this.roleModel.control.markAsTouched();
-      }
-      if (this.practiceAreaModel) {
-        this.practiceAreaModel.control.markAsTouched();
-      }
-    });
-  }
 
   searchCandidatesWithAI(question: string) {
     const searchQuery = question || this.buildFullSearchQuery();
