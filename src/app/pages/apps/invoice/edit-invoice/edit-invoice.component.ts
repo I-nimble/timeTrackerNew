@@ -211,6 +211,26 @@ export class AppEditInvoiceComponent {
     });
   }
 
+  onBillingPeriodChange(): void {
+    const start = new Date(this.editModel().billing_period_start);
+    const end = new Date(this.editModel().billing_period_end);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
+    this.editModel().invoiceItems.forEach((item: any, index: number) => {
+      const originalItem = this.originalData.invoiceItems[index];
+      if (!originalItem?.entries) return;
+      item.entries = originalItem.entries.filter((entry: any) => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= start && entryDate <= end;
+      });
+      item.entries.forEach((entry: any) => {
+        entry.entry_hours = this.getTotalEntryHours(entry);
+      });
+    });
+    this.recalculateCosts();
+    this.updateFormArrayWithChanges();
+    this.cdr.detectChanges();
+  }
+
   private markEntryAsChanged(entry: any): void {
     this.changedEntries.add(entry);
   }
