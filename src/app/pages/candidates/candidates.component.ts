@@ -23,6 +23,8 @@ import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PermissionService } from 'src/app/services/permission.service';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 
 @Component({
   selector: 'app-candidates',
@@ -65,7 +67,8 @@ export class CandidatesComponent {
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
     private companiesService: CompaniesService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private discProfilesService: DiscProfilesService
   ) { }
 
   ngOnInit(): void {
@@ -156,6 +159,30 @@ export class CandidatesComponent {
   getPositionName(positionId: number): string {
     const position = this.positions().find((position: any) => position.id === positionId);
     return position ? position.title : '';
+  }
+
+  getPositionById(positionId: number): any {
+    return this.positions().find((position: any) => position.id === positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
+  }
+
+  openPositionDiscModal(): void {
+    const dialogRef = this.dialog.open(PositionDiscModalComponent, {
+      width: '650px',
+      maxHeight: '80vh',
+      data: {
+        positions: this.positions()
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'success') {
+        this.loadPositions();
+      }
+    });
   }
 
   downloadCandidateInfo(id: number, format: string): void {
@@ -286,8 +313,8 @@ export class CandidatesComponent {
       hasBackdrop: true,
     });
 
-    dialogRef.afterClosed().subscribe((result: string) => {
-      if (result === 'success') {
+    dialogRef.afterClosed().subscribe((result: any) => {
+      if (result?.success) {
         this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
           next: () => {
             this.showSnackbar('Candidate sent to talent match successfully!');

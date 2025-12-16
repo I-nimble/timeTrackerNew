@@ -10,6 +10,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApplicationMatchScoresService, PositionCategory, MatchScore } from 'src/app/services/application-match-scores.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatSelectModule } from '@angular/material/select';
+import { DiscProfilesService, DiscProfile } from 'src/app/services/disc-profiles.service';
+import { forkJoin } from 'rxjs';
 
 export interface MatchPercentagesModalData {
   candidate: {
@@ -17,6 +20,7 @@ export interface MatchPercentagesModalData {
     name: string;
     email: string;
     position_id: number;
+    disc_profiles?: DiscProfile[];
   };
 }
 
@@ -33,7 +37,8 @@ export interface MatchPercentagesModalData {
     MatCardModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    TablerIconsModule
+    TablerIconsModule,
+    MatSelectModule
   ],
   templateUrl: './match-percentages-modal.component.html',
   styleUrls: ['./match-percentages-modal.component.scss']
@@ -45,16 +50,39 @@ export class MatchPercentagesModalComponent implements OnInit {
   saving = false;
   existingScores: MatchScore[] = [];
 
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfileIds: number[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<MatchPercentagesModalComponent>,
     @Inject(MAT_DIALOG_DATA) public data: MatchPercentagesModalData,
     private matchScoresService: ApplicationMatchScoresService,
+    private discProfilesService: DiscProfilesService,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadPositionCategories();
     this.loadExistingScores();
+    this.loadDiscProfiles();
+  }
+
+  loadDiscProfiles(): void {
+    this.discProfilesService.getAll().subscribe({
+      next: (profiles) => {
+        this.discProfiles = profiles;
+        if (this.data.candidate.disc_profiles) {
+          this.selectedDiscProfileIds = this.data.candidate.disc_profiles.map(p => p.id);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading DISC profiles:', error);
+      }
+    });
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
   loadPositionCategories(): void {
@@ -147,22 +175,35 @@ export class MatchPercentagesModalComponent implements OnInit {
       match_scores: matchScoresData
     };
 
-    this.matchScoresService.createMatchScores(requestData).subscribe({
-      next: (response) => {
+    const matchScores$ = this.matchScoresService.createMatchScores(requestData);
+    const discProfiles$ = this.discProfilesService.assignToApplication(
+      this.data.candidate.id,
+      this.selectedDiscProfileIds
+    );
+
+    forkJoin([matchScores$, discProfiles$]).subscribe({
+      next: ([matchResponse, discResponse]) => {
         this.saving = false;
         
-        if (response.errors && response.errors.length > 0) {
+        if (matchResponse.errors && matchResponse.errors.length > 0) {
           this.snackBar.open('Error saving some match percentages', 'Close', { duration: 5000 });
           return;
         }
         
-        this.snackBar.open('Match percentages saved successfully!', 'Close', { duration: 3000 });
-        this.dialogRef.close('success');
+        const selectedProfiles = this.discProfiles.filter(p => 
+          this.selectedDiscProfileIds.includes(p.id)
+        );
+        
+        this.snackBar.open('Match percentages and DISC profile saved successfully!', 'Close', { duration: 3000 });
+        this.dialogRef.close({ 
+          success: true, 
+          discProfiles: selectedProfiles 
+        });
       },
       error: (error) => {
         this.saving = false;
-        console.error('Error saving match scores:', error);
-        this.snackBar.open('Error saving match percentages', 'Close', { duration: 3000 });
+        console.error('Error saving data:', error);
+        this.snackBar.open('Error saving data', 'Close', { duration: 3000 });
       }
     });
   }
