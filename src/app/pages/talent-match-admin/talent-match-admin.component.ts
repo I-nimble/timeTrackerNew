@@ -23,6 +23,7 @@ import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { DepartmentsService } from 'src/app/services/departments.service';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 export interface PeriodicElement {
   id: number;
@@ -92,6 +93,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
     private router: Router,
     private departmentsService: DepartmentsService,
     private employeesService: EmployeesService,
+    private discProfilesService: DiscProfilesService
   ) { }
   
   
@@ -260,6 +262,14 @@ export class AppTalentMatchAdminComponent implements OnInit {
     imgElement.src = this.assetsPath;
 
     imgElement.onerror = null;
+  }
+
+  getPositionById(positionId: any): any {
+    return this.positions.find((p: any) => p.id == positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
   openAddCandidateDialog(): void {
