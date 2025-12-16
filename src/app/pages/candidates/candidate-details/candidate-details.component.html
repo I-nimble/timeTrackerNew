@@ -135,6 +135,55 @@
               </div>
             </td>
           </tr>
+          <tr *ngIf="userRole !== '3'">
+            <td><b>DISC Profile</b></td>
+            <td *ngIf="!editMode">
+              <div
+                class="disc-badges"
+                *ngIf="candidate()?.disc_profiles?.length > 0; else noDisc"
+              >
+                <span
+                  *ngFor="let profile of candidate()?.disc_profiles"
+                  class="disc-badge"
+                  [style.background-color]="getDiscProfileColor(profile.name)"
+                  [title]="profile.description"
+                >
+                  {{ profile.name.charAt(0) }}
+                </span>
+                <span class="disc-names m-l-8">
+                  {{ getDiscProfileNames(candidate()?.disc_profiles) }}
+                </span>
+              </div>
+              <ng-template #noDisc>
+                <span class="text-muted">No DISC profiles assigned</span>
+              </ng-template>
+            </td>
+            <td *ngIf="editMode">
+              <div class="d-flex align-items-center gap-2">
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="openMatchPercentagesModal()"
+                  type="button"
+                >
+                  <mat-icon>psychology</mat-icon>
+                  Edit DISC Profiles
+                </button>
+                <div
+                  class="disc-badges m-l-8"
+                  *ngIf="candidate()?.disc_profiles?.length > 0"
+                >
+                  <span
+                    *ngFor="let profile of candidate()?.disc_profiles"
+                    class="disc-badge"
+                    [style.background-color]="getDiscProfileColor(profile.name)"
+                  >
+                    {{ profile.name.charAt(0) }}
+                  </span>
+                </div>
+              </div>
+            </td>
+          </tr>
         </table>
 
         <h4>RESUMES</h4>
