@@ -30,6 +30,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 
 @Component({
   standalone: true,
@@ -54,7 +55,8 @@ import { Options } from '@angular-slider/ngx-slider';
     MatSliderModule,
     MatSlideToggleModule,
     MatChipsModule,
-    NgxSliderModule
+    NgxSliderModule,
+    FormatNamePipe
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -75,9 +77,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   displayedColumns: string[] = [
     'select',
     'name',
-    'position',
-    'alignment',
-    'experience',
+    'personality profile',
+    'trainings',
     'rate',
     'actions',
   ];

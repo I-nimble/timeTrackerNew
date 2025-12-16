@@ -21,6 +21,9 @@ import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.com
 import { Router } from '@angular/router';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { DepartmentsService } from 'src/app/services/departments.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 
 export interface PeriodicElement {
   id: number;
@@ -48,6 +51,7 @@ export interface PeriodicElement {
     AppCodeViewComponent,
     MaterialModule,
     TablerIconsModule,
+    FormatNamePipe
   ],
   templateUrl: './talent-match-admin.component.html',
 })
@@ -55,9 +59,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   displayedColumns: string[] = [
     // 'select',
     'name',
-    'position',
-    'alignment',
-    'experience',
+    'personality profile',
+    'trainings',
     'rate',
     'status',
     'interviewing on',
