@@ -84,13 +84,14 @@ export class ApplicationsService {
     return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
   }
 
-  getUploadUrl(type: string, file?: File, email?: string) {
+  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number) {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
       { 
         contentType: file?.type || 'application/octet-stream',
         originalFileName: file?.name,
-        email: email
+        email: email,
+        applicationId: applicationId
       }
     );
   }
@@ -154,7 +155,7 @@ export class ApplicationsService {
     }
     if(data.profile_pic instanceof File) {
       photoUpload$ = data.profile_pic
-        ? this.getUploadUrl('photos', data.profile_pic, data.email).pipe(
+        ? this.getUploadUrl('photos', data.profile_pic, data.email, id).pipe(
             switchMap((photoUrl: any) => {
               this.photoUrl = photoUrl.url;
               const imgFile = data.profile_pic
@@ -164,8 +165,8 @@ export class ApplicationsService {
               });
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
                 map(() => {
-                  const urlParts = this.photoUrl.split('?')[0].split('/');
-                  return urlParts[urlParts.length - 1];
+                  const keyParts = photoUrl.key.split('/');
+                  return keyParts[keyParts.length - 1];
                 })
               );
             })
