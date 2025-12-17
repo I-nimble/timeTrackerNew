@@ -1,106 +1,137 @@
-<mat-card class="cardWithShadow card-dashboard">
-  <mat-card-content>
-    <div class="row">
-      <div class="col-12">
-        <mat-card class="mt-4 cardWithShadow">
-          <mat-card-content class="mat-mdc-card-content p-y-24">
-              <mat-card-title class="mat-mdc-card-title f-s-16">
-                Notifications
-              </mat-card-title>
-          <div class="notifications-scroll-container">
-            <div *ngFor="let notification of allNotifications" 
+<div class="row welcome-card">
+  <!-- Notifications Card -->
+  <div class="notifications-card col-lg-6">
+    <mat-card class="cardWithShadow dashboard-card">
+      <mat-card-content>
+        <div class="row">
+          <div class="col-12" style="max-height: 200px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <mat-card-title>Notifications</mat-card-title>
+            </div>
+
+            <div class="notifications-scroll-container">
+              <div
+                *ngFor="let notification of allNotifications"
                 class="notification-item d-flex align-items-start gap-3 p-3 border-bottom"
                 [ngClass]="{
-                  'sentinel-notification': notification.message.includes('My Sentinel'),
-                  'talent-notification': notification.message.includes('Talent Match'),
-                  'expert-notification': notification.message.includes('Expert Match')
+                  'sentinel-notification':
+                    notification.message.includes('My Sentinel'),
+                  'talent-notification':
+                    notification.message.includes('Talent Match'),
+                  'expert-notification':
+                    notification.message.includes('Expert Match')
                 }"
                 (click)="handleNotificationClick(notification)"
-                style="cursor: pointer;">
-            
-              <div class="flex-grow-1">
-                <div class="f-w-500 f-s-14">{{notification.message}}</div>
-                <div class="f-s-12 text-muted mt-1">
-                  {{notification.createdAt | date: 'MMM d, y, h:mm a'}}
+                style="cursor: pointer"
+              >
+                <div class="flex-grow-1">
+                  <div class="f-w-500 f-s-14">{{ notification.message }}</div>
+                  <div class="f-s-12 text-muted mt-1">
+                    {{ notification.createdAt | date : "MMM d, y, h:mm a" }}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                *ngIf="allNotifications.length === 0 && !isLoading"
+                class="text-center p-4 text-muted f-s-14"
+              >
+                No notifications available
+              </div>
+
+              <div *ngIf="isLoading">
+                <div class="text-center p-4 text-muted f-s-14">
+                  Loading notifications...
                 </div>
               </div>
             </div>
-            
-            <div *ngIf="allNotifications.length === 0 && !isLoading" 
-                class="text-center p-4 text-muted">
-              No notifications available
-            </div>
-            
-            <div *ngIf="isLoading">
-              <div class="text-center p-4 text-muted">Loading notifications...</div>
-            </div>
-          </div>  
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="mt-4 cardWithShadow">
-          <mat-card-content class="mat-mdc-card-content p-y-24">
-            <div class="d-flex justify-content-between align-items-center">
-              <mat-card-title class="mat-mdc-card-title f-s-16">
-                What's New?
-              </mat-card-title>
-              <i-tabler name="gift" class="icon-18 text-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                  <path d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"></path>
-                  <path d="M12 8l0 13"></path>
-                  <path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7"></path>
-                  <path d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5"></path>
-                </svg>
-              </i-tabler>
-            </div>
-            <div 
-              class="rounded w-100 m-t-8 p-3 border d-flex flex-column justify-content-center align-items-center"
-              style="height: 200px; text-align:center;"
-              [@fade]="currentEventIndex"
-              *ngIf="!isEventLoading && eventData.length > 0"
-            >
-              <div class="f-s-13 mat-mdc-card-title mb-2">
-                {{ eventData[currentEventIndex].event }}
-              </div>
-              <div class="f-s-14 text-muted mb-2">
-                {{ eventData[currentEventIndex].description }}
-              </div>
-              <div class="f-s-14 text-muted mb-2">
-                {{ eventData[currentEventIndex].date | date:'MMM d, y - h:mm a' }}
-              </div>
-            </div>
-            <button
-              mat-flat-button
-              color="primary"
-              class="mdc-button mat-mdc-button-base w-100 m-t-8 mdc-button--unelevated mat-mdc-unelevated-button mat-primary"
-              mat-ripple-loader-class-name="mat-mdc-button-ripple"
-              *ngIf="!isEventLoading && eventData.length > 0"
-              [disabled]="isRegistered(eventData[currentEventIndex])"
-              (click)="registerCurrentEvent()"
-            >
-              <span class="mat-mdc-button-persistent-ripple mdc-button__ripple"></span>
-              <span class="mdc-button__label">{{ isRegistered(eventData[currentEventIndex]) ? 'Registered' : 'Register' }}</span>
-              <span class="mat-focus-indicator"></span>
-              <span class="mat-mdc-button-touch-target"></span>
-              <span class="mat-ripple mat-mdc-button-ripple"></span>
-            </button>
-            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="!isEventLoading && eventData.length > 0">
-              <button mat-icon-button (click)="previousEvent()">
-                <mat-icon>chevron_left</mat-icon>
-              </button>
-              <button mat-icon-button (click)="nextEvent()">
-                <mat-icon>chevron_right</mat-icon>
-              </button>
-            </div>
-          </mat-card-content>
-          <div *ngIf="isEventLoading" class="events-empty-state">
-            Loading events...
           </div>
-          <div *ngIf="!isEventLoading && eventData.length === 0" class="events-empty-state">
-            No upcoming events
-          </div>          
-        </mat-card>
-      </div>
-    </div>
-  </mat-card-content>
-</mat-card>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  <!-- What's New Card -->
+  <div class="events-card col-lg-6">
+    <mat-card class="mt-4 m-b-0 cardWithShadow h-100">
+      <mat-card-content class="mat-mdc-card-content p-y-24 d-flex flex-column justify-content-between h-100">
+        <div class="d-flex justify-content-between align-items-center">
+          <mat-card-title>
+            What's New?
+          </mat-card-title>
+          <i-tabler name="gift" class="icon-18 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path
+                d="M3 8m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z"
+              ></path>
+              <path d="M12 8l0 13"></path>
+              <path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7"></path>
+              <path
+                d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5"
+              ></path>
+            </svg>
+          </i-tabler>
+        </div>
+        <div
+          class="rounded w-100 m-t-8 p-3 border d-flex flex-column justify-content-center align-items-center"
+          style="text-align: center"
+          [@fade]="currentEventIndex"
+          *ngIf="!isEventLoading && eventData.length > 0"
+        >
+          <div class="f-s-13 mat-mdc-card-title mb-2">
+            {{ eventData[currentEventIndex].event }}
+          </div>
+          <div class="f-s-14 text-muted mb-2">
+            {{ eventData[currentEventIndex].description }}
+          </div>
+          <div class="f-s-14 text-muted mb-2">
+            {{ eventData[currentEventIndex].date | date : "MMM d, y - h:mm a" }}
+          </div>
+        </div>
+        <div
+          class="d-flex justify-content-between align-items-center mt-3"
+          *ngIf="!isEventLoading && eventData.length > 0"
+        >
+          <button mat-icon-button (click)="previousEvent()">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="mdc-button mat-mdc-button-base w-100 m-t-8 mdc-button--unelevated mat-mdc-unelevated-button mat-primary"
+            mat-ripple-loader-class-name="mat-mdc-button-ripple"
+            *ngIf="!isEventLoading && eventData.length > 0"
+            [disabled]="isRegistered(eventData[currentEventIndex])"
+            (click)="registerCurrentEvent()"
+          >
+            <span
+              class="mat-mdc-button-persistent-ripple mdc-button__ripple"
+            ></span>
+            <span class="mdc-button__label">{{
+              isRegistered(eventData[currentEventIndex])
+                ? "Registered"
+                : "Register"
+            }}</span>
+            <span class="mat-focus-indicator"></span>
+            <span class="mat-mdc-button-touch-target"></span>
+            <span class="mat-ripple mat-mdc-button-ripple"></span>
+          </button>
+
+          <button mat-icon-button (click)="nextEvent()">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+        <div *ngIf="isEventLoading" class="events-empty-state text-center f-s-14">
+          Loading events...
+        </div>
+        <div
+          *ngIf="!isEventLoading && eventData.length === 0"
+          class="events-empty-state text-center f-s-14"
+        >
+          No upcoming events
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
