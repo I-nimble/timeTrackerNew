@@ -1,48 +1,103 @@
 <div class="match-percentages-modal">
   <div class="modal-header">
-    <h3 mat-dialog-title>Enter Match Percentages</h3>
-    <button mat-icon-button mat-dialog-close class="close-button" (click)="onCancel()" [disabled]="saving">
+    <h3 mat-dialog-title>Enter Match Percentages & DISC Profile</h3>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="close-button"
+      (click)="onCancel()"
+      [disabled]="saving"
+    >
       <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
     </button>
   </div>
 
-  <mat-dialog-content>
+  <mat-dialog-content class="d-flex flex-column">
     <div class="candidate-info">
       <h3>{{ data.candidate.name }}</h3>
       <p class="text-muted">{{ data.candidate.email }}</p>
     </div>
 
-    <div class="categories-list" *ngIf="!loading; else loadingTemplate">
-      <mat-card *ngFor="let category of positionCategories" class="category-card">
-        <mat-card-content>
-          <div class="category-header">
-            <h4>{{ category.category_name }}</h4>
-            <span class="percentage-badge" [class.invalid]="!validatePercentage(category.id)">
-              {{ matchScores[category.id] || 0 }}%
-            </span>
-          </div>
-          
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Match Percentage (0-100%)</mat-label>
-            <input
-              matInput
-              type="number"
-              min="0"
-              max="100"
-              [(ngModel)]="matchScores[category.id]"
-              (blur)="validatePercentage(category.id)"
-              placeholder="Enter percentage"
-            />
-            <span matSuffix>%</span>
-            <mat-error *ngIf="!validatePercentage(category.id)">
-              Please enter a value between 0 and 100
-            </mat-error>
-          </mat-form-field>
-        </mat-card-content>
-      </mat-card>
+    <div *ngIf="!loading; else loadingTemplate" class="scrollable">
+      <div class="categories-list">
+        <mat-card
+          *ngFor="let category of positionCategories"
+          class="category-card"
+        >
+          <mat-card-content>
+            <div class="category-header">
+              <h4>{{ category.category_name }}</h4>
+              <span
+                class="percentage-badge"
+                [class.invalid]="!validatePercentage(category.id)"
+              >
+                {{ matchScores[category.id] || 0 }}%
+              </span>
+            </div>
 
-      <div *ngIf="positionCategories.length === 0" class="no-categories">
-        <p>No position categories available.</p>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-label>Match Percentage (0-100%)</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                max="100"
+                [(ngModel)]="matchScores[category.id]"
+                (blur)="validatePercentage(category.id)"
+                placeholder="Enter percentage"
+              />
+              <span matSuffix>%</span>
+              <mat-error *ngIf="!validatePercentage(category.id)">
+                Please enter a value between 0 and 100
+              </mat-error>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+
+        <div *ngIf="positionCategories.length === 0" class="no-categories">
+          <p>No position categories available.</p>
+        </div>
+      </div>
+
+      <div class="disc-profile-section m-t-16">
+        <h4>DISC Profile</h4>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Select DISC Profile(s)</mat-label>
+          <mat-select multiple [(ngModel)]="selectedDiscProfileIds">
+            <mat-option
+              *ngFor="let profile of discProfiles"
+              [value]="profile.id"
+            >
+              <span
+                class="disc-badge-inline"
+                [style.background-color]="getDiscProfileColor(profile.name)"
+              >
+                {{ profile.name.charAt(0) }}
+              </span>
+              {{ profile.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div
+          class="selected-profiles"
+          *ngIf="selectedDiscProfileIds.length > 0"
+        >
+          <span>Selected: </span>
+          <ng-container
+            *ngFor="let profileId of selectedDiscProfileIds; let last = last"
+          >
+            <ng-container *ngFor="let profile of discProfiles">
+              <span
+                *ngIf="profile.id === profileId"
+                class="disc-badge"
+                [style.background-color]="getDiscProfileColor(profile.name)"
+              >
+                {{ profile.name.charAt(0) }}
+              </span>
+            </ng-container>
+          </ng-container>
+        </div>
       </div>
     </div>
 
@@ -55,14 +110,24 @@
   </mat-dialog-content>
 
   <mat-dialog-actions class="d-flex flex-end">
-    <button 
-      mat-flat-button 
-      color="primary" 
-      (click)="onSubmit()" 
-      [disabled]="saving || getInvalidCategories().length > 0 || !hasValidScores()">
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="
+        saving || getInvalidCategories().length > 0 || !hasValidScores()
+      "
+    >
       <span *ngIf="!saving">Save</span>
       <span *ngIf="saving">Saving...</span>
     </button>
-    <button mat-flat-button class="bg-error text-white" (click)="onCancel()" [disabled]="saving">Cancel</button>
+    <button
+      mat-flat-button
+      class="bg-error text-white"
+      (click)="onCancel()"
+      [disabled]="saving"
+    >
+      Cancel
+    </button>
   </mat-dialog-actions>
 </div>

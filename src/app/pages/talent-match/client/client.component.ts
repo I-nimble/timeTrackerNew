@@ -31,6 +31,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
   standalone: true,
@@ -78,6 +79,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     'select',
     'name',
     'personality profile',
+    'position',
     'trainings',
     'rate',
     'actions',
@@ -236,7 +238,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     private interviewsService: InterviewsService,
     private aiService: AIService,
     private router: Router,
-    private matchScoresService: ApplicationMatchScoresService
+    private matchScoresService: ApplicationMatchScoresService,
+    private discProfilesService: DiscProfilesService
   ) {}
   
   ngOnInit(): void {
@@ -560,6 +563,14 @@ export class AppTalentMatchClientComponent implements OnInit {
 
   getPositionTitle(positionId: any) {
     return this.positions.find((p: any) => p.id == positionId)?.title;
+  }
+
+  getPositionById(positionId: any): any {
+    return this.positions.find((p: any) => p.id == positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
   getAllMatchScores() {
