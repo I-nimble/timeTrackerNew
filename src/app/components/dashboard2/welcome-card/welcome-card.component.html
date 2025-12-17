@@ -4,7 +4,7 @@
     <mat-card class="cardWithShadow dashboard-card">
       <mat-card-content>
         <div class="row">
-          <div class="col-12">
+          <div class="col-12" style="max-height: 200px;">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <mat-card-title>Notifications</mat-card-title>
             </div>
@@ -51,9 +51,9 @@
     </mat-card>
   </div>
   <!-- What's New Card -->
-  <div class="events-card col-lg-6 m-b-24">
-    <mat-card class="mt-4 cardWithShadow">
-      <mat-card-content class="mat-mdc-card-content p-y-24">
+  <div class="events-card col-lg-6">
+    <mat-card class="mt-4 m-b-0 cardWithShadow h-100">
+      <mat-card-content class="mat-mdc-card-content p-y-24 d-flex flex-column justify-content-between h-100">
         <div class="d-flex justify-content-between align-items-center">
           <mat-card-title>
             What's New?
@@ -74,7 +74,7 @@
         </div>
         <div
           class="rounded w-100 m-t-8 p-3 border d-flex flex-column justify-content-center align-items-center"
-          style="height: 200px; text-align: center"
+          style="text-align: center"
           [@fade]="currentEventIndex"
           *ngIf="!isEventLoading && eventData.length > 0"
         >
@@ -88,27 +88,6 @@
             {{ eventData[currentEventIndex].date | date : "MMM d, y - h:mm a" }}
           </div>
         </div>
-        <button
-          mat-flat-button
-          color="primary"
-          class="mdc-button mat-mdc-button-base w-100 m-t-8 mdc-button--unelevated mat-mdc-unelevated-button mat-primary"
-          mat-ripple-loader-class-name="mat-mdc-button-ripple"
-          *ngIf="!isEventLoading && eventData.length > 0"
-          [disabled]="isRegistered(eventData[currentEventIndex])"
-          (click)="registerCurrentEvent()"
-        >
-          <span
-            class="mat-mdc-button-persistent-ripple mdc-button__ripple"
-          ></span>
-          <span class="mdc-button__label">{{
-            isRegistered(eventData[currentEventIndex])
-              ? "Registered"
-              : "Register"
-          }}</span>
-          <span class="mat-focus-indicator"></span>
-          <span class="mat-mdc-button-touch-target"></span>
-          <span class="mat-ripple mat-mdc-button-ripple"></span>
-        </button>
         <div
           class="d-flex justify-content-between align-items-center mt-3"
           *ngIf="!isEventLoading && eventData.length > 0"
@@ -116,6 +95,29 @@
           <button mat-icon-button (click)="previousEvent()">
             <mat-icon>chevron_left</mat-icon>
           </button>
+
+          <button
+            mat-flat-button
+            color="primary"
+            class="mdc-button mat-mdc-button-base w-100 m-t-8 mdc-button--unelevated mat-mdc-unelevated-button mat-primary"
+            mat-ripple-loader-class-name="mat-mdc-button-ripple"
+            *ngIf="!isEventLoading && eventData.length > 0"
+            [disabled]="isRegistered(eventData[currentEventIndex])"
+            (click)="registerCurrentEvent()"
+          >
+            <span
+              class="mat-mdc-button-persistent-ripple mdc-button__ripple"
+            ></span>
+            <span class="mdc-button__label">{{
+              isRegistered(eventData[currentEventIndex])
+                ? "Registered"
+                : "Register"
+            }}</span>
+            <span class="mat-focus-indicator"></span>
+            <span class="mat-mdc-button-touch-target"></span>
+            <span class="mat-ripple mat-mdc-button-ripple"></span>
+          </button>
+
           <button mat-icon-button (click)="nextEvent()">
             <mat-icon>chevron_right</mat-icon>
           </button>
