@@ -30,6 +30,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
@@ -55,7 +56,8 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
     MatSliderModule,
     MatSlideToggleModule,
     MatChipsModule,
-    NgxSliderModule
+    NgxSliderModule,
+    FormatNamePipe
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -76,9 +78,9 @@ export class AppTalentMatchClientComponent implements OnInit {
   displayedColumns: string[] = [
     'select',
     'name',
+    'personality profile',
     'position',
-    'alignment',
-    'experience',
+    'trainings',
     'rate',
     'actions',
   ];
@@ -239,10 +241,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     private matchScoresService: ApplicationMatchScoresService,
     private discProfilesService: DiscProfilesService
   ) {}
-
-  @ViewChild('roleModel') roleModel!: NgModel;
-  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
-
+  
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
@@ -251,16 +250,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositionCategories();
   }
 
-  ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      if (this.roleModel) {
-        this.roleModel.control.markAsTouched();
-      }
-      if (this.practiceAreaModel) {
-        this.practiceAreaModel.control.markAsTouched();
-      }
-    });
-  }
 
   searchCandidatesWithAI(question: string) {
     const searchQuery = question || this.buildFullSearchQuery();
