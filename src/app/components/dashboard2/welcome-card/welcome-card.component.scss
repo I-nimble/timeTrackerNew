@@ -2,7 +2,24 @@
   display: block;
 }
 
-.card-dashboard {
+.welcome-card {
+  padding-left: 8px;
+}
+
+.notifications-card, .events-card {
+  padding: 0px 8px;
+  height: 100%;
+}
+
+.events-card {
+  height: 217px;;
+}
+
+.events-card .cardWithShadow {
+  height: 100%;
+}
+
+.dashboard-card {
   height: 100%;
   
   .notifications-scroll-container {
