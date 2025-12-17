@@ -1573,6 +1573,37 @@ export class RocketChatService {
     );
   }
 
+  addUsersToRoom(
+    roomId: string,
+    userIds: string[],
+    type: 'c' | 'p'
+  ): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const endpoint = type === 'c' ? 'channels.invite' : 'groups.invite';
+    return forkJoin(
+      userIds.map(userId =>
+        this.http.post(
+          `${this.CHAT_API_URI}${endpoint}`,
+          { roomId, userId },
+          { headers }
+        )
+      )
+    );
+  }
+
+  removeUserFromRoom(roomId: string, userId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    const endpoint =
+      this.currentActiveRoom?.startsWith('c')
+        ? 'channels.kick'
+        : 'groups.kick';
+    return this.http.post(
+      `${this.CHAT_API_URI}${endpoint}`,
+      { roomId, userId },
+      { headers }
+    );
+  }
+
   deleteRoom(roomId: string): Observable<boolean> {
     const headers = this.getAuthHeaders();
 
