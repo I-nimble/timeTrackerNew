@@ -8,22 +8,15 @@
 
 .notifications-card, .events-card {
   padding: 0px 8px;
-  height: 100%;
-}
-
-.events-card {
-  height: 217px;;
-}
-
-.events-card .cardWithShadow {
-  height: 100%;
+  min-height: 100%;
+  margin-bottom: 0;
 }
 
 .dashboard-card {
   height: 100%;
   
   .notifications-scroll-container {
-    max-height: 130px; 
+    max-height: 100%; 
     overflow-y: auto;
     padding-right: 8px; 
     
@@ -91,5 +84,11 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+  }
+}
+
+@media screen and (max-width: 1279px) {
+  .notifications-card {
+    margin-bottom: 30px;
   }
 }
