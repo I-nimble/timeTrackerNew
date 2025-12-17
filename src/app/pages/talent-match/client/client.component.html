@@ -281,7 +281,7 @@
                   />
                   <div class="m-l-16">
                     <h6 class="f-s-14 f-w-600 cursor-pointer">
-                      {{ element.name }}
+                      {{ element.name | formatName }}
                     </h6>
                     <span
                       class="f-s-12 f-w-400 d-block"
@@ -294,28 +294,13 @@
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="position">
-              <th
-                mat-header-cell
-                *matHeaderCellDef
-                class="f-w-600 f-s-14 col-2"
-              >
-                Position
-              </th>
-              <td mat-cell *matCellDef="let element">
-                <p class="f-s-14 f-s-12 m-0">
-                  {{ getPositionTitle(element.position_id) }}
-                </p>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="alignment">
+            <ng-container matColumnDef="personality profile">
               <th
                 mat-header-cell
                 *matHeaderCellDef
                 class="f-w-600 f-s-16 col-4"
               >
-                Alignment
+                Personality profile
               </th>
               <td mat-cell *matCellDef="let element">
                 <span class="f-w-600"
@@ -325,56 +310,57 @@
               </td>
             </ng-container>
 
-            <ng-container matColumnDef="experience">
+            <ng-container matColumnDef="trainings">
               <th
                 mat-header-cell
                 *matHeaderCellDef
-                class="f-w-600 f-s-14 col-4"
+                class="f-w-600 f-s-16 col-4"
               >
-                Experience
+                Trainings
               </th>
               <td mat-cell *matCellDef="let element" class="f-s-14">
-                <ng-container *ngIf="element.work_experience">
-                  <ng-container
-                    *ngIf="
-                      !expandedWorkExp[element.id] &&
-                      element.work_experience.length > 200
-                    "
-                  >
-                    {{ element.work_experience | slice : 0 : 200 }}...
-                    <button
-                      mat-button
-                      color="primary"
-                      class="p-0"
-                      (click)="
-                        expandedWorkExp[element.id] = true;
-                        $event.stopPropagation()
-                      "
-                    >
-                      Read more
-                    </button>
-                  </ng-container>
-                  <ng-container
-                    *ngIf="
-                      expandedWorkExp[element.id] ||
-                      element.work_experience.length <= 200
-                    "
-                  >
-                    {{ element.work_experience }}
-                    <button
-                      *ngIf="element.work_experience.length > 200"
-                      mat-button
-                      color="primary"
-                      class="p-0"
-                      (click)="
-                        expandedWorkExp[element.id] = false;
-                        $event.stopPropagation()
-                      "
-                    >
-                      Show less
-                    </button>
-                  </ng-container>
+                <ng-container *ngIf="element.certifications && element.certifications.length > 0; else noCerts">
+                  <div class="certifications-container">
+                    <div *ngFor="let cert of element.certifications; let i = index" class="cert-item m-b-8">
+                      <div *ngIf="cert.name" class="cert-name f-w-600 f-s-14 text-primary">
+                        {{ cert.name }}
+                      </div>
+                      <div *ngIf="cert.issuer" class="cert-issuer f-s-12 text-muted">
+                        Issuer: {{ cert.issuer }}
+                      </div>
+                      <div *ngIf="cert.date || cert.expiration_date" class="cert-dates f-s-12 text-muted">
+                        <span *ngIf="cert.date">
+                          {{ cert.date | date:'MMM yyyy' }}
+                        </span>
+                        <span *ngIf="cert.date && cert.expiration_date"> - </span>
+                        <span *ngIf="cert.expiration_date">
+                          {{ cert.expiration_date | date:'MMM yyyy' }}
+                        </span>
+                      </div>
+                      <div *ngIf="cert.url" class="cert-link m-t-4">
+                        <a
+                          [href]="cert.url"
+                          target="_blank"
+                          mat-stroked-button
+                          color="primary"
+                          class="custom-btn"
+                        >
+                          See credential
+                          <i-tabler
+                            name="external-link"
+                            class="icon-16 m-l-4"
+                          ></i-tabler>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </ng-container>
+                
+                <ng-template #noCerts>
+                  <div class="text-muted f-s-14">
+                    No trainings
+                  </div>
+                </ng-template>
               </td>
             </ng-container>
 
@@ -537,7 +523,7 @@
                             </div>
                           </div>
                           <h4 class="f-s-18 f-w-600 mt-2 text-center">
-                            {{ element.name }}
+                            {{ element.name | formatName }}
                           </h4>
                           <p class="m-0 text-center">
                             {{ getPositionTitle(element.position_id) }}
