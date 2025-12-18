@@ -9,7 +9,6 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { EventsService } from 'src/app/services/events.service';
 import { trigger, style, animate, transition } from '@angular/animations';
 import { ModalComponent } from '../../confirmation-modal/modal.component';
-import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
