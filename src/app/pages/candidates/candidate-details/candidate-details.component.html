@@ -29,7 +29,7 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button mat-flat-button color="primary" (click)="save()">
+              <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
               <button
@@ -44,10 +44,15 @@
         </div>
         <table class="table table-bordered w-100 mb-4">
           <tr>
-            <td><b>Name</b></td>
+            <td>
+              <b>Name <span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
             <td *ngIf="!editMode">{{ candidate()?.name || "" }}</td>
             <td *ngIf="editMode">
               <input matInput [formControl]="f['name']" />
+              <p class="text-danger f-s-12 m-t-0" *ngIf="f['name'].hasError('required')">
+                Name is required.
+              </p>
             </td>
           </tr>
 
@@ -70,8 +75,8 @@
               ></textarea>
             </td>
           </tr>
-          <tr>
-            <td><b>Negotiator Profile</b></td>
+          <tr *ngIf="!isCreateMode">
+            <td ><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
               <div *ngFor="let score of matchScores">
                 {{ getCategoryName(score) }}:
@@ -86,7 +91,8 @@
                 <button
                   mat-stroked-button
                   color="primary"
-                  (click)="openMatchPercentagesModal()"
+                  [disabled]="isCreateMode"
+                  (click)="openMatchPercentagesModal(); $event.stopPropagation()"
                   type="button"
                 >
                   <mat-icon>percent</mat-icon>
@@ -119,7 +125,7 @@
               </div>
             </td>
           </tr>
-          <tr *ngIf="userRole !== '3'">
+          <tr *ngIf="userRole !== '3' && !isCreateMode">
             <td><b>DISC Profile</b></td>
             <td *ngIf="!editMode">
               <div
@@ -147,7 +153,7 @@
                 <button
                   mat-stroked-button
                   color="primary"
-                  (click)="openMatchPercentagesModal()"
+                  (click)="openMatchPercentagesModal(); $event.stopPropagation()"
                   type="button"
                 >
                   <mat-icon>psychology</mat-icon>
@@ -194,16 +200,17 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Position</b></td>
-            <td *ngIf="!editMode">
-              {{ getPositionTitle(candidate()?.position_id) }}
+            <td>
+              <b>Position <span class="text-danger" *ngIf="editMode">*</span></b>
             </td>
+            <td *ngIf="!editMode">{{ getPositionTitle(candidate()?.position_id) }}</td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['position_id']">
-                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{
-                  pos.title
-                }}</mat-option>
+                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{ pos.title }}</mat-option>
               </mat-select>
+              <p class="text-danger f-s-12 m-t-0" *ngIf="f['position_id'].hasError('required')">
+                Position is required.
+              </p>
             </td>
           </tr>
 
@@ -321,10 +328,15 @@
           </tr>
 
           <tr>
-            <td><b>Skills</b></td>
+            <td>
+              <b>Skills <span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
             <td *ngIf="!editMode">{{ candidate()?.skills || "" }}</td>
-            <td *ngIf="editMode && userRole !== '3'">
+            <td *ngIf="editMode">
               <textarea matInput [formControl]="f['skills']"></textarea>
+              <p class="text-danger f-s-12 m-t-0" *ngIf="f['skills'].hasError('required')">
+                Skills are required.
+              </p>
             </td>
           </tr>
 
@@ -359,10 +371,15 @@
           </tr>
 
           <tr>
-            <td><b>English Level</b></td>
+            <td>
+              <b>English Level <span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
             <td *ngIf="!editMode">{{ candidate()?.english_level || "" }}</td>
-            <td *ngIf="editMode && userRole !== '3'">
+            <td *ngIf="editMode">
               <input matInput [formControl]="f['english_level']" />
+              <p class="text-danger f-s-12 m-t-0" *ngIf="f['english_level'].hasError('required')">
+                English level is required.
+              </p>
             </td>
           </tr>
         </table>
