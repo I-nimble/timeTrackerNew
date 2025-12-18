@@ -472,7 +472,7 @@
                     expandedElement === element ? 'expanded' : 'collapsed'
                   "
                 >
-                  <div class="expand-wrapper p-16">
+                  <div class="expand-wrapper p-16 resume">
                     <mat-card
                       class="shadow-none overflow-visible"
                     >
@@ -483,9 +483,9 @@
                           class="col-12 d-flex flex-row align-items-center mb-16 mb-lg-0"
                         >
                         <div class="col-8 profile-info">
-                            <h4 class="f-s-24 f-w-700 mt-2">
+                            <h2 class="f-s-30 f-w-900 mt-2 m-b-16">
                               {{ element.name | formatName }}
-                            </h4>
+                            </h2>
                             <p class="m-0 f-s-16 m-t-2">
                               This profile matches best for:
                             </p>
@@ -498,11 +498,6 @@
                           >
                             <div
                               class="profile-border rounded-circle d-flex align-items-center justify-content-center"
-                              style="
-                                width: 108px;
-                                height: 108px;
-                                border: 2px solid #ffffff;
-                              "
                             >
                               <img
                                 [src]="
@@ -550,13 +545,13 @@
                     <mat-divider></mat-divider>
                     <mat-card-content class="d-flex row">
                       <div class="col-6 flex-column" *ngIf="element.skills">
-                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Skills</h5>
+                          <h5 class="f-s-24 f-w-600 m-b-16 text-primary">Skills</h5>
                           <div>
                             <p>{{ element.skills }}</p>
                           </div>                       
                       </div>
                        <div *ngIf="element.hobbies" class="col-6 hobbies">
-                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Hobbies</h5>
+                          <h5 class="f-s-24 f-w-600 m-b-16 text-primary">Hobbies</h5>
                           <div>
                             <p>{{ element.hobbies }}</p>
                           </div>                       
@@ -571,7 +566,7 @@
                     <mat-divider></mat-divider>
                     <mat-card-content>
                       <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Education</h5>
+                          <h5 class="f-s-20 f-w-600 m-b-16 text-primary">Education</h5>
                           <div>
                             <p>{{ element.education_history }}</p>
                           </div>                       
@@ -583,7 +578,7 @@
                     <mat-divider></mat-divider>
                     <mat-card-content>
                       <ng-container>
-                        <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Language</h5>
+                        <h5 class="f-s-20 f-w-600 m-b-16 text-primary">Language</h5>
                         <div class="d-flex">
                           <div class="col-6">
                           <p class="f-s-16 f-w-600">English</p>
@@ -633,39 +628,32 @@
                       <mat-divider></mat-divider>
                       <mat-card-content>
                         <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">What is it?</h5>
+                          <h5 class="f-s-24 m-b-16 f-w-900 color-gray">What is it?</h5>
                           <p class="f-s-14 text-muted m-b-16">
                             Olympia is a personality-based analysis tool created by Inimble, designed specifically for legal roles. It translates behavioral patterns into key traits like precision, ethics, and emotional control to assess suitability in the legal field
                           </p>
                           
                           <div *ngFor="let score of element.all_match_scores" class="match-score-item m-b-20">
-                            <div class="d-flex justify-content-between align-items-center m-b-4">
-                              <span class="f-s-16 f-w-500">{{ score.category_name }}</span>
-                              <span class="f-s-16 f-w-600 text-primary">{{ score.match_percentage }}%</span>
-                            </div>
-                            
-                            <!-- Progress Bar -->
-                            <div class="progress-container m-b-8">
-                              <div class="progress-bar-background">
-                                <div 
-                                  class="progress-bar-fill"
-                                  [ngClass]="{
-                                    'low-match': score.match_percentage < 40,
-                                    'medium-match': score.match_percentage >= 40 && score.match_percentage < 70,
-                                    'high-match': score.match_percentage >= 70 && score.match_percentage < 90,
-                                    'excellent-match': score.match_percentage >= 90
-                                  }"
-                                  [style.width.%]="score.match_percentage">
+                            <div class="d-flex justify-content-start align-items-start m-b-4">
+                              <span class="f-s-16 f-w-500 m-r-16">{{ score.category_name }}</span>
+                              <span class="f-s-16 f-w-800 m-r-16">{{ score.match_percentage }}%</span>
+                              <!-- Progress Bar -->
+                              <div class="progress-container m-b-8">
+                                <div class="progress-bar-background">
+                                  <div 
+                                    class="progress-bar-fill"
+                                    [ngClass]="{
+                                      'low-match': score.match_percentage < 40,
+                                      'medium-match': score.match_percentage >= 40 && score.match_percentage < 70,
+                                      'high-match': score.match_percentage >= 70 && score.match_percentage < 90,
+                                      'excellent-match': score.match_percentage >= 90
+                                    }"
+                                    [style.width.%]="score.match_percentage">
+                                  </div>
                                 </div>
                               </div>
-                              
-                              <!-- Score Labels -->
-                              <div class="progress-labels d-flex justify-content-between m-t-4">
-                                <span class="f-s-12 text-muted">0%</span>
-                                <span class="f-s-12 text-muted">50%</span>
-                                <span class="f-s-12 text-muted">100%</span>
-                              </div>
                             </div>
+                            
                           </div>
                           
                           <div class="m-t-24">
@@ -684,7 +672,7 @@
                     <mat-divider></mat-divider>
                     <mat-card-content>
                       <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">Coworking location</h5>
+                          <h5 class="f-s-24 f-w-600 m-b-16">Coworking location</h5>
                           <div>
                             {{ element.location }},  {{ element.country }}
                           </div>                       
