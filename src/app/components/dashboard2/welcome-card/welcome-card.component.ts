@@ -5,27 +5,52 @@ import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../../services/socket/web-socket.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { EventsService } from 'src/app/services/events.service';
+import { trigger, style, animate, transition } from '@angular/animations';
+import { ModalComponent } from '../../confirmation-modal/modal.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-welcome-card',
   standalone: true,
-  imports: [MaterialModule, RouterModule, CommonModule],
+  imports: [MaterialModule, RouterModule, CommonModule, TablerIconsModule],
   templateUrl: './welcome-card.component.html',
-  styleUrls: ['./welcome-card.component.scss']
+  styleUrls: ['./welcome-card.component.scss'],
+  animations: [
+    trigger('fade', [
+      transition(':increment', [
+        style({ opacity: 0 }),
+        animate('200ms ease-in', style({ opacity: 1 }))
+      ]),
+      transition(':decrement', [
+        style({ opacity: 0 }),
+        animate('200ms ease-in', style({ opacity: 1 }))
+      ])
+    ])
+  ]
 })
 export class AppWelcomeCardComponent implements OnInit {
   allNotifications: any[] = [];
   isLoading: boolean = true;
+  eventData: any[] = [];
+  currentEventIndex: number = 0;
+  isEventLoading: boolean = true;
+  currentUserId: number | null = null;
 
   constructor(
     private notificationsService: NotificationsService,
     private webSocketService: WebSocketService,
     private router: Router,
+    private eventsService: EventsService,
+    private dialog: MatDialog,
+    public snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+    this.currentUserId = Number(localStorage.getItem('id')) || null;
     this.loadNotifications();
-    
+    this.loadEvents();
     this.webSocketService.getNotifications().subscribe((event) => {
       if (event === 'update') {
         this.loadNotifications();
@@ -45,6 +70,77 @@ export class AppWelcomeCardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  loadEvents(): void {
+    this.isEventLoading = true;
+    this.eventsService.getEvents().subscribe({
+      next: (events) => {
+        if (events && events.length > 0) {
+          const now = new Date();
+          this.eventData = events
+            .filter((event: any) => new Date(event.date) > now)
+            .sort((a: any, b: any) =>
+              new Date(a.date).getTime() - new Date(b.date).getTime()
+            );
+        }
+        this.isEventLoading = false;
+        this.currentEventIndex = 0;
+      },
+      error: (error) => {
+        console.error('Error loading events:', error);
+        this.isEventLoading = false;
+      }
+    });
+  }
+
+  previousEvent(): void {
+    if (this.eventData.length === 0) return;
+    this.currentEventIndex =
+      (this.currentEventIndex - 1 + this.eventData.length) % this.eventData.length;
+  }
+
+  nextEvent(): void {
+    if (this.eventData.length === 0) return;
+    this.currentEventIndex =
+      (this.currentEventIndex + 1) % this.eventData.length;
+  }
+
+  registerCurrentEvent(): void {
+    if (this.eventData.length === 0) return;
+    const currentEvent = this.eventData[this.currentEventIndex];
+    const dialogRef = this.dialog.open(ModalComponent, {
+      width: '400px',
+      data: {
+        subject: 'event',
+        action: 'register'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
+      this.eventsService.registerToEvent(currentEvent.id).subscribe({
+        next: (res) => {
+          this.openSnackBar(res.message || `Successfully registered to ${currentEvent.event}`, 'Close');
+          if (res.registered_user) {
+            if (!currentEvent.attendees) {
+              currentEvent.attendees = [];
+            }
+            currentEvent.attendees.push(res.registered_user);
+          }
+        },
+        error: (err) => {
+          console.error('Error registering to event:', err);
+          const msg = err.error?.message || 'Failed registering to event';
+          this.openSnackBar(msg, 'Close');
+        }
+      });
+    });
+  }
+
+  isRegistered(event: any): boolean {
+    if (!this.currentUserId || !event.attendees) return false;
+    return event.attendees.some((u: any) => u.id === this.currentUserId);
   }
 
   filterAndSortNotifications(notifications: any[]): any[] {
@@ -165,5 +261,13 @@ export class AppWelcomeCardComponent implements OnInit {
     this.markAllAsReadBySection(sectionType);
     
     this.router.navigate([route]);
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
   }
 }

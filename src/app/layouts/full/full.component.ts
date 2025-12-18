@@ -129,16 +129,13 @@ export class FullComponent implements OnInit {
     //     link: '/apps/chat/support',
     //   }]
     // : []),
-    ...(this.role != '2' ||
-    environment.allowedReportEmails.includes(localStorage.getItem('email') || '')
-    ? [{
-        id: 13,
-        img: '/assets/images/svgs/icon-office-bag.svg',
-        title: 'Talent Match',
-        subtitle: 'Find top talent',
-        link: '/apps/talent-match',
-      }]
-    : []),
+    {
+      id: 13,
+      img: '/assets/images/svgs/icon-office-bag.svg',
+      title: 'Talent Match',
+      subtitle: 'Find top talent',
+      link: '/apps/talent-match',
+    },
     ...(this.role == '3'
     ? [{
         id: 14,
@@ -164,6 +161,15 @@ export class FullComponent implements OnInit {
         title: 'Permissions',
         subtitle: 'Give permissions to your users',
         link: '/apps/permission',
+      }]
+    : []),
+    ...(this.role == '1'
+    ? [{
+        id: 17,
+        img: '/assets/images/svgs/icon-speech-bubble.svg',
+        title: 'Events',
+        subtitle: 'Create upcoming events',
+        link: '/apps/events',
       }]
     : []),
     {

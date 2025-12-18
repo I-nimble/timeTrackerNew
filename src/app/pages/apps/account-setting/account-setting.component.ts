@@ -220,7 +220,7 @@ export class AppAccountSettingComponent implements OnInit {
       Validators.minLength(10),
       Validators.maxLength(15)
     ]],
-    // currentResidence: ['', Validators.required],
+    currentResidence: ['', Validators.required],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
     englishLevel: ['', Validators.required],
@@ -638,8 +638,10 @@ export class AppAccountSettingComponent implements OnInit {
         availability: this.user.availability == 1
       });
 
-
-      this.personalForm.markAllAsTouched();
+      this.personalForm.get('phone')?.markAsTouched();
+      this.personalForm.get('address')?.markAsTouched();
+      this.applicationForm.get('contactPhone')?.markAsTouched();
+      this.applicationForm.get('additionalPhone')?.markAsTouched();
 
       // Populate medical form
       this.medicalForm.patchValue({
