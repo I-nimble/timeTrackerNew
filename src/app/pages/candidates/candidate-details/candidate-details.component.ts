@@ -1,5 +1,5 @@
 import { Component, signal, OnInit } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { Loader } from 'src/app/app.models';
@@ -12,7 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { PermissionService } from 'src/app/services/permission.service';
-import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
@@ -58,9 +58,11 @@ export class CandidateDetailsComponent implements OnInit {
   canEdit: boolean = false;
   showFullWorkExperience: boolean = false;
   rankingProfiles: any[] = [];
+  isCreateMode = false;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     public applicationService: ApplicationsService,
     private positionsService: PositionsService,
     private snackBar: MatSnackBar,
@@ -73,29 +75,24 @@ export class CandidateDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loader.started = true;
-    const candidateId = +this.route.snapshot.paramMap.get('id')!;
-    if (!candidateId) {
-      this.loader.complete = true;
-      this.loader.error = true;
-      this.message = 'Candidate not found.';
-      return;
-    }
+    const param = this.route.snapshot.paramMap.get('id');
+    this.isCreateMode = param === 'new';
 
     this.form = this.fb.group({
-      name: [''],
+      name: ['', Validators.required],
       description: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
       ranking_id: [''],
-      position_id: [''],
+      position_id: ['', Validators.required],
       profile_pic: [''],
       interview_link: [''],
       hobbies: [''],
-      work_experience: [''],
-      skills: [''],
+      work_experience: ['', Validators.maxLength(1000)],
+      skills: ['', Validators.required],
       education_history: [''],
       inimble_academy: [''],
-      english_level: ['']
+      english_level: ['', Validators.required]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
@@ -105,20 +102,18 @@ export class CandidateDetailsComponent implements OnInit {
       error: (err) => console.error('Error loading rankings', err)
     });
     this.loadPositions();
-    this.loadCandidateApplications(candidateId);
     this.userRole = localStorage.getItem('role');
     this.userId = Number(localStorage.getItem('id'));
-    this.permissionService.getUserPermissions(this.userId).subscribe({
-      next: (userPerms: any) => {
-        const effective = userPerms.effectivePermissions || [];
-        this.canManage = effective.includes('candidates.manage');
-        this.canEdit = effective.includes('candidates.edit');
-        this.canView = effective.includes('candidates.view');
-      },
-      error: (err) => {
-        console.error('Error fetching user permissions', err);
-      },
-    });
+    this.loadPermissions();
+    if (this.isCreateMode) {
+      this.editMode = true;
+      this.candidate.set(null);
+      this.originalData = this.form.value;
+      this.loader.complete = true;
+      return;
+    }
+    const candidateId = Number(param);
+    this.loadCandidateApplications(candidateId);
   }
 
   private loadPositions() {
@@ -147,6 +142,17 @@ export class CandidateDetailsComponent implements OnInit {
           { ranking_id: profile.id },
           { emitEvent: false }
         );
+      }
+    });
+  }
+
+  private loadPermissions() {
+    this.permissionService.getUserPermissions(this.userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('candidates.manage');
+        this.canEdit = effective.includes('candidates.edit');
+        this.canView = effective.includes('candidates.view');
       }
     });
   }
@@ -248,31 +254,53 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   cancelEdit() {
+    if (this.isCreateMode) {
+      this.router.navigate(['apps/candidates']);
+      return;
+    }
     this.form.patchValue(this.originalData);
     this.editMode = false;
   }
 
-  save() {
+
+  private createCandidate() {
+    const payload = {
+      ...this.form.value,
+      status_id: 1
+    };
+    this.applicationService.submit(payload).subscribe({
+      next: (candidate: any) => {
+        this.snackBar.open('Candidate created successfully!', 'Close', { duration: 3000 });
+        this.router.navigate(['apps/candidates']);
+      },
+      error: () => {
+        this.snackBar.open('Error creating candidate', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  private updateCandidate() {
     const id = this.candidate()?.id;
     if (!id) return;
 
     this.applicationService.submit(this.form.value, id).subscribe({
-      next: (res) => {
-        const updatedCandidate = { ...this.candidate(), ...this.form.value };
-        if (this.form.value.profile_pic) {
-          updatedCandidate.picture = this.form.value.profile_pic;
-        }
-        updatedCandidate.profile_pic_url = updatedCandidate.picture;
-        this.candidate.set(updatedCandidate);
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));        
+      next: () => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
-        this.applicationService.notifyApplicationUpdated(updatedCandidate);
         this.editMode = false;
       },
       error: () => {
         this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  save() {
+    if (this.form.invalid) return;
+    if (this.isCreateMode) {
+      this.createCandidate();
+    } else {
+      this.updateCandidate();
+    }
   }
 
   getPositionTitle(positionId: number) {
