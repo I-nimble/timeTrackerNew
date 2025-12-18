@@ -413,74 +413,89 @@
                         </td>
                         </ng-container>
 
-                        <ng-container matColumnDef="actions">
-                            <th mat-header-cell *matHeaderCellDef class="f-w-600  f-s-14">
-                                Actions
-                            </th>
-                            <td mat-cell *matCellDef="let element">
-                                <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
-                                <mat-icon>more_vert</mat-icon>
-                                </button>
-                                <mat-menu #actionsMenu="matMenu">
-                                    @if(getInterviewDateTime(element.id)) {
-                                        <button mat-menu-item (click)="openDialog('Reeschedule', element)">
-                                            <mat-icon>edit</mat-icon>
-                                            <span>Reeschedule</span>
-                                        </button>
-                                        <button mat-menu-item (click)="cancelInterview(element.id)">
-                                            <mat-icon>delete</mat-icon>
-                                            <span>Cancel Interview</span>
-                                        </button>
-                                    }
-                                    @else {
-                                        <button mat-menu-item (click)="openDialog('Schedule', element)">
-                                            <mat-icon>event</mat-icon>
-                                            <span>Schedule</span>
-                                        </button>
-                                    }
-                                    <button mat-menu-item (click)="downloadFile(element.resume_url, element.name); $event.preventDefault()">
-                                        <mat-icon>download</mat-icon>
-                                        <span>Download Resume</span>
-                                    </button>
-                                    <button mat-menu-item (click)="deleteApplication(element.id)">
-                                        <mat-icon>delete</mat-icon>
-                                        <span>Not interested</span>
-                                    </button>
-                                </mat-menu>
-                            </td>
-                        </ng-container>
-                        <ng-container matColumnDef="expandedDetail">
-                            <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length + 1">
-                            <div
-                            class="expanded-detail-wrapper"
-                            [@detailExpand]="expandedElement === element ? 'expanded' : 'collapsed'"
-                            >
-                                <div class="expand-wrapper p-16">
-                                    <mat-card class="mat-mdc-card mdc-card cardWithShadow overflow-visible">
-                                        <div class="row align-items-center g-0">
-                                            
-                                            <div class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-center m-b-24 stats-column order-2 order-lg-1 ">
-                                            <ng-container *ngFor="let stat of matchStats[element.id]; let i = index">
-                                                <ng-container *ngIf="i < 2">
-                                                <div class="text-center stat-item mb-16">
-                                                    <tabler-icon [name]="stat.icon" class="icon-20 mb-2"></tabler-icon>
-                                                    <h6 class="mb-0 f-s-18 f-w-500">{{ stat.value }}%</h6>
-                                                    <p class="m-0 f-s-14">{{ stat.label }}</p>
-                                                </div>
-                                                </ng-container>
-                                            </ng-container>
-                                            </div>
-
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Actions
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  @if(getInterviewDateTime(element.id)) {
+                  <button
+                    mat-menu-item
+                    (click)="openDialog('Reeschedule', element)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Reeschedule</span>
+                  </button>
+                  <button mat-menu-item (click)="cancelInterview(element.id)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Cancel Interview</span>
+                  </button>
+                  } @else {
+                  <button
+                    mat-menu-item
+                    (click)="openDialog('Schedule', element)"
+                  >
+                    <mat-icon>event</mat-icon>
+                    <span>Schedule</span>
+                  </button>
+                  }
+                  <button
+                    mat-menu-item
+                    (click)="
+                      downloadFile(element.resume_url, element.name);
+                      $event.preventDefault()
+                    "
+                  >
+                    <mat-icon>download</mat-icon>
+                    <span>Download Resume</span>
+                  </button>
+                  <button mat-menu-item (click)="deleteApplication(element.id)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Not interested</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </ng-container>
+            <!-- HERE -->
+            <ng-container matColumnDef="expandedDetail">
+              <td
+                mat-cell
+                *matCellDef="let element"
+                [attr.colspan]="displayedColumns.length + 1"
+              >
+                <div
+                  class="expanded-detail-wrapper"
+                  [@detailExpand]="
+                    expandedElement === element ? 'expanded' : 'collapsed'
+                  "
+                >
+                  <div class="expand-wrapper p-16">
+                    <mat-card
+                      class="shadow-none overflow-visible"
+                    >
+                      <div class="row align-items-center g-0 w-100">
+  
+                        <img src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png" class="logo-inimble" />
                         <div
-                          class="col-12 col-lg-4 d-flex flex-column align-items-center order-1 order-lg-2 mb-16 mb-lg-0"
+                          class="col-12 d-flex flex-row align-items-center mb-16 mb-lg-0"
                         >
+                        <div class="col-8 profile-info">
+                            <h4 class="f-s-24 f-w-700 mt-2">
+                              {{ element.name | formatName }}
+                            </h4>
+                            <p class="m-0 f-s-16 m-t-2">
+                              This profile matches best for:
+                            </p>
+                            <p class="m-0 f-s-16 position-title m-t-16">
+                              {{ getPositionTitle(element.position_id) }}
+                            </p>
+                          </div>
                           <div
-                            class="profile-border-bg rounded-circle d-flex align-items-center justify-content-center"
-                            style="
-                              width: 120px;
-                              height: 120px;
-                              background: #e0e0e0;
-                            "
+                            class="profile-border-bg rounded-circle d-flex align-items-center justify-content-center col-4"
                           >
                             <div
                               class="profile-border rounded-circle d-flex align-items-center justify-content-center"
@@ -510,83 +525,198 @@
                               />
                             </div>
                           </div>
-                          <h4 class="f-s-18 f-w-600 mt-2 text-center">
-                            {{ element.name | formatName }}
-                          </h4>
-                          <p class="m-0 text-center">
-                            {{ getPositionTitle(element.position_id) }}
-                          </p>
                         </div>
-
-                                            <div class="col-12 col-lg-4 d-flex flex-column align-items-center justify-content-center m-b-24 stats-column order-3 order-lg-3">
-                                            <ng-container *ngFor="let stat of matchStats[element.id]; let i = index">
-                                                <ng-container *ngIf="i >= 2">
-                                                <div class="text-center stat-item mb-16">
-                                                    <tabler-icon [name]="stat.icon" class="icon-20 mb-2"></tabler-icon>
-                                                    <h6 class="mb-0 f-s-18 f-w-500">{{ stat.value }}%</h6>
-                                                    <p class="m-0 f-s-14">{{ stat.label }}</p>
-                                                </div>
-                                                </ng-container>
-                                            </ng-container>
-                                            </div>
-                                        </div>
-                                    </mat-card>
-
-                                    <mat-card class="mat-mdc-card mdc-card cardWithShadow shadow-none b-1 mt-16">
-                                        <mat-card-content class="mat-mdc-card-content">
-                                            <h5 class="f-s-21 f-w-600 m-b-16">Resume</h5>
-                                            <ng-container *ngIf="element">
-                                                <div class="d-flex align-items-center gap-16 m-b-24">
-                                                    <i-tabler name="file-description" class="icon-20"></i-tabler>
-                                                    <h6 class="f-s-16">
-                                                    <strong>Description:</strong> {{ element.description || 'No description' }}
-                                                    </h6>
-                                                </div>
-
-                                                <div class="d-flex align-items-center gap-16 m-b-24">
-                                                    <i-tabler name="text-caption" class="icon-20"></i-tabler>
-                                                    <h6 class="f-s-16">
-                                                    <strong>Profile observation:</strong> {{ element.profile_observation || 'No observation' }}
-                                                    </h6>
-                                                </div>
-                                                <div class="d-flex align-items-center gap-16 m-b-24">
-                                                    <i-tabler name="settings" class="icon-20"></i-tabler>
-                                                    <h6 class="f-s-16">
-                                                    <strong>Skills:</strong> {{ element.skills || 'No skills listed' }}
-                                                    </h6>
-                                                </div>
-                                                <div class="d-flex align-items-center gap-16">
-                                                    <i-tabler name="world" class="icon-20"></i-tabler>
-                                                    <h6 class="f-s-16">
-                                                    <strong>English level:</strong> {{ element.english_level || 'Not specified' }}
-                                                    </h6>
-                                                </div>
-                                            </ng-container>
-                                        </mat-card-content>
-                                    </mat-card>
+                      </div>
+                    </mat-card>
+                    <!-- Work Experience -->
+                    <mat-card
+                    class="shadow-none"
+                    *ngIf="element.work_experience"
+                    >
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Work Experience</h5>
+                          <div>
+                            <p>{{ element.work_experience }}</p>
+                          </div>                       
+                      </ng-container>
+                    </mat-card-content>
+                    </mat-card>
+                    <!-- Skills - Hobbies -->
+                    <mat-card
+                    class="shadow-none"
+                    *ngIf="element.skills || element.hobbies"
+                    >
+                    <mat-divider></mat-divider>
+                    <mat-card-content class="d-flex row">
+                      <div class="col-6 flex-column" *ngIf="element.skills">
+                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Skills</h5>
+                          <div>
+                            <p>{{ element.skills }}</p>
+                          </div>                       
+                      </div>
+                       <div *ngIf="element.hobbies" class="col-6 hobbies">
+                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Hobbies</h5>
+                          <div>
+                            <p>{{ element.hobbies }}</p>
+                          </div>                       
+                      </div>
+                      </mat-card-content>
+                    </mat-card>
+                    <!-- Education -->
+                    <mat-card
+                    class="shadow-none"
+                    *ngIf="element.education_history"
+                    >
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Education</h5>
+                          <div>
+                            <p>{{ element.education_history }}</p>
+                          </div>                       
+                      </ng-container>
+                    </mat-card-content>
+                    </mat-card>
+                    <!-- Language -->
+                    <mat-card class="shadow-none" *ngIf="element.english_level">
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                        <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Language</h5>
+                        <div class="d-flex">
+                          <div class="col-6">
+                          <p class="f-s-16 f-w-600">English</p>
+                          
+                          <div class="progress-container m-t-8 m-b-8">
+                            <div class="progress-bar-background">
+                              <div 
+                                class="progress-bar-fill"
+                                [ngClass]="{
+                                  'basic-level': element.english_level.toLowerCase() === 'basic',
+                                  'intermediate-level': element.english_level.toLowerCase() === 'intermediate',
+                                  'advanced-level': element.english_level.toLowerCase() === 'advanced'
+                                }">
+                              </div>
+                              </div>
+                              <div class="progress-labels">
+                                <span>Basic</span>
+                                <span>Intermediate</span>
+                                <span>Advanced</span>
+                              </div>
+                            </div>
+                          </div> 
+                          <div class="col-6">
+                            <p class="f-s-16 f-w-600">Spanish: Native</p>
+                          </div>  
+                        </div>                    
+                      </ng-container>
+                    </mat-card-content>
+                  </mat-card>
+                    <!-- Profile Summary -->
+                    <mat-card
+                    class="shadow-none"
+                    *ngIf="element.talent_match_profile_summary"
+                    >
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16">Profile Summary</h5>
+                          <div>
+                            <p>{{ element.talent_match_profile_summary }}</p>
+                          </div>                       
+                      </ng-container>
+                    </mat-card-content>
+                    </mat-card>
+                    <!-- Olympia -->
+                    <mat-card class="shadow-none" *ngIf="element.all_match_scores && element.all_match_scores.length > 0">
+                      <mat-divider></mat-divider>
+                      <mat-card-content>
+                        <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16">What is it?</h5>
+                          <p class="f-s-14 text-muted m-b-16">
+                            Olympia is a personality-based analysis tool created by Inimble, designed specifically for legal roles. It translates behavioral patterns into key traits like precision, ethics, and emotional control to assess suitability in the legal fie
+                          </p>
+                          
+                          <div *ngFor="let score of element.all_match_scores" class="match-score-item m-b-20">
+                            <div class="d-flex justify-content-between align-items-center m-b-4">
+                              <span class="f-s-16 f-w-500">{{ score.category_name }}</span>
+                              <span class="f-s-16 f-w-600 text-primary">{{ score.match_percentage }}%</span>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="progress-container m-b-8">
+                              <div class="progress-bar-background">
+                                <div 
+                                  class="progress-bar-fill"
+                                  [ngClass]="{
+                                    'low-match': score.match_percentage < 40,
+                                    'medium-match': score.match_percentage >= 40 && score.match_percentage < 70,
+                                    'high-match': score.match_percentage >= 70 && score.match_percentage < 90,
+                                    'excellent-match': score.match_percentage >= 90
+                                  }"
+                                  [style.width.%]="score.match_percentage">
                                 </div>
-                                </div>
-                            </td>
+                              </div>
+                              
+                              <!-- Score Labels -->
+                              <div class="progress-labels d-flex justify-content-between m-t-4">
+                                <span class="f-s-12 text-muted">0%</span>
+                                <span class="f-s-12 text-muted">50%</span>
+                                <span class="f-s-12 text-muted">100%</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div class="m-t-24">
+                            <p class="f-s-16 m-0 f-w-600">
+                              Percentages are based on a 100% scale across all traits.
+                            </p>
+                          </div>
                         </ng-container>
-                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                        <tr mat-row 
-                            *matRowDef="let row; columns: columnsToDisplayWithExpand"
-                            (click)="onRowClick(row)"
-                            [class.disabled]="getInterviewDateTime(row.id)">
-                        </tr>
-                        <tr mat-row 
-                            *matRowDef="let row; columns: ['expandedDetail']"
-                            class="expanded-detail-row"
-                            [class.expanded-visible]="expandedElement === row">
-                        </tr>
-                        <tr *ngIf="dataSource?.data?.length === 0">
-                            <td colspan="8">
-                                <p>No candidates available.</p>
-                            </td>
-                        </tr>
-                    </table>
+                      </mat-card-content>
+                    </mat-card>
+                    <!-- Coworking location -->
+                    <mat-card
+                    class="shadow-none"
+                    *ngIf="element.location"
+                    >
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16">Coworking location</h5>
+                          <div>
+                            {{ element.location }},  {{ element.country }}
+                          </div>                       
+                      </ng-container>
+                    </mat-card-content>
+                    </mat-card>
+                  </div>
                 </div>
-            </div>
-        </mat-card>
-    </div>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: columnsToDisplayWithExpand"
+              (click)="onRowClick(row)"
+              [class.disabled]="getInterviewDateTime(row.id)"
+            ></tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: ['expandedDetail']"
+              class="expanded-detail-row"
+              [class.expanded-visible]="expandedElement === row"
+            ></tr>
+            <tr *ngIf="dataSource?.data?.length === 0">
+              <td colspan="8">
+                <p>No candidates available.</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </mat-card>
+  </div>
 </div>
