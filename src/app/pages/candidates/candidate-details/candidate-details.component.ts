@@ -15,6 +15,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 
 @Component({
   selector: 'app-candidate-details',
@@ -266,6 +267,32 @@ export class CandidateDetailsComponent implements OnInit {
       return `${this.picturesUrl}/${trimmed}`;
     }
     return `https://${trimmed}`;
+  }
+
+  openDialogUploadFiles() {
+    const candidate = this.candidate();
+    if (!candidate) return;
+
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: {
+        mode: 'files',
+        candidate: candidate,
+        action: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success && result.profile_pic) {
+        const updatedCandidate = {
+          ...this.candidate(),
+          picture: result.profile_pic,
+          profile_pic_url: result.profile_pic
+        };
+        this.candidate.set(updatedCandidate);
+        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   openMatchPercentagesModal(): void {
