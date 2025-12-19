@@ -514,7 +514,7 @@
                             <p class="m-0 f-s-16 m-t-2">
                               This profile matches best for:
                             </p>
-                            <p class="m-0 f-s-16 position-title m-t-16">
+                            <p class="m-0 f-s-16 position-title m-t-16 f-w-600">
                               {{ getPositionTitle(element.position_id) }}
                             </p>
                           </div>
@@ -633,6 +633,29 @@
                       </ng-container>
                     </mat-card-content>
                   </mat-card>
+                  <!-- Talent Match -->
+                    <mat-card class="shadow-none" *ngIf="element.english_level">
+                    <mat-divider></mat-divider>
+                    <mat-card-content>
+                      <ng-container>
+                        <div class="d-flex justify-content-center aling-items-center m-t-8">
+                          <img
+                            src="assets/images/talent-match.png"
+                            alt="Talent Match Logo"
+                            height="40"
+                          />
+                        </div>
+                        <h5 class="f-s-24 f-w-600 m-t-16 m-b-16 color-gray text-center">{{ element.name | formatName }}</h5>
+                        <p class="text-center f-s-18"><span class="f-w-600 color-gray">Talent Match</span> is an evaluation inimble conducts to assess the alignment between a candidate's personality and the employer's needs. It ensures human-factor compatibility to drive performance, trust, and long-term fit.</p> 
+                        <p  class="f-s-18 f-w-600 color-gray text-center">Out of a base of 100, these are our best matches for legal roles:</p>    
+                        <div class="profile-info d-flex justify-content-center">
+                          <p class="m-0 f-s-16 f-w-600 position-title m-t-16 text-center">
+                            {{ element.position_category }}
+                          </p>
+                        </div>        
+                      </ng-container>
+                    </mat-card-content>
+                  </mat-card>
                     <!-- Profile Summary -->
                     <mat-card
                     class="shadow-none"
@@ -697,10 +720,24 @@
                     <mat-divider></mat-divider>
                     <mat-card-content>
                       <ng-container>
-                          <h5 class="f-s-24 f-w-600 m-b-16">Coworking location</h5>
-                          <div>
-                            {{ element.location }},  {{ element.country }}
-                          </div>                       
+                          <div class="d-flex">
+                            <div class="col-6">
+                              <h5 class="f-s-24 f-w-600 m-b-16">Coworking location</h5>
+                              <div>
+                                {{ element.location }},  {{ element.country }}
+                              </div>  
+                            </div>  
+                            <div class="col-6 cta-container">
+                              <h5 class="f-s-24 f-w-600 m-b-16 text-center">Set up an interview with your integrator</h5>
+                              <div class="d-flex justify-content-center m-t-16">
+                                <button  
+                                  mat-flat-button
+                                  color="primary"
+                                  (click)="openDialog('Schedule', element)">Click here!
+                              </button>  
+                              </div>
+                            </div>
+                          </div>        
                       </ng-container>
                     </mat-card-content>
                     </mat-card>
