@@ -15,6 +15,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
   selector: 'app-candidate-details',
@@ -83,7 +84,8 @@ export class CandidateDetailsComponent implements OnInit {
     private applicationMatchScoreService: ApplicationMatchScoresService,
     private fb: FormBuilder,
     private permissionService: PermissionService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private discProfilesService: DiscProfilesService
   ) { }
 
   ngOnInit(): void {
@@ -298,6 +300,15 @@ export class CandidateDetailsComponent implements OnInit {
     return this.rankingProfiles.find(p => p.description === description);
   }
 
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
+  }
+
+  getDiscProfileNames(profiles: any[] | undefined): string {
+    if (!profiles || profiles.length === 0) return '';
+    return profiles.map(p => p.name).join(', ');
+  }
+
   breakLines(value: string | null): string[] {
     if (!value) return [];
     return value.split(/\r?\n/);
@@ -325,7 +336,8 @@ export class CandidateDetailsComponent implements OnInit {
         id: candidate.id,
         name: candidate.name,
         email: candidate.email || '',
-        position_id: candidate.position_id
+        position_id: candidate.position_id,
+        disc_profiles: candidate.disc_profiles || []
       }
     };
 
@@ -336,18 +348,26 @@ export class CandidateDetailsComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-    if (result === 'success') {
-      this.applicationMatchScoreService.getByApplicationId(candidate.id)
-        .subscribe(scores => {
-          this.matchScores = scores;
-          scores.forEach(score => {
-            const controlName = 'matchScores_' + score.id;
-            if (this.form.get(controlName)) {
-              this.form.get(controlName)?.setValue(score.match_percentage);
-            }
+      if (result?.success) {
+        this.applicationMatchScoreService.getByApplicationId(candidate.id)
+          .subscribe(scores => {
+            this.matchScores = scores;
+            scores.forEach(score => {
+              const controlName = 'matchScores_' + score.id;
+              if (this.form.get(controlName)) {
+                this.form.get(controlName)?.setValue(score.match_percentage);
+              }
+            });
           });
-          this.snackBar.open('Match percentages updated!', 'Close', { duration: 3000 });
-        });
+        
+        if (result.discProfiles) {
+          this.candidate.update(c => ({
+            ...c!,
+            disc_profiles: result.discProfiles
+          }));
+        }
+        
+        this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
       }
     });
   }
