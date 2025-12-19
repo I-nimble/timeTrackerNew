@@ -174,22 +174,25 @@
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
             <td><b>Ranking</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.ranking || "" }}</td>
+            <td *ngIf="!editMode">{{ getRankingName(candidate()?.ranking_id) }}</td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['ranking']" />
+              <mat-select [formControl]="f['ranking_id']" placeholder="Select ranking">
+                <mat-option *ngFor="let profile of rankingProfiles" [value]="profile.id">
+                  {{ profile.ranking }}
+                </mat-option>
+              </mat-select>
             </td>
           </tr>
 
           <tr>
             <td><b>Profile Observation</b></td>
-            <td *ngIf="!editMode">
-              {{ candidate()?.profile_observation || "" }}
-            </td>
+            <td *ngIf="!editMode">{{ getProfileObservation(candidate()?.ranking_id) }}</td>
             <td *ngIf="editMode">
-              <textarea
-                matInput
-                [formControl]="f['profile_observation']"
-              ></textarea>
+              <mat-select [formControl]="f['profile_observation']" placeholder="Select profile observation">
+                <mat-option *ngFor="let profile of rankingProfiles" [value]="profile.profile_observation">
+                  {{ profile.profile_observation }}
+                </mat-option>
+              </mat-select>
             </td>
           </tr>
 
