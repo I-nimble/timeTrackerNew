@@ -732,16 +732,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     const hasRequiredFilters =
       !!this.selectedRole &&
       !!this.selectedPracticeArea;
-    const hasOptionalFilters = !!(
-      (this.selectedSkillsTools?.length ?? 0) > 0 ||
-      (this.selectedCertifications?.length ?? 0) > 0 ||
-      (this.selectedBackground?.length ?? 0) > 0 ||
-      this.budgetRange?.min !== this.budgetMin ||
-      this.budgetRange?.max !== this.budgetMax ||
-      this.roleDescription
-    );
     if (!!this.query) return true;
-    return hasRequiredFilters && hasOptionalFilters;
+    return hasRequiredFilters;
   }
 
   handleImageError(event: Event) {
