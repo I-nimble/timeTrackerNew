@@ -56,25 +56,7 @@ export class CandidateDetailsComponent implements OnInit {
   canManage: boolean = false;
   canEdit: boolean = false;
   showFullWorkExperience: boolean = false;
-
-  rankingProfiles = [
-    {
-      key: 'ORO',
-      description: `The candidate shows a high level of compatibility with the position, proven experience, and an adequate level of English. They correspond to the ideal profile for the role.`
-    },
-    {
-      key: 'PLATA A',
-      description: `The candidate shows good compatibility with the position, although they have little to no previous experience. They demonstrate growth potential and an adequate level of English.`
-    },
-    {
-      key: 'PLATA B',
-      description: `The candidate shows partial compatibility with the position. Their behavior does not fully align with the role’s requirements, although they have relevant experience and an adequate level of English.`
-    },
-    {
-      key: 'BRONCE',
-      description: `The candidate does not show reliable compatibility with the position. The information obtained is insufficient or not representative, possibly due to a lack of self-awareness or a personal transition process, although they have experience and an adequate level of English.`
-    }
-  ];
+  rankingProfiles: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -102,8 +84,8 @@ export class CandidateDetailsComponent implements OnInit {
       name: [''],
       description: [''],
       talent_match_profile_summary: [''],
-      ranking: [''],
       profile_observation: [''],
+      ranking_id: [''],
       position_id: [''],
       profile_pic: [''],
       interview_link: [''],
@@ -114,27 +96,12 @@ export class CandidateDetailsComponent implements OnInit {
       inimble_academy: [''],
       english_level: ['']
     });
-    this.form.get('ranking')?.valueChanges.subscribe(ranking => {
-      if (!this.editMode) return;
-
-      const profile = this.getProfileByRanking(ranking);
-      if (profile) {
-        this.form.patchValue(
-          { profile_observation: profile.description },
-          { emitEvent: false }
-        );
-      }
-    });
-    this.form.get('profile_observation')?.valueChanges.subscribe(description => {
-      if (!this.editMode) return;
-
-      const profile = this.getProfileByDescription(description);
-      if (profile) {
-        this.form.patchValue(
-          { ranking: profile.key },
-          { emitEvent: false }
-        );
-      }
+    this.applicationService.getRankings().subscribe({
+      next: (rankings) => {
+        this.rankingProfiles = rankings;
+        this.setupFormValueListeners();
+      },
+      error: (err) => console.error('Error loading rankings', err)
     });
     this.loadPositions();
     this.loadCandidateApplications(candidateId);
@@ -157,6 +124,29 @@ export class CandidateDetailsComponent implements OnInit {
     this.positionsService.get().subscribe({
       next: positions => this.positions = positions,
       error: err => console.error('Error loading positions', err)
+    });
+  }
+
+  private setupFormValueListeners() {
+    this.form.get('ranking_id')?.valueChanges.subscribe((rankingId) => {
+      if (!this.editMode) return;
+      const profile = this.rankingProfiles.find(r => r.id === +rankingId);
+      if (profile && this.form.value.profile_observation !== profile.profile_observation) {
+        this.form.patchValue(
+          { profile_observation: profile.profile_observation },
+          { emitEvent: false }
+        );
+      }
+    });
+    this.form.get('profile_observation')?.valueChanges.subscribe((desc) => {
+      if (!this.editMode) return;
+      const profile = this.rankingProfiles.find(r => r.profile_observation === desc);
+      if (profile && this.form.value.ranking_id !== profile.id) {
+        this.form.patchValue(
+          { ranking_id: profile.id },
+          { emitEvent: false }
+        );
+      }
     });
   }
 
@@ -183,13 +173,13 @@ export class CandidateDetailsComponent implements OnInit {
         };
 
         this.candidate.set(normalizedCandidate);
-
+        const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
         this.form.patchValue({
           name: candidate.name,
           description: candidate.description,
           talent_match_profile_summary: candidate.talent_match_profile_summary,
-          ranking: candidate.ranking,
-          profile_observation: candidate.profile_observation,
+          ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
+          profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
           position_id: candidate.position_id,
           profile_pic: normalizedCandidate.picture,
           interview_link: candidate.interview_link,
@@ -227,12 +217,13 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   initializeForm(candidate: any) {
+    const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
     this.form.patchValue({
       name: candidate.name,
       description: candidate.description,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
-      ranking: candidate.ranking,
-      profile_observation: candidate.profile_observation,
+      ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
+      profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
       profile_pic: candidate.picture || candidate.profile_pic_url || null,
       interview_link: candidate.interview_link,
@@ -290,6 +281,16 @@ export class CandidateDetailsComponent implements OnInit {
   getCategoryName(score: MatchScore): string {
     const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
     return category ? category.category_name : 'Unknown';
+  }
+
+  getRankingName(rankingId: number | undefined): string {
+    const ranking = this.rankingProfiles.find(r => r.id === rankingId);
+    return ranking ? ranking.ranking : '';
+  }
+
+  getProfileObservation(rankingId: number | undefined): string {
+    const ranking = this.rankingProfiles.find(r => r.id === rankingId);
+    return ranking ? ranking.profile_observation : '';
   }
 
   getDiscProfileColor(profileName: string): string {
