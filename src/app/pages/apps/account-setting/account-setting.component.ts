@@ -857,11 +857,10 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            
             if (this.isOrphan && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
-            if (this.selectedVideoFile) {
+            else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
               this.openSnackBar('User data updated successfully!', 'Close');
