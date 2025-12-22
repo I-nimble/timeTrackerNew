@@ -18,6 +18,8 @@ import { UsersService } from 'src/app/services/users.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { AppDeleteDialogComponent } from '../../contact-list/delete-dialog/delete-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-edit-invoice',
@@ -39,8 +41,8 @@ export class AppEditInvoiceComponent {
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
-  footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
+  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments', 'actions'];
+  footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column', 'empty-column'];
   footerAddEntryColumns = ['add-entry'];
   tax: number = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
@@ -56,6 +58,7 @@ export class AppEditInvoiceComponent {
   message = '';
   changedFlatFees = new Set<any>();
   isEntriesTableVisible = true;
+  deletedEntries = new Set<number>();
 
   trackByEntryId(index: number, item: any) {
     return item.id;
@@ -70,7 +73,8 @@ export class AppEditInvoiceComponent {
     private router: Router,
     private usersService: UsersService,
     private datePipe: DatePipe,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {
     this.invoiceForm = this.fb.group({
       user_id: [null, Validators.required],
@@ -99,6 +103,7 @@ export class AppEditInvoiceComponent {
     this.loadCompanies();
     this.loadCients();
     this.loadInvoiceDetail();
+    this.deletedEntries.clear();
   }
 
   addNewEntry(item: any): void {
@@ -566,6 +571,47 @@ export class AppEditInvoiceComponent {
     this.invoiceForm.markAsDirty();
   }
 
+  removeEntry(item: any, entry: any): void {
+    const entryDate = entry.date ? this.toDateInputValue(entry.date) : 'this entry';
+    const dialogRef = this.dialog.open(AppDeleteDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to delete the entry for ${entryDate}?`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.entryDeletion(item, entry);
+      }
+    });
+  }
+
+  private entryDeletion(item: any, entry: any): void {
+    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    
+    if (invoiceItem && invoiceItem.entries) {
+      const entryIndex = invoiceItem.entries.findIndex((e: any) => e.id === entry.id);
+      
+      if (entryIndex !== -1) {
+        if (entry.id && entry.id > 0) {
+          this.deletedEntries.add(entry.id);
+        }
+        
+        invoiceItem.entries.splice(entryIndex, 1);
+        
+        this.recalculateCosts();
+        
+        this.updateFormArrayWithChanges();
+        
+        invoiceItem.entries = [...invoiceItem.entries];
+        this.cdr.detectChanges();
+        
+        this.snackBar.open('Entry deleted successfully!', 'Close', { duration: 3000 });
+      }
+    }
+  }
+
   saveDetail(event: Event): void {
     event.preventDefault();
 
@@ -596,6 +642,7 @@ export class AppEditInvoiceComponent {
       changed_entries: [...this.changedEntries],
       changed_hourly_rates: [...this.changedHourlyRates],
       changed_flat_fees: [...this.changedFlatFees],
+      deleted_entries: [...this.deletedEntries],
     };
 
     this.invoiceService.updateInvoice(this.id(), data).subscribe({
