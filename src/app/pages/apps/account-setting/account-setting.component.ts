@@ -284,6 +284,10 @@ export class AppAccountSettingComponent implements OnInit {
             private certificationsService: CertificationsService
           ) {}
 
+  getAttachmentUrl(key: string): string {
+    return this.certificationsService.getAttachmentUrl(key);
+  }
+
   ngOnInit(): void {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
@@ -1221,7 +1225,8 @@ export class AppAccountSettingComponent implements OnInit {
         const createObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                console.log('Upload result:', uploadRes);
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.create(data);
               })
             )

@@ -18,6 +18,7 @@ export class CertificationsService {
   }
 
   create(data: any) {
+    console.log('Creating certification with data:', data);
     return this.http.post(`${environment.apiUrl}/certifications`, data);
   }
 
@@ -39,16 +40,21 @@ export class CertificationsService {
   uploadAttachment(file: File): Observable<any> {
      return this.getUploadUrl('certifications', file).pipe(
         switchMap((uploadData: any) => {
-           const headers = new HttpHeaders({ 'Content-Type': file.type });
+           const filename = uploadData.key.split('/')[1]; // Extract filename from key
+           const headers = new HttpHeaders({ 'Content-Type': file.type, 'X-Filename': filename });
            return this.http.put(uploadData.url, file, { headers }).pipe(
               map(() => {
                  return {
-                    url: `https://inimble-app.s3.us-east-1.amazonaws.com/${uploadData.key}`,
+                    url: uploadData.url,
                     key: uploadData.key
                  };
               })
            );
         })
      );
+  }
+
+  getAttachmentUrl(key: string): string {
+    return `${environment.apiUrl}/certifications/attachment/${key}`;
   }
 }
