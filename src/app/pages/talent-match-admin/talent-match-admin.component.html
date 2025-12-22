@@ -17,7 +17,12 @@
             appearance="outline"
             class="flex-grow-1 hide-hint m-b-0"
           >
-            <input matInput type="text" placeholder="Search Candidate" />
+            <input
+              matInput
+              type="text"
+              placeholder="Search Candidate"
+              (keyup)="applyFilter($event)"
+            />
             <mat-icon matSuffix>
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
             </mat-icon>
@@ -53,7 +58,19 @@
                   />
                   <div class="m-l-16">
                     <h6 class="f-s-14 f-w-600">
-                      {{ element.name | formatName }}
+                      {{ element.name }}
+                      <span class="disc-badges m-l-4">
+                        <span
+                          *ngFor="let profile of element.disc_profiles"
+                          class="disc-badge-small"
+                          [style.background-color]="
+                            getDiscProfileColor(profile.name)
+                          "
+                          [title]="profile.name"
+                        >
+                          {{ profile.name.charAt(0) }}
+                        </span>
+                      </span>
                     </h6>
                     <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
                       {{ element.current_position }}
@@ -62,6 +79,39 @@
                 </div>
               </td>
             </ng-container>
+
+            <!-- Position Column -->
+            <ng-container matColumnDef="position">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="f-w-600 f-s-16 col-1"
+              >
+                Position
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <p class="f-s-14 f-s-12 m-0">
+                  {{ getPositionTitle(element.position_id) }}
+                  <span class="disc-badges m-l-4">
+                    <ng-container
+                      *ngIf="getPositionById(element.position_id) as pos"
+                    >
+                      <span
+                        *ngFor="let profile of pos.disc_profiles"
+                        class="disc-badge-small"
+                        [style.background-color]="
+                          getDiscProfileColor(profile.name)
+                        "
+                        [title]="profile.name"
+                      >
+                        {{ profile.name.charAt(0) }}
+                      </span>
+                    </ng-container>
+                  </span>
+                </p>
+              </td>
+            </ng-container>
+
             <!-- Alignment Column -->
             <ng-container matColumnDef="personality profile">
               <th

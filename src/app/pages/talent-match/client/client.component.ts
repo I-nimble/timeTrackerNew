@@ -30,6 +30,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 
 @Component({
@@ -235,12 +236,10 @@ export class AppTalentMatchClientComponent implements OnInit {
     private interviewsService: InterviewsService,
     private aiService: AIService,
     private router: Router,
-    private matchScoresService: ApplicationMatchScoresService
+    private matchScoresService: ApplicationMatchScoresService,
+    private discProfilesService: DiscProfilesService
   ) {}
-
-  @ViewChild('roleModel') roleModel!: NgModel;
-  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
-
+  
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
@@ -249,16 +248,6 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositionCategories();
   }
 
-  ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      if (this.roleModel) {
-        this.roleModel.control.markAsTouched();
-      }
-      if (this.practiceAreaModel) {
-        this.practiceAreaModel.control.markAsTouched();
-      }
-    });
-  }
 
   searchCandidatesWithAI(question: string) {
     const searchQuery = question || this.buildFullSearchQuery();
@@ -574,6 +563,14 @@ export class AppTalentMatchClientComponent implements OnInit {
     return this.positions.find((p: any) => p.id == positionId)?.title;
   }
 
+  getPositionById(positionId: any): any {
+    return this.positions.find((p: any) => p.id == positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
+  }
+
   getAllMatchScores() {
     this.allCandidates.forEach(candidate => {
       this.getMatchScores(candidate.id);
@@ -745,16 +742,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     const hasRequiredFilters =
       !!this.selectedRole &&
       !!this.selectedPracticeArea;
-    const hasOptionalFilters = !!(
-      (this.selectedSkillsTools?.length ?? 0) > 0 ||
-      (this.selectedCertifications?.length ?? 0) > 0 ||
-      (this.selectedBackground?.length ?? 0) > 0 ||
-      this.budgetRange?.min !== this.budgetMin ||
-      this.budgetRange?.max !== this.budgetMax ||
-      this.roleDescription
-    );
     if (!!this.query) return true;
-    return hasRequiredFilters && hasOptionalFilters;
+    return hasRequiredFilters;
   }
 
   handleImageError(event: Event) {

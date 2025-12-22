@@ -119,6 +119,7 @@
                 mat-menu-item
                 *ngIf="canDeleteRoom(room) && !room.teamId"
                 (click)="onDeleteRoom(room); $event.stopPropagation()"
+                [disabled]="isRoomSupportUser(room)"
               >
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
