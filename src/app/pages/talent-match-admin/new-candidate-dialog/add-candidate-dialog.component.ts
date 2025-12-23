@@ -14,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -51,7 +52,8 @@ export class AddCandidateDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddCandidateDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private discProfilesService: DiscProfilesService
   ) {
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
@@ -246,5 +248,9 @@ export class AddCandidateDialogComponent implements OnInit {
         this.snackBar.open('Match scores updated successfully!', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 }
