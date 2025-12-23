@@ -383,8 +383,28 @@ export class CandidatesComponent {
     input.click();
   }
 
+  markAsAvailable(candidate: any) {
+    this.applicationsService.updateAvailability(candidate.id, true).subscribe(() => {
+      this.showSnackbar('Candidate marked as available');
+      this.loadCandidates();
+      this.filterCandidates();
+    });
+  }
+
+  markAsUnavailable(candidate: any) {
+    this.applicationsService.updateAvailability(candidate.id, false).subscribe(() => {
+      this.showSnackbar('Candidate marked as unavailable');
+      this.loadCandidates();
+      this.filterCandidates();
+    });
+  }
+
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate(['apps/candidates', id]);
+  }
+
+  goToNewCandidate() {
+    this.router.navigate(['apps/candidates/new']);
   }
 }

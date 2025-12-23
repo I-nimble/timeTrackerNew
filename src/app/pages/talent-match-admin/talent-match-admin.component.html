@@ -27,14 +27,6 @@
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
             </mat-icon>
           </mat-form-field>
-          <button
-            *ngIf="canManage"
-            mat-flat-button
-            class="m-r-8"
-            (click)="openAddCandidateDialog()"
-          >
-            New candidate
-          </button>
         </div>
         <div class="table-responsive">
           <table mat-table [dataSource]="dataSource" class="w-100">
