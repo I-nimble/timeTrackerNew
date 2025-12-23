@@ -47,7 +47,6 @@ import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
 
 @Component({
   templateUrl: './employee-table.component.html',
-  styleUrls: ['./employee-table.component.scss'],
   imports: [
     MaterialModule,
     FormsModule,

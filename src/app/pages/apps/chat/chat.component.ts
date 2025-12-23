@@ -47,10 +47,6 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
-import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
-import { PickerModule } from '@ctrl/ngx-emoji-mart';
-import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-chat',
@@ -68,12 +64,7 @@ import { MatTooltip } from '@angular/material/tooltip';
     MatButtonModule,
     MatMenuModule,
     CreateRoomComponent,
-    ChatInfoComponent,
-    MarkdownPipe,
-    LinebreakPipe,
-    PickerModule,
-    EmojiMartPipe,
-    MatTooltip
+    ChatInfoComponent
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -111,9 +102,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
   pressedMessageId: string | null = null;
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
-  showEmojiPicker = false;
-  reactionTargetMessage: RocketChatMessage | null = null;
-  showReactionPicker = false;
 
   protected mediaPlayable = new Map<string, boolean>();
 
@@ -132,7 +120,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog, public emojiPipe: EmojiMartPipe) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -179,9 +167,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
                     this.cdr.detectChanges();
                   });
                 }
-              }
-              if(!roomId) {
-                this.loadRooms();
               }
             }
           }
@@ -250,10 +235,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
             }
             this.sortMessagesAscending();
             this.cdr.detectChanges();
-
-            if(!roomId) {
-              this.loadRooms();
-            }
           }
         } catch (err) {
           console.error('Error handling room update event in component:', err, ev);
@@ -265,7 +246,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     try {
       this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
-        this.sortRoomsByUnread();
+        this.sortRooms();
       });
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
@@ -323,14 +304,34 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.chatService.getRooms().subscribe({
       next: (rooms: any) => {
         this.rooms = rooms;
-        this.sortRoomsByUnread();
-        this.loadAllRoomPictures();
-        this.scrollToBottom();
+
+        // Create suppor chat if not found
+        const supportUsername = environment.supportUsername;
+        const supportUserRoom = this.rooms.find((room: any) => room.t === 'd' && room.usernames.includes(supportUsername));
+        if (!supportUserRoom && this.chatService.loggedInUser?.username !== supportUsername) {
+          this.chatService.createDirectMessage(supportUsername)
+            .then(room => {
+              this.rooms.push(room);
+              this.sortRooms();
+              this.loadAllRoomPictures();
+              this.scrollToBottom();
+            })
+            .catch(err => this.openSnackBar('Error creating direct message:', 'Close'));
+        }
+        else {
+          this.sortRooms();
+          this.loadAllRoomPictures();
+          this.scrollToBottom();
+        }
       },
       error: (err) => {
         console.error('Error loading rooms:', err);
       },
     });
+  }
+
+  isRoomSupportUser(room: RocketChatRoom): boolean {
+    return room.t === 'd' && room.usernames?.includes(environment.supportUsername) || false;
   }
 
   private loadAllRoomPictures() {
@@ -380,11 +381,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
   private hasAnyRole(roles: string[]): boolean {
     const userRoles = this.chatService.loggedInUser?.roles || [];
     return userRoles.some(r => roles.includes(r));
-  }
-
-  isActionsVisible(message: RocketChatMessage) {
-    if (!this.isMobile) return true;
-    return this.pressedMessageId === message._id;
   }
 
   isSystemMessage(message: RocketChatMessage): boolean {
@@ -557,90 +553,40 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return 'file';
   }
 
-  async downloadFile(attachment: RocketChatMessageAttachment, messageId?: string) {
-    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
-    if (!fullFileName) return;
+async downloadFile(attachment: RocketChatMessageAttachment) {
+  const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+  if (!fullFileName) return;
 
-    const fileNameInS3 = fullFileName.split('/')[2];
-    const groupId = this.selectedConversation?._id;
+  const fileNameInS3 = fullFileName.split('/')[2];
+  const groupId = this.selectedConversation?._id;
+  
+  if (!groupId) return;
+
+  const segment1 = groupId;
+  const segment2 = groupId.substring(17);
+  const downloadUrl = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+  const originalFileName = attachment.title || fileNameInS3;
+
+  try {
+    const response = await fetch(downloadUrl);
+    const blob = await response.blob();
     
-    if (!groupId) return;
-
-    const segment1 = groupId;
-    const segment2 = groupId.substring(0, 17);
-    const segment3 = groupId.substring(17);
-
-    const url1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
-    const url2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
-    const originalFileName = attachment.title || fileNameInS3;
-
-    if (messageId) {
-      if (this.mediaPlayable.get(`${messageId}|1`)) {
-        if (await this.tryDownloadAndSave(url1, originalFileName)) return;
-        window.open(url1, '_blank');
-        return;
-      }
-      if (this.mediaPlayable.get(`${messageId}|2`)) {
-        if (await this.tryDownloadAndSave(url2, originalFileName)) return;
-        window.open(url2, '_blank');
-        return;
-      }
-    }
-
-    const tryDownload = async (url: string): Promise<'ok' | 'error' | 'network_error'> => {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) return 'error';
-        const blob = await response.blob();
-        
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = originalFileName;
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        window.URL.revokeObjectURL(blobUrl);
-        return 'ok';
-      } catch (error) {
-        return 'network_error';
-      }
-    };
-
-    const result1 = await tryDownload(url1);
-    if (result1 === 'ok') return;
-
-    const result2 = await tryDownload(url2);
-    if (result2 === 'ok') return;
-
-    if (result2 === 'network_error') {
-      window.open(url2, '_blank');
-    } else {
-      window.open(url1, '_blank');
-    }
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = originalFileName;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    window.URL.revokeObjectURL(blobUrl);
+    
+  } catch (error) {
+    window.open(downloadUrl, '_blank');
   }
-
-  private async tryDownloadAndSave(url: string, fileName: string): Promise<boolean> {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) return false;
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+}
 
   selectFile() {
     this.isSendingMessage = true;
@@ -1118,7 +1064,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         try {
           this.chatService.setUnreadForRoom(room._id, 0);
         } catch {}
-        this.sortRoomsByUnread();
+        this.sortRooms();
       },
       error: err => {
         console.error('Failed to mark as read:', err);
@@ -1135,7 +1081,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       console.error('Failed to mark as unread:', err);
       this.openSnackBar('Failed to mark room as unread', 'Close');
     }
-    this.sortRoomsByUnread();
+    this.sortRooms();
   }
 
   getMessageTimestamp(message: RocketChatMessage): Date {
@@ -1222,9 +1168,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     this.selectedConversation = room;
     this.typingUsers = [];
-    if (this.isMobile) {
-      this.sidebar?.close();
-    }
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -1394,7 +1337,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  getTypingText(): string {
+    getTypingText(): string {
     if (this.typingUsers.length === 0) return '';
 
     if (this.typingUsers.length === 1) {
@@ -1549,10 +1492,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const threadId = this.replyToMessage?._id;
 
     this.chatService
-      .sendMessage(
+      .sendMessageWithConfirmation(
         this.selectedConversation._id,
         this.newMessage.trim(),
-        [],
         threadId
       )
       .subscribe({
@@ -1569,15 +1511,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         },
       });
   }
-
-  onEnter(event: Event) {
-    const keyboardEvent = event as KeyboardEvent;
-    if (!keyboardEvent.shiftKey) {
-      keyboardEvent.preventDefault();
-      this.sendMessage();
-    }
-  }
-
+  
   getLocalTime(offset: number | undefined): string {
     if (offset === undefined || offset === null) return '';
 
@@ -1589,7 +1523,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
-    this.isSidebarOpen ? this.sidebar.open() : this.sidebar.close();
   }
 
   private scrollToBottom() {
@@ -1631,9 +1564,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private sortRoomsByUnread(): void {
+  private sortRooms(): void {
     try {
+      const supportUsername = environment.supportUsername;
       this.rooms.sort((a, b) => {
+        // Pin the support chat to the top of the list
+        if (a.t === 'd' && a.usernames?.includes(supportUsername)) return -1;
+        if (b.t === 'd' && b.usernames?.includes(supportUsername)) return 1;
         const aUnread = this.chatService.getUnreadForRoom(a._id) || 0;
         const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
         if (aUnread !== bUnread) return bUnread - aUnread;
@@ -1717,59 +1654,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleEmojiPicker() {
-    this.showEmojiPicker = !this.showEmojiPicker;
-  }
-
-  openReactionPicker(message: RocketChatMessage) {
-    this.reactionTargetMessage = message;
-    this.showReactionPicker = true;
-    
-  }
-
-  addEmoji(event: any) {
-    const emoji = event?.emoji?.native || event?.detail?.emoji?.native;
-    if (!emoji) return;
-    this.newMessage = (this.newMessage || '') + emoji;
-  }
-
-  sendReaction(event: any) {
-    if (!this.reactionTargetMessage) return;
-    const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
-    if (!nativeEmoji) return;
-    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
-    if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
-    this.chatService.reactToMessage(this.reactionTargetMessage._id, shortcode).subscribe({
+/*   reactToMessage(message: RocketChatMessage) {
+    const emoji = ':smile:';
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      next: (res) => {
+        console.log('Reacted to message:', res);
+      },
       error: (err) => {
         console.error('Error reacting to message:', err);
       }
     });
-    this.showReactionPicker = false;
-    this.reactionTargetMessage = null;
-  }
-
-  getReactionKeys(message: RocketChatMessage): string[] {
-    return message.reactions ? Object.keys(message.reactions) : [];
-  }
-
-  getReactionUsernames(message: RocketChatMessage, emoji: string): string {
-    const users = message.reactions?.[emoji]?.usernames || [];
-    return users.length > 0 ? users.join(', ') : '';
-  }
-
-  didIReact(message: RocketChatMessage, emoji: string): boolean {
-    const myUsername = this.chatService.loggedInUser?.username;
-    if (!myUsername) return false;
-    return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
-  }
-
-  toggleReaction(message: RocketChatMessage, emoji: string) {
-    this.chatService.reactToMessage(message._id, emoji).subscribe({
-      next: () => {
-      },
-      error: err => console.error('Error toggling reaction:', err)
-    });
-  }
+  } */
 
   quoteMessage(message: RocketChatMessage) {
     this.replyToMessage = message;

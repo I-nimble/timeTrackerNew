@@ -1,0 +1,31 @@
+::ng-deep {
+    .table-responsive td, .table-responsive mat-cell {
+    white-space: normal!important;
+    padding: 16px;
+    }
+}
+
+::ng-deep .status-cell {
+  text-align: center !important;
+  align-items: center !important;
+}
+
+::ng-deep .status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+}
+
+.actions-container {
+  position: relative;
+  
+  .actions-btn {
+    position: absolute;
+    top: 10px;
+  }
+}

@@ -1,0 +1,43 @@
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="d-flex justify-content-center align-items-center mb-16">
+      <app-match
+        appearance="outline"
+        class="flex-grow-1 hide-hint m-b-0 m-r-20"
+        [loading]="aiLoading"
+        [aiEnabled]="!useManualSearch"
+        [showCustomSearch]="false"
+        placeholder="Search posts..."
+        (askAI)="askGemini($event)"
+        (searchChange)="useManualSearch ? onManualSearch($event) : null">
+      </app-match>
+    </div>
+    <div *ngIf="aiLoading || aiAnswer" class="mb-16">
+      <mat-card color="accent" class="p-16">
+        <div>
+          <ng-container *ngIf="aiLoading; else showAnswer">
+            <div class="d-flex align-items-center gap-8">
+              <img
+                src="assets/icons/ai-loader.gif"
+                alt="AI loading"
+                style="width: 80px; height: 80px;"
+              />
+              <span>Searching for related posts...</span>
+            </div>
+          </ng-container>
+          <ng-template #showAnswer>
+            <div [innerHTML]="aiAnswer | markdown | linebreak"></div>
+          </ng-template>
+        </div>
+      </mat-card>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow mt-16" *ngIf="filteredPosts.length > 0">
+  <mat-card-content>
+    <div class="table-responsive">
+      <app-scrapper-table [items]="filteredPosts"></app-scrapper-table>
+    </div>
+  </mat-card-content>
+</mat-card>

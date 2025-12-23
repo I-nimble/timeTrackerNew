@@ -1,0 +1,78 @@
+/* Variables */
+.payment-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  
+  &:focus {
+    border-color: #6772e5;
+    box-shadow: 0 0 0 2px rgba(103, 114, 229, 0.2);
+    outline: none;
+  }
+  
+  &.is-invalid {
+    border-color: #e25950;
+  }
+}
+
+.invalid-feedback {
+  color: #e25950;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.stripe-card-element {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+}
+
+.stripe-error {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #6772e5;
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+  
+  &:hover {
+    background: #5469d4;
+  }
+  
+  &:disabled {
+    background: #a5aaf2;
+    cursor: not-allowed;
+  }
+}

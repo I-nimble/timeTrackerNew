@@ -42,14 +42,15 @@ export class AuthService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
-  async logout() {
+  async logout(redirect: boolean = true) {
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
-    this.updateLiveChatBubbleVisibility('0')
-    this.updateTawkVisitorAttributes('Guest', '')
-    this.routes.navigate(['/authentication/login']);
+    
+    if (redirect) {
+      this.routes.navigate(['/authentication/login']);
+    }
   }
 
  checkTokenExpiration(): void {
@@ -145,23 +146,6 @@ export class AuthService {
 
   getLoggedInUser(){
     return this.http.get(`${this.API_URI}/auth/loggedIn`)
-  }
-
-  updateLiveChatBubbleVisibility(role: string) {
-    if ((window as any).Tawk_API) {
-      if (role == '3') {
-        (window as any).Tawk_API.showWidget();
-      } else {
-        (window as any).Tawk_API.hideWidget();
-      }
-    }
-  }
-
-  updateTawkVisitorAttributes(name: string, email: string) {
-    (window as any).Tawk_API.setAttributes({
-      'name': localStorage.getItem('name') || name,
-      'email': localStorage.getItem('email') || email,
-    });
   }
 
   forgotPassword(email: string): Observable<any> {

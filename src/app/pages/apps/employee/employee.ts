@@ -7,5 +7,6 @@ export interface Employee {
   Password: string;
   Projects: number[];
   image: any;
+  hourly_rate?: number;
   action?: string;
 }

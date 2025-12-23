@@ -10,6 +10,7 @@ import {
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
 import { getNavItems } from '../sidebar/sidebar-data';
+import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterModule } from '@angular/router';
@@ -24,6 +25,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { PermissionService } from 'src/app/services/permission.service';
 import { Router } from '@angular/router';
 
 interface notifications {
@@ -91,7 +93,14 @@ export class HeaderComponent implements OnInit {
   hasNewTalentMatch: boolean = false;
   role: any = localStorage.getItem('role');
   allowedTM: boolean = false;
+  allowedContentCreatorEmails: string[] = environment.allowedContentCreatorEmails;
+  userPermissions: string[] = [];
   profiledd: profiledd[] = [];
+  isOrphan: boolean = false;
+  canViewTalentMatch: boolean = false;
+  canViewCandidates: boolean = false;
+  canViewExpertMatch: boolean = false;
+  canViewMySentinel: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -135,14 +144,17 @@ export class HeaderComponent implements OnInit {
     private settings: CoreService,
     private vsidenav: CoreService,
     public dialog: MatDialog,
+    private translate: TranslateService,
     private companieService: CompaniesService,
     private applicationsService: ApplicationsService,
     private authService: AuthService,
     public notificationsService: NotificationsService,
     public webSocketService: WebSocketService,
     private router: Router,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private permissionService: PermissionService,
   ) {
+    translate.setDefaultLang('en');
   }
 
   options = this.settings.getOptions();
@@ -154,7 +166,9 @@ export class HeaderComponent implements OnInit {
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
-
+    this.usersService.username$.subscribe(name => {
+      this.userName = name;
+    });
     this.getUserData();
     this.getApplications();
     this.loadNotifications();
@@ -174,41 +188,103 @@ export class HeaderComponent implements OnInit {
     this.applicationsService.applicationsSeen$.subscribe(() => {
       this.hasNewTalentMatch = false;
     });
+    const userId = Number(localStorage.getItem('id'));
+
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.buildProfileMenu();
+      },
+      error: (err: any) => {
+        console.error('Error fetching user permissions', err);
+        this.buildProfileMenu();
+      }
+    });
     const allowedTM = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
-
-    this.profiledd = [
-      {
-        id: 1,
-        img: 'wallet',
-        color: 'primary',
-        title: 'My Profile',
-        subtitle: 'Account Settings',
-        link: 'apps/account-settings',
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.buildProfileMenu();
+        this.canViewTalentMatch =
+          !this.isOrphan && (this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view'));
+        this.canViewCandidates = this.userPermissions.includes('candidates.view');
+        this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
+        this.canViewMySentinel = this.userPermissions.includes('my-sentinel.view');
       },
-      {
-        id: 2,
-        img: 'shield',
-        color: 'success',
-        title: 'My Inbox',
-        subtitle: 'Notifications',
-        link: '/dashboards/notifications',
+      error: (err: any) => {
+        console.error('Error fetching user permissions', err);
+        this.buildProfileMenu();
       },
-      ...(Number(this.role) !== 2
-        ? [
-            {
-              id: 3,
-              img: 'users',
-              color: 'error',
-              title: 'My Team',
-              subtitle: 'Team members',
-              link: '/apps/team',
-            },
-          ]
-        : []),
-    ];
+    });
   }
+
+    private buildProfileMenu() {
+      this.profiledd = [
+        {
+          id: 1,
+          img: 'wallet',
+          color: 'primary',
+          title: 'My Profile',
+          subtitle: 'Account Settings',
+          link: 'apps/account-settings',
+        },
+        {
+          id: 2,
+          img: 'shield',
+          color: 'success',
+          title: 'My Inbox',
+          subtitle: 'Notifications',
+          link: '/dashboards/notifications',
+        },
+        ...((this.userPermissions.includes('users.view'))
+          ? [
+              {
+                id: 3,
+                img: 'users',
+                color: 'error',
+                title: 'My Team',
+                subtitle: 'Team members',
+                link: '/apps/team',
+              },
+            ]
+          : []),
+        ...((this.userPermissions.includes('payments.view'))
+          ? [
+              {
+                id: 4,
+                img: 'credit-card',
+                color: 'warning',
+                title: 'Payments',
+                subtitle: 'Manage your payments',
+                link: '/apps/invoice',
+              },
+            ]
+          : []),
+        ...((!this.isOrphan)
+          ? [
+              {
+                id: 5,
+                img: 'target',
+                color: 'success',
+                title: 'R3',
+                subtitle: 'Document your future plans',
+                link: 'apps/r3',
+              },
+            ]
+          : []),
+          {
+            id: 6,
+            img: 'shield',
+            color: 'success',
+            title: 'Events',
+            subtitle: 'Events',
+            link: 'apps/events',
+          },
+      ];
+    }
 
   getUserData() {
     this.userId = localStorage.getItem('id');
@@ -252,9 +328,7 @@ export class HeaderComponent implements OnInit {
         this.applications = apps;
         const role = localStorage.getItem('role');
         
-        let filteredApplications: any[] = this.applicationsService.getFilteredApplicationsByDay(apps);
-        
-        if(role === '3' && filteredApplications.find((app: any) => app.status_id === 1)) {
+        if(role === '3' && this.applications.find((app: any) => app.status_id === 1)) {
           this.hasNewTalentMatch = true;
         } else {
           this.hasNewTalentMatch = false;
@@ -280,6 +354,7 @@ export class HeaderComponent implements OnInit {
   }
 
   changeLanguage(lang: any): void {
+    this.translate.use(lang.code);
     this.selectedLanguage = lang;
   }
 

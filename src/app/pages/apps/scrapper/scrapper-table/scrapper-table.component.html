@@ -1,0 +1,55 @@
+<table mat-table [dataSource]="dataSourceTable" class="w-100">
+
+  <ng-container matColumnDef="title">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-4">Title</th>
+    <td mat-cell *matCellDef="let item">
+      <div class="d-flex align-items-center gap-8">
+        <span class="f-w-600 f-s-16">{{ item.title }}</span>
+      </div>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="url">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-1">URL</th>
+    <td mat-cell *matCellDef="let item">
+      <a [href]="item.url" target="_blank" style="text-decoration: none;">
+        <mat-icon>open_in_new</mat-icon>
+      </a>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="keyword">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-1">Keyword</th>
+    <td mat-cell *matCellDef="let item">{{ item.keyword }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="author">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-1">Author</th>
+    <td mat-cell *matCellDef="let item">{{ item.author }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="created_utc">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-2">Date</th>
+    <td mat-cell *matCellDef="let item">{{ item.created_utc | date:'yyyy-MM-dd HH:mm' }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="suggestion">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600 col-4">Suggestion</th>
+    <td mat-cell *matCellDef="let item">{{ item.suggestion }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: displayedColumns;"
+    class="clickable-row"
+    style="cursor: pointer;">
+  </tr>
+</table>
+
+<mat-paginator
+  [pageSizeOptions]="[5, 10, 20]"
+  showFirstLastButtons
+  [length]="dataSourceTable.data.length"
+  [pageSize]="5">
+</mat-paginator>

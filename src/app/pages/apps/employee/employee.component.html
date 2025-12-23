@@ -1,4 +1,4 @@
-<div *ngIf="userRole !== '2'; else employeeReport">
+<div *ngIf="userRole !== '2' || userPermissions.includes('users.view'); else employeeReport">
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="row justify-content-between gap-16">
