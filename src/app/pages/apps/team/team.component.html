@@ -1,8 +1,8 @@
 <div *ngIf="userRole !== '2'; else employeeReport">
   <mat-card class="cardWithShadow">
     <mat-card-content>
-      <div class="row justify-content-between gap-16">
-        <div class="col-md-4 d-flex align-items-center justify-content-start gap-16">
+      <div class="row justify-content-end">
+        <div class="col-12 col-sm-4 m-b-16">
           <mat-form-field appearance="outline" class="w-100 hide-hint">
             <input
               matInput
@@ -14,7 +14,8 @@
               <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
             </mat-icon>
           </mat-form-field>
-  
+        </div>
+        <div class="col-12 col-sm-4 m-b-16">
           <mat-form-field appearance="outline" *ngIf="userRole === '1' || userRole === '4'" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
             <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
@@ -24,8 +25,8 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-md-4 d-flex align-items-center justify-content-end">
-          <button mat-flat-button class="w-100" (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
+        <div class="col-12 col-sm-4 m-b-16">
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary" class="w-100">
             Add Team Member
           </button>
         </div>
