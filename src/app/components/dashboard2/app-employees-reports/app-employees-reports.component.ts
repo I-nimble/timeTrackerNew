@@ -20,6 +20,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ReportsService } from 'src/app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DownloadService } from 'src/app/services/download.service';
 import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
 import { environment } from 'src/environments/environment';
 import { RouterLink } from '@angular/router';
@@ -73,7 +74,8 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     @Inject(EntriesService) private entriesService: EntriesService,
     public companiesService: CompaniesService,
     public reportsService: ReportsService,
-    public snackBar: MatSnackBar
+    public snackBar: MatSnackBar,
+    private downloadService: DownloadService
   ) {}
 
   ngOnInit(): void {
@@ -269,7 +271,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     this.reportsService
       .getReport(datesRange, { id: userIds }, filters, format)
       .subscribe({
-        next: (file: Blob) => {
+        next: async (file: Blob) => {
           const ext = format === 'pptx' ? 'pptx' : 'xlsx';
           const filename = `I-nimble_Report_${moment(
             datesRange.firstSelect
@@ -277,16 +279,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             'DD-MM-YYYY'
           )}.${ext}`;
 
-          const url = window.URL.createObjectURL(file);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-          }, 0);
+          await this.downloadService.downloadFile(file, filename);
         },
         error: () => {
           this.openSnackBar('Error getting reports', 'Close');

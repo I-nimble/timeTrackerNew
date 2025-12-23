@@ -11,6 +11,7 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { CommonModule, NgIf } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
+import { DownloadService } from 'src/app/services/download.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { Positions } from '../../models/Position.model';
 import { FormGroup, FormArray, FormControl } from '@angular/forms';
@@ -129,7 +130,8 @@ export class AppIntakeFormComponent implements OnInit {
     private intakeService: IntakeService,
     private positionsService: PositionsService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private downloadService: DownloadService
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
@@ -323,17 +325,12 @@ export class AppIntakeFormComponent implements OnInit {
     });
   }
 
-  downloadPdf() {
+  async downloadPdf() {
     if (!this.lastIntakeId) return;
     const filename = `intake_${this.lastClientName || this.lastIntakeId}.pdf`;
     this.intakeService.downloadIntakePdf(this.lastIntakeId).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        window.URL.revokeObjectURL(url);
+      next: async (blob: Blob) => {
+        await this.downloadService.downloadFile(blob, filename);
       },
       error: () => {
         this.openSnackBar('Error downloading PDF', 'Close');

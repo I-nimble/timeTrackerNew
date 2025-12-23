@@ -18,6 +18,7 @@ import { RouterModule } from '@angular/router';
 import { AppConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DownloadService } from 'src/app/services/download.service';
 import { StripeService } from 'src/app/services/stripe.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { StripeComponent } from 'src/app/components/stripe/stripe.component';
@@ -70,6 +71,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
     private companiesService: CompaniesService,
     private permissionService: PermissionService,
     public router: Router,
+    private downloadService: DownloadService
   ) { }
 
   ngOnInit(): void {
@@ -150,18 +152,11 @@ export class AppInvoiceListComponent implements AfterViewInit {
     this.router.navigate(['/apps/viewinvoice', row.id]);
   }
 
-  downloadInvoice(id: number, format: string): void {
+  async downloadInvoice(id: number, format: string): Promise<void> {
     this.invoiceService.getInvoiceFile(id, format).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `invoice-${id}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
-        document.body.appendChild(link);
-        link.click();
-        
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
+      next: async (blob: Blob) => {
+        const filename = `invoice-${id}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+        await this.downloadService.downloadFile(blob, filename);
       },
       error: (err) => {
         console.error('Error downloading invoice:', err);

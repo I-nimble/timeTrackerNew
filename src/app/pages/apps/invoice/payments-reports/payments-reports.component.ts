@@ -5,6 +5,8 @@ import { RouterModule } from '@angular/router';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpClient } from '@angular/common/http';
+import { DownloadService } from 'src/app/services/download.service';
 import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AppConfirmDeleteDialogComponent } from '../invoice-list/confirm-delete-dialog.component';
@@ -35,7 +37,9 @@ export class PaymentsReportsComponent implements AfterViewInit {
   constructor(
     private invoiceService: InvoiceService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private http: HttpClient,
+    private downloadService: DownloadService
   ) {}
 
   ngOnInit(): void {
@@ -96,19 +100,23 @@ export class PaymentsReportsComponent implements AfterViewInit {
     }
   }
 
-  downloadReport(key: string, reportId: number) {
+  async downloadReport(key: string, reportId: number) {
     if (!key) {
       this.snackBar.open('No report found', 'Close', { duration: 3000 });
       return;
     }
 
     const url = `${this.reportsUrl}/${key}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = key;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    try {
+      const blob = await this.http.get(url, { responseType: 'blob' }).toPromise();
+      if (blob) {
+        await this.downloadService.downloadFile(blob, key);
+      } else {
+        this.snackBar.open('Failed to download report', 'Close', { duration: 3000 });
+      }
+    } catch (error) {
+      this.snackBar.open('Error downloading report', 'Close', { duration: 3000 });
+    }
 
     if (this.allowedPaymentsManager) {
       this.invoiceService.markReportAsSeen(reportId).subscribe({

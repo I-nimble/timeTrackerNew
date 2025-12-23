@@ -14,7 +14,8 @@ function addAndroidPermissions() {
   const permissions = [
     '<uses-permission android:name="android.permission.CAMERA" />',
     '<uses-permission android:name="android.permission.RECORD_AUDIO" />',
-    '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />'
+    '<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />',
+    '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />'
   ];
 
   let updated = false;
