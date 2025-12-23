@@ -975,9 +975,7 @@
                         >
                       </mat-radio-group>
                       <mat-error
-                        *ngIf="
-                          applicationForm.get('availability')?.value === 'false'
-                        "
+                        *ngIf="applicationForm.get('availability')?.value === false"
                         class="f-s-12"
                       >
                         You must be available to work Pacific Time hours to
