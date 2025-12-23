@@ -68,6 +68,10 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
+  public getRankings(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
+  }
+
   public get(onlyTalentPool: boolean = false): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
   }
