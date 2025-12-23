@@ -5,6 +5,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .card-dashboard {
   margin-bottom: 0!important;
 }
+@media screen and (max-width: 1275px) {
+  .card-dashboard {
+    margin-bottom: 1rem!important;
+  }
+}
 .text-btn button p {
     color: #fff!important;
     font-weight: bold!important;

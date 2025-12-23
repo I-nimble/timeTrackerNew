@@ -8,8 +8,8 @@
       <mat-spinner></mat-spinner>
     </div>
     <div *ngIf="!isLoading">
-      <div class="col-12 d-flex flex-row justify-content-between">
-        <div>
+      <div class="row w-100">
+        <div class="col-12 col-md-3 m-b-16">
           <h3 class="f-s-16 f-w-600">
             {{ selectedBoardId === null ? "All Boards" : selectedBoard?.name }}
           </h3>
@@ -27,9 +27,8 @@
           </span>
           } }
         </div>
-        <div
-          class="board-heading m-b-20 d-flex flex-row justify-content-between"
-        >
+        <div class="col-0 col-md-6"></div>
+        <div class="col-12 col-md-3 d-flex flex-row justify-content-between">
           <div class="row m-x-4">
             <div class="col-12">
               <mat-form-field appearance="outline" class="w-100">

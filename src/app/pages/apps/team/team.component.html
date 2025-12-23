@@ -2,7 +2,7 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="row justify-content-between gap-16">
-        <div class="col-lg-4 d-flex align-items-center justify-content-start gap-16">
+        <div class="col-md-4 d-flex align-items-center justify-content-start gap-16">
           <mat-form-field appearance="outline" class="w-100 hide-hint">
             <input
               matInput
@@ -24,8 +24,8 @@
             </mat-select>
           </mat-form-field>
         </div>
-        <div class="col-lg-4 d-flex align-items-center justify-content-end">
-          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
+        <div class="col-md-4 d-flex align-items-center justify-content-end">
+          <button mat-flat-button class="w-100" (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary">
             Add Team Member
           </button>
         </div>

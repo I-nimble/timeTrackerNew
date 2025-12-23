@@ -1,10 +1,10 @@
 <mat-card class="cardWithShadow p-16" *ngIf="userRole !== '2'">
-  <div class="d-flex justify-content-end flex-row w-100">
+  <div class="row gap-8 w-100 justify-content-end">
     <mat-form-field
       appearance="outline"
       *ngIf="userRole === '1'"
       style="width: max-content"
-      class="m-r-16"
+      class="col-12 col-sm-4"
     >
       <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
       <mat-select
@@ -16,7 +16,7 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" style="width: max-content">
+    <mat-form-field appearance="outline" style="width: max-content" class="col-12 col-sm-4">
       <mat-label class="f-s-14 m-b-8">Select a Team Member</mat-label>
       <mat-select
         [(ngModel)]="teamMemberId" (selectionChange)="getToDos()"
@@ -34,15 +34,15 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" style="width: max-content; margin-left: 16px;">
-  <mat-label class="f-s-14 m-b-8">Filter by Priority</mat-label>
-  <mat-select [(ngModel)]="selectedPriority" (selectionChange)="getToDos()">
-    <mat-option [value]="null">All</mat-option>
-    <mat-option *ngFor="let priority of priorities" [value]="priority.id">
-      {{ priority.name }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+    <mat-form-field appearance="outline" class="col-12 col-sm-4">
+      <mat-label class="f-s-14 m-b-8">Filter by Priority</mat-label>
+      <mat-select [(ngModel)]="selectedPriority" (selectionChange)="getToDos()">
+        <mat-option [value]="null">All</mat-option>
+        <mat-option *ngFor="let priority of priorities" [value]="priority.id">
+          {{ priority.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
   </div>
 </mat-card>
 
