@@ -855,14 +855,14 @@
                         </mat-error>
                       </mat-form-field>
                     </div>
-<!-- 
+
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
                         >Are you available to work Pacific Time hours
                         (11:30am-8:00pm, Mon-Fri)?</mat-label
                       >
                       <mat-radio-group
-                        formControlName="availability"
+                        formControlName="scheduleAvailability"
                         class="d-flex gap-16"
                       >
                         <mat-radio-button [value]="true" color="primary"
@@ -874,14 +874,14 @@
                       </mat-radio-group>
                       <mat-error
                         *ngIf="
-                          applicationForm.get('availability')?.value === false
+                          applicationForm.get('scheduleAvailability')?.value === false
                         "
                         class="f-s-12"
                       >
                         You must be available to work Pacific Time hours to
                         apply.</mat-error
                       >
-                    </div> -->
+                    </div>
 
                     <div class="col-md-6 m-b-16">
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"

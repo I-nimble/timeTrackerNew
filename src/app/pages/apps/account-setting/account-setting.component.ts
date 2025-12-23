@@ -231,6 +231,7 @@ export class AppAccountSettingComponent implements OnInit {
     workExperience: ['', Validators.required],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
+    scheduleAvailability: [null, Validators.required],
     resume: [null],
     picture: [null],
     portfolio: [null],
@@ -558,6 +559,7 @@ export class AppAccountSettingComponent implements OnInit {
             educationHistory: application.education_history,
             workExperience: application.work_experience,
             workReferences: application.work_references,
+            scheduleAvailability: application.schedule_availability,
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
@@ -948,6 +950,7 @@ export class AppAccountSettingComponent implements OnInit {
       work_experience: formValues.workExperience,
       work_references: formValues.workReferences,
       hobbies: formValues.hobbies,
+      schedule_availability: formValues.scheduleAvailability,
       salary_range: formValues.salaryRange,
       programming_languages: formValues.programmingLanguages,
     };
