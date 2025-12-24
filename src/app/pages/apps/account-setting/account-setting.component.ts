@@ -1248,7 +1248,7 @@ export class AppAccountSettingComponent implements OnInit {
         const updateObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.update(data.id, data);
               })
             )
