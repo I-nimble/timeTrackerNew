@@ -284,6 +284,10 @@ export class AppAccountSettingComponent implements OnInit {
             private certificationsService: CertificationsService
           ) {}
 
+  getAttachmentUrl(key: string): string {
+    return this.certificationsService.getAttachmentUrl(key);
+  }
+
   ngOnInit(): void {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
@@ -857,11 +861,10 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            
             if (this.isOrphan && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
-            if (this.selectedVideoFile) {
+            else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
               this.openSnackBar('User data updated successfully!', 'Close');
@@ -1222,7 +1225,8 @@ export class AppAccountSettingComponent implements OnInit {
         const createObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                console.log('Upload result:', uploadRes);
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.create(data);
               })
             )
@@ -1244,7 +1248,7 @@ export class AppAccountSettingComponent implements OnInit {
         const updateObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.update(data.id, data);
               })
             )

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Optional, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Inject, Optional, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
@@ -8,6 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
+import { environment } from '../../../../environments/environment';
 import { DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
@@ -54,8 +55,6 @@ export class AppKanbanDialogComponent implements OnInit {
   visibilities = ['public', 'restricted', 'private'];
   users: any[] = [];
   attachments: any[] = [];
-  attachmentsUrl: string =
-    'https://inimble-app.s3.us-east-1.amazonaws.com/task_attachments/';
   showMentionList = false;
   mentionQuery = '';
   mentionIndex = 0;
@@ -76,6 +75,7 @@ export class AppKanbanDialogComponent implements OnInit {
   isOrphan: boolean = false;
   userId: number | null = null;
   selectedEmployeeId: number | null = null;
+  imageUrls: { [key: string]: string } = {};
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -88,7 +88,8 @@ export class AppKanbanDialogComponent implements OnInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private sanitizer: DomSanitizer,
-    private kanbanService: BoardsService
+    private kanbanService: BoardsService,
+    private cdr: ChangeDetectorRef
   ) {
     this.getPriorities();
     this.local_data = { ...data };
@@ -137,9 +138,21 @@ export class AppKanbanDialogComponent implements OnInit {
     }
     this.updateFirstAttachmentImage();
     this.loadComments();
+    this.loadImageUrls();
     setTimeout(() => {
       if (this.descriptionEditor && this.local_data.recommendations) {
         this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
+      }
+    });
+  }
+
+  loadImageUrls() {
+    this.attachments.forEach(att => {
+      if (!(att instanceof File) && att.file_name && !this.imageUrls[att.file_name]) {
+        this.kanbanService.getAttachmentUrl(att.file_name).subscribe(response => {
+          this.imageUrls[att.file_name] = response.url;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -163,21 +176,9 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   downloadAttachment(filename: string) {
-    const url = this.attachmentsUrl + filename;
-    fetch(url)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(a.href);
-      })
-      .catch((error) => {
-        console.error('Download failed:', error);
-      });
+    this.kanbanService.getAttachmentUrl(filename).subscribe((response: any) => {
+      window.open(response.url, '_blank');
+    });
   }
 
   updateFirstAttachmentImage() {
@@ -191,10 +192,9 @@ export class AppKanbanDialogComponent implements OnInit {
   getImageUrl(attachment: any): string {
     if (attachment instanceof File) {
       return URL.createObjectURL(attachment);
-    } else if (attachment.s3_filename) {
-      return this.attachmentsUrl + attachment.s3_filename;
+    } else {
+      return this.imageUrls[attachment.file_name] || '';
     }
-    return '';
   }
 
   isImage(file: any): boolean {
@@ -494,10 +494,14 @@ export class AppKanbanDialogComponent implements OnInit {
     }
   }
 
-  insertImageInEditor(file: any) {
+  async insertImageInEditor(file: any) {
+    if (!(file instanceof File) && file.file_name && !this.imageUrls[file.file_name]) {
+      const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(file.file_name));
+      this.imageUrls[file.file_name] = response.url;
+    }
     const editor = this.descriptionEditor.nativeElement;
     const img = document.createElement('img');
-    img.src = this.attachmentsUrl + file.s3_filename;
+    img.src = this.getImageUrl(file);
     img.style.maxWidth = '100%';
 
     const selection = window.getSelection();
