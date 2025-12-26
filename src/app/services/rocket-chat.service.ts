@@ -60,7 +60,7 @@ export class RocketChatService {
   private wsMethodHandlers = new Map<string, { resolve: (v: any) => void; reject: (err: any) => void; timeout?: any; method?: string; params?: any[] }>();
 
   private typingUsers = new Map<string, Set<string>>();
-  private typingTimeout = new Map<string, NodeJS.Timeout>();
+  private typingTimeout = new Map<string, ReturnType<typeof setTimeout>>();
   private typingSubject = new Subject<{
     roomId: string;
     username: string;
@@ -204,9 +204,11 @@ export class RocketChatService {
       console.error('Failed to emit typing via WebSocketService', err);
     }
 
-    const typingTimeout = this.typingTimeout.get(this.loggedInUser._id);
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
+    if (this.typingTimeout.has(this.loggedInUser._id)) {
+      const existingTimeout = this.typingTimeout.get(this.loggedInUser._id);
+      if (existingTimeout !== undefined) {
+        clearTimeout(existingTimeout as ReturnType<typeof setTimeout>);
+      }
     }
 
     const timeout = setTimeout(() => {
@@ -227,10 +229,12 @@ export class RocketChatService {
     } catch (err) {
       console.error('Failed to emit stop-typing via WebSocketService', err);
     }
-    
-    const typingTimeout = this.typingTimeout.get(this.loggedInUser._id);
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
+
+    if (this.typingTimeout.has(this.loggedInUser._id)) {
+      const existingTimeout = this.typingTimeout.get(this.loggedInUser._id);
+      if (existingTimeout !== undefined) {
+        clearTimeout(existingTimeout as ReturnType<typeof setTimeout>);
+      }
       this.typingTimeout.delete(this.loggedInUser._id);
     }
   }
@@ -1055,7 +1059,7 @@ export class RocketChatService {
     });
   }
 
- callWebSocketMethod(method: string, params: any[] = [], timeoutMs: number = 10000): Observable<any> {
+  callWebSocketMethod(method: string, params: any[] = [], timeoutMs: number = 10000): Observable<any> {
     return new Observable((observer) => {
       (async () => {
         try {
@@ -1211,15 +1215,6 @@ export class RocketChatService {
       if (data) options.data = data;
 
       const notif = new Notification(title, options);
-      
-      if ('vibrate' in navigator) {
-        try {
-          navigator.vibrate(200);
-        } catch (e) {
-          console.debug('Vibration not supported or failed:', e);
-        }
-      }
-      
       notif.onclick = (ev: any) => {
         try {
           if (window && (window as any).focus) (window as any).focus();
@@ -1505,14 +1500,12 @@ export class RocketChatService {
 
   sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[], tmid?: string): Observable<any> {
     return this.http.post(
-      `${this.CHAT_API_URI}chat.sendMessage`,
+      `${this.CHAT_API_URI}chat.postMessage`,
       {
-        message: {
-          rid: roomId,
-          msg: message,
-          ...(attachments && { attachments }),
-          ...(tmid && { tmid, tshow: true })
-        }
+        channel: roomId,
+        text: message,
+        ...(attachments && { attachments }),
+        ...(tmid && { tmid })
       },
       { headers: this.getAuthHeaders() }
     );

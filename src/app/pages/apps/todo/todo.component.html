@@ -1,0 +1,459 @@
+<div class="row">
+  <div class="col-12">
+    <!-- ----------------------------------------------- -->
+    <!-- Filters Section -->
+    <!-- ----------------------------------------------- -->
+    <mat-card
+      class="mat-card-top cardWithShadow position-relative overflow-hidden"
+    >
+      <div
+        class="d-flex row align-items-center justify-content-between m-l-auto m-t-16 m-r-16"
+      >
+        <mat-form-field
+          appearance="outline"
+          *ngIf="userRole !== '2'"
+          class="col-12 col-sm-6 m-b-16"
+        >
+          <mat-label class="f-s-14 m-b-8 d-block"
+            >Select a Team Member</mat-label
+          >
+          <mat-select
+            *ngIf="userRole !== '2'"
+            [(ngModel)]="teamMemberId"
+            (selectionChange)="handleTMSelection($event)"
+          >
+            <mat-option [value]="null"> All members </mat-option>
+
+            <mat-option [value]="loggedInUser?.id" *ngIf="userRole !== '4'">
+              {{ loggedInUser?.name }} {{ loggedInUser?.last_name }}
+            </mat-option>
+            <mat-option *ngFor="let tm of teamMembers" [value]="tm.user.id">
+              {{ tm.user.name }} {{ tm.user.last_name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="col-12 col-sm-6 m-b-16">
+          <input
+            matInput
+            placeholder="Date"
+            name="date"
+            [matDatepicker]="datePicker"
+            [value]="selectedDate"
+            [max]="todayStr()"
+            (dateChange)="onDateChange($event)"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="datePicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #datePicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <mat-sidenav-container
+        [ngClass]="{
+          'side-panel-opened': sidePanelOpened(),
+          'side-panel-closed': !sidePanelOpened()
+        }"
+        style="min-height: 80vh"
+        class="bg-white"
+      >
+        <!-- --------------------------------------------------------------------------- -->
+        <!-- Sidebar -->
+        <!-- --------------------------------------------------------------------------- -->
+        <mat-sidenav
+          #chatnav
+          mode="side"
+          class="app-left-sidebar"
+          [mode]="isOver() ? 'over' : 'side'"
+          [opened]="!isOver()"
+          (open)="sidePanelOpened.set(true)"
+          (close)="sidePanelOpened.set(false)"
+          position="start"
+          class="bg-white"
+          style="max-width: 90%"
+        >
+          <div class="m-x-12">
+            <!-- --------------------------------------------------------------------------- -->
+            <!-- Categories -->
+            <!-- --------------------------------------------------------------------------- -->
+            <mat-nav-list>
+              <mat-list-item
+                (click)="selectionlblClick('all')"
+                class="all m-b-2"
+                [class.bg-light-primary]="selectedCategory() === 'all'"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="f-s-14">All</span>
+                  <div class="m-l-auto">
+                    <span
+                      class="icon-27 bg-primary text-white rounded d-flex align-items-center justify-content-center"
+                      >{{ totalTodos() }}</span
+                    >
+                  </div>
+                </div>
+              </mat-list-item>
+              <mat-list-item
+                [class.bg-light-primary]="selectedCategory() === 'uncomplete'"
+                class="incomplete m-b-2"
+                (click)="selectionlblClick('uncomplete')"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="f-s-14">To do</span>
+                  <div class="m-l-auto">
+                    <span
+                      class="icon-27 bg-error text-white rounded d-flex align-items-center justify-content-center"
+                      >{{ totalIncomplete() }}</span
+                    >
+                  </div>
+                </div>
+              </mat-list-item>
+              <mat-list-item
+                [class.bg-light-primary]="selectedCategory() === 'complete'"
+                class="complete m-b-2"
+                (click)="selectionlblClick('complete')"
+              >
+                <div class="d-flex align-items-center">
+                  <span class="f-s-14">Completed</span>
+                  <div class="m-l-auto">
+                    <span
+                      class="icon-27 bg-success text-white rounded d-flex align-items-center justify-content-center"
+                      >{{ totalCompleted() }}</span
+                    >
+                  </div>
+                </div>
+              </mat-list-item>
+            </mat-nav-list>
+
+            <!-- --------------------------------------------------------------------------- -->
+            <!-- Create/Edit task Form -->
+            <!-- --------------------------------------------------------------------------- -->
+            <div>
+              <mat-toolbar class="bg-white mt-4">
+                @if(toDoToEdit) {
+                <h4 class="f-w-500 f-s-18 m-0">Edit Task</h4>
+                } @else {
+                <div class="w-100">
+                  <h4 class="f-w-500 f-s-18 m-0">New Task</h4>
+                </div>
+                <div *ngIf="teamMemberId === null">
+                  <p class="f-s-12 text-muted">*Select a team member</p>
+                </div>
+                }
+              </mat-toolbar>
+              <form (ngSubmit)="addTodo()" [formGroup]="newTaskForm">
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 hide-hint">
+                    <input
+                      matInput
+                      #inputData
+                      placeholder="Add todo"
+                      formControlName="goal"
+                    />
+                  </mat-form-field>
+
+                  <mat-checkbox
+                    matInput
+                    #repeat
+                    class="mt-2"
+                    formControlName="recurrent"
+                  >
+                    Repeat task?
+                  </mat-checkbox>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label>Due Date</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="startDateDP"
+                      formControlName="due_date"
+                      required
+                    />
+                    <mat-datepicker-toggle matSuffix [for]="startDateDP"></mat-datepicker-toggle>
+                    <mat-datepicker #startDateDP></mat-datepicker>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label>Due Time</mat-label>
+                    <input
+                      matInput
+                      [matTimepicker]="timePicker"
+                      formControlName="due_time"
+                      required
+                      matTimepickerMin="08:00"
+                      matTimepickerMax="20:00"
+                    />
+                    <mat-timepicker #timePicker></mat-timepicker>
+                    <mat-timepicker-toggle [for]="timePicker" matSuffix></mat-timepicker-toggle>
+
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label class="f-s-14 m-b-8 d-block"
+                      >Select a board</mat-label
+                    >
+                    <mat-select matNativeControl formControlName="board_id">
+                      <mat-option [value]="null">None</mat-option>
+                      <mat-option *ngFor="let board of boards" [value]="board.id">
+                        {{ board.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label class="f-s-14 m-b-8 d-block">Priority</mat-label>
+                    <mat-select
+                      matNativeControl
+                      required
+                      formControlName="priority"
+                    >
+                      <mat-option
+                        *ngFor="let priority of priorities"
+                        [value]="priority.id"
+                      >
+                        {{ priority.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="w-100 mt-2">
+                    <mat-label class="f-s-14 m-b-8 d-block"
+                      >Recommendations</mat-label
+                    >
+                    <textarea
+                      matInput
+                      rows="5"
+                      formControlName="recommendations"
+                      [value]="stripHtml(newTaskForm.get('recommendations')?.value || '')"
+                      (input)="onRecommendationsChange($event)"
+                    ></textarea>
+                  </mat-form-field>
+
+                  <button
+                    mat-flat-button
+                    class="w-100 mt-2"
+                    id="btnAddTodo"
+                    type="submit"
+                    [disabled]="!newTaskForm.valid"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </mat-sidenav>
+        <mat-sidenav-content>
+          <!-- --------------------------------------------------------------------------- -->
+          <!-- To-Do List -->
+          <!-- --------------------------------------------------------------------------- -->
+          <mat-toolbar class="bg-white">
+            <div
+              class="d-flex align-items-center justify-content-between w-100"
+            >
+              <div class="d-flex align-items-center">
+                <button mat-icon-button (click)="chatnav.toggle()">
+                  <i-tabler name="align-left" class="icon-20"></i-tabler>
+                </button>
+                <mat-checkbox
+                  (change)="allTodos()"
+                  color="primary"
+                  *ngIf="userRole === '2'"
+                  [checked]="allCheckedFlag"
+                  >Mark All
+                </mat-checkbox>
+              </div>
+
+              <div>
+                <span
+                  class="bg-primary text-white rounded p-8 p-y-2 f-s-14 mr-2"
+                  >{{ totalIncomplete() }} Tasks left</span
+                >
+                <!-- <button mat-flat-button id="btnNewTask" (click)="resetForm()">
+                  New Task
+                </button> -->
+              </div>
+            </div>
+          </mat-toolbar>
+          <mat-divider></mat-divider>
+          <mat-card-content>
+            <form
+              *ngIf="!isDateFuture && toDoFormArray.length > 0"
+              id="to-do-form"
+              [formGroup]="toDoForm"
+              (ngSubmit)="handleSubmit()"
+            >
+              <div formArrayName="toDo">
+                <div
+                  *ngFor="let goal of toDoFormArray.controls; let i = index"
+                  [formGroupName]="i"
+                  class="todo-item p-y-12 p-x-8 b-b-1"
+                >
+                  <div class="d-flex align-items-start w-100">
+                    <div class="flex-grow-1">
+                      <mat-checkbox
+                        *ngIf="userRole === '2'"
+                        color="primary"
+                        formControlName="achieved"
+                        (change)="onAchievedChange(i)"
+                      >
+                        <span
+                          class="f-s-16 f-w-500"
+                          [ngClass]="{ completed: filteredArray[i].achieved }"
+                        >
+                          {{ filteredArray[i].goal }}
+                        </span>
+                      </mat-checkbox>
+                      <label *ngIf="userRole !== '2'">
+                        {{ filteredArray[i].goal }}
+                      </label>
+                      <p *ngIf="userRole !== '2' && filteredArray[i].user">
+                        To Do: {{ filteredArray[i].user?.name }}
+                        {{ filteredArray[i].user?.last_name }}
+                      </p>
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100 mt-2"
+                        *ngIf="filteredArray[i]?.recommendations"
+                      >
+                        <mat-label>Recommendations</mat-label>
+                        <textarea
+                          matInput
+                          rows="2"
+                          [readonly]="true"
+                          tabindex="-1"
+                          class="recommendations-textarea"
+                          [value]="stripHtml(filteredArray[i].recommendations)"
+                        ></textarea>
+                      </mat-form-field>
+                      <div style="height: 1rem"></div>
+
+                      <div style="margin-bottom: 0.5rem"></div>
+
+                      <mat-form-field
+                        appearance="outline"
+                        class="w-100"
+                        *ngIf="goal.get('achieved')?.value"
+                      >
+                        <mat-label>Description</mat-label>
+                        <textarea
+                          placeholder="Describe the activity performed and the achievements obtained"
+                          matInput
+                          rows="2"
+                          formControlName="details"
+                          [readonly]="goal.value.wasAchieved"
+                        ></textarea>
+                      </mat-form-field>
+
+                      <p class="m-t-10 f-s-14">
+                        @switch(goal.value.priority) { @case(4) {
+                        <span
+                          class="bg-primary text-white rounded p-8 p-y-2 f-s-14 mr-2"
+                        >
+                          Low Priority
+                        </span>
+                        } @case(3) {
+                        <span
+                          class="bg-secondary text-white rounded p-8 p-y-2 f-s-14 mr-2"
+                        >
+                          Normal
+                        </span>
+                        } @case(2) {
+                        <span
+                          class="bg-warning text-white rounded p-8 p-y-2 f-s-14 mr-2"
+                        >
+                          Important
+                        </span>
+                        } @case(1) {
+                        <span
+                          class="bg-error text-white rounded p-8 p-y-2 f-s-14 mr-2"
+                        >
+                          Urgent
+                        </span>
+                        } }
+
+                        <span *ngIf="goal.value.due_date">
+                          Due date:
+                          {{ goal.value.due_date | date: "dd/MM/yyyy HH:mm" }}
+                        </span>
+                      </p>
+                    </div>
+                    <div class="w-100" style="flex-basis: 10%">
+                      <div class="d-flex align-items-start">
+                        <div class="m-l-auto d-flex">
+                          <button
+                            [disabled]="userRole == '4'"
+                            mat-icon-button
+                            class="d-flex justify-content-center"
+                            href="javascript: void(0);"
+                            (click)="editTodo(goal.value.rating_id)"
+                          >
+                            <i-tabler
+                              name="pencil"
+                              class="icon-18 d-flex"
+                            ></i-tabler>
+                          </button>
+                          <button
+                            [disabled]="userRole == '4'"
+                            *ngIf="userRole !== '2'"
+                            mat-icon-button
+                            type="button"
+                            class="d-flex justify-content-center"
+                            href="javascript: void(0);"
+                            (click)="deleteTodo(goal.value.rating_id)"
+                          >
+                            <i-tabler
+                              name="trash"
+                              class="icon-18 d-flex"
+                            ></i-tabler>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                *ngIf="userRole === '2'"
+                mat-flat-button
+                class="w-100 mt-2"
+                id="btnSend"
+                type="submit"
+                value="Send"
+                [disabled]="!toDoFormArray.valid || !hasAnyAchieved()"
+              >
+                Send
+              </button>
+            </form>
+            <mat-card-content>
+              <ng-container *ngIf="isLoading; else todoListOrEmpty">
+                <div
+                  class="d-flex justify-content-center align-items-center"
+                  style="height: 200px"
+                >
+                  <mat-spinner></mat-spinner>
+                </div>
+              </ng-container>
+              <ng-template #todoListOrEmpty>
+                <form
+                  *ngIf="!isDateFuture && toDoFormArray.length > 0"
+                  id="to-do-form"
+                  [formGroup]="toDoForm"
+                  (ngSubmit)="handleSubmit()"
+                ></form>
+                <p
+                  *ngIf="toDoFormArray.length === 0"
+                  class="mb-3 mt-4 text-center"
+                >
+                  No tasks found for this date.
+                </p>
+              </ng-template>
+            </mat-card-content>
+          </mat-card-content>
+        </mat-sidenav-content>
+      </mat-sidenav-container>
+    </mat-card>
+  </div>
+</div>
