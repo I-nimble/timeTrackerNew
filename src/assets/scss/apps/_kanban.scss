@@ -1,5 +1,11 @@
 @use "../variables" as *;
 
+.table-responsive {
+  padding: 1rem;
+  .task-list-container {
+    width: 55vw;
+  }
+}
 .flex-column {
   flex-direction: column;
 }
