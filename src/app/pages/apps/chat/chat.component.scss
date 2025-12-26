@@ -18,6 +18,9 @@
   transition: margin-left 0.3s ease;
 }
 
+.conversation-name {
+  line-height: 1;
+}
 .chat-sidebar {
   width: 320px;
   border-right: 1px solid var(--mat-sys-outline-variant);
@@ -31,8 +34,7 @@
   }
 
   @media (max-width: 768px) {
-    width: calc(100vw - 70px);
-    max-width: calc(100vw - 70px);
+    width: 100%;
   }
 
   .chat-sidebar-inner {
@@ -277,7 +279,7 @@
   overflow-y: auto;
   height: 100%;
   background: var(--mat-sys-surface);
-  padding: 24px;
+  padding: 0 24px;
 }
 
 .messages-list {
@@ -437,9 +439,6 @@
 @media (max-width: 768px) {
   .chat-main {
     width: 100%;
-  }
-  .chat-messages {
-    height: calc(100vh - 200px);
   }
 }
 

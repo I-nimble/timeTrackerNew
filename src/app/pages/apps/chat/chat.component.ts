@@ -75,7 +75,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
   rooms: RocketChatRoom[] = [];
   messages: RocketChatMessage[] = [];
   newMessage = '';
-  isSidebarOpen = true;
   @ViewChild('messagesContainer', { static: false })
   messagesContainer?: ElementRef;
   @ViewChild('sidebar') sidebar!: MatSidenav;
@@ -1168,6 +1167,10 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
     this.selectedConversation = room;
     this.typingUsers = [];
+    // TODO: Collapse side panel
+    if(this.isMobile && this.sidebar.opened) {
+      this.sidebar.close();
+    };
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -1519,10 +1522,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
     const local = new Date(utcTime + offset * 3600000);
     return local.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
   }
 
   private scrollToBottom() {

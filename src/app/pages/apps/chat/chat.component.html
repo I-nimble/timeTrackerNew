@@ -3,7 +3,7 @@
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
       [mode]="'side'"
-      [opened]="!isMobile || isSidebarOpen"
+      [opened]="!isMobile || sidebar.opened"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
         <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">
@@ -132,19 +132,18 @@
 
     <mat-sidenav-content
       class="mat-drawer-content mat-sidenav-content bg-white chat-main"
-      (click)="isMobile && isSidebarOpen ? sidebar.close() : null"   
-      [style.margin-left.px]="!isMobile && isSidebarOpen ? 320 : 0"
+      [style.margin-left.px]="!isMobile && sidebar.opened ? 320 : 0"
     >
       <mat-toolbar class="mat-toolbar chat-right-panel d-flex align-items-center justify-content-between bg-white b-b-1 gap-8 mat-toolbar-single-row chat-toolbar">
         <div class="d-flex">
           <button mat-icon-button
-                  (click)="toggleSidebar(); sidebar.toggle()"
+                  (click)="sidebar.toggle()"
                   class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed">
             <mat-icon>short_text</mat-icon>
           </button>
           <div class="d-flex align-items-center gap-16">
             <img *ngIf="selectedConversation" [src]="getConversationPicture(selectedConversation)" width="40" class="rounded-circle" alt="contact" />
-            <div class="f-s-16 f-w-600">
+            <div class="f-s-16 f-w-600 text-wrap conversation-name">
               {{ selectedConversation ? getConversationName(selectedConversation) : 'Select a conversation' }}
             </div>
           </div>
@@ -185,7 +184,7 @@
       </mat-toolbar>
 
       <div class="chat-messages-wrapper">
-        <mat-card-content class="mat-mdc-card-content chat-middle-box p-24 bg-white chat-messages" #messagesContainer>
+        <mat-card-content class="mat-mdc-card-content chat-middle-box bg-white chat-messages" #messagesContainer>
           <ng-container *ngIf="selectedConversation; else noConversation">
             <div class="messages-list">
               <ng-container *ngFor="let message of messages; let i = index">
