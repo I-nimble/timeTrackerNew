@@ -68,9 +68,10 @@
                 {{ getConversationName(room) }}
               </div>
               <div class="d-flex justify-content-between">
-                <div class="last-message">
+                <!-- <div class="last-message">
                   {{ getLastMessage(room) | slice:0:30 }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
-                </div>
+                </div> -->
+                <div class="last-message" [innerHTML]="getLastMessage(room) | emojiMart | markdown"></div>
                 <span
                   *ngIf="getUnreadMessageCount(room) > 0" 
                   class="badge badge-pill badge-success"
@@ -318,7 +319,7 @@
                             <strong *ngIf="selectedConversation?.t !== 'd' && !isFromMe(message)">
                               {{ getSenderName(message) }}
                             </strong>
-                            <span class="f-s-14">{{ message.msg }}</span>
+                            <span [innerHTML]="message.msg | emojiMart | linebreak | markdown" class="f-s-14"></span>
                           </div>
                         }
                       </div>
@@ -392,10 +393,19 @@
           <button mat-icon-button matPrefix (click)="selectFile()">
             <mat-icon>attach_file</mat-icon>
           </button>
-          <button mat-icon-button matPrefix>
+          <button mat-icon-button matPrefix (click)="toggleEmojiPicker(); $event.stopPropagation()">
             <mat-icon>emoji_emotions</mat-icon>
           </button>
-          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" [disabled]="isRecording" />
+          <textarea
+            matInput
+            placeholder="Send message"
+            [(ngModel)]="newMessage"
+            (keydown.enter)="onEnter($event)"
+            (input)="onMessageInput()"
+            rows="1"
+            cdkTextareaAutosize
+            #autosize="cdkTextareaAutosize"
+          ></textarea>
           <button 
             *ngIf="isEmptyText"
             mat-icon-button 
@@ -411,6 +421,9 @@
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>
+        <div *ngIf="showEmojiPicker" class="emoji-panel" (click)="$event.stopPropagation()">
+          <emoji-mart set="apple" (emojiClick)="addEmoji($event)"></emoji-mart>
+        </div>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>

@@ -2,25 +2,15 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  inject,
-  CUSTOM_ELEMENTS_SCHEMA,
   ViewChild,
-  TemplateRef,
   ElementRef,
   HostListener,
   ChangeDetectorRef,
 } from '@angular/core';
-import { PlansService } from 'src/app/services/plans.service';
-import { Plan } from 'src/app/models/Plan.model';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { EmployeesService } from 'src/app/services/employees.service';
 import { CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
-import { Loader } from 'src/app/app.models';
 import { environment } from 'src/environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -37,7 +27,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { CreateRoomComponent } from './create-room/create-room.component';
 import { ChatInfoComponent } from './chat-info/chat-info.component';
-import { JitsiMeetComponent } from '../../../components/jitsi-meet/jitsi-meet.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
@@ -47,6 +36,10 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-chat',
@@ -64,7 +57,12 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MatButtonModule,
     MatMenuModule,
     CreateRoomComponent,
-    ChatInfoComponent
+    ChatInfoComponent,
+    MarkdownPipe,
+    LinebreakPipe,
+    PickerModule,
+    EmojiMartPipe,
+    MatTooltip
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -113,13 +111,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
   voiceRecorderTime: string = '00:00';
   shouldSendAfterStop: boolean = false;
   currentAudioMimeType: string | null = null;
+  showEmojiPicker = false;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
+  constructor(
+    protected chatService: RocketChatService, 
+    private dialog: MatDialog, 
+    private cdr: ChangeDetectorRef, 
+    private snackBar: MatSnackBar, 
+    private permissionsService: PlatformPermissionsService, 
+    private confirmationModal: MatDialog,
+    public emojiPipe: EmojiMartPipe
+  ) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -293,6 +300,24 @@ export class AppChatComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Failed to subscribe to call notifications stream:', err);
     }
+  }
+
+  onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  addEmoji(event: any) {
+    const emoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!emoji) return;
+    this.newMessage = (this.newMessage || '') + emoji;
   }
 
   get isEmptyText(): boolean {
