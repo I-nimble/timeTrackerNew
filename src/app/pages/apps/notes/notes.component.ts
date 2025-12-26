@@ -1,6 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { Note } from './note';
-import { NoteService } from 'src/app/services/apps/notes/note.service';
 import { CommonModule } from '@angular/common';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -28,6 +27,7 @@ export class AppNotesComponent implements OnInit {
   sidePanelOpened = signal(true);
 
   notes = signal<Note[]>([]);
+  filteredNotes = signal<Note[]>([]);
 
   selectedNote = signal<Note | null>(null);
 
@@ -52,7 +52,6 @@ export class AppNotesComponent implements OnInit {
   changedTitle: string = '';
 
   constructor(
-    public noteService: NoteService, 
     private snackBar: MatSnackBar, 
     private usersService: UsersService, 
     private notesService: NotesService
@@ -68,13 +67,14 @@ export class AppNotesComponent implements OnInit {
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.notes.set(this.filter(filterValue));
+    this.filteredNotes.set(this.filter(filterValue));
   }
 
-  filter(v: string): Note[] {
-    return this.noteService
-      .getNotes()
-      .filter((x) => x.content.toLowerCase().includes(v.toLowerCase()));
+  filter(searchText: string): Note[] {
+    if (!searchText) {
+      return this.notes();
+    }
+    return this.notes().filter((n) => n.content.toLowerCase().includes(searchText.toLowerCase()));
   }
 
   isOver(): boolean {
@@ -139,7 +139,8 @@ export class AppNotesComponent implements OnInit {
       color: this.clrName(),
     };
     this.notesService.createNote(newNote).subscribe({
-      next: () => {
+      next: (newNote: Note) => {
+        this.selectedNote.set(newNote as Note);
         this.loadNotes(this.userInfo.id);
         this.openSnackBar('Note added successfully!');
       },
@@ -190,6 +191,7 @@ export class AppNotesComponent implements OnInit {
     this.notesService.getNotesByUserId(userId).subscribe({
       next: (notes: Note[]) => {
         this.notes.set(notes);
+        this.filteredNotes.set(this.notes());
         if (!this.selectedNote()) {
           this.selectedNote.set(this.notes()[0]);
           const currentNote = this.selectedNote();

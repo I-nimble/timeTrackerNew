@@ -29,12 +29,12 @@
       </div>
       <ng-scrollbar
         class="position-relative"
-        style="height: calc(100vh - 400px)"
+        style="height: calc(100% - 69px)"
       >
         <h4 class=" f-s-16 f-w-600 p-x-16 m-t-16">All Notes</h4>
 
         <mat-nav-list class="p-x-16">
-          @if(notes().length > 0) { @for(note of notes(); track note.date_time) {
+          @if(notes().length > 0) { @for(note of filteredNotes(); track note.date_time) {
           <mat-list-item
             class="notes-item rounded m-b-8 bg-light-{{ note.color }}"
             (click)="onSelect(note)"
@@ -81,7 +81,7 @@
     </div>
   </div>
 </mat-toolbar>
-    <ng-scrollbar class="position-relative" style="height: calc(100vh - 370px)">
+    <ng-scrollbar class="position-relative" style="height: calc(100% - 64px);">
       <mat-card-content>
         @if(selectedNote()){
         <div>

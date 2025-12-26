@@ -52,6 +52,9 @@
 }
 
 .notes-app {
+  height: 80vh;
+  max-height: 800px;
+  
   .color-button {
     min-width: 20px !important;
     padding: 0 !important;
