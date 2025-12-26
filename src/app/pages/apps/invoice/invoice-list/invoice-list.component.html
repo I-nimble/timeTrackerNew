@@ -76,12 +76,12 @@
           <mat-date-range-picker #picker></mat-date-range-picker>
         </mat-form-field>
       </div>
-      <div class="col-sm-4 d-flex align-items-center justify-content-end">
+      <div class="col-12 col-sm-4 d-flex align-items-center justify-content-end">
         <a 
           mat-button 
           mat-flat-button 
           color="primary" 
-          class="m-r-10"
+          class="m-r-10 w-100"
           *ngIf="allowedPaymentsManage"
           (click)="generateInvoice()"
         >
