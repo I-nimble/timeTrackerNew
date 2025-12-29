@@ -195,6 +195,13 @@ export class ApplicationsService {
     );
   }
 
+  updateAvailability(id: number, available: boolean) {
+    return this.http.patch(
+      `${this.API_URI}/applications/${id}/availability`,
+      { availability: available }
+    );
+  }
+
   // Notify other components that an application was updated
   notifyApplicationUpdated(application: any) {
     this.applicationsUpdatedSource.next(application);

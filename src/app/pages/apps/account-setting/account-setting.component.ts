@@ -232,12 +232,12 @@ export class AppAccountSettingComponent implements OnInit {
     workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
+    scheduleAvailability: [null, Validators.required],
     resume: [null],
     picture: [null],
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    availability: [false, Validators.requiredTrue],
     programmingLanguages: ['']
   });
   locations: any[] = [];
@@ -366,11 +366,22 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   availabilityChange(event: MatSlideToggleChange): void {
-    this.user.availability = event.checked;
+    const availability = event.checked;
+    this.user.availability = availability;
+    this.personalForm.get('availability')?.setValue(availability);
     this.formChanged = true;
-    this.personalForm.get('availability')?.setValue(event.checked);
-    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
+    if (!this.applicationId) {
+      return;
+    }
+    this.applicationsService.updateAvailability(this.applicationId, availability).subscribe({
+      next: () => {
+        this.loadApplicationDetails(Number(localStorage.getItem('id')));
+      },
+      error: (err) => {
+        console.error('Error updating availability:', err);
+      }
+    });
   }
 
   checkOlympiaStatus(): void {
@@ -558,10 +569,10 @@ export class AppAccountSettingComponent implements OnInit {
             educationHistory: application.education_history,
             workExperience: application.work_experience,
             workReferences: application.work_references,
+            scheduleAvailability: application.schedule_availability,
             hobbies: application.hobbies,
             google_user_id: application.google_user_id,
             salaryRange: application.salary_range,
-            availability: application.inmediate_availability,
             programmingLanguages: application.programming_languages,
           });
           if (application.resume) {
@@ -945,8 +956,8 @@ export class AppAccountSettingComponent implements OnInit {
       work_experience: formValues.workExperience,
       work_references: formValues.workReferences,
       hobbies: formValues.hobbies,
+      schedule_availability: formValues.scheduleAvailability,
       salary_range: formValues.salaryRange,
-      availability: formValues.availability,
       programming_languages: formValues.programmingLanguages,
     };
 
