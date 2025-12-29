@@ -14,7 +14,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
-import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -52,8 +51,7 @@ export class AddCandidateDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddCandidateDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialog: MatDialog,
-    private discProfilesService: DiscProfilesService
+    private dialog: MatDialog
   ) {
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
@@ -211,7 +209,10 @@ export class AddCandidateDialogComponent implements OnInit {
         this.snackBar.open(`Candidate ${this.action == 'edit' ? 'edited' : 'added'} successfully`, 'Close', {
           duration: 3000,
         });
-        this.dialogRef.close('success');
+        this.dialogRef.close({
+          success: true,
+          profile_pic: this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null
+        });
       },
       error: (error) => {
         this.snackBar.open(
@@ -243,14 +244,10 @@ export class AddCandidateDialogComponent implements OnInit {
       hasBackdrop: false
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
-      if (result?.success) {
+    dialogRef.afterClosed().subscribe((result: string) => {
+      if (result === 'success') {
         this.snackBar.open('Match scores updated successfully!', 'Close', { duration: 3000 });
       }
     });
-  }
-
-  getDiscProfileColor(profileName: string): string {
-    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 }
