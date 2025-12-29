@@ -43,6 +43,7 @@ export class AddCandidateDialogComponent implements OnInit {
   restrictionMessage: string = '';
   locations: any[] = [];
   action: string = this.data.action || 'add';
+  mode: 'full' | 'minimal' = 'full';
 
   constructor(
     private fb: FormBuilder,
@@ -53,6 +54,7 @@ export class AddCandidateDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialog: MatDialog
   ) {
+    this.mode = data?.mode || 'full';
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
