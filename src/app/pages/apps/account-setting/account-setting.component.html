@@ -964,7 +964,7 @@
                         (11:30am-8:00pm, Mon-Fri)?</mat-label
                       >
                       <mat-radio-group
-                        formControlName="availability"
+                        formControlName="scheduleAvailability"
                         class="d-flex gap-16"
                       >
                         <mat-radio-button [value]="true" color="primary"
@@ -976,7 +976,7 @@
                       </mat-radio-group>
                       <mat-error
                         *ngIf="
-                          applicationForm.get('availability')?.value === 'false'
+                          applicationForm.get('scheduleAvailability')?.value === false
                         "
                         class="f-s-12"
                       >
