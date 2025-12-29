@@ -151,14 +151,14 @@
             {{ getPositionName(element.position_id) }}
             <span class="disc-badges m-l-8">
               <ng-container *ngIf="getPositionById(element.position_id) as pos">
-                (<span
+                <span
                   *ngFor="let profile of pos.disc_profiles"
                   class="disc-badge-small"
                   [style.background-color]="getDiscProfileColor(profile.name)"
                   [title]="profile.name"
                 >
                   {{ profile.name.charAt(0) }}
-                </span>)
+                </span>
               </ng-container>
             </span>
           </td>
