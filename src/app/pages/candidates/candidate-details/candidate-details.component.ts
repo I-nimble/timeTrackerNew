@@ -306,6 +306,10 @@ export class CandidateDetailsComponent implements OnInit {
     return this.positions.find(p => p.id === positionId)?.title || 'N/A';
   }
 
+  getPositionById(positionId: any): any {
+    return this.positions.find(p => p.id == positionId);
+  }
+
   getCategoryName(score: MatchScore): string {
     const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
     return category ? category.category_name : 'Unknown';

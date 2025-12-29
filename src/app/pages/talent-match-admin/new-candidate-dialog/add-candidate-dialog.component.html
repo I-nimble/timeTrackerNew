@@ -55,8 +55,19 @@
             <mat-option
               *ngFor="let position of positions"
               [value]="position.id"
-              >{{ position.title }}</mat-option
             >
+              <span class="d-flex align-items-center">
+                <span>{{ position.title }}</span>
+                <span class="disc-badges m-l-8" *ngIf="position.disc_profiles?.length">(<span
+                    *ngFor="let profile of position.disc_profiles"
+                    class="disc-badge-small"
+                    [style.background-color]="getDiscProfileColor(profile.name)"
+                    [title]="profile.name"
+                  >
+                    {{ profile.name.charAt(0) }}
+                  </span>)</span>
+              </span>
+            </mat-option>
           </mat-select>
           <mat-error *ngIf="candidateForm.get('position_id')?.invalid"
             >Position is required</mat-error
