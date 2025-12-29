@@ -16,6 +16,7 @@ import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl }
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 
 @Component({
   selector: 'app-candidate-details',
@@ -373,6 +374,42 @@ export class CandidateDetailsComponent implements OnInit {
         }
         
         this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  openDialogUploadFiles() {
+    const candidate = this.candidate();
+    if (!candidate) return;
+
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: {
+        mode: 'files',
+        candidate: candidate,
+        action: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        let updatedCandidate = { ...this.candidate() };
+        
+        if (result.candidate) {
+            updatedCandidate = { ...updatedCandidate, ...result.candidate };
+        }
+        
+        if (result.profile_pic) {
+            updatedCandidate.picture = result.profile_pic;
+        }
+
+        const userId = updatedCandidate.user?.id || updatedCandidate.user_id;
+        updatedCandidate.profile_pic_url = userId 
+            ? `${this.applicationService.API_URI}/profile/${userId}`
+            : `${this.applicationService.API_URI}/profile/app-${updatedCandidate.id}`;
+
+        this.candidate.set(updatedCandidate);
+        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
       }
     });
   }
