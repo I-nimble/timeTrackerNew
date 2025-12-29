@@ -88,10 +88,15 @@ export class ApplicationsService {
     return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
   }
 
-  getUploadUrl(type: string, file?: File) {
+  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number) {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
-      { contentType: file?.type || 'application/octet-stream' }
+      { 
+        contentType: file?.type || 'application/octet-stream',
+        originalFileName: file?.name,
+        email: email,
+        applicationId: applicationId
+      }
     );
   }
 
@@ -101,14 +106,13 @@ export class ApplicationsService {
       resumeUpload$ = this.getUploadUrl('resumes', file).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -136,15 +140,14 @@ export class ApplicationsService {
       resumeUpload$ = this.getUploadUrl('resumes', data.cv).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
-          const file = data.cv
+          const file = data.cv;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -154,19 +157,18 @@ export class ApplicationsService {
     }
     if(data.profile_pic instanceof File) {
       photoUpload$ = data.profile_pic
-        ? this.getUploadUrl('photos', data.profile_pic).pipe(
+        ? this.getUploadUrl('photos', data.profile_pic, data.email, id).pipe(
             switchMap((photoUrl: any) => {
               this.photoUrl = photoUrl.url;
-              const imgFile = data.profile_pic
+              const imgFile = data.profile_pic;
+              const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
   
               const headers = new HttpHeaders({
                 'Content-Type': imgFile.type,
+                'X-Filename': fileName
               });
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
-                map(() => {
-                  const urlParts = this.photoUrl.split('?')[0].split('/');
-                  return urlParts[urlParts.length - 1];
-                })
+                map(() => fileName)
               );
             })
           )
@@ -187,8 +189,8 @@ export class ApplicationsService {
           company_id: data.company_id == -1 ? null : data.company_id,
         };
 
-        if (id) return this.http.put(`${this.API_URI}/applications/${id}`, body);
-        return this.http.post(`${this.API_URI}/applications`, body);
+        if (id) return this.http.put<any>(`${this.API_URI}/applications/${id}`, body);
+        return this.http.post<any>(`${this.API_URI}/applications`, body);
       })
     );
   }
@@ -209,8 +211,10 @@ export class ApplicationsService {
     uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
+        const fileName = uploadData.fileName || uploadData.key.split('/').pop();
         const headers = new HttpHeaders({
           'Content-Type': videoFile.type,
+          'X-Filename': fileName
         });
 
         return this.http.put(uploadData.url, videoFile, { 
@@ -224,7 +228,7 @@ export class ApplicationsService {
             return {
               message: "Video uploaded successfully",
               videoUrl: `https://inimble-app.s3.us-east-1.amazonaws.com/${uploadData.key}`,
-              fileName: uploadData.fileName
+              fileName: fileName
             };
           })
         );
