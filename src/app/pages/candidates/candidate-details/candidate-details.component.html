@@ -203,13 +203,29 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td>
-              <b>Position <span class="text-danger" *ngIf="editMode">*</span></b>
+            <td><b>Position</b></td>
+            <td *ngIf="!editMode">
+              <span class="d-flex align-items-center">
+                <span>{{ getPositionTitle(candidate()?.position_id) }}</span>
+                <span class="disc-badges" *ngIf="getPositionById(candidate()?.position_id)?.disc_profiles?.length" style="margin-left: 8px;">(<span *ngFor="let profile of getPositionById(candidate()?.position_id).disc_profiles" class="disc-badge-small" [style.background-color]="getDiscProfileColor(profile.name)" [title]="profile.name">{{ profile.name.charAt(0) }}</span>)</span>
+              </span>
             </td>
             <td *ngIf="!editMode">{{ getPositionTitle(candidate()?.position_id) }}</td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['position_id']">
-                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{ pos.title }}</mat-option>
+                <mat-option *ngFor="let pos of positions" [value]="pos.id">
+                  <span class="d-flex align-items-center">
+                    <span>{{ pos.title }}</span>
+                    <span class="disc-badges m-l-8" *ngIf="pos.disc_profiles?.length" style="margin-left: 8px;">(<span
+                        *ngFor="let profile of pos.disc_profiles"
+                        class="disc-badge-small"
+                        [style.background-color]="getDiscProfileColor(profile.name)"
+                        [title]="profile.name"
+                      >
+                        {{ profile.name.charAt(0) }}
+                      </span>)</span>
+                  </span>
+                </mat-option>
               </mat-select>
               <p class="text-danger f-s-12 m-t-0" *ngIf="f['position_id'].hasError('required')">
                 Position is required.
