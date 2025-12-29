@@ -29,6 +29,16 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="openDialogUploadFiles()"
+                type="button"
+                *ngIf="editMode"
+              >
+                <mat-icon>upload</mat-icon>
+                Upload Files
+              </button>
               <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
@@ -203,13 +213,28 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td>
-              <b>Position <span class="text-danger" *ngIf="editMode">*</span></b>
+            <td><b>Position</b></td>
+            <td *ngIf="!editMode">
+              <span class="d-flex align-items-center">
+                <span>{{ getPositionTitle(candidate()?.position_id) }}</span>
+                <span class="disc-badges" *ngIf="getPositionById(candidate()?.position_id)?.disc_profiles?.length" style="margin-left: 8px;">(<span *ngFor="let profile of getPositionById(candidate()?.position_id).disc_profiles" class="disc-badge-small" [style.background-color]="getDiscProfileColor(profile.name)" [title]="profile.name">{{ profile.name.charAt(0) }}</span>)</span>
+              </span>
             </td>
-            <td *ngIf="!editMode">{{ getPositionTitle(candidate()?.position_id) }}</td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['position_id']">
-                <mat-option *ngFor="let pos of positions" [value]="pos.id">{{ pos.title }}</mat-option>
+                <mat-option *ngFor="let pos of positions" [value]="pos.id">
+                  <span class="d-flex align-items-center">
+                    <span>{{ pos.title }}</span>
+                    <span class="disc-badges m-l-8" *ngIf="pos.disc_profiles?.length" style="margin-left: 8px;">(<span
+                        *ngFor="let profile of pos.disc_profiles"
+                        class="disc-badge-small"
+                        [style.background-color]="getDiscProfileColor(profile.name)"
+                        [title]="profile.name"
+                      >
+                        {{ profile.name.charAt(0) }}
+                      </span>)</span>
+                  </span>
+                </mat-option>
               </mat-select>
               <p class="text-danger f-s-12 m-t-0" *ngIf="f['position_id'].hasError('required')">
                 Position is required.
@@ -220,14 +245,11 @@
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
             <td>
-              <div class="d-flex align-items-center gap-2 mb-2"></div>
+              <div class="d-flex align-items-center gap-2 mb-2">
+              </div> 
               <a
                 *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
-                [href]="
-                  getSafeLink(
-                    candidate()?.profile_pic_url || candidate()?.picture
-                  )
-                "
+                [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
                 target="_blank"
                 rel="noopener noreferrer"
               >

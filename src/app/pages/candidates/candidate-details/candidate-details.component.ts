@@ -307,6 +307,10 @@ export class CandidateDetailsComponent implements OnInit {
     return this.positions.find(p => p.id === positionId)?.title || 'N/A';
   }
 
+  getPositionById(positionId: any): any {
+    return this.positions.find(p => p.id == positionId);
+  }
+
   getCategoryName(score: MatchScore): string {
     const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
     return category ? category.category_name : 'Unknown';
@@ -370,22 +374,12 @@ export class CandidateDetailsComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result?.success) {
-        let updatedCandidate = { ...this.candidate() };
-        
-        if (result.candidate) {
-            updatedCandidate = { ...updatedCandidate, ...result.candidate };
-        }
-        
-        if (result.profile_pic) {
-            updatedCandidate.picture = result.profile_pic;
-        }
-
-        const userId = updatedCandidate.user?.id || updatedCandidate.user_id;
-        updatedCandidate.profile_pic_url = userId 
-            ? `${this.applicationService.API_URI}/profile/${userId}`
-            : `${this.applicationService.API_URI}/profile/app-${updatedCandidate.id}`;
-
+      if (result?.success && result.profile_pic) {
+        const updatedCandidate = {
+          ...this.candidate(),
+          picture: result.profile_pic,
+          profile_pic_url: result.profile_pic
+        };
         this.candidate.set(updatedCandidate);
         this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
       }
@@ -436,4 +430,5 @@ export class CandidateDetailsComponent implements OnInit {
       }
     });
   }
+
 }

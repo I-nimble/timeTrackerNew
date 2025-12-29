@@ -213,8 +213,7 @@ export class AddCandidateDialogComponent implements OnInit {
         });
         this.dialogRef.close({
           success: true,
-          profile_pic: response?.picture || (this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null),
-          candidate: response
+          profile_pic: this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null
         });
       },
       error: (error) => {
@@ -247,8 +246,8 @@ export class AddCandidateDialogComponent implements OnInit {
       hasBackdrop: false
     });
 
-    dialogRef.afterClosed().subscribe((result: any) => {
-      if (result?.success) {
+    dialogRef.afterClosed().subscribe((result: string) => {
+      if (result === 'success') {
         this.snackBar.open('Match scores updated successfully!', 'Close', { duration: 3000 });
       }
     });
