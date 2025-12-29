@@ -210,6 +210,19 @@ export const AppsRoutes: Routes = [
               ],
             },
           },
+          {
+            path: 'new',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'New Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates', url: '/candidates' },
+                { title: 'Details' },
+              ],
+            },
+          },
         ],
       },
       {

@@ -68,6 +68,10 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
+  public getRankings(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
+  }
+
   public get(onlyTalentPool: boolean = false): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
   }
@@ -188,6 +192,13 @@ export class ApplicationsService {
         if (id) return this.http.put<any>(`${this.API_URI}/applications/${id}`, body);
         return this.http.post<any>(`${this.API_URI}/applications`, body);
       })
+    );
+  }
+
+  updateAvailability(id: number, available: boolean) {
+    return this.http.patch(
+      `${this.API_URI}/applications/${id}/availability`,
+      { availability: available }
     );
   }
 
