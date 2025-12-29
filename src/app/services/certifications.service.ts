@@ -18,7 +18,6 @@ export class CertificationsService {
   }
 
   create(data: any) {
-    console.log('Creating certification with data:', data);
     return this.http.post(`${environment.apiUrl}/certifications`, data);
   }
 
