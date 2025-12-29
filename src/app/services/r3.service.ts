@@ -37,7 +37,7 @@ export class R3Service {
   }
 
   getVisionItemUploadUrl(fileType: string, originalFileName: string) {
-    return this.http.get<{ uploadURL: string; key: string; fileName: string }>(
+    return this.http.get<{ uploadURL: string; key: string }>(
       `${this.API_URI}/vision/upload-url`,
       {
         params: { fileType, originalFileName },
@@ -45,13 +45,9 @@ export class R3Service {
     );
   }
 
-  uploadFileToS3(file: File, uploadURL: string, fileName?: string) {
-    const headers: { [key: string]: string } = { 'Content-Type': file.type };
-    if (fileName) {
-      headers['X-Filename'] = fileName;
-    }
+  uploadFileToS3(file: File, uploadURL: string) {
     return this.http.put(uploadURL, file, {
-      headers,
+      headers: { 'Content-Type': file.type },
       responseType: 'text',
     });
   }

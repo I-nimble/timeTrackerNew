@@ -210,15 +210,12 @@ export class UsersService {
   }
   
   uploadIntroductionVideo(file: File, email: string) {
+    const headers = new HttpHeaders({ 'Content-Type': file.type });
     return this.http.post(`${this.API_URI}/generate_upload_url/video/introduction`, {
       email: email,
       contentType: file.type
     }).pipe(
       switchMap((res: any) => {
-        const headers = new HttpHeaders({ 
-          'Content-Type': file.type,
-          'X-Filename': res.fileName || res.key.split('/').pop()
-        });
         return this.http.put(res.url, file, { headers }).pipe(
           switchMap(() => {
             return this.getIntroductionVideo(email);
@@ -245,13 +242,12 @@ export class UsersService {
       resumeUpload$ = this.getUploadUrl('applications', data.resume.type, data.resume.name).pipe(
         switchMap((res: any) => {
           const file = data.resume;
-          const fileName = res.fileName || res.key.split('/').pop();
-          const headers = new HttpHeaders({ 
-            'Content-Type': file.type,
-            'X-Filename': fileName
-          });
+          const headers = new HttpHeaders({ 'Content-Type': file.type });
           return this.http.put(res.url, file, { headers }).pipe(
-            map(() => fileName)
+            map(() => {
+              const urlParts = res.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
           );
         })
       );
@@ -261,13 +257,12 @@ export class UsersService {
       pictureUpload$ = this.getUploadUrl('applications', data.picture.type, data.picture.name).pipe(
         switchMap((res: any) => {
           const imgFile = data.picture;
-          const fileName = res.fileName || res.key.split('/').pop();
-          const headers = new HttpHeaders({ 
-            'Content-Type': imgFile.type,
-            'X-Filename': fileName
-          });
+          const headers = new HttpHeaders({ 'Content-Type': imgFile.type });
           return this.http.put(res.url, imgFile, { headers }).pipe(
-            map(() => fileName)
+            map(() => {
+              const urlParts = res.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
           );
         })
       );
@@ -277,13 +272,12 @@ export class UsersService {
       introVideoUpload$ = this.getUploadUrl('applications', data.introduction_video.type, data.introduction_video.name).pipe(
         switchMap((res: any) => {
           const videoFile = data.introduction_video;
-          const fileName = res.fileName || res.key.split('/').pop();
-          const headers = new HttpHeaders({ 
-            'Content-Type': videoFile.type,
-            'X-Filename': fileName
-          });
+          const headers = new HttpHeaders({ 'Content-Type': videoFile.type });
           return this.http.put(res.url, videoFile, { headers }).pipe(
-            map(() => fileName)
+            map(() => {
+              const urlParts = res.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
           );
         })
       );
@@ -293,13 +287,12 @@ export class UsersService {
       portfolioUpload$ = this.getUploadUrl('applications', data.portfolio.type, data.portfolio.name).pipe(
         switchMap((res: any) => {
           const portfolioFile = data.portfolio;
-          const fileName = res.fileName || res.key.split('/').pop();
-          const headers = new HttpHeaders({ 
-            'Content-Type': portfolioFile.type,
-            'X-Filename': fileName
-          });
+          const headers = new HttpHeaders({ 'Content-Type': portfolioFile.type });
           return this.http.put(res.url, portfolioFile, { headers }).pipe(
-            map(() => fileName)
+            map(() => {
+              const urlParts = res.url.split('?')[0].split('/');
+              return urlParts[urlParts.length - 1];
+            })
           );
         })
       );
