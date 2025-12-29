@@ -29,6 +29,16 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="openDialogUploadFiles()"
+                type="button"
+                *ngIf="editMode"
+              >
+                <mat-icon>upload</mat-icon>
+                Upload Files
+              </button>
               <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
@@ -210,7 +220,6 @@
                 <span class="disc-badges" *ngIf="getPositionById(candidate()?.position_id)?.disc_profiles?.length" style="margin-left: 8px;">(<span *ngFor="let profile of getPositionById(candidate()?.position_id).disc_profiles" class="disc-badge-small" [style.background-color]="getDiscProfileColor(profile.name)" [title]="profile.name">{{ profile.name.charAt(0) }}</span>)</span>
               </span>
             </td>
-            <td *ngIf="!editMode">{{ getPositionTitle(candidate()?.position_id) }}</td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['position_id']">
                 <mat-option *ngFor="let pos of positions" [value]="pos.id">
