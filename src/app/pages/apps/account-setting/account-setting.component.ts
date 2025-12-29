@@ -232,7 +232,7 @@ export class AppAccountSettingComponent implements OnInit {
     workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
-    scheduleAvailability: [null, Validators.required],
+    scheduleAvailability: [null, Validators.requiredTrue],
     resume: [null],
     picture: [null],
     portfolio: [null],
@@ -868,11 +868,10 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            
             if (this.isOrphan && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
-            if (this.selectedVideoFile) {
+            else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
               this.openSnackBar('User data updated successfully!', 'Close');

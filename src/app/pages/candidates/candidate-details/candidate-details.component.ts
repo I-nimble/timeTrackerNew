@@ -15,6 +15,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 @Component({
@@ -346,10 +347,53 @@ export class CandidateDetailsComponent implements OnInit {
       return trimmed;
     }
     if (trimmed.startsWith('/')) return trimmed;
-    if (!trimmed.includes('/')) {
-      return `${this.picturesUrl}/${trimmed}`;
+    
+    if (!trimmed.includes('/') && this.candidate()) {
+       const userId = this.candidate().user?.id || this.candidate().user_id;
+       if (userId) {
+          return `${this.applicationService.API_URI}/profile/${userId}`;
+       } else {
+          return `${this.applicationService.API_URI}/profile/app-${this.candidate().id}`;
+       }
     }
-    return `https://${trimmed}`;
+    
+    return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
+  }
+
+  openDialogUploadFiles() {
+    const candidate = this.candidate();
+    if (!candidate) return;
+
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: {
+        mode: 'files',
+        candidate: candidate,
+        action: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        let updatedCandidate = { ...this.candidate() };
+        
+        if (result.candidate) {
+            updatedCandidate = { ...updatedCandidate, ...result.candidate };
+        }
+        
+        if (result.profile_pic) {
+            updatedCandidate.picture = result.profile_pic;
+        }
+
+        const userId = updatedCandidate.user?.id || updatedCandidate.user_id;
+        updatedCandidate.profile_pic_url = userId 
+            ? `${this.applicationService.API_URI}/profile/${userId}`
+            : `${this.applicationService.API_URI}/profile/app-${updatedCandidate.id}`;
+
+        this.candidate.set(updatedCandidate);
+        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   openMatchPercentagesModal(): void {

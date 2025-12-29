@@ -234,12 +234,13 @@
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
-            <td *ngIf="!editMode">
+            <td>
+              <div class="d-flex align-items-center gap-2 mb-2"></div>
               <a
                 *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
                 [href]="
                   getSafeLink(
-                    candidate()?.picture || candidate()?.profile_pic_url
+                    candidate()?.profile_pic_url || candidate()?.picture
                   )
                 "
                 target="_blank"
@@ -247,14 +248,6 @@
               >
                 {{ candidate()?.picture || candidate()?.profile_pic_url }}
               </a>
-            </td>
-            <td *ngIf="editMode">
-              <input
-                matInput
-                type="text"
-                [formControl]="f['profile_pic']"
-                placeholder="Picture URL"
-              />
             </td>
           </tr>
 
