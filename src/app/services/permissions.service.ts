@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { VoiceRecorder } from 'capacitor-voice-recorder';
 import { Camera } from '@capacitor/camera';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 @Injectable({
   providedIn: 'root'
@@ -157,6 +158,54 @@ export class PlatformPermissionsService {
         camera: 'prompt',
         microphone: 'prompt'
       };
+    }
+  }
+
+  async requestNotificationPermissions(): Promise<boolean> {
+    if (this.isNative) {
+      return await this.requestCapacitorNotificationPermissions();
+    } else {
+      return await this.requestWebNotificationPermissions();
+    }
+  }
+
+  private async requestWebNotificationPermissions(): Promise<boolean> {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+
+  private async requestCapacitorNotificationPermissions(): Promise<boolean> {
+    try {
+      const result = await LocalNotifications.requestPermissions();
+      return result.display === 'granted';
+    } catch (error) {
+      console.warn('Capacitor notification permissions request failed:', error);
+      return false;
+    }
+  }
+
+  async checkNotificationPermissions(): Promise<string> {
+    if (this.isNative) {
+      return await this.checkCapacitorNotificationPermissions();
+    } else {
+      return await this.checkWebNotificationPermissions();
+    }
+  }
+
+  private async checkWebNotificationPermissions(): Promise<string> {
+    if (!('Notification' in window)) return 'unavailable';
+    return Notification.permission;
+  }
+
+  private async checkCapacitorNotificationPermissions(): Promise<string> {
+    try {
+      const result = await LocalNotifications.checkPermissions();
+      return result.display;
+    } catch (error) {
+      console.warn('Capacitor notification permissions check failed:', error);
+      return 'prompt';
     }
   }
 
