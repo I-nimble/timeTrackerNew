@@ -24,7 +24,7 @@
   <div class="col-sm-4 col-lg-4">
     <mat-card
       class="cardWithShadow cursor-pointer bg-light-warning shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'Reviewing' }"
+      [ngClass]="{ 'active-tab': activeTab() === 'reviewing' }"
       (click)="handleTabClick('reviewing')"
     >
       <mat-card-content class="d-flex align-items-center gap-16">
@@ -46,7 +46,7 @@
   <div class="col-sm-4 col-lg-4">
     <mat-card
       class="cardWithShadow cursor-pointer bg-light-primary shadow-none"
-      [ngClass]="{ 'active-tab': activeTab() === 'talentMatch' }"
+      [ngClass]="{ 'active-tab': activeTab() === 'talent match' }"
       (click)="handleTabClick('talent match')"
     >
       <mat-card-content class="d-flex align-items-center gap-16">
@@ -98,6 +98,14 @@
         <mat-icon>settings</mat-icon>
         Set Position DISC Profiles
       </button>
+      <button
+        *ngIf="canManage"
+        mat-flat-button
+        class="m-l-8"
+        (click)="goToNewCandidate()"
+      >
+       New candidate
+      </button>
     </div>
   </mat-card-content>
 </mat-card>
@@ -143,14 +151,14 @@
             {{ getPositionName(element.position_id) }}
             <span class="disc-badges m-l-8">
               <ng-container *ngIf="getPositionById(element.position_id) as pos">
-                <span
+                (<span
                   *ngFor="let profile of pos.disc_profiles"
                   class="disc-badge-small"
                   [style.background-color]="getDiscProfileColor(profile.name)"
                   [title]="profile.name"
                 >
                   {{ profile.name.charAt(0) }}
-                </span>
+                </span>)
               </ng-container>
             </span>
           </td>
@@ -285,12 +293,27 @@
               </button>
               <button
                 mat-menu-item
+                (click)="markAsAvailable(element)"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canManage && element.status === 'pending'"
+              >
+                <mat-icon>check_circle</mat-icon>
+                <span>Mark as Available</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="markAsUnavailable(element)"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canManage && element.status === 'reviewing'"
+              >
+                <mat-icon>undo</mat-icon>
+                <span>Mark as Unavailable</span>
+              </button>
+              <button
+                mat-menu-item
                 (click)="sendToTalentMatch(element)"
                 class="d-flex align-items-center justify-content-center"
-                *ngIf="
-                  canManage &&
-                  (element.status == 'pending' || element.status == 'reviewing')
-                "
+                *ngIf="canManage && element.status === 'reviewing'"
               >
                 <mat-icon>send</mat-icon>
                 <span>Send to Talent Match</span>
