@@ -220,7 +220,7 @@ export class AppAccountSettingComponent implements OnInit {
       Validators.minLength(10),
       Validators.maxLength(15)
     ]],
-    currentResidence: ['', Validators.required],
+    currentResidence: [''],
     address: ['', Validators.required],
     children: [0, [Validators.required, Validators.min(0)]],
     englishLevel: ['', Validators.required],
@@ -575,7 +575,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.olympiaForm.patchValue({
             full_name: this.user.name + ' ' + this.user.last_name,
             location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
-            application_area: roleFromPosition.title || null,
+            application_area: roleFromPosition?.title || null,
           })
         }
       },
