@@ -59,7 +59,9 @@ export class ScrapperComponent implements OnInit {
     this.aiService.evaluatePosts(question).subscribe({
       next: (res) => {
         const returnedIds = res.posts.map((p: any) => p.id);
-        this.filteredPosts = this.posts.filter(post => returnedIds.includes(post.id));
+        this.filteredPosts = this.posts
+          .filter(post => returnedIds.includes(post.id))
+          .slice(0, 5);        
         this.aiLoading = false;
         if (this.filteredPosts.length === 0) {
           this.aiAnswer = 'No matches found.';
@@ -89,6 +91,6 @@ export class ScrapperComponent implements OnInit {
     this.filteredPosts = this.posts.filter(post =>
       post.title?.toLowerCase().includes(lower) ||
       post.content?.toLowerCase().includes(lower)
-    );
+    ).slice(0, 5);
   }
 }
