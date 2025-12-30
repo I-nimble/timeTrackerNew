@@ -1,0 +1,41 @@
+<mat-card class="cardWithShadow" @fadeInUp>
+  <mat-card-content>
+    <div class="row m-b-24">
+      <div class="col-sm-4 d-flex align-items-center">
+        <h4 class="f-s-18 f-w-600">Check Payment Details</h4>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div class="p-t-24">
+      <div class="check-payment-info">
+        <div class="detail-row">
+          <span>Amount to Pay: </span>
+          <strong>${{ amount | number:'1.2-2' }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Payable To: </span>
+          <strong>{{ payableTo }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Mailing Address: </span>
+          <p>{{ mailingAddress }}</p>
+        </div>
+        <div class="detail-row">
+          <span>Invoice ID: </span>
+          <strong>{{ invoiceId }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Instructions: </span>
+          <p>Please include the invoice ID on the memo line of your check.</p>
+        </div>
+      </div>
+
+      <div class="m-t-32">
+        <button mat-flat-button color="primary" (click)="confirmCheckSent()">
+          Done
+        </button>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

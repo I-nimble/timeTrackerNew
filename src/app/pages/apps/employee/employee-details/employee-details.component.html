@@ -1,4 +1,3 @@
-
 <mat-card class="cardWithShadow">
     <mat-card-header>
       <mat-card-title>Team Member Details</mat-card-title>
@@ -44,6 +43,187 @@
               ></apx-chart>
             </mat-card-content>
           </mat-card>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  
+<mat-card class="cardWithShadow" *ngIf="canManageTeamMembers">
+    <mat-card-header>
+      <mat-card-title>Worked Hours</mat-card-title>
+      <mat-card-subtitle>
+        <div class="d-flex align-items-start">
+            <i-tabler name="clock" class="icon-16 m-r-5 text-primary"></i-tabler>
+            <span class="f-s-12 text-muted">{{ getTimezoneInfo() }}</span>
+        </div>
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Date Range selection -->
+      <div class="row m-b-4 m-t-16">
+        <div class="col-md-6 col-12">
+          <mat-form-field class="w-100" appearance="outline">
+            <mat-label>Date Range</mat-label>
+            <mat-date-range-input [rangePicker]="picker">
+              <input
+                matStartDate
+                placeholder="Start date"
+                [(ngModel)]="startDate"
+                (dateChange)="onDateRangeChange()"
+              />
+              <input
+                matEndDate
+                placeholder="End date"
+                [(ngModel)]="endDate"
+                (dateChange)="onDateRangeChange()"
+              />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Entries table -->
+      <div class="table-responsive" *ngIf="!isEntriesLoading && weekEntries.length > 0">
+        <table mat-table [dataSource]="weekEntries" class="w-100">
+          <!-- Day Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Day / Date</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex flex-column">
+                <span class="text-muted small">{{ getDayName(entry.date) }}</span>
+                <span class="fw-bold">{{ formatDate(entry.date) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Start Time Column -->
+          <ng-container matColumnDef="start_time">
+            <th mat-header-cell *matHeaderCellDef>Clock-in</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex align-items-center gap-2">
+                <ng-container *ngIf="editingRowId !== entry.id; else editStartTime">
+                  <span>{{ entry.start_time_display || formatTime(entry.start_time) }}</span>
+                </ng-container>
+                <ng-template #editStartTime>
+                  <mat-form-field appearance="outline" class="w-100">
+                    <input
+                      matInput
+                      type="datetime-local"
+                      [formControl]="getFormControl(entry.id, 'start_time')"
+                      (change)="startEdit(entry)"
+                    />
+                  </mat-form-field>
+                </ng-template>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- End Time Column -->
+          <ng-container matColumnDef="end_time">
+            <th mat-header-cell *matHeaderCellDef>Clock-out</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex align-items-center gap-2">
+                <ng-container *ngIf="editingRowId !== entry.id; else editEndTime">
+                  <span>{{ entry.end_time_display || formatTime(entry.end_time) }}</span>
+                </ng-container>
+                <ng-template #editEndTime>
+                  <mat-form-field appearance="outline" class="w-100">
+                    <input
+                      matInput
+                      type="datetime-local"
+                      [formControl]="getFormControl(entry.id, 'end_time')"
+                      (change)="startEdit(entry)"
+                    />
+                  </mat-form-field>
+                </ng-template>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Total Hours Column -->
+          <ng-container matColumnDef="total_hours">
+            <th mat-header-cell *matHeaderCellDef>Total Hours</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="badge bg-secondary rounded-pill p-x-12 p-y-4">
+                  {{ entry.total_hours }} hrs
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let entry">
+              <div class="d-flex gap-2">
+                <ng-container *ngIf="editingRowId === entry.id; else notEditing">
+                  <button 
+                    mat-flat-button 
+                    color="primary" 
+                    size="small"
+                    (click)="saveEdit(entry)"
+                    [disabled]="!canSave(entry.id)"
+                    matTooltip="Save changes"
+                  >
+                    Save
+                  </button>
+                  <button 
+                    mat-stroked-button 
+                    size="small"
+                    (click)="cancelEdit(entry.id)"
+                    matTooltip="Cancel editing"
+                  >
+                    Cancel
+                  </button>
+                </ng-container>
+                <ng-template #notEditing>
+                  <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="m-l-10">
+                <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionsMenu="matMenu">
+                  <button
+                    mat-menu-item
+                    (click)="startEdit(entry)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit entry</span>
+                  </button>
+                </mat-menu>
+                </ng-template>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isEntriesLoading && weekEntries.length === 0" class="text-center py-5">
+        <mat-icon class="text-muted" style="font-size: 48px; height: 48px; width: 48px;">schedule</mat-icon>
+        <h5 class="mt-3">No entries found for this date range</h5>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isEntriesLoading" class="text-center py-5">
+        <mat-spinner diameter="40" class="mx-auto"></mat-spinner>
+        <p class="mt-3">Loading entries...</p>
+      </div>
+
+      <!-- Date range summary -->
+      <div *ngIf="weekEntries.length > 0" class="mt-4 pt-3 border-top">
+        <div class="row">
+          <div class="col-12 text-end">
+            <p class="mb-0 text-muted">Total hours:</p>
+            <h4 class="fw-bold text-primary">
+              {{ getTotalWeekHours() | number:'1.2-2' }} hrs
+            </h4>
+          </div>
         </div>
       </div>
     </mat-card-content>

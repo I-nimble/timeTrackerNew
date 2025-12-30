@@ -10,6 +10,7 @@ import { ReportFilter } from '../reports-filter/reports-filter.component';
 import { UsersService } from 'src/app/services/users.service';
 import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
 import { ReportsService } from 'src/app/services/reports.service';
+import { DownloadService } from 'src/app/services/download.service';
 import { CalendarComponent } from '../calendar/calendar.component';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { StarRateComponent } from 'src/app/components/star-rate/star-rate.component'
@@ -78,6 +79,7 @@ export class UserRatings implements OnChanges, OnInit {
     private cdr:ChangeDetectorRef,
     private ratingsService: RatingsService,
     private ratingsEntriesService: RatingsEntriesService,
+    private downloadService: DownloadService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -227,17 +229,17 @@ export class UserRatings implements OnChanges, OnInit {
       });
   }
 
-  downloadToDoReport() {        
+  async downloadToDoReport() {        
     this.reportsService
       .getToDoReport(this.datesRange, { user: this.userData }, null)
-      .subscribe((v) => {
+      .subscribe(async (v) => {
         let filename;
         filename = `I-nimble_TODO_${moment(
           new Date(this.datesRange.firstSelect)
         ).format('DD-MM-YYYY')}_${moment(
           new Date(this.datesRange.lastSelect)
         ).format('DD-MM-YYYY')}.xlsx`;
-        filesaver.saveAs(v, filename);
+        await this.downloadService.downloadFile(v, filename);
       });
   }
 

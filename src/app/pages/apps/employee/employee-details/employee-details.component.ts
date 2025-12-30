@@ -16,7 +16,7 @@ import {
   NgApexchartsModule,
 } from 'ng-apexcharts';
 import { MatIconModule } from '@angular/material/icon'; 
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { SchedulesService } from 'src/app/services/schedules.service';
 import { ReportsService } from 'src/app/services/reports.service';
 import moment from 'moment-timezone';
@@ -24,8 +24,25 @@ import { UsersService } from 'src/app/services/users.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { EntriesService } from 'src/app/services/entries.service';
-import { switchMap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { MatTableModule } from '@angular/material/table';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule, ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { TimezoneService } from 'src/app/services/timezone.service';
+import { Subscription } from 'rxjs';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { PermissionService } from 'src/app/services/permission.service';
+
+interface EditEntryForm {
+  start_time: FormControl<string>;
+  end_time: FormControl<string>;
+}
 
 export type ChartOptions = {
   series: ApexAxisChartSeries;
@@ -50,7 +67,23 @@ export type ChartOptions = {
   selector: 'app-employee-details',
   templateUrl: './employee-details.component.html',
   styleUrls: ['./employee-details.component.scss'],
-  imports: [MatCardModule, NgApexchartsModule,MatIconModule],
+  imports: [  
+    CommonModule,
+    MatCardModule, 
+    NgApexchartsModule,
+    MatIconModule,
+    MatTableModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatNativeDateModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatMenuModule,
+    TablerIconsModule
+  ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   userId: string | null = null;
@@ -65,6 +98,22 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   userRole: string | null = localStorage.getItem('role');
   refreshInterval: any;
 
+  startDate: Date = new Date();
+  endDate: Date = new Date();
+  weekEntries: any[] = [];
+  displayedColumns: string[] = ['date', 'start_time', 'end_time', 'total_hours', 'actions'];
+  isEntriesLoading: boolean = false;
+  
+  editingRowId: number | null = null;
+  editForms: Map<number, FormGroup<EditEntryForm>> = new Map();
+  hasChanges: Map<number, boolean> = new Map();
+  originalValues: Map<number, any> = new Map();
+  userTimezone: string = 'UTC';
+  timezoneOffset: string = '';
+  private timezoneSubscription!: Subscription;
+  userPermissions: string[] = [];
+  canManageTeamMembers: boolean = false;
+
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
 
@@ -77,8 +126,107 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     private userService: UsersService,
     private snackBar: MatSnackBar,
     private entriesService: EntriesService,
-    private router: Router
+    private timezoneService: TimezoneService,
+    private permissionService: PermissionService,
+    private router: Router,
   ) {
+    this.setDefaultDateRange();
+    this.initializeCharts();
+  }
+
+  ngOnInit(): void {
+    if(this.userRole === '2') {
+      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
+        next: (res: any) => {
+          this.user = res[0];
+          this.userId = this.user.id;
+          this.defaultWeek();
+          this.getDailyHours();
+          this.loadWeekEntries();
+        }
+      })
+    }
+    else {
+      this.user = this.userService.getSelectedUser();
+      this.userId = this.user.id;
+      this.defaultWeek();
+      this.getDailyHours();
+      this.loadWeekEntries();
+
+      if (!this.user.name || !this.userId) {
+        this.openSnackBar("Click a user to see their report", "Close");
+        this.router.navigate(['/apps/time-tracker']);
+        return;
+      }
+    }
+
+    this.refreshInterval = setInterval(() => {
+      this.defaultWeek();
+      this.getDailyHours();
+      this.loadWeekEntries();
+    }, 300000);
+
+    this.timezoneSubscription = this.timezoneService.userTimezone$.subscribe(timezone => {
+      this.userTimezone = timezone;
+      this.timezoneOffset = this.timezoneService.getCurrentTimezoneOffset();
+    });
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.canManageTeamMembers = this.userPermissions.includes('users.manage');
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+    if (this.timezoneSubscription) {
+      this.timezoneSubscription.unsubscribe();
+    }
+  }
+
+  initializeEditForm(entry: any): void { 
+    const entryDate = moment.utc(entry.date).format('YYYY-MM-DD');
+    
+    let startDateTime = entry.local_start_time || entry.start_time;
+    let endDateTime = entry.local_end_time || entry.end_time;
+    
+    if (startDateTime && !startDateTime.startsWith(entryDate)) {
+      const startTime = this.getTimeFromDateTime(startDateTime);
+      startDateTime = `${entryDate}T${startTime}`;
+    }
+    
+    if (endDateTime && !endDateTime.startsWith(entryDate)) {
+      const endTime = this.getTimeFromDateTime(endDateTime);
+      endDateTime = `${entryDate}T${endTime}`;
+    }
+    
+    const form = new FormGroup<EditEntryForm>({
+      start_time: new FormControl<string>(startDateTime, { nonNullable: true }),
+      end_time: new FormControl<string>(endDateTime, { nonNullable: true })
+    });
+
+    this.originalValues.set(entry.id, {
+      start_time: form.value.start_time,
+      end_time: form.value.end_time
+    });
+
+    form.valueChanges.subscribe(() => {
+      this.checkForChanges(entry.id);
+    });
+
+    this.editForms.set(entry.id, form);
+    this.hasChanges.set(entry.id, false);
+  }
+
+  private initializeCharts(): void {
     this.weeklyHoursChart = {
       series: [
         {
@@ -156,40 +304,228 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     };
   }
 
-  ngOnInit(): void {
-    if(this.userRole === '2') {
-      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
-        next: (res: any) => {
-          this.user = res[0];
-          this.userId = this.user.id;
-          this.defaultWeek();
-          this.getDailyHours();
-        }
-      })
+  getFormControl(entryId: number, controlName: 'start_time' | 'end_time'): FormControl<string> {
+    const form = this.editForms.get(entryId);
+    if (form) {
+      return form.get(controlName) as FormControl<string>;
     }
-    else {
-      this.user = this.userService.getSelectedUser();
-      this.userId = this.user.id;
-      this.defaultWeek();
-      this.getDailyHours();
-
-      if (!this.user.name || !this.userId) {
-        this.openSnackBar("Click a user to see their report", "Close");
-        this.router.navigate(['/apps/time-tracker']);
-        return;
-      }
-    }
-
-    this.refreshInterval = setInterval(() => {
-      this.defaultWeek();
-      this.getDailyHours();
-    }, 300000);
+    return new FormControl<string>('', { nonNullable: true });
   }
 
-  ngOnDestroy(): void {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
+  getTimezoneInfo(): string {
+    return `${this.userTimezone} (${this.timezoneOffset})`;
+  }
+
+  convertUTCToLocalDateTime(utcTime: string): string {  
+    return this.timezoneService.convertUTCToLocalDateTime(utcTime, this.userTimezone);
+  }
+
+  convertLocalDateTimeToUTC(localTime: string): string {    
+    return this.timezoneService.convertLocalDateTimeToUTC(localTime, this.userTimezone);
+  }
+
+  getTimeFromDateTime(dateTime: string): string {
+    try {
+      if (!dateTime) return '00:00';
+      const timePart = dateTime.split('T')[1] || dateTime.split(' ')[1] || '00:00';
+      return timePart.substring(0, 5); // Get HH:mm
+    } catch (error) {
+      console.error('Error extracting time:', error);
+      return '00:00';
     }
+  }
+
+  createDateTime(dateStr: string, timeStr: string): string {
+    try {
+      const date = moment(dateStr).format('YYYY-MM-DD');
+      const time = timeStr.substring(0, 5); // Get HH:mm
+      return `${date} ${time}:00`;
+    } catch (error) {
+      console.error('Error creating datetime:', error);
+      return `${dateStr} 00:00:00`;
+    }
+  }
+
+  formatTime(timeString: string): string {
+    if (!timeString) return '--:--';
+    
+    try {
+      if (timeString.includes('AM') || timeString.includes('PM')) {
+        return timeString;
+      }
+      let momentTime: moment.Moment;
+      
+      if (timeString.includes('T')) {
+        momentTime = moment(timeString);
+      } else {
+        momentTime = moment(timeString, ['YYYY-MM-DD HH:mm:ss', 'HH:mm:ss', 'HH:mm']);
+      }
+      return momentTime.format('hh:mm A');
+    } catch (error) {
+      console.error('Error formatting time:', error, timeString);
+      return '--:--';
+    }
+  }
+
+  checkForChanges(entryId: number): void {
+    const form = this.editForms.get(entryId);
+    const original = this.originalValues.get(entryId);
+    
+    if (form && original) {
+      const hasChanges = 
+        form.value.start_time !== original.start_time ||
+        form.value.end_time !== original.end_time;
+      
+      this.hasChanges.set(entryId, hasChanges);
+    }
+  }
+
+  startEdit(entry: any): void {
+    if (this.editingRowId && this.editingRowId !== entry.id) {
+      this.cancelEdit(this.editingRowId);
+    }
+    
+    this.editingRowId = entry.id;
+    if (!this.editForms.has(entry.id)) {
+      this.initializeEditForm(entry);
+    }
+  }
+
+  cancelEdit(entryId: number): void {
+    if (this.editingRowId === entryId) {
+      this.editingRowId = null;
+    }
+    this.editForms.delete(entryId);
+    this.hasChanges.delete(entryId);
+    this.originalValues.delete(entryId);
+  }
+
+  saveEdit(entry: any): void {
+    const form = this.editForms.get(entry.id);
+    if (!form || form.invalid) {
+      this.openSnackBar('Please enter valid times', 'Close');
+      return;
+    }
+
+    const formValue = form.value;
+
+    const startDateTime = formValue.start_time || '';
+    const endDateTime = formValue.end_time || '';
+    
+    const startDateTimeUTC = startDateTime 
+      ? moment.tz(startDateTime, this.userTimezone).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      : '';
+      
+    const endDateTimeUTC = endDateTime 
+      ? moment.tz(endDateTime, this.userTimezone).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      : '';
+    
+    const entryDate = formValue.start_time?.split('T')[0] || moment(entry.date).format('YYYY-MM-DD');
+    
+    const updateData = {
+      start_time: startDateTimeUTC,
+      end_time: endDateTimeUTC,
+      date: entryDate,
+      description: entry.description,
+      task_id: entry.task_id,
+      status: entry.status
+    };
+
+    this.isEntriesLoading = true;
+    
+    this.entriesService.updateEntry(entry.id, updateData).subscribe({
+      next: (response: any) => {
+        this.openSnackBar('Entry updated successfully!', 'Close');
+        this.cancelEdit(entry.id);
+        this.loadWeekEntries();
+        this.isEntriesLoading = false;
+      },
+      error: (error) => {
+        console.error('Error updating entry:', error);
+        this.openSnackBar('Error updating entry: ' + (error.error?.message || error.message), 'Close');
+        this.isEntriesLoading = false;
+      }
+    });
+  }
+
+  canSave(entryId: number): boolean {
+    return this.hasChanges.get(entryId) || false;
+  }
+
+  private setDefaultDateRange(): void {
+    const today = moment();
+    this.startDate = today.startOf('isoWeek').toDate(); // Monday
+    this.endDate = today.endOf('isoWeek').toDate(); // Sunday
+  }
+
+  onDateRangeChange(): void {
+    if (this.startDate && this.endDate) {
+      this.editForms.clear();
+      this.hasChanges.clear();
+      this.originalValues.clear();
+      this.editingRowId = null;
+      this.loadWeekEntries();
+    }
+  }
+
+  loadWeekEntries(): void {
+    if (!this.userId) {
+      return;
+    }
+
+    this.isEntriesLoading = true;
+    
+    this.entriesService.getUsersEntries(this.userId).subscribe({
+      next: (response: any) => {
+        const startOfRange = moment.utc(this.startDate).startOf('day').toDate();
+        const endOfRange = moment.utc(this.endDate).endOf('day').toDate();
+        
+        this.weekEntries = response.entries
+          .filter((entry: any) => {
+            const entryDate = moment.utc(entry.date).toDate();
+            return entryDate >= startOfRange && entryDate <= endOfRange;
+          })
+          .map((entry: any) => {
+            const startTime = new Date(entry.start_time);
+            const endTime = new Date(entry.end_time);
+            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            
+            const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
+            const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
+            
+            return {
+              ...entry,
+              total_hours: totalHours.toFixed(2),
+              start_time_display: this.formatTime(localStartTime),
+              end_time_display: this.formatTime(localEndTime),
+              local_start_time: localStartTime,
+              local_end_time: localEndTime
+            };
+          })
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        this.isEntriesLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading entries:', err);
+        this.openSnackBar('Error loading entries', 'Close');
+        this.isEntriesLoading = false;
+      }
+    });
+  }
+
+  formatDate(dateString: string): string {
+    return moment.utc(dateString).format('MMM DD, YYYY');
+  }
+
+
+  getDayName(dateString: string): string {
+    return moment.utc(dateString).format('dddd');
+  }
+
+  getTotalWeekHours(): number {
+    return this.weekEntries.reduce((total: number, entry: any) => {
+      return total + parseFloat(entry.total_hours || 0);
+    }, 0);
   }
 
   private defaultWeek(): void {
@@ -349,7 +685,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
         });
       }
     });
-
   }
 
   goBack(): void {
