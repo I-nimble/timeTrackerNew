@@ -28,4 +28,5 @@ export const environment = {
   rocketChatWebSocketUrl: 'wss://chat.inimbleapp.com/websocket',
   rocketChatS3Bucket: 'https://inimble-chat.s3.us-east-1.amazonaws.com/f87be79d-b1cc-41f7-922b-cf132b4199fb',
   jitsiMeetUrl: 'https://meet.inimbleapp.com',
+  keywords: ['Ideas', 'Startup', 'Growth', 'Marketing', 'Sales', 'Operations', 'Finance', 'Leadership', 'Branding', 'Mindset', 'Exit', 'Remote', 'Tools', 'Coaching']
 };
