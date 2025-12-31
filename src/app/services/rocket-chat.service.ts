@@ -637,15 +637,8 @@ export class RocketChatService {
               (typeof text === 'string' && /jitsi|call/i.test(text)) ||
               (!!messageData.attachments && messageData.attachments.some((a: any) => (a.title || '').toLowerCase().includes('call')));
 
-            if (isCallMessage) {
-              this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: messageData.rid, messageId: messageData._id });
-              try { this.playCallSound(); } catch (e) { }
-            } else {
-              const title = messageData.u?.name || messageData.u?.username || 'New message';
-              const body = text || 'New message';
+            if (!isCallMessage) {
               try { this.incrementUnreadForRoom(messageData.rid); } catch (e) {}
-              try { this.playNotificationSound(); } catch (e) {}
-              this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
             }
           }
         } catch (err) {

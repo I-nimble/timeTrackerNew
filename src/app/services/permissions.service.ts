@@ -178,6 +178,11 @@ export class PlatformPermissionsService {
 
   private async requestCapacitorNotificationPermissions(): Promise<boolean> {
     try {
+      const check = await LocalNotifications.checkPermissions();
+      if (check.display === 'granted') {
+        return true;
+      }
+
       if (this.isAndroid && (window as any).cordova?.plugins?.permissions) {
         const permissions = (window as any).cordova.plugins.permissions;
         return new Promise<boolean>((resolve) => {
