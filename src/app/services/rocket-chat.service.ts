@@ -30,6 +30,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PlatformPermissionsService } from './permissions.service';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
@@ -80,7 +81,7 @@ export class RocketChatService {
   callsAvailable: boolean = false;
   private connectionInProgress = false;
 
-  constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
+  constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
     this.initNotificationSounds();
 
@@ -1229,21 +1230,36 @@ export class RocketChatService {
           return;
         };
 
-        await LocalNotifications.schedule({
-          notifications: [{
-            title,
-            body,
-            id: Date.now(),
-            extra: data,
-          }]
+        await LocalNotifications.createChannel({
+          id: 'default',
+          name: 'Default Channel',
+          description: 'General Notifications',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
         });
 
-        // LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
-        //   const extra = event.notification.extra;
-        //   if (extra?.roomId) {
-        //     console.log('Notification tapped for room:', extra.roomId);
-        //   }
-        // });
+        const notificationId = Date.now() % 2147483647;
+
+        try {
+          await LocalNotifications.schedule({
+            notifications: [{
+              title,
+              body,
+              id: notificationId,
+              extra: data,
+            }]
+          });
+        } catch (scheduleError) {
+          console.error('Error scheduling notification', scheduleError);
+        }
+
+        LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
+          const extra = event.notification.extra;
+          if (extra?.roomId) {
+            this.router.navigate(['/apps/chat']);
+          }
+        });
       } else {
         if (!('Notification' in window)) return;
         const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());
