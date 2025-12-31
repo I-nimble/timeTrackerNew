@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RocketChatService } from './services/rocket-chat.service';
+import { PlatformPermissionsService } from './services/permissions.service';
 import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
@@ -33,12 +34,14 @@ export class AppComponent implements OnInit, OnDestroy {
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
 
   constructor(
-    private rocketChatService: RocketChatService
+    private rocketChatService: RocketChatService,
+    private platformPermissionsService: PlatformPermissionsService
   ) { }
 
   async ngOnInit() {
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
+    this.platformPermissionsService.requestNotificationPermissions();
 
     try {
       this.jitsiSub = this.rocketChatService.getActiveJitsiStream().subscribe((m) => {
