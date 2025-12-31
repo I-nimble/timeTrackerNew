@@ -61,9 +61,10 @@ export class ScrapperComponent implements OnInit {
   }
 
   async askGemini(question: string) {
-    if (!question) return;
+    if (!question && this.selectedKeywords.length === 0) return;
+    
     if (this.useManualSearch) {
-      this.onManualSearch(question);
+      this.onManualSearch(question || '');
       return;
     }
 
@@ -71,7 +72,9 @@ export class ScrapperComponent implements OnInit {
     this.aiAnswer = '';
     this.filteredPosts = [];
 
-    this.aiService.evaluatePosts(question).subscribe({
+    const searchQuery = question || this.selectedKeywords.join(', ');
+    
+    this.aiService.evaluatePosts(searchQuery).subscribe({
       next: (res) => {
         const returnedIds = res.posts.map((p: any) => p.id);
         this.filteredPosts = this.posts
