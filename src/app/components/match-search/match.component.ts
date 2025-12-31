@@ -23,6 +23,7 @@ export class MatchComponent {
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
   @Input() showCustomSearch: boolean = true;
+  @Input() hasKeywords: boolean = false;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
@@ -36,7 +37,7 @@ export class MatchComponent {
   }
 
   onAskAI() {
-    if ((!this.query && !this.canSearch) || this.cooldownActive) return;
+  if ((!this.query && !this.canSearch && !this.hasKeywords) || this.cooldownActive) return;
     this.loading = true;
     this.askAI.emit(this.query);
     this.cooldownActive = true;
