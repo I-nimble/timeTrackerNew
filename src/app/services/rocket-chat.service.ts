@@ -205,7 +205,9 @@ export class RocketChatService {
     }
 
     if (this.typingTimeout.has(this.loggedInUser._id)) {
-      clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
+      const existingTimeout = this.typingTimeout.get(this.loggedInUser._id);
+      if(!existingTimeout) return;
+      clearTimeout(existingTimeout);
     }
 
     const timeout = setTimeout(() => {
@@ -228,7 +230,9 @@ export class RocketChatService {
     }
 
     if (this.typingTimeout.has(this.loggedInUser._id)) {
-      clearTimeout(this.typingTimeout.get(this.loggedInUser._id));
+      const existingTimeout = this.typingTimeout.get(this.loggedInUser._id);
+      if(!existingTimeout) return;
+      clearTimeout(existingTimeout);
       this.typingTimeout.delete(this.loggedInUser._id);
     }
   }
