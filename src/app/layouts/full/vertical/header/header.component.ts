@@ -208,8 +208,7 @@ export class HeaderComponent implements OnInit {
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
         this.buildProfileMenu();
-        this.canViewTalentMatch =
-          !this.isOrphan && (this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view'));
+        this.canViewTalentMatch = this.userPermissions.includes('talent-match.view');
         this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
         this.canViewMySentinel = this.userPermissions.includes('my-sentinel.view');
         this.canViewCandidates = this.userPermissions.includes('candidates.view');

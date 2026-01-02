@@ -547,7 +547,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.applicationId = application.id;
           
           const roleFromPosition = this.careerRoles.find(
-            r => r.position_id === application.position_id
+            r => r.title === application.current_position
           );
           
           this.applicationForm.patchValue({
@@ -872,6 +872,14 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
+            if (this.applicationId) {
+              this.usersService.submitApplicationDetails(
+                {
+                  name: `${userData.name} ${userData.last_name}`
+                },
+                this.applicationId
+              ).subscribe();
+            }
             if (this.isOrphan && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
@@ -937,7 +945,7 @@ export class AppAccountSettingComponent implements OnInit {
     
     const formData: any = {
       location_id: formValues.location,
-      position_id: formValues.role?.position_id,
+      position_id: null,
       current_position: formValues.role?.title,
       applied_where: formValues.appliedWhere,
       referred: formValues.referred,
@@ -989,8 +997,6 @@ export class AppAccountSettingComponent implements OnInit {
       }
     });
   }
-
-
 
   onResumeSelected(event: any) {
     const file = event.target.files[0];

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppTalentMatchClientComponent } from './client/client.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
+import { AppTalentMatchTmComponent } from './talent-match-tm/talent-match-tm.component';
 import { AppIntakeFormComponent } from '../intake/intake-form.component';
 import { environment } from 'src/environments/environment';
 import { PermissionService } from 'src/app/services/permission.service';
@@ -12,6 +13,7 @@ import { PermissionService } from 'src/app/services/permission.service';
   imports: [
     AppTalentMatchClientComponent,
     AppTalentMatchAdminComponent,
+    AppTalentMatchTmComponent,
     AppIntakeFormComponent,
     CommonModule
   ],
@@ -20,6 +22,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 export class AppTalentMatchComponent {
   userRole = localStorage.getItem('role');
   userEmail = localStorage.getItem('email');
+  isOrphan = localStorage.getItem('isOrphan') === 'true';
   canViewTalentMatch = false;
   allowedTM = false;
 
