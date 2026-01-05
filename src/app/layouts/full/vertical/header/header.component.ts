@@ -204,10 +204,17 @@ export class HeaderComponent implements OnInit {
     const email = localStorage.getItem('email');
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
+    this.reloadPermissions();
+    this.permissionService.permissionsUpdated$.subscribe(() => {
+      this.reloadPermissions();
+    });
+  }
+
+  reloadPermissions(): void {
+    const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
-        this.buildProfileMenu();
         this.canViewTalentMatch = this.userPermissions.includes('talent-match.view');
         this.canViewCandidates = this.userPermissions.includes('candidates.view');
         this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
