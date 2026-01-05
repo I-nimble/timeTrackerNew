@@ -1,3 +1,4 @@
 <!-- <app-intake-form *ngIf="userRole === '3'"></app-intake-form> -->
 <app-talent-match-client *ngIf="userRole === '3' && canViewTalentMatch"></app-talent-match-client>
-<app-talent-match-admin *ngIf="userRole !== '3' && (canViewTalentMatch || allowedTM)"></app-talent-match-admin>
+<app-talent-match-tm *ngIf="userRole !== '3' && canViewTalentMatch && isOrphan"></app-talent-match-tm>
+<app-talent-match-admin *ngIf="userRole !== '3' && canViewTalentMatch && !isOrphan"></app-talent-match-admin>
