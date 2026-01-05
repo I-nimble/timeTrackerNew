@@ -22,7 +22,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
-import { BadgeStyle } from '@cometchat/chat-uikit-angular';
 import { UnreadCountComponent } from 'src/app/components/unread-count/unread-count.component';
 
 @Component({
@@ -46,12 +45,6 @@ import { UnreadCountComponent } from 'src/app/components/unread-count/unread-cou
 export class AppNavItemComponent implements OnChanges {
   @Output() toggleMobileLink: any = new EventEmitter<void>();
   @Output() notify: EventEmitter<boolean> = new EventEmitter<boolean>();
-  badgeStyle:BadgeStyle = new BadgeStyle({
-    width:"36px",
-    height:"36px",
-    textFont:"400 13px Inter",
-    textColor:"black"
-  })
   expanded: any = false;
   disabled: any = false;
   twoLines: any = false;

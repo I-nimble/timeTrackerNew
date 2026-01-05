@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -13,20 +13,26 @@ import {
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { environment } from 'src/environments/environment';
 import { AuthService } from '../../../services/auth.service';
+import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { EntriesService } from 'src/app/services/entries.service';
 import { NgIf, CommonModule } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { SignupDataService } from 'src/app/models/SignupData.model';
 import { UsersService } from 'src/app/services/users.service';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { CometChatService } from 'src/app/services/apps/chat/chat.service';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { Loader } from 'src/app/app.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
 @Component({
   selector: 'app-side-register',
@@ -39,7 +45,8 @@ import { DepartmentsService } from 'src/app/services/departments.service';
     ReactiveFormsModule,
     BrandingComponent,
     NgIf,
-    RouterLink
+    RouterLink,
+    TablerIconsModule
   ],
   providers: [
     AuthService,
@@ -48,7 +55,7 @@ import { DepartmentsService } from 'src/app/services/departments.service';
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
 })
-export class AppSideRegisterComponent implements AfterViewInit {
+export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
@@ -59,7 +66,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
     departments: [[''], [Validators.required]],
     otherDepartment: [''],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.pattern(/^\d{7,11}$/)]],
+    phone: ['', [Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
     password: ['', [Validators.required, Validators.minLength(8)]],
     google_user_id: [''],
   }, { validators: this.crossFieldValidator() });
@@ -70,42 +77,30 @@ export class AppSideRegisterComponent implements AfterViewInit {
     company: ['', [Validators.required]],
     position: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    hourly_rate: [0, [Validators.min(0), Validators.max(1000)]],
     google_user_id: [''],
   });
   registerTeamMemberForm: FormGroup = this.fb.group({
-    location: ['', Validators.required],
-    role: ['', Validators.required],
+    fullName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    appliedWhere: ['', Validators.required],
-    referred: ['no', Validators.required],
-    referredName: [''],
-    fullName: ['', Validators.required],
-    age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [Validators.required, Validators.pattern(/^\+?\d{7,15}$/)]],
-    additionalPhone: ['', [Validators.pattern(/^\+?\d{7,15}$/)]],
-    currentResidence: ['', Validators.required],
-    address: ['', Validators.required],
-    children: ['0', Validators.required],
-    englishLevel: ['', Validators.required],
-    competencies: ['', Validators.required],
-    technicalSkills: ['', Validators.required],
-    techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
-    educationHistory: [''],
-    workExperience: [''],
-    workReferences: ['', Validators.required],
-    hobbies: [''],
-    resume: [null, [Validators.required, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)]],
-    google_user_id: [''],
   });
   userRole: string = '3';
   companyId: string = '';
   companies: any[] = [];
   positions: any[] = [];
   locations: any[] = [];
-  careerRoles: any[] = ["Virtual Assistant", "IT and Technology"];
+  careerRoles: any[] = [{
+    title: "Virtual Assistant",
+    position_id: 16
+  }, 
+  {
+    title: "IT and Technology",
+    position_id: 41
+  }];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
   isRegisterFormVisible: boolean = false;
+  isImportantInformationVisible: boolean = false;
   hasInvitation: boolean = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
@@ -125,11 +120,11 @@ export class AppSideRegisterComponent implements AfterViewInit {
     private route: ActivatedRoute,
     private positionsService: PositionsService,
     private employeesService: EmployeesService,
-    private chatService: CometChatService,
     private applicationsService: ApplicationsService,
     private usersService: UsersService,
     private departmentsService: DepartmentsService,
     private cdr: ChangeDetectorRef,
+    private rocketChatService: RocketChatService,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -145,6 +140,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
           email: params['email'],
           name: params['name'].split(' ')[0],
           last_name: params['name'].split(' ')[1] || '',
+          hourly_rate: params['hr'],
         });
         this.showRegisterForm(this.userRole);
       }
@@ -175,49 +171,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
     };
   }
 
-  ngAfterViewInit() {
-    this.setupMobileInputHandling();
-  }
-
-  private setupMobileInputHandling() {
-    const isRealMobile = window.innerWidth <= 768 && 
-                        (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
-    
-    if (isRealMobile) {
-      this.setupFormInputHandling();
-    }
-  }
-
-  private setupFormInputHandling() {
-    const inputs = document.querySelectorAll('.mobile-form-input');
-    
-    inputs.forEach((input: Element) => {
-      input.addEventListener('focus', (event: Event) => {
-        this.scrollToInput(event.target as HTMLElement);
-      });
-    });
-
-    const passwordInputs = document.querySelectorAll('input[type="password"]');
-    passwordInputs.forEach((input: Element) => {
-      input.addEventListener('focus', (event: Event) => {
-        this.scrollToInput(event.target as HTMLElement);
-      });
-    });
-  }
-
-  private scrollToInput(inputElement: HTMLElement) {
-    setTimeout(() => {
-      if (inputElement) {
-        inputElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
-    }, 300);
-  }
-
-
   crossFieldValidator(): ValidatorFn {
     return (formGroup: AbstractControl): ValidationErrors | null => {
       const departments = formGroup.get('departments')?.value;
@@ -246,7 +199,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
       return new Promise(resolve => {
         this.companiesService.checkCompanyExists(control.value).subscribe(
           ({ exists }: { exists: boolean }) => {
-            console.log(exists)
             resolve(exists ? { companyExists: true } : null);
           },
           () => resolve(null)
@@ -261,145 +213,16 @@ export class AppSideRegisterComponent implements AfterViewInit {
     });
   }
 
+  showImportantInformation() {
+    this.isImportantInformationVisible = true;
+  }
+
   showRegisterForm(userRole: string) {
     this.isRegisterFormVisible = true;
     this.userRole = userRole;
     if (userRole === '2' && !this.hasInvitation) {
       this.getLocations();
-      this.setupConditionalValidation();
     }
-  }
-
-  private setupConditionalValidation() {
-    if (!this.registerTeamMemberForm) return;
-
-    const referredControl = this.registerTeamMemberForm?.get('referred');
-    if (referredControl) {
-      referredControl.valueChanges.subscribe(value => {
-        if (value === 'yes') {
-          this.registerTeamMemberForm?.get('referredName')?.setValidators(Validators.required);
-        } else {
-          this.registerTeamMemberForm?.get('referredName')?.clearValidators();
-        }
-        this.registerTeamMemberForm?.get('referredName')?.updateValueAndValidity();
-      });
-    }
-
-    const locationControl = this.registerTeamMemberForm?.get('location');
-    if (locationControl) {
-      locationControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-    const roleControl = this.registerTeamMemberForm?.get('role');
-    if (roleControl) {
-      roleControl.valueChanges.subscribe(() => this.updateConditionalControls());
-    }
-  }
-
-  private updateConditionalControls() {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      ['availability', 'salaryRange', 'portfolio', 'programmingLanguages'].forEach(ctrl => {
-        (this.registerTeamMemberForm as FormGroup<any>).removeControl(ctrl);
-      });
-
-      if (!location || !role) return;
-
-      if (role === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      } else if (role === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'availability',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
-      if (location && role) {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl(
-          'salaryRange',
-          this.fb.control('', [Validators.required, this.mustBeYesValidator()])
-        );
-      }
-
-      if (role === 'Virtual Assistant') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('portfolio', this.fb.control(null, this.maxFileSizeValidator(10 * 1024 * 1024 * 1024)));
-      }
-
-      if (role === 'IT and Technology' && location !== 'Medellin') {
-        (this.registerTeamMemberForm as FormGroup<any>).addControl('programmingLanguages', this.fb.control('', Validators.required));
-      }
-    }
-  }
-
-  getSalaryRangeText(): string {
-    const locationControl = this.registerTeamMemberForm.get('location');
-    const roleControl = this.registerTeamMemberForm.get('role');
-
-    if (locationControl && roleControl) {
-      const location = locationControl.value;
-      const role = roleControl.value;
-
-      if (location === 'Maracaibo') {
-        return role === 'Virtual Assistant'
-          ? '$480-$560 USD'
-          : '$400-$900 USD';
-      } else if (location === 'Medellin') {
-        return '$700-$800 USD';
-      }
-      return '$400-$900 USD';
-    }
-    return '';
-  }
-
-  onFileChange(event: Event, controlName: string): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-
-      if (file.size > 10737418240) {
-        this.registerTeamMemberForm.get(controlName)?.setErrors({ maxFileSize: true });
-      } else {
-        this.registerTeamMemberForm.get(controlName)?.setValue(file);
-      }
-      this.registerTeamMemberForm.get(controlName)?.updateValueAndValidity();
-    }
-  }
-
-
-  maxFileSizeValidator(maxSizeBytes: number): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) {
-        return null;
-      }
-
-      const file = control.value as File;
-      if (file.size > maxSizeBytes) {
-        return {
-          maxFileSize: {
-            requiredSize: maxSizeBytes,
-            actualSize: file.size,
-            message: `File size exceeds the maximum allowed size of ${this.formatFileSize(maxSizeBytes)}`
-          }
-        };
-      }
-      return null;
-    };
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
   getCompanies() {
@@ -513,19 +336,20 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const role = loginResponse.role_id;
                 const email = loginResponse.email;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.initializeRocketChat(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
-                this.chatService.initializeCometChat();
                 localStorage.setItem('showWelcomePopup', 'true');
               },
               error: (loginError) => {
@@ -556,6 +380,7 @@ export class AppSideRegisterComponent implements AfterViewInit {
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
         google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
+        hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
 
       this.employeesService.registerEmployee(teamMemberData).subscribe({
@@ -573,12 +398,14 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -586,7 +413,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -609,44 +435,10 @@ export class AppSideRegisterComponent implements AfterViewInit {
         return;
       }
 
-      if ((this.registerTeamMemberForm.value.availability !== "yes" && this.registerTeamMemberForm.value.role !== "IT and Technology") || this.registerTeamMemberForm.value.salaryRange !== "yes") {
-        this.openSnackBar('Please accept the availability and salary range conditions', 'error');
-        return;
-      }
-
-      if (this.registerTeamMemberForm.value.role === "IT and Technology" && this.registerTeamMemberForm.value.location === "Medellin") {
-        this.openSnackBar('There are no available positions in IT and Technology in Medellin', 'error');
-      }
-
       const teamMemberData = {
-        location: this.registerTeamMemberForm.value.location,
-        role: this.registerTeamMemberForm.value.role,
+        full_name: this.registerTeamMemberForm.value.fullName,
         email: this.registerTeamMemberForm.value.email,
         password: this.registerTeamMemberForm.value.password,
-        applied_where: this.registerTeamMemberForm.value.appliedWhere,
-        referred: this.registerTeamMemberForm.value.referred,
-        referrer_name: this.registerTeamMemberForm.value.referredName,
-        full_name: this.registerTeamMemberForm.value.fullName,
-        age: this.registerTeamMemberForm.value.age,
-        contact_phone: this.registerTeamMemberForm.value.contactPhone,
-        additional_phone: this.registerTeamMemberForm.value.additionalPhone || '',
-        current_residence: this.registerTeamMemberForm.value.currentResidence,
-        address: this.registerTeamMemberForm.value.address,
-        children: this.registerTeamMemberForm.value.children,
-        english_level: this.registerTeamMemberForm.value.englishLevel,
-        competencies: this.registerTeamMemberForm.value.competencies,
-        technical_skills: this.registerTeamMemberForm.value.technicalSkills,
-        tech_proficiency: this.registerTeamMemberForm.value.techProficiency,
-        education_history: this.registerTeamMemberForm.value.educationHistory || '',
-        work_experience: this.registerTeamMemberForm.value.workExperience || '',
-        work_references: this.registerTeamMemberForm.value.workReferences,
-        hobbies: this.registerTeamMemberForm.value.hobbies || '',
-        availability: this.registerTeamMemberForm.value.availability,
-        salary_range: this.registerTeamMemberForm.value.salaryRange,
-        programming_languages: this.registerTeamMemberForm.value.programmingLanguages || null,
-        resume: this.registerTeamMemberForm.get('resume')?.value || null,
-        portfolio: this.registerTeamMemberForm.get('portfolio')?.value || null,
-        google_user_id: this.registerTeamMemberForm.value.google_user_id === '' ? null : this.registerTeamMemberForm.value.google_user_id,
       };
 
       this.usersService.registerOrphanTeamMember(teamMemberData).subscribe({
@@ -664,12 +456,14 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 const email = loginResponse.email;
                 const id = loginResponse.id;
                 const isOrphan = loginResponse.isOrphan;
+                const chatCredentials = loginResponse.chatCredentials;
                 localStorage.setItem('id', id);
                 localStorage.setItem('role', role);
                 localStorage.setItem('name', name);
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
@@ -677,7 +471,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');
-                this.chatService.initializeCometChat();
               },
               error: (loginError) => {
                 this.openSnackBar('Error logging in', 'error');
@@ -709,7 +502,6 @@ export class AppSideRegisterComponent implements AfterViewInit {
       otherDepartment: this.otherDepartment
     });
   }
-
   mustBeYesValidator(): ValidatorFn {
     return (control: AbstractControl) => {
       if (control.value === 'no') {
@@ -717,5 +509,20 @@ export class AppSideRegisterComponent implements AfterViewInit {
       }
       return null;
     };
+  }
+
+  restrictPhoneInput(event: KeyboardEvent) {
+    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const key = event.key;
+    
+    // Allow control keys
+    if (allowedKeys.includes(key)) {
+      return;
+    }
+    
+    // Allow only numbers
+    if (!/^\d$/.test(key)) {
+      event.preventDefault();
+    }
   }
 }

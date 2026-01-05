@@ -41,7 +41,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { dialogProviders } from './dialog.config';
-import { CometChatConversationsWithMessages } from '@cometchat/chat-uikit-angular'; //comet chat
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 // code view
@@ -50,6 +49,10 @@ import 'highlight.js/styles/atom-one-dark.min.css';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { environment } from '../environments/environment';
+
+export function HttpLoaderFactory(http: HttpClient): any {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
 
 export function jwtOptionsFactory() {
   return {
@@ -94,7 +97,6 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     importProvidersFrom(
-      CometChatConversationsWithMessages,
       FormsModule,
       ToastrModule.forRoot(),
       ReactiveFormsModule,
@@ -106,6 +108,13 @@ export const appConfig: ApplicationConfig = {
       CalendarModule.forRoot({
         provide: DateAdapter,
         useFactory: adapterFactory,
+      }),
+      TranslateModule.forRoot({
+        loader: {
+          provide: TranslateLoader,
+          useFactory: HttpLoaderFactory,
+          deps: [HttpClient],
+        },
       }),
       JwtModule.forRoot({
         jwtOptionsProvider: {

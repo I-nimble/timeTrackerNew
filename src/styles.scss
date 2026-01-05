@@ -38,3 +38,139 @@ mat-sidenav, mat-sidenav-container {
     flex: 1 0 auto;
   }
 }
+
+app-jitsi-meet,
+.jitsi-permanent-container,
+.jitsi-permanent-container > * {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 100000 !important;
+  display: flex !important;
+}
+
+app-jitsi-meet {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 100000 !important;
+  display: block !important;
+}
+
+app-jitsi-meet.jitsi-minimized {
+  position: fixed !important;
+  width: 500px !important;
+  height: 350px !important;
+  right: 1rem !important;
+  bottom: 1rem !important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 100001 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2) !important;
+}
+
+app-jitsi-meet.jitsi-minimized .jitsi-container,
+app-jitsi-meet.jitsi-minimized iframe {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.jitsi-permanent-container .jitsi-container,
+app-jitsi-meet .jitsi-container,
+.jitsi-permanent-container iframe,
+app-jitsi-meet iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.jitsi-permanent-container iframe,
+app-jitsi-meet iframe {
+  pointer-events: auto !important;
+}
+
+.jitsi-fullscreen-dialog .mat-mdc-dialog-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+}
+
+.cdk-overlay-backdrop {
+  position: fixed;
+}
+
+.mat-mdc-dialog-surface {
+  overflow-y: hidden!important;
+}
+.cdk-overlay-pane.jitsi-minimized,
+.jitsi-minimized,
+.jitsi-minimized .mat-mdc-dialog-panel {
+  width: 550px !important;
+  max-width: 550px !important;
+  height: 450px !important;
+  max-height: 450px !important;
+  margin: 0 !important;
+  transform: none !important;
+  border-radius: 8px !important;
+}
+.cdk-overlay-pane.jitsi-minimized {
+  position: fixed !important;
+  right: 1rem!important;
+  bottom: 1rem!important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 2000 !important;
+}
+
+.jitsi-permanent-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2000;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.jitsi-permanent-container.minimized {
+  width: 320px;
+  height: 180px;
+  right: 1rem;
+  bottom: 1rem;
+  left: auto;
+  top: auto;
+  position: fixed;
+  z-index: 100000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+.jitsi-permanent-container.minimized > * {
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.jitsi-permanent-container.minimized .jitsi-wrapper,
+.jitsi-permanent-container.minimized .jitsi-container {
+  pointer-events: auto;
+}
