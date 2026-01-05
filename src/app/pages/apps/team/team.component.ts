@@ -161,6 +161,7 @@ export class TeamComponent {
               last_name: user.user.last_name,
               email: user.user.email,
               position: user.position_id || user.position?.id || '',
+              hourly_rate: user.hourly_rate,
               projects: user.projects ? user.projects.map((project: any) => project.id) : [],
               imagePath: '/assets/images/default-user-profile-pic.png',
             },

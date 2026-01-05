@@ -1,4 +1,4 @@
-<div class="row">
+<!-- <div class="row">
   <div class="col-12">
     <mat-card class="cardWithShadow">
       <mat-card-content>
@@ -32,4 +32,58 @@
       </mat-card-content>
     </mat-card>
   </div>
+</div>
+ -->
+
+ <div *ngIf="userRole == '1'">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="row gap-16">
+        <div class="col d-flex gap-16">
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <input
+              matInput
+              placeholder="Search Team Member"
+              [(ngModel)]="searchText"
+              (keyup)="applyCombinedFilters()"
+            />
+            <mat-icon matSuffix>
+              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
+            </mat-icon>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
+            <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
+              <mat-option [value]="'all'">All companies</mat-option>
+              <mat-option *ngFor="let company of companies" [value]="company.id">
+                {{ company.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100 hide-hint">
+            <mat-label class="f-s-14 m-b-8">Select Section</mat-label>
+            <mat-select [(ngModel)]="selectedSection" (selectionChange)="onSectionChange()">
+              <mat-option *ngFor="let section of availableSections" [value]="section.key">
+                {{ section.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-lg-4 d-flex align-items-center justify-content-end">
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="table-responsive">
+        <app-permission-table
+          [dataSource]="dataSource"
+          [selectedSection]="selectedSection">
+        </app-permission-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

@@ -55,6 +55,7 @@ export class EmployeesService {
     formData.append('projects', JSON.stringify(employee.projects));
     formData.append('employee', JSON.stringify({ id: companyId, position: employee.position }));
     formData.append('schedules', JSON.stringify(employee.schedules));
+    formData.append('hourly_rate', employee.hourly_rate);
     if (file) formData.append('profile', file);
     return this.http.patch<any>(`${this.USERS_API_URI}/${id}`, formData);
   }

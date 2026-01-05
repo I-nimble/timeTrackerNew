@@ -98,6 +98,42 @@ export class TimezoneService {
     }
   }
 
+  convertUTCToLocalDateTime(utcTime: string, timezone?: string): string {
+    try {
+      const targetTimezone = timezone || this.userTimezoneSubject.value;
+      
+      const utcDate = moment.utc(utcTime);
+      
+      const originalDate = utcDate.format('YYYY-MM-DD');
+      
+      const localDateTime = utcDate.tz(targetTimezone);
+
+      const result = `${originalDate}T${localDateTime.format('HH:mm')}`;
+    
+      return result;
+    } catch (error) {
+      console.error('Error converting UTC to local time:', error, utcTime);
+      return moment().format('YYYY-MM-DDTHH:mm');
+    }
+  }
+
+  convertLocalDateTimeToUTC(localTime: string, timezone?: string): string {
+    try {
+      const targetTimezone = timezone || this.userTimezoneSubject.value;
+      
+      const localDate = moment.tz(localTime, 'YYYY-MM-DDTHH:mm', targetTimezone);
+      
+      const utcDate = localDate.utc();
+      
+      const result = utcDate.format('YYYY-MM-DD HH:mm:ss');
+      
+      return result;
+    } catch (error) {
+      console.error('Error converting local time to UTC:', error, localTime);
+      return moment.utc().format('YYYY-MM-DD HH:mm:ss');
+    }
+  }
+
   getCurrentTimezoneOffset(): string {
     const offset = new Date().getTimezoneOffset();
     const hours = Math.abs(Math.floor(offset / 60));

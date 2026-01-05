@@ -1,0 +1,104 @@
+<div class="position-disc-modal">
+  <div class="modal-header">
+    <h3 mat-dialog-title>Set Up Position DISC Profiles</h3>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="close-button"
+      (click)="onCancel()"
+      [disabled]="saving"
+    >
+      <i-tabler name="x" class="icon-20 d-flex"></i-tabler>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <p class="info-text">
+      Assign DISC profiles to each position. Multiple profiles can be selected
+      per position.
+    </p>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Search Position</mat-label>
+      <input matInput (keyup)="onSearch($event)" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <div class="positions-list" *ngIf="!loading; else loadingTemplate">
+      <mat-card
+        *ngFor="let position of positionsWithDisc"
+        class="position-card"
+      >
+        <mat-card-content>
+          <div class="position-header">
+            <h4>{{ position.title }}</h4>
+            <div class="selected-badges">
+              <ng-container
+                *ngFor="let profileId of position.selectedDiscProfileIds"
+              >
+                <ng-container *ngFor="let profile of discProfiles">
+                  <span
+                    *ngIf="profile.id === profileId"
+                    class="disc-badge"
+                    [style.background-color]="getDiscProfileColor(profile.name)"
+                  >
+                    {{ profile.name.charAt(0) }}
+                  </span>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Select DISC Profile(s)</mat-label>
+            <mat-select multiple [(ngModel)]="position.selectedDiscProfileIds">
+              <mat-option
+                *ngFor="let profile of discProfiles"
+                [value]="profile.id"
+              >
+                <span
+                  class="disc-badge-inline"
+                  [style.background-color]="getDiscProfileColor(profile.name)"
+                >
+                  {{ profile.name.charAt(0) }}
+                </span>
+                {{ profile.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div *ngIf="positionsWithDisc.length === 0" class="no-positions">
+        <p>No positions available.</p>
+      </div>
+    </div>
+
+    <ng-template #loadingTemplate>
+      <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading...</p>
+      </div>
+    </ng-template>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="d-flex flex-end">
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="saving"
+    >
+      <span *ngIf="!saving">Save All</span>
+      <span *ngIf="saving">Saving...</span>
+    </button>
+    <button
+      mat-flat-button
+      class="bg-error text-white"
+      (click)="onCancel()"
+      [disabled]="saving"
+    >
+      Cancel
+    </button>
+  </mat-dialog-actions>
+</div>

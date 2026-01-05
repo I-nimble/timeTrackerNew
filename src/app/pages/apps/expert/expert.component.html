@@ -1,0 +1,55 @@
+<ng-container *ngIf="!selectedClient">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="d-flex justify-content-center aling-items-center">
+        <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="60"/>
+      </div>
+      <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
+        <app-match
+          appearance="outline"
+          class="flex-grow-1 hide-hint m-b-0 m-r-20"
+          [loading]="aiLoading"
+          [aiEnabled]="!useManualSearch"
+          [showCustomSearch]="false"
+          placeholder="Search for an Expert..."
+          (askAI)="askGemini($event)"
+          (searchChange)="useManualSearch ? onManualSearch($event) : null">
+        </app-match>          
+      </div>
+      <div *ngIf="aiLoading || aiAnswer" class="mt-16">
+        <mat-card color="accent" class="p-16">
+          <div>
+            <ng-container *ngIf="aiLoading; else showAnswer">
+              <div class="d-flex align-items-center gap-8">
+                <img
+                  src="assets/icons/ai-loader.gif"
+                  alt="AI loading"
+                  style="width: 80px; height: 80px;"
+                />
+                <span>Searching for the requested expert...</span>
+              </div>
+            </ng-container>
+            <ng-template #showAnswer>
+              <div [innerHTML]="aiAnswer | markdown | linebreak"></div>
+            </ng-template>
+          </div>
+        </mat-card>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="cardWithShadow mt-16" *ngIf="filteredClients.length > 0">
+    <mat-card-content>
+      <div class="table-responsive">
+        <app-client-table [clients]="filteredClients" [userPlanName]="this.plan?.name"></app-client-table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</ng-container>
+
+<ng-container *ngIf="selectedClient">
+  <app-client-details
+    [client]="selectedClient"
+    (back)="onBackFromDetails()">
+  </app-client-details>
+</ng-container>

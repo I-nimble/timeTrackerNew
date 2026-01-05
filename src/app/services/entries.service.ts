@@ -47,7 +47,7 @@ export class EntriesService {
   closeCurrentEntry(entry: any) {
     return this.http.put(`${this.API_URI}/entries/closeEntry/${entry.id}`, entry);
   }
-  updateEntry(id: number, updatedEntry: Entries): Observable<Entries> {
+  updateEntry(id: number, updatedEntry: any): Observable<Entries> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.put<Entries>(
       `${this.API_URI}/entries/${id}`,
@@ -73,16 +73,6 @@ export class EntriesService {
                 name: user.name
               };
             });   
-            if(this.reviewEntries.length > 0 && showPopup) {
-              const dialogId = 'notificationsPopup';
-              const existingDialog = this.dialog.getDialogById(dialogId);
-  
-              if (!existingDialog) {
-                const dialogRef = this.dialog.open(NotificationsPopupComponent, {
-                    id: dialogId,
-                });
-              }
-            }
           }
         });
       }

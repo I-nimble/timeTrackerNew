@@ -124,6 +124,22 @@ export class RatingsService {
     return this.http.get<any[]>(`${this.API_URI}/priorities`);
   }
 
+  public getComments(ratingId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/${ratingId}/comments`);
+  }
+
+  public addComment(payload: { rating_id: number; comment: string }): Observable<any> {
+    return this.http.post<any>(`${this.API_URI}/comments`, payload);
+  }
+
+  public updateComment(commentId: number, comment: string): Observable<any> {
+    return this.http.put<any>(`${this.API_URI}/comments/${commentId}`, { comment });
+  }
+
+  public deleteComment(commentId: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_URI}/comments/${commentId}`);
+  }
+
   openSnackBar(message: string, action: string): void {
     this.snackBar.open(message, action, {
       duration: 2000,

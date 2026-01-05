@@ -1,0 +1,159 @@
+<mat-card class="cardWithShadow">
+  <mat-accordion multi [formGroup]="form">
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Year</mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field class="w-100" appearance="outline">
+        <mat-label>Year</mat-label>
+        <input matInput type="number" formControlName="year">
+      </mat-form-field>
+    </mat-expansion-panel>
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Core Values</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div formArrayName="coreValues">
+        <div *ngFor="let item of coreValues.controls; let i = index" [formGroupName]="i" class="m-b-16">
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Core Value Item {{ i + 1 }}</mat-panel-title>
+              <button mat-icon-button color="warn" (click)="deleteItem('coreValues', i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="item.get('picture')?.value"
+                      mat-icon-button
+                      color="primary"
+                      matTooltip="Download picture"
+                      (click)="downloadImage(item.get('picture')?.value)">
+                <mat-icon>download</mat-icon>
+              </button>
+            </mat-expansion-panel-header>
+            <mat-form-field class="w-100" appearance="outline">
+              <mat-label>{{ 'Core Value' }}</mat-label>
+              <input matInput formControlName="value" placeholder="Enter details">
+            </mat-form-field>
+            <div class="custom-dropzone dropzone-box mt-2" ngx-dropzone 
+                 (change)="onFileSelected($event, i, 'coreValues')">
+              <ngx-dropzone-label>
+                <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
+                  <ng-container *ngIf="!item.get('picture')?.value; else previewTpl">
+                    <img src="assets/images/products/Products-07.png"
+                        alt="Upload" width="80" class="upload-icon m-b-16">
+                    <p class="headline">Drop or select file</p>
+                    <p class="subtext f-s-14">
+                      Drop files here or click to
+                      <span class="browse-link text-primary">browse</span>
+                    </p>
+                  </ng-container>
+                  <ng-template #previewTpl>
+                    <img [src]="'https://inimble-app.s3.us-east-1.amazonaws.com/' + item.get('picture')?.value"
+                         class="preview-img" width="80">
+                  </ng-template>
+                </div>
+              </ngx-dropzone-label>
+            </div>
+          </mat-expansion-panel>
+        </div>
+        <button mat-raised-button color="primary" (click)="addRow('coreValues')">
+          + Add Core Value
+        </button>
+      </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Core Focus</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div formArrayName="coreFocus">
+        <div *ngFor="let item of coreFocus.controls; let i = index" [formGroupName]="i" class="m-b-16">
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Core Focus Item {{ i + 1 }}</mat-panel-title>
+              <button mat-icon-button color="warn" (click)="deleteItem('coreFocus', i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="item.get('picture')?.value"
+                      mat-icon-button
+                      color="primary"
+                      matTooltip="Download picture"
+                      (click)="downloadImage(item.get('picture')?.value)">
+                <mat-icon>download</mat-icon>
+              </button>
+            </mat-expansion-panel-header>
+            <mat-form-field class="w-100" appearance="outline">
+              <mat-label>Core Focus</mat-label>
+              <input matInput formControlName="value" placeholder="Enter details">
+            </mat-form-field>
+            <div class="custom-dropzone dropzone-box mt-2" ngx-dropzone
+                 (change)="onFileSelected($event, i, 'coreFocus')">
+              <ngx-dropzone-label>
+                <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
+                  <ng-container *ngIf="!item.get('picture')?.value; else previewTplFocus">
+                    <img src="assets/images/products/Products-07.png" alt="Upload" width="80">
+                    <p class="headline">Drop or select file</p>
+                  </ng-container>
+                  <ng-template #previewTplFocus>
+                    <img [src]="'https://inimble-app.s3.us-east-1.amazonaws.com/' + item.get('picture')?.value"
+                         class="preview-img" width="80">
+                  </ng-template>
+                </div>
+              </ngx-dropzone-label>
+            </div>
+          </mat-expansion-panel>
+        </div>
+        <button mat-raised-button color="primary" (click)="addRow('coreFocus')">
+          + Add Core Focus Item
+        </button>
+      </div>
+    </mat-expansion-panel>
+    <mat-expansion-panel expanded>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Marketing Strategy</mat-panel-title>
+      </mat-expansion-panel-header>
+      <div formArrayName="marketingStrategy">
+        <div *ngFor="let item of marketingStrategy.controls; let i = index" [formGroupName]="i" class="m-b-16">
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Strategy {{ i + 1 }}</mat-panel-title>
+              <button mat-icon-button color="warn" (click)="deleteItem('marketingStrategy', i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              <button *ngIf="item.get('picture')?.value"
+                      mat-icon-button
+                      color="primary"
+                      matTooltip="Download picture"
+                      (click)="downloadImage(item.get('picture')?.value)">
+                <mat-icon>download</mat-icon>
+              </button>
+            </mat-expansion-panel-header>
+            <mat-form-field class="w-100" appearance="outline">
+              <mat-label>Strategy</mat-label>
+              <input matInput formControlName="value" placeholder="Enter details">
+            </mat-form-field>
+            <div class="custom-dropzone dropzone-box mt-2" ngx-dropzone
+                 (change)="onFileSelected($event, i, 'marketingStrategy')">
+              <ngx-dropzone-label>
+                <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
+                  <ng-container *ngIf="!item.get('picture')?.value; else previewTplStrategy">
+                    <img src="assets/images/products/Products-07.png" alt="Upload" width="80">
+                    <p class="headline">Drop or select file</p>
+                  </ng-container>
+                  <ng-template #previewTplStrategy>
+                    <img [src]="'https://inimble-app.s3.us-east-1.amazonaws.com/' + item.get('picture')?.value"
+                         class="preview-img" width="80">
+                  </ng-template>
+                </div>
+              </ngx-dropzone-label>
+            </div>
+          </mat-expansion-panel>
+        </div>
+        <button mat-raised-button color="primary" (click)="addRow('marketingStrategy')">
+          + Add Strategy
+        </button>
+      </div>
+    </mat-expansion-panel>
+    <div class="text-end m-20">
+      <button mat-flat-button color="primary" class="m-l-8" (click)="saveVision()">Save</button>
+    </div>
+  </mat-accordion>
+</mat-card>
