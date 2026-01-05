@@ -163,4 +163,8 @@ export class WebSocketService {
   getGeolocationDeniedStream() {
     return this.geolocationDeniedSubject.asObservable();
   }
+
+  isConnected(): boolean {
+    return this.socket && this.socket.connected;
+  }
 }

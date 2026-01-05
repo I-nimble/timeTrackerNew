@@ -3,6 +3,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { WebSocketService } from './socket/web-socket.service';
 import { GeolocationData } from '../models/geolocation.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { environment } from 'src/environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +19,11 @@ export class LocationService {
   private readonly MIN_DISTANCE_METERS = 10;
   private readonly MIN_TIME_MS = 30000;
 
-  constructor(private webSocketService: WebSocketService, private snackBar: MatSnackBar) {
+  constructor(
+    private webSocketService: WebSocketService, 
+    private snackBar: MatSnackBar,
+    private http: HttpClient
+  ) {
     this.deviceId = this.getDeviceId();
     this.checkGeolocationAvailability();
   }
@@ -158,7 +164,12 @@ export class LocationService {
       deviceId: this.deviceId,
       userId: this.userId
     };
-    this.webSocketService.sendLocationUpdate(data);
+    
+    if (this.webSocketService.isConnected()) {
+      this.webSocketService.sendLocationUpdate(data);
+    } else {
+      this.sendLocationUpdateHttp(data);
+    }
   }
 
   private handlePosition(position: GeolocationPosition): void {
@@ -181,7 +192,18 @@ export class LocationService {
       deviceId: this.deviceId,
       userId: this.userId
     };
-    this.webSocketService.sendLocationUpdate(data);
+
+    if (this.webSocketService.isConnected()) {
+      this.webSocketService.sendLocationUpdate(data);
+    } else {
+      this.sendLocationUpdateHttp(data);
+    }
+  }
+
+  private sendLocationUpdateHttp(data: GeolocationData): void {
+    this.http.post(`${environment.apiUrl}/geolocation`, data).subscribe({
+      error: (err) => console.error('Error sending geolocation fallback update:', err)
+    });
   }
 
   private shouldUpdate(lat: number, lng: number, now: number): boolean {
