@@ -704,7 +704,7 @@ export class RocketChatService {
                     try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
                     try { this.playCallSound(); } catch (e) {}
                     try {
-                      this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: lastMessage._id });
+                      this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
                       console.debug('Error showing push for call user notify message:', err);
                     }
