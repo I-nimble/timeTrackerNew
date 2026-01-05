@@ -84,6 +84,7 @@ export class RocketChatService {
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
     this.initNotificationSounds();
+    this.initLocalNotifications();
 
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
@@ -103,6 +104,35 @@ export class RocketChatService {
       });
     } catch (err) {
       console.error('Failed to subscribe to WebSocketService typing stream', err);
+    }
+  }
+
+  private notificationsInitialized = false;
+
+  public async initLocalNotifications() {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await LocalNotifications.createChannel({
+          id: 'inimble_general',
+          name: 'Inimble Notifications',
+          description: 'General notifications for messages and updates',
+          importance: 5,
+          visibility: 1,
+          vibration: true,
+        });
+
+        if (!this.notificationsInitialized) {
+          LocalNotifications.addListener('localNotificationActionPerformed', (event: any) => {
+            const extra = event.notification.extra;
+            if (extra?.roomId) {
+              this.router.navigate(['/apps/chat']);
+            }
+          });
+          this.notificationsInitialized = true;
+        }
+      } catch (err) {
+        console.error('Failed to init local notifications:', err);
+      }
     }
   }
 
@@ -1223,14 +1253,7 @@ export class RocketChatService {
           return;
         };
 
-        await LocalNotifications.createChannel({
-          id: 'default',
-          name: 'Default Channel',
-          description: 'General Notifications',
-          importance: 5,
-          visibility: 1,
-          vibration: true,
-        });
+        await this.initLocalNotifications();
 
         const notificationId = Date.now() % 2147483647;
 
@@ -1241,18 +1264,12 @@ export class RocketChatService {
               body,
               id: notificationId,
               extra: data,
+              channelId: 'inimble_general',
             }]
           });
         } catch (scheduleError) {
           console.error('Error scheduling notification', scheduleError);
         }
-
-        LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
-          const extra = event.notification.extra;
-          if (extra?.roomId) {
-            this.router.navigate(['/apps/chat']);
-          }
-        });
       } else {
         if (!('Notification' in window)) return;
         const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());

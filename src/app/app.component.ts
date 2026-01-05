@@ -41,7 +41,11 @@ export class AppComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
-    this.platformPermissionsService.requestNotificationPermissions();
+    const granted = await this.platformPermissionsService.requestNotificationPermissions();
+    if (granted) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await this.rocketChatService.initLocalNotifications();
+    }
 
     try {
       this.jitsiSub = this.rocketChatService.getActiveJitsiStream().subscribe((m) => {
