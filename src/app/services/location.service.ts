@@ -26,6 +26,7 @@ export class LocationService {
   ) {
     this.deviceId = this.getDeviceId();
     this.checkGeolocationAvailability();
+    this.setupAppLifecycleListeners();
   }
 
   public deviceId: string;
@@ -73,13 +74,26 @@ export class LocationService {
     return deviceId!;
   }
 
+  private shouldBeTracking = false;
+  private idleTimer: any;
+  private readonly IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+
   startTracking(): void {
+    this.shouldBeTracking = true;
+    this.resetIdleTimer();
+    this.internalStartTracking();
+  }
+
+  private internalStartTracking(): void {
     if (!navigator.geolocation) {
       console.warn('Geolocation not supported');
       return;
     }
 
     if (this.watchId !== null) return;
+    if (!navigator.onLine) {
+      return;
+    }
 
     this.trackingSubject.next(true);
 
@@ -88,7 +102,7 @@ export class LocationService {
         this.handlePosition(position);
       },
       (error) => {
-        console.error('Error al obtener la ubicación', error);
+        console.error('WatchPosition Error:', error);
       },
       {
         enableHighAccuracy: true,
@@ -99,11 +113,64 @@ export class LocationService {
   }
 
   stopTracking(): void {
+    this.shouldBeTracking = false;
+    this.clearIdleTimer();
+    this.pauseTracking();
+    this.trackingSubject.next(false);
+  }
+
+  private pauseTracking(): void {
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
     }
-    this.trackingSubject.next(false);
+  }
+
+  private resumeTracking(): void {
+    if (this.shouldBeTracking && this.watchId === null && navigator.onLine) {
+      this.internalStartTracking();
+    }
+  }
+
+  private resetIdleTimer(): void {
+    this.clearIdleTimer();
+    
+    if (this.shouldBeTracking && this.watchId === null) {
+      this.resumeTracking();
+    }
+
+    this.idleTimer = setTimeout(() => {
+      this.pauseTracking();
+    }, this.IDLE_TIMEOUT_MS);
+  }
+
+  private clearIdleTimer(): void {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
+  }
+
+  private setupAppLifecycleListeners(): void {
+    window.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        this.resetIdleTimer();
+        this.resumeTracking();
+      }
+    });
+
+    window.addEventListener('online', () => {
+      this.resumeTracking();
+    });
+
+    window.addEventListener('offline', () => {
+      this.pauseTracking();
+    });
+
+    const interactionEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    interactionEvents.forEach(event => {
+      window.addEventListener(event, () => this.resetIdleTimer(), { passive: true });
+    });
   }
 
   private isUpdating = false;
@@ -165,11 +232,7 @@ export class LocationService {
       userId: this.userId
     };
     
-    if (this.webSocketService.isConnected()) {
-      this.webSocketService.sendLocationUpdate(data);
-    } else {
-      this.sendLocationUpdateHttp(data);
-    }
+    this.transmitUpdate(data);
   }
 
   private handlePosition(position: GeolocationPosition): void {
@@ -193,6 +256,10 @@ export class LocationService {
       userId: this.userId
     };
 
+    this.transmitUpdate(data);
+  }
+
+  private transmitUpdate(data: GeolocationData): void {
     if (this.webSocketService.isConnected()) {
       this.webSocketService.sendLocationUpdate(data);
     } else {
