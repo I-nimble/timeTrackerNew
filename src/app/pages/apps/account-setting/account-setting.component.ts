@@ -45,6 +45,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AppCertificationModalComponent } from './certification-modal.component';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   standalone: true,
@@ -281,7 +282,8 @@ export class AppAccountSettingComponent implements OnInit {
             private route: ActivatedRoute,
             private router: Router,
             private subscriptionService: SubscriptionService,
-            private certificationsService: CertificationsService
+            private certificationsService: CertificationsService,
+            private permissionService: PermissionService,
           ) {}
 
   getAttachmentUrl(key: string): string {
@@ -377,6 +379,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.applicationsService.updateAvailability(this.applicationId, availability).subscribe({
       next: () => {
         this.loadApplicationDetails(Number(localStorage.getItem('id')));
+        this.permissionService.notifyPermissionsUpdated();
       },
       error: (err) => {
         console.error('Error updating availability:', err);
@@ -802,6 +805,7 @@ export class AppAccountSettingComponent implements OnInit {
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
+                  this.permissionService.notifyPermissionsUpdated();
                   this.openSnackBar('Profile updated successfully', 'Close');
                   this.isSubmitting = false;
                   this.getUser();
