@@ -270,25 +270,50 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       const date = moment(entry.start_time)
         .tz(this.companyTimezone)
         .format('ddd');
-      const duration =
-        (new Date(entry.end_time).getTime() -
-          new Date(entry.start_time).getTime()) /
-        (1000 * 60 * 60);
+      
+      let duration = 0;
+      
+      if (entry.end_time === null || entry.end_time === undefined) {
+        const startTime = moment(entry.start_time);
+        const currentTime = moment();
+        
+        if (startTime.isSame(currentTime, 'day')) {
+          duration = currentTime.diff(startTime, 'hours', true);
+        }
+      } else {
+        duration =
+          (new Date(entry.end_time).getTime() -
+            new Date(entry.start_time).getTime()) /
+          (1000 * 60 * 60);
+      }
+      
       acc[date] = (acc[date] || 0) + duration;
       return acc;
     }, {});
 
-    // Sum up active entry hours  
     const currentDay = moment().format('ddd');
     const activeEntry = this.entries.find(
-      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && entry.status === 0
+      (entry: any) => 
+        moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && 
+        entry.status === 0
     );
-    if (activeEntry) {
+    
+    if (activeEntry && (activeEntry.end_time === null || activeEntry.end_time === undefined)) {
       const startTime = moment(activeEntry.start_time);
       const currentTime = moment();
-      workedHoursPerDay[currentDay] = (workedHoursPerDay[currentDay] || 0) + currentTime.diff(startTime, 'hours', true);
+      
+      const entryId = activeEntry.id || activeEntry.start_time;
+      const alreadyProcessed = entries.some(e => 
+        (e.id === entryId) || 
+        (moment(e.start_time).isSame(startTime) && e.status === 0)
+      );
+      
+      if (!alreadyProcessed) {
+        workedHoursPerDay[currentDay] = (workedHoursPerDay[currentDay] || 0) + 
+          currentTime.diff(startTime, 'hours', true);
+      }
     }
-
+    
     // Calculate total scheduled hours per day for each day in each schedule
     const seenDaySchedule = new Set<string>();
     const totalHoursPerDay = this.schedules.reduce(
