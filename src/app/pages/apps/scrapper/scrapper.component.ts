@@ -52,6 +52,7 @@ export class ScrapperComponent implements OnInit {
       this.posts = posts.sort((a:any, b:any) => {
         return new Date(b.created_utc).getTime() - new Date(a.created_utc).getTime();
       });
+      this.filteredPosts = this.posts.slice(0, 5);
     });
   }
 
