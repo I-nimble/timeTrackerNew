@@ -162,11 +162,7 @@ export class PlatformPermissionsService {
   }
 
   async requestNotificationPermissions(): Promise<boolean> {
-    if (this.isNative) {
-      return await this.requestCapacitorNotificationPermissions();
-    } else {
-      return await this.requestWebNotificationPermissions();
-    }
+    return await this.requestCapacitorNotificationPermissions();
   }
 
   private async requestWebNotificationPermissions(): Promise<boolean> {
@@ -183,30 +179,10 @@ export class PlatformPermissionsService {
         return true;
       }
 
-      if (this.isAndroid && (window as any).cordova?.plugins?.permissions) {
-        const permissions = (window as any).cordova.plugins.permissions;
-        return new Promise<boolean>((resolve) => {
-          permissions.checkPermission('android.permission.POST_NOTIFICATIONS', (status: any) => {
-             if (status.hasPermission) {
-               resolve(true);
-             } else {
-               permissions.requestPermission('android.permission.POST_NOTIFICATIONS', (requestStatus: any) => {
-                 resolve(!!requestStatus.hasPermission);
-               }, (error: any) => {
-                 console.warn('Cordova permission request failed:', error);
-                 this.fallbackToCapacitorNotifications().then(resolve);
-               });
-             }
-          }, (error: any) => {
-             console.warn('Cordova check permission failed:', error);
-             this.fallbackToCapacitorNotifications().then(resolve);
-          });
-        });
-      }
-
-      return await this.fallbackToCapacitorNotifications();
+      const result = await LocalNotifications.requestPermissions();
+      return result.display === 'granted';
     } catch (error) {
-      console.warn('Capacitor notification permissions request failed:', error);
+      console.error('Failed to request notification permissions:', error);
       return false;
     }
   }

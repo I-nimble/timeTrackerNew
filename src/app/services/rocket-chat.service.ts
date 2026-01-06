@@ -80,11 +80,11 @@ export class RocketChatService {
   isChatAvailable: boolean = false;
   callsAvailable: boolean = false;
   private connectionInProgress = false;
+  private loginResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
     this.initNotificationSounds();
-    this.initLocalNotifications();
 
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
@@ -375,7 +375,6 @@ export class RocketChatService {
 
         this.socket.onopen = () => {
             clearTimeout(connectionTimeout);
-            this.connectionInProgress = false;
             
             this.sendWebSocketMessage({
                 msg: 'connect',
@@ -383,10 +382,11 @@ export class RocketChatService {
                 support: ['1'],
             });
 
+            const loginMsgId = this.generateMessageId();
             this.sendWebSocketMessage({
                 msg: 'method',
                 method: 'login',
-                id: this.generateMessageId(),
+                id: loginMsgId,
                 params: [
                     {
                         resume: this.credentials!.authToken,
@@ -394,7 +394,7 @@ export class RocketChatService {
                 ],
             });
 
-            resolve();
+            this.loginResolver = { resolve, reject };
         };
 
         this.socket.onmessage = (event) => {
@@ -528,6 +528,18 @@ export class RocketChatService {
 
   private handleWebSocketMessage(message: any): void {
 
+    if (message && message.msg === 'result' && this.loginResolver) {
+      if (message.error) {
+        console.error('WebSocket login failed:', message.error);
+        this.connectionInProgress = false;
+        this.loginResolver.reject(message.error);
+        this.loginResolver = null;
+      } else if (message.result && message.result.id) {
+        this.connectionInProgress = false;
+        this.loginResolver.resolve();
+        this.loginResolver = null;
+      }
+    }
     
     try {
       if (message && message.msg === 'result') {
