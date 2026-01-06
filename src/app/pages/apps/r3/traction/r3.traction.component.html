@@ -3,7 +3,7 @@
     <div class="col-lg-8">
       <mat-card class="mat-mdc-card mdc-card b-1 shadow-none">
         <div class="p-16 b-b-1">
-          <h4>Vision / Traction Organizer</h4>
+          <h4>Blueprint Organizer</h4>
         </div>
         <div class="p-16" formGroupName="oneYearPlan">
           <h4 class="m-b-20">1 Year Plan</h4>
@@ -21,7 +21,10 @@
                   placeholder="MM/DD/YYYY"
                   [min]="today"
                 />
-                <mat-datepicker-toggle matSuffix [for]="futureDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker-toggle
+                  matSuffix
+                  [for]="futureDatePicker"
+                ></mat-datepicker-toggle>
                 <mat-datepicker #futureDatePicker></mat-datepicker>
               </mat-form-field>
             </div>
@@ -32,8 +35,15 @@
             </div>
             <div class="col-sm-8">
               <mat-form-field appearance="outline" class="w-100">
-                <input matInput formControlName="revenue" type="number" placeholder="Enter revenue amount">
-                <mat-error *ngIf="form.get('oneYearPlan.revenue')?.hasError('min')">
+                <input
+                  matInput
+                  formControlName="revenue"
+                  type="number"
+                  placeholder="Enter revenue amount"
+                />
+                <mat-error
+                  *ngIf="form.get('oneYearPlan.revenue')?.hasError('min')"
+                >
                   Revenue cannot be negative.
                 </mat-error>
               </mat-form-field>
@@ -45,14 +55,32 @@
             </div>
             <div class="col-sm-8">
               <mat-form-field appearance="outline" class="w-100">
-                <div class="net-margin-wrapper" style="position: relative;">
-                  <input matInput formControlName="net_margin" type="number" placeholder="Enter margin" style="padding-right: 25px;">
-                  <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);">%</span>
+                <div class="net-margin-wrapper" style="position: relative">
+                  <input
+                    matInput
+                    formControlName="net_margin"
+                    type="number"
+                    placeholder="Enter margin"
+                    style="padding-right: 25px"
+                  />
+                  <span
+                    style="
+                      position: absolute;
+                      right: 8px;
+                      top: 50%;
+                      transform: translateY(-50%);
+                    "
+                    >%</span
+                  >
                 </div>
-                <mat-error *ngIf="form.get('oneYearPlan.net_margin')?.hasError('min')">
+                <mat-error
+                  *ngIf="form.get('oneYearPlan.net_margin')?.hasError('min')"
+                >
                   Margin cannot be negative.
                 </mat-error>
-                <mat-error *ngIf="form.get('oneYearPlan.net_margin')?.hasError('max')">
+                <mat-error
+                  *ngIf="form.get('oneYearPlan.net_margin')?.hasError('max')"
+                >
                   Margin cannot exceed 100%.
                 </mat-error>
               </mat-form-field>
@@ -68,10 +96,14 @@
           </button>
         </div>
         <div formArrayName="annualGoals">
-          <div *ngFor="let g of annualGoals.controls; let i = index" [formGroupName]="i" class="m-t-20">
+          <div
+            *ngFor="let g of annualGoals.controls; let i = index"
+            [formGroupName]="i"
+            class="m-t-20"
+          >
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Goal {{ i + 1 }}</mat-label>
-              <input matInput formControlName="goal_text">
+              <input matInput formControlName="goal_text" />
             </mat-form-field>
             <button
               mat-flat-button
@@ -88,23 +120,27 @@
     <div class="col-lg-4">
       <mat-card class="mat-mdc-card cardWithShadow b-1 rounded p-30">
         <div class="d-flex justify-content-between align-items-center">
-          <h4>Traction</h4>
+          <h4>Blueprint</h4>
           <button mat-mini-fab color="primary" (click)="addRock()">
             <mat-icon>add</mat-icon>
           </button>
         </div>
         <h5 class="m-t-20 f-w-600">Rocks for This Quarter</h5>
         <div formArrayName="rocks">
-          <div *ngFor="let r of rocks.controls; let i = index" [formGroupName]="i" class="m-t-20">
+          <div
+            *ngFor="let r of rocks.controls; let i = index"
+            [formGroupName]="i"
+            class="m-t-20"
+          >
             <mat-form-field appearance="outline" class="w-100 m-b-10">
               <mat-label>Rock {{ i + 1 }}</mat-label>
-              <input matInput formControlName="title">
+              <input matInput formControlName="title" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Who</mat-label>
               <mat-select formControlName="assigned_user_id">
                 <mat-option *ngFor="let user of users" [value]="user.id">
-                  {{ user.name }} {{ user.last_name || '' }}
+                  {{ user.name }} {{ user.last_name || "" }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
