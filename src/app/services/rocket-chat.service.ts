@@ -175,6 +175,26 @@ export class RocketChatService {
     }
   }
 
+   registerPushToken(token: string): Observable<any> {
+    if (!this.credentials) {
+      return of(null);
+    }
+    const body = {
+      id: token,
+      type: 'gcm',
+      value: token,
+      appName: 'main'
+    };
+    return this.http.post(`${this.CHAT_API_URI}push.token`, body, {
+      headers: this.getAuthHeaders(true)
+    }).pipe(
+      catchError(err => {
+        console.error('Error registering push token:', err);
+        return of(null);
+      })
+    );
+   }
+
    async initializeRocketChat(chatCredentials?: any): Promise<void> {
     try {
       await this.loginWithCredentials(chatCredentials);
@@ -530,7 +550,6 @@ export class RocketChatService {
 
     if (message && message.msg === 'result' && this.loginResolver) {
       if (message.error) {
-        console.error('WebSocket login failed:', message.error);
         this.connectionInProgress = false;
         this.loginResolver.reject(message.error);
         this.loginResolver = null;

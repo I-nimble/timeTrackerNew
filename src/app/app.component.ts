@@ -6,6 +6,7 @@ import { PlatformPermissionsService } from './services/permissions.service';
 import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { PushNotificationService } from './services/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -35,14 +36,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private rocketChatService: RocketChatService,
-    private platformPermissionsService: PlatformPermissionsService
+    private platformPermissionsService: PlatformPermissionsService,
+    private pushNotificationService: PushNotificationService
   ) { }
 
   async ngOnInit() {
+    await this.pushNotificationService.initialize();
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
-    const granted = await this.platformPermissionsService.requestNotificationPermissions();
-    if (granted) {
+    const notificationPermission = await this.platformPermissionsService.requestNotificationPermissions();
+    if (notificationPermission) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       await this.rocketChatService.initLocalNotifications();
     }
