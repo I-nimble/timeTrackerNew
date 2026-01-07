@@ -1530,11 +1530,22 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           if (result.success) {
             this.newMessage = '';
             this.replyToMessage = null;
+          } else {
+            const errorMsg = result.error || 'Failed to send message';
+            if (errorMsg.includes('not-allowed') || errorMsg.includes('error-not-allowed')) {
+              console.error('Permission denied: You do not have access to send messages in this room');
+            } else {
+              console.error('Error sending message:', errorMsg);
+            }
           }
           this.isSendingMessage = false;
         },
         error: (error) => {
           console.error('Error sending message:', error);
+          const errorMsg = error?.error?.message || error?.message || 'Unknown error';
+          if (errorMsg.includes('not-allowed') || errorMsg.includes('error-not-allowed')) {
+            console.error('Permission denied: You do not have access to send messages in this room');
+          }
           this.isSendingMessage = false;
         },
       });

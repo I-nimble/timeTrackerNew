@@ -53,10 +53,12 @@ export class RocketChatService {
   private currentActiveRoom: string | null = null;
 
   private serverUpdatedSubject = new Subject<any>();
+  private _serverTrueUserId: string | null = null;
 
 
   private credentials: RocketChatCredentials | null = null;
   private activeSubscriptions = new Map<string, string>();
+  private subscriptionRetryCount = new Map<string, number>();
   private messageId = 0;
   private subscriptionId = 0;
 
@@ -79,9 +81,9 @@ export class RocketChatService {
 
   isChatAvailable: boolean = false;
   callsAvailable: boolean = false;
-  private connectionInProgress = false;
-  private connectingPromise: Promise<void> | null = null;
-  private loginResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
+  private connectionPromise: Promise<void> | null = null;
+  private loginResolver: { resolve: () => void; reject: (err: any) => void; loginId: string } | null = null;
+  private connectResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
@@ -181,11 +183,11 @@ export class RocketChatService {
       return of(null);
     }
     const body = {
-      id: token,
       type: 'gcm',
       value: token,
-      appName: 'main'
+      appName: 'com.inimbleapp.timetracker'
     };
+    console.log('Registering token with body:', body);
     return this.http.post(`${this.CHAT_API_URI}push.token`, body, {
       headers: this.getAuthHeaders(true)
     }).pipe(
@@ -335,6 +337,8 @@ export class RocketChatService {
       this.socket = null;
     }
     this.activeSubscriptions.clear();
+    this.subscriptionRetryCount.clear();
+    this._serverTrueUserId = null;
   }
 
   public getAuthHeaders(includeContentType = true): HttpHeaders {
@@ -371,17 +375,17 @@ export class RocketChatService {
       throw new Error('Not authenticated');
     }
 
-    if (this.connectingPromise) {
-      return this.connectingPromise;
+    if (this.connectionPromise) {
+      console.log('connection promise already in progress...');
+      return this.connectionPromise;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      return;
+      console.log('socket already open...');
+      return Promise.resolve();
     }
 
-    this.connectionInProgress = true;
-
-    this.connectingPromise = new Promise<void>((resolve, reject) => {
+    this.connectionPromise = new Promise((resolve, reject) => {
       try {
         if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
             this.socket.close(1000, 'Reconnecting');
@@ -392,28 +396,66 @@ export class RocketChatService {
 
         let connectionTimeout: NodeJS.Timeout;
 
-        this.socket.onopen = () => {
+        this.socket.onopen = async () => {
             clearTimeout(connectionTimeout);
             
+            const connectedPromise = new Promise<void>((res, rej) => {
+                this.connectResolver = { resolve: res, reject: rej };
+            });
+
             this.sendWebSocketMessage({
                 msg: 'connect',
                 version: '1',
                 support: ['1'],
             });
 
-            const loginMsgId = this.generateMessageId();
-            this.sendWebSocketMessage({
-                msg: 'method',
-                method: 'login',
-                id: loginMsgId,
-                params: [
-                    {
-                        resume: this.credentials!.authToken,
-                    },
-                ],
-            });
+            try {
+                await connectedPromise;
+                
+                const loginMsgId = this.generateMessageId();
+                const loginPromise = new Promise<void>((res, rej) => {
+                    this.loginResolver = { resolve: res, reject: rej, loginId: loginMsgId };
+                });
 
-            this.loginResolver = { resolve, reject };
+                this.sendWebSocketMessage({
+                    msg: 'method',
+                    method: 'login',
+                    id: loginMsgId,
+                    params: [
+                        {
+                            resume: this.credentials!.authToken,
+                        },
+                    ],
+                });
+
+                await loginPromise;
+                console.log('Login authenticated');
+                this.connectionSubject.next(true);
+
+                this.getRooms().subscribe({
+                    next: (rooms: any[]) => {
+                        if (Array.isArray(rooms)) {
+                            rooms.forEach((r: any) => {
+                                const roomId = r && (r._id || r.id || r.roomId);
+                                if (!roomId) return;
+                                if (!this.activeSubscriptions.has(roomId)) {
+                                    this.subscribeToRoomMessages(roomId).catch((err) => {
+                                        console.error(`Failed initial room subscription for ${roomId}:`, err);
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    error: (err) => console.error('Failed to load rooms after login:', err),
+                });
+
+                this.resubscribeToActiveRooms();
+                resolve();
+            } catch (err) {
+                console.error('Connection or login failed:', err);
+                this.connectionPromise = null;
+                reject(err);
+            }
         };
 
         this.socket.onmessage = (event) => {
@@ -423,19 +465,31 @@ export class RocketChatService {
         this.socket.onerror = (errorEvent: Event) => {
             console.error('WebSocket error details:', errorEvent);
             clearTimeout(connectionTimeout);
-            this.connectionInProgress = false;
+            this.connectionPromise = null;
             
-            reject(new Error(
+            const err = new Error(
                 (errorEvent instanceof ErrorEvent && errorEvent.message)
                     ? errorEvent.message
                     : 'WebSocket connection failed'
-            ));
+            );
+
+            if (this.connectResolver) this.connectResolver.reject(err);
+            if (this.loginResolver) this.loginResolver.reject(err);
+            this.connectResolver = null;
+            this.loginResolver = null;
+
+            reject(err);
         };
 
         this.socket.onclose = (event) => {            
             clearTimeout(connectionTimeout);
-            this.connectionInProgress = false;
+            this.connectionPromise = null;
             this.connectionSubject.next(false);
+
+            if (this.connectResolver) this.connectResolver.reject(new Error('WebSocket closed'));
+            if (this.loginResolver) this.loginResolver.reject(new Error('WebSocket closed'));
+            this.connectResolver = null;
+            this.loginResolver = null;
 
             if (this.credentials && event.code !== 1000) {
               setTimeout(() => {
@@ -450,20 +504,16 @@ export class RocketChatService {
             if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
                 console.error('WebSocket connection timeout');
                 this.socket.close();
-                this.connectionInProgress = false;
+                this.connectionPromise = null;
                 reject(new Error('WebSocket connection timeout'));
             }
         }, 10000);
 
     } catch (error) {
-        this.connectionInProgress = false;
+        this.connectionPromise = null;
         reject(error);
     }
-    }).finally(() => {
-        this.connectingPromise = null;
     });
-
-    return this.connectingPromise;
   }
 
   private sendWebSocketMessage(message: any): void {
@@ -472,6 +522,23 @@ export class RocketChatService {
     } else {
       console.error('WebSocket not connected');
     }
+  }
+
+  async ensureDirectMessageRoom(username: string): Promise<RocketChatRoom> {
+    try {
+      const dms = await this.getDirectMessages();
+      const existingDm = dms.find(dm => 
+        dm.usernames && dm.usernames.includes(username)
+      );
+      
+      if (existingDm) {
+        return existingDm;
+      }
+    } catch (err) {
+      console.warn('Could not fetch existing DMs:', err);
+    }
+    
+    return await this.createDirectMessage(username);
   }
 
   async loadRoomHistoryWithRealtime(
@@ -489,19 +556,74 @@ export class RocketChatService {
     try {
       let history: RocketChatMessage[];
       const roomId = room._id;
+      const roomType = room.t;
 
-      if (room.t === 'p') {
-        history = await firstValueFrom(
-          this.getGroupMessagesHistory(roomId, limit)
-        );
-      } else if (room.t === 'd') {
-        history = await firstValueFrom(
-          this.loadDirectMessagesHistory(roomId, limit)
-        );
-      } else {
-        history = await firstValueFrom(
-          this.loadChannelMessagesHistory(roomId, limit)
-        );
+      if (!roomId || !roomId.trim()) {
+        throw new Error('Invalid room ID');
+      }
+
+      if (!roomType) {
+        try {
+          const roomInfo: any = await firstValueFrom(
+            this.http.get(`${this.CHAT_API_URI}rooms.info?roomId=${roomId}`, { 
+              headers: this.getAuthHeaders() 
+            })
+          );
+          
+          if (roomInfo && roomInfo.room && roomInfo.room.t) {
+            room.t = roomInfo.room.t;
+          }
+        } catch (infoErr) {
+          console.warn(`Could not determine room type for ${roomId}:`, infoErr);
+        }
+      }
+
+      try {
+        if (room.t === 'p') {
+          history = await firstValueFrom(
+            this.getGroupMessagesHistory(roomId, limit)
+          );
+        } else if (room.t === 'd' || room.t === 'l') {
+          history = await firstValueFrom(
+            this.loadDirectMessagesHistory(roomId, limit)
+          );
+        } else {
+          history = await firstValueFrom(
+            this.loadChannelMessagesHistory(roomId, limit)
+          );
+        }
+      } catch (historyError: any) {
+        const status = historyError?.status;
+        console.warn(`Failed to load history for room ${roomId} (type: ${room.t || 'unknown'}):`, status || historyError?.message || historyError);
+        
+        if (roomId.length === 34) {
+          console.error(`Room ID appears to be a concatenated ID (34 chars): ${roomId}. This is not a valid RocketChat room ID.`);
+          console.error(`You need to create a proper DM room using createDirectMessage(username) first.`);
+        }
+        
+        history = [];
+        
+        const isAccessError = status === 400 || status === 403 || status === 404;
+        if (!isAccessError) {
+          try {
+            await this.subscribeToRoomMessages(roomId);
+            this.subscribeToTypingEvents(roomId);
+          } catch (subError) {
+            console.warn(`Could not subscribe to room ${roomId}:`, subError);
+          }
+        } else {
+          console.warn(`Skipping subscription for room ${roomId} due to access error ${status}`);
+        }
+
+        return {
+          history: [],
+          realtimeStream: this.getMessageStream().pipe(
+            filter((message) => message.rid === roomId)
+          ),
+          typingStream: this.typing$.pipe(
+            filter((event) => event.roomId === roomId)
+          ),
+        };
       }
 
       history.sort((a, b) => {
@@ -515,8 +637,12 @@ export class RocketChatService {
           ? this.normalizeTimestamp(history[history.length - 1].ts).getTime()
           : 0;
 
-      await this.subscribeToRoomMessages(roomId);
-     this.subscribeToTypingEvents(roomId);
+      try {
+        await this.subscribeToRoomMessages(roomId);
+        this.subscribeToTypingEvents(roomId);
+      } catch (subError: any) {
+        console.warn(`Subscription failed for room ${roomId}:`, subError);
+      }
 
       return {
         history,
@@ -551,16 +677,48 @@ export class RocketChatService {
 
   private handleWebSocketMessage(message: any): void {
 
-    if (message && message.msg === 'result' && this.loginResolver) {
+    if (message.msg === 'ping') {
+      this.sendWebSocketMessage({ msg: 'pong' });
+      return;
+    }
+
+    if (message.msg === 'ready' && Array.isArray(message.subs)) {
+      message.subs.forEach((subId: string) => {
+        this.activeSubscriptions.forEach((value, key) => {
+          if (value === subId) {
+            this.subscriptionRetryCount.delete(key);
+          }
+        });
+      });
+    }
+
+    if (message && message.msg === 'connected' && this.connectResolver) {
+        this.connectResolver.resolve();
+        this.connectResolver = null;
+        return;
+    }
+
+    if (message && message.msg === 'result' && this.loginResolver && message.id === this.loginResolver.loginId) {
       if (message.error) {
-        this.connectionInProgress = false;
+        console.error('WebSocket login failed:', message.error);
         this.loginResolver.reject(message.error);
         this.loginResolver = null;
-      } else if (message.result && message.result.id) {
-        this.connectionInProgress = false;
+      } else {
+        if (message.result && message.result.id) {
+          const newUserId = message.result.id;
+          if (this.credentials) {
+            if (this.credentials.userId !== newUserId) {
+              this.credentials.userId = newUserId;
+              localStorage.setItem('rocketChatCredentials', JSON.stringify(this.credentials));
+              this.clearUserSubscriptions();
+            }
+          }
+           this._serverTrueUserId = newUserId;
+        }
         this.loginResolver.resolve();
         this.loginResolver = null;
       }
+      return;
     }
     
     try {
@@ -623,16 +781,37 @@ export class RocketChatService {
         if (value === message.id) {
           found = true;
           try {
-            if (err && err.error === 'not-allowed' && (key.startsWith('typing-') || key.startsWith('user:'))) {
-              console.warn(`⚠️ Subscription not allowed for ${key}. Removing local subscription and relying on fallback if available.`);
+            if (err && err.error === 'not-allowed') {
+              console.warn(`Subscription rejected (not-allowed) for: ${key}. Removing subscription (no retry - permission denied).`);
               this.activeSubscriptions.delete(key);
+              this.subscriptionRetryCount.delete(key);
             } else {
-              console.error(`❌ Subscription failed for: ${key}`);
-              this.activeSubscriptions.delete(key);
+              const retryCount = this.subscriptionRetryCount.get(key) || 0;
+              if (retryCount < 1) {
+                console.warn(`Subscription failed for: ${key}. Will attempt one-time retry in 3 seconds.`);
+                this.activeSubscriptions.delete(key);
+                this.subscriptionRetryCount.set(key, retryCount + 1);
+                
+                setTimeout(() => {
+                  if (key.startsWith('user:')) {
+                    this.subscribeToUserNotifications(key.slice(5)).catch(() => {});
+                  } else if (key.includes(':notify:')) {
+                    const parts = key.split(':notify:');
+                    this.subscribeToRoomNotifications(parts[0], parts[1]).catch(() => {});
+                  } else {
+                    this.subscribeToRoomMessages(key).catch(() => {});
+                  }
+                }, 3000);
+              } else {
+                console.error(`Subscription failed for: ${key} after ${retryCount} retry attempts. Giving up.`);
+                this.activeSubscriptions.delete(key);
+                this.subscriptionRetryCount.delete(key);
+              }
             }
           } catch (e) {
             console.error('Error handling nosub for subscription key:', key, e);
             this.activeSubscriptions.delete(key);
+            this.subscriptionRetryCount.delete(key);
           }
         }
       });
@@ -653,31 +832,10 @@ export class RocketChatService {
       }
     }
 
-    if (message.msg === 'connected') {
-      this.connectionSubject.next(true);
-
-      this.subscribeToUserNotifications('message').catch((err) => {
-        console.error('Failed to subscribe to user:message on connect:', err);
-      });
-
-      this.getRooms().subscribe({
-        next: (rooms: any[]) => {
-          if (Array.isArray(rooms)) {
-            rooms.forEach((r: any) => {
-              const roomId = r && (r._id || r.id || r.roomId);
-              if (!roomId) return;
-              if (!this.activeSubscriptions.has(roomId)) {
-                this.subscribeToRoomMessages(roomId).catch((err) => {
-                  console.error(`Failed subscribing to room ${roomId} on connect:`, err);
-                });
-              }
-            });
-          }
-        },
-        error: (err) => console.error('Failed to load rooms on connect:', err),
-      });
-
-      this.resubscribeToActiveRooms();
+    if (message.msg === 'connected' && this.connectResolver) {
+      this.connectResolver.resolve();
+      this.connectResolver = null;
+      return;
     }
 
     if (
@@ -807,89 +965,114 @@ export class RocketChatService {
 
   private resubscribeToActiveRooms(): void {
     if (!this.activeSubscriptions.has('user:message')) {
-      this.subscribeToUserNotifications('message').catch((error) => {
+      this.subscribeToUserNotifications('message').then(() => {
+      }).catch((error) => {
         console.error('Failed to subscribe to user:message notifications:', error);
-      });
-    }
-    if (this.activeSubscriptions.size > 0) {
-      this.activeSubscriptions.forEach((subscriptionId, key) => {
-        try {
-          if (typeof key === 'string' && key.startsWith('typing-')) {
-            return;
-          }
-
-          if (typeof key === 'string' && key.startsWith('user:')) {
-            const event = key.slice(5);
-            this.subscribeToUserNotifications(event).catch((error) => {
-              console.error(`Failed to resubscribe to user event ${event}:`, error);
+        setTimeout(() => {
+          if (!this.activeSubscriptions.has('user:message')) {
+            this.subscribeToUserNotifications('message').catch((retryError) => {
+              console.error('Retry failed for user:message:', retryError);
             });
-            return;
           }
-    
-          if (typeof key === 'string' && key.includes(':notify:')) {
-            const parts = key.split(':notify:');
-            const parsedRoomId = parts[0];
-            const eventName = parts[1];
-            if (parsedRoomId && eventName) {
-              this.subscribeToRoomNotifications(parsedRoomId, eventName).catch(() => {});
-              return;
-            }
-          }
-
-          const roomId = key;
-          this.subscribeToRoomMessages(roomId);
-          try {
-            this.joinTypingRoom(roomId);
-          } catch (err) {
-            console.error('Failed to join typing room via WebSocketService:', err);
-          }
-          this.subscribeToRoomMessages(roomId).catch((error) => {
-            console.error(`Failed to resubscribe to room ${roomId}:`, error);
-          });
-        } catch (err) {
-          console.error('Error while resubscribing active subscriptions:', err);
-        }
+        }, 3000);
       });
     }
+    
+    this.getRooms().subscribe({
+      next: (rooms: any[]) => {
+        const validRoomIds = new Set<string>();
+        if (Array.isArray(rooms)) {
+          rooms.forEach((r: any) => {
+            const roomId = r && (r._id || r.id || r.roomId);
+            if (roomId) {
+              validRoomIds.add(roomId);
+            }
+          });
+        }
+
+        if (this.activeSubscriptions.size > 0) {
+          this.activeSubscriptions.forEach((subscriptionId, key) => {
+            try {
+              if (typeof key === 'string' && key.startsWith('typing-')) {
+                return;
+              }
+
+              if (typeof key === 'string' && key.startsWith('user:')) {
+                const event = key.slice(5);
+                this.subscribeToUserNotifications(event).catch((error) => {
+                  console.error(`Failed to resubscribe to user event ${event}:`, error);
+                });
+                return;
+              }
+        
+              if (typeof key === 'string' && key.includes(':notify:')) {
+                const parts = key.split(':notify:');
+                const parsedRoomId = parts[0];
+                const eventName = parts[1];
+                if (parsedRoomId && eventName && validRoomIds.has(parsedRoomId)) {
+                  this.subscribeToRoomNotifications(parsedRoomId, eventName).catch(() => {});
+                } else if (parsedRoomId && !validRoomIds.has(parsedRoomId)) {
+                  console.warn(`Skipping resubscription to invalid room: ${parsedRoomId}`);
+                  this.activeSubscriptions.delete(key);
+                }
+                return;
+              }
+
+              const roomId = key;
+              if (validRoomIds.has(roomId)) {
+                this.subscribeToRoomMessages(roomId).catch((error) => {
+                  console.error(`Failed to resubscribe to room ${roomId}:`, error);
+                });
+                try {
+                  this.joinTypingRoom(roomId);
+                } catch (err) {
+                  console.error('Failed to join typing room via WebSocketService:', err);
+                }
+              } else {
+                console.warn(`Skipping resubscription to invalid room: ${roomId}`);
+                this.activeSubscriptions.delete(key);
+              }
+            } catch (err) {
+              console.error('Error while resubscribing active subscriptions:', err);
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to get rooms for validation:', err);
+      }
+    });
+  }
+
+  private clearUserSubscriptions(): void {
+    const keysToDelete: string[] = [];
+    this.activeSubscriptions.forEach((value, key) => {
+      if (typeof key === 'string' && key.startsWith('user:')) {
+        keysToDelete.push(key);
+      }
+    });
+    keysToDelete.forEach(key => {
+      this.activeSubscriptions.delete(key);
+      this.subscriptionRetryCount.delete(key);
+    });
   }
 
   async subscribeToRoomMessages(roomId: string): Promise<void> {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      await this.connectWebSocket();
-    }
-
-    const subscriptionId = this.generateSubscriptionId();
-
-    this.sendWebSocketMessage({
-      msg: 'sub',
-      id: subscriptionId,
-      name: 'stream-room-messages',
-      params: [roomId, false],
-    });
-
-    this.activeSubscriptions.set(roomId, subscriptionId);
+    const subKey = roomId;
+    const name = 'stream-room-messages';
+    const params = [roomId, false];
     
+    await this.internalSubscribe(subKey, name, params);
     await this.subscribeToRoomNotifications(roomId, 'deleteMessage');
   }
 
   async subscribeToRoomNotifications(roomId: string, eventName: string): Promise<void> {
     if (!roomId || !eventName) return;
+    const subKey = `${roomId}:notify:${eventName}`;
+    const name = 'stream-notify-room';
+    const params = [`${roomId}/${eventName}`, false];
 
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      await this.connectWebSocket();
-    }
-
-    const subscriptionId = this.generateSubscriptionId();
-    const param = `${roomId}/${eventName}`;
-
-    this.sendWebSocketMessage({
-      msg: 'sub',
-      id: subscriptionId,
-      name: 'stream-notify-room',
-      params: [param, false],
-    });
-    
-    this.activeSubscriptions.set(`${roomId}:notify:${eventName}`, subscriptionId);
+    await this.internalSubscribe(subKey, name, params);
   }
 
   public joinTypingRoom(roomId: string): void {
@@ -905,27 +1088,60 @@ export class RocketChatService {
     if (!this.credentials) {
       throw new Error('Not authenticated');
     }
-
     const subKey = `user:${event}`;
+    const name = 'stream-notify-user';
+    const params = [`${this.credentials.userId}/${event}`, false];
+
+    await this.internalSubscribe(subKey, name, params);
+  }
+
+  private async internalSubscribe(subKey: string, name: string, params: any[]): Promise<void> {
     if (this.activeSubscriptions.has(subKey)) {
       return;
     }
 
+    const subscriptionId = this.generateSubscriptionId();
+
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      await this.connectWebSocket();
+      try {
+        await this.connectWebSocket();
+      } catch (err) {
+        throw err;
+      }
     }
 
-    const subscriptionId = this.generateSubscriptionId();
-    const param = `${this.credentials.userId}/${event}`;
+    if (name === 'stream-notify-user' || subKey.startsWith('user:')) {
+      const parts = subKey.split(':');
+      const event = parts.length > 1 ? parts[1] : 'subscriptions-changed';
+      
+      const confirmedUserId = this._serverTrueUserId || this.credentials?.userId;
+      
+      if (confirmedUserId) {
+        if (confirmedUserId !== params[0]?.split('/')[0]) {
+           params = [`${confirmedUserId}/${event}`, false];
+        }
+      } else {
+        console.warn(`No confirmed User ID found for ${subKey}, using original params:`, params);
+      }
+    }
+
+    const userIdInParams = params[0]?.split('/')[0];
+    if (name === 'stream-notify-user' && (!userIdInParams || userIdInParams === 'undefined')) {
+      console.error('Aborting subscription: Invalid User ID in params:', params);
+      return;
+    }
+
+    this.activeSubscriptions.set(subKey, subscriptionId);
+    this.subscriptionRetryCount.delete(subKey);
+
+    await new Promise(res => setTimeout(res, 500));
 
     this.sendWebSocketMessage({
       msg: 'sub',
       id: subscriptionId,
-      name: 'stream-notify-user',
-      params: [param, false],
+      name: name,
+      params: params,
     });
-
-    this.activeSubscriptions.set(subKey, subscriptionId);
   }
 
   subscribeToCallEvents(roomId: string): void {
@@ -1083,8 +1299,19 @@ export class RocketChatService {
           clearTimeout(confirmationTimeout);
 
           if (wsMessage.error) {
-            console.error('❌ Server returned error:', wsMessage.error);
-            observer.next({ success: false, error: wsMessage.error.message });
+            const errorDetails = wsMessage.error;
+            const errorMessage = errorDetails.message || errorDetails.error || 'Unknown error';
+            
+            if (errorDetails.error === 'error-not-allowed' || errorMessage.includes('not-allowed')) {
+              console.error('Permission denied: Cannot send message to this room. Error:', errorDetails);
+            } else {
+              console.error('Server returned error:', errorDetails);
+            }
+            
+            observer.next({ 
+              success: false, 
+              error: errorMessage,
+            });
           } else {
             observer.next({ success: true, message: wsMessage.result });
           }
@@ -1370,10 +1597,19 @@ export class RocketChatService {
   ): Observable<RocketChatMessage[]> {
     return this.http
       .get<any>(
-        `${this.CHAT_API_URI}dm.history?roomId=${roomId}&count=${limit}&unreads=true`,
+        `${this.CHAT_API_URI}im.history?roomId=${roomId}&count=${limit}&unreads=true`,
         { headers: this.getAuthHeaders() }
       )
-      .pipe(map((res: any) => res.messages as RocketChatMessage[]));
+      .pipe(
+        map((res: any) => res.messages as RocketChatMessage[]),
+        catchError(err => {
+          if (err.status === 400 || err.status === 404) {
+            console.warn(`im.history failed for ${roomId} (might be a concatenated ID)`);
+            return of([]);
+          }
+          return throwError(() => err);
+        })
+      );
   }
 
   async login(email: string, password: string): Promise<RocketChatCredentials> {
@@ -1415,6 +1651,9 @@ export class RocketChatService {
         .toPromise();
 
       if (testResponse.success) {
+        if (testResponse._id && testResponse._id !== credentials.userId) {
+          credentials.userId = testResponse._id;
+        }
         this.saveCredentials(credentials);
         this.saveUserData();
       } else {
@@ -1428,8 +1667,19 @@ export class RocketChatService {
   }
 
   saveUserData() {
-    this.getCurrentUser().subscribe((user: RocketChatUser) => {
+    this.getCurrentUser().subscribe((user: any) => {
       this.loggedInUser = user;
+      if (user._id && this.credentials) {
+        if (this.credentials.userId !== user._id) {
+          console.warn(`ID Mismatch in profile! Local: ${this.credentials.userId} -> Profile: ${user._id}`);
+          if (this._serverTrueUserId && this._serverTrueUserId !== user._id) {
+             console.error(`REFUSING to overwrite server-confirmed ID ${this._serverTrueUserId} with profile ID ${user._id}`);
+          } else {
+            this.credentials.userId = user._id;
+            localStorage.setItem('rocketChatCredentials', JSON.stringify(this.credentials));
+          }
+        }
+      }
     });
   }
 
@@ -1673,32 +1923,52 @@ export class RocketChatService {
   }
 
   async createDirectMessage(username: string): Promise<RocketChatRoom> {
-    const response: any = await this.http
-      .post(
-        `${this.CHAT_API_URI}dm.create`,
-        { username },
-        { headers: this.getAuthHeaders() }
-      )
-      .toPromise();
+    try {
+      const response: any = await firstValueFrom(
+        this.http.post(`${this.CHAT_API_URI}im.create`, { username }, { headers: this.getAuthHeaders() })
+      );
+      
+      if (response && response.success) {
+        return response.room;
+      }
+    } catch (err) {
+      console.warn('im.create failed, trying dm.create...', err);
+    }
 
-    if (response.success) {
-      return response.room;
-    } else {
-      throw new Error(response.error || 'Failed to create direct message');
+    try {
+      const response: any = await firstValueFrom(
+        this.http.post(`${this.CHAT_API_URI}dm.create`, { username }, { headers: this.getAuthHeaders() })
+      );
+      
+      if (response && response.success) {
+        return response.room;
+      }
+      throw new Error(response?.error || 'Failed to create direct message');
+    } catch (err: any) {
+      console.error('All DM creation methods failed:', err);
+      throw err;
     }
   }
 
   async getDirectMessages(): Promise<RocketChatRoom[]> {
-    const response: any = await this.http
-      .get(`${this.CHAT_API_URI}dm.list`, {
-        headers: this.getAuthHeaders(),
-      })
-      .toPromise();
+    try {
+      const response: any = await firstValueFrom(
+        this.http.get(`${this.CHAT_API_URI}im.list`, { headers: this.getAuthHeaders() })
+      );
+      if (response && response.success) return response.ims || [];
+    } catch (err) {
+      console.warn('im.list failed, trying dm.list...', err);
+    }
 
-    if (response.success) {
-      return response.ims || [];
-    } else {
-      throw new Error(response.error || 'Failed to get direct messages');
+    try {
+      const response: any = await firstValueFrom(
+        this.http.get(`${this.CHAT_API_URI}dm.list`, { headers: this.getAuthHeaders() })
+      );
+      if (response && response.success) return response.ims || [];
+      return [];
+    } catch (err) {
+      console.error('All DM list methods failed:', err);
+      return [];
     }
   }
 
