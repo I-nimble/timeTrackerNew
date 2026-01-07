@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "562152489018",
+    "project_id": "inimbleapp",
+    "storage_bucket": "inimbleapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:562152489018:android:89a5a75e4388545f29f503",
+        "android_client_info": {
+          "package_name": "com.inimbleapp.timetracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "562152489018-aub77vo64rgj16n9slii7fe8cifc1vr6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzNRtOkTHIPdxQ-Mwy7h0nBst85k-ng8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "562152489018-aub77vo64rgj16n9slii7fe8cifc1vr6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
