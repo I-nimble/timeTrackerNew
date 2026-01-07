@@ -56,6 +56,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
   selectedTabLabel: string = '';
+  isCandidate = false;
   notificationStore = inject(NotificationStore);
   private fb = inject(FormBuilder);
   user: any = {
@@ -291,8 +292,8 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';    
     this.getUser();
-    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
     this.loadExistingVideo(); 
     this.route.queryParams.subscribe(params => {
@@ -304,16 +305,8 @@ export class AppAccountSettingComponent implements OnInit {
       this.checkSubscriptionSuccess();
     }); 
     this.loadSubscriptionStatus();
-
-    if (this.isOrphan) {
-      this.getLocations();
-      this.getPositions();
-      this.setupConditionalValidation();
-      
-      this.personalForm.get('phone')?.clearValidators();
-      this.personalForm.get('address')?.clearValidators();
-      this.personalForm.get('phone')?.updateValueAndValidity();
-      this.personalForm.get('address')?.updateValueAndValidity();
+    if (this.isCandidate) {
+      this.initializeApplicationFormDependencies();
     }
 
     this.setupNameTrimming(this.personalForm, 'name');
@@ -331,6 +324,26 @@ export class AppAccountSettingComponent implements OnInit {
   getPositions(): void {
     // Using careerRoles directly instead of positions from API
     // since we only need VA and IT positions for orphan TM
+  }
+
+  private evaluateApplicationVisibility(): void {
+    if (this.isOrphan) {
+      this.isCandidate = true;
+      return;
+    }
+    this.isCandidate =
+      !!this.user?.application &&
+      this.user.application.inmediate_availability == 1;
+  }
+
+  private initializeApplicationFormDependencies(): void {
+    this.getLocations();
+    this.getPositions();
+    this.setupConditionalValidation();
+    this.personalForm.get('phone')?.clearValidators();
+    this.personalForm.get('address')?.clearValidators();
+    this.personalForm.get('phone')?.updateValueAndValidity();
+    this.personalForm.get('address')?.updateValueAndValidity();
   }
 
   setupConditionalValidation(): void {
@@ -369,16 +382,16 @@ export class AppAccountSettingComponent implements OnInit {
 
   availabilityChange(event: MatSlideToggleChange): void {
     const availability = event.checked;
-    this.user.availability = availability;
-    this.personalForm.get('availability')?.setValue(availability);
+    if (this.user.application) {
+      this.user.application.inmediate_availability = availability;
+      this.evaluateApplicationVisibility();
+    }
+    this.personalForm.get('availability')?.setValue(availability, { emitEvent: false });
     this.formChanged = true;
     this.checkFormChanges();
-    if (!this.applicationId) {
-      return;
-    }
-    this.applicationsService.updateAvailability(this.applicationId, availability).subscribe({
+    this.applicationsService.updateAvailability(this.user.id, availability).subscribe({
       next: () => {
-        this.loadApplicationDetails(Number(localStorage.getItem('id')));
+        this.loadApplicationDetails(this.user.id);
         this.permissionService.notifyPermissionsUpdated();
       },
       error: (err) => {
@@ -522,14 +535,12 @@ export class AppAccountSettingComponent implements OnInit {
           this.user = users[0];
           this.loadExistingVideo();
           this.checkMatchRequestStatus() 
+          this.evaluateApplicationVisibility();
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
+             this.loadApplicationDetails(this.user.id);
           }
-          if (this.role === '2' && this.isOrphan) {
-            this.loadApplicationDetails(this.user.id);
-          }
-          
           this.usersService.getProfilePic(this.user.id).subscribe({
             next: (url: any) => {
               if (url) {
@@ -546,9 +557,14 @@ export class AppAccountSettingComponent implements OnInit {
     this.applicationsService.getUserApplication(userId).subscribe({
       next: (application: any) => {
         this.application = application;
+        this.user.application = application;
+        this.initializeApplicationFormDependencies();
+        this.evaluateApplicationVisibility();
         if (application) {
           this.applicationId = application.id;
-          
+          this.personalForm.patchValue({
+            availability: application.inmediate_availability == 1
+          });
           const roleFromPosition = this.careerRoles.find(
             r => r.title === application.current_position
           );
@@ -608,7 +624,6 @@ export class AppAccountSettingComponent implements OnInit {
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
       address: this.personalForm.get('address')?.value,
-      availability: this.personalForm.get('availability')?.value,
     };
 
     // Check if any form field has changed
@@ -617,8 +632,7 @@ export class AppAccountSettingComponent implements OnInit {
       currentFormData.last_name !== this.originalUserData.last_name ||
       currentFormData.email !== this.originalUserData.email ||
       currentFormData.phone !== this.originalUserData.phone ||
-      currentFormData.address !== this.originalUserData.address ||
-      currentFormData.availability !== this.originalUserData.availability;
+      currentFormData.address !== this.originalUserData.address;
 
     // Check if profile picture or video has changed
     const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
@@ -649,7 +663,7 @@ export class AppAccountSettingComponent implements OnInit {
         email: this.user.email,
         phone: this.user.phone,
         address: this.user.address,
-        availability: this.user.availability
+        availability: this.user.application?.inmediate_availability ?? false,
       };
 
       // Populate personal form
@@ -660,7 +674,7 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
-        availability: this.user.availability == 1
+        availability: this.user.application?.inmediate_availability ?? false
       });
 
 
@@ -762,7 +776,7 @@ export class AppAccountSettingComponent implements OnInit {
     if (this.role === '3') {
       return this.profileForm.valid;
     } else {
-      if (this.isOrphan) {
+      if (this.isCandidate) {
         return this.personalForm.valid && this.applicationForm.valid;
       }
       return this.personalForm.valid && this.formChanged;
@@ -884,7 +898,7 @@ export class AppAccountSettingComponent implements OnInit {
                 this.applicationId
               ).subscribe();
             }
-            if (this.isOrphan && this.applicationId) {
+            if (this.isCandidate && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
             else if (this.selectedVideoFile) {
