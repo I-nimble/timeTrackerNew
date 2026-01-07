@@ -43,7 +43,7 @@ export class PushNotificationService {
       PushNotifications.addListener('pushNotificationReceived', async (notification) => {
         const title = notification.title || 'New Notification';
         const body = notification.body || '';
-        const id = new Date().getTime();
+        const id = new Date().getTime() % 2147483647;
 
         try {
           await LocalNotifications.schedule({

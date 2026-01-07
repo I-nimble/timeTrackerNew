@@ -80,6 +80,7 @@ export class RocketChatService {
   isChatAvailable: boolean = false;
   callsAvailable: boolean = false;
   private connectionInProgress = false;
+  private connectingPromise: Promise<void> | null = null;
   private loginResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
@@ -370,19 +371,17 @@ export class RocketChatService {
       throw new Error('Not authenticated');
     }
 
-    if (this.connectionInProgress) {
-      // console.log('WebSocket connection already in progress, skipping...');
-      return;
+    if (this.connectingPromise) {
+      return this.connectingPromise;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      // console.log('WebSocket already connected, skipping...');
       return;
     }
 
     this.connectionInProgress = true;
 
-    return new Promise((resolve, reject) => {
+    this.connectingPromise = new Promise<void>((resolve, reject) => {
       try {
         if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
             this.socket.close(1000, 'Reconnecting');
@@ -460,7 +459,11 @@ export class RocketChatService {
         this.connectionInProgress = false;
         reject(error);
     }
+    }).finally(() => {
+        this.connectingPromise = null;
     });
+
+    return this.connectingPromise;
   }
 
   private sendWebSocketMessage(message: any): void {
