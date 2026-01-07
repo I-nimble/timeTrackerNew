@@ -25,6 +25,7 @@ export class AppTalentMatchComponent {
   userEmail = localStorage.getItem('email');
   isOrphan = localStorage.getItem('isOrphan') === 'true';
   canViewTalentMatch = false;
+  canManageTalentMatch = false;
   allowedTM = false;
 
   constructor(
@@ -40,6 +41,7 @@ export class AppTalentMatchComponent {
       next: (userPerms: any) => {
         const effective = userPerms.effectivePermissions || [];
         this.canViewTalentMatch = effective.includes('talent-match.view');
+        this.canManageTalentMatch = effective.includes('talent-match.manage');
       },
       error: (err) => {
         console.error('Error fetching user permissions', err);
