@@ -475,7 +475,16 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any[]) => {
-        this.allCandidates = applications.map((a: any) => ({ ...a }));
+        // Ordenar aplicaciones por match_percentage de mayor a menor
+        const sortedApplications = applications
+          .map((a: any) => ({ ...a }))
+          .sort((a, b) => {
+            const aMatch = a.overall_match_percentage || a.match_percentage || 0;
+            const bMatch = b.overall_match_percentage || b.match_percentage || 0;
+            return bMatch - aMatch; // Orden descendente
+          });
+
+        this.allCandidates = sortedApplications;
         this.dataSource = new MatTableDataSource(this.allCandidates);
         this.getAllMatchScores();
 
