@@ -84,6 +84,7 @@ export class RocketChatService {
   private connectionPromise: Promise<void> | null = null;
   private loginResolver: { resolve: () => void; reject: (err: any) => void; loginId: string } | null = null;
   private connectResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
+  private shouldInitialize = false;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
@@ -238,13 +239,33 @@ export class RocketChatService {
     if (stored) {
       try {
         this.credentials = JSON.parse(stored);
-        this.initializeRocketChat(this.credentials);
         this.credentialsSubject.next(this.credentials);
         this.connectionSubject.next(true);
       } catch (error) {
         console.error('Error loading Rocket.Chat credentials:', error);
         this.clearCredentials();
       }
+    }
+  }
+
+  public async initializeAfterLogin(chatCredentials?: any): Promise<void> {
+    try {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.close();
+        this.socket = null;
+      }
+      
+      this.activeSubscriptions.clear();
+      this.subscriptionRetryCount.clear();
+      
+      await this.loginWithCredentials(chatCredentials);
+      this.isChatAvailable = true;
+
+      const permissionGranted = await this.requestMediaPermissions();
+      this.callsAvailable = permissionGranted;
+    } catch (error) {
+      console.error("Initialization failed with error:", error);
+      throw error;
     }
   }
 
@@ -429,7 +450,14 @@ export class RocketChatService {
                 });
 
                 await loginPromise;
-                console.log('Login authenticated');
+
+                if (this.credentials && this._serverTrueUserId && this.credentials.userId !== this._serverTrueUserId) {
+                  console.warn('ID MISMATCH - Forcing credential update');
+                  this.credentials.userId = this._serverTrueUserId;
+                  localStorage.setItem('rocketChatCredentials', JSON.stringify(this.credentials));
+                  this.credentialsSubject.next(this.credentials);
+                }
+
                 this.connectionSubject.next(true);
 
                 this.getRooms().subscribe({
@@ -706,14 +734,20 @@ export class RocketChatService {
       } else {
         if (message.result && message.result.id) {
           const newUserId = message.result.id;
-          if (this.credentials) {
-            if (this.credentials.userId !== newUserId) {
-              this.credentials.userId = newUserId;
-              localStorage.setItem('rocketChatCredentials', JSON.stringify(this.credentials));
-              this.clearUserSubscriptions();
-            }
+
+          if (this.credentials && this.credentials.userId !== newUserId) {
+            console.warn(`User ID mismatch detected. Updating from ${this.credentials.userId} to ${newUserId}`);
+            this.credentials.userId = newUserId;
+            this._serverTrueUserId = newUserId;
+            
+            localStorage.setItem('rocketChatCredentials', JSON.stringify(this.credentials));
+            
+            this.clearUserSubscriptions();
+            this.activeSubscriptions.clear();
+            this.subscriptionRetryCount.clear();
+          } else {
+            this._serverTrueUserId = newUserId;
           }
-           this._serverTrueUserId = newUserId;
         }
         this.loginResolver.resolve();
         this.loginResolver = null;
@@ -1117,11 +1151,10 @@ export class RocketChatService {
       const confirmedUserId = this._serverTrueUserId || this.credentials?.userId;
       
       if (confirmedUserId) {
-        if (confirmedUserId !== params[0]?.split('/')[0]) {
-           params = [`${confirmedUserId}/${event}`, false];
-        }
+        params = [`${confirmedUserId}/${event}`, false];
       } else {
-        console.warn(`No confirmed User ID found for ${subKey}, using original params:`, params);
+        console.error(`No confirmed User ID found for ${subKey}, cannot subscribe`);
+        return;
       }
     }
 
@@ -1650,9 +1683,13 @@ export class RocketChatService {
         .get(`${this.CHAT_API_URI}me`, { headers })
         .toPromise();
 
+      this._serverTrueUserId = credentials.userId;
       if (testResponse.success) {
         if (testResponse._id && testResponse._id !== credentials.userId) {
+          console.warn(`Server returned different user ID. Updating from ${credentials.userId} to ${testResponse._id}`);
           credentials.userId = testResponse._id;
+          
+          this._serverTrueUserId = testResponse._id;
         }
         this.saveCredentials(credentials);
         this.saveUserData();
