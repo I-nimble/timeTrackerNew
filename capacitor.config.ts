@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
             androidHardwareAccelerationType: "hardware",
             androidAllowMixedContent: true,
             handleWebRTCPermissions: true 
+        },
+        PushNotifications: {
+            presentationOptions: ["badge", "sound", "alert"]
         }
     }
 };

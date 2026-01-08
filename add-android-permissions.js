@@ -18,7 +18,9 @@ function addAndroidPermissions() {
     '<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />',
     '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
     '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-    '<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />'
+    '<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />',
+    '<uses-permission android:name="android.permission.VIBRATE" />',
+    '<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />',
   ];
 
   let updated = false;
