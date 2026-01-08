@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { StripeFactoryService } from './stripe-factory.service';
 import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -10,12 +10,21 @@ import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { trigger, style, animate, transition } from '@angular/animations';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { CustomSearchService } from 'src/app/services/custom-search.service';
 
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
   styleUrls: ['./stripe.component.scss'],
-  imports: [MaterialModule, CommonModule, FormsModule, ReactiveFormsModule, TablerIconsModule],
+  imports: [
+    MaterialModule, 
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    TablerIconsModule,
+    MatSlideToggleModule
+  ],
   animations: [
     trigger('fadeInUp', [
       transition(':enter', [
@@ -38,25 +47,34 @@ export class StripeComponent implements OnInit, OnDestroy {
   paymentStatus: 'initial' | 'processing' | 'succeeded' | 'failed' = 'initial';
   errorMessage: string | null = null;
   clientSecret: string | null = null;
+  clientInfo: any = null;
+  useClientInfoControl = new FormControl(true);
+  isClientInfoLoading = false;
 
   constructor(
     private fb: FormBuilder,
     private stripeFactory: StripeFactoryService,
     private snackBar: MatSnackBar,
     private stripeService: StripeService,
-    private router: Router
+    private router: Router,
+    private customSearchService: CustomSearchService
   ) {}
 
   async ngOnInit() {
     this.paymentForm = this.fb.group({
       name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+      email: ['', [Validators.required, Validators.email]],
+    });
+    this.useClientInfoControl.valueChanges.subscribe(useInfo => {
+      this.onToggleClientInfo(useInfo || false);
     });
 
-    // Inicializar Stripe
+    // Initialize Stripe
     this.stripe = await this.stripeFactory.getStripe();
     
-    // Crear PaymentIntent
+    await this.loadClientInfo();
+    
+    // Create PaymentIntent
     try {
       const response = await firstValueFrom(
         this.stripeService.createPaymentIntent(this.invoiceId)
@@ -68,6 +86,64 @@ export class StripeComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error creating PaymentIntent:', error);
       this.errorMessage = 'Failed to initialize payment. Please try again.';
+    }
+  }
+
+  async loadClientInfo(): Promise<void> {
+    this.isClientInfoLoading = true;
+    try {
+      const userId = localStorage.getItem('id');
+      
+      if (!userId) {
+        console.warn('User ID not found in localStorage');
+        return;
+      }
+
+      const response = await firstValueFrom(
+        this.customSearchService.getClientInfo(userId)
+      );
+      
+      if (response.success) {
+        this.clientInfo = response.data;
+        if (this.useClientInfoControl.value) {
+          this.populateFormWithClientInfo();
+        }
+      } else {
+        console.warn('Failed to load client info:', response);
+      }
+    } catch (error) {
+      console.error('Error loading client info:', error);
+    } finally {
+      this.isClientInfoLoading = false;
+    }
+  }
+
+  populateFormWithClientInfo() {
+    if (this.clientInfo) {
+      this.paymentForm.patchValue({
+        name: this.clientInfo.contact_person || '',
+        email: this.clientInfo.email || '',
+      });
+    }
+  }
+
+  clearFormInfo() {
+    this.paymentForm.patchValue({
+      name: '',
+      email: '',
+      phone: ''
+    });
+    
+    this.paymentForm.get('name')?.enable();
+    this.paymentForm.get('email')?.enable();
+    this.paymentForm.get('phone')?.enable();
+  }
+
+  onToggleClientInfo(useInfo: boolean) {    
+    if (useInfo && this.clientInfo) {
+      this.populateFormWithClientInfo();
+    } else {
+      this.clearFormInfo();
     }
   }
 
@@ -95,18 +171,15 @@ export class StripeComponent implements OnInit, OnDestroy {
         spacedAccordionItems: false
       },
     };
-
-    // Crear elementos de Stripe
+    // Create Stripe elements
     this.elements = this.stripe.elements({
       clientSecret: this.clientSecret,
       appearance
     });
 
-    // Crear y montar el elemento de pago
     this.paymentElement = (this.elements as any).create('payment', options);
     this.paymentElement?.mount(this.paymentElementContainer.nativeElement);
 
-    // Escuchar cambios en el elemento de pago
     this.paymentElement?.on('change', (event: any) => {
       this.errorMessage = event.error?.message || null;
     });
@@ -123,6 +196,10 @@ export class StripeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.paymentForm.disabled) {
+      this.paymentForm.enable();
+    }
+    
     if (this.paymentForm.invalid) {
       this.paymentForm.markAllAsTouched();
       return;
@@ -150,7 +227,6 @@ export class StripeComponent implements OnInit, OnDestroy {
         throw error;
       }
 
-      // Verificar el estado del pago
       if (paymentIntent?.status === 'succeeded') {
         this.paymentStatus = 'succeeded';
         this.snackBar.open('Payment succeeded!', 'Close', {
