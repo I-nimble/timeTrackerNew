@@ -63,4 +63,8 @@ export class EmployeesService {
   public getLocations(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/locations`);
   }
+
+  public getEmployeeGeolocation(userId: number): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/geolocation/${userId}`);
+  }
 }
