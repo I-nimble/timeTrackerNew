@@ -1,17 +1,33 @@
 <mat-card class="cardWithShadow">
   <mat-card-content>
+    <div class="d-flex justify-content-center align-items-center m-b-16">
+      <img src="assets/images/my-sentinel.png" alt="My Sentinel Logo" height="120"/>
+    </div>
+    <div *ngIf="showKeywordFilter && availableKeywords.length > 0" class="d-flex justify-content-center align-items-center mb-16">
+      <mat-form-field appearance="outline" class="col-6">
+        <mat-label>Filter by Keywords</mat-label>
+        <mat-select multiple [(ngModel)]="selectedKeywords" (selectionChange)="onKeywordFilterChange()">
+          <mat-option *ngFor="let keyword of availableKeywords" [value]="keyword">
+            {{ keyword }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
     <div class="d-flex justify-content-center align-items-center mb-16">
       <app-match
         appearance="outline"
         class="flex-grow-1 hide-hint m-b-0 m-r-20"
         [loading]="aiLoading"
-        [aiEnabled]="!useManualSearch"
-        [showCustomSearch]="false"
+        [aiEnabled]="true"
+        [showCustomSearch]="true"
+        [hasKeywords]="selectedKeywords.length > 0"
         placeholder="Search posts..."
         (askAI)="askGemini($event)"
-        (searchChange)="useManualSearch ? onManualSearch($event) : null">
+        (searchChange)="onManualSearch($event)">
       </app-match>
     </div>
+
     <div *ngIf="aiLoading || aiAnswer" class="mb-16">
       <mat-card color="accent" class="p-16">
         <div>

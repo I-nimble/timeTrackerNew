@@ -306,6 +306,19 @@ export class AppTalentMatchClientComponent implements OnInit {
         } else {
           this.aiAnswer = 'No matches.';
         }
+
+        const orderedIds = orderedCandidates.map(c => c.id);
+        this.saveAISearchState(searchQuery, orderedIds, {
+          selectedRole: this.selectedRole,
+          selectedPracticeArea: this.selectedPracticeArea,
+          budgetRange: this.budgetRange,
+          isMonthlyRate: this.isMonthlyRate,
+          selectedSkillsTools: this.selectedSkillsTools,
+          selectedCertifications: this.selectedCertifications,
+          selectedBackground: this.selectedBackground,
+          roleDescription: this.roleDescription,
+          query: this.query
+        });
       },
       error: (err) => {
         if (err.status === 429) {
@@ -357,6 +370,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   onManualSearch(query?: string) {
+    this.clearAISearchState();
+
     const searchQuery = query || this.query;
     this.query = searchQuery;
     const lower = searchQuery.toLowerCase();
@@ -458,9 +473,41 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any[]) => {
-        this.allCandidates = applications.map((a: any) => ({ ...a }));
+        const sortedApplications = applications
+          .map((a: any) => ({ ...a }))
+          .sort((a, b) => {
+            const aMatch = a.overall_match_percentage || a.match_percentage || 0;
+            const bMatch = b.overall_match_percentage || b.match_percentage || 0;
+            return bMatch - aMatch;
+          });
+
+        this.allCandidates = sortedApplications;
         this.dataSource = new MatTableDataSource(this.allCandidates);
         this.getAllMatchScores();
+
+        const stored = this.loadAISearchState();
+
+        if (stored && stored.ids.length > 0 && this.allCandidates.length > 0) {
+          if (stored.filters.selectedRole !== undefined) this.selectedRole = stored.filters.selectedRole;
+          if (stored.filters.selectedPracticeArea !== undefined) this.selectedPracticeArea = stored.filters.selectedPracticeArea;
+          if (stored.filters.budgetRange) this.budgetRange = stored.filters.budgetRange;
+          if (stored.filters.isMonthlyRate !== undefined) this.isMonthlyRate = stored.filters.isMonthlyRate;
+          if (stored.filters.selectedSkillsTools) this.selectedSkillsTools = stored.filters.selectedSkillsTools;
+          if (stored.filters.selectedCertifications) this.selectedCertifications = stored.filters.selectedCertifications;
+          if (stored.filters.selectedBackground) this.selectedBackground = stored.filters.selectedBackground;
+          if (stored.filters.roleDescription !== undefined) this.roleDescription = stored.filters.roleDescription;
+          if (stored.filters.query !== undefined) this.query = stored.filters.query;
+
+          const orderedCandidates = stored.ids
+            .map((id: string | number) => this.allCandidates.find(c => c.id === id))
+            .filter(Boolean);
+
+          if (orderedCandidates.length > 0) {
+            this.dataSource.data = orderedCandidates;
+            this.hasSearchResults = true;
+            this.aiAnswer = '';
+          }
+        }
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -750,6 +797,32 @@ export class AppTalentMatchClientComponent implements OnInit {
     const imgElement = event.target as HTMLImageElement;
     imgElement.src = this.assetsPath;
     imgElement.onerror = null;
+  }
+
+  private saveAISearchState(searchQuery: string, orderedIds: number[], filters: any) {
+    localStorage.setItem('aiSearchQuery', searchQuery);
+    localStorage.setItem('aiOrderedIds', JSON.stringify(orderedIds));
+    localStorage.setItem('aiFilters', JSON.stringify(filters));
+  }
+
+  private loadAISearchState(): { query: string; ids: number[]; filters: any } | null {
+    const query = localStorage.getItem('aiSearchQuery');
+    const idsStr = localStorage.getItem('aiOrderedIds');
+    const filtersStr = localStorage.getItem('aiFilters');
+    if (!query || !idsStr || !filtersStr) return null;
+    try {
+      const ids = JSON.parse(idsStr);
+      const filters = JSON.parse(filtersStr);
+      return { query, ids, filters };
+    } catch {
+      return null;
+    }
+  }
+
+  private clearAISearchState() {
+    localStorage.removeItem('aiSearchQuery');
+    localStorage.removeItem('aiOrderedIds');
+    localStorage.removeItem('aiFilters');
   }
 }
 
