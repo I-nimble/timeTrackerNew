@@ -127,7 +127,7 @@ export class ScrapperComponent implements OnInit {
       });
     }
 
-    this.filteredPosts = filtered;
+    this.filteredPosts = filtered.slice(0, 5);
   }
 
   onKeywordFilterChange(): void {
