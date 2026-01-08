@@ -600,11 +600,14 @@ export class AppAccountSettingComponent implements OnInit {
           if (application.portfolio) {
             this.portfolioFileName = application.portfolio;
           }
+          const loc = this.locations.find((l: any) => l.id === application.location_id) || this.locations[application.location_id - 1] || null;
+          const locationString = loc ? `${loc.city || ''}${loc.city && loc.country ? ', ' : ''}${loc.country || ''}` : '';
+          const roleTitle = roleFromPosition ? roleFromPosition.title : null;
 
           this.olympiaForm.patchValue({
             full_name: this.user.name + ' ' + this.user.last_name,
-            location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
-            application_area: roleFromPosition.title || null,
+            location_state_country: locationString,
+            application_area: roleTitle,
           })
         }
       },
