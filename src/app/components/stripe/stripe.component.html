@@ -18,16 +18,12 @@
         
         <div class="payment-details m-t-24">
           <div class="detail-row">
-            <span>Amount:</span>
+            <span>Amount: </span>
             <strong>${{ amount | number:'1.2-2' }}</strong>
           </div>
           <div class="detail-row">
-            <span>Invoice ID:</span>
+            <span>Invoice ID: </span>
             <strong>{{ invoiceId }}</strong>
-          </div>
-          <div class="detail-row">
-            <span>Transaction ID:</span>
-            <strong>Transaction ID</strong>
           </div>
         </div>
         
@@ -52,7 +48,7 @@
     </div>
 
     <!-- Payment form -->
-    <div class="d-flex align-items-center m-t-12 m-b-24" *ngIf="clientInfo">
+    <div class="d-flex align-items-center m-t-12 m-b-24" *ngIf="clientInfo && paymentStatus != 'succeeded'">
         <mat-slide-toggle
           [formControl]="useClientInfoControl"
           color="primary"
