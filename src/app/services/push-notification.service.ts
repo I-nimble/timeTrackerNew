@@ -24,6 +24,15 @@ export class PushNotificationService {
     }
 
     try {
+      await PushNotifications.createChannel({
+        id: 'inimble_general',
+        name: 'Inimble Notifications',
+        description: 'General notifications for messages and updates',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+      });
+
       const permission = await PushNotifications.requestPermissions();
       
       if (permission.receive === 'granted') {
@@ -33,6 +42,7 @@ export class PushNotificationService {
       }
 
       PushNotifications.addListener('registration', (token) => {
+        console.log('Registration token:', token.value);
         this.rocketChatService.registerPushToken(token.value).subscribe();
       });
 
@@ -41,6 +51,7 @@ export class PushNotificationService {
       });
 
       PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+        console.log('Push notification received:', notification);
         const title = notification.title || 'New Notification';
         const body = notification.body || '';
         const id = new Date().getTime() % 2147483647;
@@ -61,6 +72,8 @@ export class PushNotificationService {
       });
 
       PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+        console.log('Push notification action performed', notification.actionId, notification.inputValue);
+
         const data = notification.notification.data;
         
         let roomId = data?.roomId || data?.rid;
