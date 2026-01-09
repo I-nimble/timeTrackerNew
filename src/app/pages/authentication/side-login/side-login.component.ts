@@ -26,6 +26,7 @@ import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -92,6 +93,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
+     private employeesService: EmployeesService,
   ) {}
 
   form = new FormGroup({
@@ -132,18 +134,30 @@ export class AppSideLoginComponent {
           const isOrphan = v.isOrphan;
           const chatCredentials = v.chatCredentials;
           localStorage.setItem('role', role);
-          if (Number(role) === 1) {
-            this.route = '/dashboards/admin';
-          } else if (Number(role) === 2) {
-            this.route = '/dashboards/tm';
-          } else {
-            this.route = '/dashboards/dashboard2';
-          }
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
+          if (Number(role) === 1) {
+            this.route = '/dashboards/admin';
+          } else if (Number(role) === 2) {
+            this.route = '/dashboards/tm';
+          } else {
+            this.employeesService.get().subscribe({
+              next: (employees) => {
+                if (!employees || employees.length === 0) {
+                  this.router.navigate(['/apps/talent-match']);
+                } else {
+                  this.router.navigate(['/dashboards/dashboard2']);
+                }
+              },
+              error: () => {
+                this.router.navigate(['/apps/talent-match']);
+              }
+            });
+            return;
+          }
           this.rocketChatService.initializeRocketChat(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
