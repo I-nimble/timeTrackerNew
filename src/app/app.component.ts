@@ -41,6 +41,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ) { }
 
   async ngOnInit() {
+    this.rocketChatService.onAppResume();
+    this.rocketChatService.resetNotificationState();
     this.rocketChatService.loadCredentials();
     await this.pushNotificationService.initialize();
     this.rocketChatService.saveUserData();

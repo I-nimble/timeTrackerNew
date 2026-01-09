@@ -86,6 +86,11 @@ export class RocketChatService {
   private connectResolver: { resolve: () => void; reject: (err: any) => void } | null = null;
   private shouldInitialize = false;
 
+  private appResumeTime: number = 0;
+  private readonly NOTIFICATION_GRACE_PERIOD_MS = 5000;
+  private processedMessageIds = new Set<string>();
+  private readonly MAX_PROCESSED_IDS = 1000;
+
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService, private router: Router) {
     this.loadCredentials();
     this.initNotificationSounds();
@@ -112,6 +117,11 @@ export class RocketChatService {
   }
 
   private notificationsInitialized = false;
+
+  public onAppResume(): void {
+    this.appResumeTime = Date.now();
+    console.log('App resumed, notifications suppressed for 30 seconds');
+  }
 
   public async initLocalNotifications() {
     if (Capacitor.isNativePlatform()) {
@@ -178,6 +188,12 @@ export class RocketChatService {
       console.error('Failed to init notification sounds:', err);
     }
   }
+
+    public resetNotificationState(): void {
+      this.appResumeTime = Date.now();
+      this.processedMessageIds.clear();
+      console.log('Notification state reset');
+    }
 
    registerPushToken(token: string): Observable<any> {
     if (!this.credentials) {
@@ -919,7 +935,7 @@ export class RocketChatService {
           const caller = callData?.from || callData?.callerName || '';
           const body = caller ? `${caller} is calling` : 'Call ongoing';
           this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData });
-          try { this.playCallSound(); } catch (e) {}
+          try { this.playCallSound(); } catch (e) {} // TODO: play inside show push notification if its show
         } catch (err) {
           console.error('Error showing push for call-started:', err);
         }
@@ -960,7 +976,7 @@ export class RocketChatService {
                     const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
                       if (isCallMessage) {
                         try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                        try { this.playCallSound(); } catch (e) {}
+                        try { this.playCallSound(); } catch (e) {} // TODO: play inside show push notification if its show
                         try {
                           this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: lastMessage._id });
                         } catch (err) {
@@ -968,7 +984,7 @@ export class RocketChatService {
                         }
                       } else {
                         try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                        try { this.playNotificationSound(); } catch (e) {}
+                        try { this.playNotificationSound(); } catch (e) {} // TODO: play inside show push notification if its shown
                         try {
                           const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
                           const body = text || 'New message';
@@ -1540,6 +1556,30 @@ export class RocketChatService {
 
   public async showPushNotification(title: string, body: string, icon?: string, data?: any) {
     try {
+      console.log('SHOW PUSH NOTIFICATION WITH DATA: ', data);
+      const messageId = data?.messageId;
+      if (messageId) {
+        if (this.processedMessageIds.has(messageId)) {
+          console.log(`Skipping duplicate notification for message ${messageId}`);
+          return;
+        }
+        
+        // Store the ID
+        this.processedMessageIds.add(messageId);
+        
+        // Clean up old IDs to prevent memory leak
+        if (this.processedMessageIds.size > this.MAX_PROCESSED_IDS) {
+          const ids = Array.from(this.processedMessageIds);
+          this.processedMessageIds = new Set(ids.slice(-500));
+        }
+      }
+
+      // Skip notifications for 30 seconds after app resume
+      if (this.appResumeTime && Date.now() - this.appResumeTime < this.NOTIFICATION_GRACE_PERIOD_MS) {
+        console.log('Skipping notification during app resume grace period');
+        return;
+      }
+
       if (Capacitor.isNativePlatform()) {
         const granted = await this.platformPermissionsService.requestNotificationPermissions();
         if (!granted) {
