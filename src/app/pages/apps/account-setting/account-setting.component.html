@@ -363,7 +363,7 @@
                     </mat-form-field>
                     <!-- input -->
 
-                    <ng-container *ngIf="!isOrphan">
+                    <ng-container *ngIf="!isCandidate">
                       <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
                         >Phone</mat-label
                       >
@@ -402,7 +402,7 @@
                       </mat-form-field>
                     </ng-container>
                   </div>
-                  <div class="col-12" *ngIf="!isOrphan">
+                  <div class="col-12" *ngIf="!isCandidate">
                     <!-- input -->
                     <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
                       >Address</mat-label
@@ -537,7 +537,7 @@
             </mat-card>
           </div>
           <div class="col-12">
-            <mat-card class="cardWithShadow" *ngIf="role === '2' && isOrphan">
+            <mat-card class="cardWithShadow" *ngIf="role === '2' && isCandidate">
               <mat-card-content class="p-y-24">
                 <mat-card-title>Application details</mat-card-title>
                 <mat-card-subtitle class="f-s-14">
@@ -1146,7 +1146,7 @@
             </mat-card>
           </div>
           <div class="col-12">
-            <mat-card class="cardWithShadow" *ngIf="role === '2' && isOrphan">
+            <mat-card class="cardWithShadow" *ngIf="role === '2' && isCandidate">
               <mat-card-content class="p-y-24">
                 <mat-card-title>Introduction Video (English)</mat-card-title>
                 <mat-card-subtitle class="f-s-14">
@@ -1242,7 +1242,7 @@
         </div>
       </mat-card-content>
     </mat-tab>
-    <mat-tab label="Olympia" *ngIf="role === '2' && isOrphan">
+    <mat-tab label="Olympia" *ngIf="role === '2' && isCandidate">
       <ng-template mat-tab-label>
         <div class="d-flex align-items-center">
           <mat-icon class="d-flex align-items-center">
@@ -2352,7 +2352,7 @@
   <div class="text-right p-24 p-t-0">
     <ng-container
       *ngIf="
-        !(role === '2' && isOrphan && selectedTabIndex === 1) &&
+        !(role === '2' && isCandidate && selectedTabIndex === 1) &&
         !(selectedTabLabel === 'Certifications')
       "
     >
