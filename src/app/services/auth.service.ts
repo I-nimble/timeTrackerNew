@@ -48,18 +48,12 @@ export class AuthService {
   }
   async logout(redirect: boolean = true) {
     try {
-      console.log('[AuthService] Logging out...');
-      // Remove push token if present
       const token = await this.pushNotificationService.getCurrentToken();
       if (token) {
-        console.log('[AuthService] Deleting push token...');
         await this.pushNotificationService.deletePushToken();
       } else {
-        console.log('[AuthService] No push token to delete.');
       }
       this.pushNotificationService.clearToken();
-      // Remove Rocket.Chat and auth-related credentials but preserve the native/persisted device push token
-      // (we rely on PushNotificationService to keep 'pushToken' across logouts)
       try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
       try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
       try { localStorage.removeItem('jwt'); } catch(e) {}
@@ -70,18 +64,15 @@ export class AuthService {
       this.notificationsService.clearNotifications();
       await this.pushNotificationService.cleanupPush();
       if (typeof this.rocketChatService.logout === 'function') {
-        console.log('[AuthService] Clearing Rocket.Chat credentials on logout.');
         this.rocketChatService.logout();
       } else {
-        console.warn('[AuthService] logout method not found on Rocket.ChatService, skipping cleanup.');
+        console.warn('logout method not found on Rocket.ChatService, skipping cleanup.');
       }
       if (redirect) {
-        console.log('[AuthService] Redirecting to login...');
         this.routes.navigate(['/authentication/login']);
       }
-      console.log('[AuthService] Logout complete.');
     } catch (error) {
-      console.error('[AuthService] Error during logout:', error);
+      console.error('Error during logout:', error);
     }
   }
 
