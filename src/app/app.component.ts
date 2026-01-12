@@ -41,9 +41,63 @@ export class AppComponent implements OnInit, OnDestroy {
   ) { }
 
   async ngOnInit() {
+    // Check for valid JWT, if not present, clear all credentials and localStorage
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) {
+      console.log('[AppComponent] No JWT found on app start, clearing auth/credentials but preserving device push token.');
+      try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+      try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+      try { localStorage.removeItem('jwt'); } catch(e) {}
+      try { localStorage.removeItem('id'); } catch(e) {}
+      try { localStorage.removeItem('role'); } catch(e) {}
+      try { this.rocketChatService.logout?.(); } catch (e) { console.warn('[AppComponent] Error clearing Rocket.Chat credentials:', e); }
+      try { this.pushNotificationService.clearToken(); } catch (e) { console.warn('[AppComponent] Error clearing push token:', e); }
+    } else {
+      console.log('[AppComponent] JWT found on app start.');
+    }
+
     this.rocketChatService.onAppResume();
     this.rocketChatService.resetNotificationState();
     this.rocketChatService.loadCredentials();
+    // Validate that loaded Rocket.Chat credentials match the local app user id.
+    try {
+      const savedCreds = this.rocketChatService.credentials;
+      const savedCredsRaw = localStorage.getItem('rocketChatCredentials');
+      let localId: string | null = null;
+      if (savedCredsRaw) {
+        try {
+          const parsed = JSON.parse(savedCredsRaw);
+          localId = parsed?.userId ?? null;
+        } catch (parseErr) {
+          console.warn('[AppComponent] Could not parse rocketChatCredentials from localStorage:', parseErr);
+          localId = null;
+        }
+      }
+      const pushOwner = localStorage.getItem('pushTokenUserId');
+      if (savedCreds && localId && savedCreds.userId !== localId) {
+        console.warn('[AppComponent] Detected mismatch between Rocket.Chat credentials and local user id. Clearing credentials and push token.');
+        // Clear stored chat credentials and push token metadata
+        localStorage.removeItem('rocketChatCredentials');
+        localStorage.removeItem('pushTokenUserId');
+        try { await this.pushNotificationService.cleanupPush(); } catch (e) { console.warn('[AppComponent] Error cleaning up push token:', e); }
+        try { this.rocketChatService.logout?.(); } catch (e) { console.warn('[AppComponent] Error logging out Rocket.Chat service:', e); }
+        // Clear only stale auth/chat-related keys to avoid deleting device push token
+        try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+        try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+        try { localStorage.removeItem('jwt'); } catch(e) {}
+        try { localStorage.removeItem('id'); } catch(e) {}
+        try { localStorage.removeItem('role'); } catch(e) {}
+        console.log('[AppComponent] Cleared stale credentials and push data. Reloading app state.');
+        return;
+      }
+      if (pushOwner && localId && pushOwner !== localId) {
+        console.warn('[AppComponent] Detected push token owner different from local user id. Cleaning up push token.');
+        try { await this.pushNotificationService.cleanupPush(); } catch (e) { console.warn('[AppComponent] Error cleaning up push token:', e); }
+        localStorage.removeItem('pushTokenUserId');
+      }
+    } catch (e) {
+      console.warn('[AppComponent] Error validating stored credentials/push owner:', e);
+    }
     await this.pushNotificationService.initialize();
     this.rocketChatService.saveUserData();
     const notificationPermission = await this.platformPermissionsService.requestNotificationPermissions();

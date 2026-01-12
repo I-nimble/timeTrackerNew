@@ -1,3 +1,4 @@
+import { PushNotifications } from '@capacitor/push-notifications';
 import { Component, HostBinding, OnInit, inject } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
@@ -27,6 +28,7 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { Capacitor } from '@capacitor/core';
+import { PushNotificationService } from 'src/app/services/push-notification.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -93,6 +95,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
+     private pushNotificationService: PushNotificationService,
   ) {}
 
   form = new FormGroup({
@@ -147,45 +150,82 @@ export class AppSideLoginComponent {
           localStorage.setItem('isOrphan', isOrphan);
           localStorage.removeItem('rocketChatCredentials');
 
-          this.rocketChatService.initializeAfterLogin(chatCredentials).then(() => {
-            this.socketService.socket.emit('client:joinRoom', jwt);
-            this.authService.setUserType(role);
-            this.authService.userTypeRouting(role);
-            this.authService.checkTokenExpiration();
-            this.notificationsService.loadNotifications();
-            this.entriesService.loadEntries();
-            this.router.navigate([this.route]);
-  
-            let visibleChatCollection: HTMLCollectionOf<Element>;
-            let hiddenChatCollection: HTMLCollectionOf<Element>;
-            const interval = setInterval(() => {
-              visibleChatCollection = document.getElementsByClassName('widget-visible');
-              hiddenChatCollection = document.getElementsByClassName('widget-hidden');
-              if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
-                if (visibleChatCollection.length > 0) {
-                  this.liveChatBubble = visibleChatCollection[0];
-                }
-                else if (hiddenChatCollection.length > 0) {
-                  this.liveChatBubble = hiddenChatCollection[0];
-                }
-                if(role == '3') {
-                  if (this.liveChatBubble.classList.contains('widget-hidden')) {
-                    this.liveChatBubble.classList.remove('widget-hidden');
-                    this.liveChatBubble.classList.add('widget-visible');
+          this.rocketChatService.initializeAfterLogin(chatCredentials)
+            .catch(error => {
+              console.error('[AppSideLoginComponent] Failed to initialize Rocket.Chat:', error);
+            })
+            .finally(async () => {
+              console.log('[AppSideLoginComponent] Continuing login flow after chat initialization.');
+              this.socketService.socket.emit('client:joinRoom', jwt);
+              this.authService.setUserType(role);
+              this.authService.userTypeRouting(role);
+              this.authService.checkTokenExpiration();
+              this.notificationsService.loadNotifications();
+              this.entriesService.loadEntries();
+              // Register push token ONLY after Rocket.Chat credentials are set and match current user
+              try {
+                const credentials = this.rocketChatService.credentials;
+                console.log('[AppSideLoginComponent] Rocket.Chat credentials after login:', credentials);
+                  // Check if the token is registered for the correct user
+                  const lastRegisteredUserId = localStorage.getItem('pushTokenUserId');
+                  if (lastRegisteredUserId && lastRegisteredUserId !== id) {
+                    // Token is for another user, clean up and get a new one
+                    console.warn('[AppSideLoginComponent] Push token was registered for another user. Cleaning up...');
+                    await this.pushNotificationService.cleanupPush();
+                    localStorage.removeItem('pushTokenUserId');
                   }
-                } else {
-                  if (this.liveChatBubble.classList.contains('widget-visible')) {
-                    this.liveChatBubble.classList.remove('widget-visible');
-                    this.liveChatBubble.classList.add('widget-hidden');
+                  // Always ensure a token is available before registration
+                  console.log('[AppSideLoginComponent] Ensuring push token before registration...');
+                  await this.pushNotificationService.ensureToken();
+                  const token = await this.pushNotificationService.getCurrentToken();
+                  console.log('[AppSideLoginComponent] Token after ensureToken:', token);
+                  if (token) {
+                    // Force a direct registration call and subscribe to see network activity/errors
+                    console.log('[AppSideLoginComponent] Forcing direct registerPushToken call with token.');
+                    this.pushNotificationService.registerPushToken(token).subscribe({
+                      next: (res) => console.log('[AppSideLoginComponent] registerPushToken response:', res),
+                      error: (err) => console.error('[AppSideLoginComponent] registerPushToken error:', err),
+                    });
+                  } else {
+                    console.warn('[AppSideLoginComponent] No token available to register after ensureToken.');
                   }
-                }
+                  // Also call the helper which performs ownership checks and cleanup
+                  await this.pushNotificationService.registerCurrentPushTokenIfNeeded();
+                  // Save the user id associated with the token
+                  localStorage.setItem('pushTokenUserId', id);
+              } catch (e) {
+                console.error('[AppSideLoginComponent] Error during push token registration:', e);
               }
-              clearInterval(interval);
-            }, 100);
-          }).catch(error => {
-            console.error('Failed to initialize Rocket.Chat:', error);
-            this.router.navigate([this.route]);
-          });;
+
+              this.router.navigate([this.route]);
+
+              let visibleChatCollection: HTMLCollectionOf<Element>;
+              let hiddenChatCollection: HTMLCollectionOf<Element>;
+              const interval = setInterval(() => {
+                visibleChatCollection = document.getElementsByClassName('widget-visible');
+                hiddenChatCollection = document.getElementsByClassName('widget-hidden');
+                if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
+                  if (visibleChatCollection.length > 0) {
+                    this.liveChatBubble = visibleChatCollection[0];
+                  }
+                  else if (hiddenChatCollection.length > 0) {
+                    this.liveChatBubble = hiddenChatCollection[0];
+                  }
+                  if(role == '3') {
+                    if (this.liveChatBubble.classList.contains('widget-hidden')) {
+                      this.liveChatBubble.classList.remove('widget-hidden');
+                      this.liveChatBubble.classList.add('widget-visible');
+                    }
+                  } else {
+                    if (this.liveChatBubble.classList.contains('widget-visible')) {
+                      this.liveChatBubble.classList.remove('widget-visible');
+                      this.liveChatBubble.classList.add('widget-hidden');
+                    }
+                  }
+                }
+                clearInterval(interval);
+              }, 100);
+            });
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;

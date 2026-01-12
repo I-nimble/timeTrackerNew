@@ -17,7 +17,7 @@
     "cap:fix:permissions": "node add-android-permissions.js",
     "cap:fix:proguard": "node update-proguard-rules.js",
     "cap:fix:mainactivity": "node update-main-activity.js",
-    "cap:fix:android": "npm run cap:fix:permissions && npm run cap:fix:proguard && npm run cap:fix:mainactivity",
+    "cap:fix:android": "npm run cap:fix:permissions && npm run cap:fix:proguard",
     "cap:add:ios": "npx cap add ios",
     "cap:copy": "npx cap copy",
     "cap:sync": "npx cap sync",

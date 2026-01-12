@@ -10,6 +10,8 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, user } from '@angular/fire/auth';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { PushNotificationService } from './push-notification.service';
+import { RocketChatService } from './rocket-chat.service';
 import { from } from 'rxjs';
 
 @Injectable({
@@ -30,6 +32,8 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
+    private pushNotificationService: PushNotificationService,
+    private rocketChatService: RocketChatService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -43,13 +47,41 @@ export class AuthService {
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
   async logout(redirect: boolean = true) {
-    localStorage.clear();
-    this.isLogged.next(false);
-    this.notificationStore.removeAll();
-    this.notificationsService.clearNotifications();
-    
-    if (redirect) {
-      this.routes.navigate(['/authentication/login']);
+    try {
+      console.log('[AuthService] Logging out...');
+      // Remove push token if present
+      const token = await this.pushNotificationService.getCurrentToken();
+      if (token) {
+        console.log('[AuthService] Deleting push token...');
+        await this.pushNotificationService.deletePushToken();
+      } else {
+        console.log('[AuthService] No push token to delete.');
+      }
+      this.pushNotificationService.clearToken();
+      // Remove Rocket.Chat and auth-related credentials but preserve the native/persisted device push token
+      // (we rely on PushNotificationService to keep 'pushToken' across logouts)
+      try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+      try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+      try { localStorage.removeItem('jwt'); } catch(e) {}
+      try { localStorage.removeItem('id'); } catch(e) {}
+      try { localStorage.removeItem('role'); } catch(e) {}
+      this.isLogged.next(false);
+      this.notificationStore.removeAll();
+      this.notificationsService.clearNotifications();
+      await this.pushNotificationService.cleanupPush();
+      if (typeof this.rocketChatService.logout === 'function') {
+        console.log('[AuthService] Clearing Rocket.Chat credentials on logout.');
+        this.rocketChatService.logout();
+      } else {
+        console.warn('[AuthService] logout method not found on Rocket.ChatService, skipping cleanup.');
+      }
+      if (redirect) {
+        console.log('[AuthService] Redirecting to login...');
+        this.routes.navigate(['/authentication/login']);
+      }
+      console.log('[AuthService] Logout complete.');
+    } catch (error) {
+      console.error('[AuthService] Error during logout:', error);
     }
   }
 

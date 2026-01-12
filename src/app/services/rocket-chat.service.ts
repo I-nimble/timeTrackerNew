@@ -36,8 +36,8 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class RocketChatService {
-  private CHAT_API_URI = `${environment.rocketChatUrl}/api/v1/`;
-  private API_URI = `${environment.apiUrl}/rocket-chat/`;
+  public CHAT_API_URI = `${environment.rocketChatUrl}/api/v1/`;
+  public API_URI = `${environment.apiUrl}/rocket-chat/`;
   private socket: WebSocket | null = null;
 
   private connectionSubject = new BehaviorSubject<boolean>(false);
@@ -56,7 +56,7 @@ export class RocketChatService {
   private _serverTrueUserId: string | null = null;
 
 
-  private credentials: RocketChatCredentials | null = null;
+  public credentials: RocketChatCredentials | null = null;
   private activeSubscriptions = new Map<string, string>();
   private subscriptionRetryCount = new Map<string, number>();
   private messageId = 0;
@@ -87,7 +87,8 @@ export class RocketChatService {
   private shouldInitialize = false;
 
   private appResumeTime: number = 0;
-  private readonly NOTIFICATION_GRACE_PERIOD_MS = 5000;
+  // Disable notification suppression after resume to allow immediate notifications
+  private readonly NOTIFICATION_GRACE_PERIOD_MS = 0;
   private processedMessageIds = new Set<string>();
   private readonly MAX_PROCESSED_IDS = 1000;
 
@@ -120,7 +121,7 @@ export class RocketChatService {
 
   public onAppResume(): void {
     this.appResumeTime = Date.now();
-    console.log('App resumed, notifications suppressed for 30 seconds');
+    console.log('App resumed');
   }
 
   public async initLocalNotifications() {
@@ -195,25 +196,6 @@ export class RocketChatService {
       console.log('Notification state reset');
     }
 
-   registerPushToken(token: string): Observable<any> {
-    if (!this.credentials) {
-      return of(null);
-    }
-    const body = {
-      type: 'gcm',
-      value: token,
-      appName: 'com.inimbleapp.timetracker'
-    };
-    console.log('Registering token with body:', body);
-    return this.http.post(`${this.CHAT_API_URI}push.token`, body, {
-      headers: this.getAuthHeaders(true)
-    }).pipe(
-      catchError(err => {
-        console.error('Error registering push token:', err);
-        return of(null);
-      })
-    );
-   }
 
    async initializeRocketChat(chatCredentials?: any): Promise<void> {
     try {
