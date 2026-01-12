@@ -910,8 +910,7 @@ export class RocketChatService {
           const title = 'Call ongoing';
           const caller = callData?.from || callData?.callerName || '';
           const body = caller ? `${caller} is calling` : 'Call ongoing';
-          this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData });
-          try { this.playCallSound(); } catch (e) {}
+          this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData}, 'call' );
         } catch (err) {
           console.error('Error showing push for call-started:', err);
         }
@@ -952,19 +951,17 @@ export class RocketChatService {
                     const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
                       if (isCallMessage) {
                         try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                        try { this.playCallSound(); } catch (e) {}
                         try {
-                          this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: lastMessage._id });
+                          this.showPushNotification('Call ongoing', 'Call ongoing', icon, { roomId: payload.rid, messageId: lastMessage._id}, 'call' );
                         } catch (err) {
                           console.debug('Error showing push for call user notify message:', err);
                         }
                       } else {
                         try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                        try { this.playNotificationSound(); } catch (e) {}
                         try {
                           const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
                           const body = text || 'New message';
-                          this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
+                          this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id}, 'message' );
                         } catch (err) {
                           console.debug('Error showing push for user notify message:', err);
                         }
@@ -1530,7 +1527,13 @@ export class RocketChatService {
     }
   }
 
-  public async showPushNotification(title: string, body: string, icon?: string, data?: any) {
+  public async showPushNotification(
+    title: string, 
+    body: string, 
+    icon?: string, 
+    data?: any,
+    soundType?: 'message' | 'call' | 'none'
+  ) {
     try {
       const messageId = data?.messageId;
       if (messageId) {
@@ -1545,7 +1548,12 @@ export class RocketChatService {
           this.processedMessageIds = new Set(ids.slice(-500));
         }
       }
-
+      if (soundType === 'message') {
+        this.playNotificationSound();
+      } else if (soundType === 'call') {
+        this.playCallSound();
+      }
+      
       if (Capacitor.isNativePlatform()) {
         const granted = await this.platformPermissionsService.requestNotificationPermissions();
         if (!granted) {
