@@ -94,6 +94,14 @@ export class RocketChatService {
     this.loadCredentials();
     this.initNotificationSounds();
 
+    if (this.credentials) {
+    setTimeout(() => {
+      this.initializeRocketChat(this.credentials).catch(error => {
+        console.error('Auto-initialization failed:', error);
+      });
+      }, 1000);
+    }
+
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
         try {
@@ -235,6 +243,7 @@ export class RocketChatService {
         this.credentials = JSON.parse(stored);
         this.credentialsSubject.next(this.credentials);
         this.connectionSubject.next(true);
+        this.isChatAvailable = true;
       } catch (error) {
         console.error('Error loading Rocket.Chat credentials:', error);
         this.clearCredentials();
