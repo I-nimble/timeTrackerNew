@@ -20,6 +20,12 @@
 
 .conversation-name {
   line-height: 1;
+  min-width: 0;
+  max-width: calc(100% - 40px);
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .chat-sidebar {
   width: 320px;
