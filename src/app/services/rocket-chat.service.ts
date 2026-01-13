@@ -87,7 +87,6 @@ export class RocketChatService {
   private shouldInitialize = false;
 
   private appResumeTime: number = 0;
-  // Disable notification suppression after resume to allow immediate notifications
   private readonly NOTIFICATION_GRACE_PERIOD_MS = 0;
   private processedMessageIds = new Set<string>();
   private readonly MAX_PROCESSED_IDS = 1000;
@@ -129,7 +128,6 @@ export class RocketChatService {
 
   public onAppResume(): void {
     this.appResumeTime = Date.now();
-    console.log('App resumed');
   }
 
   public async initLocalNotifications() {
@@ -201,7 +199,6 @@ export class RocketChatService {
     public resetNotificationState(): void {
       this.appResumeTime = Date.now();
       this.processedMessageIds.clear();
-      console.log('Notification state reset');
     }
 
 
@@ -404,12 +401,10 @@ export class RocketChatService {
     }
 
     if (this.connectionPromise) {
-      console.log('connection promise already in progress...');
       return this.connectionPromise;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      console.log('socket already open...');
       return Promise.resolve();
     }
 
@@ -800,16 +795,16 @@ export class RocketChatService {
     if (message.msg === 'nosub') {
       const err = message.error;
       if (err && err.error === 'not-allowed') {
-        console.warn('⚠️ Subscription rejected (not-allowed):', message);
+        console.warn('Subscription rejected (not-allowed):', message);
       } else {
-        console.error('❌ Subscription rejected:', message);
+        console.error('Subscription rejected:', message);
       }
 
       if (err) {
         if (err.error === 'not-allowed') {
-          console.warn('❌ Error details:', { error: err.error, message: err.message });
+          console.warn('Error details:', { error: err.error, message: err.message });
         } else {
-          console.error('❌ Error details:', {
+          console.error('Error details:', {
             error: err.error,
             reason: err.reason,
             message: err.message,
@@ -858,14 +853,14 @@ export class RocketChatService {
       });
 
       if (!found && err && err.error === 'not-allowed') {
-        console.warn('⚠️ Received not-allowed nosub for unknown subscription id:', message.id);
+        console.warn('Received not-allowed nosub for unknown subscription id:', message.id);
       }
     }
 
     if (message.msg === 'result' && message.error) {
-      console.error('❌ Method call failed:', message.id, message.error);
+      console.error('Method call failed:', message.id, message.error);
       if (message.error) {
-        console.error('❌ Method error details:', {
+        console.error('Method error details:', {
           error: message.error.error,
           reason: message.error.reason,
           message: message.error.message,
@@ -1550,18 +1545,14 @@ export class RocketChatService {
     soundType?: 'message' | 'call' | 'none'
   ) {
     try {
-      console.log('SHOW PUSH NOTIFICATION WITH DATA: ', data);
       const messageId = data?.messageId;
       if (messageId) {
         if (this.processedMessageIds.has(messageId)) {
-          console.log(`Skipping duplicate notification for message ${messageId}`);
           return;
         }
         
-        // Store the ID
         this.processedMessageIds.add(messageId);
         
-        // Clean up old IDs to prevent memory leak
         if (this.processedMessageIds.size > this.MAX_PROCESSED_IDS) {
           const ids = Array.from(this.processedMessageIds);
           this.processedMessageIds = new Set(ids.slice(-500));
