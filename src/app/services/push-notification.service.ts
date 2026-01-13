@@ -32,7 +32,7 @@ export class PushNotificationService {
         id: 'inimble_general',
         name: 'Inimble Notifications',
         description: 'General notifications for messages and updates',
-        importance: 5,
+        importance: 4,
         visibility: 1,
         vibration: true,
       });
@@ -67,25 +67,7 @@ export class PushNotificationService {
         console.error('Push notifications registration error:', error);
       });
 
-      PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-        const title = notification.title || 'New Notification';
-        const body = notification.body || '';
-        const id = new Date().getTime() % 2147483647;
-
-        try {
-          await LocalNotifications.schedule({
-            notifications: [{
-              title,
-              body,
-              id,
-              extra: notification.data,
-              channelId: 'inimble_general'
-            }]
-          });
-        } catch (err) {
-          console.error('Error showing local notification for push:', err);
-        }
-      });
+      // PushNotifications.addListener('pushNotificationReceived', async (notification) => {});
 
       PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
         const data = notification.notification.data;
@@ -93,12 +75,12 @@ export class PushNotificationService {
         if (data?.ejson) {
            try {
              const ejson = JSON.parse(data.ejson);
-             roomId = ejson?.rid || roomId;
+             roomId = roomId || ejson?.rid || ejson?.roomId;
            } catch(e) {}
         }
         if (roomId) {
             this.ngZone.run(() => {
-                this.router.navigate(['/apps/chat', roomId]);
+                this.router.navigate(['/apps/chat'], { queryParams: { id: roomId } });
             });
         }
       });

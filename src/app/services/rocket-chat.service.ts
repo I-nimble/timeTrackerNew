@@ -137,7 +137,7 @@ export class RocketChatService {
           id: 'inimble_general',
           name: 'Inimble Notifications',
           description: 'General notifications for messages and updates',
-          importance: 5,
+          importance: 4,
           visibility: 1,
           vibration: true,
         });
