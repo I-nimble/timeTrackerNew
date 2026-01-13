@@ -35,6 +35,7 @@ import {
 } from '../../../models/rocketChat.model';
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
+import { ActivatedRoute } from '@angular/router';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
@@ -113,6 +114,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
   currentAudioMimeType: string | null = null;
   showEmojiPicker = false;
 
+  private pendingRoomId: string | null = null;
+
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
@@ -125,11 +128,36 @@ export class AppChatComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar, 
     private permissionsService: PlatformPermissionsService, 
     private confirmationModal: MatDialog,
-    public emojiPipe: EmojiMartPipe
+    public emojiPipe: EmojiMartPipe,
+    private activatedRoute: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.loadRooms();
+
+    this.activatedRoute.paramMap.subscribe((pm) => {
+      const id = pm.get('id');
+      if (id) {
+        this.pendingRoomId = id;
+        const found = this.rooms.find(r => r._id === id || (r as any).rid === id);
+        if (found) {
+          try { this.selectRoom(found); } catch (e) { console.warn('Failed selecting room from route param:', e); }
+          this.pendingRoomId = null;
+        }
+      }
+    });
+
+    this.activatedRoute.queryParamMap.subscribe((qpm) => {
+      const id = qpm.get('id');
+      if (id) {
+        this.pendingRoomId = id;
+        const found = this.rooms.find(r => r._id === id || (r as any).rid === id);
+        if (found) {
+          try { this.selectRoom(found); } catch (e) { console.warn('Failed selecting room from query param:', e); }
+          this.pendingRoomId = null;
+        }
+      }
+    });
     try {
       this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
         try {
@@ -346,6 +374,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.sortRooms();
           this.loadAllRoomPictures();
           this.scrollToBottom();
+          if (this.pendingRoomId) {
+            const pending = this.rooms.find(r => r._id === this.pendingRoomId || (r as any).rid === this.pendingRoomId);
+            if (pending) {
+              try { this.selectRoom(pending); } catch (e) { console.warn('Failed to select pending room after load:', e); }
+              this.pendingRoomId = null;
+            }
+          }
+          if (this.pendingRoomId) {
+            const pending = this.rooms.find(r => r._id === this.pendingRoomId || (r as any).rid === this.pendingRoomId);
+            if (pending) {
+              try { this.selectRoom(pending); } catch (e) { console.warn('Failed to select pending room after load:', e); }
+              this.pendingRoomId = null;
+            }
+          }
         }
       },
       error: (err) => {

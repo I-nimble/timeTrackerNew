@@ -145,8 +145,15 @@ export class RocketChatService {
         if (!this.notificationsInitialized) {
           LocalNotifications.addListener('localNotificationActionPerformed', (event: any) => {
             const extra = event.notification.extra;
-            if (extra?.roomId) {
-              this.router.navigate(['/apps/chat']);
+            let roomId = extra?.roomId || extra?.rid || extra?.messageId;
+            if (extra?.ejson) {
+              try {
+                const parsed = JSON.parse(extra.ejson);
+                roomId = roomId || parsed?.rid || parsed?.roomId;
+              } catch (e) {}
+            }
+            if (roomId) {
+              this.router.navigate(['/apps/chat'], { queryParams: { id: roomId } });
             }
           });
           this.notificationsInitialized = true;

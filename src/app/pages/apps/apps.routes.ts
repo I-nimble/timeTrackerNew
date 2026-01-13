@@ -61,6 +61,17 @@ export const AppsRoutes: Routes = [
         },
       },
       {
+        path: 'chat/:id',
+        component: AppChatComponent,
+        data: {
+          title: 'Chat',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Chat' },
+          ],
+        },
+      },
+      {
         path: 'chat/support',
         component: HrOperationsComponent,
         data: {
