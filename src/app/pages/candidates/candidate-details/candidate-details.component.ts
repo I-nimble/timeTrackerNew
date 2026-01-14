@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { environment } from 'src/environments/environment';
@@ -64,6 +64,7 @@ export class CandidateDetailsComponent implements OnInit {
   isCreateMode = false;
   maxFileSize: number =  1 * 1024 * 1024;
   rankingProfiles: any[] = [];
+  pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   descriptionOptions = [
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
@@ -71,7 +72,6 @@ export class CandidateDetailsComponent implements OnInit {
     'Paralegal Personal Injury - Litigation Assistant'
   ];
   descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
-  pendingChanges = signal<any[]>([]);
 
   constructor(
     private route: ActivatedRoute,
@@ -91,7 +91,7 @@ export class CandidateDetailsComponent implements OnInit {
     this.loader.started = true;
     const param = this.route.snapshot.paramMap.get('id');
     this.isCreateMode = param === 'new';
-
+    this.getLocations();
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
@@ -195,8 +195,8 @@ export class CandidateDetailsComponent implements OnInit {
           pending_updates: candidate.pending_updates || null,
           resume_url: candidate.resume_url || candidate.file_name || null
         };
-
         this.candidate.set(normalizedCandidate);
+        this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
 
         let descriptionValue = '';
@@ -470,6 +470,30 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
+  private computePendingChanges() {
+    const candidate = this.candidate();
+    if (!candidate?.pending_updates) {
+      this.pendingChanges.set([]);
+      return;
+    }
+    let pending: any = {};
+    try {
+      pending = typeof candidate.pending_updates === 'string'
+        ? JSON.parse(candidate.pending_updates)
+        : candidate.pending_updates;
+    } catch (err) {
+      console.error('Failed to parse pending updates', err);
+      this.pendingChanges.set([]);
+      return;
+    }
+    this.pendingChanges.set(
+      Object.keys(pending).map(key => ({
+        field: this.getFieldLabel(key),
+        value: this.getFieldValue(key, pending[key])
+      }))
+    );
+  }
+
   save() {
     if (this.form.invalid) return;
     const selectedOption = this.form.value.descriptionOption;
@@ -489,8 +513,6 @@ export class CandidateDetailsComponent implements OnInit {
       this.updateCandidate();
     }
   }
-
-
 
   getLocations() {
     this.applicationService.getLocations().subscribe({
@@ -566,10 +588,6 @@ export class CandidateDetailsComponent implements OnInit {
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
 
-  getResumeUrl(filename: string | null | undefined): string {
-    return this.applicationService.getResumeUrl(filename);
-  }
-
   approveChanges() {
     const candidateId = this.candidate()?.id;
     if (!candidateId) return;
@@ -601,8 +619,7 @@ export class CandidateDetailsComponent implements OnInit {
           skills: updatedCandidate.skills,
           education_history: updatedCandidate.education_history,
           inimble_academy: updatedCandidate.inimble_academy,
-          english_level: updatedCandidate.english_level,
-          resume: updatedCandidate.resume
+          english_level: updatedCandidate.english_level
         });
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
         this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });

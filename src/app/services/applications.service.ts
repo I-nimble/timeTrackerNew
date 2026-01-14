@@ -223,7 +223,7 @@ export class ApplicationsService {
     return this.http.put(`${this.API_URI}/applications/${id}/reject`, {});
   }
 
-    uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
+  uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
         const headers = new HttpHeaders({
