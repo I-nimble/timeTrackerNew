@@ -1,33 +1,56 @@
 <mat-card class="p-16">
   <div class="d-flex justify-content-between align-items-center m-b-16">
-    <h3 class="m-0">Rock Tracking</h3>
+    <h3 class="m-0">Engine</h3>
     <div>
       <button mat-flat-button color="primary" (click)="toggleEdit()">
-        {{ isEditing ? 'Cancel' : 'Edit' }}
+        {{ isEditing ? "Cancel" : "Edit" }}
       </button>
-      <button *ngIf="isEditing" mat-flat-button color="accent" (click)="addRock()" class="m-l-8">
+      <button
+        *ngIf="isEditing"
+        mat-flat-button
+        color="accent"
+        (click)="addRock()"
+        class="m-l-8"
+      >
         Add Rock
       </button>
-      <button *ngIf="isEditing" mat-flat-button color="primary" (click)="saveChanges()" class="m-l-8">
+      <button
+        *ngIf="isEditing"
+        mat-flat-button
+        color="primary"
+        (click)="saveChanges()"
+        class="m-l-8"
+      >
         Save Changes
       </button>
     </div>
   </div>
   <div *ngIf="loading" class="m-t-8">Loading...</div>
-  <div *ngFor="let rock of rocks; let ri = index" class="mb-16" [hidden]="rock._deleted">
+  <div
+    *ngFor="let rock of rocks; let ri = index"
+    class="mb-16"
+    [hidden]="rock._deleted"
+  >
     <mat-card class="p-12">
       <div class="d-flex justify-content-between align-items-start mb-8">
-        <div class="d-flex gap-12 align-items-center" style="flex:1;">
-          <div style="flex: 0 1 60%;">
+        <div class="d-flex gap-12 align-items-center" style="flex: 1">
+          <div style="flex: 0 1 60%">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Rock Title</mat-label>
-              <input matInput [(ngModel)]="rock.title" [readonly]="!isEditing">
+              <input
+                matInput
+                [(ngModel)]="rock.title"
+                [readonly]="!isEditing"
+              />
             </mat-form-field>
           </div>
-          <div style="flex: 1 1 30%;">
+          <div style="flex: 1 1 30%">
             <mat-form-field appearance="outline" class="w-100">
               <mat-label>Who</mat-label>
-              <mat-select [(ngModel)]="rock.assigned_user_id" [disabled]="!isEditing">
+              <mat-select
+                [(ngModel)]="rock.assigned_user_id"
+                [disabled]="!isEditing"
+              >
                 <mat-option *ngFor="let u of users" [value]="u.id">
                   {{ fullName(u) }}
                 </mat-option>
@@ -36,25 +59,52 @@
           </div>
         </div>
         <div class="ml-8 d-flex gap-4">
-          <button *ngIf="isEditing" mat-icon-button color="primary" (click)="addSubtaskByRock(rock)" title="Add Subtask">
+          <button
+            *ngIf="isEditing"
+            mat-icon-button
+            color="primary"
+            (click)="addSubtaskByRock(rock)"
+            title="Add Subtask"
+          >
             <mat-icon>add</mat-icon>
           </button>
-          <button *ngIf="isEditing" mat-icon-button color="warn" (click)="deleteRock(ri)" title="Delete Rock">
+          <button
+            *ngIf="isEditing"
+            mat-icon-button
+            color="warn"
+            (click)="deleteRock(ri)"
+            title="Delete Rock"
+          >
             <mat-icon>delete</mat-icon>
           </button>
         </div>
       </div>
       <div class="p-16">
-        <div class="table-responsive" *ngIf="rock.rock_items?.length; else noSubtasks">
-          <table mat-table [dataSource]="rock.rock_items" class="mat-mdc-table mat-elevation-z8" style="table-layout: fixed; width: 100%;" role="table">
+        <div
+          class="table-responsive"
+          *ngIf="rock.rock_items?.length; else noSubtasks"
+        >
+          <table
+            mat-table
+            [dataSource]="rock.rock_items"
+            class="mat-mdc-table mat-elevation-z8"
+            style="table-layout: fixed; width: 100%"
+            role="table"
+          >
             <ng-container matColumnDef="subtask">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Subtask</th>
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Subtask
+              </th>
               <td mat-cell *matCellDef="let item; let si = index">
                 <ng-container *ngIf="isEditing">
                   <div class="row">
                     <div class="col-sm-12">
                       <mat-form-field appearance="outline" class="w-100">
-                        <input matInput [(ngModel)]="item.subtask" placeholder="Enter subtask">
+                        <input
+                          matInput
+                          [(ngModel)]="item.subtask"
+                          placeholder="Enter subtask"
+                        />
                       </mat-form-field>
                     </div>
                   </div>
@@ -65,28 +115,44 @@
               </td>
             </ng-container>
             <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Date</th>
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Date
+              </th>
               <td mat-cell *matCellDef="let item; let si = index">
                 <ng-container *ngIf="isEditing">
                   <mat-form-field appearance="outline" class="w-100">
-                    <input matInput [matDatepicker]="picker" [(ngModel)]="item.date" placeholder="Select date">
-                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <input
+                      matInput
+                      [matDatepicker]="picker"
+                      [(ngModel)]="item.date"
+                      placeholder="Select date"
+                    />
+                    <mat-datepicker-toggle
+                      matSuffix
+                      [for]="picker"
+                    ></mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
                   </mat-form-field>
                 </ng-container>
                 <ng-container *ngIf="!isEditing">
-                  {{ item.date | date:'MM-dd-yyyy' }}
+                  {{ item.date | date : "MM-dd-yyyy" }}
                 </ng-container>
               </td>
             </ng-container>
             <ng-container matColumnDef="metric">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Metric</th>
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Metric
+              </th>
               <td mat-cell *matCellDef="let item; let si = index">
                 <ng-container *ngIf="isEditing">
                   <div class="row">
                     <div class="col-sm-12">
                       <mat-form-field appearance="outline" class="w-100">
-                        <input matInput [(ngModel)]="item.metric" placeholder="Enter metric">
+                        <input
+                          matInput
+                          [(ngModel)]="item.metric"
+                          placeholder="Enter metric"
+                        />
                       </mat-form-field>
                     </div>
                   </div>
@@ -98,8 +164,17 @@
             </ng-container>
             <ng-container matColumnDef="actions" *ngIf="isEditing">
               <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let item; let si = index" style="text-align:right;">
-                <button mat-icon-button color="warn" (click)="deleteSubtaskByRock(rock, si)" title="Delete Subtask">
+              <td
+                mat-cell
+                *matCellDef="let item; let si = index"
+                style="text-align: right"
+              >
+                <button
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteSubtaskByRock(rock, si)"
+                  title="Delete Subtask"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -111,7 +186,12 @@
         <ng-template #noSubtasks>
           <div class="text-center p-12">
             No subtasks yet.
-            <button *ngIf="isEditing" mat-button color="primary" (click)="addSubtaskByRock(rock)">
+            <button
+              *ngIf="isEditing"
+              mat-button
+              color="primary"
+              (click)="addSubtaskByRock(rock)"
+            >
               + Add first subtask
             </button>
           </div>
@@ -121,6 +201,13 @@
   </div>
   <div *ngIf="rocks.length === 0" class="text-center p-16">
     <p>No rocks found.</p>
-    <button *ngIf="isEditing" mat-flat-button color="accent" (click)="addRock()">Add Rock</button>
+    <button
+      *ngIf="isEditing"
+      mat-flat-button
+      color="accent"
+      (click)="addRock()"
+    >
+      Add Rock
+    </button>
   </div>
 </mat-card>
