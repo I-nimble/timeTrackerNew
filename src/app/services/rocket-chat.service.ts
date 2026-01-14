@@ -712,6 +712,28 @@ export class RocketChatService {
     });
   }
 
+  public setUserStatus(status: 'online' | 'offline' | 'away' | 'busy', message?: string): Observable<any> {
+    if (!this.credentials) {
+      console.warn('Cannot set user status: No credentials found');
+      return of(null);
+    }
+    
+    const url = `${this.CHAT_API_URI}users.setStatus`;
+    const body: any = { status };
+    if (message) {
+      body.message = message;
+    }
+
+    return this.http.post(url, body, {
+      headers: this.getAuthHeaders(true)
+    }).pipe(
+      catchError(err => {
+        console.error('Failed to set user status:', err);
+        return of(null);
+      })
+    );
+  }
+
   private handleWebSocketMessage(message: any): void {
 
     if (message.msg === 'ping') {

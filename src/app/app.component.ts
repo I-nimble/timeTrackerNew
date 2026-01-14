@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RocketChatService } from './services/rocket-chat.service';
@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { PushNotificationService } from './services/push-notification.service';
+import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
@@ -41,6 +42,15 @@ export class AppComponent implements OnInit, OnDestroy {
   ) { }
 
   async ngOnInit() {
+    App.addListener('appStateChange', async ({ isActive }) => {
+      if (!isActive) {
+        this.rocketChatService.setUserStatus('away').subscribe();
+      } else {
+        this.rocketChatService.setUserStatus('online').subscribe();
+        this.rocketChatService.onAppResume();
+      }
+    });
+    
     const jwt = localStorage.getItem('jwt');
     if (!jwt) {
       try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
@@ -123,7 +133,13 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch (e) {}
   }
 
+  @HostListener('window:beforeunload')
+  async onBeforeUnload() {
+    this.rocketChatService.setUserStatus('offline').subscribe();
+  }
+
   ngOnDestroy(): void {
+    this.rocketChatService.setUserStatus('offline').subscribe();
     try { this.jitsiSub?.unsubscribe(); } catch (e) {}
     try { this.jitsiCompRef?.destroy(); } catch (e) {}
   }
