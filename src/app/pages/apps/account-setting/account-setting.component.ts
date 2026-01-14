@@ -363,7 +363,7 @@ export class AppAccountSettingComponent implements OnInit {
     if (roleControl) {
       roleControl.valueChanges.subscribe(value => {
         const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
-        if (value && value.position_id === 41) {
+        if (value && value.title === 'IT and Technology') {
           programmingLanguagesControl?.setValidators(Validators.required);
         } else {
           programmingLanguagesControl?.clearValidators();
@@ -599,11 +599,11 @@ export class AppAccountSettingComponent implements OnInit {
             salaryRange: mergedApplication.salary_range,
             programmingLanguages: mergedApplication.programming_languages,
           });
-          if (application.resume) {
-            this.resumeFileName = application.resume;
+          if (mergedApplication.resume) {
+            this.resumeFileName = mergedApplication.resume;
           }
-          if (application.portfolio) {
-            this.portfolioFileName = application.portfolio;
+          if (mergedApplication.portfolio) {
+            this.portfolioFileName = mergedApplication.portfolio;
           }
             this.originalApplicationValues = {
               location_id: mergedApplication.location_id,
@@ -629,12 +629,12 @@ export class AppAccountSettingComponent implements OnInit {
               google_user_id: mergedApplication.google_user_id,
               salary_range: mergedApplication.salary_range,
               programming_languages: mergedApplication.programming_languages,
-              resume: application.resume || null,
-              portfolio: application.portfolio || null,
+              resume: mergedApplication.resume || null,
+              portfolio: mergedApplication.portfolio || null,
               picture: mergedApplication.picture || null,
               introduction_video: mergedApplication.introduction_video || null
             };
-          const loc = this.locations.find((l: any) => l.id === application.location_id) || this.locations[application.location_id - 1] || null;
+          const loc = this.locations.find((l: any) => l.id === mergedApplication.location_id) || this.locations[mergedApplication.location_id - 1] || null;
           const locationString = loc ? `${loc.city || ''}${loc.city && loc.country ? ', ' : ''}${loc.country || ''}` : '';
           const roleTitle = roleFromPosition ? roleFromPosition.title : null;
 
@@ -1032,7 +1032,7 @@ export class AppAccountSettingComponent implements OnInit {
       phone: formValues.contactPhone,
       additional_phone: formValues.additionalPhone,
       address: formValues.address,
-      children: formValues.children || '0',
+      children: formValues.children != null ? formValues.children : 0,
       english_level: formValues.englishLevel,
       competencies: formValues.competencies,
       skills: formValues.technicalSkills,
