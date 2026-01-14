@@ -197,7 +197,9 @@ export class CandidateDetailsComponent implements OnInit {
           inimble_academy: candidate.inimble_academy,
           english_level: candidate.english_level
         });
+
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
+
         this.applicationMatchScoreService.getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
@@ -232,7 +234,7 @@ export class CandidateDetailsComponent implements OnInit {
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
-      profile_pic: candidate.picture || candidate.profile_pic_url || null,
+      profile_pic: this.selectedProfilePicFile,
       interview_link: candidate.interview_link,
       hobbies: candidate.hobbies,
       work_experience: candidate.work_experience,
@@ -283,12 +285,41 @@ export class CandidateDetailsComponent implements OnInit {
     const id = this.candidate()?.id;
     if (!id) return;
 
-    this.applicationService.submit(this.form.value, id).subscribe({
-      next: () => {
+    const formData = new FormData();
+    
+    const formValues = this.form.value;
+    
+    Object.keys(formValues).forEach(key => {
+      if (key === 'profile_pic' && formValues[key] instanceof File) {
+        formData.append('profile_pic', formValues[key]);
+      } else if (key === 'profile_pic' && typeof formValues[key] === 'string') {
+        formData.append('profile_pic', formValues[key] || '');
+      } else {
+        const value = formValues[key] !== null && formValues[key] !== undefined 
+          ? formValues[key] 
+          : '';
+        formData.append(key, value);
+      }
+    });
+
+    this.applicationService.submit(formData, id).subscribe({
+      next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
+        
+        if (response?.profile_pic_url) {
+          const updatedCandidate = {
+            ...this.candidate(),
+            picture: response.profile_pic_url,
+            profile_pic_url: response.profile_pic_url
+          };
+          this.candidate.set(updatedCandidate);
+        }
+        
+        this.selectedProfilePicFile = null;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error updating candidate:', error);
         this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
       }
     });
@@ -429,6 +460,32 @@ export class CandidateDetailsComponent implements OnInit {
         this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  onProfilePicSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.size > 1000000) {
+        this.snackBar.open(
+          'Profile picture size should be 1 MB or less',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      if (file.type !== 'image/jpeg') {
+        this.snackBar.open(
+          'Only JPG files are allowed for profile picture',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      this.selectedProfilePicFile = file;
+      this.form.patchValue({
+        profile_pic: file 
+      });
+    }
   }
 
 }
