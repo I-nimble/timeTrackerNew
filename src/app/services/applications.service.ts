@@ -207,8 +207,15 @@ export class ApplicationsService {
     this.applicationsUpdatedSource.next(application);
   }
 
+  approveApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/approve`, {});
+  }
 
-    uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
+  rejectApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/reject`, {});
+  }
+
+  uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
         const fileName = uploadData.fileName || uploadData.key.split('/').pop();
