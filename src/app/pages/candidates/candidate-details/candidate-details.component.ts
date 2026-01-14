@@ -223,7 +223,9 @@ export class CandidateDetailsComponent implements OnInit {
           inimble_academy: candidate.inimble_academy,
           english_level: candidate.english_level
         });
+
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
+
         this.applicationMatchScoreService.getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
@@ -275,7 +277,7 @@ export class CandidateDetailsComponent implements OnInit {
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
-      profile_pic: candidate.picture || candidate.profile_pic_url || null,
+      profile_pic: this.selectedProfilePicFile,
       interview_link: candidate.interview_link,
       hobbies: candidate.hobbies,
       work_experience: candidate.work_experience,
@@ -409,7 +411,8 @@ export class CandidateDetailsComponent implements OnInit {
         
         this.selectedProfilePicFile = null;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error updating candidate:', error);
         this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
       }
     });
