@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from 'src/environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import {
   ApexAxisChartSeries,
@@ -893,7 +894,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     if (!this.leafletMap) {
       this.leafletMap = map(this.leafletMapRef.nativeElement).setView([lat, lng], 15);
       
-      const tiles = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const tiles = tileLayer(`${environment.apiUrl}/maps/tiles/{z}/{x}/{y}`, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       });
 
