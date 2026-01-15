@@ -42,6 +42,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { GeolocationUpdate } from 'src/app/models/geolocation.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { LocationService } from 'src/app/services/location.service';
+import { map, tileLayer, icon, marker } from 'leaflet';
 
 interface EditEntryForm {
   start_time: FormControl<string>;
@@ -881,42 +882,41 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     const lat = this.employeeLocation.latitude;
     const lng = this.employeeLocation.longitude;
 
-    import('leaflet').then((L) => {
-      if (!this.leafletMap) {
-        this.leafletMap = L.map(this.leafletMapRef.nativeElement).setView([lat, lng], 15);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(this.leafletMap);
-        
-        const icon = L.icon({
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-          iconSize: [25, 41],
-          iconAnchor: [12, 41],
-          popupAnchor: [1, -34],
-          shadowSize: [41, 41]
-        });
-        
-        this.leafletMarker = L.marker([lat, lng], { icon }).addTo(this.leafletMap);
-        this.leafletMarker.bindPopup(`Employee Location`).openPopup();
-        
-        this.mapInitialized = true;
-      } else {
-        this.leafletMap.setView([lat, lng], 15);
-        if (this.leafletMarker) {
-          this.leafletMarker.setLatLng([lat, lng]);
-        }
-      }
+    if (!this.leafletMapRef || !this.leafletMapRef.nativeElement) {
+      return;
+    }
+
+    if (!this.leafletMap) {
+      this.leafletMap = map(this.leafletMapRef.nativeElement).setView([lat, lng], 15);
       
-      setTimeout(() => {
-        this.leafletMap?.invalidateSize();
-      }, 100);
-    }).catch(err => {
-      console.error('Error loading Leaflet:', err);
-      this.mapError = 'Error loading map library';
-    });
+      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(this.leafletMap);
+      
+      const mapIcon = icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+      
+      this.leafletMarker = marker([lat, lng], { icon: mapIcon }).addTo(this.leafletMap);
+      this.leafletMarker.bindPopup(`Employee Location`).openPopup();
+      
+      this.mapInitialized = true;
+    } else {
+      this.leafletMap.setView([lat, lng], 15);
+      if (this.leafletMarker) {
+        this.leafletMarker.setLatLng([lat, lng]);
+      }
+    }
+    
+    setTimeout(() => {
+      this.leafletMap?.invalidateSize();
+    }, 100);
   }
 
   refreshLocation(): void {
