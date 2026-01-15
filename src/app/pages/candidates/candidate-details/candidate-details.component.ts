@@ -260,7 +260,20 @@ export class CandidateDetailsComponent implements OnInit {
       this.router.navigate(['apps/candidates']);
       return;
     }
+    
     this.form.patchValue(this.originalData);
+    
+    if (this.originalData?.profile_pic) {
+      const originalCandidate = {
+        ...this.candidate(),
+        picture: this.originalData.profile_pic,
+        profile_pic_url: this.originalData.profile_pic
+      };
+      this.candidate.set(originalCandidate);
+    }
+    
+    this.selectedProfilePicFile = null;
+    
     this.editMode = false;
   }
 
@@ -285,24 +298,31 @@ export class CandidateDetailsComponent implements OnInit {
     const id = this.candidate()?.id;
     if (!id) return;
 
-    const formData = new FormData();
-    
     const formValues = this.form.value;
-    
-    Object.keys(formValues).forEach(key => {
-      if (key === 'profile_pic' && formValues[key] instanceof File) {
-        formData.append('profile_pic', formValues[key]);
-      } else if (key === 'profile_pic' && typeof formValues[key] === 'string') {
-        formData.append('profile_pic', formValues[key] || '');
-      } else {
-        const value = formValues[key] !== null && formValues[key] !== undefined 
-          ? formValues[key] 
-          : '';
-        formData.append(key, value);
-      }
-    });
 
-    this.applicationService.submit(formData, id).subscribe({
+    const data: any = {
+      name: formValues.name,
+      description: formValues.description,
+      talent_match_profile_summary: formValues.talent_match_profile_summary,
+      profile_observation: formValues.profile_observation,
+      ranking_id: formValues.ranking_id,
+      position_id: formValues.position_id,
+      interview_link: formValues.interview_link,
+      hobbies: formValues.hobbies,
+      work_experience: formValues.work_experience,
+      skills: formValues.skills,
+      education_history: formValues.education_history,
+      inimble_academy: formValues.inimble_academy,
+      english_level: formValues.english_level
+    };
+
+    if (this.selectedProfilePicFile) {
+      data.profile_pic = this.selectedProfilePicFile;
+    } else if (formValues.profile_pic) {
+      data.profile_pic = formValues.profile_pic;
+    }
+
+    this.applicationService.submit(data, id).subscribe({
       next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
@@ -314,6 +334,10 @@ export class CandidateDetailsComponent implements OnInit {
             profile_pic_url: response.profile_pic_url
           };
           this.candidate.set(updatedCandidate);
+          
+          this.form.patchValue({
+            profile_pic: response.profile_pic_url
+          });
         }
         
         this.selectedProfilePicFile = null;
