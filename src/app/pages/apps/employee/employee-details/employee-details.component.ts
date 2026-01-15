@@ -893,9 +893,15 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     if (!this.leafletMap) {
       this.leafletMap = map(this.leafletMapRef.nativeElement).setView([lat, lng], 15);
       
-      tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const tiles = tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(this.leafletMap);
+      });
+
+      tiles.on('tileerror', (error) => {
+        console.error('Leaflet tile load error:', error);
+      });
+
+      tiles.addTo(this.leafletMap);
       
       const mapIcon = icon({
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
