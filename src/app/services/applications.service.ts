@@ -204,10 +204,10 @@ export class ApplicationsService {
     );
   }
 
-  updateAvailability(id: number, available: boolean) {
+  updateAvailability(payload: { user_id?: number, application_id?: number, availability: boolean }) {
     return this.http.patch(
-      `${this.API_URI}/applications/${id}/availability`,
-      { availability: available }
+      `${this.API_URI}/applications/availability`,
+      payload
     );
   }
   // Notify other components that an application was updated

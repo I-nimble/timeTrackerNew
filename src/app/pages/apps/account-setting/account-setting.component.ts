@@ -288,7 +288,6 @@ export class AppAccountSettingComponent implements OnInit {
   ngOnInit(): void {
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';    
     this.getUser();
-    this.checkOlympiaStatus();
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
@@ -296,16 +295,10 @@ export class AppAccountSettingComponent implements OnInit {
         this.selectedTabLabel = '';
       }
     }); 
-
-    if (this.isOrphan) {
-      this.getLocations();
-      this.getPositions();
-      this.setupConditionalValidation();
-      
-      this.personalForm.get('phone')?.clearValidators();
-      this.personalForm.get('address')?.clearValidators();
-      this.personalForm.get('phone')?.updateValueAndValidity();
-      this.personalForm.get('address')?.updateValueAndValidity();
+    if (this.isCandidate) {
+      this.checkOlympiaStatus();
+      this.loadExistingVideo();
+      this.initializeApplicationFormDependencies();
     }
 
     this.setupNameTrimming(this.personalForm, 'name');
@@ -388,7 +381,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.personalForm.get('availability')?.setValue(availability, { emitEvent: false });
     this.formChanged = true;
     this.checkFormChanges();
-    this.applicationsService.updateAvailability(this.user.id, availability).subscribe({
+    this.applicationsService.updateAvailability({user_id: this.user.id, availability}).subscribe({
       next: () => {
         this.loadApplicationDetails(this.user.id);
         this.permissionService.notifyPermissionsUpdated();
@@ -532,18 +525,14 @@ export class AppAccountSettingComponent implements OnInit {
       this.usersService.getUsers(userFilter).subscribe({
         next: (users: any) => {
           this.user = users[0];
-          this.loadExistingVideo();
-          this.checkMatchRequestStatus() 
           this.evaluateApplicationVisibility();
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
-             if (this.user.availability || this.isOrphan) {
+             if (this.isCandidate) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
-              this.checkMatchRequestStatus();
-              this.checkOlympiaStatus();
-              this.initializeApplicationFormDependencies();              
+              this.checkMatchRequestStatus()              
              }
           }
           this.usersService.getProfilePic(this.user.id).subscribe({
