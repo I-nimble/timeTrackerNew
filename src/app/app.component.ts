@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, PLATFORM_ID, Inject, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RocketChatService } from './services/rocket-chat.service';
@@ -6,6 +6,8 @@ import { PlatformPermissionsService } from './services/permissions.service';
 import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { isPlatformBrowser } from '@angular/common';
 import { PushNotificationService } from './services/push-notification.service';
 import { App } from '@capacitor/app';
 
@@ -34,14 +36,18 @@ export class AppComponent implements OnInit, OnDestroy {
   private jitsiCompRef: ComponentRef<any> | null = null;
 
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
+  private darkModeMediaQuery!: MediaQueryList;
 
   constructor(
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: any,
     private rocketChatService: RocketChatService,
     private platformPermissionsService: PlatformPermissionsService,
     private pushNotificationService: PushNotificationService
   ) { }
 
   async ngOnInit() {
+    await this.initializeSystemBars();
     App.addListener('appStateChange', async ({ isActive }) => {
       if (!isActive) {
         this.rocketChatService.setUserStatus('away').subscribe();
@@ -131,6 +137,7 @@ export class AppComponent implements OnInit, OnDestroy {
         } catch (e) {}
       });
     } catch (e) {}
+    this.setupDarkModeListener();
   }
 
   @HostListener('window:beforeunload')
@@ -146,5 +153,63 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onJitsiClosed() {
     try { this.rocketChatService.closeJitsiMeeting(); } catch (e) {}
+  }
+
+  async initializeSystemBars() {
+    try {
+      if (typeof StatusBar !== 'undefined') {
+        await StatusBar.setOverlaysWebView({ overlay: false });
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (isDarkMode) {
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#15263a' });
+        } else {
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setBackgroundColor({ color: '#EAEAEA' });
+        }
+        
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      }
+    } catch (error) {
+      console.error('Error configuring system bars:', error);
+    }
+  }
+
+  setupDarkModeListener() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      const handleColorSchemeChange = (event: MediaQueryListEvent) => {
+        this.updateSystemBarsColor(event.matches);
+      };
+      
+      if (this.darkModeMediaQuery.addEventListener) {
+        this.darkModeMediaQuery.addEventListener('change', handleColorSchemeChange);
+      } else {
+        this.darkModeMediaQuery.addListener(handleColorSchemeChange);
+      }
+      
+      this.updateSystemBarsColor(this.darkModeMediaQuery.matches);
+    }
+  }
+
+  async updateSystemBarsColor(isDarkMode: boolean) {
+    try {
+      if (typeof StatusBar !== 'undefined') {
+        if (isDarkMode) {
+          await StatusBar.setStyle({ style: Style.Dark });
+          await StatusBar.setBackgroundColor({ color: '#15263a' });
+        } else {
+          await StatusBar.setStyle({ style: Style.Light });
+          await StatusBar.setBackgroundColor({ color: '#EAEAEA' });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating system bars color:', error);
+    }
   }
 }
