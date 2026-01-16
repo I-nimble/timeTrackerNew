@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
@@ -59,6 +59,7 @@ export class CandidateDetailsComponent implements OnInit {
   showFullWorkExperience: boolean = false;
   isCreateMode = false;
   rankingProfiles: any[] = [];
+  pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   descriptionOptions = [
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
@@ -84,14 +85,14 @@ export class CandidateDetailsComponent implements OnInit {
     this.loader.started = true;
     const param = this.route.snapshot.paramMap.get('id');
     this.isCreateMode = param === 'new';
-
+    this.getLocations();
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
       descriptionOption: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
-      ranking_id: [''],
+      ranking_id: ['', Validators.required],
       position_id: ['', Validators.required],
       profile_pic: [''],
       interview_link: [''],
@@ -185,9 +186,10 @@ export class CandidateDetailsComponent implements OnInit {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
+          pending_updates: candidate.pending_updates || null,
         };
-
         this.candidate.set(normalizedCandidate);
+        this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
 
         let descriptionValue = '';
@@ -292,6 +294,42 @@ export class CandidateDetailsComponent implements OnInit {
 
   get f() {
     return this.form.controls as { [key: string]: FormControl };
+  }
+
+  private getFieldLabel(key: string): string {
+    const labels: Record<string, string> = {
+      full_name: 'Name:',
+      phone: 'Phone',
+      english_level: 'English Level',
+      skills: 'Skills',
+      schedule_availability: 'Schedule Availability',
+      location_id: 'Location',
+      hobbies: 'Hobbies',
+      work_experience: 'Work Experience',
+      education_history: 'Education History',
+      applied_where: 'Applied Where',
+      referred: 'Referred',
+      age: 'Age',
+      address: 'Address',
+      children: 'Children',
+      competencies: 'Competencies',
+      tech_proficiency: 'Tech Proficiency',
+      work_references: 'Work References',
+      salary_range: 'Salary Range',
+      programming_languages: 'Programming Languages'
+    };
+    return labels[key] || key;
+  }
+
+  private getFieldValue(key: string, value: any): any {
+    if (key === 'location_id') {
+      const loc = this.locations.find(l => l.id === Number(value));
+      return loc ? `${loc.city}, ${loc.country}` : value;
+    }
+    if (key === 'schedule_availability') {
+      return value ? 'Yes' : 'No';
+    }
+    return value;
   }
 
   enterEditMode() {
@@ -418,6 +456,30 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
+  private computePendingChanges() {
+    const candidate = this.candidate();
+    if (!candidate?.pending_updates) {
+      this.pendingChanges.set([]);
+      return;
+    }
+    let pending: any = {};
+    try {
+      pending = typeof candidate.pending_updates === 'string'
+        ? JSON.parse(candidate.pending_updates)
+        : candidate.pending_updates;
+    } catch (err) {
+      console.error('Failed to parse pending updates', err);
+      this.pendingChanges.set([]);
+      return;
+    }
+    this.pendingChanges.set(
+      Object.keys(pending).map(key => ({
+        field: this.getFieldLabel(key),
+        value: this.getFieldValue(key, pending[key])
+      }))
+    );
+  }
+
   save() {
     if (this.form.invalid) return;
     const selectedOption = this.form.value.descriptionOption;
@@ -436,6 +498,16 @@ export class CandidateDetailsComponent implements OnInit {
     } else {
       this.updateCandidate();
     }
+  }
+
+  getLocations() {
+    this.applicationService.getLocations().subscribe({
+      next: (locs) => {
+        this.locations = locs;
+        this.computePendingChanges();
+      },
+      error: (err) => console.error('Error loading locations', err)
+    });
   }
 
   getPositionTitle(positionId: number) {
@@ -493,6 +565,75 @@ export class CandidateDetailsComponent implements OnInit {
     }
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
+  }
+
+  approveChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.approveApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const applied = res?.applied_updates || {};
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          ...applied,
+          pending_updates: null,
+          pending_update_status: 'approved'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.applicationMatchScoreService.getPositionCategories()
+          .subscribe(categories => this.positionCategories = categories);
+        this.form.patchValue({
+          name: updatedCandidate.name,
+          description: updatedCandidate.description,
+          talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
+          position_id: updatedCandidate.position_id,
+          interview_link: updatedCandidate.interview_link,
+          hobbies: updatedCandidate.hobbies,
+          work_experience: updatedCandidate.work_experience,
+          skills: updatedCandidate.skills,
+          education_history: updatedCandidate.education_history,
+          inimble_academy: updatedCandidate.inimble_academy,
+          english_level: updatedCandidate.english_level
+        });
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));
+        this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Failed to approve changes', err);
+        this.snackBar.open('Failed to approve changes', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  rejectChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.rejectApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          pending_updates: null,
+          pending_update_status: 'rejected'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.snackBar.open('Pending changes rejected!', 'Close', { duration: 3000 });
+        this.form.patchValue(this.originalData);
+      },
+      error: (err) => {
+        console.error('Failed to reject changes', err);
+        this.snackBar.open('Failed to reject changes', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   openDialogUploadFiles() {
