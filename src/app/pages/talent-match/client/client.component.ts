@@ -824,6 +824,44 @@ export class AppTalentMatchClientComponent implements OnInit {
     localStorage.removeItem('aiOrderedIds');
     localStorage.removeItem('aiFilters');
   }
+
+  getSeparatedDescription(description: string): { baseText: string, role: string } {
+    if (!description) {
+      return { baseText: '', role: '' };
+    }
+    
+    const separatorIndex = description.indexOf(': ');
+    
+    if (separatorIndex !== -1) {
+      const baseText = description.substring(0, separatorIndex + 1);
+      const role = description.substring(separatorIndex + 2);
+      
+      return {
+        baseText: baseText.trim(),
+        role: role.trim()
+      };
+    } else {
+      const colonIndex = description.indexOf(':');
+      if (colonIndex !== -1) {
+        const baseText = description.substring(0, colonIndex + 1);
+        const role = description.substring(colonIndex + 1);
+        
+        return {
+          baseText: baseText.trim(),
+          role: role.trim()
+        };
+      }
+      
+      return {
+        baseText: '',
+        role: ''
+      };
+    }
+  }
+
+  hasDescription(element: any): boolean {
+    return !!element?.description && element.description.trim() !== '';
+  }
 }
 
 // Interview modal component
