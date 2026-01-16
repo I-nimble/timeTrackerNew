@@ -3,7 +3,7 @@
     <mat-sidenav #sidebar
       class="mat-drawer mat-sidenav bg-white mat-drawer-side mat-drawer-opened chat-sidebar"
       [mode]="'side'"
-      [opened]="!isMobile || sidebar.opened"
+      [opened]="isMobile || sidebar.opened"
     >
       <div class="mat-drawer-inner-container chat-sidebar-inner">
         <div class="sidebar-header d-flex align-items-center justify-content-between px-16 py-12">

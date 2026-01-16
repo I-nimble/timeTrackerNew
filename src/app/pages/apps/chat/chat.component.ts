@@ -1234,7 +1234,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
     this.selectedConversation = room;
     this.typingUsers = [];
-    // TODO: Collapse side panel
+    
     if(this.isMobile && this.sidebar.opened) {
       this.sidebar.close();
     };
