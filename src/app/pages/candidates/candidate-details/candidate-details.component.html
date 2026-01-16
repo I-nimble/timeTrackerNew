@@ -221,7 +221,7 @@
         <h4>RESUMES</h4>
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
-            <td><b>Ranking</b></td>
+            <td><b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b></td>
             <td *ngIf="!editMode">{{ getRankingName(candidate()?.ranking_id) }}</td>
             <td *ngIf="editMode">
               <mat-select [formControl]="f['ranking_id']" placeholder="Select ranking">
@@ -229,6 +229,9 @@
                   {{ profile.ranking }}
                 </mat-option>
               </mat-select>
+              <p class="text-danger f-s-12 m-t-0" *ngIf="f['ranking_id'].hasError('required')">
+                Ranking is required.
+              </p>
             </td>
           </tr>
 

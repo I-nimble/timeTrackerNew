@@ -84,7 +84,7 @@ export class CandidateDetailsComponent implements OnInit {
       description: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
-      ranking_id: [''],
+      ranking_id: ['', Validators.required],
       position_id: ['', Validators.required],
       profile_pic: [''],
       interview_link: [''],

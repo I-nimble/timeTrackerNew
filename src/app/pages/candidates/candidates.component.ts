@@ -384,7 +384,7 @@ export class CandidatesComponent {
   }
 
   markAsAvailable(candidate: any) {
-    this.applicationsService.updateAvailability(candidate.id, true).subscribe(() => {
+    this.applicationsService.updateAvailability({application_id: candidate.id, availability: true}).subscribe(() => {
       this.showSnackbar('Candidate marked as available');
       this.loadCandidates();
       this.filterCandidates();
@@ -392,7 +392,7 @@ export class CandidatesComponent {
   }
 
   markAsUnavailable(candidate: any) {
-    this.applicationsService.updateAvailability(candidate.id, false).subscribe(() => {
+    this.applicationsService.updateAvailability({application_id: candidate.id, availability: false}).subscribe(() => {
       this.showSnackbar('Candidate marked as unavailable');
       this.loadCandidates();
       this.filterCandidates();
