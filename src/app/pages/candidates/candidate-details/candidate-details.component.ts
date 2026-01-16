@@ -59,6 +59,13 @@ export class CandidateDetailsComponent implements OnInit {
   showFullWorkExperience: boolean = false;
   isCreateMode = false;
   rankingProfiles: any[] = [];
+  descriptionOptions = [
+    'Lien Negotiator - Office Manager / Administrative Coordinator',
+    'Intake Specialist',
+    'Medical Records Clerk - Case Manager - Receptionist',
+    'Paralegal Personal Injury - Litigation Assistant'
+  ];
+  descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
 
   constructor(
     private route: ActivatedRoute,
@@ -81,6 +88,7 @@ export class CandidateDetailsComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      descriptionOption: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
       ranking_id: [''],
@@ -181,9 +189,27 @@ export class CandidateDetailsComponent implements OnInit {
 
         this.candidate.set(normalizedCandidate);
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
+
+        let descriptionValue = '';
+        let selectedOption = '';
+        
+        if (candidate.description) {
+          if (candidate.description.includes(this.descriptionBaseText)) {
+            const parts = candidate.description.split(this.descriptionBaseText);
+            if (parts[1] && parts[1].trim()) {
+              selectedOption = parts[1].trim();
+            }
+            descriptionValue = candidate.description;
+          } else {
+            descriptionValue = candidate.description;
+            selectedOption = candidate.description;
+          }
+        }
+
         this.form.patchValue({
           name: candidate.name,
-          description: candidate.description,
+          description: descriptionValue,
+          descriptionOption: selectedOption,
           talent_match_profile_summary: candidate.talent_match_profile_summary,
           ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
           profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
@@ -226,10 +252,27 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   initializeForm(candidate: any) {
+    let descriptionValue = '';
+    let selectedOption = '';
+    
+    if (candidate.description) {
+      if (candidate.description.includes(this.descriptionBaseText)) {
+        const parts = candidate.description.split(this.descriptionBaseText);
+        if (parts[1] && parts[1].trim()) {
+          selectedOption = parts[1].trim();
+        }
+        descriptionValue = candidate.description;
+      } else {
+        descriptionValue = candidate.description;
+        selectedOption = candidate.description;
+      }
+    }
+
     const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
     this.form.patchValue({
       name: candidate.name,
-      description: candidate.description,
+      description: descriptionValue,
+      descriptionOption: selectedOption,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
@@ -277,6 +320,16 @@ export class CandidateDetailsComponent implements OnInit {
     this.editMode = false;
   }
 
+  getSelectedDescriptionOption(): string {
+    const description = this.candidate()?.description || '';
+    if (!description.includes(this.descriptionBaseText)) {
+      return description;
+    }
+    
+    const parts = description.split(this.descriptionBaseText);
+    return parts[1] ? parts[1].trim() : '';
+  }
+
 
   private createCandidate() {
     const payload = {
@@ -300,9 +353,16 @@ export class CandidateDetailsComponent implements OnInit {
 
     const formValues = this.form.value;
 
+    const selectedOption = this.form.value.descriptionOption;
+    let descriptionValue = this.descriptionBaseText;
+    
+    if (selectedOption && selectedOption.trim()) {
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+    }
+
     const data: any = {
       name: formValues.name,
-      description: formValues.description,
+      description: descriptionValue,
       talent_match_profile_summary: formValues.talent_match_profile_summary,
       profile_observation: formValues.profile_observation,
       ranking_id: formValues.ranking_id,
@@ -326,6 +386,15 @@ export class CandidateDetailsComponent implements OnInit {
       next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
+        const updatedCandidate = {
+          ...this.candidate(),
+          ...data,
+          description: descriptionValue
+        };
+        
+        this.candidate.set(updatedCandidate);
+
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));
         
         if (response?.profile_pic_url) {
           const updatedCandidate = {
@@ -351,6 +420,17 @@ export class CandidateDetailsComponent implements OnInit {
 
   save() {
     if (this.form.invalid) return;
+    const selectedOption = this.form.value.descriptionOption;
+    let descriptionValue = this.descriptionBaseText;
+    
+    if (selectedOption && selectedOption.trim()) {
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+    }
+    
+    this.form.patchValue({
+      description: descriptionValue
+    });
+    
     if (this.isCreateMode) {
       this.createCandidate();
     } else {
