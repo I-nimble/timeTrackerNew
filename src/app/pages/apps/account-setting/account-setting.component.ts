@@ -640,7 +640,10 @@ export class AppAccountSettingComponent implements OnInit {
             full_name: this.user.name + ' ' + this.user.last_name,
             location_state_country: locationString,
             application_area: roleTitle,
-          })
+          });
+
+          this.applicationForm.markAllAsTouched();
+          this.personalForm.markAllAsTouched();
         }
       },
       error: (error) => {
@@ -1077,7 +1080,6 @@ export class AppAccountSettingComponent implements OnInit {
           this.openSnackBar('Profile and application details updated successfully', 'Close');
           this.isSubmitting = false;
           this.loadApplicationDetails(this.user.id);
-          this.getUser();
         }
       },
       error: (err: any) => {
