@@ -12,6 +12,7 @@ import { MaterialModule } from '../../../material.module';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { environment } from 'src/environments/environment';
 import {AuthService} from '../../../services/auth.service';
+import { LocationService } from 'src/app/services/location.service';
 import { Login, SignUp } from 'src/app/models/Auth';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
@@ -92,6 +93,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
+     private locationService: LocationService
   ) {}
 
   form = new FormGroup({
@@ -132,26 +134,29 @@ export class AppSideLoginComponent {
           const isOrphan = v.isOrphan;
           const chatCredentials = v.chatCredentials;
           localStorage.setItem('role', role);
-          if (Number(role) === 1) {
-            this.route = '/dashboards/admin';
-          } else if (Number(role) === 2) {
-            this.route = '/dashboards/tm';
-          } else {
-            this.route = '/dashboards/dashboard2';
-          }
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
+
+          if (Number(role) === 2) {
+            this.locationService.startTracking();
+            this.locationService.forceUpdate();
+          }
           this.rocketChatService.initializeRocketChat(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
+
+          if (Number(role) === 2) {
+            this.locationService.startTracking();
+            this.locationService.forceUpdate();
+          }
+
           this.authService.setUserType(role);
-          this.authService.userTypeRouting(role);
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.router.navigate([this.route]);
+          this.authService.userTypeRouting(role);
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;

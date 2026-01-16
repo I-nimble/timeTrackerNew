@@ -1,4 +1,3 @@
-<!-- stripe.component.html -->
 <mat-card class="cardWithShadow" @fadeInUp>
   <mat-card-content>
     <div class="row m-b-24">
@@ -10,7 +9,7 @@
     </div>
     <mat-divider></mat-divider>
 
-    <!-- Estado de pago exitoso -->
+    <!-- Payment status successful -->
     <div *ngIf="paymentStatus === 'succeeded'" class="p-t-24">
       <div class="success-payment text-center">
         <mat-icon class="success-icon">check_circle</mat-icon>
@@ -19,16 +18,12 @@
         
         <div class="payment-details m-t-24">
           <div class="detail-row">
-            <span>Amount:</span>
+            <span>Amount: </span>
             <strong>${{ amount | number:'1.2-2' }}</strong>
           </div>
           <div class="detail-row">
-            <span>Invoice ID:</span>
+            <span>Invoice ID: </span>
             <strong>{{ invoiceId }}</strong>
-          </div>
-          <div class="detail-row">
-            <span>Transaction ID:</span>
-            <strong>Transaction ID</strong>
           </div>
         </div>
         
@@ -52,8 +47,21 @@
       </div>
     </div>
 
-    <!-- Formulario de pago -->
-    <form *ngIf="paymentStatus !== 'succeeded'" [formGroup]="paymentForm" (ngSubmit)="handleSubmit()" class="p-t-24">
+    <!-- Payment form -->
+    <div class="d-flex align-items-center m-t-12 m-b-24" *ngIf="clientInfo && paymentStatus != 'succeeded'">
+        <mat-slide-toggle
+          [formControl]="useClientInfoControl"
+          color="primary"
+          class="m-r-16"
+          [disabled]="isClientInfoLoading"
+        >
+          Use my information
+        </mat-slide-toggle>
+        <span *ngIf="isClientInfoLoading" class="text-muted">
+          Loading client information...
+        </span>
+      </div>
+      <form *ngIf="paymentStatus !== 'succeeded'" [formGroup]="paymentForm" (ngSubmit)="handleSubmit()" class="p-t-24">
       <div class="row">
         <div class="col-sm-6">
           <div class="form-group">
@@ -65,7 +73,7 @@
               placeholder="John Doe"
               class="form-control p-12"
               [ngClass]="{ 'is-invalid': paymentForm.get('name')?.touched && paymentForm.get('name')?.invalid }"
-              [disabled]="isLoading"
+              [disabled]="isLoading || (useClientInfoControl.value && clientInfo)"
             >
             <div *ngIf="paymentForm.get('name')?.touched && paymentForm.get('name')?.invalid" class="invalid-feedback">
               Please enter your full name
@@ -83,7 +91,7 @@
               placeholder="john@example.com"
               class="form-control p-12"
               [ngClass]="{ 'is-invalid': paymentForm.get('email')?.touched && paymentForm.get('email')?.invalid }"
-              [disabled]="isLoading"
+              [disabled]="isLoading || (useClientInfoControl.value && clientInfo)"
             >
             <div *ngIf="paymentForm.get('email')?.touched && paymentForm.get('email')?.invalid" class="invalid-feedback">
               Please enter a valid email address
@@ -93,20 +101,18 @@
       </div>
 
       <div class="row m-t-16">
-    <div class="col-12">
-      <div class="form-group">
-        <span class="f-w-600 f-s-15 d-block m-b-8">Payment Method</span>
-        
-        <!-- Contenedor para el elemento de pago -->
-        <div #paymentElementContainer id="payment-element" class="stripe-payment-element"></div>
-        
-        <div *ngIf="errorMessage" class="text-danger stripe-error m-t-8">
-          <mat-icon class="error-icon">error</mat-icon>
-          {{ errorMessage }}
+        <div class="col-12">
+          <div class="form-group">
+            <span class="f-w-600 f-s-15 d-block m-b-8">Payment Method</span>
+            <div #paymentElementContainer id="payment-element" class="stripe-payment-element"></div>
+            
+            <div *ngIf="errorMessage" class="text-danger stripe-error m-t-8">
+              <mat-icon class="error-icon">error</mat-icon>
+              {{ errorMessage }}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
       <div class="row m-t-24">
         <div class="col-12 text-right">

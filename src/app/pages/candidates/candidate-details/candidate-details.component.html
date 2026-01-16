@@ -100,21 +100,25 @@
 
           <tr>
             <td><b>Description</b></td>
-            <td *ngIf="!editMode">{{ candidate()?.description || "" }}</td>
-            <td *ngIf="editMode">
-              <textarea matInput [formControl]="f['description']"></textarea>
-            </td>
-          </tr>
-          <tr *ngIf="userRole !== '3'">
-            <td><b>Talent Match Profile Summary</b></td>
             <td *ngIf="!editMode">
-              {{ candidate()?.talent_match_profile_summary || "" }}
+              <div *ngIf="candidate()?.description; else noDescription">
+                {{ candidate()?.description }}
+              </div>
+              <ng-template #noDescription>
+                <span class="text-muted">No description provided</span>
+              </ng-template>
             </td>
             <td *ngIf="editMode">
-              <textarea
-                matInput
-                [formControl]="f['talent_match_profile_summary']"
-              ></textarea>
+              <div class="d-flex flex-column gap-2">
+                <div class="description-base-text m-b-8">
+                  {{ descriptionBaseText }}
+                </div>
+                <mat-select [formControl]="f['descriptionOption']" placeholder="Select match type">
+                  <mat-option *ngFor="let option of descriptionOptions" [value]="option">
+                    {{ option }}
+                  </mat-option>
+                </mat-select>
+              </div>
             </td>
           </tr>
           <tr *ngIf="!isCreateMode">
@@ -279,17 +283,44 @@
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
-            <td>
-              <div class="d-flex align-items-center gap-2 mb-2">
-              </div> 
-              <a
-                *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
-                [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ candidate()?.picture || candidate()?.profile_pic_url }}
-              </a>
+            <td *ngIf="!editMode">
+              <div *ngIf="candidate()?.picture || candidate()?.profile_pic_url">
+                <a
+                  [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ candidate()?.picture || candidate()?.profile_pic_url }}
+                </a>
+              </div>
+              <span *ngIf="!(candidate()?.picture || candidate()?.profile_pic_url)" class="text-muted">
+                No picture URL provided
+              </span>
+            </td>
+            <td *ngIf="editMode">
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <input
+                    #picInput
+                    type="file"
+                    accept="image/jpeg"
+                    (change)="onProfilePicSelected($event)"
+                    style="display: none"
+                  />
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    (click)="picInput.click()"
+                    type="button"
+                  >
+                    <mat-icon>upload</mat-icon>
+                    Upload Picture
+                  </button>
+                  <div *ngIf="selectedProfilePicFile" class="mt-1">
+                    <small class="text-muted">Selected: {{ selectedProfilePicFile.name }}</small>
+                  </div>
+                </div>
+              </div>
             </td>
           </tr>
 
