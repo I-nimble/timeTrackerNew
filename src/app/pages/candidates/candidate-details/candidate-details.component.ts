@@ -63,7 +63,7 @@ export class CandidateDetailsComponent implements OnInit {
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
     'Medical Records Clerk - Case Manager - Receptionist',
-    'Paralegal de Personal Injury - Litigation Assistant'
+    'Paralegal Personal Injury - Litigation Assistant'
   ];
   descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
 
