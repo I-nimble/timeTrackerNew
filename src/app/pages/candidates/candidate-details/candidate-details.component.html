@@ -29,16 +29,6 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button
-                mat-stroked-button
-                color="primary"
-                (click)="openDialogUploadFiles()"
-                type="button"
-                *ngIf="editMode"
-              >
-                <mat-icon>upload</mat-icon>
-                Upload Files
-              </button>
               <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
@@ -264,7 +254,7 @@
                   <input
                     #picInput
                     type="file"
-                    accept="image/jpeg"
+                    accept="image/jpeg, image/png"
                     (change)="onProfilePicSelected($event)"
                     style="display: none"
                   />
@@ -277,6 +267,9 @@
                     <mat-icon>upload</mat-icon>
                     Upload Picture
                   </button>
+                  <div *ngIf="!selectedProfilePicFile" class="mt-1">
+                    <small class="text-muted">Only .png and .jpg files are accepted.</small>
+                  </div>
                   <div *ngIf="selectedProfilePicFile" class="mt-1">
                     <small class="text-muted">Selected: {{ selectedProfilePicFile.name }}</small>
                   </div>
