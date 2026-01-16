@@ -499,33 +499,7 @@ export class CandidateDetailsComponent implements OnInit {
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
-
-  openDialogUploadFiles() {
-    const candidate = this.candidate();
-    if (!candidate) return;
-
-    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
-      width: '600px',
-      data: {
-        mode: 'files',
-        candidate: candidate,
-        action: 'edit'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success && result.profile_pic) {
-        const updatedCandidate = {
-          ...this.candidate(),
-          picture: result.profile_pic,
-          profile_pic_url: result.profile_pic
-        };
-        this.candidate.set(updatedCandidate);
-        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
+  
   openMatchPercentagesModal(): void {
     const candidate = this.candidate();
     if (!candidate) return;
@@ -569,6 +543,32 @@ export class CandidateDetailsComponent implements OnInit {
         this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  onProfilePicSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.size > 1000000) {
+        this.snackBar.open(
+          'Profile picture size should be 1 MB or less',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      if (!['image/jpeg', 'image/png'].includes(file.type)){
+        this.snackBar.open(
+          'Only JPG and PNG files are allowed for profile picture',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      this.selectedProfilePicFile = file;
+      this.form.patchValue({
+        profile_pic: file 
+      });
+    }
   }
 
 }
