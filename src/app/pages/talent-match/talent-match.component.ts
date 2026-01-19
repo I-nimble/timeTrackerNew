@@ -6,6 +6,7 @@ import { AppTalentMatchTmComponent } from './talent-match-tm/talent-match-tm.com
 import { AppIntakeFormComponent } from '../intake/intake-form.component';
 import { environment } from 'src/environments/environment';
 import { PermissionService } from 'src/app/services/permission.service';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
@@ -25,8 +26,10 @@ export class AppTalentMatchComponent {
   isOrphan = localStorage.getItem('isOrphan') === 'true';
   canViewTalentMatch = false;
   allowedTM = false;
+  hasAvailableApplication = false;
+  hasApplication = false;
 
-  constructor(private permissionService: PermissionService) {
+  constructor(private permissionService: PermissionService, private applicationsService: ApplicationsService) {
     const allowedEmails = environment.allowedReportEmails;
     this.allowedTM =
       this.userRole === '2' && allowedEmails.includes(this.userEmail || '');
@@ -36,9 +39,21 @@ export class AppTalentMatchComponent {
       next: (userPerms: any) => {
         const effective = userPerms.effectivePermissions || [];
         this.canViewTalentMatch = effective.includes('talent-match.view');
+        if (!this.canViewTalentMatch) return;
+        if (this.userRole !== '3') {
+          this.loadApplication(userId);
+        }
+      }
+    });
+  }
+
+  private loadApplication(userId: number): void {
+    this.applicationsService.getUserApplication(userId).subscribe({
+      next: (application) => {
+        this.hasAvailableApplication = !!application?.inmediate_availability;
       },
-      error: (err) => {
-        console.error('Error fetching user permissions', err);
+      error: () => {
+        this.hasAvailableApplication = false;
       }
     });
   }
