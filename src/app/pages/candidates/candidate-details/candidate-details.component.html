@@ -61,16 +61,6 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button
-                mat-stroked-button
-                color="primary"
-                (click)="openDialogUploadFiles()"
-                type="button"
-                *ngIf="editMode"
-              >
-                <mat-icon>upload</mat-icon>
-                Upload Files
-              </button>
               <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
