@@ -1,4 +1,4 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
@@ -61,6 +61,14 @@ export class CandidateDetailsComponent implements OnInit {
   showFullWorkExperience: boolean = false;
   isCreateMode = false;
   rankingProfiles: any[] = [];
+  pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
+  descriptionOptions = [
+    'Lien Negotiator - Office Manager / Administrative Coordinator',
+    'Intake Specialist',
+    'Medical Records Clerk - Case Manager - Receptionist',
+    'Paralegal Personal Injury - Litigation Assistant'
+  ];
+  descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
 
   constructor(
     private route: ActivatedRoute,
@@ -80,13 +88,14 @@ export class CandidateDetailsComponent implements OnInit {
     this.loader.started = true;
     const param = this.route.snapshot.paramMap.get('id');
     this.isCreateMode = param === 'new';
-
+    this.getLocations();
     this.form = this.fb.group({
       name: ['', Validators.required],
       description: [''],
+      descriptionOption: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
-      ranking_id: [''],
+      ranking_id: ['', Validators.required],
       position_id: ['', Validators.required],
       profile_pic: [''],
       interview_link: [''],
@@ -180,13 +189,32 @@ export class CandidateDetailsComponent implements OnInit {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
+          pending_updates: candidate.pending_updates || null,
         };
-
         this.candidate.set(normalizedCandidate);
+        this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
+
+        let descriptionValue = '';
+        let selectedOption = '';
+        
+        if (candidate.description) {
+          if (candidate.description.includes(this.descriptionBaseText)) {
+            const parts = candidate.description.split(this.descriptionBaseText);
+            if (parts[1] && parts[1].trim()) {
+              selectedOption = parts[1].trim();
+            }
+            descriptionValue = candidate.description;
+          } else {
+            descriptionValue = candidate.description;
+            selectedOption = candidate.description;
+          }
+        }
+
         this.form.patchValue({
           name: candidate.name,
-          description: candidate.description,
+          description: descriptionValue,
+          descriptionOption: selectedOption,
           talent_match_profile_summary: candidate.talent_match_profile_summary,
           ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
           profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
@@ -229,10 +257,27 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   initializeForm(candidate: any) {
+    let descriptionValue = '';
+    let selectedOption = '';
+    
+    if (candidate.description) {
+      if (candidate.description.includes(this.descriptionBaseText)) {
+        const parts = candidate.description.split(this.descriptionBaseText);
+        if (parts[1] && parts[1].trim()) {
+          selectedOption = parts[1].trim();
+        }
+        descriptionValue = candidate.description;
+      } else {
+        descriptionValue = candidate.description;
+        selectedOption = candidate.description;
+      }
+    }
+
     const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
     this.form.patchValue({
       name: candidate.name,
-      description: candidate.description,
+      description: descriptionValue,
+      descriptionOption: selectedOption,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
@@ -252,6 +297,42 @@ export class CandidateDetailsComponent implements OnInit {
 
   get f() {
     return this.form.controls as { [key: string]: FormControl };
+  }
+
+  private getFieldLabel(key: string): string {
+    const labels: Record<string, string> = {
+      full_name: 'Name:',
+      phone: 'Phone',
+      english_level: 'English Level',
+      skills: 'Skills',
+      schedule_availability: 'Schedule Availability',
+      location_id: 'Location',
+      hobbies: 'Hobbies',
+      work_experience: 'Work Experience',
+      education_history: 'Education History',
+      applied_where: 'Applied Where',
+      referred: 'Referred',
+      age: 'Age',
+      address: 'Address',
+      children: 'Children',
+      competencies: 'Competencies',
+      tech_proficiency: 'Tech Proficiency',
+      work_references: 'Work References',
+      salary_range: 'Salary Range',
+      programming_languages: 'Programming Languages'
+    };
+    return labels[key] || key;
+  }
+
+  private getFieldValue(key: string, value: any): any {
+    if (key === 'location_id') {
+      const loc = this.locations.find(l => l.id === Number(value));
+      return loc ? `${loc.city}, ${loc.country}` : value;
+    }
+    if (key === 'schedule_availability') {
+      return value ? 'Yes' : 'No';
+    }
+    return value;
   }
 
   enterEditMode() {
@@ -280,6 +361,16 @@ export class CandidateDetailsComponent implements OnInit {
     this.editMode = false;
   }
 
+  getSelectedDescriptionOption(): string {
+    const description = this.candidate()?.description || '';
+    if (!description.includes(this.descriptionBaseText)) {
+      return description;
+    }
+    
+    const parts = description.split(this.descriptionBaseText);
+    return parts[1] ? parts[1].trim() : '';
+  }
+
 
   private createCandidate() {
     const payload = {
@@ -303,9 +394,16 @@ export class CandidateDetailsComponent implements OnInit {
 
     const formValues = this.form.value;
 
+    const selectedOption = this.form.value.descriptionOption;
+    let descriptionValue = this.descriptionBaseText;
+    
+    if (selectedOption && selectedOption.trim()) {
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+    }
+
     const data: any = {
       name: formValues.name,
-      description: formValues.description,
+      description: descriptionValue,
       talent_match_profile_summary: formValues.talent_match_profile_summary,
       profile_observation: formValues.profile_observation,
       ranking_id: formValues.ranking_id,
@@ -329,6 +427,15 @@ export class CandidateDetailsComponent implements OnInit {
       next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
+        const updatedCandidate = {
+          ...this.candidate(),
+          ...data,
+          description: descriptionValue
+        };
+        
+        this.candidate.set(updatedCandidate);
+
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));
         
         if (response?.profile_pic_url) {
           const updatedCandidate = {
@@ -352,8 +459,42 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
+  private computePendingChanges() {
+    const candidate = this.candidate();
+    if (!candidate?.pending_updates) {
+      this.pendingChanges.set([]);
+      return;
+    }
+    let pending: any = {};
+    try {
+      pending = typeof candidate.pending_updates === 'string'
+        ? JSON.parse(candidate.pending_updates)
+        : candidate.pending_updates;
+    } catch (err) {
+      console.error('Failed to parse pending updates', err);
+      this.pendingChanges.set([]);
+      return;
+    }
+    this.pendingChanges.set(
+      Object.keys(pending).map(key => ({
+        field: this.getFieldLabel(key),
+        value: this.getFieldValue(key, pending[key])
+      }))
+    );
+  }
+
   save() {
     if (this.form.invalid) return;
+    const selectedOption = this.form.value.descriptionOption;
+    let descriptionValue = this.descriptionBaseText;
+    
+    if (selectedOption && selectedOption.trim()) {
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+    }
+    
+    this.form.patchValue({
+      description: descriptionValue
+    });
     
     if (this.isCreateMode) {
       this.createCandidate();
@@ -436,6 +577,16 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
+  getLocations() {
+    this.applicationService.getLocations().subscribe({
+      next: (locs) => {
+        this.locations = locs;
+        this.computePendingChanges();
+      },
+      error: (err) => console.error('Error loading locations', err)
+    });
+  }
+
   getPositionTitle(positionId: number) {
     return this.positions.find(p => p.id === positionId)?.title || 'N/A';
   }
@@ -491,6 +642,75 @@ export class CandidateDetailsComponent implements OnInit {
     }
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
+  }
+
+  approveChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.approveApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const applied = res?.applied_updates || {};
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          ...applied,
+          pending_updates: null,
+          pending_update_status: 'approved'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.applicationMatchScoreService.getPositionCategories()
+          .subscribe(categories => this.positionCategories = categories);
+        this.form.patchValue({
+          name: updatedCandidate.name,
+          description: updatedCandidate.description,
+          talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
+          position_id: updatedCandidate.position_id,
+          interview_link: updatedCandidate.interview_link,
+          hobbies: updatedCandidate.hobbies,
+          work_experience: updatedCandidate.work_experience,
+          skills: updatedCandidate.skills,
+          education_history: updatedCandidate.education_history,
+          inimble_academy: updatedCandidate.inimble_academy,
+          english_level: updatedCandidate.english_level
+        });
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));
+        this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Failed to approve changes', err);
+        this.snackBar.open('Failed to approve changes', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  rejectChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.rejectApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          pending_updates: null,
+          pending_update_status: 'rejected'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.snackBar.open('Pending changes rejected!', 'Close', { duration: 3000 });
+        this.form.patchValue(this.originalData);
+      },
+      error: (err) => {
+        console.error('Failed to reject changes', err);
+        this.snackBar.open('Failed to reject changes', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   openDialogUploadFiles() {

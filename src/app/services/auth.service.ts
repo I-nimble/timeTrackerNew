@@ -11,6 +11,7 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, user } from '@angular/fire/auth';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { from } from 'rxjs';
+import { EmployeesService } from 'src/app/services/employees.service';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,7 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
+    private employeesService: EmployeesService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -133,15 +135,31 @@ export class AuthService {
   }
   userTypeRouting(rol: string) {
     if (rol == '1') {
-      this.routes.navigate(['dashboards/dashboard2']);
+      this.routes.navigate(['/dashboards/dashboard2']);
       return;
     } else if (rol == '2') {
-      this.routes.navigate(['dashboards/dashboard2']);
+      this.routes.navigate(['/dashboards/dashboard2']);
       return;
     } else if (rol == '3') {
-      this.routes.navigate(['dashboards/dashboard2']);
+      if(this.hasTeamMembers()){
+        this.routes.navigate(['/dashboards/dashboard2']);
+      }else{
+        this.routes.navigate(['/apps/talent-match']);
+      }
       return;
     }
+  }
+
+  hasTeamMembers(): boolean {
+    this.employeesService.get().subscribe({
+      next: (employees) => {
+        return (employees && employees.length > 0)
+      },
+      error: () => {
+        return false;
+      }
+    });
+    return false;
   }
 
   getLoggedInUser(){
