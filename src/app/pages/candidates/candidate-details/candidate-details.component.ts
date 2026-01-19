@@ -718,9 +718,9 @@ export class CandidateDetailsComponent implements OnInit {
         );
         return;
       }
-      if (file.type !== 'image/jpeg') {
+      if (!['image/jpeg', 'image/png'].includes(file.type)){
         this.snackBar.open(
-          'Only JPG files are allowed for profile picture',
+          'Only JPG and PNG files are allowed for profile picture',
           'Close',
           { duration: 3000 }
         );
