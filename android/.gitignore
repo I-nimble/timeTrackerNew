@@ -99,24 +99,3 @@ app/src/main/assets/public
 app/src/main/assets/capacitor.config.json
 app/src/main/assets/capacitor.plugins.json
 app/src/main/res/xml/config.xml
-
-# Images
-app/src/main/res/drawable
-app/src/main/res/drawable-land-hdpi
-app/src/main/res/drawable-land-mdpi
-app/src/main/res/drawable-land-xhdpi
-app/src/main/res/drawable-land-xxhdpi
-app/src/main/res/drawable-land-xxxhdpi
-app/src/main/res/drawable-port-hdpi
-app/src/main/res/drawable-port-mdpi
-app/src/main/res/drawable-port-xhdpi
-app/src/main/res/drawable-port-xxhdpi
-app/src/main/res/drawable-port-xxxhdpi
-app/src/main/res/drawable-v24
-app/src/main/res/mipmap-anydpi-v26
-app/src/main/res/mipmap-hdpi
-app/src/main/res/mipmap-mdpi
-app/src/main/res/mipmap-xhdpi
-app/src/main/res/mipmap-xxhdpi
-app/src/main/res/mipmap-xxxhdpi
-app/src/main/res/xml

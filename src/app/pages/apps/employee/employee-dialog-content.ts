@@ -87,6 +87,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
       company_id: ['', this.userRole === '1' ? Validators.required : []],
       position: ['', Validators.required],
       projects: [[]],
+      hourly_rate: [0, [Validators.min(0), Validators.max(1000)]],
       scheduleGroups: this.fb.array([])
     });
   
@@ -94,6 +95,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       company_id: ['', Validators.required],
+      hourly_rate: [0, [Validators.min(0), Validators.max(1000)]]
     });
 
     if(this.action === 'Update') {
@@ -105,6 +107,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
         company_id: this.local_data.profile.company_id || '',
         position: this.local_data.profile.position,
         projects: this.local_data.profile.projects || [],
+        hourly_rate: this.local_data.profile.hourly_rate || 0 
       });
       this.loadEmployeeSchedules();
     }
@@ -343,6 +346,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
         name: this.inviteEmployeeForm.value.name,
         email: this.inviteEmployeeForm.value.email,
         company_id: this.inviteEmployeeForm.value.company_id,
+        hourly_rate: this.inviteEmployeeForm.value.hourly_rate || 0,
         user_timezone: this.userTimezone
       };
       this.employeesService.inviteEmployee(invitationData).subscribe({

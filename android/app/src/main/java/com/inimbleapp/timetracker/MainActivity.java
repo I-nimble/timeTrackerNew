@@ -4,6 +4,8 @@ import com.getcapacitor.BridgeActivity;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.View;
+import android.webkit.WebView;
+import android.content.pm.ApplicationInfo;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -12,6 +14,10 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         
         configureSystemBars();
+
+        if (0 != (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE)) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
     }
     
     private void configureSystemBars() {

@@ -27,6 +27,9 @@ const config: CapacitorConfig = {
       SplashScreen: {
         launchShowDuration: 3000,
         launchAutoHide: true
+        },
+      PushNotifications: {
+            presentationOptions: ["badge", "sound", "alert"]
       }
     }
 };

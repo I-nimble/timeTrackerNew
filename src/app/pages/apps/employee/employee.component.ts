@@ -45,6 +45,7 @@ import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-
 import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
 import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 import { AppEmployeeDialogContentComponent } from './employee-dialog-content';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -84,7 +85,7 @@ export class AppEmployeeComponent {
   userRole = localStorage.getItem('role');
   companies: any[] = [];
   companyId: number | null = null;
-
+  userPermissions: string[] = [];
   searchText: string = '';
 
   displayedColumns: string[] = [
@@ -114,9 +115,26 @@ export class AppEmployeeComponent {
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private companiesService: CompaniesService,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
+    this.userRole = localStorage.getItem('role');
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.initComponent();
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+        this.initComponent();
+      }
+    });
+  }
+
+  private initComponent() {
     if (this.userRole === '3') {
       this.loadCompany();
     }
@@ -188,7 +206,7 @@ export class AppEmployeeComponent {
                     email: user.user.email,
                     position: user.position_id,
                     projects: user.projects.map((project: any) => project.id),
-                    Salary: 0,
+                    hourly_rate: user.hourly_rate,
                     imagePath: this.assetsPath + '/default-profile-pic.png',
                   },
                   schedule: 'No registered schedule',
@@ -213,7 +231,7 @@ export class AppEmployeeComponent {
                   email: user.user.email,
                   position: user.position_id,
                   projects: user.projects.map((project: any) => project.id),
-                  Salary: 0, 
+                  hourly_rate: user.hourly_rate,
                   imagePath: this.assetsPath + '/default-profile-pic.png',
                 },
                 schedule: scheduleString,

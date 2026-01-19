@@ -1,3 +1,4 @@
+import { PushNotifications } from '@capacitor/push-notifications';
 import { Component, HostBinding, OnInit, inject } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
@@ -26,6 +27,8 @@ import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { Capacitor } from '@capacitor/core';
+import { PushNotificationService } from 'src/app/services/push-notification.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -92,6 +95,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
+     private pushNotificationService: PushNotificationService,
   ) {}
 
   form = new FormGroup({
@@ -144,41 +148,73 @@ export class AppSideLoginComponent {
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
-          this.rocketChatService.initializeRocketChat(chatCredentials);
-          this.socketService.socket.emit('client:joinRoom', jwt);
-          this.authService.setUserType(role);
-          this.authService.userTypeRouting(role);
-          this.authService.checkTokenExpiration();
-          this.notificationsService.loadNotifications();
-          this.entriesService.loadEntries();
-          this.router.navigate([this.route]);
+          localStorage.removeItem('rocketChatCredentials');
 
-          let visibleChatCollection: HTMLCollectionOf<Element>;
-          let hiddenChatCollection: HTMLCollectionOf<Element>;
-          const interval = setInterval(() => {
-            visibleChatCollection = document.getElementsByClassName('widget-visible');
-            hiddenChatCollection = document.getElementsByClassName('widget-hidden');
-            if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
-              if (visibleChatCollection.length > 0) {
-                this.liveChatBubble = visibleChatCollection[0];
+          this.rocketChatService.initializeAfterLogin(chatCredentials)
+            .catch(error => {
+              console.error('Failed to initialize Rocket.Chat:', error);
+            })
+            .finally(async () => {
+              this.socketService.socket.emit('client:joinRoom', jwt);
+              this.authService.setUserType(role);
+              this.authService.userTypeRouting(role);
+              this.authService.checkTokenExpiration();
+              this.notificationsService.loadNotifications();
+              this.entriesService.loadEntries();
+              try {
+                const credentials = this.rocketChatService.credentials;
+                  const lastRegisteredUserId = localStorage.getItem('pushTokenUserId');
+                  if (lastRegisteredUserId && lastRegisteredUserId !== id) {
+                    try {
+                      await this.pushNotificationService.registerCurrentPushTokenIfNeeded();
+                      localStorage.setItem('pushTokenUserId', id);
+                    } catch (e) {
+                    }
+                  }
+                  await this.pushNotificationService.ensureToken();
+                  const token = await this.pushNotificationService.getCurrentToken();
+                  if (token) {
+                    this.pushNotificationService.registerPushToken(token).subscribe({
+                      error: (err) => console.error('registerPushToken error:', err),
+                    });
+                  } else {
+                    console.warn('No token available to register after ensureToken.');
+                  }
+                  await this.pushNotificationService.registerCurrentPushTokenIfNeeded();
+                  localStorage.setItem('pushTokenUserId', id);
+              } catch (e) {
+                console.error('Error during push token registration:', e);
               }
-              else if (hiddenChatCollection.length > 0) {
-                this.liveChatBubble = hiddenChatCollection[0];
-              }
-              if(role == '3') {
-                if (this.liveChatBubble.classList.contains('widget-hidden')) {
-                  this.liveChatBubble.classList.remove('widget-hidden');
-                  this.liveChatBubble.classList.add('widget-visible');
+
+              this.router.navigate([this.route]);
+
+              let visibleChatCollection: HTMLCollectionOf<Element>;
+              let hiddenChatCollection: HTMLCollectionOf<Element>;
+              const interval = setInterval(() => {
+                visibleChatCollection = document.getElementsByClassName('widget-visible');
+                hiddenChatCollection = document.getElementsByClassName('widget-hidden');
+                if(visibleChatCollection.length > 0 || hiddenChatCollection.length > 0) {
+                  if (visibleChatCollection.length > 0) {
+                    this.liveChatBubble = visibleChatCollection[0];
+                  }
+                  else if (hiddenChatCollection.length > 0) {
+                    this.liveChatBubble = hiddenChatCollection[0];
+                  }
+                  if(role == '3') {
+                    if (this.liveChatBubble.classList.contains('widget-hidden')) {
+                      this.liveChatBubble.classList.remove('widget-hidden');
+                      this.liveChatBubble.classList.add('widget-visible');
+                    }
+                  } else {
+                    if (this.liveChatBubble.classList.contains('widget-visible')) {
+                      this.liveChatBubble.classList.remove('widget-visible');
+                      this.liveChatBubble.classList.add('widget-hidden');
+                    }
+                  }
                 }
-              } else {
-                if (this.liveChatBubble.classList.contains('widget-visible')) {
-                  this.liveChatBubble.classList.remove('widget-visible');
-                  this.liveChatBubble.classList.add('widget-hidden');
-                }
-              }
-            }
-            clearInterval(interval);
-          }, 100);
+                clearInterval(interval);
+              }, 100);
+            });
         },
         error: (err: HttpErrorResponse) => {
           const { error } = err;

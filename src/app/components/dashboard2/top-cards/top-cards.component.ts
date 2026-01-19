@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [MaterialModule, TablerIconsModule, RouterModule],
   templateUrl: './top-cards.component.html',
+  styleUrls: ['./top-cards.component.scss'],
 })
 export class AppTopCardsComponent implements OnInit {
   totalTasksSum: number = 0;

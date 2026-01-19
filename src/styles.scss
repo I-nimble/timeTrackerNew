@@ -17,6 +17,12 @@ mat-sidenav, mat-sidenav-container {
 }
 .card-dashboard {
   height: 85%;
+  margin-bottom: 0!important;
+}
+@media screen and (max-width: 1275px) {
+  .card-dashboard {
+    margin-bottom: 1rem!important;
+  }
 }
 .text-btn button p {
   color: #fff!important;
@@ -174,3 +180,34 @@ app-jitsi-meet iframe {
 .jitsi-permanent-container.minimized .jitsi-container {
   pointer-events: auto;
 }
+
+.disc-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.disc-badge-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #333;
+}
+
+.disc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #333;
+}
+

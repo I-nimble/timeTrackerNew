@@ -4,18 +4,26 @@ import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
+import { RocketChatService } from './rocket-chat.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsersService {
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer) { }
+  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private chatService: RocketChatService) { }
   selectedUser: any = { id: null, name: '' };
   private teamMemberSource = new BehaviorSubject<number | null>(null);
   teamMember$ = this.teamMemberSource.asObservable();
   private API_URI = environment.apiUrl;
   private profilePicUpdatedSource = new Subject<void>();
   profilePicUpdated$ = this.profilePicUpdatedSource.asObservable();
+  private usernameSource = new BehaviorSubject<string>(localStorage.getItem('username') || '');
+  username$ = this.usernameSource.asObservable();
+
+  public updateUsername(name: string) {
+    localStorage.setItem('username', name);
+    this.usernameSource.next(name);
+  }
 
   public updatePassword(passwordData: any) {
     return this.http.put(`${this.API_URI}/users/password`, passwordData);
@@ -24,18 +32,20 @@ export class UsersService {
   public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
     const options = { headers: headers, responseType: 'blob' as 'json' };
-  
     return this.http.post<Blob>(`${this.API_URI}/users/profile`, { id }, options).pipe(
       switchMap((response: Blob) => {
+        if (!response || !(response instanceof Blob)) {
+          return of(null);
+        }
         if (response.type === 'application/json') {
           return new Observable<null>((observer) => {
             const reader = new FileReader();
             reader.onload = () => {
               const responseText = reader.result as string;
-              if (responseText.includes('Profile pic does not exists')) {
-                console.warn('No profile picture available: ', responseText);
-                observer.next(null);  
+              if (responseText.includes('Profile pic does not exist')) {
+                console.warn('No profile picture available');
               }
+              observer.next(null); 
               observer.complete(); 
             };
             reader.onerror = (error) => {
@@ -45,13 +55,18 @@ export class UsersService {
           });
         }
 
-        const url = URL.createObjectURL(response);
-        const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        return of(safeUrl); 
+        if (response.type.startsWith('image/')) {
+          const url = URL.createObjectURL(response);
+          const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+          return of(safeUrl);
+        } else {
+          console.warn('Unexpected response type:', response.type);
+          return of(null);
+        }
       }),
       catchError((error) => {
         console.error('Error fetching profile picture:', error);
-        return of(null);  
+        return of(null);
       })
     );
   }
@@ -119,8 +134,11 @@ export class UsersService {
     } else if (userData.profile === null) {
       form.append('remove_picture', 'true');
     }
+    if (userData.availability) form.append('availability', userData.availability);
 
-    return this.http.patch(`${this.API_URI}/users`, form).pipe(
+    return this.http.patch(`${this.API_URI}/users`, form, {
+      headers: this.chatService.getAuthHeaders(false),
+    }).pipe(
       map((result) => {
         if (userData.profile || userData.profile === null) {
           this.profilePicUpdatedSource.next();
@@ -178,8 +196,13 @@ export class UsersService {
     return this.http.post(`${this.API_URI}/users/register/invited`, userData);
   }
 
-  getUploadUrl(type: string) {
-    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`, {});
+  getUploadUrl(type: string, contentType: string, originalFileName: string) {
+    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`,
+      {
+        contentType: contentType,
+        originalFileName: originalFileName
+      }
+    );
   }
 
   getIntroductionVideo(email: string) {
@@ -202,7 +225,7 @@ export class UsersService {
     );
   }
 
-  public submitApplicationDetails(data: any) {
+  public submitApplicationDetails(data: any, applicationId: number) {
     let resumeUpload$ = of(null);
     let pictureUpload$ = of(null);
     let introVideoUpload$ = of(null);
@@ -216,13 +239,13 @@ export class UsersService {
     });
 
     if (data.resume instanceof File) {
-      resumeUpload$ = this.getUploadUrl('applications').pipe(
-        switchMap((resumeUrl: any) => {
+      resumeUpload$ = this.getUploadUrl('applications', data.resume.type, data.resume.name).pipe(
+        switchMap((res: any) => {
           const file = data.resume;
           const headers = new HttpHeaders({ 'Content-Type': file.type });
-          return this.http.put(resumeUrl.url, file, { headers }).pipe(
+          return this.http.put(res.url, file, { headers }).pipe(
             map(() => {
-              const urlParts = resumeUrl.url.split('?')[0].split('/');
+              const urlParts = res.url.split('?')[0].split('/');
               return urlParts[urlParts.length - 1];
             })
           );
@@ -231,13 +254,13 @@ export class UsersService {
     }
 
     if (data.picture instanceof File) {
-      pictureUpload$ = this.getUploadUrl('applications').pipe(
-        switchMap((photoUrl: any) => {
+      pictureUpload$ = this.getUploadUrl('applications', data.picture.type, data.picture.name).pipe(
+        switchMap((res: any) => {
           const imgFile = data.picture;
           const headers = new HttpHeaders({ 'Content-Type': imgFile.type });
-          return this.http.put(photoUrl.url, imgFile, { headers }).pipe(
+          return this.http.put(res.url, imgFile, { headers }).pipe(
             map(() => {
-              const urlParts = photoUrl.url.split('?')[0].split('/');
+              const urlParts = res.url.split('?')[0].split('/');
               return urlParts[urlParts.length - 1];
             })
           );
@@ -246,13 +269,13 @@ export class UsersService {
     }
 
     if (data.introduction_video instanceof File) {
-      introVideoUpload$ = this.getUploadUrl('applications').pipe(
-        switchMap((videoUrl: any) => {
+      introVideoUpload$ = this.getUploadUrl('applications', data.introduction_video.type, data.introduction_video.name).pipe(
+        switchMap((res: any) => {
           const videoFile = data.introduction_video;
           const headers = new HttpHeaders({ 'Content-Type': videoFile.type });
-          return this.http.put(videoUrl.url, videoFile, { headers }).pipe(
+          return this.http.put(res.url, videoFile, { headers }).pipe(
             map(() => {
-              const urlParts = videoUrl.url.split('?')[0].split('/');
+              const urlParts = res.url.split('?')[0].split('/');
               return urlParts[urlParts.length - 1];
             })
           );
@@ -261,13 +284,13 @@ export class UsersService {
     }
 
     if (data.portfolio instanceof File) {
-      portfolioUpload$ = this.getUploadUrl('applications').pipe(
-        switchMap((portfolioUrl: any) => {
+      portfolioUpload$ = this.getUploadUrl('applications', data.portfolio.type, data.portfolio.name).pipe(
+        switchMap((res: any) => {
           const portfolioFile = data.portfolio;
           const headers = new HttpHeaders({ 'Content-Type': portfolioFile.type });
-          return this.http.put(portfolioUrl.url, portfolioFile, { headers }).pipe(
+          return this.http.put(res.url, portfolioFile, { headers }).pipe(
             map(() => {
-              const urlParts = portfolioUrl.url.split('?')[0].split('/');
+              const urlParts = res.url.split('?')[0].split('/');
               return urlParts[urlParts.length - 1];
             })
           );
@@ -277,24 +300,24 @@ export class UsersService {
 
     return forkJoin([resumeUpload$, pictureUpload$, introVideoUpload$, portfolioUpload$]).pipe(
       switchMap(([resumeFileName, pictureFileName, introVideoFileName, portfolioFileName]) => {
-        form.append('resume_file_name', resumeFileName ?? '');
-        form.append('picture_file_name', pictureFileName ?? '');
-        form.append('introduction_video_file_name', introVideoFileName ?? '');
-        form.append('portfolio_file_name', portfolioFileName ?? '');
-        return this.http.post(`${this.API_URI}/users/register/orphan`, form); // TODO: Use a different endpoint in the applications route, the controller should update the application
+        if (resumeFileName) form.append('file_name', resumeFileName);
+        if (pictureFileName) form.append('profile_pic', pictureFileName);
+        if (introVideoFileName) form.append('introduction_video_file_name', introVideoFileName);
+        if (portfolioFileName) form.append('portfolio_file_name', portfolioFileName);
+        
+        const updateData = { ...data };
+        if (resumeFileName) updateData.file_name = resumeFileName;
+        if (pictureFileName) updateData.profile_pic = pictureFileName;
+        if (introVideoFileName) updateData.introduction_video = introVideoFileName;
+        if (portfolioFileName) updateData.portfolio = portfolioFileName;
+        
+        return this.http.put(`${this.API_URI}/applications/${applicationId}`, updateData);
       })
     );
   }
 
   public registerOrphanTeamMember(data: any) {
-    const form = new FormData();
-    Object.keys(data).forEach(key => {
-      if (data[key] !== undefined && data[key] !== null) {
-        form.append(key, data[key]);
-      }
-    });
-
-    return this.http.post(`${this.API_URI}/users/register/orphan`, form);
+    return this.http.post(`${this.API_URI}/users/register/orphan`, data);
   }
 
   checkEmailExists(email: string): Observable<{ exists: boolean }> {

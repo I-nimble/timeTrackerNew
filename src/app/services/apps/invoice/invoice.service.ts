@@ -12,7 +12,9 @@ export class InvoiceService {
   constructor(private http: HttpClient) { }
 
   getInvoiceFile(id: number, format: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`, {
+    return this.http.post(`${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`, {
+      useTimezone: true,
+    }, {
       responseType: 'blob'
     });
   }
