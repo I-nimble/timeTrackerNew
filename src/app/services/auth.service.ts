@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, lastValueFrom } from 'rxjs';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { environment } from 'src/environments/environment';
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -133,7 +133,7 @@ export class AuthService {
       return this.isAdmin.asObservable();
     }
   }
-  userTypeRouting(rol: string) {
+  async userTypeRouting(rol: string) {
     if (rol == '1') {
       this.routes.navigate(['/dashboards/dashboard2']);
       return;
@@ -141,7 +141,8 @@ export class AuthService {
       this.routes.navigate(['/dashboards/dashboard2']);
       return;
     } else if (rol == '3') {
-      if(this.hasTeamMembers()){
+      const hasTeam = await this.hasTeamMembers();
+      if(hasTeam){
         this.routes.navigate(['/dashboards/dashboard2']);
       }else{
         this.routes.navigate(['/apps/talent-match']);
@@ -150,16 +151,13 @@ export class AuthService {
     }
   }
 
-  hasTeamMembers(): boolean {
-    this.employeesService.get().subscribe({
-      next: (employees) => {
-        return (employees && employees.length > 0)
-      },
-      error: () => {
-        return false;
-      }
-    });
-    return false;
+  async hasTeamMembers(): Promise<boolean> {
+    try {
+      const employees = await lastValueFrom(this.employeesService.get());
+      return employees && employees.length > 0;
+    } catch (err) {
+      return false;
+    }
   }
 
   getLoggedInUser(){
