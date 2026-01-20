@@ -530,32 +530,17 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
           })
           .map((entry: any) => {
             const startTime = new Date(entry.start_time);
-            const endTime = entry.end_time ? new Date(entry.end_time) : null;
-            
-            let totalHours = 0;
-            let isActive = false;
-            
-            if (endTime && !isNaN(endTime.getTime()) && !isNaN(startTime.getTime()) && endTime > startTime) {
-              totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-            } else if (!endTime) {
-              isActive = true;
-              const currentTime = new Date();
-              if (!isNaN(startTime.getTime()) && currentTime > startTime) {
-                totalHours = (currentTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-              }
-            }
-            
-            totalHours = Math.max(0, totalHours);
+            const endTime = new Date(entry.end_time);
+            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
             
             const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
-            const localEndTime = entry.end_time ? this.convertUTCToLocalDateTime(entry.end_time) : null;
+            const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
             
             return {
               ...entry,
-              is_active: isActive, 
               total_hours: totalHours.toFixed(2),
               start_time_display: this.formatTime(localStartTime),
-              end_time_display: entry.end_time ? this.formatTime(localEndTime || '') : null,
+              end_time_display: this.formatTime(localEndTime),
               local_start_time: localStartTime,
               local_end_time: localEndTime
             };
@@ -582,10 +567,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
 
   getTotalWeekHours(): number {
     return this.weekEntries.reduce((total: number, entry: any) => {
-      if (entry.end_time) {
-        return total + parseFloat(entry.total_hours || 0);
-      }
-      return total;
+      return total + parseFloat(entry.total_hours || 0);
     }, 0);
   }
 
@@ -612,35 +594,21 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
   private processEntries(entries: any[]): void {
     // Calculate worked hours per day
     const workedHoursPerDay = entries.reduce((acc, entry) => {
-      if (entry.end_time) {
-        const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
-        const startTime = new Date(entry.start_time);
-        const endTime = new Date(entry.end_time);
-        
-        if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime()) && endTime > startTime) {
-          const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-          acc[date] = (acc[date] || 0) + duration;
-        }
-      }
+      const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
+      const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
+      acc[date] = (acc[date] || 0) + duration;
       return acc;
     }, {});
 
     // Sum up the current day entry if it is active
     const today = moment().format('ddd');
     const activeEntry = this.entries.find(
-      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && 
-                    entry.status === 0 && 
-                    !entry.end_time
+      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && entry.status === 0
     );
-    
     if (activeEntry) {
-      const startTime = moment.utc(activeEntry.start_time);
-      const currentTime = moment.utc();
-      
-      if (startTime.isValid() && currentTime.isAfter(startTime)) {
-        const hoursWorked = currentTime.diff(startTime, 'hours', true);
-        workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + Math.max(0, hoursWorked);
-      }
+      const startTime = moment(activeEntry.start_time);
+      const currentTime = moment();
+      workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + currentTime.diff(startTime, 'hours', true);
     }
     
     // Calculate total scheduled hours per day for each day in each schedule
@@ -667,17 +635,16 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     this.weeklyHoursChart.series = [
       {
         name: 'Worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
-          const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(0, worked));
-        }),
+        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
+          Number(workedHoursPerDay[day.substring(0, 3)] || 0)
+        ),
       },
       {
         name: 'Not worked',
         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
           const total = totalHoursPerDay[day.substring(0, 3)] || 0;
           const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(0, total - worked));
+          return Number(Math.max(total - worked, 0));
         }),
       }
     ];
@@ -700,7 +667,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
             const todaySchedule = this.schedules.find(
               (schedule: any) => schedule.days.some((day: any) => day.id === dayOfWeek)
             );
-
+    
             if (todaySchedule) {
               const start = moment.tz(todaySchedule.start_time, 'HH:mm', this.companyTimezone);
               const end = moment.tz(todaySchedule.end_time, 'HH:mm', this.companyTimezone);
@@ -717,7 +684,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                 date: currentTime.date(),
               });
               if (end.isBefore(start)) end.add(1, 'day');
-
+    
               const totalWorkHours = end.diff(start, 'hours', true);
 
               this.entriesService.getUsersEntries(this.userId).subscribe({
@@ -726,31 +693,22 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   const entriesToday = entries.entries.filter(
                     (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day')
                   );
-                  
                   // sum up the hours of today's entries
                   this.hoursElapsed = entriesToday.reduce((acc: number, entry: any) => {
-                    if (entry.end_time) {
-                      const startTime = new Date(entry.start_time);
-                      const endTime = new Date(entry.end_time);
-                      const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-                      return acc + duration;
-                    }
-                    return acc;
+                    const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
+                    return acc + duration;
                   }, 0);
                   
                   const activeEntry = entriesToday.find(
-                    (entry: any) => entry.status === 0 && !entry.end_time
+                    (entry: any) => entry.status === 0
                   );
-                  
                   // sum up the hours of today's active entries
                   if (activeEntry) {
                     const startTime = moment.utc(activeEntry.start_time);
-                    const currentTime = moment.utc();
+                    const currentTime = moment.tz();
                     this.hoursElapsed += currentTime.diff(startTime, 'hours', true);
                   }
-                  
-                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
-                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
+                  this.hoursRemaining = totalWorkHours - this.hoursElapsed;
 
                   // Update daily hours chart
                   this.dailyHoursChart.series = [
