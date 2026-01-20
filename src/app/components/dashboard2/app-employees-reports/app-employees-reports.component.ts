@@ -266,6 +266,12 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
         (u) => u.profile.id === this.selectedUserId
       );
     }
+    this.filteredDataSource.sort((a: any, b: any) => {
+      const aActive = !!(a.activeEntry || a.status === 'Online');
+      const bActive = !!(b.activeEntry || b.status === 'Online');
+      if (aActive === bActive) return 0;
+      return aActive ? -1 : 1;
+    });
   }
 
   onUserChange(userId: number | null) {
