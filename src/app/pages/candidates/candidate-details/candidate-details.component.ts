@@ -800,7 +800,6 @@ export class CandidateDetailsComponent implements OnInit {
       if (!allowedTypes.includes(file.type)) {
         this.snackBar.open(
           'Only JPG and PNG files are allowed for profile picture',
-          'Only JPG and PNG files are allowed for profile picture',
           'Close',
           { duration: 3000 }
         );
