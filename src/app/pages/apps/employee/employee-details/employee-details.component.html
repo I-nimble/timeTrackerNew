@@ -139,7 +139,12 @@
             <td mat-cell *matCellDef="let entry">
               <div class="d-flex align-items-center gap-2">
                 <ng-container *ngIf="editingRowId !== entry.id; else editEndTime">
-                  <span>{{ entry.end_time_display || formatTime(entry.end_time) }}</span>
+                  <ng-container *ngIf="!entry.end_time && entry.is_active; else showEndTime">
+                    <span class="text-primary fw-bold">Currently active</span>
+                  </ng-container>
+                  <ng-template #showEndTime>
+                    <span>{{ entry.end_time_display || formatTime(entry.end_time) }}</span>
+                  </ng-template>
                 </ng-container>
                 <ng-template #editEndTime>
                   <mat-form-field appearance="outline" class="w-100">
@@ -148,6 +153,7 @@
                       type="datetime-local"
                       [formControl]="getFormControl(entry.id, 'end_time')"
                       (change)="startEdit(entry)"
+                      placeholder="Set end time"
                     />
                   </mat-form-field>
                 </ng-template>

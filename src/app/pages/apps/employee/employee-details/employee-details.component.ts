@@ -530,17 +530,32 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
           })
           .map((entry: any) => {
             const startTime = new Date(entry.start_time);
-            const endTime = new Date(entry.end_time);
-            const totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            const endTime = entry.end_time ? new Date(entry.end_time) : null;
+            
+            let totalHours = 0;
+            let isActive = false;
+            
+            if (endTime && !isNaN(endTime.getTime()) && !isNaN(startTime.getTime()) && endTime > startTime) {
+              totalHours = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+            } else if (!endTime) {
+              isActive = true;
+              const currentTime = new Date();
+              if (!isNaN(startTime.getTime()) && currentTime > startTime) {
+                totalHours = (currentTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+              }
+            }
+            
+            // Asegurar que totalHours no sea negativo
+            totalHours = Math.max(0, totalHours);
             
             const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
-            const localEndTime = this.convertUTCToLocalDateTime(entry.end_time);
+            const localEndTime = entry.end_time ? this.convertUTCToLocalDateTime(entry.end_time) : null;
             
             return {
               ...entry,
               total_hours: totalHours.toFixed(2),
               start_time_display: this.formatTime(localStartTime),
-              end_time_display: this.formatTime(localEndTime),
+              end_time_display: entry.end_time ? this.formatTime(localEndTime || '') : null,
               local_start_time: localStartTime,
               local_end_time: localEndTime
             };
@@ -592,23 +607,39 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   private processEntries(entries: any[]): void {
-    // Calculate worked hours per day
+    // Calculate worked hours per day - SOLO entradas completadas
     const workedHoursPerDay = entries.reduce((acc, entry) => {
-      const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
-      const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
-      acc[date] = (acc[date] || 0) + duration;
+      // Solo procesar si tiene end_time
+      if (entry.end_time) {
+        const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
+        const startTime = new Date(entry.start_time);
+        const endTime = new Date(entry.end_time);
+        
+        // Verificar que los tiempos sean válidos
+        if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime()) && endTime > startTime) {
+          const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+          acc[date] = (acc[date] || 0) + duration;
+        }
+      }
       return acc;
     }, {});
 
     // Sum up the current day entry if it is active
     const today = moment().format('ddd');
     const activeEntry = this.entries.find(
-      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && entry.status === 0
+      (entry: any) => moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && 
+                    entry.status === 0 && 
+                    !entry.end_time
     );
     if (activeEntry) {
-      const startTime = moment(activeEntry.start_time);
-      const currentTime = moment();
-      workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + currentTime.diff(startTime, 'hours', true);
+      const startTime = moment.utc(activeEntry.start_time);
+      const currentTime = moment.utc(); // Usar UTC
+      
+      // Verificar que startTime sea válido y antes que currentTime
+      if (startTime.isValid() && currentTime.isAfter(startTime)) {
+        const hoursWorked = currentTime.diff(startTime, 'hours', true);
+        workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + Math.max(0, hoursWorked);
+      }
     }
     
     // Calculate total scheduled hours per day for each day in each schedule
@@ -635,16 +666,17 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     this.weeklyHoursChart.series = [
       {
         name: 'Worked',
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day =>
-          Number(workedHoursPerDay[day.substring(0, 3)] || 0)
-        ),
+        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+          const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
+          return Number(Math.max(0, worked)); // Asegurar no negativo
+        }),
       },
       {
         name: 'Not worked',
         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
           const total = totalHoursPerDay[day.substring(0, 3)] || 0;
           const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(total - worked, 0));
+          return Number(Math.max(0, total - worked)); // Asegurar no negativo
         }),
       }
     ];
@@ -695,20 +727,30 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   );
                   // sum up the hours of today's entries
                   this.hoursElapsed = entriesToday.reduce((acc: number, entry: any) => {
-                    const duration = (new Date(entry.end_time).getTime() - new Date(entry.start_time).getTime()) / (1000 * 60 * 60);
-                    return acc + duration;
+                    // SOLO calcular horas si tiene end_time
+                    if (entry.end_time) {
+                      const startTime = new Date(entry.start_time);
+                      const endTime = new Date(entry.end_time);
+                      const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+                      return acc + duration;
+                    }
+                    return acc;
                   }, 0);
                   
                   const activeEntry = entriesToday.find(
-                    (entry: any) => entry.status === 0
+                    (entry: any) => entry.status === 0 && !entry.end_time
                   );
                   // sum up the hours of today's active entries
                   if (activeEntry) {
                     const startTime = moment.utc(activeEntry.start_time);
-                    const currentTime = moment.tz();
+                    const currentTime = moment.utc(); // Usar UTC para consistencia
                     this.hoursElapsed += currentTime.diff(startTime, 'hours', true);
                   }
                   this.hoursRemaining = totalWorkHours - this.hoursElapsed;
+
+                  // Asegurar que no sea negativo
+                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
+                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
 
                   // Update daily hours chart
                   this.dailyHoursChart.series = [
