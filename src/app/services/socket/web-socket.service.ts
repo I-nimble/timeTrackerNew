@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Socket, io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
+import { GeolocationData, GeolocationUpdate, GeolocationRequest, GeolocationDenied } from '../../models/geolocation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +11,13 @@ export class WebSocketService {
   socket: Socket;
   private notificationsSubject = new Subject<any>();
   private typingSubject = new Subject<{ roomId: string; username: string; isTyping: boolean }>();
+  
+  private geolocationRequestSubject = new Subject<GeolocationRequest>();
+  private geolocationUpdateSubject = new Subject<GeolocationUpdate>();
+  private geolocationDeniedSubject = new Subject<GeolocationDenied>();
+  private closedEntrySubject = new Subject<any>();
+  private startedEntrySubject = new Subject<any>();
+  
   API_URI = environment.socket;
 
   constructor() {
@@ -58,6 +66,52 @@ export class WebSocketService {
         console.error('Error processing server:typing event', err, data);
       }
     });
+
+    this.socket.on('server:requestGeolocation', (data: GeolocationRequest) => {
+      try {
+        if (data && data.requesterId) {
+          this.geolocationRequestSubject.next(data);
+        }
+      } catch (err) {
+        console.error('Error processing server:requestGeolocation event', err, data);
+      }
+    });
+
+    this.socket.on('server:geolocationUpdate', (data: GeolocationUpdate) => {
+      try {
+        if (data && data.userId && data.latitude && data.longitude) {
+          this.geolocationUpdateSubject.next(data);
+        }
+      } catch (err) {
+        console.error('Error processing server:geolocationUpdate event', err, data);
+      }
+    });
+
+    this.socket.on('server:geolocationDenied', (data: GeolocationDenied) => {
+      try {
+        if (data && data.userId) {
+          this.geolocationDeniedSubject.next(data);
+        }
+      } catch (err) {
+        console.error('Error processing server:geolocationDenied event', err, data);
+      }
+    });
+
+    this.socket.on('server:closedEntry', (data?: any) => {
+      try {
+        this.closedEntrySubject.next(data || {});
+      } catch (err) {
+        console.error('Error processing server:closedEntry event', err, data);
+      }
+    });
+
+    this.socket.on('server:startedEntry', (data?: any) => {
+      try {
+        this.startedEntrySubject.next(data || {});
+      } catch (err) {
+        console.error('Error processing server:startedEntry event', err, data);
+      }
+    });
   }
 
   getNotifications() {
@@ -83,5 +137,60 @@ export class WebSocketService {
 
   getTypingStream() {
     return this.typingSubject.asObservable();
+  }
+
+  requestGeolocation(targetUserId: number) {
+    try {
+      this.socket.emit('client:requestGeolocation', { targetUserId });
+    } catch (err) {
+      console.error('Failed to request geolocation', err);
+    }
+  }
+
+  sendLocationUpdate(data: GeolocationData) {
+    try {
+      this.socket.emit('client:updateLocation', {
+        latitude: data.latitude,
+        longitude: data.longitude,
+        accuracy: data.accuracy,
+        timestamp: data.timestamp || new Date().toISOString(),
+        deviceId: data.deviceId,
+        userId: data.userId
+      });
+    } catch (err) {
+      console.error('Failed to send geolocation update', err);
+    }
+  }
+
+  sendGeolocationDenied(requesterId: number) {
+    try {
+      this.socket.emit('client:geolocationDenied', { requesterId });
+    } catch (err) {
+      console.error('Failed to send geolocation denied', err);
+    }
+  }
+
+  getGeolocationRequestStream() {
+    return this.geolocationRequestSubject.asObservable();
+  }
+
+  getGeolocationUpdateStream() {
+    return this.geolocationUpdateSubject.asObservable();
+  }
+
+  getGeolocationDeniedStream() {
+    return this.geolocationDeniedSubject.asObservable();
+  }
+
+  getClosedEntryStream() {
+    return this.closedEntrySubject.asObservable();
+  }
+
+  getStartedEntryStream() {
+    return this.startedEntrySubject.asObservable();
+  }
+
+  isConnected(): boolean {
+    return this.socket && this.socket.connected;
   }
 }
