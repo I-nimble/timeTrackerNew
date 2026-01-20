@@ -450,7 +450,7 @@ export class CandidateDetailsComponent implements OnInit {
     const email = candidate?.email || '';
     const candidateId = candidate?.id || this.route.snapshot.paramMap.get('id');
     
-    return this.applicationService.getUploadUrl('photos', file, email, candidateId).pipe(
+    return this.applicationService.getUploadUrl('photos', file, email, candidateId, true).pipe(
       switchMap((photoUrl: any) => {
         const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
         const headers = new HttpHeaders({
