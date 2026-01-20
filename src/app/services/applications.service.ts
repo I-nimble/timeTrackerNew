@@ -88,14 +88,15 @@ export class ApplicationsService {
     return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
   }
 
-  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number) {
+  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number, isProfilePicture: boolean = false) {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
       { 
         contentType: file?.type || 'application/octet-stream',
         originalFileName: file?.name,
         email: email,
-        applicationId: applicationId
+        applicationId: applicationId,
+        isProfilePicture: isProfilePicture
       }
     );
   }
@@ -157,12 +158,11 @@ export class ApplicationsService {
     }
     if(data.profile_pic instanceof File) {
       photoUpload$ = data.profile_pic
-        ? this.getUploadUrl('photos', data.profile_pic, data.email, id).pipe(
+        ? this.getUploadUrl('photos', data.profile_pic, data.email, id, true).pipe(
             switchMap((photoUrl: any) => {
               this.photoUrl = photoUrl.url;
               const imgFile = data.profile_pic;
               const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
-  
               const headers = new HttpHeaders({
                 'Content-Type': imgFile.type,
                 'X-Filename': fileName

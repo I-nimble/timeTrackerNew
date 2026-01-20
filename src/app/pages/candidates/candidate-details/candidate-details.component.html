@@ -293,7 +293,7 @@
                   <input
                     #picInput
                     type="file"
-                    accept="image/jpeg, image/png"
+                    accept="image/jpeg, image/jpg, image/png"
                     (change)="onProfilePicSelected($event)"
                     style="display: none"
                   />
@@ -307,7 +307,7 @@
                     Upload Picture
                   </button>
                   <div *ngIf="!selectedProfilePicFile" class="mt-1">
-                    <small class="text-muted">Only .png and .jpg files are accepted.</small>
+                    <small class="text-muted">Allowed JPG, PNG. Max size of 1MB</small>
                   </div>
                   <div *ngIf="selectedProfilePicFile" class="mt-1">
                     <small class="text-muted">Selected: {{ selectedProfilePicFile.name }}</small>

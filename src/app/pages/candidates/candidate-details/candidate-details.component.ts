@@ -17,6 +17,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
+import { Observable, map, switchMap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-candidate-details',
@@ -78,7 +80,8 @@ export class CandidateDetailsComponent implements OnInit {
     private fb: FormBuilder,
     private permissionService: PermissionService,
     private dialog: MatDialog,
-    private discProfilesService: DiscProfilesService
+    private discProfilesService: DiscProfilesService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -496,8 +499,82 @@ export class CandidateDetailsComponent implements OnInit {
     if (this.isCreateMode) {
       this.createCandidate();
     } else {
-      this.updateCandidate();
+      if (this.selectedProfilePicFile) {
+        this.saveWithProfilePicture();
+      } else {
+        this.updateCandidate();
+      }
     }
+}
+
+    private uploadProfilePicture(file: File): Observable<string> {
+    const candidate = this.candidate();
+    const email = candidate?.email || '';
+    const candidateId = candidate?.id || this.route.snapshot.paramMap.get('id');
+    
+    return this.applicationService.getUploadUrl('photos', file, email, candidateId, true).pipe(
+      switchMap((photoUrl: any) => {
+        const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
+        const headers = new HttpHeaders({
+          'Content-Type': file.type,
+          'X-Filename': fileName
+        });
+        
+        return this.http.put(photoUrl.url, file, { headers }).pipe(
+          map(() => fileName)
+        );
+      })
+    );
+  }
+
+  private saveWithProfilePicture(): void {
+    if (!this.selectedProfilePicFile || this.form.invalid) return;
+
+    this.uploadProfilePicture(this.selectedProfilePicFile).pipe(
+      switchMap((fileName: string) => {
+        const formValues = this.form.value;
+        const candidate = this.candidate();
+        
+        const data: any = {
+          name: formValues.name,
+          description: formValues.description,
+          talent_match_profile_summary: formValues.talent_match_profile_summary,
+          profile_observation: formValues.profile_observation,
+          ranking_id: formValues.ranking_id,
+          position_id: formValues.position_id,
+          interview_link: formValues.interview_link,
+          hobbies: formValues.hobbies,
+          work_experience: formValues.work_experience,
+          skills: formValues.skills,
+          education_history: formValues.education_history,
+          inimble_academy: formValues.inimble_academy,
+          english_level: formValues.english_level,
+          profile_pic: fileName
+        };
+
+        return this.applicationService.submit(data, candidate?.id);
+      })
+    ).subscribe({
+      next: (response: any) => {
+        this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
+        this.editMode = false;
+        
+        if (response?.profile_pic_url) {
+          const updatedCandidate = {
+            ...this.candidate(),
+            picture: response.profile_pic_url,
+            profile_pic_url: response.profile_pic_url
+          };
+          this.candidate.set(updatedCandidate);
+        }
+        
+        this.selectedProfilePicFile = null;
+      },
+      error: (error:any) => {
+        console.error('Error updating candidate:', error);
+        this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   getLocations() {
@@ -718,7 +795,9 @@ export class CandidateDetailsComponent implements OnInit {
         );
         return;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)){
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
         this.snackBar.open(
           'Only JPG and PNG files are allowed for profile picture',
           'Close',
@@ -726,6 +805,7 @@ export class CandidateDetailsComponent implements OnInit {
         );
         return;
       }
+      
       this.selectedProfilePicFile = file;
       this.form.patchValue({
         profile_pic: file 
