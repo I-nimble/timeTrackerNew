@@ -81,8 +81,10 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     const email = localStorage.getItem('email');
     this.allowedReportsManager = this.role === '2' && allowedReportEmails.includes(email || '');
     const today = moment();
-    this.startDate = today.toDate();
-    this.endDate = today.toDate();
+    const firstDayOfWeek = moment().startOf('week');
+    const lastDayOfWeek = moment().endOf('week');
+    this.startDate = firstDayOfWeek.toDate();
+    this.endDate = lastDayOfWeek.toDate();
     if (this.role == '1' || this.allowedReportsManager || this.role == '4') {
       this.getCompanies();
       this.getDataSource();
