@@ -1,8 +1,18 @@
-<ng-container *ngIf="!selectedClient">
+<mat-card class="cardWithShadow maintenance">
+  <mat-card-content>
+    <div class="d-flex justify-content-center align-items-center">
+        <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="60"/>
+      </div>
+      <h2>Coming soon!</h2>
+  </mat-card-content>
+</mat-card>
+
+<!-- Change later *ngIf="!selectedClient" -->
+<ng-container *ngIf="false">
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="d-flex justify-content-center align-items-center">
-        <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="60"/>
+        <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="0"/>
       </div>
       <div class="d-flex justify-content-center m-t-16">
         <div style="max-width: 600px; width: 100%;">
@@ -58,7 +68,8 @@
   </mat-card>
 </ng-container>
 
-<ng-container *ngIf="selectedClient">
+<!-- Change later *ngIf="selectedClient" -->
+<ng-container *ngIf="false">
   <app-client-details
     [client]="selectedClient"
     (back)="onBackFromDetails()">

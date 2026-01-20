@@ -1,4 +1,14 @@
-<mat-card class="cardWithShadow">
+<mat-card class="cardWithShadow maintenance">
+  <mat-card-content>
+    <div class="d-flex justify-content-center align-items-center">
+        <img src="assets/images/my-sentinel.png" alt="My Sentinel Logo" height="120"/>
+      </div>
+      <h2>Coming soon!</h2>
+  </mat-card-content>
+</mat-card>
+
+<!-- Delete later *ngIf="false" -->
+<mat-card class="cardWithShadow" *ngIf="false">
   <mat-card-content>
     <div class="d-flex justify-content-center align-items-center m-b-16">
       <img src="assets/images/my-sentinel.png" alt="My Sentinel Logo" height="120"/>
@@ -50,7 +60,8 @@
   </mat-card-content>
 </mat-card>
 
-<mat-card class="cardWithShadow mt-16" *ngIf="filteredPosts.length > 0">
+<!-- Change later *ngIf="filteredPosts.length > 0" -->
+<mat-card class="cardWithShadow mt-16" *ngIf="false">
   <mat-card-content>
     <div class="table-responsive">
       <app-scrapper-table [items]="filteredPosts"></app-scrapper-table>
