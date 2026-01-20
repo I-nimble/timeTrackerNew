@@ -661,12 +661,41 @@
                         </div>
                         <h5 class="f-s-24 f-w-600 m-t-16 m-b-16 color-gray text-center">{{ element.name | formatName }}</h5>
                         <p class="text-center f-s-18"><span class="f-w-600 color-gray">Talent Match</span> is an evaluation inimble conducts to assess the alignment between a candidate's personality and the employer's needs. It ensures human-factor compatibility to drive performance, trust, and long-term fit.</p> 
-                        <p  class="f-s-18 f-w-600 color-gray text-center">Out of a base of 100, these are our best matches for legal roles:</p>    
-                        <div class="profile-info d-flex justify-content-center">
-                          <p class="m-0 f-s-16 f-w-600 position-title m-t-16 text-center">
-                            {{ element.position_category }}
-                          </p>
-                        </div>        
+                        <div class="talent-match-content m-t-16">
+                        <ng-container *ngIf="hasDescription(element)">
+                          <ng-container *ngIf="getSeparatedDescription(element.description) as parsedDesc">
+                            <ng-container *ngIf="parsedDesc.baseText && parsedDesc.role; else showFallback">
+                              <div class="base-text-section text-center m-b-8">
+                                <p class="f-s-18 f-w-600 color-gray">
+                                  {{ parsedDesc.baseText }}
+                                </p>
+                              </div>                            
+                              <div class="profile-info d-flex justify-content-center">
+                                <p class="m-0 f-s-16 f-w-600 position-title m-t-8 text-center">
+                                  {{ parsedDesc.role }}
+                                </p>
+                              </div>
+                            </ng-container>
+                          </ng-container>
+                        </ng-container>
+                        
+                        <ng-template #showFallback>
+                          <div class="talent-match-fallback">
+                            <p class="f-s-18 f-w-600 color-gray text-center m-b-8">
+                              Out of a base of 100, these are our best matches for legal roles:
+                            </p>
+                            <div class="profile-info d-flex justify-content-center">
+                              <p class="m-0 f-s-16 f-w-600 position-title m-t-8 text-center">
+                                {{ element.position_category }}
+                              </p>
+                            </div>
+                          </div>
+                        </ng-template>
+                        
+                        <div *ngIf="!hasDescription(element)">
+                          <ng-container *ngTemplateOutlet="showFallback"></ng-container>
+                        </div>
+                      </div>
                       </ng-container>
                     </mat-card-content>
                   </mat-card>
