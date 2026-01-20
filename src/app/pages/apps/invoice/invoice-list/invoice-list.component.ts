@@ -295,7 +295,16 @@ export class AppInvoiceListComponent implements AfterViewInit {
     });
   }
 
-  sendToClient(id: number): void {
+  sendToClient(invoice: any): void {
+    const id = invoice.id;
+    if (!invoice.due_date) {
+      this.showSnackbar('Please set a due date for the invoice.');
+      return;
+    }
+    if (!invoice.amount) {
+      this.showSnackbar('Please set an amount for the invoice.');
+      return;
+    }
     this.invoiceService.approveInvoice(id).subscribe({
       next: () => {
         this.showSnackbar('Invoice sent to client successfully!');
