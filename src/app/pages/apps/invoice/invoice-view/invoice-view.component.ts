@@ -26,6 +26,7 @@ import { Loader } from 'src/app/app.models';
 export class AppInvoiceViewComponent {
   id = signal<number>(0);
   invoiceDetail = signal<any>(null);
+  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
@@ -100,8 +101,31 @@ export class AppInvoiceViewComponent {
     this.invoiceService.getInvoiceDetail(this.id()).subscribe({
       next: (data) => {
         this.invoiceDetail.set(data);
+        try {
+          this.buildLocationLinksMap();
+        } catch (e) {
+          console.warn('Failed to build location links map', e);
+        }
         this.loader.complete = true;
       }
+    });
+  }
+
+  buildLocationLinksMap(): void {
+    this.locationLinksMap = {};
+    const invoice = this.invoiceDetail();
+    if (!invoice) return;
+    const items = invoice.invoiceItems || [];
+    items.forEach((item: any) => {
+      (item.entries || []).forEach((entry: any) => {
+        try {
+          const links = this.getLocationLinks(entry.id) || [];
+          this.locationLinksMap[entry.id] = links;
+        } catch (err) {
+          console.warn('buildLocationLinksMap: failed for entry', entry.id, err);
+          this.locationLinksMap[entry.id] = [];
+        }
+      });
     });
   }
 

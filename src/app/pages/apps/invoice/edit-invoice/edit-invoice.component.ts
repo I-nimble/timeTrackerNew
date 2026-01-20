@@ -52,6 +52,7 @@ export class AppEditInvoiceComponent {
   invoiceForm: UntypedFormGroup;
   editModel = signal<any>({});
   originalData: any = null;
+  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
   changedEntries = new Set<any>();
   changedHourlyRates = new Set<any>();
   loader = new Loader(false, false, false);
@@ -201,6 +202,11 @@ export class AppEditInvoiceComponent {
           }));
         });
         this.loader.complete = true;
+        try {
+          this.buildLocationLinksMap();
+        } catch (e) {
+          console.warn('Failed to build location links map', e);
+        }
       },
       error: () => {
         this.loader.complete = true;
@@ -423,6 +429,24 @@ export class AppEditInvoiceComponent {
     } catch (err) {
       console.error('Fallback navigation failed', err, url);
     }
+  }
+
+  buildLocationLinksMap(): void {
+    this.locationLinksMap = {};
+    const data = this.originalData;
+    if (!data) return;
+    const items = data.invoiceItems || [];
+    items.forEach((item: any) => {
+      (item.entries || []).forEach((entry: any) => {
+        try {
+          const links = this.getLocationLinks(entry.id) || [];
+          this.locationLinksMap[entry.id] = links;
+        } catch (err) {
+          console.warn('buildLocationLinksMap (edit): failed for entry', entry.id, err);
+          this.locationLinksMap[entry.id] = [];
+        }
+      });
+    });
   }
 
   getTotalHoursForItem(item: any): number {
