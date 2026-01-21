@@ -87,8 +87,10 @@ export class WebSocketService {
     this.socket.on('server:requestGeolocation', (data: GeolocationRequest) => {
       try {
         const myId = localStorage.getItem('id');
-        if (data && data.targetUserId && String(data.targetUserId) !== String(myId)) {
-          return;
+        if (data && data.fallback && data.targetUserId) {
+          if (myId && String(data.targetUserId) !== String(myId)) {
+            return;
+          }
         }
         if (data && data.requesterId) {
           this.geolocationRequestSubject.next(data);
