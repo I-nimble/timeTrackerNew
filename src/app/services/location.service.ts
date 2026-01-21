@@ -16,8 +16,11 @@ export class LocationService {
   private watchId: number | null = null;
   private lastLocation: { lat: number; lng: number; timestamp: number } | null = null;
 
-  private readonly MIN_DISTANCE_METERS = 10;
+  private readonly MIN_DISTANCE_METERS = 50;
   private readonly MIN_TIME_MS = 30000;
+  private readonly POLL_INTERVAL_MS = 30000; // check every 30 seconds
+  private readonly STALE_AGE_MS = 15 * 60 * 1000; // 15 minutes
+  private pollTimer: any = null;
 
   constructor(
     private webSocketService: WebSocketService, 
@@ -82,6 +85,7 @@ export class LocationService {
     this.shouldBeTracking = true;
     this.resetIdleTimer();
     this.internalStartTracking();
+    this.startPoll();
   }
 
   private internalStartTracking(): void {
@@ -117,12 +121,40 @@ export class LocationService {
     this.clearIdleTimer();
     this.pauseTracking();
     this.trackingSubject.next(false);
+    this.stopPoll();
   }
 
   private pauseTracking(): void {
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
+    }
+  }
+
+  private startPoll(): void {
+    if (this.pollTimer) return;
+    this.pollTimer = setInterval(() => {
+      try {
+        this.userId = localStorage.getItem('id');
+        if (!this.userId) return;
+        this.http.get<any>(`${environment.apiUrl}/geolocation/${this.userId}/age`).subscribe({
+          next: (resp) => {
+            if (resp && typeof resp.ageMs === 'number') {
+              if (resp.ageMs > this.STALE_AGE_MS) {
+                this.forceUpdate();
+              }
+            }
+          },
+          error: (err) => {}
+        });
+      } catch (err) {}
+    }, this.POLL_INTERVAL_MS);
+  }
+
+  private stopPoll(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
     }
   }
 
@@ -175,14 +207,14 @@ export class LocationService {
 
   private isUpdating = false;
 
-  forceUpdate(): void {
+  forceUpdate(force: boolean = false): void {
     if (!navigator.geolocation || this.isUpdating) return;
 
     this.userId = localStorage.getItem('id');
     const now = Date.now();
     
     const isFreshEnough = this.lastLocation && (now - this.lastLocation.timestamp < 30000);
-    if (isFreshEnough) {
+    if (!force && isFreshEnough) {
       this.processCachedUpdate();
       return;
     }
@@ -275,7 +307,7 @@ export class LocationService {
 
   private shouldUpdate(lat: number, lng: number, now: number): boolean {
     if (!this.lastLocation) return true;
-    if (now - this.lastLocation.timestamp > this.MIN_TIME_MS) return true;
+    if (now - this.lastLocation.timestamp > this.STALE_AGE_MS) return true;
     const dist = this.getDistanceFromLatLonInMeters(
       this.lastLocation.lat, this.lastLocation.lng,
       lat, lng

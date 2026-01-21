@@ -15,6 +15,7 @@ export interface GeolocationUpdate extends GeolocationData {
 export interface GeolocationRequest {
   requesterId: string;
   requesterSocketId: string;
+  targetUserId?: string;
 }
 
 export interface GeolocationDenied {

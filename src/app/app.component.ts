@@ -92,7 +92,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private setupGeolocationListener(): void {
     this.geolocationRequestSub = this.webSocketService.getGeolocationRequestStream().subscribe({
       next: (request: GeolocationRequest) => {
-        this.locationService.forceUpdate();
+        this.locationService.forceUpdate(true);
       },
       error: (err) => {
         console.error('Error in geolocation request stream', err);
