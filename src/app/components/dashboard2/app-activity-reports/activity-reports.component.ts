@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, Input, OnChanges } from '@angular/core';
+import { Component, ViewChild, OnInit, Input, OnChanges, OnDestroy } from '@angular/core';
 import {
   ApexChart,
   ChartComponent,
@@ -42,6 +42,8 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
   formattedHoursWorked: string = '00:00:00';
   formattedHoursLeft: string = '00:00:00';
   isChartLoaded: boolean = false;
+  private activeTimer: any;
+  private socketSub: any;
 
   constructor() {
     this.trafficChart = {
@@ -108,16 +110,39 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
     setTimeout(() => {
       this.isChartLoaded = true;
     }, 700);
+    this.startActiveUpdater();
   }
 
   ngOnChanges() {
     this.updateWorkedAndLeftFromRatings(this.dataSource);
   }
 
+  ngOnDestroy(): void {
+    if (this.activeTimer) clearInterval(this.activeTimer);
+    if (this.socketSub) this.socketSub.unsubscribe?.();
+  }
+
+  startActiveUpdater() {
+    if (this.activeTimer) clearInterval(this.activeTimer);
+    this.activeTimer = setInterval(() => {
+      this.updateWorkedAndLeftFromRatings(this.dataSource);
+    }, 1000);
+  }
+
   updateWorkedAndLeftFromRatings(ratings: any[]) {
+    const now = Date.now();
     this.hoursWorked = ratings.reduce((sum, emp) => {
-      const workedDecimal = this.HHMMSSToDecimal(emp.workedHours);
-      return sum + workedDecimal;
+      const base = typeof emp._baseWorkedDecimal === 'number' ? emp._baseWorkedDecimal : this.HHMMSSToDecimal(emp.workedHours);
+      let elapsed = 0;
+      try {
+        if (emp.activeEntry && emp.activeEntry.start_time) {
+          const start = new Date(emp.activeEntry.start_time).getTime();
+          if (!isNaN(start)) elapsed = (now - start) / 1000 / 3600;
+        }
+      } catch (e) {
+        elapsed = 0;
+      }
+      return sum + base + elapsed;
     }, 0);
     
     this.hoursLeft = ratings.reduce((sum, emp) => {
@@ -128,14 +153,21 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
     this.formattedHoursWorked = this.formatHoursToHMS(this.hoursWorked);
     this.formattedHoursLeft = this.formatHoursToHMS(this.hoursLeft);
     
-    this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
-
-    if (this.hoursWorked === 0 && this.hoursLeft === 0) {
+    try {
+      if (this.isChartLoaded && this.chart && typeof (this.chart as any).updateSeries === 'function') {
+        (this.chart as any).updateSeries([this.hoursWorked, this.hoursLeft]);
+        const colors = (this.hoursWorked === 0 && this.hoursLeft === 0) ? ['#adb0bb', '#adb0bb'] : ['#92b46c', '#adb0bb'];
+        if (typeof (this.chart as any).updateOptions === 'function') {
+          (this.chart as any).updateOptions({ colors });
+        } else {
+          this.trafficChart.colors = colors;
+        }
+      } else {
+        this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
+        this.trafficChart.colors = (this.hoursWorked === 0 && this.hoursLeft === 0) ? ['#adb0bb', '#adb0bb'] : ['#92b46c', '#adb0bb'];
+      }
+    } catch (e) {
       this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
-      this.trafficChart.colors = ['#adb0bb', '#adb0bb'];
-    } else {
-      this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
-      this.trafficChart.colors = ['#92b46c', '#adb0bb']; 
     }
   }
 

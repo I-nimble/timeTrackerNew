@@ -545,6 +545,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
               }
             }
             
+            // Asegurar que totalHours no sea negativo
             totalHours = Math.max(0, totalHours);
             
             const localStartTime = this.convertUTCToLocalDateTime(entry.start_time);
@@ -610,13 +611,15 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   private processEntries(entries: any[]): void {
-    // Calculate worked hours per day
+    // Calculate worked hours per day - SOLO entradas completadas
     const workedHoursPerDay = entries.reduce((acc, entry) => {
+      // Solo procesar si tiene end_time
       if (entry.end_time) {
         const date = moment(entry.start_time).tz(this.companyTimezone).format('ddd');
         const startTime = new Date(entry.start_time);
         const endTime = new Date(entry.end_time);
         
+        // Verificar que los tiempos sean válidos
         if (!isNaN(startTime.getTime()) && !isNaN(endTime.getTime()) && endTime > startTime) {
           const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
           acc[date] = (acc[date] || 0) + duration;
@@ -635,8 +638,9 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     
     if (activeEntry) {
       const startTime = moment.utc(activeEntry.start_time);
-      const currentTime = moment.utc();
+      const currentTime = moment.utc(); // Usar UTC
       
+      // Verificar que startTime sea válido y antes que currentTime
       if (startTime.isValid() && currentTime.isAfter(startTime)) {
         const hoursWorked = currentTime.diff(startTime, 'hours', true);
         workedHoursPerDay[today] = (workedHoursPerDay[today] || 0) + Math.max(0, hoursWorked);
@@ -669,7 +673,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
         name: 'Worked',
         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
           const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(0, worked));
+          return Number(Math.max(0, worked)); // Asegurar no negativo
         }),
       },
       {
@@ -677,7 +681,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
         data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
           const total = totalHoursPerDay[day.substring(0, 3)] || 0;
           const worked = workedHoursPerDay[day.substring(0, 3)] || 0;
-          return Number(Math.max(0, total - worked));
+          return Number(Math.max(0, total - worked)); // Asegurar no negativo
         }),
       }
     ];
@@ -729,6 +733,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   
                   // sum up the hours of today's entries
                   this.hoursElapsed = entriesToday.reduce((acc: number, entry: any) => {
+                    // SOLO calcular horas si tiene end_time
                     if (entry.end_time) {
                       const startTime = new Date(entry.start_time);
                       const endTime = new Date(entry.end_time);
@@ -745,10 +750,15 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
                   // sum up the hours of today's active entries
                   if (activeEntry) {
                     const startTime = moment.utc(activeEntry.start_time);
-                    const currentTime = moment.utc();
+                    const currentTime = moment.utc(); // Usar UTC para consistencia
                     this.hoursElapsed += currentTime.diff(startTime, 'hours', true);
                   }
                   
+                  // Asegurar que no sea negativo
+                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
+                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
+
+                  // Asegurar que no sea negativo
                   this.hoursElapsed = Math.max(0, this.hoursElapsed);
                   this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
 

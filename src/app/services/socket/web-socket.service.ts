@@ -15,6 +15,8 @@ export class WebSocketService {
   private geolocationRequestSubject = new Subject<GeolocationRequest>();
   private geolocationUpdateSubject = new Subject<GeolocationUpdate>();
   private geolocationDeniedSubject = new Subject<GeolocationDenied>();
+  private closedEntrySubject = new Subject<any>();
+  private startedEntrySubject = new Subject<any>();
   
   API_URI = environment.socket;
 
@@ -94,6 +96,22 @@ export class WebSocketService {
         console.error('Error processing server:geolocationDenied event', err, data);
       }
     });
+
+    this.socket.on('server:closedEntry', (data?: any) => {
+      try {
+        this.closedEntrySubject.next(data || {});
+      } catch (err) {
+        console.error('Error processing server:closedEntry event', err, data);
+      }
+    });
+
+    this.socket.on('server:startedEntry', (data?: any) => {
+      try {
+        this.startedEntrySubject.next(data || {});
+      } catch (err) {
+        console.error('Error processing server:startedEntry event', err, data);
+      }
+    });
   }
 
   getNotifications() {
@@ -162,6 +180,14 @@ export class WebSocketService {
 
   getGeolocationDeniedStream() {
     return this.geolocationDeniedSubject.asObservable();
+  }
+
+  getClosedEntryStream() {
+    return this.closedEntrySubject.asObservable();
+  }
+
+  getStartedEntryStream() {
+    return this.startedEntrySubject.asObservable();
   }
 
   isConnected(): boolean {
