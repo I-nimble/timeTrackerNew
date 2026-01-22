@@ -938,7 +938,51 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
         this.leafletMap = null;
         this.leafletMarker = null;
       }
-      this.requestEmployeeGeolocation();
+      
+      this.isMapLoading = true;
+      this.employeeLocation = null;
+      this.mapError = null;
+      this.cdr.detectChanges();
+
+      const userIdNum = Number(this.userId);
+      this.webSocketService.requestGeolocation(userIdNum);
+      
+      if (this.geolocationTimeout) clearTimeout(this.geolocationTimeout);
+      
+      this.geolocationTimeout = setTimeout(() => {
+        if (!this.employeeLocation) {
+          this.employeesService.getEmployeeGeolocation(userIdNum).subscribe({
+            next: (geolocation: any) => {
+              if (this.employeeLocation) return;
+              
+              if (geolocation && geolocation.latitude) {
+                 this.employeeLocation = {
+                    userId: this.userId!,
+                    deviceId: geolocation.device_id || 'unknown',
+                    latitude: parseFloat(geolocation.latitude),
+                    longitude: parseFloat(geolocation.longitude),
+                    accuracy: geolocation.accuracy,
+                    timestamp: geolocation.timestamp
+                 };
+                 this.cdr.detectChanges();
+                 this.updateLeafletMap();
+                 this.isMapLoading = false;
+              } else {
+                 this.isMapLoading = false;
+                 this.mapError = 'Unable to get employee location.';
+                 this.cdr.detectChanges();
+              }
+            },
+            error: (err) => {
+               if(!this.employeeLocation) {
+                  this.isMapLoading = false;
+                  this.mapError = 'Unable to get employee location. They may be offline.';
+                  this.cdr.detectChanges();
+               }
+            }
+          });
+        }
+      }, 5000);
     }
   }
 }
