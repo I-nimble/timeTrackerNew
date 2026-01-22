@@ -17,6 +17,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
+import { Observable, map, switchMap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-candidate-details',
@@ -77,7 +79,8 @@ export class CandidateDetailsComponent implements OnInit {
     private fb: FormBuilder,
     private permissionService: PermissionService,
     private dialog: MatDialog,
-    private discProfilesService: DiscProfilesService
+    private discProfilesService: DiscProfilesService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
@@ -223,7 +226,9 @@ export class CandidateDetailsComponent implements OnInit {
           inimble_academy: candidate.inimble_academy,
           english_level: candidate.english_level
         });
+
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
+
         this.applicationMatchScoreService.getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
@@ -275,7 +280,7 @@ export class CandidateDetailsComponent implements OnInit {
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
-      profile_pic: candidate.picture || candidate.profile_pic_url || null,
+      profile_pic: this.selectedProfilePicFile,
       interview_link: candidate.interview_link,
       hobbies: candidate.hobbies,
       work_experience: candidate.work_experience,
@@ -409,7 +414,8 @@ export class CandidateDetailsComponent implements OnInit {
         
         this.selectedProfilePicFile = null;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error updating candidate:', error);
         this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
       }
     });
@@ -431,8 +437,82 @@ export class CandidateDetailsComponent implements OnInit {
     if (this.isCreateMode) {
       this.createCandidate();
     } else {
-      this.updateCandidate();
+      if (this.selectedProfilePicFile) {
+        this.saveWithProfilePicture();
+      } else {
+        this.updateCandidate();
+      }
     }
+}
+
+    private uploadProfilePicture(file: File): Observable<string> {
+    const candidate = this.candidate();
+    const email = candidate?.email || '';
+    const candidateId = candidate?.id || this.route.snapshot.paramMap.get('id');
+    
+    return this.applicationService.getUploadUrl('photos', file, email, candidateId, true).pipe(
+      switchMap((photoUrl: any) => {
+        const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
+        const headers = new HttpHeaders({
+          'Content-Type': file.type,
+          'X-Filename': fileName
+        });
+        
+        return this.http.put(photoUrl.url, file, { headers }).pipe(
+          map(() => fileName)
+        );
+      })
+    );
+  }
+
+  private saveWithProfilePicture(): void {
+    if (!this.selectedProfilePicFile || this.form.invalid) return;
+
+    this.uploadProfilePicture(this.selectedProfilePicFile).pipe(
+      switchMap((fileName: string) => {
+        const formValues = this.form.value;
+        const candidate = this.candidate();
+        
+        const data: any = {
+          name: formValues.name,
+          description: formValues.description,
+          talent_match_profile_summary: formValues.talent_match_profile_summary,
+          profile_observation: formValues.profile_observation,
+          ranking_id: formValues.ranking_id,
+          position_id: formValues.position_id,
+          interview_link: formValues.interview_link,
+          hobbies: formValues.hobbies,
+          work_experience: formValues.work_experience,
+          skills: formValues.skills,
+          education_history: formValues.education_history,
+          inimble_academy: formValues.inimble_academy,
+          english_level: formValues.english_level,
+          profile_pic: fileName
+        };
+
+        return this.applicationService.submit(data, candidate?.id);
+      })
+    ).subscribe({
+      next: (response: any) => {
+        this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
+        this.editMode = false;
+        
+        if (response?.profile_pic_url) {
+          const updatedCandidate = {
+            ...this.candidate(),
+            picture: response.profile_pic_url,
+            profile_pic_url: response.profile_pic_url
+          };
+          this.candidate.set(updatedCandidate);
+        }
+        
+        this.selectedProfilePicFile = null;
+      },
+      error: (error:any) => {
+        console.error('Error updating candidate:', error);
+        this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   getPositionTitle(positionId: number) {
@@ -499,33 +579,7 @@ export class CandidateDetailsComponent implements OnInit {
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
-
-  openDialogUploadFiles() {
-    const candidate = this.candidate();
-    if (!candidate) return;
-
-    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
-      width: '600px',
-      data: {
-        mode: 'files',
-        candidate: candidate,
-        action: 'edit'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success && result.profile_pic) {
-        const updatedCandidate = {
-          ...this.candidate(),
-          picture: result.profile_pic,
-          profile_pic_url: result.profile_pic
-        };
-        this.candidate.set(updatedCandidate);
-        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
+  
   openMatchPercentagesModal(): void {
     const candidate = this.candidate();
     if (!candidate) return;
@@ -569,6 +623,33 @@ export class CandidateDetailsComponent implements OnInit {
         this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  onProfilePicSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.size > 1000000) {
+        this.snackBar.open(
+          'Profile picture size should be 1 MB or less',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      if (!['image/jpeg', 'image/png'].includes(file.type)){
+        this.snackBar.open(
+          'Only JPG and PNG files are allowed for profile picture',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      
+      this.selectedProfilePicFile = file;
+      this.form.patchValue({
+        profile_pic: file 
+      });
+    }
   }
 
 }

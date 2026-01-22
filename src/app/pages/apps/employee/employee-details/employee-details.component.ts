@@ -715,6 +715,10 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
                   this.hoursElapsed = Math.max(0, this.hoursElapsed);
                   this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
 
+                  // Asegurar que no sea negativo
+                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
+                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
+
                   // Update daily hours chart
                   this.dailyHoursChart.series = [
                     Number(this.hoursElapsed.toFixed(2)), 

@@ -91,7 +91,7 @@ export class AppSideLoginComponent {
      private companieService: CompaniesService,
      private authService: AuthService,
      private snackBar: MatSnackBar,
-     private rocketChatService: RocketChatService,
+     private rocketChatService: RocketChatService
   ) {}
 
   form = new FormGroup({
@@ -132,13 +132,6 @@ export class AppSideLoginComponent {
           const isOrphan = v.isOrphan;
           const chatCredentials = v.chatCredentials;
           localStorage.setItem('role', role);
-          if (Number(role) === 1) {
-            this.route = '/dashboards/admin';
-          } else if (Number(role) === 2) {
-            this.route = '/dashboards/tm';
-          } else {
-            this.route = '/dashboards/dashboard2';
-          }
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
@@ -147,11 +140,10 @@ export class AppSideLoginComponent {
           this.rocketChatService.initializeRocketChat(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
           this.authService.setUserType(role);
-          this.authService.userTypeRouting(role);
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.router.navigate([this.route]);
+          this.authService.userTypeRouting(role);
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;

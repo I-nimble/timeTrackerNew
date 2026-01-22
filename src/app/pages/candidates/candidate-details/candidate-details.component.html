@@ -29,16 +29,6 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button
-                mat-stroked-button
-                color="primary"
-                (click)="openDialogUploadFiles()"
-                type="button"
-                *ngIf="editMode"
-              >
-                <mat-icon>upload</mat-icon>
-                Upload Files
-              </button>
               <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
                 Save
               </button>
@@ -89,6 +79,17 @@
               </div>
             </td>
           </tr>
+
+          <tr>
+            <td>
+              <b>Talent Match Profile Summary<span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
+            <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || "" }}</td>
+            <td *ngIf="editMode">
+              <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
+            </td>
+          </tr>
+
           <tr *ngIf="!isCreateMode">
             <td ><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
@@ -248,17 +249,47 @@
 
           <tr *ngIf="userRole !== '3'">
             <td><b>Picture</b></td>
-            <td>
-              <div class="d-flex align-items-center gap-2 mb-2">
-              </div> 
-              <a
-                *ngIf="candidate()?.picture || candidate()?.profile_pic_url"
-                [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {{ candidate()?.picture || candidate()?.profile_pic_url }}
-              </a>
+            <td *ngIf="!editMode">
+              <div *ngIf="candidate()?.picture || candidate()?.profile_pic_url">
+                <a
+                  [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ candidate()?.picture || candidate()?.profile_pic_url }}
+                </a>
+              </div>
+              <span *ngIf="!(candidate()?.picture || candidate()?.profile_pic_url)" class="text-muted">
+                No picture URL provided
+              </span>
+            </td>
+            <td *ngIf="editMode">
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <input
+                    #picInput
+                    type="file"
+                    accept="image/jpeg, image/jpg, image/png"
+                    (change)="onProfilePicSelected($event)"
+                    style="display: none"
+                  />
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    (click)="picInput.click()"
+                    type="button"
+                  >
+                    <mat-icon>upload</mat-icon>
+                    Upload Picture
+                  </button>
+                  <div *ngIf="!selectedProfilePicFile" class="mt-1">
+                    <small class="text-muted">Allowed JPG, PNG. Max size of 1MB</small>
+                  </div>
+                  <div *ngIf="selectedProfilePicFile" class="mt-1">
+                    <small class="text-muted">Selected: {{ selectedProfilePicFile.name }}</small>
+                  </div>
+                </div>
+              </div>
             </td>
           </tr>
 
