@@ -79,6 +79,17 @@
               </div>
             </td>
           </tr>
+
+          <tr>
+            <td>
+              <b>Talent Match Profile Summary<span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
+            <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || "" }}</td>
+            <td *ngIf="editMode">
+              <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
+            </td>
+          </tr>
+
           <tr *ngIf="!isCreateMode">
             <td ><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
