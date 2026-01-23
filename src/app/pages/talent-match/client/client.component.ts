@@ -666,7 +666,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   downloadFile(url: string, filename: string) {
-    fetch(this.resumesUrl + '/' + url)
+    const resumeUrl = this.applicationsService.getResumeUrl(url);
+    fetch(resumeUrl)
       .then((response) => response.blob())
       .then((blob) => {
         const link = document.createElement('a');

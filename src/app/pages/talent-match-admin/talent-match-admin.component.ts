@@ -215,7 +215,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
       this.openSnackBar('No resume found for this candidate', 'Close');
       return;
     }
-    const url = this.resumesUrl + '/' + resumeUrl;
+    const url = this.applicationService.getResumeUrl(resumeUrl);
     window.open(url, '_blank');
   }
 

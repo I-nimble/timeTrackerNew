@@ -104,7 +104,7 @@ export class ApplicationsService {
   uploadCV(file: File, candidateId: number): Observable<any> {
     let resumeUpload$ = of(null);
     if(file instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', file).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', file, undefined, candidateId, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
           const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
@@ -138,7 +138,7 @@ export class ApplicationsService {
     let photoUpload$ = of(null);
 
     if(data.cv instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', data.cv).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.cv, undefined, id, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
           const file = data.cv;
@@ -261,5 +261,16 @@ export class ApplicationsService {
       return event;
     }
     return event;
+  }
+
+  getResumeUrl(filename: string | null | undefined): string {
+    if (!filename) return '';
+    if (filename.startsWith('http')) return filename;
+    
+    if (environment.apiUrl.includes('localhost') || !environment.production) {
+       return `${environment.socket}/uploads/resumes/${filename}`;
+    }
+    
+    return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
   }
 }

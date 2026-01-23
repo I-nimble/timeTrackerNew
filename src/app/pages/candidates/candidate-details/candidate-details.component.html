@@ -11,7 +11,10 @@
     </mat-card-content>
   </mat-card>
 </ng-template>
-<mat-card class="cardWithShadow" *ngIf="(userRole == '1' || userRole == '4') && pendingChanges().length > 0">
+<mat-card
+  class="cardWithShadow"
+  *ngIf="(userRole == '1' || userRole == '4') && pendingChanges().length > 0"
+>
   <mat-card-content>
     <div class="header-row mb-4">
       <div class="left-ghost"></div>
@@ -21,21 +24,37 @@
           Approve
         </button>
         <button
-          mat-flat-button class="bg-error text-white" (click)="rejectChanges()">
+          mat-flat-button
+          class="bg-error text-white"
+          (click)="rejectChanges()"
+        >
           Reject
         </button>
       </div>
     </div>
     <div class="p-16">
       <div class="table-responsive">
-        <table mat-table [dataSource]="pendingChanges()" class="mat-mdc-table mdc-data-table__table cdk-table w-100" role="table">
+        <table
+          mat-table
+          [dataSource]="pendingChanges()"
+          class="mat-mdc-table mdc-data-table__table cdk-table w-100"
+          role="table"
+        >
           <ng-container matColumnDef="field">
-            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Field</th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">{{ element.field }}</td>
+            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+              Field
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.field }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="value">
-            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Updated Info</th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">{{ element.value }}</td>
+            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+              Updated Info
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.value }}
+            </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="['field', 'value']"></tr>
           <tr mat-row *matRowDef="let row; columns: ['field', 'value']"></tr>
@@ -61,7 +80,12 @@
               Edit
             </button>
             <ng-container *ngIf="editMode">
-              <button mat-flat-button color="primary" (click)="save()" [disabled]="form.invalid">
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="save()"
+                [disabled]="form.invalid"
+              >
                 Save
               </button>
               <button
@@ -82,7 +106,10 @@
             <td *ngIf="!editMode">{{ candidate()?.name || "" }}</td>
             <td *ngIf="editMode">
               <input matInput [formControl]="f['name']" />
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['name'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['name'].hasError('required')"
+              >
                 Name is required.
               </p>
             </td>
@@ -103,8 +130,14 @@
                 <div class="description-base-text m-b-8">
                   {{ descriptionBaseText }}
                 </div>
-                <mat-select [formControl]="f['descriptionOption']" placeholder="Select match type">
-                  <mat-option *ngFor="let option of descriptionOptions" [value]="option">
+                <mat-select
+                  [formControl]="f['descriptionOption']"
+                  placeholder="Select match type"
+                >
+                  <mat-option
+                    *ngFor="let option of descriptionOptions"
+                    [value]="option"
+                  >
                     {{ option }}
                   </mat-option>
                 </mat-select>
@@ -112,11 +145,11 @@
             </td>
           </tr>
           <tr *ngIf="!isCreateMode">
-            <td ><b>Negotiator Profile</b></td>
+            <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
               <div *ngFor="let score of matchScores">
                 {{ getCategoryName(score) }}:
-                {{ score.match_percentage | number : "1.2-2" }}%
+                {{ score.match_percentage | number: "1.2-2" }}%
               </div>
               <div *ngIf="matchScores.length === 0" class="text-muted">
                 No match percentages set
@@ -128,7 +161,9 @@
                   mat-stroked-button
                   color="primary"
                   [disabled]="isCreateMode"
-                  (click)="openMatchPercentagesModal(); $event.stopPropagation()"
+                  (click)="
+                    openMatchPercentagesModal(); $event.stopPropagation()
+                  "
                   type="button"
                 >
                   <mat-icon>percent</mat-icon>
@@ -144,7 +179,7 @@
                 >
                   <span class="text-dark">{{ getCategoryName(score) }}</span>
                   <span class="fw-bold"
-                    >{{ score.match_percentage | number : "1.2-2" }}%</span
+                    >{{ score.match_percentage | number: "1.2-2" }}%</span
                   >
                 </div>
               </div>
@@ -189,7 +224,9 @@
                 <button
                   mat-stroked-button
                   color="primary"
-                  (click)="openMatchPercentagesModal(); $event.stopPropagation()"
+                  (click)="
+                    openMatchPercentagesModal(); $event.stopPropagation()
+                  "
                   type="button"
                 >
                   <mat-icon>psychology</mat-icon>
@@ -215,15 +252,28 @@
         <h4>RESUMES</h4>
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
-            <td><b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b></td>
-            <td *ngIf="!editMode">{{ getRankingName(candidate()?.ranking_id) }}</td>
+            <td>
+              <b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b>
+            </td>
+            <td *ngIf="!editMode">
+              {{ getRankingName(candidate()?.ranking_id) }}
+            </td>
             <td *ngIf="editMode">
-              <mat-select [formControl]="f['ranking_id']" placeholder="Select ranking">
-                <mat-option *ngFor="let profile of rankingProfiles" [value]="profile.id">
+              <mat-select
+                [formControl]="f['ranking_id']"
+                placeholder="Select ranking"
+              >
+                <mat-option
+                  *ngFor="let profile of rankingProfiles"
+                  [value]="profile.id"
+                >
                   {{ profile.ranking }}
                 </mat-option>
               </mat-select>
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['ranking_id'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['ranking_id'].hasError('required')"
+              >
                 Ranking is required.
               </p>
             </td>
@@ -231,10 +281,18 @@
 
           <tr>
             <td><b>Profile Observation</b></td>
-            <td *ngIf="!editMode">{{ getProfileObservation(candidate()?.ranking_id) }}</td>
+            <td *ngIf="!editMode">
+              {{ getProfileObservation(candidate()?.ranking_id) }}
+            </td>
             <td *ngIf="editMode">
-              <mat-select [formControl]="f['profile_observation']" placeholder="Select profile observation">
-                <mat-option *ngFor="let profile of rankingProfiles" [value]="profile.profile_observation">
+              <mat-select
+                [formControl]="f['profile_observation']"
+                placeholder="Select profile observation"
+              >
+                <mat-option
+                  *ngFor="let profile of rankingProfiles"
+                  [value]="profile.profile_observation"
+                >
                   {{ profile.profile_observation }}
                 </mat-option>
               </mat-select>
@@ -246,7 +304,24 @@
             <td *ngIf="!editMode">
               <span class="d-flex align-items-center">
                 <span>{{ getPositionTitle(candidate()?.position_id) }}</span>
-                <span class="disc-badges" *ngIf="getPositionById(candidate()?.position_id)?.disc_profiles?.length" style="margin-left: 8px;">(<span *ngFor="let profile of getPositionById(candidate()?.position_id).disc_profiles" class="disc-badge-small" [style.background-color]="getDiscProfileColor(profile.name)" [title]="profile.name">{{ profile.name.charAt(0) }}</span>)</span>
+                <span
+                  class="disc-badges"
+                  *ngIf="
+                    getPositionById(candidate()?.position_id)?.disc_profiles
+                      ?.length
+                  "
+                  style="margin-left: 8px"
+                  >(<span
+                    *ngFor="
+                      let profile of getPositionById(candidate()?.position_id)
+                        .disc_profiles
+                    "
+                    class="disc-badge-small"
+                    [style.background-color]="getDiscProfileColor(profile.name)"
+                    [title]="profile.name"
+                    >{{ profile.name.charAt(0) }}</span
+                  >)</span
+                >
               </span>
             </td>
             <td *ngIf="editMode">
@@ -254,18 +329,28 @@
                 <mat-option *ngFor="let pos of positions" [value]="pos.id">
                   <span class="d-flex align-items-center">
                     <span>{{ pos.title }}</span>
-                    <span class="disc-badges m-l-8" *ngIf="pos.disc_profiles?.length" style="margin-left: 8px;">(<span
+                    <span
+                      class="disc-badges m-l-8"
+                      *ngIf="pos.disc_profiles?.length"
+                      style="margin-left: 8px"
+                      >(<span
                         *ngFor="let profile of pos.disc_profiles"
                         class="disc-badge-small"
-                        [style.background-color]="getDiscProfileColor(profile.name)"
+                        [style.background-color]="
+                          getDiscProfileColor(profile.name)
+                        "
                         [title]="profile.name"
                       >
-                        {{ profile.name.charAt(0) }}
-                      </span>)</span>
+                        {{ profile.name.charAt(0) }} </span
+                      >)</span
+                    >
                   </span>
                 </mat-option>
               </mat-select>
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['position_id'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['position_id'].hasError('required')"
+              >
                 Position is required.
               </p>
             </td>
@@ -276,14 +361,17 @@
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.picture || candidate()?.profile_pic_url">
                 <a
-                  [href]="getSafeLink(candidate()?.picture || candidate()?.profile_pic_url)"
+                  [href]="candidate()?.profile_pic_url || candidate()?.picture"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {{ candidate()?.picture || candidate()?.profile_pic_url }}
                 </a>
               </div>
-              <span *ngIf="!(candidate()?.picture || candidate()?.profile_pic_url)" class="text-muted">
+              <span
+                *ngIf="!(candidate()?.picture || candidate()?.profile_pic_url)"
+                class="text-muted"
+              >
                 No picture URL provided
               </span>
             </td>
@@ -307,10 +395,63 @@
                     Upload Picture
                   </button>
                   <div *ngIf="!selectedProfilePicFile" class="mt-1">
-                    <small class="text-muted">Allowed JPG, PNG. Max size of 1MB</small>
+                    <small class="text-muted"
+                      >Allowed JPG, PNG. Max size of 1MB</small
+                    >
                   </div>
                   <div *ngIf="selectedProfilePicFile" class="mt-1">
-                    <small class="text-muted">Selected: {{ selectedProfilePicFile.name }}</small>
+                    <small class="text-muted"
+                      >Selected: {{ selectedProfilePicFile.name }}</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="userRole !== '3'">
+            <td><b>Resume</b></td>
+            <td *ngIf="!editMode">
+              <a
+                *ngIf="candidate()?.resume_url"
+                [href]="getResumeUrl(candidate()?.resume_url)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ getResumeUrl(candidate()?.resume_url) }}
+              </a>
+              <span *ngIf="!candidate()?.resume_url" class="text-muted"
+                >No resume provided</span
+              >
+            </td>
+            <td *ngIf="editMode">
+              <div class="d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <input
+                    #resumeInput
+                    type="file"
+                    accept=".doc, .docx, .pdf"
+                    (change)="onResumeSelected($event)"
+                    style="display: none"
+                  />
+                  <button
+                    mat-stroked-button
+                    color="primary"
+                    (click)="resumeInput.click()"
+                    type="button"
+                  >
+                    <mat-icon>upload</mat-icon>
+                    Upload Resume
+                  </button>
+                  <div *ngIf="!selectedResumeFile" class="mt-1">
+                    <small class="text-muted"
+                      >Allowed PDF, DOC, DOCX. Max size of 1MB</small
+                    >
+                  </div>
+                  <div *ngIf="selectedResumeFile" class="mt-1">
+                    <small class="text-muted"
+                      >Selected: {{ selectedResumeFile.name }}</small
+                    >
                   </div>
                 </div>
               </div>
@@ -352,7 +493,7 @@
                     candidate()?.work_experience?.length > 200
                   "
                 >
-                  {{ candidate()?.work_experience | slice : 0 : 200 }}...
+                  {{ candidate()?.work_experience | slice: 0 : 200 }}...
                   <button
                     mat-button
                     color="primary"
@@ -411,7 +552,10 @@
             <td *ngIf="!editMode">{{ candidate()?.skills || "" }}</td>
             <td *ngIf="editMode">
               <textarea matInput [formControl]="f['skills']"></textarea>
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['skills'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['skills'].hasError('required')"
+              >
                 Skills are required.
               </p>
             </td>
@@ -449,12 +593,18 @@
 
           <tr>
             <td>
-              <b>English Level <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b
+                >English Level
+                <span class="text-danger" *ngIf="editMode">*</span></b
+              >
             </td>
             <td *ngIf="!editMode">{{ candidate()?.english_level || "" }}</td>
             <td *ngIf="editMode">
               <input matInput [formControl]="f['english_level']" />
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['english_level'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['english_level'].hasError('required')"
+              >
                 English level is required.
               </p>
             </td>
