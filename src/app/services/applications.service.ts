@@ -107,14 +107,13 @@ export class ApplicationsService {
       resumeUpload$ = this.getUploadUrl('resumes', file, undefined, candidateId, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -142,15 +141,14 @@ export class ApplicationsService {
       resumeUpload$ = this.getUploadUrl('resumes', data.cv, undefined, id, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
-          const file = data.cv
+          const file = data.cv;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -167,12 +165,10 @@ export class ApplicationsService {
               const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
               const headers = new HttpHeaders({
                 'Content-Type': imgFile.type,
+                'X-Filename': fileName
               });
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
-                map(() => {
-                  const urlParts = this.photoUrl.split('?')[0].split('/');
-                  return urlParts[urlParts.length - 1];
-                })
+                map(() => fileName)
               );
             })
           )

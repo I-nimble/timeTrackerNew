@@ -220,6 +220,10 @@ export class UsersService {
       contentType: file.type
     }).pipe(
       switchMap((res: any) => {
+        const headers = new HttpHeaders({ 
+          'Content-Type': file.type,
+          'X-Filename': res.fileName || res.key.split('/').pop()
+        });
         return this.http.put(res.url, file, { headers }).pipe(
           switchMap(() => {
             return this.getIntroductionVideo(email);
