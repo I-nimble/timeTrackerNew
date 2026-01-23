@@ -136,7 +136,6 @@ export class ApplicationsService {
   public submit(data: any, id: any = null): Observable<any> {
     let resumeUpload$ = of(null);
     let photoUpload$ = of(null);
-    console.log('submitting...', data)
 
     if(data.cv instanceof File) {
       resumeUpload$ = this.getUploadUrl('resumes', data.cv, data.email, id, false).pipe(
@@ -158,7 +157,6 @@ export class ApplicationsService {
       resumeUpload$ = of(data.resume_url);
     }
     if(data.profile_pic instanceof File) {
-      console.log('submitting profile pic', data.profile_pic)
       photoUpload$ = data.profile_pic
         ? this.getUploadUrl('photos', data.profile_pic, data.email, id, true).pipe(
             switchMap((photoUrl: any) => {
@@ -169,7 +167,6 @@ export class ApplicationsService {
                 'Content-Type': imgFile.type,
                 'X-Filename': fileName
               });
-              console.log('Obtained picture url to upload, uploading to', this.photoUrl)
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
                 map(() => fileName)
               );
