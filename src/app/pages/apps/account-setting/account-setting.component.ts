@@ -144,7 +144,7 @@ export class AppAccountSettingComponent implements OnInit {
       provider: [''],
       policy_number: [''],
       coverage_details: [''],
-      createdAt: [null]
+      createdAt: ['']
     })
   });
   socialMediaForm: FormGroup = this.fb.group({
@@ -538,7 +538,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
-             if (this.isCandidate) {
+             if (this.user.availability) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
               this.checkMatchRequestStatus()              
