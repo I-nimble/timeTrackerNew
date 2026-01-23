@@ -396,11 +396,12 @@ export class CandidateDetailsComponent implements OnInit {
       next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
+        
         const updatedCandidate = {
           ...this.candidate(),
           ...data,
           description: descriptionValue,
-          resume_url: response?.file_name || this.candidate()?.resume_url
+          resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url
         };
         
         this.candidate.set(updatedCandidate);
