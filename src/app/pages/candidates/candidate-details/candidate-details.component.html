@@ -383,11 +383,7 @@
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.picture || candidate()?.profile_pic_url">
                 <a
-                  [href]="
-                    getSafeLink(
-                      candidate()?.picture || candidate()?.profile_pic_url
-                    )
-                  "
+                  [href]="candidate()?.profile_pic_url || candidate()?.picture"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
