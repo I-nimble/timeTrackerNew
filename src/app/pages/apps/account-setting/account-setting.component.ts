@@ -539,7 +539,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.applyPendingTab();
           if (this.role === '2') {
              this.loadCertifications();
-             if (this.isCandidate) {
+             if (this.user.availability) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
               this.checkMatchRequestStatus()              
