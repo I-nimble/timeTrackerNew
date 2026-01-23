@@ -528,32 +528,6 @@ export class CandidateDetailsComponent implements OnInit {
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
 
-  openDialogUploadFiles() {
-    const candidate = this.candidate();
-    if (!candidate) return;
-
-    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
-      width: '600px',
-      data: {
-        mode: 'files',
-        candidate: candidate,
-        action: 'edit'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result?.success && result.profile_pic) {
-        const updatedCandidate = {
-          ...this.candidate(),
-          picture: result.profile_pic,
-          profile_pic_url: result.profile_pic
-        };
-        this.candidate.set(updatedCandidate);
-        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
-      }
-    });
-  }
-
   openMatchPercentagesModal(): void {
     const candidate = this.candidate();
     if (!candidate) return;
