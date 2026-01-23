@@ -213,10 +213,10 @@ export class UsersService {
     return this.http.post<{ videoURL: string }>(`${this.API_URI}/generate_upload_url/video/introduction/download`, { email });
   }
   
-  uploadIntroductionVideo(file: File, email: string) {
-    const headers = new HttpHeaders({ 'Content-Type': file.type });
+  uploadIntroductionVideo(file: File, email: string, applicationId?: number) {
     return this.http.post(`${this.API_URI}/generate_upload_url/video/introduction`, {
       email: email,
+      applicationId: applicationId,
       contentType: file.type
     }).pipe(
       switchMap((res: any) => {
