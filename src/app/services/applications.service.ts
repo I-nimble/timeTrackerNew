@@ -267,7 +267,7 @@ export class ApplicationsService {
     if (!filename) return '';
     if (filename.startsWith('http')) return filename;
     
-    if (!environment.production) {
+    if (environment.apiUrl.includes('localhost') || !environment.production) {
        return `${environment.socket}/uploads/resumes/${filename}`;
     }
     
