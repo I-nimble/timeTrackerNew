@@ -258,7 +258,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     try {
       this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
-        this.sortRoomsByUnread();
+        this.sortRooms();
       });
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
@@ -316,14 +316,34 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.chatService.getRooms().subscribe({
       next: (rooms: any) => {
         this.rooms = rooms;
-        this.sortRoomsByUnread();
-        this.loadAllRoomPictures();
-        this.scrollToBottom();
+
+        // Create suppor chat if not found
+        const supportUsername = environment.supportUsername;
+        const supportUserRoom = this.rooms.find((room: any) => room.t === 'd' && room.usernames.includes(supportUsername));
+        if (!supportUserRoom && this.chatService.loggedInUser?.username !== supportUsername) {
+          this.chatService.createDirectMessage(supportUsername)
+            .then(room => {
+              this.rooms.push(room);
+              this.sortRooms();
+              this.loadAllRoomPictures();
+              this.scrollToBottom();
+            })
+            .catch(err => this.openSnackBar('Error creating direct message:', 'Close'));
+        }
+        else {
+          this.sortRooms();
+          this.loadAllRoomPictures();
+          this.scrollToBottom();
+        }
       },
       error: (err) => {
         console.error('Error loading rooms:', err);
       },
     });
+  }
+
+  isRoomSupportUser(room: RocketChatRoom): boolean {
+    return room.t === 'd' && room.usernames?.includes(environment.supportUsername) || false;
   }
 
   private loadAllRoomPictures() {
@@ -1111,7 +1131,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         try {
           this.chatService.setUnreadForRoom(room._id, 0);
         } catch {}
-        this.sortRoomsByUnread();
+        this.sortRooms();
       },
       error: err => {
         console.error('Failed to mark as read:', err);
@@ -1128,7 +1148,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       console.error('Failed to mark as unread:', err);
       this.openSnackBar('Failed to mark room as unread', 'Close');
     }
-    this.sortRoomsByUnread();
+    this.sortRooms();
   }
 
   getMessageTimestamp(message: RocketChatMessage): Date {
@@ -1624,9 +1644,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private sortRoomsByUnread(): void {
+  private sortRooms(): void {
     try {
+      const supportUsername = environment.supportUsername;
       this.rooms.sort((a, b) => {
+        // Pin the support chat to the top of the list
+        if (a.t === 'd' && a.usernames?.includes(supportUsername)) return -1;
+        if (b.t === 'd' && b.usernames?.includes(supportUsername)) return 1;
         const aUnread = this.chatService.getUnreadForRoom(a._id) || 0;
         const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
         if (aUnread !== bUnread) return bUnread - aUnread;

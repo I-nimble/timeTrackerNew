@@ -45,6 +45,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AppCertificationModalComponent } from './certification-modal.component';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   standalone: true,
@@ -55,6 +56,7 @@ import { Loader } from 'src/app/app.models';
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
   selectedTabLabel: string = '';
+  isCandidate = false;
   notificationStore = inject(NotificationStore);
   private fb = inject(FormBuilder);
   user: any = {
@@ -142,7 +144,7 @@ export class AppAccountSettingComponent implements OnInit {
       provider: [''],
       policy_number: [''],
       coverage_details: [''],
-      createdAt: [null]
+      createdAt: ['']
     })
   });
   socialMediaForm: FormGroup = this.fb.group({
@@ -223,7 +225,7 @@ export class AppAccountSettingComponent implements OnInit {
     ]],
     // currentResidence: ['', Validators.required],
     address: ['', Validators.required],
-    children: [0, [Validators.required, Validators.min(0)]],
+    children: [0, [Validators.min(0)]],
     englishLevel: ['', Validators.required],
     competencies: ['', Validators.required],
     technicalSkills: ['', Validators.required],
@@ -232,12 +234,12 @@ export class AppAccountSettingComponent implements OnInit {
     workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
+    scheduleAvailability: [null, Validators.requiredTrue],
     resume: [null],
     picture: [null],
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    availability: [false, Validators.requiredTrue],
     programmingLanguages: ['']
   });
   locations: any[] = [];
@@ -248,6 +250,7 @@ export class AppAccountSettingComponent implements OnInit {
   ];
   englishLevels: string[] = ['Beginner', 'Intermediate', 'Advanced'];
   applicationId: number | null = null;
+  private originalApplicationValues: any = null;
   resumeFileName: string | null = null;
   resumeFile: File | null = null;
   portfolioFileName: string | null = null;
@@ -281,14 +284,17 @@ export class AppAccountSettingComponent implements OnInit {
             private route: ActivatedRoute,
             private router: Router,
             private subscriptionService: SubscriptionService,
-            private certificationsService: CertificationsService
+            private certificationsService: CertificationsService,
+            private permissionService: PermissionService,
           ) {}
 
+  getAttachmentUrl(key: string): string {
+    return this.certificationsService.getAttachmentUrl(key);
+  }
+
   ngOnInit(): void {
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';    
     this.getUser();
-    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
-    this.checkOlympiaStatus();
-    this.loadExistingVideo(); 
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
@@ -298,16 +304,10 @@ export class AppAccountSettingComponent implements OnInit {
       this.checkSubscriptionSuccess();
     }); 
     this.loadSubscriptionStatus();
-
-    if (this.isOrphan) {
-      this.getLocations();
-      this.getPositions();
-      this.setupConditionalValidation();
-      
-      this.personalForm.get('phone')?.clearValidators();
-      this.personalForm.get('address')?.clearValidators();
-      this.personalForm.get('phone')?.updateValueAndValidity();
-      this.personalForm.get('address')?.updateValueAndValidity();
+    if (this.isCandidate) {
+      this.checkOlympiaStatus();
+      this.loadExistingVideo();
+      this.initializeApplicationFormDependencies();
     }
 
     this.setupNameTrimming(this.personalForm, 'name');
@@ -325,6 +325,26 @@ export class AppAccountSettingComponent implements OnInit {
   getPositions(): void {
     // Using careerRoles directly instead of positions from API
     // since we only need VA and IT positions for orphan TM
+  }
+
+  private evaluateApplicationVisibility(): void {
+    if (this.isOrphan) {
+      this.isCandidate = true;
+      return;
+    }
+    this.isCandidate =
+      !!this.user?.application &&
+      this.user.application.inmediate_availability == 1;
+  }
+
+  private initializeApplicationFormDependencies(): void {
+    this.getLocations();
+    this.getPositions();
+    this.setupConditionalValidation();
+    this.personalForm.get('phone')?.clearValidators();
+    this.personalForm.get('address')?.clearValidators();
+    this.personalForm.get('phone')?.updateValueAndValidity();
+    this.personalForm.get('address')?.updateValueAndValidity();
   }
 
   setupConditionalValidation(): void {
@@ -345,7 +365,7 @@ export class AppAccountSettingComponent implements OnInit {
     if (roleControl) {
       roleControl.valueChanges.subscribe(value => {
         const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
-        if (value && value.position_id === 41) {
+        if (value && value.title === 'IT and Technology') {
           programmingLanguagesControl?.setValidators(Validators.required);
         } else {
           programmingLanguagesControl?.clearValidators();
@@ -362,11 +382,23 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   availabilityChange(event: MatSlideToggleChange): void {
-    this.user.availability = event.checked;
+    const availability = event.checked;
+    if (this.user.application) {
+      this.user.application.inmediate_availability = availability;
+      this.evaluateApplicationVisibility();
+    }
+    this.personalForm.get('availability')?.setValue(availability, { emitEvent: false });
     this.formChanged = true;
-    this.personalForm.get('availability')?.setValue(event.checked);
-    this.applicationForm.get('availability')?.setValue(event.checked);
     this.checkFormChanges();
+    this.applicationsService.updateAvailability({user_id: this.user.id, availability}).subscribe({
+      next: () => {
+        this.loadApplicationDetails(this.user.id);
+        this.permissionService.notifyPermissionsUpdated();
+      },
+      error: (err) => {
+        console.error('Error updating availability:', err);
+      }
+    });
   }
 
   checkOlympiaStatus(): void {
@@ -502,16 +534,16 @@ export class AppAccountSettingComponent implements OnInit {
       this.usersService.getUsers(userFilter).subscribe({
         next: (users: any) => {
           this.user = users[0];
-          this.loadExistingVideo();
-          this.checkMatchRequestStatus() 
+          this.evaluateApplicationVisibility();
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
+             if (this.user.availability) {
+              this.loadApplicationDetails(this.user.id);
+              this.loadExistingVideo();
+              this.checkMatchRequestStatus()              
+             }
           }
-          if (this.role === '2' && this.isOrphan) {
-            this.loadApplicationDetails(this.user.id);
-          }
-          
           this.usersService.getProfilePic(this.user.id).subscribe({
             next: (url: any) => {
               if (url) {
@@ -527,51 +559,91 @@ export class AppAccountSettingComponent implements OnInit {
   loadApplicationDetails(userId: number): void {
     this.applicationsService.getUserApplication(userId).subscribe({
       next: (application: any) => {
-        this.application = application;
-        if (application) {
-          this.applicationId = application.id;
-          
+        const mergedApplication = this.mergePendingApplication(application);
+        this.application = mergedApplication;
+        this.user.application = mergedApplication;
+        this.initializeApplicationFormDependencies();
+        this.evaluateApplicationVisibility();
+        if (mergedApplication) {
+          this.applicationId = mergedApplication.id;
+          this.personalForm.patchValue({
+            availability: mergedApplication.inmediate_availability == 1
+          });
           const roleFromPosition = this.careerRoles.find(
-            r => r.position_id === application.position_id
+            r => r.title === mergedApplication.current_position
           );
           
           this.applicationForm.patchValue({
-            location: application.location_id,
+            location: mergedApplication.location_id,
             role: roleFromPosition || null,
-            appliedWhere: application.applied_where,
-            referred: application.referred || 'no',
-            referredName: application.referrer_name,
-            age: application.age,
-            contactPhone: application.phone,
-            additionalPhone: application.additional_phone,
-            currentResidence: application.current_residence,
-            address: application.address,
-            children: application.children ?? 0,
-            englishLevel: application.english_level,
-            competencies: application.competencies,
-            technicalSkills: application.skills,
-            techProficiency: application.tech_proficiency,
-            educationHistory: application.education_history,
-            workExperience: application.work_experience,
-            workReferences: application.work_references,
-            hobbies: application.hobbies,
-            google_user_id: application.google_user_id,
-            salaryRange: application.salary_range,
-            availability: application.inmediate_availability,
-            programmingLanguages: application.programming_languages,
+            appliedWhere: mergedApplication.applied_where,
+            referred: mergedApplication.referred || 'no',
+            referredName: mergedApplication.referrer_name,
+            age: mergedApplication.age,
+            contactPhone: mergedApplication.phone,
+            additionalPhone: mergedApplication.additional_phone,
+            address: mergedApplication.address,
+            children: mergedApplication.children,
+            englishLevel: mergedApplication.english_level,
+            competencies: mergedApplication.competencies,
+            technicalSkills: mergedApplication.skills,
+            techProficiency: mergedApplication.tech_proficiency,
+            educationHistory: mergedApplication.education_history,
+            workExperience: mergedApplication.work_experience,
+            workReferences: mergedApplication.work_references,
+            scheduleAvailability: mergedApplication.schedule_availability,
+            hobbies: mergedApplication.hobbies,
+            google_user_id: mergedApplication.google_user_id,
+            salaryRange: mergedApplication.salary_range,
+            programmingLanguages: mergedApplication.programming_languages,
           });
-          if (application.resume) {
-            this.resumeFileName = application.resume;
+          if (mergedApplication.resume) {
+            this.resumeFileName = mergedApplication.resume;
           }
-          if (application.portfolio) {
-            this.portfolioFileName = application.portfolio;
+          if (mergedApplication.portfolio) {
+            this.portfolioFileName = mergedApplication.portfolio;
           }
+            this.originalApplicationValues = {
+              location_id: mergedApplication.location_id,
+              position_id: mergedApplication.position_id || null,
+              current_position: mergedApplication.current_position,
+              applied_where: mergedApplication.applied_where,
+              referred: mergedApplication.referred || 'no',
+              referrer_name: mergedApplication.referrer_name,
+              age: mergedApplication.age,
+              phone: mergedApplication.phone,
+              additional_phone: mergedApplication.additional_phone,
+              address: mergedApplication.address,
+              children: mergedApplication.children ?? null,
+              english_level: mergedApplication.english_level,
+              competencies: mergedApplication.competencies,
+              skills: mergedApplication.skills,
+              tech_proficiency: mergedApplication.tech_proficiency,
+              education_history: mergedApplication.education_history,
+              work_experience: mergedApplication.work_experience,
+              work_references: mergedApplication.work_references,
+              schedule_availability: mergedApplication.schedule_availability,
+              hobbies: mergedApplication.hobbies,
+              google_user_id: mergedApplication.google_user_id,
+              salary_range: mergedApplication.salary_range,
+              programming_languages: mergedApplication.programming_languages,
+              resume: mergedApplication.resume || null,
+              portfolio: mergedApplication.portfolio || null,
+              picture: mergedApplication.picture || null,
+              introduction_video: mergedApplication.introduction_video || null
+            };
+          const loc = this.locations.find((l: any) => l.id === mergedApplication.location_id) || this.locations[mergedApplication.location_id - 1] || null;
+          const locationString = loc ? `${loc.city || ''}${loc.city && loc.country ? ', ' : ''}${loc.country || ''}` : '';
+          const roleTitle = roleFromPosition ? roleFromPosition.title : null;
 
           this.olympiaForm.patchValue({
             full_name: this.user.name + ' ' + this.user.last_name,
-            location_state_country: `${this.locations[this.application.location_id - 1].city}, ${this.locations[this.application.location_id - 1].country}`,
-            application_area: roleFromPosition.title || null,
-          })
+            location_state_country: locationString,
+            application_area: roleTitle,
+          });
+
+          this.applicationForm.markAllAsTouched();
+          this.personalForm.markAllAsTouched();
         }
       },
       error: (error) => {
@@ -580,6 +652,26 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
+  mergePendingApplication(application: any): any {
+    if (
+      application?.pending_update_status !== 'pending' ||
+      !application.pending_updates
+    ) {
+      return application;
+    }
+    let pending = application.pending_updates;
+    if (typeof pending === 'string') {
+      try {
+        pending = JSON.parse(pending);
+      } catch {
+        return application;
+      }
+    }
+    return {
+      ...application,
+      ...pending
+    };
+  }
 
   checkFormChanges(): void {
     if (!this.originalUserData) return;
@@ -590,7 +682,6 @@ export class AppAccountSettingComponent implements OnInit {
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
       address: this.personalForm.get('address')?.value,
-      availability: this.personalForm.get('availability')?.value,
     };
 
     // Check if any form field has changed
@@ -599,8 +690,7 @@ export class AppAccountSettingComponent implements OnInit {
       currentFormData.last_name !== this.originalUserData.last_name ||
       currentFormData.email !== this.originalUserData.email ||
       currentFormData.phone !== this.originalUserData.phone ||
-      currentFormData.address !== this.originalUserData.address ||
-      currentFormData.availability !== this.originalUserData.availability;
+      currentFormData.address !== this.originalUserData.address;
 
     // Check if profile picture or video has changed
     const mediaChanged = this.personalForm.get('profile')?.value || this.selectedVideoFile;
@@ -631,7 +721,7 @@ export class AppAccountSettingComponent implements OnInit {
         email: this.user.email,
         phone: this.user.phone,
         address: this.user.address,
-        availability: this.user.availability
+        availability: this.user.application?.inmediate_availability ?? false,
       };
 
       // Populate personal form
@@ -642,7 +732,7 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
-        availability: this.user.availability == 1
+        availability: this.user.application?.inmediate_availability ?? false
       });
 
 
@@ -744,7 +834,7 @@ export class AppAccountSettingComponent implements OnInit {
     if (this.role === '3') {
       return this.profileForm.valid;
     } else {
-      if (this.isOrphan) {
+      if (this.isCandidate) {
         return this.personalForm.valid && this.applicationForm.valid;
       }
       return this.personalForm.valid && this.formChanged;
@@ -787,6 +877,7 @@ export class AppAccountSettingComponent implements OnInit {
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
+                  this.permissionService.notifyPermissionsUpdated();
                   this.openSnackBar('Profile updated successfully', 'Close');
                   this.isSubmitting = false;
                   this.getUser();
@@ -857,11 +948,18 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            
-            if (this.isOrphan && this.applicationId) {
+            if (this.applicationId) {
+              this.usersService.submitApplicationDetails(
+                {
+                  name: `${userData.name} ${userData.last_name}`
+                },
+                this.applicationId
+              ).subscribe();
+            }
+            if (this.isCandidate && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
-            if (this.selectedVideoFile) {
+            else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
               this.openSnackBar('User data updated successfully!', 'Close');
@@ -921,9 +1019,9 @@ export class AppAccountSettingComponent implements OnInit {
   private submitApplicationDetailsInternal(): void {
     const formValues = this.applicationForm.value;
     
-    const formData: any = {
+    const payload: any = {
       location_id: formValues.location,
-      position_id: formValues.role?.position_id,
+      position_id: null,
       current_position: formValues.role?.title,
       applied_where: formValues.appliedWhere,
       referred: formValues.referred,
@@ -931,9 +1029,8 @@ export class AppAccountSettingComponent implements OnInit {
       age: formValues.age,
       phone: formValues.contactPhone,
       additional_phone: formValues.additionalPhone,
-      current_residence: `${this.locations[formValues.location - 1].city}, ${this.locations[formValues.location - 1].country}`,
       address: formValues.address,
-      children: formValues.children,
+      children: formValues.children != null ? formValues.children : 0,
       english_level: formValues.englishLevel,
       competencies: formValues.competencies,
       skills: formValues.technicalSkills,
@@ -942,22 +1039,40 @@ export class AppAccountSettingComponent implements OnInit {
       work_experience: formValues.workExperience,
       work_references: formValues.workReferences,
       hobbies: formValues.hobbies,
+      schedule_availability: formValues.scheduleAvailability,
       salary_range: formValues.salaryRange,
-      availability: formValues.availability,
       programming_languages: formValues.programmingLanguages,
     };
-
-    if (this.resumeFile) {
-      formData.resume = this.resumeFile;
+    if (this.resumeFile) payload.resume = this.resumeFile;
+    if (this.portfolioFile) payload.portfolio = this.portfolioFile;
+    const diff: any = {};
+    const orig = this.originalApplicationValues || {};
+    const keys = Object.keys(payload);
+    const isDifferent = (a: any, b: any) => {
+      if (a === b) return false;
+      if (a == null && b == null) return false;
+      try {
+        return JSON.stringify(a) !== JSON.stringify(b);
+      } catch {
+        return String(a) !== String(b);
+      }
+    };
+    for (const k of keys) {
+      const val = payload[k];
+      if (val instanceof File) {
+        diff[k] = val;
+        continue;
+      }
+      if (isDifferent(val, orig[k])) {
+        diff[k] = val;
+      }
     }
-
-    if (this.portfolioFile) {
-      formData.portfolio = this.portfolioFile;
+    if (Object.keys(diff).length === 0) {
+      this.openSnackBar('No changes detected', 'Close');
+      this.isSubmitting = false;
+      return;
     }
-
-    // TODO: We could send picture and introduction_video here too instead
-    
-    this.usersService.submitApplicationDetails(formData, this.applicationId!).subscribe({
+    this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
       next: (res: any) => {
         if (this.selectedVideoFile) {
           this.uploadVideo();
@@ -965,7 +1080,6 @@ export class AppAccountSettingComponent implements OnInit {
           this.openSnackBar('Profile and application details updated successfully', 'Close');
           this.isSubmitting = false;
           this.loadApplicationDetails(this.user.id);
-          this.getUser();
         }
       },
       error: (err: any) => {
@@ -975,8 +1089,6 @@ export class AppAccountSettingComponent implements OnInit {
       }
     });
   }
-
-
 
   onResumeSelected(event: any) {
     const file = event.target.files[0];
@@ -1222,7 +1334,7 @@ export class AppAccountSettingComponent implements OnInit {
         const createObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.create(data);
               })
             )
@@ -1244,7 +1356,7 @@ export class AppAccountSettingComponent implements OnInit {
         const updateObs = file
           ? this.certificationsService.uploadAttachment(file).pipe(
               switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.url;
+                  data.attachment_url = uploadRes.key.split('/').pop();
                   return this.certificationsService.update(data.id, data);
               })
             )

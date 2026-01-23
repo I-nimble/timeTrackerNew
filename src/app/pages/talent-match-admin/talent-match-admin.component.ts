@@ -21,8 +21,8 @@ import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.com
 import { Router } from '@angular/router';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { DepartmentsService } from 'src/app/services/departments.service';
-import { EmployeesService } from 'src/app/services/employees.service';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 
 export interface PeriodicElement {
   id: number;
@@ -50,6 +50,7 @@ export interface PeriodicElement {
     AppCodeViewComponent,
     MaterialModule,
     TablerIconsModule,
+    FormatNamePipe
   ],
   templateUrl: './talent-match-admin.component.html',
 })
@@ -57,9 +58,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
   displayedColumns: string[] = [
     // 'select',
     'name',
+    'personality profile',
     'position',
-    'alignment',
-    'experience',
+    'trainings',
     'rate',
     'status',
     'interviewing on',
@@ -74,7 +75,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
   positions: any[] = [];
-  departments: any[] = [];
   userRole = localStorage.getItem('role');
   canManage: boolean = false;
   canEdit: boolean = false;
@@ -90,15 +90,13 @@ export class AppTalentMatchAdminComponent implements OnInit {
     private snackBar: MatSnackBar,
     private permissionService: PermissionService,
     private router: Router,
-    private departmentsService: DepartmentsService,
-    private employeesService: EmployeesService,
+    private discProfilesService: DiscProfilesService
   ) { }
   
   
   ngOnInit(): void {
     this.getPositions();
     this.getInterviews();
-    this.getDepartments();
 
     const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
@@ -128,111 +126,23 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
-  getDepartments() {
-    this.departmentsService.get().subscribe({
-      next: (departments: any) => {
-        this.departments = departments;
-      },
-      error: (err: any) => {
-        console.error('Error fetching departments:', err);
-      },
-    });
-  }
-
   getApplications() {
-    this.companiesService.getCompanies().subscribe({
-      next: (companies) => {
-        this.companiesData = companies;
-      },
-      error: (err) => {
-        console.error('Error fetching companies:', err);
-      },
+    this.applicationService.get(true).subscribe((applications) => {
+      this.applicationsData = applications;
+      this.dataSource.data = applications;
     });
-
-    this.applicationService.get(true).subscribe({
-      next: (applications: any[]) => {
-        if (this.canManage) {
-          this.applicationsData = applications;
-          this.dataSource.data = applications;
-          return;
-        }
-        const userId = Number(localStorage.getItem('id'));
-        const proceedWithFiltering = () => {
-          const lsKeys = ['position_id', 'positionId', 'position'];
-          let userPositionId: any = null;
-          for (const k of lsKeys) {
-            const v = localStorage.getItem(k);
-            if (v) {
-              const n = Number(v);
-              userPositionId = isNaN(n) ? v : n;
-              break;
-            }
-          }
-          const handlePositionId = (posId: any) => {
-            const userPosition = this.positions.find((p: any) => p.id == posId);
-            const userDepartmentId = userPosition?.department_id ?? userPosition?.department?.id ?? null;
-            if (!userDepartmentId) {
-              this.applicationsData = [];
-              this.dataSource.data = [];
-              return;
-            }
-            const allowedPositionIds = this.positions
-              .filter((p: any) => (p.department_id ?? p.department?.id) == userDepartmentId)
-              .map((p: any) => p.id);
-            const filtered = applications.filter((a: any) => allowedPositionIds.includes(a.position ?? a.position_id));
-            this.applicationsData = filtered;
-            this.dataSource.data = filtered;
-          };
-          if (userPositionId) {
-            handlePositionId(userPositionId);
-            return;
-          }
-          this.employeesService.getById(userId).subscribe({
-            next: (employeeRaw: any) => {
-              const employee = Array.isArray(employeeRaw) ? employeeRaw[0] : employeeRaw;
-              const posId = employee?.position?.id ?? employee?.position ?? employee?.position_id ?? employee?.positionId ?? null;
-              if (posId) {
-                handlePositionId(posId);
-                return;
-              }
-              const nested = employee?.user ?? {};
-              const nestedPos = nested?.position?.id ?? nested?.position ?? nested?.position_id ?? nested?.positionId ?? null;
-              if (nestedPos) {
-                handlePositionId(nestedPos);
-                return;
-              }
-              this.applicationsData = [];
-              this.dataSource.data = [];
-            },
-            error: (err: any) => {
-              console.error('Error fetching employee:', err);
-              this.applicationsData = [];
-              this.dataSource.data = [];
-            },
-          });
-        };
-        if (this.positions && this.positions.length > 0) {
-          proceedWithFiltering();
-        } else {
-          this.positionsService.get().subscribe({
-            next: (positions: any[]) => {
-              this.positions = positions;
-              proceedWithFiltering();
-            },
-            error: (err: any) => {
-              console.error('Error fetching positions:', err);
-              this.applicationsData = [];
-              this.dataSource.data = [];
-            },
-          });
-        }
-      },
-      error: (err: any) => {
-        console.error('Error fetching applications:', err);
+    this.companiesService.getCompanies().subscribe({
+      next: companies => {
+        this.companiesData = companies;
       },
     });
   }
   
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   getInterviews() {
     this.interviewsService.get().subscribe({
       next: interviews => {
@@ -260,6 +170,14 @@ export class AppTalentMatchAdminComponent implements OnInit {
     imgElement.src = this.assetsPath;
 
     imgElement.onerror = null;
+  }
+
+  getPositionById(positionId: any): any {
+    return this.positions.find((p: any) => p.id == positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
   openAddCandidateDialog(): void {

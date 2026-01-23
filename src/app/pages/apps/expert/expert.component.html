@@ -1,20 +1,41 @@
-<ng-container *ngIf="!selectedClient">
-  <mat-card class="cardWithShadow">
-    <mat-card-content>
-      <div class="d-flex justify-content-center aling-items-center">
+<mat-card class="cardWithShadow maintenance">
+  <mat-card-content>
+    <div class="d-flex justify-content-center align-items-center">
         <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="60"/>
       </div>
-      <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
-        <app-match
-          appearance="outline"
-          class="flex-grow-1 hide-hint m-b-0 m-r-20"
-          [loading]="aiLoading"
-          [aiEnabled]="!useManualSearch"
-          [showCustomSearch]="false"
-          placeholder="Search for an Expert..."
-          (askAI)="askGemini($event)"
-          (searchChange)="useManualSearch ? onManualSearch($event) : null">
-        </app-match>          
+      <h2>Coming soon!</h2>
+  </mat-card-content>
+</mat-card>
+
+<!-- Change later *ngIf="!selectedClient" -->
+<ng-container *ngIf="false">
+  <mat-card class="cardWithShadow">
+    <mat-card-content>
+      <div class="d-flex justify-content-center align-items-center">
+        <img src="assets/images/expert-match.png" alt="Expert Match Logo" height="0"/>
+      </div>
+      <div class="d-flex justify-content-center m-t-16">
+        <div style="max-width: 600px; width: 100%;">
+          <mat-form-field appearance="outline" class="w-100 m-0">
+            <mat-label>Area</mat-label>
+            <mat-select [(ngModel)]="selectedDepartmentId">
+              <mat-option [value]="null">All Areas</mat-option>
+              <mat-option *ngFor="let dept of departments" [value]="dept.id">
+                {{ dept.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <app-match
+            class="w-100 m-0"
+            [loading]="aiLoading"
+            [aiEnabled]="!useManualSearch"
+            [canSearch]="canSearch"
+            [showCustomSearch]="false"
+            placeholder="Search for an Expert..."
+            (askAI)="askGemini($event)"
+            (searchChange)="onSearchTextChange($event)">
+          </app-match>
+        </div>
       </div>
       <div *ngIf="aiLoading || aiAnswer" class="mt-16">
         <mat-card color="accent" class="p-16">
@@ -47,7 +68,8 @@
   </mat-card>
 </ng-container>
 
-<ng-container *ngIf="selectedClient">
+<!-- Change later *ngIf="selectedClient" -->
+<ng-container *ngIf="false">
   <app-client-details
     [client]="selectedClient"
     (back)="onBackFromDetails()">

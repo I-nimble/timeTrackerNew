@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -8,9 +8,14 @@ import { environment } from 'src/environments/environment';
 })
 export class PermissionService {
   private apiUrl = `${environment.apiUrl}/permissions`;
-
+  private permissionsUpdatedSource = new Subject<void>();
+  permissionsUpdated$ = this.permissionsUpdatedSource.asObservable();
   constructor(private http: HttpClient) {}
 
+  notifyPermissionsUpdated() {
+    this.permissionsUpdatedSource.next();
+  }
+    
   getAllPermissions(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}`);
   }

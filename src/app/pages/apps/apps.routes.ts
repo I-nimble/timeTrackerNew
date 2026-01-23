@@ -210,6 +210,19 @@ export const AppsRoutes: Routes = [
               ],
             },
           },
+          {
+            path: 'new',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'New Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates', url: '/candidates' },
+                { title: 'Details' },
+              ],
+            },
+          },
         ],
       },
       {
@@ -527,41 +540,41 @@ export const AppsRoutes: Routes = [
         }
       },
       {
-        path: 'r3/vision',
+        path: 'r3/compass',
         component: R3VisionComponent,
         data: {
-          title: 'Vision',
+          title: 'Compass',
           showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'R3', url: '/apps/r3' },
-            { title: 'Vision' }
+            { title: 'Compass' }
           ]
         }
       },
       {
-        path: 'r3/traction',
+        path: 'r3/blueprint',
         component: R3TractionComponent,
         data: {
-          title: 'Traction',
+          title: 'Blueprint',
           showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'R3', url: '/apps/r3' },
-            { title: 'Traction' }
+            { title: 'Blueprint' }
           ]
         }
       },
       {
-        path: 'r3/action',
+        path: 'r3/engine',
         component: R3ActionComponent,
         data: {
-          title: 'Action',
+          title: 'Engine',
           showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
             { title: 'R3', url: '/apps/r3' },
-            { title: 'Action' }
+            { title: 'Engine' }
           ]
         }
       },
