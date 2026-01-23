@@ -352,6 +352,7 @@ export class CandidatesComponent {
 
   uploadCV(candidateId: number): void {
     let file = null;
+    const MAX_FILE_SIZE = 1024 * 1024;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -368,6 +369,11 @@ export class CandidatesComponent {
 
       if (!validTypes.includes(file.type) && !(extension && validExts.includes(extension))) {
         this.showSnackbar('Invalid file format. Please upload a PDF or Word.');
+        return;
+      }
+
+      if(file.size > MAX_FILE_SIZE) {
+        this.showSnackbar('File size must be less than 1MB.');
         return;
       }
 
