@@ -138,7 +138,7 @@ export class ApplicationsService {
     let photoUpload$ = of(null);
 
     if(data.cv instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', data.cv, data.email, id, false).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.cv, undefined, id, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
           const file = data.cv;

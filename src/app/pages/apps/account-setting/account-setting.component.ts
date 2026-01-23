@@ -975,7 +975,7 @@ export class AppAccountSettingComponent implements OnInit {
   uploadVideo(): void {
     if (!this.selectedVideoFile) return;
 
-    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email)
+    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email, this.applicationId || undefined)
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
