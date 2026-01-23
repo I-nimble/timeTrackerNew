@@ -196,11 +196,15 @@ export class UsersService {
     return this.http.post(`${this.API_URI}/users/register/invited`, userData);
   }
 
-  getUploadUrl(type: string, contentType: string, originalFileName: string) {
-    return this.http.post<any>(`${this.API_URI}/generate_upload_url/${type}`,
-      {
-        contentType: contentType,
-        originalFileName: originalFileName
+  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number, isProfilePicture: boolean = false) {
+    return this.http.post<any>(
+      `${this.API_URI}/generate_upload_url/${type}`,
+      { 
+        contentType: file?.type || 'application/octet-stream',
+        originalFileName: file?.name,
+        email: email,
+        applicationId: applicationId,
+        isProfilePicture: isProfilePicture
       }
     );
   }
@@ -239,7 +243,7 @@ export class UsersService {
     });
 
     if (data.resume instanceof File) {
-      resumeUpload$ = this.getUploadUrl('applications', data.resume.type, data.resume.name).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.resume, data.email, applicationId, false).pipe(
         switchMap((res: any) => {
           const file = data.resume;
           const headers = new HttpHeaders({ 'Content-Type': file.type });
@@ -254,7 +258,7 @@ export class UsersService {
     }
 
     if (data.picture instanceof File) {
-      pictureUpload$ = this.getUploadUrl('applications', data.picture.type, data.picture.name).pipe(
+      pictureUpload$ = this.getUploadUrl('photos', data.picture, data.email, applicationId, true).pipe(
         switchMap((res: any) => {
           const imgFile = data.picture;
           const headers = new HttpHeaders({ 'Content-Type': imgFile.type });
@@ -269,7 +273,7 @@ export class UsersService {
     }
 
     if (data.introduction_video instanceof File) {
-      introVideoUpload$ = this.getUploadUrl('applications', data.introduction_video.type, data.introduction_video.name).pipe(
+      introVideoUpload$ = this.getUploadUrl('applications', data.introduction_video, data.email, applicationId, false).pipe(
         switchMap((res: any) => {
           const videoFile = data.introduction_video;
           const headers = new HttpHeaders({ 'Content-Type': videoFile.type });
@@ -284,7 +288,7 @@ export class UsersService {
     }
 
     if (data.portfolio instanceof File) {
-      portfolioUpload$ = this.getUploadUrl('applications', data.portfolio.type, data.portfolio.name).pipe(
+      portfolioUpload$ = this.getUploadUrl('applications', data.portfolio, data.email, applicationId, false).pipe(
         switchMap((res: any) => {
           const portfolioFile = data.portfolio;
           const headers = new HttpHeaders({ 'Content-Type': portfolioFile.type });
