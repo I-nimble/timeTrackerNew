@@ -147,7 +147,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
       this.router.navigate(['/apps/editinvoice', row.id]);
       return;
     }
-    this.router.navigate(['/apps/viewinvoice', row.id]);
+    this.router.navigate(['/apps/viewInvoice', row.id]);
   }
 
   downloadInvoice(id: number, format: string): void {
