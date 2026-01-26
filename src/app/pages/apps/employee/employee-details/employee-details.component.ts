@@ -924,6 +924,8 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
         this.leafletMarker.setLatLng([lat, lng]);
       }
     }
+
+    this.leafletMap.attributionControl.setPrefix(false)
     
     setTimeout(() => {
       this.leafletMap?.invalidateSize();

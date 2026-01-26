@@ -297,11 +297,21 @@
               *ngIf="!isMapLoading && !mapError && employeeLocation"
               class="map-container"
             >
-              <div
-                id="leaflet-map"
-                #leafletMap
-                style="height: 250px; width: 100%; border-radius: 8px"
-              ></div>
+              <div class="map-wrapper">
+                <div
+                  id="leaflet-map"
+                  #leafletMap
+                  style="height: 250px; width: 100%; border-radius: 8px"
+                ></div>
+                <button
+                  mat-icon-button
+                  class="map-info-btn"
+                  matTooltip="© OpenStreetMap contributors"
+                  aria-label="Map attribution info"
+                >
+                  <mat-icon>info</mat-icon>
+                </button>
+              </div>
               <div class="mt-2 text-muted small">
                 <i-tabler name="map-pin" class="icon-14 m-r-5"></i-tabler>
                 Last updated: {{ employeeLocation.timestamp | date : "medium" }}
