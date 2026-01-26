@@ -1,6 +1,7 @@
 import { Component, signal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { environment } from 'src/environments/environment';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -51,6 +52,7 @@ export class CandidateDetailsComponent implements OnInit {
   form!: FormGroup;
   originalData: any;
   selectedProfilePicFile: File | null = null;
+  selectedResumeFile: File | null = null;
   locations: any[] = [];
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   userRole: string | null = null;
@@ -68,6 +70,7 @@ export class CandidateDetailsComponent implements OnInit {
     'Paralegal Personal Injury - Litigation Assistant'
   ];
   descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
+  pendingChanges = signal<any[]>([]);
 
   constructor(
     private route: ActivatedRoute,
@@ -188,6 +191,8 @@ export class CandidateDetailsComponent implements OnInit {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
+          pending_updates: candidate.pending_updates || null,
+          resume_url: candidate.resume_url || candidate.file_name || null
         };
 
         this.candidate.set(normalizedCandidate);
@@ -319,6 +324,7 @@ export class CandidateDetailsComponent implements OnInit {
     }
     
     this.selectedProfilePicFile = null;
+    this.selectedResumeFile = null;
     
     this.editMode = false;
   }
@@ -376,7 +382,9 @@ export class CandidateDetailsComponent implements OnInit {
       skills: formValues.skills,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
-      english_level: formValues.english_level
+      english_level: formValues.english_level,
+      email: this.candidate()?.email,
+      cv: this.selectedResumeFile
     };
 
     if (this.selectedProfilePicFile) {
@@ -389,10 +397,12 @@ export class CandidateDetailsComponent implements OnInit {
       next: (response: any) => {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
+        
         const updatedCandidate = {
           ...this.candidate(),
           ...data,
-          description: descriptionValue
+          description: descriptionValue,
+          resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url
         };
         
         this.candidate.set(updatedCandidate);
@@ -413,6 +423,7 @@ export class CandidateDetailsComponent implements OnInit {
         }
         
         this.selectedProfilePicFile = null;
+        this.selectedResumeFile = null;
       },
       error: (error) => {
         console.error('Error updating candidate:', error);
@@ -437,81 +448,18 @@ export class CandidateDetailsComponent implements OnInit {
     if (this.isCreateMode) {
       this.createCandidate();
     } else {
-      if (this.selectedProfilePicFile) {
-        this.saveWithProfilePicture();
-      } else {
-        this.updateCandidate();
-      }
+      this.updateCandidate();
     }
-}
-
-    private uploadProfilePicture(file: File): Observable<string> {
-    const candidate = this.candidate();
-    const email = candidate?.email || '';
-    const candidateId = candidate?.id || this.route.snapshot.paramMap.get('id');
-    
-    return this.applicationService.getUploadUrl('photos', file, email, candidateId, true).pipe(
-      switchMap((photoUrl: any) => {
-        const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
-        const headers = new HttpHeaders({
-          'Content-Type': file.type,
-          'X-Filename': fileName
-        });
-        
-        return this.http.put(photoUrl.url, file, { headers }).pipe(
-          map(() => fileName)
-        );
-      })
-    );
   }
 
-  private saveWithProfilePicture(): void {
-    if (!this.selectedProfilePicFile || this.form.invalid) return;
 
-    this.uploadProfilePicture(this.selectedProfilePicFile).pipe(
-      switchMap((fileName: string) => {
-        const formValues = this.form.value;
-        const candidate = this.candidate();
-        
-        const data: any = {
-          name: formValues.name,
-          description: formValues.description,
-          talent_match_profile_summary: formValues.talent_match_profile_summary,
-          profile_observation: formValues.profile_observation,
-          ranking_id: formValues.ranking_id,
-          position_id: formValues.position_id,
-          interview_link: formValues.interview_link,
-          hobbies: formValues.hobbies,
-          work_experience: formValues.work_experience,
-          skills: formValues.skills,
-          education_history: formValues.education_history,
-          inimble_academy: formValues.inimble_academy,
-          english_level: formValues.english_level,
-          profile_pic: fileName
-        };
 
-        return this.applicationService.submit(data, candidate?.id);
-      })
-    ).subscribe({
-      next: (response: any) => {
-        this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
-        this.editMode = false;
-        
-        if (response?.profile_pic_url) {
-          const updatedCandidate = {
-            ...this.candidate(),
-            picture: response.profile_pic_url,
-            profile_pic_url: response.profile_pic_url
-          };
-          this.candidate.set(updatedCandidate);
-        }
-        
-        this.selectedProfilePicFile = null;
+  getLocations() {
+    this.applicationService.getLocations().subscribe({
+      next: (locs) => {
+        this.locations = locs;
       },
-      error: (error:any) => {
-        console.error('Error updating candidate:', error);
-        this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
-      }
+      error: (err) => console.error('Error loading locations', err)
     });
   }
 
@@ -579,7 +527,7 @@ export class CandidateDetailsComponent implements OnInit {
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
-  
+
   openMatchPercentagesModal(): void {
     const candidate = this.candidate();
     if (!candidate) return;
@@ -646,10 +594,43 @@ export class CandidateDetailsComponent implements OnInit {
       }
       
       this.selectedProfilePicFile = file;
-      this.form.patchValue({
-        profile_pic: file 
-      });
     }
   }
 
+  onResumeSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.size > 1000000) {
+        this.snackBar.open(
+          'Resume size should be 1 MB or less',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      
+      const allowedTypes = [
+          'application/pdf', 
+          'application/msword', 
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const allowedExtensions = ['pdf', 'doc', 'docx'];
+      
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension || '')) {
+         this.snackBar.open(
+          'Should be a .doc, .docx or .pdf file',
+          'Close',
+          { duration: 3000 }
+        );
+        return;
+      }
+      
+      this.selectedResumeFile = file;
+    }
+  }
+
+  getResumeUrl(filename: string | null | undefined): string {
+    return this.applicationService.getResumeUrl(filename);
+  }
 }

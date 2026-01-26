@@ -104,17 +104,16 @@ export class ApplicationsService {
   uploadCV(file: File, candidateId: number): Observable<any> {
     let resumeUpload$ = of(null);
     if(file instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', file).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', file, undefined, candidateId, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -139,18 +138,17 @@ export class ApplicationsService {
     let photoUpload$ = of(null);
 
     if(data.cv instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', data.cv).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.cv, undefined, id, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
-          const file = data.cv
+          const file = data.cv;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -167,12 +165,10 @@ export class ApplicationsService {
               const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
               const headers = new HttpHeaders({
                 'Content-Type': imgFile.type,
+                'X-Filename': fileName
               });
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
-                map(() => {
-                  const urlParts = this.photoUrl.split('?')[0].split('/');
-                  return urlParts[urlParts.length - 1];
-                })
+                map(() => fileName)
               );
             })
           )
@@ -256,5 +252,16 @@ export class ApplicationsService {
       return event;
     }
     return event;
+  }
+
+  getResumeUrl(filename: string | null | undefined): string {
+    if (!filename) return '';
+    if (filename.startsWith('http')) return filename;
+    
+    if (environment.apiUrl.includes('localhost') || !environment.production) {
+       return `${environment.socket}/uploads/resumes/${filename}`;
+    }
+    
+    return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
   }
 }
