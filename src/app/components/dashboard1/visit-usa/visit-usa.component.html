@@ -18,5 +18,25 @@
         </span>
       </p>
     </div>
+    <div class="client-location-section m-b-20">
+      <h4 class="f-w-600 f-s-16 m-b-10">Your Location</h4>
+      <div *ngIf="clientLocation" class="d-flex align-items-center justify-content-between gap-16">
+        <span class="f-w-600 f-s-14">
+          {{ clientLocation.city }}, {{ clientLocation.country }}
+        </span>
+        <p class="f-w-600 f-s-14">
+          <strong>{{ clientLocation.time }}</strong>
+          <span>
+            ({{ clientLocation.timezone?.abbreviation || 'Local' }})
+          </span>
+        </p>
+      </div>
+      <div *ngIf="!clientLocation && locationError" class="text-error f-s-12">
+        {{ locationError }}
+      </div>
+      <div *ngIf="!clientLocation && !locationError" class="text-muted f-s-12">
+        Loading your location...
+      </div>
+    </div>
   </mat-card-content>
 </mat-card>
