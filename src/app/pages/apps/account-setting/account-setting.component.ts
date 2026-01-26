@@ -284,7 +284,6 @@ export class AppAccountSettingComponent implements OnInit {
     this.getUser();
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.checkOlympiaStatus();
-    this.loadExistingVideo(); 
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
       if (tab !== undefined && !isNaN(tab)) {
@@ -391,7 +390,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.usersService.getIntroductionVideo(this.user.email).subscribe({
       next: (res: any) => {
         if (res.videoURL) {
-          this.videoPreview = res.videoURL;
+          this.videoPreview = this.addCacheBust(res.videoURL);
           this.cdr.detectChanges();
         }
       },
@@ -895,7 +894,7 @@ export class AppAccountSettingComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           this.openSnackBar('Video uploaded successfully!', 'Close');
-          this.videoPreview = res.videoURL;
+          this.videoPreview = this.addCacheBust(res.videoURL);
         },
         error: (error) => {
           this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
@@ -1053,6 +1052,17 @@ export class AppAccountSettingComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  private addCacheBust(url: string): string {
+    if (!url) return url;
+    const lower = url.toLowerCase();
+    // Do not touch signed URLs (adding params breaks signature)
+    if (lower.includes('x-amz-signature') || lower.includes('amazonaws.com')) {
+      return url;
+    }
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
   }
 
   restrictPhoneInput(event: KeyboardEvent) {
