@@ -489,7 +489,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
         this.allCandidates = sortedApplications;
         this.dataSource = new MatTableDataSource(this.allCandidates);
-        this.getAllMatchScores();
+        // this.getAllMatchScores(); TODO: UNCOMMENT THIS LATER
 
         const stored = this.loadAISearchState();
 
