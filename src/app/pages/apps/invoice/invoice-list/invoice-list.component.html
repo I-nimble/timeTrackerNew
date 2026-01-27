@@ -170,8 +170,9 @@
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
               </button>
-              <button mat-menu-item (click)="sendToClient(element.id)"
-                class="d-flex align-items-center justify-content-center" *ngIf="allowedPaymentsManage">
+              <button mat-menu-item (click)="sendToClient(element)"
+                class="d-flex align-items-center justify-content-center" 
+                *ngIf="allowedPaymentsManage && element.status.name != 'Pending'">
                 <mat-icon>send</mat-icon>
                 <span>Send to client</span>
               </button>
