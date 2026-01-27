@@ -49,6 +49,7 @@ import 'highlight.js/styles/atom-one-dark.min.css';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { environment } from '../environments/environment';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 export function HttpLoaderFactory(http: HttpClient): any {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -101,6 +102,7 @@ export const appConfig: ApplicationConfig = {
       ToastrModule.forRoot(),
       ReactiveFormsModule,
       MaterialModule,
+      TourMatMenuModule,
       NgxPermissionsModule.forRoot(),
       TablerIconsModule.pick(TablerIcons),
       FeatherModule.pick(allIcons),
@@ -109,6 +111,7 @@ export const appConfig: ApplicationConfig = {
         provide: DateAdapter,
         useFactory: adapterFactory,
       }),
+      
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,

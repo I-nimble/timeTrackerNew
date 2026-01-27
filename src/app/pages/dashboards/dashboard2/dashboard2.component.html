@@ -1,19 +1,19 @@
 <div class="row">
   <div class="col-lg-6 m-b-30">
-    <app-welcome-card></app-welcome-card>
+    <app-welcome-card tourAnchor="dash-welcome"></app-welcome-card>
   </div>
   <div class="col-lg-6 m-b-30">
-    <app-top-cards class="h-100"></app-top-cards>
+    <app-top-cards class="h-100" tourAnchor="dash-kpis"></app-top-cards>
   </div>
     <div class="col-lg-4 d-flex m-b-30" style="flex-grow: 1;">
-      <app-activity-reports [dataSource]="activityDataSource" class="h-100 w-100 d-inline-block"></app-activity-reports>
+      <app-activity-reports [dataSource]="activityDataSource" class="h-100 w-100 d-inline-block" tourAnchor="dash-activity"></app-activity-reports>
     </div>
     <div class="col-lg-8 m-b-30">
-      <app-top-employees (dataSourceChange)="onEmployeesDataSourceChange($event)"></app-top-employees>
+      <app-top-employees (dataSourceChange)="onEmployeesDataSourceChange($event)" tourAnchor="dash-team"></app-top-employees>
     </div>
   <div class="col-lg-8">
-    <app-profile-expance></app-profile-expance>
-    <app-weekly-hours></app-weekly-hours>
+    <app-profile-expance tourAnchor="dash-productivity"></app-profile-expance>
+    <app-weekly-hours tourAnchor="dash-schedule"></app-weekly-hours>
   </div>
   <div class="col-lg-4 d-flex m-b-30" style="flex-direction: column;">
     <app-visit-usa style="flex-grow: 1;"></app-visit-usa>
