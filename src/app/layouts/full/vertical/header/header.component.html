@@ -205,6 +205,25 @@
   }
   <button
     mat-icon-button
+    aria-label="Start guided tour"
+    class="d-flex justify-content-center"
+    *ngIf="role === '3'"
+    (click)="startTour()"
+  >
+    <mat-icon>help</mat-icon>
+  </button>
+  <button
+    mat-icon-button
+    aria-label="Skip guided tour"
+    class="d-flex justify-content-center"
+    color="warn"
+    *ngIf="role === '3' && (isTourActive$ | async)"
+    (click)="skipTour()"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+  <button
+    mat-icon-button
     [matMenuTriggerFor]="msgMenu"
     aria-label="Messages"
     class="d-flex justify-content-center"

@@ -27,6 +27,7 @@ import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { PermissionService } from 'src/app/services/permission.service';
 import { Router } from '@angular/router';
+import { RoleTourService } from 'src/app/services/role-tour.service';
 
 interface notifications {
   id: number;
@@ -154,6 +155,7 @@ export class HeaderComponent implements OnInit {
     private router: Router,
     private usersService: UsersService,
     private permissionService: PermissionService,
+    private roleTourService: RoleTourService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -369,6 +371,14 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  startTour() {
+    this.roleTourService.restartFromStart();
+  }
+
+  skipTour() {
+    this.roleTourService.skipActiveTour();
   }
 
   notificationIcons = [

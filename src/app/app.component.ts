@@ -8,11 +8,13 @@ import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { WebSocketService } from './services/socket/web-socket.service';
 import { GeolocationRequest } from './models/geolocation.model';
 import { LocationService } from './services/location.service';
+import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
+import { RoleTourService, RoleTourStep } from './services/role-tour.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule],
+  imports: [RouterOutlet, CommonModule, TourMatMenuModule],
   templateUrl: './app.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.Default
@@ -34,13 +36,19 @@ export class AppComponent implements OnInit, OnDestroy {
   private jitsiCompRef: ComponentRef<any> | null = null;
   private geolocationRequestSub: Subscription | null = null;
   private geolocationPermissionDenied = false;
+  private tourStartSub: Subscription | null = null;
+  private tourStepSub: Subscription | null = null;
+  private tourEndSub: Subscription | null = null;
+  private anchorLogSub: Subscription | null = null;
 
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
 
   constructor(
     private rocketChatService: RocketChatService,
     private webSocketService: WebSocketService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private roleTourService: RoleTourService,
+    private tourService: TourService<RoleTourStep>
   ) { }
 
   async ngOnInit() {
@@ -68,6 +76,12 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     } catch (e) {}
 
+
+      this.setupTourBridge();
+
+      setTimeout(() => {
+        void this.roleTourService.maybeStartForCurrentUser();
+      }, 0);
     this.setupGeolocationListener();
 
     const role = localStorage.getItem('role');
@@ -83,6 +97,10 @@ export class AppComponent implements OnInit, OnDestroy {
     try { this.jitsiSub?.unsubscribe(); } catch (e) {}
     try { this.jitsiCompRef?.destroy(); } catch (e) {}
     try { this.geolocationRequestSub?.unsubscribe(); } catch (e) {}
+    try { this.tourStartSub?.unsubscribe(); } catch (e) {}
+    try { this.tourStepSub?.unsubscribe(); } catch (e) {}
+    try { this.tourEndSub?.unsubscribe(); } catch (e) {}
+    try { this.anchorLogSub?.unsubscribe(); } catch (e) {}
   }
 
   onJitsiClosed() {
@@ -98,5 +116,32 @@ export class AppComponent implements OnInit, OnDestroy {
         console.error('Error in geolocation request stream', err);
       }
     });
+  }
+
+  private setupTourBridge(): void {
+    const svc: any = this.tourService as any;
+    this.anchorLogSub = svc.anchorRegister$?.subscribe((id: string) => console.log('anchor registered (root)', id)) ?? null;
+
+    this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
+      console.log('tour start request', { startIndex, steps });
+      this.tourService.initialize(steps);
+      const svc: any = this.tourService as any;
+      if (startIndex > 0 && steps[startIndex] && svc.startAt) {
+        svc.startAt(steps[startIndex].anchorId);
+      } else {
+        this.tourService.start();
+      }
+    });
+
+    this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
+      console.log('tour step show', payload);
+      const step = payload?.step ?? payload;
+      void this.roleTourService.notifyStepShown(step);
+    }) ?? null;
+
+    this.tourEndSub = svc.end$?.subscribe(() => {
+      console.log('tour ended');
+      void this.roleTourService.notifyEnded();
+    }) ?? null;
   }
 }
