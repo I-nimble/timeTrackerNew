@@ -25,6 +25,8 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   clientLocation: any = null;
   locationError: string = '';
   private clientPointAdded: boolean = false;
+  private readonly EMPLOYEE_POINT_COLOR = 0x1b84ff;
+  private readonly CLIENT_POINT_COLOR = 0xff6b6b;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -86,26 +88,42 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
           coordinates: [parseFloat(this.clientLocation.longitude), parseFloat(this.clientLocation.latitude)] 
         },
         title: `You: ${this.clientLocation.city}`,
+        isClient: true
       });
 
-      pointSeries.bullets.push(() => {
-        const circle = am5.Circle.new(this.root!, {
-          radius: 8,
-          tooltipY: 0,
-          fill: am5.color(0xff6b6b),
-          strokeWidth: 2,
-          stroke: am5.color(0xffffff),
-          tooltipText: "{title}",
-        });
-
-        return am5.Bullet.new(this.root!, {
-          sprite: circle,
-        });
-      });
+      this.createClientBullet();
 
       this.clientPointAdded = true;
       
       chart.goHome();
+    });
+  }
+
+  createClientBullet() {
+    this.browserOnly(() => {
+      const chart = this.root!.container.children.getIndex(0) as am5map.MapChart;
+      const pointSeries = chart.series.getIndex(1) as am5map.MapPointSeries;
+
+      pointSeries.bullets.push((root, _, dataItem) => {
+        const dataContext = dataItem.dataContext as any;
+        
+        if (dataContext.isClient) {
+          const circle = am5.Circle.new(root, {
+            radius: 8,
+            tooltipY: 0,
+            fill: am5.color(this.CLIENT_POINT_COLOR),
+            strokeWidth: 2,
+            stroke: am5.color(0xffffff),
+            tooltipText: "{title}",
+          });
+
+          return am5.Bullet.new(root, {
+            sprite: circle,
+          });
+        }
+        
+        return undefined;
+      });
     });
   }
 
@@ -189,25 +207,32 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const pointSeries = chart.series.push(am5map.MapPointSeries.new(root, {}));
 
-      pointSeries.bullets.push(() => {
-        const circle = am5.Circle.new(root, {
-          radius: 8,
-          tooltipY: 0,
-          fill: am5.color(0x1b84ff),
-          strokeWidth: 2,
-          stroke: am5.color(0xffffff),
-          tooltipText: "{title}",
-        });
+      pointSeries.bullets.push((root, _, dataItem) => {
+        const dataContext = dataItem.dataContext as any;
+        
+        if (!dataContext || !dataContext.isClient) {
+          const circle = am5.Circle.new(root, {
+            radius: 8,
+            tooltipY: 0,
+            fill: am5.color(this.EMPLOYEE_POINT_COLOR),
+            strokeWidth: 2,
+            stroke: am5.color(0xffffff),
+            tooltipText: "{title}",
+          });
 
-        return am5.Bullet.new(root, {
-          sprite: circle,
-        });
+          return am5.Bullet.new(root, {
+            sprite: circle,
+          });
+        }
+        
+        return undefined;
       });
 
       this.locations.forEach((loc) => {
         pointSeries.data.push({
           geometry: { type: "Point", coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)] },
           title: loc.city,
+          isClient: false
         });
       });
 
