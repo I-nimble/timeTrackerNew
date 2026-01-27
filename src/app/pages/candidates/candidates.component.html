@@ -318,6 +318,15 @@
                 <mat-icon>send</mat-icon>
                 <span>Send to Talent Match</span>
               </button>
+              <button
+                mat-menu-item
+                (click)="openRejectDialog(element)"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canManage && element.status !== 'hired'"
+              >
+                <mat-icon color="warn">block</mat-icon>
+                <span>Reject</span>
+              </button>
             </mat-menu>
           </td>
         </ng-container>
