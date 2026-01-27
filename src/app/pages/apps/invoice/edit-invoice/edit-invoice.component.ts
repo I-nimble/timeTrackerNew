@@ -212,23 +212,34 @@ export class AppEditInvoiceComponent {
   }
 
   onBillingPeriodChange(): void {
-    const start = new Date(this.editModel().billing_period_start);
-    const end = new Date(this.editModel().billing_period_end);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
-    this.editModel().invoiceItems.forEach((item: any, index: number) => {
-      const originalItem = this.originalData.invoiceItems[index];
-      if (!originalItem?.entries) return;
-      item.entries = originalItem.entries.filter((entry: any) => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= start && entryDate <= end;
+    const start = this.editModel().billing_period_start;
+    const end = this.editModel().billing_period_end;
+    if (!start || !end) return;
+    this.loader.started = true;
+    this.invoiceService
+      .getInvoiceDetail(this.id(), start, end)
+      .subscribe({
+        next: (data) => {
+          this.originalData = data;
+          this.editModel.set(data);
+          this.changedEntries.clear();
+          this.changedFlatFees.clear();
+          this.changedHourlyRates.clear();
+          this.deletedEntries.clear();
+          this.updateFormArrayWithChanges();
+          this.recalculateCosts();
+          this.loader.complete = true;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loader.complete = true;
+          this.snackBar.open(
+            'Error recalculating invoice',
+            'Close',
+            { duration: 3000 }
+          );
+        }
       });
-      item.entries.forEach((entry: any) => {
-        entry.entry_hours = this.getTotalEntryHours(entry);
-      });
-    });
-    this.recalculateCosts();
-    this.updateFormArrayWithChanges();
-    this.cdr.detectChanges();
   }
 
   private markEntryAsChanged(entry: any): void {
