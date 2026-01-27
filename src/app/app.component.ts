@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RocketChatService } from './services/rocket-chat.service';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { WebSocketService } from './services/socket/web-socket.service';
@@ -48,7 +49,9 @@ export class AppComponent implements OnInit, OnDestroy {
     private webSocketService: WebSocketService,
     private locationService: LocationService,
     private roleTourService: RoleTourService,
-    private tourService: TourService<RoleTourStep>
+    private tourService: TourService<RoleTourStep>,
+    private router: Router,
+    private ngZone: NgZone
   ) { }
 
   async ngOnInit() {
@@ -120,17 +123,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private setupTourBridge(): void {
     const svc: any = this.tourService as any;
+    this.tourService.setDefaults({ allowUserInitiatedNavigation: true } as RoleTourStep);
     this.anchorLogSub = svc.anchorRegister$?.subscribe((id: string) => console.log('anchor registered (root)', id)) ?? null;
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
       console.log('tour start request', { startIndex, steps });
-      this.tourService.initialize(steps);
-      const svc: any = this.tourService as any;
-      if (startIndex > 0 && steps[startIndex] && svc.startAt) {
-        svc.startAt(steps[startIndex].anchorId);
-      } else {
-        this.tourService.start();
-      }
+      void this.startTourWhenReady(steps, startIndex);
     });
 
     this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
@@ -143,5 +141,47 @@ export class AppComponent implements OnInit, OnDestroy {
       console.log('tour ended');
       void this.roleTourService.notifyEnded();
     }) ?? null;
+  }
+
+  private async startTourWhenReady(steps: RoleTourStep[], startIndex: number) {
+    this.tourService.initialize(steps);
+    const svc: any = this.tourService as any;
+    const targetAnchor = steps[startIndex]?.anchorId;
+    const targetRoute = steps[startIndex]?.route;
+
+    if (targetRoute) {
+      const currentPath = this.router.url.split('?')[0];
+      if (currentPath !== targetRoute) {
+        await firstValueFrom(
+          this.router.events.pipe(
+            filter((e) => e instanceof NavigationEnd),
+            filter((e) => (e as NavigationEnd).urlAfterRedirects.split('?')[0] === targetRoute),
+            take(1)
+          )
+        ).catch(() => undefined);
+      }
+    }
+
+    await firstValueFrom(this.ngZone.onStable.pipe(take(1))).catch(() => undefined);
+
+    const anchors = svc.anchors ?? {};
+    if (targetAnchor && !anchors[targetAnchor]) {
+      await firstValueFrom(
+        svc.anchorRegister$?.pipe(
+          filter((id: string) => id === targetAnchor),
+          take(1)
+        ) ?? new Promise(() => undefined)
+      ).catch(() => undefined);
+    }
+
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        if (startIndex > 0 && steps[startIndex] && svc.startAt) {
+          svc.startAt(steps[startIndex].anchorId);
+        } else {
+          this.tourService.start();
+        }
+      });
+    }, 0);
   }
 }

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { TourService, IStepOption } from 'ngx-ui-tour-md-menu';
-import { BehaviorSubject, Subject, firstValueFrom, of } from 'rxjs';
-import { catchError, filter, take } from 'rxjs/operators';
+import { BehaviorSubject, ReplaySubject, firstValueFrom, of } from 'rxjs';
+import { catchError, filter, take, timeout } from 'rxjs/operators';
 import { TourApiService, TourProgress } from './tour-api.service';
 
 export type RoleTourStep = IStepOption & { anchorId: string; route?: string };
@@ -21,17 +21,14 @@ export class RoleTourService {
   private isActiveSubject = new BehaviorSubject<boolean>(false);
   isActive$ = this.isActiveSubject.asObservable();
 
-  private startRequests = new Subject<{ steps: RoleTourStep[]; startIndex: number }>();
+  private startRequests = new ReplaySubject<{ steps: RoleTourStep[]; startIndex: number }>(1);
   startRequests$ = this.startRequests.asObservable();
 
   constructor(
     private tourService: TourService<RoleTourStep>,
     private tourApi: TourApiService,
     private router: Router,
-  ) {
-    // Progress/end will be forwarded from the component that owns the TourService instance.
-
-  }
+  ) {}
 
   async maybeStartForCurrentUser(forceStart = false) {
     console.log('maybeStartForCurrentUser');
@@ -93,28 +90,21 @@ export class RoleTourService {
     try {
       const progress = await this.safeFetchProgress();
       console.log('progress', progress);
-      if (!options.forceStart && progress?.skipped) {
+      if (!options.forceStart && (progress?.skipped || progress?.completed)) {
         return;
       }
-
-      // Initialize steps early so anchors can register before we wait for them.
-      this.tourService.initialize(steps);
 
       const startIndex = this.getStartIndex(progress, steps, options.forceStart);
       console.log('startIndex', startIndex);
       const targetRoute = steps[startIndex]?.route;
+      console.log('targetRoute', targetRoute);
 
       if (targetRoute) {
         await this.ensureRoute(targetRoute);
       }
 
       const targetAnchor = steps[startIndex]?.anchorId;
-      if (targetAnchor) {
-        const tour = this.tourService as any;
-        const existing = tour.anchors ? Object.keys(tour.anchors) : [];
-        console.log('before wait, anchors:', existing);
-        await this.waitForAnchorRegistration(targetAnchor);
-      }
+      console.log('targetAnchor', targetAnchor);
 
       this.activeTourKey = tourKey;
       this.activeSteps = steps;
@@ -122,6 +112,7 @@ export class RoleTourService {
       this.isActiveSubject.next(true);
 
       // Defer actual initialize/start to the component's TourService instance.
+      console.log('emitting startRequests', { startIndex, stepsCount: steps.length });
       this.startRequests.next({ steps, startIndex });
     } catch (error) {
       console.error('Error starting tour', error);
@@ -161,41 +152,36 @@ export class RoleTourService {
     );
   }
 
-  private async waitForAnchorRegistration(anchorId: string) {
-    const tour = this.tourService as any;
-    const anchorRecord = tour.anchors ?? {};
-    const isRegistered = !!anchorRecord[anchorId] || !!anchorRecord.get?.(anchorId) || !!anchorRecord.has?.(anchorId);
-    if (isRegistered) return;
-
-    const register$ = tour.anchorRegister$;
-    console.log('register$', register$);
-    if (!register$) return;
-
-    const currentAnchors = anchorRecord ? Object.keys(anchorRecord) : [];
-    console.log('waiting for anchor', anchorId, 'current anchors', currentAnchors);
-
-    this.tourService.events$.subscribe((x: any) => console.log(x));
-
-    await firstValueFrom(
-      register$.pipe(
-        filter((id: string) => id === anchorId),
-        take(1),
-      )
-    );
-  }
-
   private async ensureRoute(targetRoute: string) {
-    const currentPath = this.router.url.split('?')[0];
-    if (currentPath === targetRoute) return;
-
-    try {
-      await this.router.navigateByUrl(targetRoute);
+    if (!this.router.navigated) {
       await firstValueFrom(
         this.router.events.pipe(
           filter((e) => e instanceof NavigationEnd),
           take(1),
+          timeout({ first: 2000 })
         )
-      );
+      ).catch((e) => console.error('Error navigating to tour route', e));
+    }
+
+    const currentPath = this.router.url.split('?')[0];
+    console.log('currentPath', currentPath, 'targetRoute', targetRoute);
+    if (currentPath === targetRoute) return;
+    
+
+    console.log('navigating to', targetRoute, 'from', currentPath);
+
+    try {
+      await this.router.navigateByUrl(targetRoute);
+      // Proceed even if NavigationEnd is missed (guards or same-route) to avoid hanging the tour.
+      await firstValueFrom(
+        this.router.events.pipe(
+          filter((e) => e instanceof NavigationEnd),
+          take(1),
+          // Fallback: release after 1s even if NavigationEnd is not seen.
+          timeout({ first: 2000 })
+        ).pipe(catchError(() => of(null)))
+      ).catch(() => undefined);
+      console.log('navigation complete (or timed out)', targetRoute);
     } catch (error) {
       console.error('Error navigating to tour route', error);
     }
@@ -223,6 +209,7 @@ export class RoleTourService {
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
       delayBeforeStepShow: 100,
+      allowUserInitiatedNavigation: true,
     };
 
     return [
