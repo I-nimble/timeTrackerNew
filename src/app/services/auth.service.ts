@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, lastValueFrom } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom, lastValueFrom } from 'rxjs';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { environment } from 'src/environments/environment';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { NotificationsService } from './notifications.service';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
@@ -12,6 +12,8 @@ import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, use
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { from } from 'rxjs';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { RoleTourService } from './role-tour.service';
+import { filter, take } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -31,7 +33,8 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
-    private employeesService: EmployeesService
+    private employeesService: EmployeesService,
+    private roleTourService: RoleTourService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -45,6 +48,7 @@ export class AuthService {
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
   async logout(redirect: boolean = true) {
+    try { this.roleTourService.skipActiveTour(); } catch (e) {}
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
@@ -135,19 +139,47 @@ export class AuthService {
   }
   async userTypeRouting(rol: string) {
     if (rol == '1') {
-      this.routes.navigate(['/dashboards/dashboard2']);
+      await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
       return;
     } else if (rol == '2') {
-      this.routes.navigate(['/dashboards/dashboard2']);
+      await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
       return;
     } else if (rol == '3') {
       const hasTeam = await this.hasTeamMembers();
       if(hasTeam){
-        this.routes.navigate(['/dashboards/dashboard2']);
+        await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
       }else{
-        this.routes.navigate(['/apps/talent-match']);
+        await this.navigateAndMaybeStart('/apps/talent-match', rol);
       }
       return;
+    }
+  }
+
+  private async navigateAndMaybeStart(path: string, role: string) {
+    console.log('navigateAndMaybeStart', { path, role });
+    try {
+      await this.routes.navigateByUrl(path);
+      // await firstValueFrom(
+      //   this.routes.events.pipe(
+      //     filter((e) => e instanceof NavigationEnd),
+      //     filter((e) => (e as NavigationEnd).urlAfterRedirects.split('?')[0] === path),
+      //     take(1)
+      //   )
+      // ).catch(() => undefined);
+      console.log('navigateAndMaybeStart success', { path, role });
+    } finally {
+      console.log('navigateAndMaybeStart finally', { path, role });
+      await this.waitForJwt();
+      console.log('starting tour after navigation', { path, role });
+      void this.roleTourService.maybeStartForCurrentUser(false, role, path);
+    }
+  }
+
+  private async waitForJwt(timeoutMs = 2000): Promise<void> {
+    const start = Date.now();
+    while (!localStorage.getItem('jwt')) {
+      if (Date.now() - start > timeoutMs) return;
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
 

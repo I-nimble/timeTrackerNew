@@ -82,9 +82,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
       this.setupTourBridge();
 
-      setTimeout(() => {
-        void this.roleTourService.maybeStartForCurrentUser();
-      }, 0);
+      if (localStorage.getItem('jwt')) {
+        setTimeout(() => {
+          void this.roleTourService.maybeStartForCurrentUser();
+        }, 0);
+      }
     this.setupGeolocationListener();
 
     const role = localStorage.getItem('role');
@@ -144,6 +146,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   private async startTourWhenReady(steps: RoleTourStep[], startIndex: number) {
+    try { this.tourService.end(); } catch (e) {}
     this.tourService.initialize(steps);
     const svc: any = this.tourService as any;
     const targetAnchor = steps[startIndex]?.anchorId;
@@ -174,14 +177,20 @@ export class AppComponent implements OnInit, OnDestroy {
       ).catch(() => undefined);
     }
 
-    setTimeout(() => {
-      requestAnimationFrame(() => {
+    const tryStart = () => {
+      try {
         if (startIndex > 0 && steps[startIndex] && svc.startAt) {
-          svc.startAt(steps[startIndex].anchorId);
+          svc.startAt(startIndex);
         } else {
           this.tourService.start();
         }
-      });
+      } catch (error) {
+        console.error('Error starting tour', error);
+      }
+    };
+
+    setTimeout(() => {
+      requestAnimationFrame(tryStart);
     }, 0);
   }
 }
