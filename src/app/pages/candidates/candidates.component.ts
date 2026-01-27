@@ -56,6 +56,7 @@ export class CandidatesComponent {
   canView: boolean = false;
   canManage: boolean = false;
   canEdit: boolean = false;
+  canDelete: boolean = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -88,6 +89,7 @@ export class CandidatesComponent {
         this.canManage = effective.includes('candidates.manage');
         this.canEdit = effective.includes('candidates.edit');
         this.canView = effective.includes('candidates.view');
+        this.canDelete = effective.includes('candidates.delete');
 
         if (this.role != '1' && !this.canView) {
           this.router.navigate(['/dashboard']);
@@ -276,21 +278,21 @@ export class CandidatesComponent {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        type: 'application',
+        subject: 'application',
       }
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
       this.loadCandidates();
       if (result) {
-        this.applicationsService.delete(id).subscribe({
+        this.applicationsService.delete(id, 'delete').subscribe({
           next: () => {
             this.loadCandidates();
             this.filterCandidates();
-            this.showSnackbar('Invoice deleted successfully!');
+            this.showSnackbar('Application deleted successfully!');
           },
           error: () => {
-            this.showSnackbar('Error deleting invoice.');
+            this.showSnackbar('Error deleting application.');
           }
         });
       }

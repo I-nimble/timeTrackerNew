@@ -84,8 +84,10 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/${position_id}`);
   }
 
-  public delete(id: number): Observable<any[]> {
-    return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
+  public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
+    return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`, {
+      body: { action }
+    });
   }
 
   getUploadUrl(type: string, file?: File, email?: string, applicationId?: number, isProfilePicture: boolean = false) {
