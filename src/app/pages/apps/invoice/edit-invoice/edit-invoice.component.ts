@@ -217,6 +217,37 @@ export class AppEditInvoiceComponent {
     });
   }
 
+  onBillingPeriodChange(): void {
+    const start = this.editModel().billing_period_start;
+    const end = this.editModel().billing_period_end;
+    if (!start || !end) return;
+    this.loader.started = true;
+    this.invoiceService
+      .getInvoiceDetail(this.id(), start, end)
+      .subscribe({
+        next: (data) => {
+          this.originalData = data;
+          this.editModel.set(data);
+          this.changedEntries.clear();
+          this.changedFlatFees.clear();
+          this.changedHourlyRates.clear();
+          this.deletedEntries.clear();
+          this.updateFormArrayWithChanges();
+          this.recalculateCosts();
+          this.loader.complete = true;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loader.complete = true;
+          this.snackBar.open(
+            'Error recalculating invoice',
+            'Close',
+            { duration: 3000 }
+          );
+        }
+      });
+  }
+
   private markEntryAsChanged(entry: any): void {
     this.changedEntries.add(entry);
   }
