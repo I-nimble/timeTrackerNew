@@ -10,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div class="row">
+    <div class="row" tourAnchor="kanban-boards">
       <div class="col-sm-6 col-lg-4" *ngFor="let board of boards">
         <mat-card 
           class="mat-mdc-card mdc-card cardWithShadow productcard overflow-hidden b-1 rounded"
@@ -89,7 +89,7 @@
         </mat-card>
       </div>
       <!-- ADD NEW BOARD CARD -->
-      <div class="col-sm-6 col-lg-4">
+      <div class="col-sm-6 col-lg-4" tourAnchor="kanban-new-board">
         <mat-card 
           class="mat-mdc-card mdc-card productcard overflow-hidden b-1 rounded"
           style="cursor: pointer;"
