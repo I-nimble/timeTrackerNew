@@ -1,6 +1,6 @@
 <div class="row g-3">
   <div class="col-12 col-lg-4 m-b-16">
-    <app-activity-reports [dataSource]="dataSource" class="h-100 w-100"></app-activity-reports>
+    <app-activity-reports tourAnchor="reports-chart" [dataSource]="dataSource" class="h-100 w-100"></app-activity-reports>
   </div>
   <div class="col-12 col-lg-8">
     <app-employees-reports (dataSourceChange)="onEmployeesDataSourceChange($event)"></app-employees-reports>

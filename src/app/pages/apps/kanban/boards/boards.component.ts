@@ -14,6 +14,7 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
 import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-boards',
@@ -30,7 +31,8 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     FormsModule,
     MatMenu,
     MatMenuModule,
-    TablerIconsModule
+    TablerIconsModule,
+    TourMatMenuModule,
   ],
 })
 export class AppBoardsComponent implements OnInit {

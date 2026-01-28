@@ -1,4 +1,4 @@
-<mat-card class="cardWithShadow h-100">
+<mat-card class="cardWithShadow h-100" tourAnchor="history-filter">
   <mat-card-content>
     <mat-form-field appearance="outline" class="me-3 min-w-200">
   <mat-label>Select a Team Member</mat-label>
@@ -12,7 +12,7 @@
     </mat-option>
   </mat-select>
 </mat-form-field>
-    <mat-table [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
+    <mat-table tourAnchor="history-list" [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
       <ng-container matColumnDef="message">
         <mat-header-cell *matHeaderCellDef> Message </mat-header-cell>
         <mat-cell *matCellDef="let notification">

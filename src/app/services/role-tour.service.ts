@@ -253,7 +253,8 @@ export class RoleTourService {
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
       delayBeforeStepShow: 100,
-      allowUserInitiatedNavigation: true,
+      enableBackdrop: true,
+      allowUserInitiatedNavigation: false,
     };
 
     const talentMatchSteps = [
@@ -267,8 +268,8 @@ export class RoleTourService {
       {
         ...asyncStep,
         anchorId: 'tm-main-filters',
-        title: 'Define role and practice',
-        content: 'Select the role and legal area to refine matches.',
+        title: 'Filter candidates',
+        content: 'Select the role and practice area to refine matches.',
         route: '/apps/talent-match',
       },
       {
@@ -312,8 +313,8 @@ export class RoleTourService {
       {
         ...asyncStep,
         anchorId: 'dash-welcome',
-        title: 'Executive summary',
-        content: 'See updates and key team notifications here.',
+        title: 'Updates',
+        content: 'See upcoming events and key team notifications here.',
         route: '/dashboards/dashboard2',
       },
       {
@@ -327,34 +328,333 @@ export class RoleTourService {
         ...asyncStep,
         anchorId: 'dash-activity',
         title: 'Activity and hours',
-        content: 'Distribution of worked vs remaining hours.',
+        content: 'Distribution of today worked vs remaining hours.',
         route: '/dashboards/dashboard2',
       },
       {
         ...asyncStep,
         anchorId: 'dash-team',
         title: 'My team',
-        content: 'Track performance and scheduled interviews.',
+        content: 'Track your team status and time trackers.',
         route: '/dashboards/dashboard2',
       },
       {
         ...asyncStep,
         anchorId: 'dash-productivity',
-        title: 'Productivity and pipeline',
-        content: 'Progress by area and quick access to Kanban.',
+        title: 'Productivity',
+        content: 'Progress by status and quick access to Kanban.',
         route: '/dashboards/dashboard2',
       },
       {
         ...asyncStep,
+        anchorId: 'dash-geofencing',
+        title: 'Geofencing',
+        content: 'Find your team locations over the world.',
+      },
+      {
+        ...asyncStep,
         anchorId: 'dash-schedule',
-        title: 'Schedule and planning',
-        content: 'View weekly load to balance tasks.',
+        title: 'Week overview',
+        content: 'View weekly worked hours.',
         route: '/dashboards/dashboard2',
       },
     ];
 
+    const reportsSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-reports',
+        title: 'Reports',
+        content: 'Open activity and team reports from the sidebar.',
+        route: '/dashboards/reports',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'reports-chart',
+        title: 'Team productivity',
+        content: 'Compare worked and pending hours over time here.',
+        route: '/dashboards/reports',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'reports-tm-selector',
+        title: 'Select team members',
+        content: 'Select a team member to view their productivity.',
+        route: '/dashboards/reports',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'reports-date-range',
+        title: 'Select date range',
+        content: 'Select a date range to view employee productivity.',
+        route: '/dashboards/reports',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'reports-download',
+        title: 'Download reports',
+        content: 'Download reports for selected team members as pdf or excel.',
+        route: '/dashboards/reports',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'reports-employees',
+        title: 'Team productivity',
+        content: 'Check employee status and completed tasks here.',
+        route: '/dashboards/reports',
+      }
+    ];
+
+    const productivitySteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-productivity',
+        title: 'Productivity',
+        content: 'Use this section to track team productivity.',
+        route: '/dashboards/productivity',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'productivity-chart',
+        title: 'Productivity chart',
+        content: 'See team performance summary.',
+        route: '/dashboards/productivity',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'productivity-employees',
+        title: 'Team productivity',
+        content: 'Check employee completed tasks here.',
+        route: '/dashboards/productivity',
+      }
+    ];
+
+    const chatSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-chat',
+        title: 'Chat',
+        content: 'Open team conversations from the sidebar.',
+        route: '/apps/chat',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'chat-start-conversation',
+        title: 'Start a conversation',
+        content: 'Start a new conversation with your team members or Inimble support.',
+        route: '/apps/chat',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'chat-search',
+        title: 'Search conversations',
+        content: 'Search for team members or conversations here.',
+        route: '/apps/chat',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'chat-contacts',
+        title: 'Conversations',
+        content: 'View and manage your existing conversations here.',
+        route: '/apps/chat',
+      },
+    ];
+
+    const kanbanSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-kanban',
+        title: 'Kanban',
+        content: 'Open your Kanban boards from the sidebar.',
+        route: '/apps/kanban',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'kanban-boards',
+        title: 'Boards',
+        content: 'Manage your boards and tasks from this view.',
+        route: '/apps/kanban',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'kanban-new-board',
+        title: 'New board',
+        content: 'Create a new board and start tracking your tasks here.',
+        route: '/apps/kanban',
+      },
+    ];
+
+    const timeTrackerSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-time-tracker',
+        title: 'Time tracker',
+        content: 'Track team time entries from the sidebar.',
+        route: '/apps/time-tracker',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'employee-search',
+        title: 'Search Team Members',
+        content: 'Search your team members by name.',
+        route: '/apps/time-tracker',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'employee-add',
+        title: 'Add Team Member',
+        content: 'Invite new team members to your team.',
+        route: '/apps/time-tracker',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'employee-table',
+        title: 'Team Members',
+        content: 'Review team members, schedules, and reports here.',
+        route: '/apps/time-tracker',
+      },
+    ];
+
+    const notesSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-notes',
+        title: 'Notes',
+        content: 'Open notes from the sidebar.',
+        route: '/apps/notes',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'notes-list',
+        title: 'Notes workspace',
+        content: 'Capture and organize your notes here.',
+        route: '/apps/notes',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'add-note',
+        title: 'Add a new note',
+        content: 'Add a new note to your notes list.',
+        route: '/apps/notes',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'edit-note',
+        title: 'Edit a note',
+        content: 'Edit the selected note.',
+        route: '/apps/notes',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'save-note',
+        title: 'Save note',
+        content: 'Save the changes to the selected note.',
+        route: '/apps/notes',
+      }
+    ];
+
+    const toDoSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-todo',
+        title: 'To Do',
+        content: 'Manage tasks from the sidebar.',
+        route: '/apps/todo',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'todo-filter',
+        title: 'Filter tasks',
+        content: 'Filter tasks by team member or date.',
+        route: '/apps/todo',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'todo-categories',
+        title: 'Task categories',
+        content: 'View tasks by category: All, To do, or Completed.',
+        route: '/apps/todo',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'todo-create-edit-task',
+        title: 'Create/Edit Task',
+        content: 'Create a new task or edit an existing one here.',
+        route: '/apps/todo',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'todo-list',
+        title: 'Task list',
+        content: 'Review and update tasks for your team here.',
+        route: '/apps/todo',
+      },
+    ];
+
+    const historySteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-history',
+        title: 'History',
+        content: 'Open your history view from the sidebar.',
+        route: '/apps/history',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'history-filter',
+        title: 'Filter history',
+        content: 'Filter historic data by team member or date.',
+        route: '/apps/history',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'history-list',
+        title: 'History list',
+        content: 'Review notifications and team updates here.',
+        route: '/apps/history',
+      }
+    ];
+
+    const calendarSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'side-calendar',
+        title: 'Calendar',
+        content: 'Open your calendar from the sidebar.',
+        route: '/apps/calendar',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'calendar-filter',
+        title: 'Filter calendar',
+        content: 'Select a team member or priority to filter tasks.',
+        route: '/apps/calendar',
+      },
+      {
+        ...asyncStep,
+        anchorId: 'calendar-overview',
+        title: 'Calendar overview',
+        content: 'Switch between month, week, and day views here.',
+        route: '/apps/calendar',
+      },
+    ];
+
     const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
-    return hasTeam ? [...dashboardSteps, ...talentMatchSteps] : [...talentMatchSteps, ...dashboardSteps];
+    const sidebarSectionSteps = [
+      ...reportsSteps,
+      ...productivitySteps,
+      ...chatSteps,
+      ...kanbanSteps,
+      ...timeTrackerSteps,
+      ...notesSteps,
+      ...toDoSteps,
+      ...historySteps,
+      ...calendarSteps,
+    ];
+
+    return hasTeam
+      ? [...dashboardSteps, ...sidebarSectionSteps, ...talentMatchSteps]
+      : [...talentMatchSteps, ...dashboardSteps, ...sidebarSectionSteps];
   }
 
   private getTourKeyForRole(role: string): string {

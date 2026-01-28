@@ -31,6 +31,7 @@
             [matMenuTriggerFor]="createMenu"
             color="primary"
             aria-label="Create new"
+            tourAnchor="chat-start-conversation"
           >
             <mat-icon>add</mat-icon>
           </button>
@@ -60,7 +61,7 @@
             </button>
           </mat-menu>
         </div>
-        <div class="sidebar-search">
+        <div class="sidebar-search" tourAnchor="chat-search">
           <mat-form-field appearance="outline" class="w-100">
             <input
               matInput
@@ -71,7 +72,7 @@
           </mat-form-field>
         </div>
 
-        <div class="contacts-wrapper">
+        <div class="contacts-wrapper" tourAnchor="chat-contacts">
           <div
             class="contact-item"
             *ngFor="let room of filteredRooms()"

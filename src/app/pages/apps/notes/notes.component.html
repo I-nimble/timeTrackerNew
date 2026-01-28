@@ -30,6 +30,7 @@
       <ng-scrollbar
         class="position-relative"
         style="height: calc(100vh - 400px)"
+        tourAnchor="notes-list"
       >
         <h4 class=" f-s-16 f-w-600 p-x-16 m-t-16">All Notes</h4>
 
@@ -74,9 +75,9 @@
       <i-tabler name="menu-2" class="icon-20"></i-tabler>
     </button>
     <div class="d-flex align-items-center gap-2">
-      <button mat-flat-button (click)="addNoteClick()">Add Note</button>
+      <button mat-flat-button (click)="addNoteClick()" tourAnchor="add-note">Add Note</button>
       @if(selectedNote()){
-        <button mat-flat-button color="primary" (click)="updateNoteTitle(changedTitle)">Save Note</button>
+        <button mat-flat-button color="primary" (click)="updateNoteTitle(changedTitle)" tourAnchor="save-note">Save Note</button>
       }
     </div>
   </div>
@@ -84,7 +85,7 @@
     <ng-scrollbar class="position-relative" style="height: calc(100vh - 370px)">
       <mat-card-content>
         @if(selectedNote()){
-        <div>
+        <div tourAnchor="edit-note">
           <h4 class="f-s-16 f-w-600 m-b-16">Edit Note</h4>
           <mat-form-field appearance="outline" class="w-100">
             <textarea

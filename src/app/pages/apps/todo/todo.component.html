@@ -7,6 +7,7 @@
       class="mat-card-top cardWithShadow position-relative overflow-hidden"
     >
       <div
+        tourAnchor="todo-filter"
         class="d-flex row align-items-center justify-content-between m-l-auto m-t-16 m-r-16"
       >
         <mat-form-field
@@ -78,7 +79,7 @@
             <!-- --------------------------------------------------------------------------- -->
             <!-- Categories -->
             <!-- --------------------------------------------------------------------------- -->
-            <mat-nav-list>
+            <mat-nav-list tourAnchor="todo-categories">
               <mat-list-item
                 (click)="selectionlblClick('all')"
                 class="all m-b-2"
@@ -129,7 +130,7 @@
             <!-- --------------------------------------------------------------------------- -->
             <!-- Create/Edit task Form -->
             <!-- --------------------------------------------------------------------------- -->
-            <div>
+            <div tourAnchor="todo-create-edit-task">
               <mat-toolbar class="bg-white mt-4">
                 @if(toDoToEdit) {
                 <h4 class="f-w-500 f-s-18 m-0">Edit Task</h4>
@@ -277,7 +278,7 @@
             </div>
           </mat-toolbar>
           <mat-divider></mat-divider>
-          <mat-card-content>
+          <mat-card-content tourAnchor="todo-list">
             <form
               *ngIf="!isDateFuture && toDoFormArray.length > 0"
               id="to-do-form"
