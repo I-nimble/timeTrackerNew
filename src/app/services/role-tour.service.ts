@@ -62,9 +62,9 @@ export class RoleTourService {
 
     try {
       if (this.skipRequested) {
-        await firstValueFrom(this.tourApi.skip());
+        await firstValueFrom(this.tourApi.skip(this.activeTourKey));
       } else {
-        await firstValueFrom(this.tourApi.complete());
+        await firstValueFrom(this.tourApi.complete({}, this.activeTourKey));
       }
     } catch (error) {
       console.error('Error finishing tour', error);
@@ -81,7 +81,7 @@ export class RoleTourService {
   }
 
   private async startForRole(role: string, options: StartOptions) {
-    const tourKey = role;
+    const tourKey = this.getTourKeyForRole(role);
     console.log('tourKey', tourKey);
     if (!tourKey) return;
     console.log('isStarting', this.isStarting);
@@ -109,7 +109,7 @@ export class RoleTourService {
 
     this.isStarting = true;
     try {
-      const progress = await this.safeFetchProgress();
+      const progress = await this.safeFetchProgress(tourKey);
       console.log('progress', progress);
       if (!progress && !options.forceStart) {
         try {
@@ -117,7 +117,7 @@ export class RoleTourService {
             this.tourApi.start({
               current_step: 0,
               progress: { anchorId: steps[0]?.anchorId, route: steps[0]?.route }
-            })
+            }, tourKey)
           );
         } catch (error) {
           console.error('Error starting tour progress', error);
@@ -181,16 +181,16 @@ export class RoleTourService {
         this.tourApi.updateProgress({
           current_step: stepIndex,
           progress: { anchorId: step.anchorId, route: step.route },
-        })
+        }, this.activeTourKey)
       );
     } catch (error) {
       console.error('Error updating tour progress', error);
     }
   }
 
-  private async safeFetchProgress(): Promise<TourProgress | null> {
+  private async safeFetchProgress(tourKey: string): Promise<TourProgress | null> {
     return await firstValueFrom(
-      this.tourApi.getProgress().pipe(
+      this.tourApi.getProgress(tourKey).pipe(
         catchError(() => of(null))
       )
     );
@@ -256,7 +256,7 @@ export class RoleTourService {
       allowUserInitiatedNavigation: true,
     };
 
-    return [
+    const talentMatchSteps = [
       {
         ...asyncStep,
         anchorId: 'tm-custom-search',
@@ -306,6 +306,9 @@ export class RoleTourService {
         content: 'Schedule interviews, download resumes, or mark not interested.',
         route: '/apps/talent-match',
       },
+    ];
+
+    const dashboardSteps = [
       {
         ...asyncStep,
         anchorId: 'dash-welcome',
@@ -349,5 +352,16 @@ export class RoleTourService {
         route: '/dashboards/dashboard2',
       },
     ];
+
+    const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
+    return hasTeam ? [...dashboardSteps, ...talentMatchSteps] : [...talentMatchSteps, ...dashboardSteps];
+  }
+
+  private getTourKeyForRole(role: string): string {
+    if (role === '3') {
+      const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
+      return hasTeam ? 'client-team' : 'client-solo';
+    }
+    return role;
   }
 }
