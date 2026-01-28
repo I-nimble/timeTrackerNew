@@ -127,24 +127,25 @@
         </div>
       </ng-container>
       <ng-template #afterLoad>
-        <div *ngIf="(role == '1' || allowedReportsManager) && (!selectedClient || selectedClient === 0); else showResults">
-          <div class="text-center p-4 f-s-16 text-muted">
-            Please select a company.
-          </div>
-        </div>
-        <ng-template #showResults>
-          <app-employee-table
-            tourAnchor="reports-employees"
-            *ngIf="dataSource.length > 0; else noData"
-            [displayedColumns]="customColumns"
-            [dataSource]="filteredDataSource">
-          </app-employee-table>
-          <ng-template #noData>
+        <div tourAnchor="reports-employees">
+          <div *ngIf="(role == '1' || allowedReportsManager) && (!selectedClient || selectedClient === 0); else showResults">
             <div class="text-center p-4 f-s-16 text-muted">
-              No completed tasks yet.
+              Please select a company.
             </div>
+          </div>
+          <ng-template #showResults>
+            <app-employee-table
+              *ngIf="dataSource.length > 0; else noData"
+              [displayedColumns]="customColumns"
+              [dataSource]="filteredDataSource">
+            </app-employee-table>
+            <ng-template #noData>
+              <div class="text-center p-4 f-s-16 text-muted">
+                No completed tasks yet.
+              </div>
+            </ng-template>
           </ng-template>
-        </ng-template>
+        </div>
       </ng-template>
     </div>
   </mat-card-content>
