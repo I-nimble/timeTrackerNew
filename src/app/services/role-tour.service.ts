@@ -537,20 +537,6 @@ export class RoleTourService {
         content: 'Add a new note to your notes list.',
         route: '/apps/notes',
       },
-      {
-        ...asyncStep,
-        anchorId: 'edit-note',
-        title: 'Edit a note',
-        content: 'Edit the selected note.',
-        route: '/apps/notes',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'save-note',
-        title: 'Save note',
-        content: 'Save the changes to the selected note.',
-        route: '/apps/notes',
-      }
     ];
 
     const toDoSteps = [

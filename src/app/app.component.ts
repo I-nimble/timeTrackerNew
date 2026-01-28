@@ -41,6 +41,8 @@ export class AppComponent implements OnInit, OnDestroy {
   private tourStepSub: Subscription | null = null;
   private tourEndSub: Subscription | null = null;
   private anchorLogSub: Subscription | null = null;
+  private readonly MAIN_CONTENT_SELECTOR = '.contentWrapper';
+  private readonly NO_SCROLL_CLASS = 'no-scroll';
 
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
 
@@ -129,6 +131,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
       console.log('tour start request', { startIndex, steps });
+      this.setIsScrollable(false);
       void this.startTourWhenReady(steps, startIndex);
     });
 
@@ -143,8 +146,32 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.tourEndSub = svc.end$?.subscribe(() => {
       console.log('tour ended');
+      this.setIsScrollable(true);
       void this.roleTourService.notifyEnded();
     }) ?? null;
+  }
+
+  private setIsScrollable(isScrollable: boolean) {
+    if (typeof document === 'undefined') return;
+    const addOrRemove = isScrollable ? 'remove' : 'add';
+    const body = document.body;
+    const mainContent = document.querySelector(this.MAIN_CONTENT_SELECTOR) as HTMLElement | null;
+
+    if (mainContent) {
+      mainContent.classList[addOrRemove](this.NO_SCROLL_CLASS);
+    }
+    body.classList[addOrRemove](this.NO_SCROLL_CLASS);
+
+    const touchHandler = this.preventTouchMove as EventListenerOrEventListenerObject;
+    if (!isScrollable) {
+      body.addEventListener('touchmove', touchHandler, { passive: false });
+    } else {
+      body.removeEventListener('touchmove', touchHandler);
+    }
+  }
+
+  private preventTouchMove(e: Event) {
+    e.preventDefault();
   }
 
   private openProfileMenuForTour() {
