@@ -24,12 +24,19 @@ export class ApplicationsService {
     return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
   }
 
-  reject(id: number): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
+  reject(id: number, reason: string | null): Observable<any> {
+    return this.http.put<any>(
+      `${this.API_URI}/applications/reject/${id}`,
+      { rejection_reason: reason }
+    );
   }
 
   sendToTalentMatch(id: number): Observable<any> {
     return this.http.put(`${this.API_URI}/applications/talent-match/${id}`, {});
+  }
+
+  sendToCandidates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/candidates/${id}`, {});
   }
 
   getCandidateFile(id: number, format: string): Observable<Blob> {
