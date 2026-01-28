@@ -12,15 +12,8 @@
       <app-top-employees (dataSourceChange)="onEmployeesDataSourceChange($event)" tourAnchor="dash-team"></app-top-employees>
     </div>
   <div class="col-lg-8">
-    <!-- Temporarily disabled ApexCharts components -->
-    <div class="cardWithShadow p-16 m-b-30" tourAnchor="dash-productivity">
-      <h4 class="m-0">Productivity and pipeline</h4>
-      <p class="m-0">Charts temporarily disabled for debugging.</p>
-    </div>
-    <div class="cardWithShadow p-16" tourAnchor="dash-schedule">
-      <h4 class="m-0">Schedule and planning</h4>
-      <p class="m-0">Charts temporarily disabled for debugging.</p>
-    </div>
+    <app-profile-expance tourAnchor="dash-productivity"></app-profile-expance>
+    <app-weekly-hours tourAnchor="dash-schedule"></app-weekly-hours>
   </div>
   <div class="col-lg-4 d-flex m-b-30" style="flex-direction: column;">
     <app-visit-usa style="flex-grow: 1;"></app-visit-usa>

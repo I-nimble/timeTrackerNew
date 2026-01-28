@@ -146,6 +146,7 @@ export class AuthService {
       return;
     } else if (rol == '3') {
       const hasTeam = await this.hasTeamMembers();
+      localStorage.setItem('clientHasTeam', hasTeam ? 'true' : 'false');
       if(hasTeam){
         await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
       }else{

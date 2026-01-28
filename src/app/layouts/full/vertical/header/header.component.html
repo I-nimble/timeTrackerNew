@@ -200,25 +200,29 @@
     <i-tabler class="d-flex icon-22" [name]="'sun'"></i-tabler>
   </button>
   }
-  <button
-    mat-icon-button
-    aria-label="Start guided tour"
-    class="d-flex justify-content-center"
-    *ngIf="role === '3'"
-    (click)="startTour()"
-  >
-    <mat-icon>help</mat-icon>
-  </button>
-  <button
-    mat-icon-button
-    aria-label="Skip guided tour"
-    class="d-flex justify-content-center"
-    color="warn"
-    *ngIf="role === '3' && (isTourActive$ | async)"
-    (click)="skipTour()"
-  >
-    <mat-icon>close</mat-icon>
-  </button>
+  @if(role === '3'){
+    @if(isTourActive$ | async){
+      <button
+        mat-icon-button
+        aria-label="Skip guided tour"
+        class="d-flex justify-content-center"
+        color="warn"
+        (click)="skipTour()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+    @else{
+      <button
+        mat-icon-button
+        aria-label="Start guided tour"
+        class="d-flex justify-content-center"
+        (click)="startTour()"
+      >
+        <mat-icon>help</mat-icon>
+      </button>
+    }
+  }
   <button
     mat-icon-button
     [matMenuTriggerFor]="msgMenu"
