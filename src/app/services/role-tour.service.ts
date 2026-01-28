@@ -639,6 +639,75 @@ export class RoleTourService {
       },
     ];
 
+    const openProfileMenu = () =>
+      new Promise<void>((resolve) => {
+        if (typeof document === 'undefined') {
+          console.log('document is undefined, cannot open profile menu');
+          resolve();
+          return;
+        }
+        requestAnimationFrame(() => {
+          const trigger = document.getElementById('profile-menu-trigger');
+          console.log('opening profile menu for tour step', trigger);
+          if (trigger) {
+            trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            console.log('profile menu opened');
+          }
+          resolve();
+        });
+      });
+
+    const profileMenuSteps = [
+      {
+        ...asyncStep,
+        anchorId: 'profile-menu-trigger',
+        title: 'Profile menu',
+        content: 'Open your user menu to access account tools.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+      {
+        ...asyncStep,
+        anchorId: 'profile-my-profile',
+        title: 'My Profile',
+        content: 'Review and update your account settings here.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+      {
+        ...asyncStep,
+        anchorId: 'profile-my-inbox',
+        title: 'My Inbox',
+        content: 'Check your notifications and messages here.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+      {
+        ...asyncStep,
+        anchorId: 'profile-my-team',
+        title: 'My Team',
+        content: 'Manage team members and access here.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+      {
+        ...asyncStep,
+        anchorId: 'profile-payments',
+        title: 'Payments',
+        content: 'Review billing and payment details here.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+      {
+        ...asyncStep,
+        anchorId: 'profile-r3',
+        title: 'R3',
+        content: 'Document and track your strategic plans here.',
+        route: '/dashboards/dashboard2',
+        beforeShowPromise: openProfileMenu,
+      },
+    ];
+
     const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
     const sidebarSectionSteps = [
       ...reportsSteps,
@@ -653,8 +722,18 @@ export class RoleTourService {
     ];
 
     return hasTeam
-      ? [...dashboardSteps, ...sidebarSectionSteps, ...talentMatchSteps]
-      : [...talentMatchSteps, ...dashboardSteps, ...sidebarSectionSteps];
+      ? [
+        // ...dashboardSteps, 
+        // ...sidebarSectionSteps, 
+        ...talentMatchSteps,
+        ...profileMenuSteps
+      ]
+      : [
+        ...talentMatchSteps, 
+        ...dashboardSteps, 
+        ...sidebarSectionSteps,
+        ...profileMenuSteps
+      ];
   }
 
   private getTourKeyForRole(role: string): string {

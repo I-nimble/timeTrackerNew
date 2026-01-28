@@ -28,6 +28,7 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { PermissionService } from 'src/app/services/permission.service';
 import { Router } from '@angular/router';
 import { RoleTourService } from 'src/app/services/role-tour.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 interface notifications {
   id: number;
@@ -67,6 +68,7 @@ interface quicklinks {
     NgScrollbarModule,
     TablerIconsModule,
     MaterialModule,
+    TourMatMenuModule,
   ],
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None,
@@ -379,6 +381,23 @@ export class HeaderComponent implements OnInit {
 
   skipTour() {
     this.roleTourService.skipActiveTour();
+  }
+
+  getProfileTourAnchor(profile: profiledd): string | null {
+    switch (profile.title) {
+      case 'My Profile':
+        return 'profile-my-profile';
+      case 'My Inbox':
+        return 'profile-my-inbox';
+      case 'My Team':
+        return 'profile-my-team';
+      case 'Payments':
+        return 'profile-payments';
+      case 'R3':
+        return 'profile-r3';
+      default:
+        return null;
+    }
   }
 
   notificationIcons = [

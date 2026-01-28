@@ -125,7 +125,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private setupTourBridge(): void {
     const svc: any = this.tourService as any;
-    this.tourService.setDefaults({ allowUserInitiatedNavigation: true } as RoleTourStep);
     this.anchorLogSub = svc.anchorRegister$?.subscribe((id: string) => console.log('anchor registered (root)', id)) ?? null;
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
@@ -136,6 +135,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
       console.log('tour step show', payload);
       const step = payload?.step ?? payload;
+      if (step?.anchorId?.startsWith('profile-')) {
+        this.openProfileMenuForTour();
+      }
       void this.roleTourService.notifyStepShown(step);
     }) ?? null;
 
@@ -143,6 +145,23 @@ export class AppComponent implements OnInit, OnDestroy {
       console.log('tour ended');
       void this.roleTourService.notifyEnded();
     }) ?? null;
+  }
+
+  private openProfileMenuForTour() {
+    if (typeof document === 'undefined') return;
+    requestAnimationFrame(() => {
+      const trigger = document.getElementById('profile-menu-trigger') as HTMLElement | null;
+      if (!trigger) return;
+      const isExpanded = () => trigger.getAttribute('aria-expanded') === 'true';
+      if (!isExpanded()) {
+        trigger.click();
+      }
+      setTimeout(() => {
+        if (!isExpanded()) {
+          trigger.click();
+        }
+      }, 50);
+    });
   }
 
   private async startTourWhenReady(steps: RoleTourStep[], startIndex: number) {
