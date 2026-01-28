@@ -436,6 +436,8 @@
     [matMenuTriggerFor]="profileMenu"
     aria-label="Notifications"
     class="profile-btn d-none d-lg-flex align-items-center justify-content-center"
+    id="profile-menu-trigger"
+    tourAnchor="profile-menu-trigger"
   >
     <div class="d-flex align-items-center gap-12">
       <!-- <img
@@ -496,27 +498,52 @@
       </div>
       <div class="p-x-32">
         @for(profile of profiledd; track profile.title) {
-        <a
-          class="p-y-16 text-decoration-none d-block text-hover-primary"
-          [routerLink]="[profile.link]"
-        >
-          <div class="d-flex align-items-center gap-12">
-            <span
-              class="text-{{ profile.color }} bg-light-{{
-                profile.color
-              }} icon-50 d-flex align-items-center justify-content-center shadow-none rounded"
-            >
-              <i-tabler [name]="profile.img" class="icon-20" />
-            </span>
+        @if(getProfileTourAnchor(profile); as anchorId) {
+          <a
+            class="p-y-16 text-decoration-none d-block text-hover-primary"
+            [routerLink]="[profile.link]"
+            [tourAnchor]="anchorId"
+          >
+            <div class="d-flex align-items-center gap-12">
+              <span
+                class="text-{{ profile.color }} bg-light-{{
+                  profile.color
+                }} icon-50 d-flex align-items-center justify-content-center shadow-none rounded"
+              >
+                <i-tabler [name]="profile.img" class="icon-20" />
+              </span>
 
-            <div>
-              <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
-                {{ profile.title }}
-              </h5>
-              <span class="text-body">{{ profile.subtitle }}</span>
+              <div>
+                <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
+                  {{ profile.title }}
+                </h5>
+                <span class="text-body">{{ profile.subtitle }}</span>
+              </div>
             </div>
-          </div>
-        </a>
+          </a>
+        } @else {
+          <a
+            class="p-y-16 text-decoration-none d-block text-hover-primary"
+            [routerLink]="[profile.link]"
+          >
+            <div class="d-flex align-items-center gap-12">
+              <span
+                class="text-{{ profile.color }} bg-light-{{
+                  profile.color
+                }} icon-50 d-flex align-items-center justify-content-center shadow-none rounded"
+              >
+                <i-tabler [name]="profile.img" class="icon-20" />
+              </span>
+
+              <div>
+                <h5 class="f-s-14 f-w-600 m-0 textprimary hover-text">
+                  {{ profile.title }}
+                </h5>
+                <span class="text-body">{{ profile.subtitle }}</span>
+              </div>
+            </div>
+          </a>
+        }
         }
       </div>
 
