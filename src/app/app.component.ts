@@ -41,8 +41,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private tourStepSub: Subscription | null = null;
   private tourEndSub: Subscription | null = null;
   private anchorLogSub: Subscription | null = null;
-  private readonly MAIN_CONTENT_SELECTOR = '.contentWrapper';
+  private isRepositioning = false;
+  private readonly MAIN_CONTENT_SELECTOR = '#app-main-content';
   private readonly NO_SCROLL_CLASS = 'no-scroll';
+  private readonly TOUR_ACTIVE_CLASS = 'tour-active';
 
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
 
@@ -138,9 +140,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
       console.log('tour step show', payload);
       const step = payload?.step ?? payload;
-      if (step?.anchorId?.startsWith('profile-')) {
+      if (step?.anchorId?.startsWith('profile-') && step?.anchorId !== 'profile-menu-trigger') {
         this.openProfileMenuForTour();
       }
+      this.repositionTourStep(step);
       void this.roleTourService.notifyStepShown(step);
     }) ?? null;
 
@@ -161,6 +164,7 @@ export class AppComponent implements OnInit, OnDestroy {
       mainContent.classList[addOrRemove](this.NO_SCROLL_CLASS);
     }
     body.classList[addOrRemove](this.NO_SCROLL_CLASS);
+    body.classList[addOrRemove](this.TOUR_ACTIVE_CLASS);
 
     const touchHandler = this.preventTouchMove as EventListenerOrEventListenerObject;
     if (!isScrollable) {
@@ -188,6 +192,48 @@ export class AppComponent implements OnInit, OnDestroy {
           trigger.click();
         }
       }, 50);
+    });
+  }
+
+  private repositionTourStep(step: RoleTourStep | undefined) {
+    if (!step?.anchorId || this.isRepositioning) return;
+    this.isRepositioning = true;
+
+    void this.waitForScrollIdle(120).then(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          try {
+            window.dispatchEvent(new Event('resize'));
+            window.dispatchEvent(new Event('scroll'));
+          } catch (e) {}
+          setTimeout(() => {
+            this.isRepositioning = false;
+          }, 0);
+        });
+      });
+    });
+  }
+
+  private waitForScrollIdle(idleMs: number): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') {
+        resolve();
+        return;
+      }
+
+      let timeoutId: number | null = null;
+      const onScroll = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+        timeoutId = window.setTimeout(() => {
+          window.removeEventListener('scroll', onScroll, true);
+          resolve();
+        }, idleMs);
+      };
+
+      window.addEventListener('scroll', onScroll, true);
+      onScroll();
     });
   }
 

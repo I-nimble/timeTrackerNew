@@ -299,6 +299,10 @@ export class RoleTourService {
         title: 'Results and selection',
         content: 'Review the table, select candidates, and compare profiles.',
         route: '/apps/talent-match',
+        placement: {
+          horizontal: true,
+          xPosition: 'before'
+        } as const
       },
       {
         ...asyncStep,
@@ -316,6 +320,11 @@ export class RoleTourService {
         title: 'Updates',
         content: 'See upcoming events and key team notifications here.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -323,6 +332,11 @@ export class RoleTourService {
         title: 'Daily KPIs',
         content: 'Tasks, hours, and performance at a glance.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -330,6 +344,11 @@ export class RoleTourService {
         title: 'Activity and hours',
         content: 'Distribution of today worked vs remaining hours.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -337,6 +356,11 @@ export class RoleTourService {
         title: 'My team',
         content: 'Track your team status and time trackers.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -344,12 +368,22 @@ export class RoleTourService {
         title: 'Productivity',
         content: 'Progress by status and quick access to Kanban.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
         anchorId: 'dash-geofencing',
         title: 'Geofencing',
         content: 'Find your team locations over the world.',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -357,6 +391,11 @@ export class RoleTourService {
         title: 'Week overview',
         content: 'View weekly worked hours.',
         route: '/dashboards/dashboard2',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -367,6 +406,11 @@ export class RoleTourService {
         title: 'Reports',
         content: 'Open activity and team reports from the sidebar.',
         route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -374,6 +418,11 @@ export class RoleTourService {
         title: 'Team productivity',
         content: 'Compare worked and pending hours over time here.',
         route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -395,6 +444,10 @@ export class RoleTourService {
         title: 'Download reports',
         content: 'Download reports for selected team members as pdf or excel.',
         route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -412,6 +465,11 @@ export class RoleTourService {
         title: 'Productivity',
         content: 'Use this section to track team productivity.',
         route: '/dashboards/productivity',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -419,6 +477,11 @@ export class RoleTourService {
         title: 'Productivity chart',
         content: 'See team performance summary.',
         route: '/dashboards/productivity',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -426,6 +489,11 @@ export class RoleTourService {
         title: 'Team productivity',
         content: 'Check employee completed tasks here.',
         route: '/dashboards/productivity',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       }
     ];
 
@@ -436,6 +504,11 @@ export class RoleTourService {
         title: 'Chat',
         content: 'Open team conversations from the sidebar.',
         route: '/apps/chat',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -457,6 +530,11 @@ export class RoleTourService {
         title: 'Conversations',
         content: 'View and manage your existing conversations here.',
         route: '/apps/chat',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -467,6 +545,11 @@ export class RoleTourService {
         title: 'Kanban',
         content: 'Open your Kanban boards from the sidebar.',
         route: '/apps/kanban',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -474,6 +557,11 @@ export class RoleTourService {
         title: 'Boards',
         content: 'Manage your boards and tasks from this view.',
         route: '/apps/kanban',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -481,6 +569,11 @@ export class RoleTourService {
         title: 'New board',
         content: 'Create a new board and start tracking your tasks here.',
         route: '/apps/kanban',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -491,6 +584,11 @@ export class RoleTourService {
         title: 'Time tracker',
         content: 'Track team time entries from the sidebar.',
         route: '/apps/time-tracker',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -498,6 +596,11 @@ export class RoleTourService {
         title: 'Search Team Members',
         content: 'Search your team members by name.',
         route: '/apps/time-tracker',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -505,6 +608,11 @@ export class RoleTourService {
         title: 'Add Team Member',
         content: 'Invite new team members to your team.',
         route: '/apps/time-tracker',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -522,6 +630,11 @@ export class RoleTourService {
         title: 'Notes',
         content: 'Open notes from the sidebar.',
         route: '/apps/notes',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -529,6 +642,11 @@ export class RoleTourService {
         title: 'Notes workspace',
         content: 'Capture and organize your notes here.',
         route: '/apps/notes',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -536,6 +654,11 @@ export class RoleTourService {
         title: 'Add a new note',
         content: 'Add a new note to your notes list.',
         route: '/apps/notes',
+        placement: {
+          yPosition: 'above',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -546,6 +669,11 @@ export class RoleTourService {
         title: 'To Do',
         content: 'Manage tasks from the sidebar.',
         route: '/apps/todo',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -560,6 +688,11 @@ export class RoleTourService {
         title: 'Task categories',
         content: 'View tasks by category: All, To do, or Completed.',
         route: '/apps/todo',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -567,6 +700,11 @@ export class RoleTourService {
         title: 'Create/Edit Task',
         content: 'Create a new task or edit an existing one here.',
         route: '/apps/todo',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -574,6 +712,11 @@ export class RoleTourService {
         title: 'Task list',
         content: 'Review and update tasks for your team here.',
         route: '/apps/todo',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -584,6 +727,11 @@ export class RoleTourService {
         title: 'History',
         content: 'Open your history view from the sidebar.',
         route: '/apps/history',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -608,6 +756,11 @@ export class RoleTourService {
         title: 'Calendar',
         content: 'Open your calendar from the sidebar.',
         route: '/apps/calendar',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -622,26 +775,13 @@ export class RoleTourService {
         title: 'Calendar overview',
         content: 'Switch between month, week, and day views here.',
         route: '/apps/calendar',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
     ];
-
-    const openProfileMenu = () =>
-      new Promise<void>((resolve) => {
-        if (typeof document === 'undefined') {
-          console.log('document is undefined, cannot open profile menu');
-          resolve();
-          return;
-        }
-        requestAnimationFrame(() => {
-          const trigger = document.getElementById('profile-menu-trigger');
-          console.log('opening profile menu for tour step', trigger);
-          if (trigger) {
-            trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-            console.log('profile menu opened');
-          }
-          resolve();
-        });
-      });
 
     const profileMenuSteps = [
       {
@@ -650,7 +790,7 @@ export class RoleTourService {
         title: 'Profile menu',
         content: 'Open your user menu to access account tools.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        delayBeforeStepShow: 200,
       },
       {
         ...asyncStep,
@@ -658,7 +798,11 @@ export class RoleTourService {
         title: 'My Profile',
         content: 'Review and update your account settings here.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const,
       },
       {
         ...asyncStep,
@@ -666,7 +810,11 @@ export class RoleTourService {
         title: 'My Inbox',
         content: 'Check your notifications and messages here.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -674,7 +822,11 @@ export class RoleTourService {
         title: 'My Team',
         content: 'Manage team members and access here.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        placement: {
+          yPosition: 'below',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -682,7 +834,11 @@ export class RoleTourService {
         title: 'Payments',
         content: 'Review billing and payment details here.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        placement: {
+          yPosition: 'above',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
       {
         ...asyncStep,
@@ -690,7 +846,11 @@ export class RoleTourService {
         title: 'R3',
         content: 'Document and track your strategic plans here.',
         route: '/dashboards/dashboard2',
-        beforeShowPromise: openProfileMenu,
+        placement: {
+          yPosition: 'above',
+          xPosition: 'before',
+          horizontal: true,
+        } as const
       },
     ];
 
@@ -709,9 +869,9 @@ export class RoleTourService {
 
     return hasTeam
       ? [
-        // ...dashboardSteps, 
-        // ...sidebarSectionSteps, 
+        ...dashboardSteps, 
         ...talentMatchSteps,
+        ...sidebarSectionSteps, 
         ...profileMenuSteps
       ]
       : [
