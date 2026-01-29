@@ -515,10 +515,12 @@ export class AppAccountSettingComponent implements OnInit {
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
-             if (this.user.availability) {
+             if (this.user.availability || this.isOrphan) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
-              this.checkMatchRequestStatus()              
+              this.checkMatchRequestStatus();
+              this.checkOlympiaStatus();
+              this.initializeApplicationFormDependencies();              
              }
           }
           this.usersService.getProfilePic(this.user.id).subscribe({

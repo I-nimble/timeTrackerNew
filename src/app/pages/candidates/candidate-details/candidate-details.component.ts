@@ -303,6 +303,43 @@ export class CandidateDetailsComponent implements OnInit {
     return this.form.controls as { [key: string]: FormControl };
   }
 
+  private getFieldLabel(key: string): string {
+    const labels: Record<string, string> = {
+      full_name: 'Name:',
+      phone: 'Phone',
+      english_level: 'English Level',
+      skills: 'Skills',
+      schedule_availability: 'Schedule Availability',
+      location_id: 'Location',
+      hobbies: 'Hobbies',
+      work_experience: 'Work Experience',
+      education_history: 'Education History',
+      applied_where: 'Applied Where',
+      referred: 'Referred',
+      age: 'Age',
+      address: 'Address',
+      children: 'Children',
+      competencies: 'Competencies',
+      tech_proficiency: 'Tech Proficiency',
+      work_references: 'Work References',
+      salary_range: 'Salary Range',
+      resume: 'Resume',
+      programming_languages: 'Programming Languages'
+    };
+    return labels[key] || key;
+  }
+
+  private getFieldValue(key: string, value: any): any {
+    if (key === 'location_id') {
+      const loc = this.locations.find(l => l.id === Number(value));
+      return loc ? `${loc.city}, ${loc.country}` : value;
+    }
+    if (key === 'schedule_availability') {
+      return value ? 'Yes' : 'No';
+    }
+    return value;
+  }
+
   enterEditMode() {
     this.editMode = true;
   }
@@ -527,6 +564,106 @@ export class CandidateDetailsComponent implements OnInit {
     }
     
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
+  }
+
+  getResumeUrl(filename: string | null | undefined): string {
+    return this.applicationService.getResumeUrl(filename);
+  }
+
+  approveChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.approveApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const applied = res?.applied_updates || {};
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          ...applied,
+          pending_updates: null,
+          pending_update_status: 'approved'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.applicationMatchScoreService.getPositionCategories()
+          .subscribe(categories => this.positionCategories = categories);
+        this.form.patchValue({
+          name: updatedCandidate.name,
+          description: updatedCandidate.description,
+          talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
+          position_id: updatedCandidate.position_id,
+          interview_link: updatedCandidate.interview_link,
+          hobbies: updatedCandidate.hobbies,
+          work_experience: updatedCandidate.work_experience,
+          skills: updatedCandidate.skills,
+          education_history: updatedCandidate.education_history,
+          inimble_academy: updatedCandidate.inimble_academy,
+          english_level: updatedCandidate.english_level,
+          resume: updatedCandidate.resume
+        });
+        this.originalData = JSON.parse(JSON.stringify(this.form.value));
+        this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Failed to approve changes', err);
+        this.snackBar.open('Failed to approve changes', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  rejectChanges() {
+    const candidateId = this.candidate()?.id;
+    if (!candidateId) return;
+    this.applicationService.rejectApplicationUpdates(candidateId).subscribe({
+      next: (res: any) => {
+        const candidate = this.candidate();
+        const updatedCandidate = {
+          ...candidate,
+          pending_updates: null,
+          pending_update_status: 'rejected'
+        };
+        this.candidate.set(updatedCandidate);
+        this.applicationService.notifyApplicationUpdated(updatedCandidate);
+        this.pendingChanges.set([]);
+        this.applicationMatchScoreService.getByApplicationId(candidateId)
+          .subscribe(scores => this.matchScores = scores);
+        this.snackBar.open('Pending changes rejected!', 'Close', { duration: 3000 });
+        this.form.patchValue(this.originalData);
+      },
+      error: (err) => {
+        console.error('Failed to reject changes', err);
+        this.snackBar.open('Failed to reject changes', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  openDialogUploadFiles() {
+    const candidate = this.candidate();
+    if (!candidate) return;
+
+    const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
+      width: '600px',
+      data: {
+        mode: 'files',
+        candidate: candidate,
+        action: 'edit'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success && result.profile_pic) {
+        const updatedCandidate = {
+          ...this.candidate(),
+          picture: result.profile_pic,
+          profile_pic_url: result.profile_pic
+        };
+        this.candidate.set(updatedCandidate);
+        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   openMatchPercentagesModal(): void {
