@@ -208,8 +208,7 @@ export class LocationService {
   private isUpdating = false;
 
   forceUpdate(force: boolean = false): void {
-    if (!navigator.geolocation) return;
-    if (this.isUpdating && !force) return;
+    if (!navigator.geolocation || this.isUpdating) return;
 
     this.userId = localStorage.getItem('id');
     const now = Date.now();
