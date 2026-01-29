@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { TourService, IStepOption } from 'ngx-ui-tour-md-menu';
+import { TourService } from 'ngx-ui-tour-md-menu';
 import { BehaviorSubject, ReplaySubject, firstValueFrom, of } from 'rxjs';
 import { catchError, filter, take, timeout } from 'rxjs/operators';
 import { TourApiService, TourProgress } from './tour-api.service';
-
-export type RoleTourStep = IStepOption & { anchorId: string; route?: string };
+import { RoleTourStep, SectionConfig, buildClientSections } from './role-tour-steps';
 
 interface StartOptions {
   forceStart?: boolean;
   currentRoute?: string;
+  onlyIfNoProgress?: boolean;
 }
+
 
 @Injectable({ providedIn: 'root' })
 export class RoleTourService {
@@ -36,13 +37,23 @@ export class RoleTourService {
     if (!jwt) return;
     const role = roleOverride ?? localStorage.getItem('role');
     if (!role) return;
-    await this.startForRole(role, { forceStart, currentRoute });
+    await this.startForRole(role, { forceStart, currentRoute, onlyIfNoProgress: !forceStart });
+  }
+
+  async maybeStartForCurrentRoute(forceStart = false, roleOverride?: string) {
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) return;
+    const role = roleOverride ?? localStorage.getItem('role');
+    if (!role) return;
+    const currentRoute = this.normalizeRoute(this.router.url);
+    await this.startForRole(role, { forceStart, currentRoute, onlyIfNoProgress: !forceStart });
   }
 
   async restartFromStart(role?: string) {
     const currentRole = role || localStorage.getItem('role');
     if (!currentRole) return;
-    await this.startForRole(currentRole, { forceStart: true });
+    const currentRoute = this.normalizeRoute(this.router.url);
+    await this.startForRole(currentRole, { forceStart: true, currentRoute, onlyIfNoProgress: false });
   }
 
   isTourActive(): boolean {
@@ -79,8 +90,10 @@ export class RoleTourService {
   }
 
   private async startForRole(role: string, options: StartOptions) {
-    const tourKey = this.getTourKeyForRole(role);
-    if (!tourKey) return;
+    const currentRoute = this.normalizeRoute(options.currentRoute ?? this.router.url);
+    const section = this.getSectionForRoute(role, currentRoute);
+    if (!section) return;
+    const tourKey = this.getTourKeyForRoleSection(role, section.key);
     if (this.isStarting) return;
     if (this.isActiveSubject.value) {
       const svc: any = this.tourService as any;
@@ -96,13 +109,16 @@ export class RoleTourService {
       }
     }
 
-    const steps = this.getStepsForRole(role);
+    const steps = section.steps;
     if (!steps.length) return;
 
     this.isStarting = true;
     try {
       const progress = await this.safeFetchProgress(tourKey);
-      if (!progress && !options.forceStart) {
+      if (options.onlyIfNoProgress && progress) {
+        return;
+      }
+      if (!progress) {
         try {
           await firstValueFrom(
             this.tourApi.start({
@@ -114,18 +130,14 @@ export class RoleTourService {
           console.error('Error starting tour progress', error);
         }
       }
-      if (!options.forceStart && progress?.skipped) {
-        return;
-      }
-      if (!options.forceStart && progress?.completed) {
+      if (!options.forceStart && (progress?.skipped || progress?.completed)) {
         return;
       }
 
       let startIndex = this.getStartIndex(progress, steps, options.forceStart);
-      const currentPath = options.currentRoute ?? this.router.url.split('?')[0];
       const intendedRoute = steps[startIndex]?.route;
-      if (!options.forceStart && currentPath && intendedRoute && currentPath !== intendedRoute) {
-        const matchIndex = steps.findIndex((step) => step.route === currentPath);
+      if (!options.forceStart && currentRoute && intendedRoute && currentRoute !== intendedRoute) {
+        const matchIndex = steps.findIndex((step) => step.route === currentRoute);
         if (matchIndex >= 0) {
           startIndex = matchIndex;
         }
@@ -219,15 +231,16 @@ export class RoleTourService {
     await this.handleEnd();
   }
 
-  private getStepsForRole(role: string): RoleTourStep[] {
-    if (role == '3') {
-      return this.getClientSteps();
-    }
-    return [];
+  private getSectionForRoute(role: string, route: string): SectionConfig | null {
+    if (role !== '3') return null;
+    const sections = this.getClientSections();
+    return sections.find((section) =>
+      section.routes.some((r) => route === r || route.startsWith(`${r}/`))
+    ) ?? null;
   }
 
-  private getClientSteps(): RoleTourStep[] {
-    const asyncStep = {
+  private getClientSections(): SectionConfig[] {
+    const baseStep = {
       isAsync: true,
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
@@ -235,637 +248,30 @@ export class RoleTourService {
       enableBackdrop: true,
       allowUserInitiatedNavigation: false,
     };
-
-    const talentMatchSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'tm-custom-search',
-        title: 'Find talent fast',
-        content: 'Start with a guided or custom search for your first role.',
-        route: '/apps/talent-match',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-main-filters',
-        title: 'Filter candidates',
-        content: 'Select the role and practice area to refine matches.',
-        route: '/apps/talent-match',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-budget',
-        title: 'Adjust the budget',
-        content: 'Set the rate range and type for candidates.',
-        route: '/apps/talent-match',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-advanced',
-        title: 'Advanced filters',
-        content: 'Filter by skills, tools, background, and trainings.',
-        route: '/apps/talent-match',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-ai-box',
-        title: 'AI-powered search',
-        content: 'Describe the role and let AI rank the best candidates.',
-        route: '/apps/talent-match',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-results',
-        title: 'Results and selection',
-        content: 'Review the table, select candidates, and compare profiles.',
-        route: '/apps/talent-match',
-        placement: {
-          horizontal: true,
-          xPosition: 'before'
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'tm-actions',
-        title: 'Quick actions',
-        content: 'Schedule interviews, download resumes, or mark not interested.',
-        route: '/apps/talent-match',
-      },
-    ];
-
-    const dashboardSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'dash-welcome',
-        title: 'Updates',
-        content: 'See upcoming events and key team notifications here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-kpis',
-        title: 'Daily KPIs',
-        content: 'Tasks, hours, and performance at a glance.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-activity',
-        title: 'Activity and hours',
-        content: 'Distribution of today worked vs remaining hours.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-team',
-        title: 'My team',
-        content: 'Track your team status and time trackers.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-productivity',
-        title: 'Productivity',
-        content: 'Progress by status and quick access to Kanban.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-geofencing',
-        title: 'Geofencing',
-        content: 'Find your team locations over the world.',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'dash-schedule',
-        title: 'Week overview',
-        content: 'View weekly worked hours.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const reportsSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-reports',
-        title: 'Reports',
-        content: 'Open activity and team reports from the sidebar.',
-        route: '/dashboards/reports',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'reports-chart',
-        title: 'Team productivity',
-        content: 'Compare worked and pending hours over time here.',
-        route: '/dashboards/reports',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'reports-tm-selector',
-        title: 'Select team members',
-        content: 'Select a team member to view their productivity.',
-        route: '/dashboards/reports',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'reports-date-range',
-        title: 'Select date range',
-        content: 'Select a date range to view employee productivity.',
-        route: '/dashboards/reports',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'reports-download',
-        title: 'Download reports',
-        content: 'Download reports for selected team members as pdf or excel.',
-        route: '/dashboards/reports',
-        placement: {
-          yPosition: 'below',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'reports-employees',
-        title: 'Team productivity',
-        content: 'Check employee status and completed tasks here.',
-        route: '/dashboards/reports',
-      }
-    ];
-
-    const productivitySteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-productivity',
-        title: 'Productivity',
-        content: 'Use this section to track team productivity.',
-        route: '/dashboards/productivity',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'productivity-chart',
-        title: 'Productivity chart',
-        content: 'See team performance summary.',
-        route: '/dashboards/productivity',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'productivity-employees',
-        title: 'Team productivity',
-        content: 'Check employee completed tasks here.',
-        route: '/dashboards/productivity',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      }
-    ];
-
-    const chatSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-chat',
-        title: 'Chat',
-        content: 'Open team conversations from the sidebar.',
-        route: '/apps/chat',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'chat-start-conversation',
-        title: 'Start a conversation',
-        content: 'Start a new conversation with your team members or Inimble support.',
-        route: '/apps/chat',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'chat-search',
-        title: 'Search conversations',
-        content: 'Search for team members or conversations here.',
-        route: '/apps/chat',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'chat-contacts',
-        title: 'Conversations',
-        content: 'View and manage your existing conversations here.',
-        route: '/apps/chat',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const kanbanSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-kanban',
-        title: 'Kanban',
-        content: 'Open your Kanban boards from the sidebar.',
-        route: '/apps/kanban',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'kanban-boards',
-        title: 'Boards',
-        content: 'Manage your boards and tasks from this view.',
-        route: '/apps/kanban',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'kanban-new-board',
-        title: 'New board',
-        content: 'Create a new board and start tracking your tasks here.',
-        route: '/apps/kanban',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const timeTrackerSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-time-tracker',
-        title: 'Time tracker',
-        content: 'Track team time entries from the sidebar.',
-        route: '/apps/time-tracker',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'employee-search',
-        title: 'Search Team Members',
-        content: 'Search your team members by name.',
-        route: '/apps/time-tracker',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'employee-add',
-        title: 'Add Team Member',
-        content: 'Invite new team members to your team.',
-        route: '/apps/time-tracker',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'employee-table',
-        title: 'Team Members',
-        content: 'Review team members, schedules, and reports here.',
-        route: '/apps/time-tracker',
-      },
-    ];
-
-    const notesSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-notes',
-        title: 'Notes',
-        content: 'Open notes from the sidebar.',
-        route: '/apps/notes',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'notes-list',
-        title: 'Notes workspace',
-        content: 'Capture and organize your notes here.',
-        route: '/apps/notes',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'add-note',
-        title: 'Add a new note',
-        content: 'Add a new note to your notes list.',
-        route: '/apps/notes',
-        placement: {
-          yPosition: 'above',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const toDoSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-todo',
-        title: 'To Do',
-        content: 'Manage tasks from the sidebar.',
-        route: '/apps/todo',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'todo-filter',
-        title: 'Filter tasks',
-        content: 'Filter tasks by team member or date.',
-        route: '/apps/todo',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'todo-categories',
-        title: 'Task categories',
-        content: 'View tasks by category: All, To do, or Completed.',
-        route: '/apps/todo',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'todo-create-edit-task',
-        title: 'Create/Edit Task',
-        content: 'Create a new task or edit an existing one here.',
-        route: '/apps/todo',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'todo-list',
-        title: 'Task list',
-        content: 'Review and update tasks for your team here.',
-        route: '/apps/todo',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const historySteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-history',
-        title: 'History',
-        content: 'Open your history view from the sidebar.',
-        route: '/apps/history',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'history-filter',
-        title: 'Filter history',
-        content: 'Filter historic data by team member or date.',
-        route: '/apps/history',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'history-list',
-        title: 'History list',
-        content: 'Review notifications and team updates here.',
-        route: '/apps/history',
-      }
-    ];
-
-    const calendarSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'side-calendar',
-        title: 'Calendar',
-        content: 'Open your calendar from the sidebar.',
-        route: '/apps/calendar',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'after',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'calendar-filter',
-        title: 'Filter calendar',
-        content: 'Select a team member or priority to filter tasks.',
-        route: '/apps/calendar',
-      },
-      {
-        ...asyncStep,
-        anchorId: 'calendar-overview',
-        title: 'Calendar overview',
-        content: 'Switch between month, week, and day views here.',
-        route: '/apps/calendar',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const profileMenuSteps = [
-      {
-        ...asyncStep,
-        anchorId: 'profile-menu-trigger',
-        title: 'Profile menu',
-        content: 'Open your user menu to access account tools.',
-        route: '/dashboards/dashboard2',
-        delayBeforeStepShow: 200,
-      },
-      {
-        ...asyncStep,
-        anchorId: 'profile-my-profile',
-        title: 'My Profile',
-        content: 'Review and update your account settings here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const,
-      },
-      {
-        ...asyncStep,
-        anchorId: 'profile-my-inbox',
-        title: 'My Inbox',
-        content: 'Check your notifications and messages here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'profile-my-team',
-        title: 'My Team',
-        content: 'Manage team members and access here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'below',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'profile-payments',
-        title: 'Payments',
-        content: 'Review billing and payment details here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'above',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-      {
-        ...asyncStep,
-        anchorId: 'profile-r3',
-        title: 'R3',
-        content: 'Document and track your strategic plans here.',
-        route: '/dashboards/dashboard2',
-        placement: {
-          yPosition: 'above',
-          xPosition: 'before',
-          horizontal: true,
-        } as const
-      },
-    ];
-
-    const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
-    const sidebarSectionSteps = [
-      ...reportsSteps,
-      ...productivitySteps,
-      ...chatSteps,
-      ...kanbanSteps,
-      ...timeTrackerSteps,
-      ...notesSteps,
-      ...toDoSteps,
-      ...historySteps,
-      ...calendarSteps,
-    ];
-
-    return hasTeam
-      ? [
-        ...dashboardSteps, 
-        ...talentMatchSteps,
-        ...sidebarSectionSteps, 
-        ...profileMenuSteps
-      ]
-      : [
-        ...talentMatchSteps, 
-        ...dashboardSteps, 
-        ...sidebarSectionSteps,
-        ...profileMenuSteps
-      ];
+    return buildClientSections(baseStep);
   }
 
-  private getTourKeyForRole(role: string): string {
-    if (role === '3') {
-      const hasTeam = localStorage.getItem('clientHasTeam') === 'true';
-      return hasTeam ? 'client-team' : 'client-solo';
+  private getTourKeyForRoleSection(role: string, sectionKey: string): string {
+    const rolePrefix = this.getRolePrefix(role);
+    return `${rolePrefix}-${sectionKey}`;
+  }
+
+  private getRolePrefix(role: string): string {
+    switch (role) {
+      case '1':
+        return 'admin';
+      case '2':
+        return 'user';
+      case '3':
+        return 'client';
+      case '4':
+        return 'support';
+      default:
+        return role;
     }
-    return role;
+  }
+
+  private normalizeRoute(route: string): string {
+    return route.split('?')[0];
   }
 }

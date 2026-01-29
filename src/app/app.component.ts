@@ -10,7 +10,8 @@ import { WebSocketService } from './services/socket/web-socket.service';
 import { GeolocationRequest } from './models/geolocation.model';
 import { LocationService } from './services/location.service';
 import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
-import { RoleTourService, RoleTourStep } from './services/role-tour.service';
+import { RoleTourService } from './services/role-tour.service';
+import { RoleTourStep } from './services/role-tour-steps';
 
 @Component({
   selector: 'app-root',
@@ -41,6 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private tourStepSub: Subscription | null = null;
   private tourEndSub: Subscription | null = null;
   private anchorLogSub: Subscription | null = null;
+  private routeTourSub: Subscription | null = null;
   private isRepositioning = false;
   private readonly MAIN_CONTENT_SELECTOR = '#app-main-content';
   private readonly NO_SCROLL_CLASS = 'no-scroll';
@@ -88,7 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (localStorage.getItem('jwt')) {
         setTimeout(() => {
-          void this.roleTourService.maybeStartForCurrentUser();
+          void this.roleTourService.maybeStartForCurrentRoute();
         }, 0);
       }
     this.setupGeolocationListener();
@@ -110,6 +112,7 @@ export class AppComponent implements OnInit, OnDestroy {
     try { this.tourStepSub?.unsubscribe(); } catch (e) {}
     try { this.tourEndSub?.unsubscribe(); } catch (e) {}
     try { this.anchorLogSub?.unsubscribe(); } catch (e) {}
+    try { this.routeTourSub?.unsubscribe(); } catch (e) {}
   }
 
   onJitsiClosed() {
@@ -148,6 +151,12 @@ export class AppComponent implements OnInit, OnDestroy {
       this.setIsScrollable(true);
       void this.roleTourService.notifyEnded();
     }) ?? null;
+
+    this.routeTourSub = this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      void this.roleTourService.maybeStartForCurrentRoute();
+    });
   }
 
   private setIsScrollable(isScrollable: boolean) {
