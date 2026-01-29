@@ -129,16 +129,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private setupTourBridge(): void {
     const svc: any = this.tourService as any;
-    this.anchorLogSub = svc.anchorRegister$?.subscribe((id: string) => console.log('anchor registered (root)', id)) ?? null;
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
-      console.log('tour start request', { startIndex, steps });
       this.setIsScrollable(false);
       void this.startTourWhenReady(steps, startIndex);
     });
 
     this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
-      console.log('tour step show', payload);
       const step = payload?.step ?? payload;
       if (step?.anchorId?.startsWith('profile-') && step?.anchorId !== 'profile-menu-trigger') {
         this.openProfileMenuForTour();
@@ -148,7 +145,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }) ?? null;
 
     this.tourEndSub = svc.end$?.subscribe(() => {
-      console.log('tour ended');
       this.setIsScrollable(true);
       void this.roleTourService.notifyEnded();
     }) ?? null;
