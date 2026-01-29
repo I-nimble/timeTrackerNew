@@ -31,8 +31,15 @@ export class InvoiceService {
     return this.http.put(`${this.apiUrl}/stripe/invoice/${id}`, invoiceData);
   }
 
-  getInvoiceDetail(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/stripe/invoice/${id}`);
+  getInvoiceDetail(id: number, start?: string | Date, end?: string | Date): Observable<any> {
+    let params: any = {};
+    if (start) {
+      params.start = new Date(start).toISOString();
+    }
+    if (end) {
+      params.end = new Date(end).toISOString();
+    }
+    return this.http.get(`${this.apiUrl}/stripe/invoice/${id}`, { params });
   }
 
   approveInvoice(id: number): Observable<any> {

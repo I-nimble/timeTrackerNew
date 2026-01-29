@@ -44,6 +44,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { AppCertificationModalComponent } from './certification-modal.component';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   standalone: true,
@@ -277,7 +278,8 @@ export class AppAccountSettingComponent implements OnInit {
             public applicationsService: ApplicationsService,
             private route: ActivatedRoute,
             private router: Router,
-            private certificationsService: CertificationsService
+            private certificationsService: CertificationsService,
+            private permissionService: PermissionService,
           ) {}
 
   ngOnInit(): void {
@@ -366,6 +368,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.applicationsService.updateAvailability(this.applicationId, availability).subscribe({
       next: () => {
         this.loadApplicationDetails(Number(localStorage.getItem('id')));
+        this.permissionService.notifyPermissionsUpdated();
       },
       error: (err) => {
         console.error('Error updating availability:', err);
@@ -536,7 +539,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.applicationId = application.id;
           
           const roleFromPosition = this.careerRoles.find(
-            r => r.position_id === application.position_id
+            r => r.title === application.current_position
           );
           
           this.applicationForm.patchValue({
@@ -793,6 +796,7 @@ export class AppAccountSettingComponent implements OnInit {
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
             this.companiesService.submit(companyData, companyData.id).subscribe({
                 complete: () => {
+                  this.permissionService.notifyPermissionsUpdated();
                   this.openSnackBar('Profile updated successfully', 'Close');
                   this.isSubmitting = false;
                   this.getUser();
@@ -863,7 +867,14 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            
+            if (this.applicationId) {
+              this.usersService.submitApplicationDetails(
+                {
+                  name: `${userData.name} ${userData.last_name}`
+                },
+                this.applicationId
+              ).subscribe();
+            }
             if (this.isOrphan && this.applicationId) {
               this.submitApplicationDetailsInternal();
             } 
@@ -930,7 +941,7 @@ export class AppAccountSettingComponent implements OnInit {
     const formData: any = {
       name: this.user.name + ' ' + this.user.last_name,
       location_id: formValues.location,
-      position_id: formValues.role?.position_id,
+      position_id: null,
       current_position: formValues.role?.title,
       applied_where: formValues.appliedWhere,
       referred: formValues.referred,
@@ -982,8 +993,6 @@ export class AppAccountSettingComponent implements OnInit {
       }
     });
   }
-
-
 
   onResumeSelected(event: any) {
     const file = event.target.files[0];
