@@ -376,7 +376,7 @@ export class HeaderComponent implements OnInit {
   }
 
   startTour() {
-    this.roleTourService.restartFromStart();
+    this.roleTourService.maybeStartForCurrentRoute(true);
   }
 
   skipTour() {
