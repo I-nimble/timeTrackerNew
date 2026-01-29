@@ -157,21 +157,10 @@ export class AuthService {
   }
 
   private async navigateAndMaybeStart(path: string, role: string) {
-    console.log('navigateAndMaybeStart', { path, role });
     try {
       await this.routes.navigateByUrl(path);
-      // await firstValueFrom(
-      //   this.routes.events.pipe(
-      //     filter((e) => e instanceof NavigationEnd),
-      //     filter((e) => (e as NavigationEnd).urlAfterRedirects.split('?')[0] === path),
-      //     take(1)
-      //   )
-      // ).catch(() => undefined);
-      console.log('navigateAndMaybeStart success', { path, role });
     } finally {
-      console.log('navigateAndMaybeStart finally', { path, role });
       await this.waitForJwt();
-      console.log('starting tour after navigation', { path, role });
       void this.roleTourService.maybeStartForCurrentUser(false, role, path);
     }
   }

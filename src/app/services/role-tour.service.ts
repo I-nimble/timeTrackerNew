@@ -32,11 +32,9 @@ export class RoleTourService {
   ) {}
 
   async maybeStartForCurrentUser(forceStart = false, roleOverride?: string, currentRoute?: string) {
-    console.log('maybeStartForCurrentUser');
     const jwt = localStorage.getItem('jwt');
     if (!jwt) return;
     const role = roleOverride ?? localStorage.getItem('role');
-    console.log('role', role);
     if (!role) return;
     await this.startForRole(role, { forceStart, currentRoute });
   }
@@ -82,17 +80,12 @@ export class RoleTourService {
 
   private async startForRole(role: string, options: StartOptions) {
     const tourKey = this.getTourKeyForRole(role);
-    console.log('tourKey', tourKey);
     if (!tourKey) return;
-    console.log('isStarting', this.isStarting);
     if (this.isStarting) return;
-    console.log('isActiveSubject', this.isActiveSubject.value);
-    console.log('!options.forceStart', !options.forceStart);
     if (this.isActiveSubject.value) {
       const svc: any = this.tourService as any;
       const status = svc.getStatus?.();
       const hasStep = !!svc.currentStep;
-      console.log('current tour status', status);
       if (status === 0 || !hasStep) {
         try { this.tourService.end(); } catch (e) {}
         this.resetState();
@@ -104,13 +97,11 @@ export class RoleTourService {
     }
 
     const steps = this.getStepsForRole(role);
-    console.log('steps', steps);
     if (!steps.length) return;
 
     this.isStarting = true;
     try {
       const progress = await this.safeFetchProgress(tourKey);
-      console.log('progress', progress);
       if (!progress && !options.forceStart) {
         try {
           await firstValueFrom(
@@ -139,24 +130,17 @@ export class RoleTourService {
           startIndex = matchIndex;
         }
       }
-      console.log('startIndex', startIndex);
       const targetRoute = steps[startIndex]?.route;
-      console.log('targetRoute', targetRoute);
 
       if (targetRoute) {
         await this.ensureRoute(targetRoute);
       }
-
-      const targetAnchor = steps[startIndex]?.anchorId;
-      console.log('targetAnchor', targetAnchor);
 
       this.activeTourKey = tourKey;
       this.activeSteps = steps;
       this.skipRequested = false;
       this.isActiveSubject.next(true);
 
-      // Defer actual initialize/start to the component's TourService instance.
-      console.log('emitting startRequests', { startIndex, stepsCount: steps.length });
       this.startRequests.next({ steps, startIndex });
     } catch (error) {
       console.error('Error starting tour', error);
@@ -208,11 +192,7 @@ export class RoleTourService {
     }
 
     const currentPath = this.router.url.split('?')[0];
-    console.log('currentPath', currentPath, 'targetRoute', targetRoute);
     if (currentPath === targetRoute) return;
-    
-
-    console.log('navigating to', targetRoute, 'from', currentPath);
 
     try {
       await this.router.navigateByUrl(targetRoute);
@@ -225,7 +205,6 @@ export class RoleTourService {
           timeout({ first: 2000 })
         ).pipe(catchError(() => of(null)))
       ).catch(() => undefined);
-      console.log('navigation complete (or timed out)', targetRoute);
     } catch (error) {
       console.error('Error navigating to tour route', error);
     }
