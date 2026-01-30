@@ -607,45 +607,45 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       routes: ['/dashboards/reports'],
       steps: reportsSteps,
     },
-    {
-      key: 'productivity',
-      routes: ['/dashboards/productivity'],
-      steps: productivitySteps,
-    },
-    {
-      key: 'chat',
-      routes: ['/apps/chat'],
-      steps: chatSteps,
-    },
-    {
-      key: 'kanban',
-      routes: ['/apps/kanban'],
-      steps: kanbanSteps,
-    },
-    {
-      key: 'time-tracker',
-      routes: ['/apps/time-tracker'],
-      steps: timeTrackerSteps,
-    },
-    {
-      key: 'notes',
-      routes: ['/apps/notes'],
-      steps: notesSteps,
-    },
-    {
-      key: 'todo',
-      routes: ['/apps/todo'],
-      steps: toDoSteps,
-    },
-    {
-      key: 'history',
-      routes: ['/apps/history'],
-      steps: historySteps,
-    },
-    {
-      key: 'calendar',
-      routes: ['/apps/calendar'],
-      steps: calendarSteps,
-    },
+    // {
+    //   key: 'productivity',
+    //   routes: ['/dashboards/productivity'],
+    //   steps: productivitySteps,
+    // },
+    // {
+    //   key: 'chat',
+    //   routes: ['/apps/chat'],
+    //   steps: chatSteps,
+    // },
+    // {
+    //   key: 'kanban',
+    //   routes: ['/apps/kanban'],
+    //   steps: kanbanSteps,
+    // },
+    // {
+    //   key: 'time-tracker',
+    //   routes: ['/apps/time-tracker'],
+    //   steps: timeTrackerSteps,
+    // },
+    // {
+    //   key: 'notes',
+    //   routes: ['/apps/notes'],
+    //   steps: notesSteps,
+    // },
+    // {
+    //   key: 'todo',
+    //   routes: ['/apps/todo'],
+    //   steps: toDoSteps,
+    // },
+    // {
+    //   key: 'history',
+    //   routes: ['/apps/history'],
+    //   steps: historySteps,
+    // },
+    // {
+    //   key: 'calendar',
+    //   routes: ['/apps/calendar'],
+    //   steps: calendarSteps,
+    // },
   ];
 };

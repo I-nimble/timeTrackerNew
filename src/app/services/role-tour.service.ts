@@ -60,6 +60,13 @@ export class RoleTourService {
     return this.isActiveSubject.value;
   }
 
+  hasStepsForRoute(route?: string, roleOverride?: string): boolean {
+    const role = roleOverride ?? localStorage.getItem('role');
+    if (!role) return false;
+    const currentRoute = this.normalizeRoute(route ?? this.router.url);
+    return !!this.getSectionForRoute(role, currentRoute);
+  }
+
   skipActiveTour() {
     if (!this.activeTourKey || !this.isActiveSubject.value) return;
     this.skipRequested = true;

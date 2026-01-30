@@ -26,7 +26,8 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { PermissionService } from 'src/app/services/permission.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { RoleTourService } from 'src/app/services/role-tour.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
@@ -105,6 +106,7 @@ export class HeaderComponent implements OnInit {
   canViewMySentinel: boolean = false;
   canViewCandidates: boolean = false;
   isTourActive$ = this.roleTourService.isActive$;
+  showTourHelpButton: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -213,6 +215,15 @@ export class HeaderComponent implements OnInit {
     this.permissionService.permissionsUpdated$.subscribe(() => {
       this.reloadPermissions();
     });
+
+    this.updateTourHelpVisibility();
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.updateTourHelpVisibility());
+  }
+
+  private updateTourHelpVisibility(): void {
+    this.showTourHelpButton = this.roleTourService.hasStepsForRoute();
   }
 
   reloadPermissions(): void {
