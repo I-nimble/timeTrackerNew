@@ -322,6 +322,7 @@ export class CandidateDetailsComponent implements OnInit {
       tech_proficiency: 'Tech Proficiency',
       work_references: 'Work References',
       salary_range: 'Salary Range',
+      resume: 'Resume',
       programming_languages: 'Programming Languages'
     };
     return labels[key] || key;
@@ -616,7 +617,8 @@ export class CandidateDetailsComponent implements OnInit {
           skills: updatedCandidate.skills,
           education_history: updatedCandidate.education_history,
           inimble_academy: updatedCandidate.inimble_academy,
-          english_level: updatedCandidate.english_level
+          english_level: updatedCandidate.english_level,
+          resume: updatedCandidate.resume
         });
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
         this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });

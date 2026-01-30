@@ -267,12 +267,12 @@
                 <mat-icon>visibility</mat-icon>
                 <span>View</span>
               </button>
-              <!-- <button mat-menu-item (click)="deleteApplication(element.id)"
+              <button mat-menu-item (click)="deleteApplication(element.id)"
                 class="d-flex align-items-center justify-content-center" 
-                *ngIf="role == '1' || allowedTM">
+                *ngIf="canDelete">
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
-              </button> -->
+              </button>
               <button
                 mat-menu-item
                 (click)="downloadCandidateInfo(element.id, 'excel')"
