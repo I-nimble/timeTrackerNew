@@ -1,10 +1,11 @@
-<mat-card class="cardWithShadow h-100 d-flex justify-content-between" tourAnchor="dash-geofencing">
+<mat-card class="cardWithShadow h-100 d-flex justify-content-between">
   <mat-card-content class="p-24">
-    <mat-card-title>Geofencing</mat-card-title>
+    <mat-card-title [tourAnchor]="isMobile() ? 'dash-geofencing' : ''">Geofencing</mat-card-title>
     <div
+      [tourAnchor]="isMobile() ? '' : 'dash-geofencing'"
       id="current-visitors"
-      [style]="{width: '100%', height: isMobile() ? '300px' : '500px'}"
-      class="m-y-20"
+      [style.width]="'100%'"
+      [style.height]="isMobile() ? '300px' : '500px'"
     ></div>
   </mat-card-content>
   <mat-card-content>
