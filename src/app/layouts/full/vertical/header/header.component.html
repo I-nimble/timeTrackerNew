@@ -104,6 +104,9 @@
     <a mat-button [routerLink]="['/apps/candidates']" *ngIf="canViewCandidates">
       Candidates
     </a>
+    <a mat-button [routerLink]="['/apps/rejected']" *ngIf="canViewRejected">
+      Rejected
+    </a>
     <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="canViewTalentMatch"
      (click)="clearTalentMatchNotification()">
         Talent Match

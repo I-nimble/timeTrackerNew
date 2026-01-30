@@ -35,6 +35,7 @@ import { ClientDetailsComponent } from './expert/client-detail/client-details.co
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
 import { ScrapperComponent } from './scrapper/scrapper.component';
 import { CandidatesComponent } from '../candidates/candidates.component';
+import { RejectedComponent } from '../rejected/rejected.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 import { CustomSearchComponent } from '../custom-search/custom-search.component';
@@ -220,6 +221,22 @@ export const AppsRoutes: Routes = [
                 { title: 'Dashboard', url: '/dashboards/dashboard1' },
                 { title: 'Candidates', url: '/candidates' },
                 { title: 'Details' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'rejected',
+        children: [
+          {
+            path: '',
+            component: RejectedComponent,
+            data: {
+              title: 'Rejected',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Rejected' },
               ],
             },
           },
