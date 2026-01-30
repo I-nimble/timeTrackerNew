@@ -32,6 +32,7 @@ import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   standalone: true,
@@ -57,7 +58,8 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
     MatSlideToggleModule,
     MatChipsModule,
     NgxSliderModule,
-    FormatNamePipe
+    FormatNamePipe,
+    TourMatMenuModule
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -69,7 +71,7 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
     ])
   ]
 })
-export class AppTalentMatchClientComponent implements OnInit {
+export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   userRole = localStorage.getItem('role');
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
@@ -84,7 +86,7 @@ export class AppTalentMatchClientComponent implements OnInit {
     'rate',
     'actions',
   ];
-  dataSource!: MatTableDataSource<any>;
+  dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   interviews: any[] = [];
@@ -250,6 +252,8 @@ export class AppTalentMatchClientComponent implements OnInit {
     this.getPositionCategories();
   }
 
+  ngAfterViewInit(): void {
+  }
 
   searchCandidatesWithAI(question: string) {
     const searchQuery = question || this.buildFullSearchQuery();
@@ -485,7 +489,7 @@ export class AppTalentMatchClientComponent implements OnInit {
 
         this.allCandidates = sortedApplications;
         this.dataSource = new MatTableDataSource(this.allCandidates);
-        this.getAllMatchScores();
+        // this.getAllMatchScores(); TODO: UNCOMMENT THIS LATER
 
         const stored = this.loadAISearchState();
 

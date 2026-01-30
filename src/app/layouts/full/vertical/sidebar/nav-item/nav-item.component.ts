@@ -23,11 +23,12 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { UnreadCountComponent } from 'src/app/components/unread-count/unread-count.component';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-nav-item',
   standalone: true,
-  imports: [TranslateModule, TablerIconsModule, MaterialModule, CommonModule, UnreadCountComponent],
+  imports: [TranslateModule, TablerIconsModule, MaterialModule, CommonModule, UnreadCountComponent, TourMatMenuModule],
   templateUrl: './nav-item.component.html',
   styleUrls: [],
   animations: [
@@ -59,6 +60,35 @@ export class AppNavItemComponent implements OnChanges {
   ) {
     if (this.depth === undefined) {
       this.depth = 0;
+    }
+  }
+
+  getTourAnchor(item: NavItem | any): string | null {
+    if (!item || item.navCap || !item.route) return null;
+    const rawRoute = String(item.route);
+    const normalizedRoute = rawRoute.startsWith('/') ? rawRoute : `/${rawRoute}`;
+
+    switch (normalizedRoute) {
+      case '/dashboards/reports':
+        return 'side-reports';
+      case '/dashboards/productivity':
+        return 'side-productivity';
+      case '/apps/chat':
+        return 'side-chat';
+      case '/apps/kanban':
+        return 'side-kanban';
+      case '/apps/time-tracker':
+        return 'side-time-tracker';
+      case '/apps/notes':
+        return 'side-notes';
+      case '/apps/todo':
+        return 'side-todo';
+      case '/apps/history':
+        return 'side-history';
+      case '/apps/calendar':
+        return 'side-calendar';
+      default:
+        return null;
     }
   }
 

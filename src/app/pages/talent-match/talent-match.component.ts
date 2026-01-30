@@ -29,7 +29,10 @@ export class AppTalentMatchComponent {
   hasAvailableApplication = false;
   hasApplication = false;
 
-  constructor(private permissionService: PermissionService, private applicationsService: ApplicationsService) {
+  constructor(
+    private permissionService: PermissionService,
+    private applicationsService: ApplicationsService
+  ) {
     const allowedEmails = environment.allowedReportEmails;
     this.allowedTM =
       this.userRole === '2' && allowedEmails.includes(this.userEmail || '');

@@ -1,18 +1,18 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-content>
-    <mat-form-field appearance="outline" class="me-3 min-w-200">
-  <mat-label>Select a Team Member</mat-label>
-  <mat-select
-    [(value)]="selectedMemberName"
-    (selectionChange)="onMemberNameChange($event.value)"
-  >
-    <mat-option [value]="null">All members</mat-option>
-    <mat-option *ngFor="let user of dataSource" [value]="user.profile.name">
-      {{ user.profile.name }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
-    <mat-table [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
+    <mat-form-field appearance="outline" class="me-3 min-w-200" tourAnchor="history-filter">
+      <mat-label>Select a Team Member</mat-label>
+      <mat-select
+        [(value)]="selectedMemberName"
+        (selectionChange)="onMemberNameChange($event.value)"
+      >
+        <mat-option [value]="null">All members</mat-option>
+        <mat-option *ngFor="let user of dataSource" [value]="user.profile.name">
+          {{ user.profile.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-table tourAnchor="history-list" [dataSource]="notificationsDataSource" class="mat-elevation-z8 demo-table">
       <ng-container matColumnDef="message">
         <mat-header-cell *matHeaderCellDef> Message </mat-header-cell>
         <mat-cell *matCellDef="let notification">

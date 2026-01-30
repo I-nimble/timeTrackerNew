@@ -51,6 +51,7 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { MatTooltip } from '@angular/material/tooltip';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-chat',
@@ -73,7 +74,8 @@ import { MatTooltip } from '@angular/material/tooltip';
     LinebreakPipe,
     PickerModule,
     EmojiMartPipe,
-    MatTooltip
+    MatTooltip,
+    TourMatMenuModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],

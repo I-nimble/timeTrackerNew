@@ -9,6 +9,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UsersService } from 'src/app/services/users.service';
 import { NotesService } from 'src/app/services/notes.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   standalone: true,
@@ -22,6 +23,7 @@ import { NotesService } from 'src/app/services/notes.service';
     FormsModule,
     ReactiveFormsModule,
     MaterialModule,
+    TourMatMenuModule,
   ]
 })
 export class AppNotesComponent implements OnInit {

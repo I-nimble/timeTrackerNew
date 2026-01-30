@@ -17,7 +17,7 @@
           </mat-form-field>
         </div>
         <div *ngIf="role == '3'" style="display:none"></div>
-        <mat-form-field class="w-100" appearance="outline">
+        <mat-form-field class="w-100" appearance="outline" tourAnchor="reports-tm-selector">
           <mat-label>Select a Team Member</mat-label>
           <mat-select
             [(value)]="selectedUserId"
@@ -35,7 +35,7 @@
         </mat-form-field>
       </div>
       <div class="col-12 col-md-6">
-        <mat-form-field class="w-100" appearance="outline">
+        <mat-form-field class="w-100" appearance="outline" tourAnchor="reports-date-range">
           <mat-label>Date Range</mat-label>
           <mat-date-range-input [rangePicker]="picker">
             <input
@@ -61,6 +61,7 @@
       >
         <div *ngIf="role != '2' || allowedReportsManager">
           <button
+            tourAnchor="reports-download"
             mat-flat-button
             [matMenuTriggerFor]="downloadMenu"
             [disabled]="isLoading || !dataSource?.length"
@@ -126,23 +127,25 @@
         </div>
       </ng-container>
       <ng-template #afterLoad>
-        <div *ngIf="(role == '1' || allowedReportsManager) && (!selectedClient || selectedClient === 0); else showResults">
-          <div class="text-center p-4 f-s-16 text-muted">
-            Please select a company.
-          </div>
-        </div>
-        <ng-template #showResults>
-          <app-employee-table
-            *ngIf="dataSource.length > 0; else noData"
-            [displayedColumns]="customColumns"
-            [dataSource]="filteredDataSource">
-          </app-employee-table>
-          <ng-template #noData>
+        <div tourAnchor="reports-employees">
+          <div *ngIf="(role == '1' || allowedReportsManager) && (!selectedClient || selectedClient === 0); else showResults">
             <div class="text-center p-4 f-s-16 text-muted">
-              No completed tasks yet.
+              Please select a company.
             </div>
+          </div>
+          <ng-template #showResults>
+            <app-employee-table
+              *ngIf="dataSource.length > 0; else noData"
+              [displayedColumns]="customColumns"
+              [dataSource]="filteredDataSource">
+            </app-employee-table>
+            <ng-template #noData>
+              <div class="text-center p-4 f-s-16 text-muted">
+                No completed tasks yet.
+              </div>
+            </ng-template>
           </ng-template>
-        </ng-template>
+        </div>
       </ng-template>
     </div>
   </mat-card-content>

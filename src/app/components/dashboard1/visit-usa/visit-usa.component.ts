@@ -11,11 +11,12 @@ import * as am5map from "@amcharts/amcharts5/map"
 import am5geodata_worldLow from "@amcharts/amcharts5-geodata/worldLow"
 import { EmployeesService } from "src/app/services/employees.service"
 import { LocationService } from "src/app/services/location.service"
+import { TourMatMenuModule } from "ngx-ui-tour-md-menu"
 
 @Component({
   selector: "app-visit-usa",
   standalone: true,
-  imports: [TablerIconsModule, MaterialModule, NgFor, NgIf],
+  imports: [TablerIconsModule, MaterialModule, NgFor, NgIf, TourMatMenuModule],
   templateUrl: "./visit-usa.component.html",
 })
 export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -125,6 +126,12 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
         return undefined;
       });
     });
+  }
+  isMobile(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.innerWidth < 768;
   }
 
   fetchLocations() {
