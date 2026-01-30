@@ -215,6 +215,20 @@
                 </mat-form-field>
               </td>
             </ng-container>
+            <ng-container matColumnDef="locations">
+              <th mat-header-cell *matHeaderCellDef>Location(s)</th>
+              <td mat-cell *matCellDef="let element">
+                <ng-container *ngIf="getLocationLinks(element.id).length > 0; else noLocs">
+                  <ng-container *ngFor="let loc of getLocationLinks(element.id); let i = index">
+                    <a [href]="loc.url" target="_blank" rel="noopener" [title]="loc.title" (mousedown)="openLink(loc.url); $event.stopImmediatePropagation();" (auxclick)="openLink(loc.url); $event.stopImmediatePropagation();">
+                      <mat-icon style="color:#d32f2f; vertical-align: middle;">place</mat-icon>
+                    </a>
+                    <span *ngIf="i < (getLocationLinks(element.id).length - 1)"> | </span>
+                  </ng-container>
+                </ng-container>
+                <ng-template #noLocs>-</ng-template>
+              </td>
+            </ng-container>
             <ng-container matColumnDef="total-hours">
               <th mat-header-cell *matHeaderCellDef>Total Hours</th>
               <td mat-cell *matCellDef="let element">{{ decimalToTime(element.entry_hours) }}</td>

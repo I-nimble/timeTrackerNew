@@ -25,6 +25,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
+import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 
 @Component({
   selector: 'app-candidates',
@@ -243,11 +244,14 @@ export class CandidatesComponent {
 
   private loadCandidates(): void {
     this.applicationsService.get().subscribe((applications: any[]) => {
-      this.pendingCandidates.set(applications.filter((application: any) => application.status === 'pending'));
-      this.reviewingCandidates.set(applications.filter((application: any) => application.status === 'reviewing'));
-      this.talentMatchCandidates.set(applications.filter((application: any) => application.status === 'talent match'));
+      const visibleApplications = applications.filter(
+        (application: any) => application.status !== 'rejected'
+      );
+      this.pendingCandidates.set(visibleApplications.filter((a: any) => a.status === 'pending'));
+      this.reviewingCandidates.set(visibleApplications.filter((a: any) => a.status === 'reviewing'));
+      this.talentMatchCandidates.set(visibleApplications.filter((a: any) => a.status === 'talent match'));
 
-      this.candidatesList = new MatTableDataSource(applications);
+      this.candidatesList = new MatTableDataSource(visibleApplications);
       this.candidatesList.paginator = this.paginator;
       this.candidatesList.sort = this.sort;
     });
@@ -404,6 +408,24 @@ export class CandidatesComponent {
       this.showSnackbar('Candidate marked as unavailable');
       this.loadCandidates();
       this.filterCandidates();
+    });
+  }
+
+  openRejectDialog(candidate: any): void {
+    const dialogRef = this.dialog.open(RejectionDialogComponent, {
+      width: '500px',
+      data: {
+        mode: 'reject',
+        candidate: candidate
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.showSnackbar('Candidate rejected successfully');
+        this.loadCandidates();
+        this.filterCandidates();
+      }
     });
   }
 
