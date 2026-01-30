@@ -216,14 +216,16 @@
       </button>
     }
     @else{
-      <button
-        mat-icon-button
-        aria-label="Start guided tour"
-        class="d-flex justify-content-center"
-        (click)="startTour()"
-      >
-        <mat-icon>help</mat-icon>
-      </button>
+      @if(showTourHelpButton){
+        <button
+          mat-icon-button
+          aria-label="Start guided tour"
+          class="d-flex justify-content-center"
+          (click)="startTour()"
+        >
+          <mat-icon>help</mat-icon>
+        </button>
+      }
     }
   }
   <button
