@@ -62,6 +62,7 @@ export class CandidateDetailsComponent implements OnInit {
   canEdit: boolean = false;
   showFullWorkExperience: boolean = false;
   isCreateMode = false;
+  maxFileSize: number =  1 * 1024 * 1024;
   rankingProfiles: any[] = [];
   pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   descriptionOptions = [
@@ -730,7 +731,7 @@ export class CandidateDetailsComponent implements OnInit {
   onProfilePicSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open(
           'Profile picture size should be 1 MB or less',
           'Close',
@@ -756,7 +757,7 @@ export class CandidateDetailsComponent implements OnInit {
   onResumeSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open(
           'Resume size should be 1 MB or less',
           'Close',
