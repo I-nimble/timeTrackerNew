@@ -136,7 +136,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Find your team locations over the world.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'above',
+        yPosition: 'below',
         xPosition: 'before',
         horizontal: isMobile() ? false : true,
       } as const,
