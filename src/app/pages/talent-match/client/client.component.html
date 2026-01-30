@@ -154,47 +154,49 @@
             </div>
           </mat-expansion-panel>
         </mat-accordion>
-        <h4 class="f-w-700 m-b-16 m-t-16">
-          Use AI to better describe the position
-        </h4>
-        <mat-form-field appearance="outline" class="w-100">
-          <textarea
-            matInput
-            rows="4"
-            placeholder="Tell us more about what you need for this role."
-            [(ngModel)]="roleDescription"
-            name="roleDescription"
-            #roleDescModel="ngModel"
-            maxlength="200"
-          ></textarea>
-          <mat-hint align="end"
-            >{{ roleDescription?.length || 0 }}/200</mat-hint
-          >
-          <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
-            Maximum 200 characters allowed.
-          </mat-error>
-        </mat-form-field>
+        <div tourAnchor="tm-ai-box">
+          <h4 class="f-w-700 m-b-16 m-t-16">
+            Use AI to better describe the position
+          </h4>
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              rows="4"
+              placeholder="Tell us more about what you need for this role."
+              [(ngModel)]="roleDescription"
+              name="roleDescription"
+              #roleDescModel="ngModel"
+              maxlength="200"
+            ></textarea>
+            <mat-hint align="end"
+              >{{ roleDescription?.length || 0 }}/200</mat-hint
+            >
+            <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
+              Maximum 200 characters allowed.
+            </mat-error>
+          </mat-form-field>
+          <div class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16">
+            <app-match
+              appearance="outline"
+              class="flex-grow-1 hide-hint m-b-0"
+              style="max-width: max-content;"
+              [loading]="aiLoading"
+              [aiEnabled]="!useManualSearch"
+              [canSearch]="canSearchAI"
+              [showInterviewButton]="true"
+              [interviewDisabled]="selection.selected.length === 0"
+              [showCustomSearch]="!showCustomFilterInput"
+              (interview)="openDialog('Schedule')"
+              [query]="query"
+              placeholder="What position are you looking for?"
+              (askAI)="searchCandidatesWithAI($event)"
+              (searchChange)="useManualSearch ? onManualSearch($event) : null"
+            >
+            </app-match>
+          </div>
+        </div>
       </div>
       <div output>
-        <div class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16">
-          <app-match
-            appearance="outline"
-            class="flex-grow-1 hide-hint m-b-0"
-            style="max-width: max-content;"
-            [loading]="aiLoading"
-            [aiEnabled]="!useManualSearch"
-            [canSearch]="canSearchAI"
-            [showInterviewButton]="true"
-            [interviewDisabled]="selection.selected.length === 0"
-            [showCustomSearch]="!showCustomFilterInput"
-            (interview)="openDialog('Schedule')"
-            [query]="query"
-            placeholder="What position are you looking for?"
-            (askAI)="searchCandidatesWithAI($event)"
-            (searchChange)="useManualSearch ? onManualSearch($event) : null"
-          >
-          </app-match>
-        </div>
         <div *ngIf="aiLoading || aiAnswer" class="mt-16">
           <mat-card color="accent" class="p-16">
             <div>

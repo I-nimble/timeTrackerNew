@@ -10,11 +10,12 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated"
 import * as am5map from "@amcharts/amcharts5/map"
 import am5geodata_worldLow from "@amcharts/amcharts5-geodata/worldLow"
 import { EmployeesService } from "src/app/services/employees.service"
+import { TourMatMenuModule } from "ngx-ui-tour-md-menu"
 
 @Component({
   selector: "app-visit-usa",
   standalone: true,
-  imports: [TablerIconsModule, MaterialModule, NgFor],
+  imports: [TablerIconsModule, MaterialModule, NgFor, TourMatMenuModule],
   templateUrl: "./visit-usa.component.html",
 })
 export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -41,6 +42,12 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
     this.timer = setInterval(() => this.updateDisplayedTime(), 60000);
   }
 
+  isMobile(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.innerWidth < 768;
+  }
   
   fetchLocations() {
     this.employeesService.getLocations().subscribe(

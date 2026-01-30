@@ -1,9 +1,9 @@
-<mat-card class="cardWithShadow h-100 d-flex justify-content-between">
+<mat-card class="cardWithShadow h-100 d-flex justify-content-between" tourAnchor="dash-geofencing">
   <mat-card-content class="p-24">
     <mat-card-title>Geofencing</mat-card-title>
     <div
       id="current-visitors"
-      style="width: 100%; height: 500px"
+      [style]="{width: '100%', height: isMobile() ? '300px' : '500px'}"
       class="m-y-20"
     ></div>
   </mat-card-content>

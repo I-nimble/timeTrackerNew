@@ -8,13 +8,20 @@ export interface SectionConfig {
   steps: RoleTourStep[];
 }
 
+const isMobile = (): boolean => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return window.innerWidth < 768;
+};
+
 export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionConfig[] => {
   const withBase = (step: RoleTourStep): RoleTourStep => ({
     ...baseStep,
     ...step,
   });
 
-  const talentMatchSteps = [
+  let talentMatchSteps = [
     withBase({
       anchorId: 'tm-custom-search',
       title: 'Find talent fast',
@@ -51,28 +58,32 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Review the table, select candidates, and compare profiles.',
       route: '/apps/talent-match',
       placement: {
-        horizontal: true,
-        xPosition: 'before'
+        horizontal: false,
+        xPosition: 'before',
+        yPosition: 'above'
       } as const,
     }),
+  ];
+
+  if (!isMobile()) talentMatchSteps.push(
     withBase({
       anchorId: 'tm-actions',
       title: 'Quick actions',
       content: 'Schedule interviews, download resumes, or mark not interested.',
       route: '/apps/talent-match',
     }),
-  ];
+  );
 
-  const dashboardSteps = [
+  let dashboardSteps = [
     withBase({
       anchorId: 'dash-welcome',
       title: 'Updates',
       content: 'See upcoming events and key team notifications here.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'after',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -81,9 +92,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Tasks, hours, and performance at a glance.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'before',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -92,9 +103,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Distribution of today worked vs remaining hours.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'after',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -103,9 +114,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Track your team status and time trackers.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'before',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -114,19 +125,20 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Progress by status and quick access to Kanban.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'after',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
       anchorId: 'dash-geofencing',
       title: 'Geofencing',
       content: 'Find your team locations over the world.',
+      route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'before',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -135,25 +147,30 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'View weekly worked hours.',
       route: '/dashboards/dashboard2',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'after',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
   ];
 
-  const reportsSteps = [
-    withBase({
-      anchorId: 'side-reports',
-      title: 'Reports',
-      content: 'Open activity and team reports from the sidebar.',
-      route: '/dashboards/reports',
-      placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
-      } as const,
-    }),
+  let reportsSteps : RoleTourStep[] = [];
+  if (!isMobile()) {
+    reportsSteps = [
+      withBase({
+        anchorId: 'side-reports',
+        title: 'Reports',
+        content: 'Open activity and team reports from the sidebar.',
+        route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const,
+      }),
+    ];
+  }
+  reportsSteps.push(...[
     withBase({
       anchorId: 'reports-chart',
       title: 'Team productivity',
@@ -184,7 +201,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       route: '/dashboards/reports',
       placement: {
         yPosition: 'below',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -193,11 +210,11 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Check employee status and completed tasks here.',
       route: '/dashboards/reports',
       placement: {
-        yPosition: 'below',
-        horizontal: true,
+        yPosition: 'above',
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
-  ];
+  ]);
 
   const productivitySteps = [
     withBase({
@@ -508,6 +525,12 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Open your user menu to access account tools.',
       route: '/dashboards/dashboard2',
       delayBeforeStepShow: 200,
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: false,
+      } as const,
+      showArrow: isMobile() ? false : true,
     }),
     withBase({
       anchorId: 'profile-my-profile',
