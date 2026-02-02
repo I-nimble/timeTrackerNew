@@ -41,7 +41,7 @@ export class AppEditInvoiceComponent {
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments', 'actions'];
+  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'locations', 'total-hours', 'comments', 'actions'];
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column', 'empty-column'];
   footerAddEntryColumns = ['add-entry'];
   tax: number = 0;
@@ -52,6 +52,7 @@ export class AppEditInvoiceComponent {
   invoiceForm: UntypedFormGroup;
   editModel = signal<any>({});
   originalData: any = null;
+  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
   changedEntries = new Set<any>();
   changedHourlyRates = new Set<any>();
   loader = new Loader(false, false, false);
@@ -201,6 +202,11 @@ export class AppEditInvoiceComponent {
           }));
         });
         this.loader.complete = true;
+        try {
+          this.buildLocationLinksMap();
+        } catch (e) {
+          console.warn('Failed to build location links map', e);
+        }
       },
       error: () => {
         this.loader.complete = true;
@@ -385,6 +391,62 @@ export class AppEditInvoiceComponent {
     const hours = d.getHours().toString().padStart(2, '0');
     const minutes = d.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
+  }
+
+  getLocationLinks(entryId: number): Array<{ label: string; url: string; title: string }> {
+    const data = this.originalData;
+    if (!data || !data.invoice_locations) return [];
+    const matches = (data.invoice_locations || []).filter((l: any) => l.entry_id === entryId);
+    if (!matches || matches.length === 0) return [];
+    const points = matches.flatMap((m: any) => m.locations || []);
+    if (!points || points.length === 0) return [];
+    const seen = new Set<string>();
+    const out: Array<{ label: string; url: string; title: string }> = [];
+    points.forEach((p: any) => {
+      const lat = parseFloat(p.latitude as any);
+      const lon = parseFloat(p.longitude as any);
+      if (!isFinite(lat) || !isFinite(lon)) return;
+      const key = `${lat.toFixed(5)}:${lon.toFixed(5)}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const label = `Map ${out.length + 1}`;
+      const url = `https://www.google.com/maps?q=${lat},${lon}`;
+      const title = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      out.push({ label, url, title });
+    });
+    return out;
+  }
+
+  openLink(url: string): void {
+    try {
+      window.open(url, '_blank', 'noopener');
+      return;
+    } catch (err) {
+      console.error('Failed to open link', err, url);
+    }
+    try {
+      window.location.href = url;
+    } catch (err) {
+      console.error('Fallback navigation failed', err, url);
+    }
+  }
+
+  buildLocationLinksMap(): void {
+    this.locationLinksMap = {};
+    const data = this.originalData;
+    if (!data) return;
+    const items = data.invoiceItems || [];
+    items.forEach((item: any) => {
+      (item.entries || []).forEach((entry: any) => {
+        try {
+          const links = this.getLocationLinks(entry.id) || [];
+          this.locationLinksMap[entry.id] = links;
+        } catch (err) {
+          console.warn('buildLocationLinksMap (edit): failed for entry', entry.id, err);
+          this.locationLinksMap[entry.id] = [];
+        }
+      });
+    });
   }
 
   getTotalHoursForItem(item: any): number {

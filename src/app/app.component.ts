@@ -5,6 +5,9 @@ import { RocketChatService } from './services/rocket-chat.service';
 import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { WebSocketService } from './services/socket/web-socket.service';
+import { GeolocationRequest } from './models/geolocation.model';
+import { LocationService } from './services/location.service';
 
 @Component({
   selector: 'app-root',
@@ -29,11 +32,15 @@ export class AppComponent implements OnInit, OnDestroy {
   jitsiMinimized = false;
   private jitsiSub: Subscription | null = null;
   private jitsiCompRef: ComponentRef<any> | null = null;
+  private geolocationRequestSub: Subscription | null = null;
+  private geolocationPermissionDenied = false;
 
   @ViewChild('jitsiHost', { read: ViewContainerRef, static: true }) jitsiHost!: ViewContainerRef;
 
   constructor(
-    private rocketChatService: RocketChatService
+    private rocketChatService: RocketChatService,
+    private webSocketService: WebSocketService,
+    private locationService: LocationService
   ) { }
 
   async ngOnInit() {
@@ -60,14 +67,36 @@ export class AppComponent implements OnInit, OnDestroy {
         } catch (e) {}
       });
     } catch (e) {}
+
+    this.setupGeolocationListener();
+
+    const role = localStorage.getItem('role');
+    if (role == '2') {
+      setTimeout(() => {
+        this.locationService.startTracking();
+        this.locationService.forceUpdate(); 
+      }, 2000);
+    }
   }
 
   ngOnDestroy(): void {
     try { this.jitsiSub?.unsubscribe(); } catch (e) {}
     try { this.jitsiCompRef?.destroy(); } catch (e) {}
+    try { this.geolocationRequestSub?.unsubscribe(); } catch (e) {}
   }
 
   onJitsiClosed() {
     try { this.rocketChatService.closeJitsiMeeting(); } catch (e) {}
+  }
+
+  private setupGeolocationListener(): void {
+    this.geolocationRequestSub = this.webSocketService.getGeolocationRequestStream().subscribe({
+      next: (request: GeolocationRequest) => {
+        this.locationService.forceUpdate(true);
+      },
+      error: (err) => {
+        console.error('Error in geolocation request stream', err);
+      }
+    });
   }
 }
