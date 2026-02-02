@@ -476,8 +476,65 @@
 }
 
 .replied-highlight {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-  transition: box-shadow 0.25s ease-in-out;
+  .message-bubble {
+    filter: brightness(0.5);
+    animation: bounce .8s ease;
+  }
+}
+
+.replied-highlight.from-me {
+  .message-bubble {
+    filter: brightness(0.5);
+    animation: bounce-me .8s ease;
+  }
+}
+
+@keyframes bounce {
+  55% { 
+    transform:translateX(-3px); 
+  }
+  80% { 
+    transform:translateX(10px); 
+  }
+  90% { 
+    transform:translateX(0px); 
+  }
+  95% { 
+    transform:translateX(7px); 
+  }
+  97% { 
+    transform:translateX(0px); 
+  }
+  99% { 
+    transform:translateX(3px); 
+  }
+  100% { 
+    transform:translateX(0px); 
+  }
+}
+
+@keyframes bounce-me {
+  55% { 
+    transform:translateX(3px); 
+  }
+  80% { 
+    transform:translateX(-10px); 
+  }
+  90% { 
+    transform:translateX(0px); 
+  }
+  95% { 
+    transform:translateX(-7px); 
+  }
+  97% { 
+    transform:translateX(0px); 
+  }
+  99% { 
+    transform:translateX(-3px); 
+  }
+  100% { 
+    transform:translateX(0px); 
+  }
 }
 
 .reply-preview-inside {
