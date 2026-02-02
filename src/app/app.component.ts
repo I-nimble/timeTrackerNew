@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, NgZone } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MaterialModule } from './material.module';
 import { RocketChatService } from './services/rocket-chat.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
@@ -12,11 +13,12 @@ import { LocationService } from './services/location.service';
 import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
 import { RoleTourService } from './services/role-tour.service';
 import { RoleTourStep } from './services/role-tour-steps';
+import { TourStepComponent } from './components/tour-step/tour-step.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, TourMatMenuModule],
+  imports: [RouterOutlet, CommonModule, MaterialModule, TourMatMenuModule, TourStepComponent],
   templateUrl: './app.component.html',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   changeDetection: ChangeDetectionStrategy.Default
@@ -55,7 +57,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private webSocketService: WebSocketService,
     private locationService: LocationService,
     private roleTourService: RoleTourService,
-    private tourService: TourService<RoleTourStep>,
+    public tourService: TourService<RoleTourStep>,
     private router: Router,
     private ngZone: NgZone
   ) { }
@@ -289,5 +291,9 @@ export class AppComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       requestAnimationFrame(tryStart);
     }, 0);
+  }
+
+  onTourSkip(): void {
+    this.roleTourService.skipActiveTour();
   }
 }
