@@ -92,7 +92,7 @@ export class AppSideLoginComponent {
      private companieService: CompaniesService,
      private authService: AuthService,
      private snackBar: MatSnackBar,
-     private rocketChatService: RocketChatService
+     private rocketChatService: RocketChatService,
      private locationService: LocationService
   ) {}
 
