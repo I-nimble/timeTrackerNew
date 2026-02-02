@@ -254,6 +254,7 @@ export class RoleTourService {
       delayBeforeStepShow: 100,
       enableBackdrop: true,
       allowUserInitiatedNavigation: false,
+      isOptional: true,
     };
     return buildClientSections(baseStep);
   }
