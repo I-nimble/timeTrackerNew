@@ -311,6 +311,26 @@ export class RocketChatService {
     }
     return new Date();
   }
+  
+  private formatNotificationBody(rawText: string): string {
+    const text = (rawText || '').trim();
+    if (!text) return 'New message';
+
+    const markdownQuotePattern = /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const directUrlPattern = /https?:\/\/\S+\/direct\/\S+\?msg=\S+\s*/gi;
+
+    const cleaned = text
+      .replace(markdownQuotePattern, '')
+      .replace(directUrlPattern, '')
+      .trim();
+
+    const hadQuote = cleaned !== text;
+    const base = hadQuote
+      ? `replied: ${cleaned.length > 0 ? cleaned : 'message'}`
+      : text;
+
+    return base.length > 200 ? base.slice(0, 200) : base;
+  }
 
   async connectWebSocket(): Promise<void> {
     if (!this.credentials) {
@@ -696,8 +716,9 @@ export class RocketChatService {
                 const fromUserId = lastMessage.u?._id;
                 const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
                 if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
-                  const text = (lastMessage.msg && String(lastMessage.msg).slice(0, 200)) || '';
-                  const isCallMessage = lastMessage.t === 'videoconf' || (typeof text === 'string' && /jitsi|call/i.test(text));
+                  const rawText = (lastMessage.msg && String(lastMessage.msg)) || '';
+                  const previewText = rawText.slice(0, 200);
+                  const isCallMessage = lastMessage.t === 'videoconf' || (typeof previewText === 'string' && /jitsi|call/i.test(previewText));
                   const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
 
                   if (isCallMessage) {
@@ -713,7 +734,7 @@ export class RocketChatService {
                     try { this.playNotificationSound(); } catch (e) {}
                     try {
                       const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
-                      const body = text || 'New message';
+                      const body = this.formatNotificationBody(rawText);
                       this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
                       console.error('Error showing push for user notify message:', err);
