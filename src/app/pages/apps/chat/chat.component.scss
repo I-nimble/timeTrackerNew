@@ -347,8 +347,8 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.message:hover .message-actions,
-.message:focus-within .message-actions {
+.message-bubble:hover .message-actions,
+.message-bubble:focus-within .message-actions {
   opacity: 1;
   transform: translateY(0);
 }
