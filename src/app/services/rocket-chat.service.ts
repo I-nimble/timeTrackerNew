@@ -48,6 +48,7 @@ export class RocketChatService {
   private unreadMapSubject = new BehaviorSubject<Record<string, number>>({});
   private activeJitsiSubject = new BehaviorSubject<any | null>(null);
   private currentActiveRoom: string | null = null;
+  private hiddenRoomIds = new Set<string>();
 
   private serverUpdatedSubject = new Subject<any>();
 
@@ -310,6 +311,41 @@ export class RocketChatService {
       }
     }
     return new Date();
+  }
+
+  private isTeamMainRoom(room: any): boolean {
+    return !!room?.teamMain;
+  }
+
+  private isBotMessage(message: any): boolean {
+    if (!message) return false;
+    if (message.t === 'bot') return true;
+    return this.isBotUser(message.u);
+  }
+
+  private isBotUser(user: any): boolean {
+    const username = (user?.username || '').toLowerCase();
+    if (!username) return false;
+    return (
+      username === 'rocket.cat' ||
+      username === 'jitsi.bot'
+    );
+  }
+
+  private shouldCountUnread(roomId: string, message?: any): boolean {
+    if (!roomId) return false;
+    if (this.hiddenRoomIds.has(roomId)) return false;
+    if (message && this.isBotMessage(message)) return false;
+    return true;
+  }
+
+  private shouldCountUnreadFromSubscription(sub: any): boolean {
+    const roomId = sub?.rid || sub?._id || sub?.roomId;
+    if (!roomId) return false;
+    if (this.hiddenRoomIds.has(roomId)) return false;
+    if (this.isTeamMainRoom(sub)) return false;
+    if (this.isBotUser(sub?.u)) return false;
+    return true;
   }
   
   private formatNotificationBody(rawText: string): string {
@@ -619,12 +655,20 @@ export class RocketChatService {
             rooms.forEach((r: any) => {
               const roomId = r && (r._id || r.id || r.roomId);
               if (!roomId) return;
+              if (this.isTeamMainRoom(r)) {
+                this.hiddenRoomIds.add(roomId);
+                delete this.unreadMap[roomId];
+                return;
+              } else {
+                this.hiddenRoomIds.delete(roomId);
+              }
               if (!this.activeSubscriptions.has(roomId)) {
                 this.subscribeToRoomMessages(roomId).catch((err) => {
                   console.error(`Failed subscribing to room ${roomId} on connect:`, err);
                 });
               }
             });
+            this.publishUnreadMap();
           }
         },
         error: (err) => console.error('Failed to load rooms on connect:', err),
@@ -654,7 +698,7 @@ export class RocketChatService {
               (typeof text === 'string' && /jitsi|call/i.test(text)) ||
               (!!messageData.attachments && messageData.attachments.some((a: any) => (a.title || '').toLowerCase().includes('call')));
 
-            if (!isCallMessage) {
+            if (!isCallMessage && this.shouldCountUnread(messageData.rid, messageData)) {
               try { this.incrementUnreadForRoom(messageData.rid); } catch (e) {}
             }
           }
@@ -720,24 +764,33 @@ export class RocketChatService {
                   const previewText = rawText.slice(0, 200);
                   const isCallMessage = lastMessage.t === 'videoconf' || (typeof previewText === 'string' && /jitsi|call/i.test(previewText));
                   const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
+                  const canCountUnread = this.shouldCountUnread(payload.rid, lastMessage);
 
                   if (isCallMessage) {
-                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                    try { this.playCallSound(); } catch (e) {}
-                    try {
-                      this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
-                    } catch (err) {
-                      console.error('Error showing push for call user notify message:', err);
+                    if (canCountUnread) {
+                      try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                      try { this.playCallSound(); } catch (e) {}
+                    }
+                    if (canCountUnread) {
+                      try {
+                        this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
+                      } catch (err) {
+                        console.error('Error showing push for call user notify message:', err);
+                      }
                     }
                   } else {
-                    try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                    try { this.playNotificationSound(); } catch (e) {}
-                    try {
-                      const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
-                      const body = this.formatNotificationBody(rawText);
-                      this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
-                    } catch (err) {
-                      console.error('Error showing push for user notify message:', err);
+                    if (canCountUnread) {
+                      try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
+                      try { this.playNotificationSound(); } catch (e) {}
+                    }
+                    if (canCountUnread) {
+                      try {
+                        const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
+                        const body = this.formatNotificationBody(rawText);
+                        this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
+                      } catch (err) {
+                        console.error('Error showing push for user notify message:', err);
+                      }
                     }
                   }
                 }
@@ -940,7 +993,7 @@ export class RocketChatService {
   }
 
   incrementUnreadForRoom(roomId: string, by: number = 1): void {
-    if (!roomId) return;
+    if (!roomId || this.hiddenRoomIds.has(roomId)) return;
     this.unreadMap[roomId] = (this.unreadMap[roomId] || 0) + by;
     this.publishUnreadMap();
   }
@@ -951,6 +1004,13 @@ export class RocketChatService {
       arr.forEach((s: any, idx: number) => {
         const key = s?.rid || s?._id || `sub-${idx}`;
         if (this.currentActiveRoom && key === this.currentActiveRoom) {
+          return;
+        }
+        if (!this.shouldCountUnreadFromSubscription(s)) {
+          if (this.isTeamMainRoom(s)) {
+            this.hiddenRoomIds.add(key);
+          }
+          delete this.unreadMap[key];
           return;
         }
         if ('unread' in s) {
