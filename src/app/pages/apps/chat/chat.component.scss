@@ -332,14 +332,15 @@
 
 .message-actions {
   position: absolute;
-  top: -4rem;
+  top: -3.5rem;
   right: .5rem;
   display: flex;
   gap: 6px;
   align-items: center;
   opacity: 0;
   transform: translateY(-6px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 800ms;
   z-index: 20;
   background: var(--mat-sys-surface);
   padding: 6px;
@@ -351,17 +352,40 @@
 .message-bubble:focus-within .message-actions {
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
+  transition-delay: 200ms, 200ms, 0ms;
+}
+
+.message-actions:hover {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  transition-delay: 0ms, 0ms, 0ms;
 }
 
 .message.show-actions .message-actions {
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
+  transition-delay: 0ms, 0ms, 0ms;
 }
 
 .message.message-out .message-actions {
   right: 8px;
 }
 
+.message-actions.hidden {
+  opacity: 0;
+  visibility: hidden !important;
+  transition-delay: 0ms, 0ms, 0ms;
+}
+
+.reply-preview-inside:hover + .message-bubble .message-actions {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition-delay: 0ms;
+}
 // .message-actions.from-me {
 //   right: auto;
 //   left: 8px;
@@ -611,6 +635,10 @@
 .reply-preview-inside span {
   font-size: 12px;
   color: var(--chat-label-color);
+}
+
+.editing-preview-text {
+  white-space: pre-line;
 }
 
 .reply-preview-inside:hover {

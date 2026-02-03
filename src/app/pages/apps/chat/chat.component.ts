@@ -105,6 +105,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   showEmojiPicker = false;
   reactionTargetMessage: RocketChatMessage | null = null;
   showReactionPicker = false;
+  private editingQuoteUrl: string | null = null;
 
   private quotedMessageCache = new Map<string, RocketChatMessage | null>();
   private quotedMessageInFlight = new Set<string>();
@@ -1469,7 +1470,10 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     if (this.editingMessage) {
-      const updatedText = this.newMessage.trim();
+      const baseText = this.newMessage.trim();
+      const updatedText = this.editingQuoteUrl
+        ? `${this.editingQuoteUrl}\n${baseText}`
+        : baseText;
 
       this.chatService
         .editMessage(
@@ -1481,6 +1485,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           next: (res) => {
             this.editingMessage!.msg = updatedText;
             this.editingMessage = null;
+            this.editingQuoteUrl = null;
             this.newMessage = '';
 
             this.cdr.detectChanges();
@@ -1971,12 +1976,30 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   editMessage(message: RocketChatMessage) {
     this.replyToMessage = null;
     this.editingMessage = message;
-    this.newMessage = message.msg;
+    const quoteInfo = this.extractQuoteInfoFromText(message.msg || '');
+    this.editingQuoteUrl = quoteInfo.quoteUrl;
+    this.newMessage = this.getMessageTextWithoutQuote(message) || '';
   }
   
   cancelEditing() {
     this.editingMessage = null;
+    this.editingQuoteUrl = null;
     this.newMessage = '';
+  }
+
+  getEditingPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+
+    const quoted = this.getQuotedMessage(message);
+    const currentText = (this.newMessage || '').trim() || this.getMessageTextWithoutQuote(message);
+
+    if (quoted) {
+      const quotedText = this.getQuotedTextOrAttachment(quoted);
+      const quotedName = this.getSenderName(quoted);
+      return `replied to ${quotedName}: ${quotedText}\n${currentText}`;
+    }
+
+    return currentText;
   }
 
   deleteMessage(message: RocketChatMessage) {
