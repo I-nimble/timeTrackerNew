@@ -311,6 +311,26 @@ export class RocketChatService {
     }
     return new Date();
   }
+  
+  private formatNotificationBody(rawText: string): string {
+    const text = (rawText || '').trim();
+    if (!text) return 'New message';
+
+    const markdownQuotePattern = /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const directUrlPattern = /https?:\/\/\S+\/direct\/\S+\?msg=\S+\s*/gi;
+
+    const cleaned = text
+      .replace(markdownQuotePattern, '')
+      .replace(directUrlPattern, '')
+      .trim();
+
+    const hadQuote = cleaned !== text;
+    const base = hadQuote
+      ? `replied: ${cleaned.length > 0 ? cleaned : 'message'}`
+      : text;
+
+    return base.length > 200 ? base.slice(0, 200) : base;
+  }
 
   async connectWebSocket(): Promise<void> {
     if (!this.credentials) {
@@ -696,8 +716,9 @@ export class RocketChatService {
                 const fromUserId = lastMessage.u?._id;
                 const isFromCurrentUser = !!(fromUserId && this.loggedInUser && fromUserId === this.loggedInUser._id);
                 if (!isFromCurrentUser && payload.rid !== this.currentActiveRoom) {
-                  const text = (lastMessage.msg && String(lastMessage.msg).slice(0, 200)) || '';
-                  const isCallMessage = lastMessage.t === 'videoconf' || (typeof text === 'string' && /jitsi|call/i.test(text));
+                  const rawText = (lastMessage.msg && String(lastMessage.msg)) || '';
+                  const previewText = rawText.slice(0, 200);
+                  const isCallMessage = lastMessage.t === 'videoconf' || (typeof previewText === 'string' && /jitsi|call/i.test(previewText));
                   const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
 
                   if (isCallMessage) {
@@ -706,24 +727,24 @@ export class RocketChatService {
                     try {
                       this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
-                      console.debug('Error showing push for call user notify message:', err);
+                      console.error('Error showing push for call user notify message:', err);
                     }
                   } else {
                     try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
                     try { this.playNotificationSound(); } catch (e) {}
                     try {
                       const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
-                      const body = text || 'New message';
+                      const body = this.formatNotificationBody(rawText);
                       this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
-                      console.debug('Error showing push for user notify message:', err);
+                      console.error('Error showing push for user notify message:', err);
                     }
                   }
                 }
               }
             });
           } catch (err) {
-            console.debug('Error while handling user notify payload for audio:', err);
+            console.log('Error while handling user notify payload for audio:', err);
           }
         } else {
           this.userNotifySubject.next(message);
@@ -1179,7 +1200,7 @@ export class RocketChatService {
         audio.play().catch(() => {});
       }
     } catch (err) {
-      console.debug('playNotificationSound error:', err);
+      console.error('playNotificationSound error:', err);
     }
   }
 
@@ -1194,7 +1215,7 @@ export class RocketChatService {
         audio.play().catch(() => {});
       }
     } catch (err) {
-      console.debug('playCallSound error:', err);
+      console.error('playCallSound error:', err);
     }
   }
 
@@ -1504,7 +1525,13 @@ export class RocketChatService {
     );
   }
 
-  sendMessage(roomId: string, message: string, attachments?: RocketChatMessageAttachment[], tmid?: string): Observable<any> {
+  sendMessage(
+    roomId: string,
+    message: string,
+    attachments?: RocketChatMessageAttachment[],
+    tmid?: string,
+    previewUrls?: string[]
+  ): Observable<any> {
     return this.http.post(
       `${this.CHAT_API_URI}chat.sendMessage`,
       {
@@ -1512,7 +1539,8 @@ export class RocketChatService {
           rid: roomId,
           msg: message,
           ...(attachments && { attachments }),
-          ...(tmid && { tmid, tshow: true })
+          ...(tmid && { tmid, tshow: true }),
+          ...(previewUrls !== undefined && { previewUrls })
         }
       },
       { headers: this.getAuthHeaders() }
