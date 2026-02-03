@@ -771,22 +771,26 @@ export class RocketChatService {
                       try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
                       try { this.playCallSound(); } catch (e) {}
                     }
-                    try {
-                      this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
-                    } catch (err) {
-                      console.error('Error showing push for call user notify message:', err);
+                    if (canCountUnread) {
+                      try {
+                        this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
+                      } catch (err) {
+                        console.error('Error showing push for call user notify message:', err);
+                      }
                     }
                   } else {
                     if (canCountUnread) {
                       try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
                       try { this.playNotificationSound(); } catch (e) {}
                     }
-                    try {
-                      const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
-                      const body = this.formatNotificationBody(rawText);
-                      this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
-                    } catch (err) {
-                      console.error('Error showing push for user notify message:', err);
+                    if (canCountUnread) {
+                      try {
+                        const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
+                        const body = this.formatNotificationBody(rawText);
+                        this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
+                      } catch (err) {
+                        console.error('Error showing push for user notify message:', err);
+                      }
                     }
                   }
                 }
