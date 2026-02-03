@@ -1,13 +1,11 @@
-<mat-card class="cardWithShadow h-100 d-flex justify-content-between">
+<mat-card class="cardWithShadow h-100 d-flex flex-column">
   <mat-card-content class="p-24">
     <mat-card-title>Geofencing</mat-card-title>
     <div
       id="current-visitors"
-      style="width: 100%; height: 500px"
+      style="width: 100%; height: 550px"
       class="m-y-20"
     ></div>
-  </mat-card-content>
-  <mat-card-content>
     <div *ngFor="let location of locations" class="d-flex align-items-center justify-content-between gap-16 m-t-20">
       <span class="f-w-600 f-s-14">{{ location.country }}, {{ location.city }}</span>
       <p class="f-w-600 f-s-14">
@@ -17,7 +15,7 @@
         </span>
       </p>
     </div>
-    <div class="client-location-section m-b-20">
+    <div class="client-location-section m-b-20 m-t-24">
       <h4 class="f-w-600 f-s-16 m-b-10">Your Location</h4>
       <div *ngIf="clientLocation" class="d-flex align-items-center justify-content-between gap-16">
         <span class="f-w-600 f-s-14">
