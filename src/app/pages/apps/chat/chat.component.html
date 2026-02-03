@@ -248,8 +248,7 @@
                         [class.hidden]="!isActionsVisible(message)"
                         *ngIf="
                           !isSystemMessage(message) &&
-                          message.t !== 'videoconf' &&
-                          (!isReplyMessage(message) || isFromMe(message))
+                          message.t !== 'videoconf'
                         "
                         [class.from-me]="isFromMe(message)"
                       >
