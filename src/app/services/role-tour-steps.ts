@@ -607,11 +607,11 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       routes: ['/dashboards/reports'],
       steps: reportsSteps,
     },
-    // {
-    //   key: 'productivity',
-    //   routes: ['/dashboards/productivity'],
-    //   steps: productivitySteps,
-    // },
+    {
+      key: 'productivity',
+      routes: ['/dashboards/productivity'],
+      steps: productivitySteps,
+    },
     // {
     //   key: 'chat',
     //   routes: ['/apps/chat'],
