@@ -28,4 +28,8 @@ export class TourStepComponent {
   onKanbanOpenNext(): void {
     this.roleTourService.requestKanbanBoardOpen();
   }
+
+  onChatOpenNext(): void {
+    this.roleTourService.requestChatConversationOpen();
+  }
 }

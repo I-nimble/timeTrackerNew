@@ -75,9 +75,10 @@
         <div class="contacts-wrapper" tourAnchor="chat-contacts">
           <div
             class="contact-item"
-            *ngFor="let room of filteredRooms()"
+            *ngFor="let room of filteredRooms(); let i = index"
             [class.active]="selectedConversation?._id === room?._id"
             (click)="selectRoom(room)"
+            [tourAnchor]="i === 0 ? 'chat-first-conversation' : ''"
           >
             <img [src]="getConversationPicture(room) || defaultAvatarUrl" />
             <div class="contact-info">
@@ -102,6 +103,7 @@
               [matMenuTriggerFor]="menu"
               #menuTrigger="matMenuTrigger"
               (click)="$event.stopPropagation()"
+              [tourAnchor]="i === 0 ? 'chat-conversation-actions' : ''"
             >
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -195,6 +197,7 @@
             (click)="call('audio')"
             class="m-l-auto"
             aria-label="Call"
+            tourAnchor="chat-start-call"
           >
             <mat-icon>call</mat-icon>
           </button>
@@ -204,6 +207,7 @@
             (click)="call('video')"
             class="m-l-auto"
             aria-label="Video call"
+            tourAnchor="chat-start-video-call"
           >
             <mat-icon>video_call</mat-icon>
           </button>
@@ -211,6 +215,7 @@
             mat-icon-button
             [matMenuTriggerFor]="chatMenu"
             class="m-l-auto"
+            tourAnchor="chat-selected-actions"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -585,8 +590,8 @@
           </div>
         </div>
 
-        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
-          <button mat-icon-button matPrefix>
+        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100" tourAnchor="chat-message-input">
+          <button mat-icon-button matPrefix (click)="selectFile()" tourAnchor="chat-attach-files">
             <mat-icon>attach_file</mat-icon>
           </button>
           <button
@@ -602,6 +607,7 @@
             class="voice-btn"
             (click)="onVoiceButtonClick($event)"
             aria-label="Voice message"
+            tourAnchor="chat-audio-record"
           >
             <mat-icon *ngIf="!isRecording">mic</mat-icon>
             <mat-icon *ngIf="isRecording">stop</mat-icon>

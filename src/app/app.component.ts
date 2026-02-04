@@ -185,6 +185,11 @@ export class AppComponent implements OnInit, OnDestroy {
       console.log('[tour] kanbanOpenRequests');
       this.openKanbanFirstBoardForTour();
     });
+
+    this.roleTourService.chatOpenRequests$.subscribe(() => {
+      console.log('[tour] chatOpenRequests');
+      this.openChatFirstConversationForTour();
+    });
   }
 
   private setIsScrollable(isScrollable: boolean) {
@@ -287,6 +292,20 @@ export class AppComponent implements OnInit, OnDestroy {
       ) ?? new Promise(() => undefined)
     ).then(() => console.log('[tour] anchor registered', { anchorId }))
       .catch(() => console.log('[tour] anchor wait timed out', { anchorId }));
+  }
+
+  private async openChatFirstConversationForTour() {
+    if (typeof document === 'undefined') return;
+    const anchor = document.querySelector('[ng-reflect-tour-anchor="chat-first-conversation"]') as HTMLElement | null;
+    if (!anchor) {
+      console.warn('chat first conversation anchor missing');
+      return;
+    }
+    try { anchor.click(); } catch (e) {console.error(e)}
+
+    const nextAnchor = 'chat-message-input';
+    await this.waitForTourAnchor(nextAnchor, 2000);
+    this.tourService.next();
   }
 
   private repositionTourStep(step: RoleTourStep | undefined) {

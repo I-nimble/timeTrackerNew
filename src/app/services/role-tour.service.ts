@@ -29,6 +29,9 @@ export class RoleTourService {
   private kanbanOpenRequests = new Subject<void>();
   kanbanOpenRequests$ = this.kanbanOpenRequests.asObservable();
 
+  private chatOpenRequests = new Subject<void>();
+  chatOpenRequests$ = this.chatOpenRequests.asObservable();
+
   constructor(
     private tourService: TourService<RoleTourStep>,
     private tourApi: TourApiService,
@@ -78,6 +81,10 @@ export class RoleTourService {
 
   requestKanbanBoardOpen() {
     this.kanbanOpenRequests.next();
+  }
+
+  requestChatConversationOpen() {
+    this.chatOpenRequests.next();
   }
 
   resumeAtIndex(index: number) {
