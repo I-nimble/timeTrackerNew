@@ -47,6 +47,11 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { MatTooltip } from '@angular/material/tooltip';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-chat',
@@ -64,7 +69,13 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MatButtonModule,
     MatMenuModule,
     CreateRoomComponent,
-    ChatInfoComponent
+    ChatInfoComponent,
+    MarkdownPipe,
+    LinebreakPipe,
+    PickerModule,
+    EmojiMartPipe,
+    MatTooltip,
+    TourMatMenuModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -127,7 +138,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog, public emojiPipe: EmojiMartPipe) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -391,6 +402,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return userRoles.some(r => roles.includes(r));
   }
 
+  isActionsVisible(message: RocketChatMessage) {
+    if (!this.isMobile) return true;
+    return this.pressedMessageId === message._id;
+  }
+
   isSystemMessage(message: RocketChatMessage): boolean {
     const systemTypes = [
       'rm', 'r',
@@ -561,40 +577,90 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return 'file';
   }
 
-async downloadFile(attachment: RocketChatMessageAttachment) {
-  const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
-  if (!fullFileName) return;
+  async downloadFile(attachment: RocketChatMessageAttachment, messageId?: string) {
+    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+    if (!fullFileName) return;
 
-  const fileNameInS3 = fullFileName.split('/')[2];
-  const groupId = this.selectedConversation?._id;
-  
-  if (!groupId) return;
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+    
+    if (!groupId) return;
 
-  const segment1 = groupId;
-  const segment2 = groupId.substring(17);
-  const downloadUrl = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
-  const originalFileName = attachment.title || fileNameInS3;
+    const segment1 = groupId;
+    const segment2 = groupId.substring(0, 17);
+    const segment3 = groupId.substring(17);
 
-  try {
-    const response = await fetch(downloadUrl);
-    const blob = await response.blob();
-    
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = originalFileName;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    window.URL.revokeObjectURL(blobUrl);
-    
-  } catch (error) {
-    window.open(downloadUrl, '_blank');
+    const url1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const url2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
+    const originalFileName = attachment.title || fileNameInS3;
+
+    if (messageId) {
+      if (this.mediaPlayable.get(`${messageId}|1`)) {
+        if (await this.tryDownloadAndSave(url1, originalFileName)) return;
+        window.open(url1, '_blank');
+        return;
+      }
+      if (this.mediaPlayable.get(`${messageId}|2`)) {
+        if (await this.tryDownloadAndSave(url2, originalFileName)) return;
+        window.open(url2, '_blank');
+        return;
+      }
+    }
+
+    const tryDownload = async (url: string): Promise<'ok' | 'error' | 'network_error'> => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return 'error';
+        const blob = await response.blob();
+        
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = originalFileName;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(blobUrl);
+        return 'ok';
+      } catch (error) {
+        return 'network_error';
+      }
+    };
+
+    const result1 = await tryDownload(url1);
+    if (result1 === 'ok') return;
+
+    const result2 = await tryDownload(url2);
+    if (result2 === 'ok') return;
+
+    if (result2 === 'network_error') {
+      window.open(url2, '_blank');
+    } else {
+      window.open(url1, '_blank');
+    }
   }
-}
+
+  private async tryDownloadAndSave(url: string, fileName: string): Promise<boolean> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return false;
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   selectFile() {
     this.isSendingMessage = true;
@@ -1176,6 +1242,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
     this.selectedConversation = room;
     this.typingUsers = [];
+    if (this.isMobile) {
+      this.sidebar?.close();
+    }
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -1345,7 +1414,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
-    getTypingText(): string {
+  getTypingText(): string {
     if (this.typingUsers.length === 0) return '';
 
     if (this.typingUsers.length === 1) {
@@ -1510,7 +1579,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     const previewUrls = quoteUrl ? [] : undefined;
 
     this.chatService
-      .sendMessageWithConfirmation(
+      .sendMessage(
         this.selectedConversation._id,
         finalMessage,
         [],
@@ -1531,7 +1600,15 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         },
       });
   }
-  
+
+  onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    if (!keyboardEvent.shiftKey) {
+      keyboardEvent.preventDefault();
+      this.sendMessage();
+    }
+  }
+
   getLocalTime(offset: number | undefined): string {
     if (offset === undefined || offset === null) return '';
 
@@ -1543,6 +1620,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarOpen ? this.sidebar.open() : this.sidebar.close();
   }
 
   private scrollToBottom() {
