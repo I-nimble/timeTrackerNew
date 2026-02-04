@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   CdkDragDrop,
   DragDropModule,
@@ -20,7 +20,8 @@ import { EmployeesService } from 'src/app/services/employees.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
-import { forkJoin } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
@@ -40,7 +41,7 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     TourMatMenuModule
   ],
 })
-export class AppKanbanComponent implements OnInit {
+export class AppKanbanComponent implements OnInit, OnDestroy {
   role = localStorage.getItem('role');
   boards: any[] = [];
   todos: Todos[] = [];
@@ -53,6 +54,10 @@ export class AppKanbanComponent implements OnInit {
   isLoading = true;
   userId: string | null;
   taskSearch: string = '';
+  private searchInput$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
+  private readonly searchDebounceMs = 300;
+  isSearching = false;
   developmentTeamEmails: string[] = environment.developmentTeamEmails;
   userEmail: string = localStorage.getItem('email') || '';
 
@@ -69,32 +74,81 @@ export class AppKanbanComponent implements OnInit {
   ngOnInit(): void {
     this.userId = localStorage.getItem('id');
 
+    this.searchInput$
+      .pipe(
+        debounceTime(this.searchDebounceMs),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((query) => {
+        this.applySearch(query);
+      });
+
     this.route.paramMap.subscribe(params => {
       const boardIdParam = params.get('id');
       this.selectedBoardId = boardIdParam ? +boardIdParam : null;
-      this.loadBoards().then(() => {
-        this.loadTasks(this.selectedBoardId);
-      });
+      if (this.selectedBoardId) {
+        this.loadSelectedBoard(this.selectedBoardId).then(() => {
+          this.loadTasks(this.selectedBoardId);
+        });
+      } else {
+        this.isLoading = false;
+        this.selectedBoardColumns = [];
+      }
     });
   }
 
-  onSearchTasks() {
-    const query = this.taskSearch?.trim();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearchInput(value: string) {
+    this.taskSearch = value || '';
+    this.searchInput$.next(this.taskSearch);
+  }
+
+  applySearch(rawQuery: string): void {
+    const query = (rawQuery || '').trim().toLowerCase();
+    this.isSearching = !!query;
+
     if (!query) {
-      this.loadTasks(this.selectedBoardId);
+      this.resetFilteredTasks();
       return;
     }
-    if (!this.selectedBoardId) {
-      this.showSnackbar('Please select a board first');
-      return;
-    }
-    this.kanbanService.searchTasks(this.selectedBoardId, query).subscribe((tasks: any[]) => {
-      this.selectedBoardColumns.forEach(col => col.tasks = []);
-      tasks.forEach(task => {
-        const col = this.selectedBoardColumns.find(c => c.id === task.column_id);
-        if (col) col.tasks.push(task);
-      });
+
+    this.selectedBoardColumns.forEach((column) => {
+      const sourceTasks = column.allTasks || column.tasks || [];
+      column.tasks = sourceTasks.filter((task: any) =>
+        this.matchesTask(task, query)
+      );
     });
+  }
+
+  private resetFilteredTasks(): void {
+    this.selectedBoardColumns.forEach((column) => {
+      if (column.allTasks) {
+        column.tasks = [...column.allTasks];
+      } else {
+        column.allTasks = [...(column.tasks || [])];
+      }
+    });
+  }
+
+  private matchesTask(task: any, query: string): boolean {
+    const haystack = [
+      task?.goal,
+      task?.recommendations,
+      task?.id,
+      task?.priorityAssociation?.name,
+      task?.user?.name,
+      task?.user?.last_name,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    return haystack.includes(query);
   }
 
   get selectedBoard() {
@@ -118,49 +172,44 @@ export class AppKanbanComponent implements OnInit {
     });
   }
 
+  loadSelectedBoard(boardId: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.kanbanService.getBoardById(boardId).subscribe({
+        next: (board) => {
+          this.boards = board ? [board] : [];
+          this.isLoading = false;
+          resolve();
+        },
+        error: (err) => {
+          console.error(err);
+          this.isLoading = false;
+          reject(err);
+        }
+      });
+    });
+  }
+
   loadTasks(boardId: number | null): void {
     if (boardId === null) {
-      this.kanbanService.getAllBoardsTasks().subscribe((allBoardsData) => {
-        const columnsMap = new Map<string, any>();
-
-        allBoardsData.forEach((board: { columns: any[]; tasks: any[] }) => {
-          const columns = board.columns || [];
-          const tasks = board.tasks || [];
-          columns.forEach((column) => {
-            if (columnsMap.has(column.name)) {
-              const existing = columnsMap.get(column.name);
-
-              existing.tasks.push(
-                ...tasks.filter((task: any) => task.column_id === column.id)
-              );
-            } else {
-              columnsMap.set(column.name, {
-                ...column,
-
-                tasks: tasks.filter(
-                  (task: any) => task.column_id === column.id
-                ),
-              });
-            }
-          });
-        });
-
-        this.selectedBoardColumns = Array.from(columnsMap.values()).sort(
-          (a, b) => a.position - b.position
-        );
-      });
-    } else {
-      this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
-        this.selectedBoardColumns = boardData.columns || [];
-        this.selectedBoardColumns.sort((a, b) => a.position - b.position);
-        const tasks = boardData.tasks || [];
-        this.selectedBoardColumns.forEach((column) => {
-          column.tasks = tasks.filter(
-            (task: any) => task.column_id === column.id
-          );
-        });
-      });
+      this.selectedBoardColumns = [];
+      return;
     }
+
+    this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
+      this.selectedBoardColumns = boardData.columns || [];
+      this.selectedBoardColumns.sort((a, b) => a.position - b.position);
+      const tasks = boardData.tasks || [];
+      this.selectedBoardColumns.forEach((column) => {
+        const columnTasks = tasks.filter(
+          (task: any) => task.column_id === column.id
+        );
+        column.allTasks = columnTasks;
+        column.tasks = [...columnTasks];
+      });
+      if (this.taskSearch) {
+        this.applySearch(this.taskSearch);
+      }
+    });
   }
 
   dropColumn(event: CdkDragDrop<any[]>): void {
@@ -191,6 +240,14 @@ export class AppKanbanComponent implements OnInit {
         event.previousIndex,
         event.currentIndex
       );
+
+      if (!this.isSearching) {
+        this.selectedBoardColumns.forEach((column) => {
+          if (column.allTasks) {
+            column.allTasks = [...(column.tasks || [])];
+          }
+        });
+      }
 
       const columns = this.selectedBoardColumns;
       const lastColumn = columns.reduce((prev, curr) =>
