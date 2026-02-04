@@ -798,6 +798,7 @@ export class RocketChatService {
             });
           } catch (err) {
             console.log('Error while handling user notify payload for audio:', err);
+            console.log('Error while handling user notify payload for audio:', err);
           }
         } else {
           this.userNotifySubject.next(message);

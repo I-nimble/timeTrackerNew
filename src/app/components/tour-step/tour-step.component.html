@@ -41,17 +41,17 @@
         {{ tourService.steps.indexOf(step) + 1 }} / {{ tourService.steps.length }}
       </div>
     }
-    @if (tourService.hasNext(step) && !step.nextOnAnchorClick) {
+    @if ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board') {
       <button
         class="next"
-        (click)="tourService.next()"
+        (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : tourService.next()"
         mat-button
       >
         {{ step.nextBtnTitle }}
         <mat-icon iconPositionEnd>chevron_right</mat-icon>
       </button>
     }
-    @if (!tourService.hasNext(step)) {
+    @if (!tourService.hasNext(step) && step.anchorId !== 'kanban-first-board') {
       <button
         mat-button
         (click)="tourService.end()"

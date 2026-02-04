@@ -25,6 +25,7 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-kanban',
@@ -36,7 +37,8 @@ import { environment } from 'src/environments/environment';
     TablerIconsModule,
     DragDropModule,
     NgScrollbarModule,
-    FormsModule
+    FormsModule,
+    TourMatMenuModule
   ],
 })
 export class AppKanbanComponent implements OnInit, OnDestroy {
