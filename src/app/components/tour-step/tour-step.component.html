@@ -41,10 +41,10 @@
         {{ tourService.steps.indexOf(step) + 1 }} / {{ tourService.steps.length }}
       </div>
     }
-    @if ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board') {
+    @if ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board' || step.anchorId === 'chat-first-conversation') {
       <button
         class="next"
-        (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : tourService.next()"
+        (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : (step.anchorId === 'chat-first-conversation' ? onChatOpenNext() : tourService.next())"
         mat-button
       >
         {{ step.nextBtnTitle }}
