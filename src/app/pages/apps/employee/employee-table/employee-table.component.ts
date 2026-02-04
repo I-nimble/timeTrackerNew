@@ -43,6 +43,7 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 
 @Component({
@@ -55,7 +56,8 @@ import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
     CommonModule,
     RouterModule,
     TimerComponent,
-    MatPaginatorModule
+    MatPaginatorModule,
+    TourMatMenuModule
   ],
   selector: 'app-employee-table',
   standalone: true,
