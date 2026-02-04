@@ -1,0 +1,73 @@
+.tour-step-card {
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100%;
+}
+
+.tour-step-card mat-card-header {
+  padding: 20px 20px 0!important;
+}
+
+.tour-step-card mat-card-content {
+  margin: 6px 0 4px;
+  padding: 0 20px;
+  flex: 1 1 auto;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.tour-step-card mat-card-actions {
+  padding: 4px 20px 20px!important;
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.tour-step-card mat-card-actions.no-progress {
+  grid-template-columns: 1fr 1fr;
+}
+
+.tour-step-card mat-card-actions > * {
+  max-width: fit-content;
+}
+
+.tour-step-card mat-card-actions > *:last-child {
+  justify-self: flex-end;
+}
+
+.tour-step-card mat-card-actions button.prev {
+  padding-left: 4px;
+}
+
+.tour-step-card mat-card-actions button.next {
+  padding-right: 4px;
+}
+
+.tour-step-card mat-card-header .header-group {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.tour-step-card mat-card-header .header-group mat-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  flex: 1 1 auto;
+}
+
+.skip {
+  text-decoration: none;
+}
+
+.skip:hover {
+  text-decoration: underline;
+}

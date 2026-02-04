@@ -24,12 +24,19 @@ export class ApplicationsService {
     return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
   }
 
-  reject(id: number): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/reject/${id}`, {});
+  reject(id: number, reason: string | null): Observable<any> {
+    return this.http.put<any>(
+      `${this.API_URI}/applications/reject/${id}`,
+      { rejection_reason: reason }
+    );
   }
 
   sendToTalentMatch(id: number): Observable<any> {
     return this.http.put(`${this.API_URI}/applications/talent-match/${id}`, {});
+  }
+
+  sendToCandidates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/candidates/${id}`, {});
   }
 
   getCandidateFile(id: number, format: string): Observable<Blob> {
@@ -68,6 +75,10 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/locations`);
   }
 
+  public getRankings(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
+  }
+
   public get(onlyTalentPool: boolean = false): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
   }
@@ -80,31 +91,38 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/${position_id}`);
   }
 
-  public delete(id: number): Observable<any[]> {
-    return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`);
+  public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
+    return this.http.delete<any[]>(`${this.API_URI}/applications/${id}`, {
+      body: { action }
+    });
   }
 
-  getUploadUrl(type: string, file?: File) {
+  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number, isProfilePicture: boolean = false) {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
-      { contentType: file?.type || 'application/octet-stream' }
+      { 
+        contentType: file?.type || 'application/octet-stream',
+        originalFileName: file?.name,
+        email: email,
+        applicationId: applicationId,
+        isProfilePicture: isProfilePicture
+      }
     );
   }
 
   uploadCV(file: File, candidateId: number): Observable<any> {
     let resumeUpload$ = of(null);
     if(file instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', file).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', file, undefined, candidateId, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -129,18 +147,17 @@ export class ApplicationsService {
     let photoUpload$ = of(null);
 
     if(data.cv instanceof File) {
-      resumeUpload$ = this.getUploadUrl('resumes', data.cv).pipe(
+      resumeUpload$ = this.getUploadUrl('resumes', data.cv, undefined, id, false).pipe(
         switchMap((resumeUrl: any) => {
           this.resumeUrl = resumeUrl.url;
-          const file = data.cv
+          const file = data.cv;
+          const fileName = resumeUrl.fileName || resumeUrl.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type,
+            'X-Filename': fileName
           });
           return this.http.put(`${this.resumeUrl}`, file, { headers }).pipe(
-            map(() => {
-              const urlParts = this.resumeUrl.split('?')[0].split('/');
-              return urlParts[urlParts.length - 1];
-            })
+            map(() => fileName)
           );
         })
       );
@@ -150,19 +167,17 @@ export class ApplicationsService {
     }
     if(data.profile_pic instanceof File) {
       photoUpload$ = data.profile_pic
-        ? this.getUploadUrl('photos', data.profile_pic).pipe(
+        ? this.getUploadUrl('photos', data.profile_pic, data.email, id, true).pipe(
             switchMap((photoUrl: any) => {
               this.photoUrl = photoUrl.url;
-              const imgFile = data.profile_pic
-  
+              const imgFile = data.profile_pic;
+              const fileName = photoUrl.fileName || photoUrl.key.split('/').pop();
               const headers = new HttpHeaders({
                 'Content-Type': imgFile.type,
+                'X-Filename': fileName
               });
               return this.http.put(`${this.photoUrl}`, imgFile, { headers }).pipe(
-                map(() => {
-                  const urlParts = this.photoUrl.split('?')[0].split('/');
-                  return urlParts[urlParts.length - 1];
-                })
+                map(() => fileName)
               );
             })
           )
@@ -183,9 +198,16 @@ export class ApplicationsService {
           company_id: data.company_id == -1 ? null : data.company_id,
         };
 
-        if (id) return this.http.put(`${this.API_URI}/applications/${id}`, body);
-        return this.http.post(`${this.API_URI}/applications`, body);
+        if (id) return this.http.put<any>(`${this.API_URI}/applications/${id}`, body);
+        return this.http.post<any>(`${this.API_URI}/applications`, body);
       })
+    );
+  }
+
+  updateAvailability(payload: { user_id?: number, application_id?: number, availability: boolean }) {
+    return this.http.patch(
+      `${this.API_URI}/applications/availability`,
+      payload
     );
   }
 
@@ -194,12 +216,21 @@ export class ApplicationsService {
     this.applicationsUpdatedSource.next(application);
   }
 
+  approveApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/approve`, {});
+  }
 
-    uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
+  rejectApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/reject`, {});
+  }
+
+  uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
+        const fileName = uploadData.fileName || uploadData.key.split('/').pop();
         const headers = new HttpHeaders({
           'Content-Type': videoFile.type,
+          'X-Filename': fileName
         });
 
         return this.http.put(uploadData.url, videoFile, { 
@@ -213,7 +244,7 @@ export class ApplicationsService {
             return {
               message: "Video uploaded successfully",
               videoUrl: `https://inimble-app.s3.us-east-1.amazonaws.com/${uploadData.key}`,
-              fileName: uploadData.fileName
+              fileName: fileName
             };
           })
         );
@@ -239,5 +270,16 @@ export class ApplicationsService {
       return event;
     }
     return event;
+  }
+
+  getResumeUrl(filename: string | null | undefined): string {
+    if (!filename) return '';
+    if (filename.startsWith('http')) return filename;
+    
+    if (environment.apiUrl.includes('localhost') || !environment.production) {
+       return `${environment.socket}/uploads/resumes/${filename}`;
+    }
+    
+    return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
   }
 }

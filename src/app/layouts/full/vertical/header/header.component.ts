@@ -26,7 +26,10 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { PermissionService } from 'src/app/services/permission.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { RoleTourService } from 'src/app/services/role-tour.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 interface notifications {
   id: number;
@@ -66,6 +69,7 @@ interface quicklinks {
     NgScrollbarModule,
     TablerIconsModule,
     MaterialModule,
+    TourMatMenuModule,
   ],
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None,
@@ -101,6 +105,9 @@ export class HeaderComponent implements OnInit {
   canViewExpertMatch: boolean = false;
   canViewMySentinel: boolean = false;
   canViewCandidates: boolean = false;
+  canViewRejected: boolean = false;
+  isTourActive$ = this.roleTourService.isActive$;
+  showTourHelpButton: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
@@ -153,6 +160,7 @@ export class HeaderComponent implements OnInit {
     private router: Router,
     private usersService: UsersService,
     private permissionService: PermissionService,
+    private roleTourService: RoleTourService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -204,20 +212,37 @@ export class HeaderComponent implements OnInit {
     const email = localStorage.getItem('email');
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.allowedTM = this.role === '2' && allowedTM.includes(email || '');
+    this.reloadPermissions();
+    this.permissionService.permissionsUpdated$.subscribe(() => {
+      this.reloadPermissions();
+    });
+
+    this.updateTourHelpVisibility();
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.updateTourHelpVisibility());
+  }
+
+  private updateTourHelpVisibility(): void {
+    this.showTourHelpButton = this.roleTourService.hasStepsForRoute();
+  }
+
+  reloadPermissions(): void {
+    const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
-        this.buildProfileMenu();
-        this.canViewTalentMatch =
-          !this.isOrphan && (this.role != '2' || this.allowedTM || this.userPermissions.includes('talent-match.view'));
+        this.canViewTalentMatch = this.userPermissions.includes('talent-match.view');
         this.canViewExpertMatch = this.userPermissions.includes('expert-match.view');
         this.canViewMySentinel = this.userPermissions.includes('my-sentinel.view');
         this.canViewCandidates = this.userPermissions.includes('candidates.view');
-      },
-      error: (err) => {
-        console.error('Error fetching user permissions', err);
+        this.canViewRejected = this.userPermissions.includes('rejected.view');
         this.buildProfileMenu();
       },
+      error: err => {
+        console.error('Error fetching permissions', err);
+        this.buildProfileMenu();
+      }
     });
   }
 
@@ -361,6 +386,31 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  startTour() {
+    this.roleTourService.maybeStartForCurrentRoute(true);
+  }
+
+  skipTour() {
+    this.roleTourService.skipActiveTour();
+  }
+
+  getProfileTourAnchor(profile: profiledd): string | null {
+    switch (profile.title) {
+      case 'My Profile':
+        return 'profile-my-profile';
+      case 'My Inbox':
+        return 'profile-my-inbox';
+      case 'My Team':
+        return 'profile-my-team';
+      case 'Payments':
+        return 'profile-payments';
+      case 'R3':
+        return 'profile-r3';
+      default:
+        return null;
+    }
   }
 
   notificationIcons = [

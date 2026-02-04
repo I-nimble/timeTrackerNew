@@ -96,8 +96,16 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   private _inputData: any[] = [];
 
   @Input() set dataSource(data: any[]) {
-    this._inputData = data;
-    this.dataSourceTable.data = data;
+    this._inputData = data || [];
+    const sorted = Array.isArray(this._inputData)
+      ? [...this._inputData].sort((a: any, b: any) => {
+          const aActive = !!(a.activeEntry || a.status === 'Online');
+          const bActive = !!(b.activeEntry || b.status === 'Online');
+          if (aActive === bActive) return 0;
+          return aActive ? -1 : 1;
+        })
+      : [];
+    this.dataSourceTable.data = sorted;
   }
 
   @Output() getEmployees = new EventEmitter<any>();

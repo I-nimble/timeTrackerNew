@@ -43,6 +43,8 @@ export class AddCandidateDialogComponent implements OnInit {
   restrictionMessage: string = '';
   locations: any[] = [];
   action: string = this.data.action || 'add';
+  mode: 'full' | 'minimal' = 'full';
+  maxFileSize: number =  1 * 1024 * 1024;
 
   constructor(
     private fb: FormBuilder,
@@ -53,6 +55,7 @@ export class AddCandidateDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialog: MatDialog
   ) {
+    this.mode = data?.mode || 'full';
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -113,7 +116,7 @@ export class AddCandidateDialogComponent implements OnInit {
   onCVSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open('CV file size should be 1 MB or less', 'Close', {
           duration: 3000,
         });
@@ -132,7 +135,7 @@ export class AddCandidateDialogComponent implements OnInit {
   onProfilePicSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open(
           'Profile picture size should be 1 MB or less',
           'Close',
@@ -209,7 +212,10 @@ export class AddCandidateDialogComponent implements OnInit {
         this.snackBar.open(`Candidate ${this.action == 'edit' ? 'edited' : 'added'} successfully`, 'Close', {
           duration: 3000,
         });
-        this.dialogRef.close('success');
+        this.dialogRef.close({
+          success: true,
+          profile_pic: this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null
+        });
       },
       error: (error) => {
         this.snackBar.open(

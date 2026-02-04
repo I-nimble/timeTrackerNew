@@ -12,6 +12,8 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
 import { Plan } from 'src/app/models/Plan.model';
+import { DepartmentsService } from 'src/app/services/departments.service';
+import { Department } from 'src/app/models/Department.model';
 
 @Component({
   selector: 'app-expert',
@@ -39,12 +41,22 @@ export class AppExpertComponent implements OnInit {
   aiLoading: boolean = false;
   useManualSearch: boolean = false;
   plan?: Plan;
+  currentSearchText = '';
+  departments: Department[] = [];
+  searchResults: any[] = [];
+  selectedDepartmentId: number | null = null;
 
-  constructor(private usersService: UsersService, private aiService: AIService, private companiesService: CompaniesService, private plansService: PlansService) {}
+  constructor(private usersService: UsersService, private aiService: AIService, private companiesService: CompaniesService, private plansService: PlansService, private departmentsService: DepartmentsService) {}
 
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
-      this.clients = users.filter((u: any) => u.role == 3 && u.active == 1 && u.company?.show_info == 1);
+      this.clients = users.filter(
+        (u: any) => u.role == 3 && u.active == 1 && u.company?.show_info == 1
+      );
+      this.filteredClients = this.clients;
+    });
+    this.departmentsService.get().subscribe((deps) => {
+      this.departments = deps;
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
@@ -52,6 +64,17 @@ export class AppExpertComponent implements OnInit {
         this.plansService.setCurrentPlan(this.plan);
       });
     });
+  }
+
+  applyDepartmentFilter(source: any[]): any[] {
+    if (!this.selectedDepartmentId) {
+      return source;
+    }
+    return source.filter(client =>
+      client.company?.departments?.some(
+        (d: any) => d.id === this.selectedDepartmentId
+      )
+    );
   }
 
   onClientSelected(client: any) {
@@ -63,30 +86,34 @@ export class AppExpertComponent implements OnInit {
   }
 
   async askGemini(question: string) {
+    if (!question && this.selectedDepartmentId !== null) {
+      question = 'Show all experts';
+    }
     if (!question) return;
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
     }
-    this.aiQuestion = question;    
     this.aiLoading = true;
     this.aiAnswer = '';
     this.filteredClients = [];
 
     this.aiService.evaluateExperts(this.clients, question).subscribe({
       next: (res) => {
-      const rawText = res.answer?.parts?.[0]?.text ?? '';
-      const selectedCompanies = this.extractCompaniesFromAiAnswer(rawText);
-
-      this.filteredClients = this.clients.filter(client =>
-        selectedCompanies.includes(client.company?.name)
-      );
+        const rawText = res.answer?.parts?.[0]?.text ?? '';
+        const selectedCompanies = this.extractCompaniesFromAiAnswer(rawText);
+        this.filteredClients = this.clients.filter(client => {
+          const matchesCompany =
+            selectedCompanies.includes(client.company?.name);
+          const matchesDepartment =
+            !this.selectedDepartmentId ||
+            client.company?.departments?.some(
+              (d: any) => d.id === this.selectedDepartmentId
+            );
+          return matchesCompany && matchesDepartment;
+        });
         this.aiLoading = false;
-        if (selectedCompanies.length > 0) {
-          this.aiAnswer = '';
-        } else {
-          this.aiAnswer = 'No matches.';
-        }
+        this.aiAnswer = this.filteredClients.length ? '' : 'No matches.';
       },
       error: (err) => {
         if (err.status === 429) {
@@ -99,6 +126,25 @@ export class AppExpertComponent implements OnInit {
         this.aiLoading = false;
       }
     });
+  }
+
+  onSearchTextChange(value: string) {
+    this.currentSearchText = value;
+  }
+
+  onDepartmentChange(departmentId: number | null) {
+    this.selectedDepartmentId = departmentId;
+    
+    if (this.canSearch) {
+      this.askGemini(this.currentSearchText);
+    }
+  }
+
+  get canSearch(): boolean {
+    return (
+      !!this.currentSearchText?.trim() ||
+      this.selectedDepartmentId !== null
+    );
   }
 
   extractCompaniesFromAiAnswer(answer: string): string[] {

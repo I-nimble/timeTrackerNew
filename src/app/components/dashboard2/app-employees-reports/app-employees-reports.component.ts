@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { RatingsEntriesService } from '../../../services/ratings_entries.service';
 import { UsersService } from '../../../services/users.service';
 import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable, of, finalize } from 'rxjs';
+import { forkJoin, Observable, of, finalize, Subscription } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import {
@@ -23,6 +23,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
 import { environment } from 'src/environments/environment';
 import { RouterLink } from '@angular/router';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-employees-reports',
@@ -38,7 +40,8 @@ import { RouterLink } from '@angular/router';
     NgIf,
     TablerIconsModule,
     AppEmployeeTableComponent,
-    RouterLink
+    RouterLink,
+    TourMatMenuModule
   ],
   providers: [
     provideNativeDateAdapter(),
@@ -64,6 +67,8 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
   selectedUserId: number | null = null;
   filteredDataSource: any[] = [];
   refreshInterval: any;
+  activeTimer: any;
+  socketSubs: Subscription[] = [];
   allowedReportsManager: boolean = false;
 
   constructor(
@@ -74,6 +79,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     public companiesService: CompaniesService,
     public reportsService: ReportsService,
     public snackBar: MatSnackBar
+    , private webSocketService: WebSocketService
   ) {}
 
   ngOnInit(): void {
@@ -81,8 +87,10 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     const email = localStorage.getItem('email');
     this.allowedReportsManager = this.role === '2' && allowedReportEmails.includes(email || '');
     const today = moment();
-    this.startDate = today.toDate();
-    this.endDate = today.toDate();
+    const firstDayOfWeek = moment().startOf('week');
+    const lastDayOfWeek = moment().endOf('week');
+    this.startDate = firstDayOfWeek.toDate();
+    this.endDate = lastDayOfWeek.toDate();
     if (this.role == '1' || this.allowedReportsManager || this.role == '4') {
       this.getCompanies();
       this.getDataSource();
@@ -98,12 +106,31 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     this.refreshInterval = setInterval(() => {
       this.getDataSource();
     }, 300000);
+
+    try {
+      const sub1 = this.webSocketService.getClosedEntryStream().subscribe(() => {
+        this.getDataSource();
+      });
+      this.socketSubs.push(sub1);
+    } catch (e) {
+      console.error('Failed to subscribe to closedEntry socket stream', e);
+    }
+    try {
+      const sub2 = this.webSocketService.getStartedEntryStream().subscribe(() => {
+        this.getDataSource();
+      });
+      this.socketSubs.push(sub2);
+    } catch (e) {
+      console.error('Failed to subscribe to startedEntry socket stream', e);
+    }
   }
 
   ngOnDestroy() {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
+    if (this.activeTimer) clearInterval(this.activeTimer);
+    this.socketSubs.forEach(s => s.unsubscribe?.());
   }
 
   getCompanies() {
@@ -149,10 +176,14 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
             },
             completed: employee.completed + '/' + employee.totalTasks,
             workedHours: employee.workedHours,
+            activeEntry: employee.activeEntry,
             hoursLeft: employee.hoursLeft,
             status: employee.status,
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
+          this.dataSource.forEach(emp => {
+            emp._baseWorkedDecimal = this.HHMMSSToDecimal(emp.workedHours);
+          });
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
           if (this.dataSource.length === 0) {
@@ -172,6 +203,7 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
           this.dataSource.forEach((task, index) => {
             task.profile.image = profilePics[index] || null;
           });
+          this.setupActiveTimer();
         },
         error: () => {
           this.dataSource = [];
@@ -179,6 +211,53 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
           this.dataSourceChange.emit(this.filteredDataSource);
         },
       });
+  }
+
+  private setupActiveTimer() {
+    if (this.activeTimer) clearInterval(this.activeTimer);
+    const hasActive = this.dataSource.some(d => d.activeEntry && d.activeEntry.start_time);
+    if (!hasActive) return;
+    this.activeTimer = setInterval(() => {
+      const now = Date.now();
+      this.dataSource.forEach(emp => {
+        if (emp.activeEntry && emp.activeEntry.start_time) {
+          const start = new Date(emp.activeEntry.start_time).getTime();
+          if (!isNaN(start)) {
+            const elapsedHours = (now - start) / 1000 / 3600; // hours
+            emp._displayWorkedDecimal = emp._baseWorkedDecimal + elapsedHours;
+            emp.workedHours = this.formatHoursToHMS(emp._displayWorkedDecimal);
+          }
+        } else {
+          emp.workedHours = this.formatHoursToHMS(emp._baseWorkedDecimal || 0);
+        }
+      });
+      this.filterByUser();
+      this.dataSourceChange.emit(this.filteredDataSource);
+    }, 1000);
+  }
+
+  HHMMSSToDecimal(timeStr: string): number {
+    if (!timeStr || timeStr === '00:00:00') return 0;
+    const parts = timeStr.split(':');
+    if (parts.length !== 3) return 0;
+    const hours = parseInt(parts[0], 10) || 0;
+    const minutes = parseInt(parts[1], 10) || 0;
+    const seconds = parseInt(parts[2], 10) || 0;
+    return hours + (minutes / 60) + (seconds / 3600);
+  }
+
+  formatHoursToHMS(hoursDecimal: number): string {
+    if (isNaN(hoursDecimal)) return '00:00:00';
+    const totalSeconds = Math.round(hoursDecimal * 3600);
+    const hoursPart = Math.floor(totalSeconds / 3600);
+    const remainingSeconds = totalSeconds % 3600;
+    const minutesPart = Math.floor(remainingSeconds / 60);
+    const secondsPart = remainingSeconds % 60;
+    return [
+      String(hoursPart).padStart(2, '0'),
+      String(minutesPart).padStart(2, '0'),
+      String(secondsPart).padStart(2, '0')
+    ].join(':');
   }
 
   filterByUser() {
@@ -189,6 +268,12 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
         (u) => u.profile.id === this.selectedUserId
       );
     }
+    this.filteredDataSource.sort((a: any, b: any) => {
+      const aActive = !!(a.activeEntry || a.status === 'Online');
+      const bActive = !!(b.activeEntry || b.status === 'Online');
+      if (aActive === bActive) return 0;
+      return aActive ? -1 : 1;
+    });
   }
 
   onUserChange(userId: number | null) {

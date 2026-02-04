@@ -18,6 +18,8 @@ import { UsersService } from 'src/app/services/users.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
+import { AppDeleteDialogComponent } from '../../contact-list/delete-dialog/delete-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-edit-invoice',
@@ -39,8 +41,8 @@ export class AppEditInvoiceComponent {
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
-  footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
+  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'locations', 'total-hours', 'comments', 'actions'];
+  footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column', 'empty-column'];
   footerAddEntryColumns = ['add-entry'];
   tax: number = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
@@ -50,12 +52,14 @@ export class AppEditInvoiceComponent {
   invoiceForm: UntypedFormGroup;
   editModel = signal<any>({});
   originalData: any = null;
+  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
   changedEntries = new Set<any>();
   changedHourlyRates = new Set<any>();
   loader = new Loader(false, false, false);
   message = '';
   changedFlatFees = new Set<any>();
   isEntriesTableVisible = true;
+  deletedEntries = new Set<number>();
 
   trackByEntryId(index: number, item: any) {
     return item.id;
@@ -70,7 +74,8 @@ export class AppEditInvoiceComponent {
     private router: Router,
     private usersService: UsersService,
     private datePipe: DatePipe,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {
     this.invoiceForm = this.fb.group({
       user_id: [null, Validators.required],
@@ -99,6 +104,7 @@ export class AppEditInvoiceComponent {
     this.loadCompanies();
     this.loadCients();
     this.loadInvoiceDetail();
+    this.deletedEntries.clear();
   }
 
   addNewEntry(item: any): void {
@@ -196,6 +202,11 @@ export class AppEditInvoiceComponent {
           }));
         });
         this.loader.complete = true;
+        try {
+          this.buildLocationLinksMap();
+        } catch (e) {
+          console.warn('Failed to build location links map', e);
+        }
       },
       error: () => {
         this.loader.complete = true;
@@ -204,6 +215,37 @@ export class AppEditInvoiceComponent {
         this.snackBar.open('Error loading invoice details', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  onBillingPeriodChange(): void {
+    const start = this.editModel().billing_period_start;
+    const end = this.editModel().billing_period_end;
+    if (!start || !end) return;
+    this.loader.started = true;
+    this.invoiceService
+      .getInvoiceDetail(this.id(), start, end)
+      .subscribe({
+        next: (data) => {
+          this.originalData = data;
+          this.editModel.set(data);
+          this.changedEntries.clear();
+          this.changedFlatFees.clear();
+          this.changedHourlyRates.clear();
+          this.deletedEntries.clear();
+          this.updateFormArrayWithChanges();
+          this.recalculateCosts();
+          this.loader.complete = true;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.loader.complete = true;
+          this.snackBar.open(
+            'Error recalculating invoice',
+            'Close',
+            { duration: 3000 }
+          );
+        }
+      });
   }
 
   private markEntryAsChanged(entry: any): void {
@@ -349,6 +391,62 @@ export class AppEditInvoiceComponent {
     const hours = d.getHours().toString().padStart(2, '0');
     const minutes = d.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
+  }
+
+  getLocationLinks(entryId: number): Array<{ label: string; url: string; title: string }> {
+    const data = this.originalData;
+    if (!data || !data.invoice_locations) return [];
+    const matches = (data.invoice_locations || []).filter((l: any) => l.entry_id === entryId);
+    if (!matches || matches.length === 0) return [];
+    const points = matches.flatMap((m: any) => m.locations || []);
+    if (!points || points.length === 0) return [];
+    const seen = new Set<string>();
+    const out: Array<{ label: string; url: string; title: string }> = [];
+    points.forEach((p: any) => {
+      const lat = parseFloat(p.latitude as any);
+      const lon = parseFloat(p.longitude as any);
+      if (!isFinite(lat) || !isFinite(lon)) return;
+      const key = `${lat.toFixed(5)}:${lon.toFixed(5)}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const label = `Map ${out.length + 1}`;
+      const url = `https://www.google.com/maps?q=${lat},${lon}`;
+      const title = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      out.push({ label, url, title });
+    });
+    return out;
+  }
+
+  openLink(url: string): void {
+    try {
+      window.open(url, '_blank', 'noopener');
+      return;
+    } catch (err) {
+      console.error('Failed to open link', err, url);
+    }
+    try {
+      window.location.href = url;
+    } catch (err) {
+      console.error('Fallback navigation failed', err, url);
+    }
+  }
+
+  buildLocationLinksMap(): void {
+    this.locationLinksMap = {};
+    const data = this.originalData;
+    if (!data) return;
+    const items = data.invoiceItems || [];
+    items.forEach((item: any) => {
+      (item.entries || []).forEach((entry: any) => {
+        try {
+          const links = this.getLocationLinks(entry.id) || [];
+          this.locationLinksMap[entry.id] = links;
+        } catch (err) {
+          console.warn('buildLocationLinksMap (edit): failed for entry', entry.id, err);
+          this.locationLinksMap[entry.id] = [];
+        }
+      });
+    });
   }
 
   getTotalHoursForItem(item: any): number {
@@ -566,6 +664,47 @@ export class AppEditInvoiceComponent {
     this.invoiceForm.markAsDirty();
   }
 
+  removeEntry(item: any, entry: any): void {
+    const entryDate = entry.date ? this.toDateInputValue(entry.date) : 'this entry';
+    const dialogRef = this.dialog.open(AppDeleteDialogComponent, {
+      width: '300px',
+      data: {
+        message: `Are you sure you want to delete the entry for ${entryDate}?`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.entryDeletion(item, entry);
+      }
+    });
+  }
+
+  private entryDeletion(item: any, entry: any): void {
+    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    
+    if (invoiceItem && invoiceItem.entries) {
+      const entryIndex = invoiceItem.entries.findIndex((e: any) => e.id === entry.id);
+      
+      if (entryIndex !== -1) {
+        if (entry.id && entry.id > 0) {
+          this.deletedEntries.add(entry.id);
+        }
+        
+        invoiceItem.entries.splice(entryIndex, 1);
+        
+        this.recalculateCosts();
+        
+        this.updateFormArrayWithChanges();
+        
+        invoiceItem.entries = [...invoiceItem.entries];
+        this.cdr.detectChanges();
+        
+        this.snackBar.open('Entry deleted successfully!', 'Close', { duration: 3000 });
+      }
+    }
+  }
+
   saveDetail(event: Event): void {
     event.preventDefault();
 
@@ -596,6 +735,7 @@ export class AppEditInvoiceComponent {
       changed_entries: [...this.changedEntries],
       changed_hourly_rates: [...this.changedHourlyRates],
       changed_flat_fees: [...this.changedFlatFees],
+      deleted_entries: [...this.deletedEntries],
     };
 
     this.invoiceService.updateInvoice(this.id(), data).subscribe({

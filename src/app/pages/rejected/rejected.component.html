@@ -1,0 +1,208 @@
+<mat-card class="cardWithShadow" *ngIf="role == '1' || canView">
+  <mat-card-content>
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Date Range</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input
+            matStartDate
+            placeholder="Start date"
+            [(ngModel)]="startDate"
+            (dateChange)="onDateRangeChange()"
+          />
+          <input
+            matEndDate
+            placeholder="End date"
+            [(ngModel)]="endDate"
+            (dateChange)="onDateRangeChange()"
+          />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="cardWithShadow">
+  <mat-card-content>
+    <div class="table-responsive">
+      <table
+        mat-table
+        [dataSource]="candidatesList"
+        matSort
+        class="no-wrap m-t-0 v-middle w-100"
+      >
+        <ng-container matColumnDef="name">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="f-w-600 f-s-15 col-3"
+          >
+            Name
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ element.name }}
+            <span class="disc-badges m-l-8">
+              <span
+                *ngFor="let profile of element.disc_profiles"
+                class="disc-badge-small"
+                [style.background-color]="getDiscProfileColor(profile.name)"
+                [title]="profile.name"
+              >
+                {{ profile.name.charAt(0) }}
+              </span>
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="position" *ngIf="role == '1' || canView">
+          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15 col-2">
+            Position
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ getPositionName(element.position_id) }}
+            <span class="disc-badges m-l-8">
+              <ng-container *ngIf="getPositionById(element.position_id) as pos">
+                (<span
+                  *ngFor="let profile of pos.disc_profiles"
+                  class="disc-badge-small"
+                  [style.background-color]="getDiscProfileColor(profile.name)"
+                  [title]="profile.name"
+                >
+                  {{ profile.name.charAt(0) }}
+                </span>)
+              </ng-container>
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="skills">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="f-w-600 f-s-15 col-2"
+          >
+            Skills
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ element.skills }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="location">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="f-w-600 f-s-15 col-1"
+          >
+            Location
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ element.location }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="submission_date">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="f-w-600 f-s-15 col-2"
+          >
+            Submission Date
+          </th>
+          <td mat-cell *matCellDef="let element" class="f-s-14">
+            {{ element.submission_date.split("T")[0].replaceAll("-", "/") }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="rejection_reason">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="f-w-600 f-s-15 col-2"
+          >
+            Reason
+          </th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.rejection_reason }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15 col-1">
+            Actions
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let element"
+            class="f-s-14 actions-container"
+          >
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="optionsMenu"
+              class="m-l-10 actions-btn"
+            >
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #optionsMenu="matMenu">
+              <button
+                mat-menu-item
+                (click)="goToCandidate(element.id, $event)"
+                class="d-flex align-items-center justify-content-center"
+              >
+                <mat-icon>visibility</mat-icon>
+                <span>View</span>
+              </button>
+              <!-- <button mat-menu-item (click)="deleteApplication(element.id)"
+                class="d-flex align-items-center justify-content-center" 
+                *ngIf="role == '1' || allowedTM">
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button> -->
+              <button
+                mat-menu-item
+                (click)="downloadCandidateInfo(element.id, 'excel')"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canView"
+              >
+                <mat-icon>table</mat-icon>
+                <span>Download Excel</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="sendToCandidates(element)"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canManage"
+              >
+                <mat-icon>send</mat-icon>
+                <span>Send to Candidates</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="openRejectDialog(element)"
+                class="d-flex align-items-center justify-content-center"
+                *ngIf="canEdit"
+              >
+                <mat-icon color="warn">block</mat-icon>
+                <span>Edit Reason</span>
+              </button>
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+      <mat-paginator
+        [pageSizeOptions]="[5, 10, 20]"
+        showFirstLastButtons
+      ></mat-paginator>
+    </div>
+  </mat-card-content>
+</mat-card>

@@ -60,6 +60,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
   timeZone: string = 'America/Caracas';
   userTimezone: string = 'UTC';
   timezoneOffset: string = '';
+  maxFileSize: number =  1 * 1024 * 1024;
   private timezoneSubscription!: Subscription;
 
   constructor(
@@ -455,7 +456,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
       this.openSnackBar('Please select an image', 'Close');
       return;
     }
-    if(img.size > 1000000) {
+    if(img.size > this.maxFileSize) {
       this.openSnackBar('Image size should be 1 MB or less', 'Close')
       return
     }

@@ -31,6 +31,7 @@
             [matMenuTriggerFor]="createMenu"
             color="primary"
             aria-label="Create new"
+            tourAnchor="chat-start-conversation"
           >
             <mat-icon>add</mat-icon>
           </button>
@@ -60,7 +61,7 @@
             </button>
           </mat-menu>
         </div>
-        <div class="sidebar-search">
+        <div class="sidebar-search" tourAnchor="chat-search">
           <mat-form-field appearance="outline" class="w-100">
             <input
               matInput
@@ -71,7 +72,7 @@
           </mat-form-field>
         </div>
 
-        <div class="contacts-wrapper">
+        <div class="contacts-wrapper" tourAnchor="chat-contacts">
           <div
             class="contact-item"
             *ngFor="let room of filteredRooms()"
@@ -144,6 +145,7 @@
                 mat-menu-item
                 *ngIf="canDeleteRoom(room) && !room.teamId"
                 (click)="onDeleteRoom(room); $event.stopPropagation()"
+                [disabled]="isRoomSupportUser(room)"
               >
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
@@ -295,24 +297,18 @@
 
                   <div *ngIf="!isSystemMessage(message)" class="m-b-15">
                     <div
-                      *ngIf="getRepliedMessage(message)"
+                      *ngIf="getQuotedMessage(message) as quoted"
                       class="reply-preview-inside mb-8 p-8 rounded"
-                      (click)="scrollToMessage(getRepliedMessage(message)?._id)"
+                      (click)="scrollToMessage(quoted?._id)"
                     >
                       <div class="f-s-12 text-muted">
                         <strong class="f-s-12">
-                          {{ getSenderName(getRepliedMessage(message)!) }}:
+                          {{ getSenderName(quoted) }}:
                         </strong>
                         <span class="f-s-12">
+                          {{ getQuotedTextOrAttachment(quoted) | slice : 0 : 120 }}
                           {{
-                            getRepliedTextOrAttachment(
-                              getRepliedMessage(message)!
-                            ) | slice : 0 : 120
-                          }}
-                          {{
-                            getRepliedTextOrAttachment(
-                              getRepliedMessage(message)!
-                            ).length > 120
+                            getQuotedTextOrAttachment(quoted).length > 120
                               ? "..."
                               : ""
                           }}
@@ -333,8 +329,7 @@
                         [class.hidden]="!isActionsVisible(message)"
                         *ngIf="
                           !isSystemMessage(message) &&
-                          message.t !== 'videoconf' &&
-                          (!isReplyMessage(message) || isFromMe(message))
+                          message.t !== 'videoconf'
                         "
                         [class.from-me]="isFromMe(message)"
                       >
@@ -409,112 +404,112 @@
                       >
                         Join
                       </button>
-                      } @else if(message.attachments &&
-                      message.attachments.length > 0) {
-                      <img
-                        *ngIf="!isFromMe(message)"
-                        width="40"
-                        class="rounded-circle"
-                        [src]="getConversationPicture(selectedConversation)"
-                      />
-                      <span class="f-s-14">
-                        {{ message.attachments[0]?.title || "File attachment" }}
-                        <button
-                          mat-icon-button
-                          (click)="
-                            $event.stopPropagation();
-                            downloadFile(message.attachments[0], message._id)
-                          "
-                        >
-                          <mat-icon>download</mat-icon>
-                        </button>
-                        <div class="attachment-preview">
-                          @switch (getAttachmentType(message.attachments[0])) {
-                          @case('image') {
+                      } @else if(shouldRenderAttachments(message)) {
+                      <ng-container *ngIf="message.attachments?.length">
+                        <ng-container *ngIf="message.attachments?.[0] as attachment">
                           <img
-                            [src]="getFileUrl(message.attachments[0], 1)"
-                            alt="Attachment"
-                            (load)="onMediaPlayable(message._id, 1)"
-                            (error)="onMediaError(message._id, 1)"
-                            [hidden]="
-                              mediaPlayable.get(message._id + '|' + 1) === false
-                            "
+                            *ngIf="!isFromMe(message)"
+                            width="40"
+                            class="rounded-circle"
+                            [src]="getConversationPicture(selectedConversation)"
                           />
-                          <img
-                            [src]="getFileUrl(message.attachments[0], 2)"
-                            alt="Attachment"
-                            (load)="onMediaPlayable(message._id, 2)"
-                            (error)="onMediaError(message._id, 2)"
-                            [hidden]="
-                              mediaPlayable.get(message._id + '|' + 2) === false
-                            "
-                          />
-                          } @case('video') {
-                          <video
-                            [src]="getFileUrl(message.attachments[0], 1)"
-                            controls
-                            (loadedmetadata)="onMediaPlayable(message._id, 1)"
-                            (error)="onMediaError(message._id, 1)"
-                            [hidden]="
-                              mediaPlayable.get(message._id + '|' + 1) === false
-                            "
-                          ></video>
-                          <video
-                            [src]="getFileUrl(message.attachments[0], 2)"
-                            controls
-                            (loadedmetadata)="onMediaPlayable(message._id, 2)"
-                            (error)="onMediaError(message._id, 2)"
-                            [hidden]="
-                              mediaPlayable.get(message._id + '|' + 2) === false
-                            "
-                          ></video>
-                          } @case('audio') {
-                          <div class="d-flex flex-column gap-8">
-                            <audio
-                              [src]="getFileUrl(message.attachments[0], 1)"
-                              controls
-                              (canplay)="onMediaPlayable(message._id, 1)"
-                              (loadedmetadata)="onMediaPlayable(message._id, 1)"
-                              (error)="onMediaError(message._id, 1)"
-                              [hidden]="
-                                mediaPlayable.get(message._id + '|' + 1) ===
-                                false
-                              "
-                            ></audio>
-
-                            <audio
-                              [src]="getFileUrl(message.attachments[0], 2)"
-                              controls
-                              (canplay)="onMediaPlayable(message._id, 2)"
-                              (loadedmetadata)="onMediaPlayable(message._id, 2)"
-                              (error)="onMediaError(message._id, 2)"
-                              [hidden]="
-                                mediaPlayable.get(message._id + '|' + 2) ===
-                                false
-                              "
-                            ></audio>
-                          </div>
-                          } @default {
-                          <span class="f-s-12 text-muted">
-                            <mat-icon>insert_drive_file</mat-icon>
-                            <a
+                          <span class="f-s-14">
+                            {{ attachment.title || "File attachment" }}
+                            <button
+                              mat-icon-button
                               (click)="
                                 $event.stopPropagation();
-                                downloadFile(
-                                  message.attachments[0],
-                                  message._id
-                                )
+                                downloadFile(attachment, message._id)
                               "
-                              target="_blank"
-                              download
-                              style="cursor: pointer"
                             >
-                              {{ message.attachments[0].title }}
-                            </a>
+                              <mat-icon>download</mat-icon>
+                            </button>
+                            <div class="attachment-preview">
+                              @switch (getAttachmentType(attachment)) {
+                              @case('image') {
+                              <img
+                                [src]="getFileUrl(attachment, 1)"
+                                alt="Attachment"
+                                (load)="onMediaPlayable(message._id, 1)"
+                                (error)="onMediaError(message._id, 1)"
+                                [hidden]="
+                                  mediaPlayable.get(message._id + '|' + 1) === false
+                                "
+                              />
+                              <img
+                                [src]="getFileUrl(attachment, 2)"
+                                alt="Attachment"
+                                (load)="onMediaPlayable(message._id, 2)"
+                                (error)="onMediaError(message._id, 2)"
+                                [hidden]="
+                                  mediaPlayable.get(message._id + '|' + 2) === false
+                                "
+                              />
+                              } @case('video') {
+                              <video
+                                [src]="getFileUrl(attachment, 1)"
+                                controls
+                                (loadedmetadata)="onMediaPlayable(message._id, 1)"
+                                (error)="onMediaError(message._id, 1)"
+                                [hidden]="
+                                  mediaPlayable.get(message._id + '|' + 1) === false
+                                "
+                              ></video>
+                              <video
+                                [src]="getFileUrl(attachment, 2)"
+                                controls
+                                (loadedmetadata)="onMediaPlayable(message._id, 2)"
+                                (error)="onMediaError(message._id, 2)"
+                                [hidden]="
+                                  mediaPlayable.get(message._id + '|' + 2) === false
+                                "
+                              ></video>
+                              } @case('audio') {
+                              <div class="d-flex flex-column gap-8">
+                                <audio
+                                  [src]="getFileUrl(attachment, 1)"
+                                  controls
+                                  (canplay)="onMediaPlayable(message._id, 1)"
+                                  (loadedmetadata)="onMediaPlayable(message._id, 1)"
+                                  (error)="onMediaError(message._id, 1)"
+                                  [hidden]="
+                                    mediaPlayable.get(message._id + '|' + 1) ===
+                                    false
+                                  "
+                                ></audio>
+
+                                <audio
+                                  [src]="getFileUrl(attachment, 2)"
+                                  controls
+                                  (canplay)="onMediaPlayable(message._id, 2)"
+                                  (loadedmetadata)="onMediaPlayable(message._id, 2)"
+                                  (error)="onMediaError(message._id, 2)"
+                                  [hidden]="
+                                    mediaPlayable.get(message._id + '|' + 2) ===
+                                    false
+                                  "
+                                ></audio>
+                              </div>
+                              } @default {
+                              <span class="f-s-12 text-muted">
+                                <mat-icon>insert_drive_file</mat-icon>
+                                <a
+                                  (click)="
+                                    $event.stopPropagation();
+                                    downloadFile(attachment, message._id)
+                                  "
+                                  target="_blank"
+                                  download
+                                  style="cursor: pointer"
+                                >
+                                  {{ attachment.title }}
+                                </a>
+                              </span>
+                              } }
+                            </div>
                           </span>
-                          } }
-                        </div>
-                      </span>
+                        </ng-container>
+                      </ng-container>
                       } @else {
                       <img
                         *ngIf="!isFromMe(message)"
@@ -534,7 +529,10 @@
                         </strong>
                         <span
                           [innerHTML]="
-                            message.msg | emojiMart | linebreak | markdown
+                            getMessageTextWithoutQuote(message)
+                              | emojiMart
+                              | linebreak
+                              | markdown
                           "
                           class="f-s-14"
                         ></span>
@@ -610,9 +608,7 @@
               </div>
               <div class="reply-text f-s-12 text-muted">
                 {{
-                  replyToMessage.msg ||
-                    (replyToMessage.attachments &&
-                      (replyToMessage.attachments[0]?.title || "Attachment"))
+                  getReplyPreviewText(replyToMessage)
                 }}
               </div>
             </div>
@@ -633,8 +629,8 @@
         >
           <div>
             <div class="f-s-12 f-w-600">Editing message</div>
-            <div class="f-s-12 text-muted">
-              {{ editingMessage.msg }}
+            <div class="f-s-12 text-muted editing-preview-text">
+              {{ getEditingPreviewText(editingMessage) }}
             </div>
           </div>
 

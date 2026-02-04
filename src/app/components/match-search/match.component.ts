@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-match',
@@ -11,7 +12,8 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     CommonModule,
     FormsModule,
     MaterialModule,
-    TablerIconsModule
+    TablerIconsModule,
+    TourMatMenuModule
   ],
   templateUrl: './match.component.html'
 })
@@ -23,6 +25,7 @@ export class MatchComponent {
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
   @Input() showCustomSearch: boolean = true;
+  @Input() hasKeywords: boolean = false;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
@@ -36,7 +39,7 @@ export class MatchComponent {
   }
 
   onAskAI() {
-    if ((!this.query && !this.canSearch) || this.cooldownActive) return;
+  if ((!this.query && !this.canSearch && !this.hasKeywords) || this.cooldownActive) return;
     this.loading = true;
     this.askAI.emit(this.query);
     this.cooldownActive = true;

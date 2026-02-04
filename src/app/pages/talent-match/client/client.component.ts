@@ -30,6 +30,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { NgxSliderModule } from '@angular-slider/ngx-slider';
 import { Options } from '@angular-slider/ngx-slider';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   standalone: true,
@@ -54,7 +57,9 @@ import { Options } from '@angular-slider/ngx-slider';
     MatSliderModule,
     MatSlideToggleModule,
     MatChipsModule,
-    NgxSliderModule
+    NgxSliderModule,
+    FormatNamePipe,
+    TourMatMenuModule
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -66,7 +71,7 @@ import { Options } from '@angular-slider/ngx-slider';
     ])
   ]
 })
-export class AppTalentMatchClientComponent implements OnInit {
+export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   userRole = localStorage.getItem('role');
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
@@ -75,13 +80,13 @@ export class AppTalentMatchClientComponent implements OnInit {
   displayedColumns: string[] = [
     'select',
     'name',
+    'personality profile',
     'position',
-    'alignment',
-    'experience',
+    'trainings',
     'rate',
     'actions',
   ];
-  dataSource!: MatTableDataSource<any>;
+  dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   interviews: any[] = [];
@@ -235,12 +240,10 @@ export class AppTalentMatchClientComponent implements OnInit {
     private interviewsService: InterviewsService,
     private aiService: AIService,
     private router: Router,
-    private matchScoresService: ApplicationMatchScoresService
+    private matchScoresService: ApplicationMatchScoresService,
+    private discProfilesService: DiscProfilesService
   ) {}
-
-  @ViewChild('roleModel') roleModel!: NgModel;
-  @ViewChild('practiceAreaModel') practiceAreaModel!: NgModel;
-
+  
   ngOnInit(): void {
     this.getApplications();
     this.getPositions();
@@ -250,14 +253,6 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    Promise.resolve().then(() => {
-      if (this.roleModel) {
-        this.roleModel.control.markAsTouched();
-      }
-      if (this.practiceAreaModel) {
-        this.practiceAreaModel.control.markAsTouched();
-      }
-    });
   }
 
   searchCandidatesWithAI(question: string) {
@@ -317,6 +312,19 @@ export class AppTalentMatchClientComponent implements OnInit {
         } else {
           this.aiAnswer = 'No matches.';
         }
+
+        const orderedIds = orderedCandidates.map(c => c.id);
+        this.saveAISearchState(searchQuery, orderedIds, {
+          selectedRole: this.selectedRole,
+          selectedPracticeArea: this.selectedPracticeArea,
+          budgetRange: this.budgetRange,
+          isMonthlyRate: this.isMonthlyRate,
+          selectedSkillsTools: this.selectedSkillsTools,
+          selectedCertifications: this.selectedCertifications,
+          selectedBackground: this.selectedBackground,
+          roleDescription: this.roleDescription,
+          query: this.query
+        });
       },
       error: (err) => {
         if (err.status === 429) {
@@ -368,6 +376,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   onManualSearch(query?: string) {
+    this.clearAISearchState();
+
     const searchQuery = query || this.query;
     this.query = searchQuery;
     const lower = searchQuery.toLowerCase();
@@ -469,9 +479,41 @@ export class AppTalentMatchClientComponent implements OnInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any[]) => {
-        this.allCandidates = applications.map((a: any) => ({ ...a }));
+        const sortedApplications = applications
+          .map((a: any) => ({ ...a }))
+          .sort((a, b) => {
+            const aMatch = a.overall_match_percentage || a.match_percentage || 0;
+            const bMatch = b.overall_match_percentage || b.match_percentage || 0;
+            return bMatch - aMatch;
+          });
+
+        this.allCandidates = sortedApplications;
         this.dataSource = new MatTableDataSource(this.allCandidates);
-        this.getAllMatchScores();
+        // this.getAllMatchScores(); TODO: UNCOMMENT THIS LATER
+
+        const stored = this.loadAISearchState();
+
+        if (stored && stored.ids.length > 0 && this.allCandidates.length > 0) {
+          if (stored.filters.selectedRole !== undefined) this.selectedRole = stored.filters.selectedRole;
+          if (stored.filters.selectedPracticeArea !== undefined) this.selectedPracticeArea = stored.filters.selectedPracticeArea;
+          if (stored.filters.budgetRange) this.budgetRange = stored.filters.budgetRange;
+          if (stored.filters.isMonthlyRate !== undefined) this.isMonthlyRate = stored.filters.isMonthlyRate;
+          if (stored.filters.selectedSkillsTools) this.selectedSkillsTools = stored.filters.selectedSkillsTools;
+          if (stored.filters.selectedCertifications) this.selectedCertifications = stored.filters.selectedCertifications;
+          if (stored.filters.selectedBackground) this.selectedBackground = stored.filters.selectedBackground;
+          if (stored.filters.roleDescription !== undefined) this.roleDescription = stored.filters.roleDescription;
+          if (stored.filters.query !== undefined) this.query = stored.filters.query;
+
+          const orderedCandidates = stored.ids
+            .map((id: string | number) => this.allCandidates.find(c => c.id === id))
+            .filter(Boolean);
+
+          if (orderedCandidates.length > 0) {
+            this.dataSource.data = orderedCandidates;
+            this.hasSearchResults = true;
+            this.aiAnswer = '';
+          }
+        }
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -574,6 +616,14 @@ export class AppTalentMatchClientComponent implements OnInit {
     return this.positions.find((p: any) => p.id == positionId)?.title;
   }
 
+  getPositionById(positionId: any): any {
+    return this.positions.find((p: any) => p.id == positionId);
+  }
+
+  getDiscProfileColor(profileName: string): string {
+    return this.discProfilesService.getDiscProfileColor(profileName);
+  }
+
   getAllMatchScores() {
     this.allCandidates.forEach(candidate => {
       this.getMatchScores(candidate.id);
@@ -620,7 +670,8 @@ export class AppTalentMatchClientComponent implements OnInit {
   }
 
   downloadFile(url: string, filename: string) {
-    fetch(this.resumesUrl + '/' + url)
+    const resumeUrl = this.applicationsService.getResumeUrl(url);
+    fetch(resumeUrl)
       .then((response) => response.blob())
       .then((blob) => {
         const link = document.createElement('a');
@@ -745,22 +796,78 @@ export class AppTalentMatchClientComponent implements OnInit {
     const hasRequiredFilters =
       !!this.selectedRole &&
       !!this.selectedPracticeArea;
-    const hasOptionalFilters = !!(
-      (this.selectedSkillsTools?.length ?? 0) > 0 ||
-      (this.selectedCertifications?.length ?? 0) > 0 ||
-      (this.selectedBackground?.length ?? 0) > 0 ||
-      this.budgetRange?.min !== this.budgetMin ||
-      this.budgetRange?.max !== this.budgetMax ||
-      this.roleDescription
-    );
     if (!!this.query) return true;
-    return hasRequiredFilters && hasOptionalFilters;
+    return hasRequiredFilters;
   }
 
   handleImageError(event: Event) {
     const imgElement = event.target as HTMLImageElement;
     imgElement.src = this.assetsPath;
     imgElement.onerror = null;
+  }
+
+  private saveAISearchState(searchQuery: string, orderedIds: number[], filters: any) {
+    localStorage.setItem('aiSearchQuery', searchQuery);
+    localStorage.setItem('aiOrderedIds', JSON.stringify(orderedIds));
+    localStorage.setItem('aiFilters', JSON.stringify(filters));
+  }
+
+  private loadAISearchState(): { query: string; ids: number[]; filters: any } | null {
+    const query = localStorage.getItem('aiSearchQuery');
+    const idsStr = localStorage.getItem('aiOrderedIds');
+    const filtersStr = localStorage.getItem('aiFilters');
+    if (!query || !idsStr || !filtersStr) return null;
+    try {
+      const ids = JSON.parse(idsStr);
+      const filters = JSON.parse(filtersStr);
+      return { query, ids, filters };
+    } catch {
+      return null;
+    }
+  }
+
+  private clearAISearchState() {
+    localStorage.removeItem('aiSearchQuery');
+    localStorage.removeItem('aiOrderedIds');
+    localStorage.removeItem('aiFilters');
+  }
+
+  getSeparatedDescription(description: string): { baseText: string, role: string } {
+    if (!description) {
+      return { baseText: '', role: '' };
+    }
+    
+    const separatorIndex = description.indexOf(': ');
+    
+    if (separatorIndex !== -1) {
+      const baseText = description.substring(0, separatorIndex + 1);
+      const role = description.substring(separatorIndex + 2);
+      
+      return {
+        baseText: baseText.trim(),
+        role: role.trim()
+      };
+    } else {
+      const colonIndex = description.indexOf(':');
+      if (colonIndex !== -1) {
+        const baseText = description.substring(0, colonIndex + 1);
+        const role = description.substring(colonIndex + 1);
+        
+        return {
+          baseText: baseText.trim(),
+          role: role.trim()
+        };
+      }
+      
+      return {
+        baseText: '',
+        role: ''
+      };
+    }
+  }
+
+  hasDescription(element: any): boolean {
+    return !!element?.description && element.description.trim() !== '';
   }
 }
 

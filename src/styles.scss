@@ -2,8 +2,28 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.no-scroll {
+  overflow: hidden !important;
+}
+
+body.tour-active #app-main-content {
+  pointer-events: none;
+}
+
+body.tour-active .cdk-overlay-container,
+body.tour-active .cdk-overlay-pane,
+body.tour-active .tour-step,
+body.tour-active .tour-step-container {
+  pointer-events: auto;
+}
+
+.tour-step,
+.tour-step-container,
+.cdk-overlay-container > .cdk-overlay-connected-position-bounding-box:first-of-type {
+  z-index: 99999999 !important;
+}
 .card-dashboard {
-    height: 85%;
+  margin-bottom: 0!important;
 }
 .text-btn button p {
     color: #fff!important;
@@ -161,3 +181,38 @@ app-jitsi-meet iframe {
 .jitsi-permanent-container.minimized .jitsi-container {
   pointer-events: auto;
 }
+
+.disc-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.disc-badge-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #333;
+}
+
+.disc-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #333;
+}
+
+.skip:hover {
+  text-decoration: underline;
+}
+

@@ -37,10 +37,10 @@
                 <input
                   matInput
                   [(ngModel)]="taskSearch"
-                  (keyup.enter)="onSearchTasks()"
+                  (ngModelChange)="onSearchInput($event)"
                   placeholder="Search tasks"
                 />
-                <button mat-icon-button matSuffix (click)="onSearchTasks()">
+                <button mat-icon-button matSuffix (click)="applySearch(taskSearch)">
                   <mat-icon>search</mat-icon>
                 </button>
               </mat-form-field>

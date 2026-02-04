@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewChecked, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from 'src/environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import {
   ApexAxisChartSeries,
@@ -38,6 +39,11 @@ import { TimezoneService } from 'src/app/services/timezone.service';
 import { Subscription } from 'rxjs';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { PermissionService } from 'src/app/services/permission.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { GeolocationUpdate } from 'src/app/models/geolocation.model';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { LocationService } from 'src/app/services/location.service';
+import { map, tileLayer, icon, marker } from 'leaflet';
 
 interface EditEntryForm {
   start_time: FormControl<string>;
@@ -82,10 +88,11 @@ export type ChartOptions = {
     MatProgressSpinnerModule,
     MatButtonModule,
     MatMenuModule,
-    TablerIconsModule
+    TablerIconsModule,
+    MatTooltipModule
   ]
 })
-export class EmployeeDetailsComponent implements OnInit, OnDestroy {
+export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChecked {
   userId: string | null = null;
   datesRange: any = {};
   filters: any = { user: { id: null }, company: 'all', project: 'all' };
@@ -114,6 +121,17 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
   userPermissions: string[] = [];
   canManageTeamMembers: boolean = false;
 
+  employeeLocation: GeolocationUpdate | null = null;
+  isMapLoading: boolean = false;
+  mapError: string | null = null;
+  private geolocationUpdateSubscription!: Subscription;
+  private geolocationDeniedSubscription!: Subscription;
+  private geolocationTimeout: any;
+  @ViewChild('leafletMap') leafletMapRef!: ElementRef;
+  private leafletMap: any = null;
+  private leafletMarker: any = null;
+  private mapInitialized: boolean = false;
+
   public weeklyHoursChart: Partial<ChartOptions> | any;
   public dailyHoursChart: Partial<ChartOptions> | any;
 
@@ -129,6 +147,9 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     private timezoneService: TimezoneService,
     private permissionService: PermissionService,
     private router: Router,
+    private webSocketService: WebSocketService,
+    private cdr: ChangeDetectorRef,
+    private locationService: LocationService
   ) {
     this.setDefaultDateRange();
     this.initializeCharts();
@@ -176,6 +197,11 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
         this.canManageTeamMembers = this.userPermissions.includes('users.manage');
+        
+        if (this.canManageTeamMembers && this.userRole !== '2' && this.userId) {
+          this.setupGeolocationListeners();
+          this.requestEmployeeGeolocation();
+        }
       },
       error: (err) => {
         console.error('Error fetching user permissions', err);
@@ -190,6 +216,25 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     if (this.timezoneSubscription) {
       this.timezoneSubscription.unsubscribe();
     }
+    if (this.geolocationUpdateSubscription) {
+      this.geolocationUpdateSubscription.unsubscribe();
+    }
+    if (this.geolocationDeniedSubscription) {
+      this.geolocationDeniedSubscription.unsubscribe();
+    }
+    if (this.geolocationTimeout) {
+      clearTimeout(this.geolocationTimeout);
+    }
+    if (this.leafletMap) {
+      this.leafletMap.remove();
+      this.leafletMap = null;
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.employeeLocation && this.leafletMapRef && !this.mapInitialized) {
+      this.updateLeafletMap();
+    }
   }
 
   initializeEditForm(entry: any): void { 
@@ -198,12 +243,12 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
     let startDateTime = entry.local_start_time || entry.start_time;
     let endDateTime = entry.local_end_time || entry.end_time;
     
-    if (startDateTime && !startDateTime.startsWith(entryDate)) {
+    if (startDateTime && typeof startDateTime === 'string' && !startDateTime.startsWith(entryDate)) {
       const startTime = this.getTimeFromDateTime(startDateTime);
       startDateTime = `${entryDate}T${startTime}`;
     }
     
-    if (endDateTime && !endDateTime.startsWith(entryDate)) {
+    if (endDateTime && typeof endDateTime === 'string' && !endDateTime.startsWith(entryDate)) {
       const endTime = this.getTimeFromDateTime(endDateTime);
       endDateTime = `${entryDate}T${endTime}`;
     }
@@ -715,6 +760,10 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
                   this.hoursElapsed = Math.max(0, this.hoursElapsed);
                   this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
 
+                  // Asegurar que no sea negativo
+                  this.hoursElapsed = Math.max(0, this.hoursElapsed);
+                  this.hoursRemaining = Math.max(0, totalWorkHours - this.hoursElapsed);
+
                   // Update daily hours chart
                   this.dailyHoursChart.series = [
                     Number(this.hoursElapsed.toFixed(2)), 
@@ -745,5 +794,159 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+
+  private setupGeolocationListeners(): void {
+    this.geolocationUpdateSubscription = this.webSocketService.getGeolocationUpdateStream().subscribe({
+      next: (data: GeolocationUpdate) => {
+        if (data.userId.toString() == this.userId?.toString()) {
+          this.employeeLocation = data;
+          this.isMapLoading = false;
+          this.mapError = null;
+          
+          this.cdr.detectChanges();
+          this.updateLeafletMap();
+          
+          if (this.geolocationTimeout) {
+            clearTimeout(this.geolocationTimeout);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error receiving geolocation update', err);
+        this.isMapLoading = false;
+        this.mapError = 'Error receiving location data';
+      }
+    });
+
+    this.geolocationDeniedSubscription = this.webSocketService.getGeolocationDeniedStream().subscribe({
+      next: (data) => {
+        if (data.userId.toString() === this.userId) {
+          this.isMapLoading = false;
+          this.mapError = 'Employee has denied location access';
+          this.openSnackBar('Employee has denied location access', 'Close');
+          
+          if (this.geolocationTimeout) {
+            clearTimeout(this.geolocationTimeout);
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error receiving geolocation denied', err);
+      }
+    });
+  }
+
+  private requestEmployeeGeolocation(): void {
+    if (!this.userId) return;
+
+    this.isMapLoading = true;
+    this.mapError = null;
+    this.employeeLocation = null;
+
+    this.employeesService.getEmployeeGeolocation(Number(this.userId)).subscribe({
+      next: (geolocation: any) => {
+        if (geolocation && geolocation.latitude && geolocation.longitude) {
+          if(!this.userId) {
+            console.error('No user ID found');
+            return;
+          };
+          this.employeeLocation = {
+            userId: this.userId,
+            deviceId: geolocation.device_id || 'unknown',
+            latitude: parseFloat(geolocation.latitude),
+            longitude: parseFloat(geolocation.longitude),
+            accuracy: geolocation.accuracy,
+            timestamp: geolocation.timestamp
+          };
+          this.cdr.detectChanges();
+          this.updateLeafletMap();
+          this.isMapLoading = false;
+        }
+        
+        this.webSocketService.requestGeolocation(Number(this.userId));
+      },
+      error: (err) => {
+        console.warn('No initial location found for employee, requesting via socket...', err);
+        this.webSocketService.requestGeolocation(Number(this.userId));
+        
+        this.geolocationTimeout = setTimeout(() => {
+          if (this.isMapLoading && !this.employeeLocation) {
+            this.isMapLoading = false;
+            this.mapError = 'Unable to get employee location. They may be offline.';
+            this.cdr.detectChanges();
+          }
+        }, 30000);
+      }
+    });
+  }
+
+  updateLeafletMap(): void {
+    if (!this.employeeLocation) {
+      return;
+    }
+    if (!this.leafletMapRef) {
+      return;
+    }
+
+    const lat = this.employeeLocation.latitude;
+    const lng = this.employeeLocation.longitude;
+
+    if (!this.leafletMapRef || !this.leafletMapRef.nativeElement) {
+      return;
+    }
+
+    if (!this.leafletMap) {
+      this.leafletMap = map(this.leafletMapRef.nativeElement).setView([lat, lng], 15);
+      
+      const tiles = tileLayer(`${environment.apiUrl}/maps/tiles/{z}/{x}/{y}`, {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      });
+
+      tiles.on('tileerror', (error) => {
+        console.error('Leaflet tile load error:', error);
+      });
+
+      tiles.addTo(this.leafletMap);
+      
+      const mapIcon = icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      });
+      
+      this.leafletMarker = marker([lat, lng], { icon: mapIcon }).addTo(this.leafletMap);
+      this.leafletMarker.bindPopup(`Employee Location`).openPopup();
+      
+      this.mapInitialized = true;
+    } else {
+      this.leafletMap.setView([lat, lng], 15);
+      if (this.leafletMarker) {
+        this.leafletMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    this.leafletMap.attributionControl.setPrefix(false)
+    
+    setTimeout(() => {
+      this.leafletMap?.invalidateSize();
+    }, 100);
+  }
+
+  refreshLocation(): void {
+    if (this.canManageTeamMembers && this.userRole !== '2' && this.userId) {
+      this.mapInitialized = false;
+      if (this.leafletMap) {
+        this.leafletMap.remove();
+        this.leafletMap = null;
+        this.leafletMarker = null;
+      }
+      this.requestEmployeeGeolocation();
+    }
   }
 }
