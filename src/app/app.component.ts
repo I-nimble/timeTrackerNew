@@ -139,14 +139,12 @@ export class AppComponent implements OnInit, OnDestroy {
     const svc: any = this.tourService as any;
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
-      console.log('[tour] startRequests', { startIndex, stepCount: steps?.length, anchorId: steps?.[startIndex]?.anchorId });
       this.setIsScrollable(false);
       void this.startTourWhenReady(steps, startIndex);
     });
 
     this.tourStepSub = svc.stepShow$?.subscribe((payload: any) => {
       const step = payload?.step ?? payload;
-      console.log('[tour] stepShow', { anchorId: step?.anchorId, route: step?.route });
       if (step?.anchorId?.startsWith('profile-') && step?.anchorId !== 'profile-menu-trigger') {
         this.openProfileMenuForTour();
       }
@@ -160,9 +158,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }) ?? null;
 
     this.tourEndSub = svc.end$?.subscribe(() => {
-      console.log('[tour] end');
       if (this.isTourRouteTransitioning) {
-        console.log('[tour] end suppressed during route transition');
         return;
       }
       this.setIsScrollable(true);
@@ -172,7 +168,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.routeTourSub = this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd)
     ).subscribe(() => {
-      console.log('[tour] NavigationEnd', { url: this.router.url, isTourRouteTransitioning: this.isTourRouteTransitioning });
       if (this.isTourRouteTransitioning) {
         this.isTourRouteTransitioning = false;
         this.pendingTourRouteAnchor = null;
@@ -182,12 +177,10 @@ export class AppComponent implements OnInit, OnDestroy {
     });
 
     this.anchorLogSub = this.roleTourService.kanbanOpenRequests$.subscribe(() => {
-      console.log('[tour] kanbanOpenRequests');
       this.openKanbanFirstBoardForTour();
     });
 
     this.roleTourService.chatOpenRequests$.subscribe(() => {
-      console.log('[tour] chatOpenRequests');
       this.openChatFirstConversationForTour();
     });
   }
@@ -237,11 +230,9 @@ export class AppComponent implements OnInit, OnDestroy {
     if (typeof document === 'undefined' || this.kanbanAutoOpenInProgress) return;
     this.kanbanAutoOpenInProgress = true;
     this.isTourRouteTransitioning = true;
-    console.log('[tour] kanban open start');
 
     const anchor = document.querySelector('[tourAnchor="kanban-first-board"]') as HTMLElement | null;
     if (!anchor) {
-      console.log('[tour] kanban first board anchor missing');
       this.kanbanAutoOpenInProgress = false;
       this.isTourRouteTransitioning = false;
       return;
@@ -252,7 +243,6 @@ export class AppComponent implements OnInit, OnDestroy {
     const nextIndex = currentIndex + 1;
 
     try { anchor.click(); } catch (e) {}
-    console.log('[tour] kanban first board click');
 
     firstValueFrom(
       this.router.events.pipe(
@@ -261,20 +251,17 @@ export class AppComponent implements OnInit, OnDestroy {
         take(1)
       )
     ).then(async () => {
-      console.log('[tour] kanban route reached');
       try {
         await firstValueFrom(this.ngZone.onStable.pipe(take(1))).catch(() => undefined);
       } catch (e) {}
 
       const nextStep = this.tourService.steps[nextIndex];
       const nextAnchor = nextStep?.anchorId;
-      console.log('[tour] kanban next step', { currentIndex, nextAnchor });
       if (nextAnchor) {
         await this.waitForTourAnchor(nextAnchor, 2500);
       }
       this.roleTourService.resumeAtIndex(nextIndex);
     }).catch(() => undefined).finally(() => {
-      console.log('[tour] kanban open done');
       this.kanbanAutoOpenInProgress = false;
       this.isTourRouteTransitioning = false;
     });
@@ -283,15 +270,13 @@ export class AppComponent implements OnInit, OnDestroy {
   private async waitForTourAnchor(anchorId: string, timeoutMs: number): Promise<void> {
     const svc: any = this.tourService as any;
     if (svc?.anchors?.[anchorId]) return;
-    console.log('[tour] waiting for anchor', { anchorId, timeoutMs });
     await firstValueFrom(
       svc.anchorRegister$?.pipe(
         filter((id: string) => id === anchorId),
         take(1),
         timeout({ first: timeoutMs })
       ) ?? new Promise(() => undefined)
-    ).then(() => console.log('[tour] anchor registered', { anchorId }))
-      .catch(() => console.log('[tour] anchor wait timed out', { anchorId }));
+    ).catch(() => console.warn('Tour anchor wait timed out', { anchorId }));
   }
 
   private async openChatFirstConversationForTour() {
