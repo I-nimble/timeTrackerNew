@@ -257,6 +257,7 @@ export class AppAccountSettingComponent implements OnInit {
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
+  maxPictureSize: number =  1 * 1024 * 1024;
   isLoadingSubscription = false;
   formChanged: boolean = false;
   originalUserData: any = null;
@@ -706,8 +707,9 @@ export class AppAccountSettingComponent implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-      if (file.size > 1000000) {
+      if (file.size > this.maxPictureSize) {
         this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
+        this.openSnackBar('Image size should be 1 MB or less', 'Close');
         return
       }
       if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {

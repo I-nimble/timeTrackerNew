@@ -39,6 +39,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-todo',
@@ -57,6 +58,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
     MatSelectModule,
     ReactiveFormsModule,
     AppFullcalendarComponent,
+    TourMatMenuModule,
   ],
   providers: [provideNativeDateAdapter()],
 })

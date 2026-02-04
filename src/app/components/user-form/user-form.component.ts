@@ -73,6 +73,7 @@ export class UserFormComponent implements OnInit, OnChanges {
   EMPLOYER_ROLE = '3';
   timezones!: any;
   assetsPath: string = environment.assets + '/default-profile-pic.png';
+  maxFileSize: number =  1 * 1024 * 1024;
 
   selectedDaysOfWeek: string[] = [];
   public show: boolean = false;
@@ -572,7 +573,7 @@ export class UserFormComponent implements OnInit, OnChanges {
   onFileSelected(event: any) {
     const img = event.target.files[0];
     if (img) {
-      if(img.size > 1000000) {
+      if(img.size > this.maxFileSize) {
         this.notificationStore.addNotifications("Image size should be 1 MB or less", "error")
         return;
       }

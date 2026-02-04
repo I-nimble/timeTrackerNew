@@ -44,6 +44,7 @@ export class AddCandidateDialogComponent implements OnInit {
   locations: any[] = [];
   action: string = this.data.action || 'add';
   mode: 'full' | 'minimal' = 'full';
+  maxFileSize: number =  1 * 1024 * 1024;
 
   constructor(
     private fb: FormBuilder,
@@ -115,7 +116,7 @@ export class AddCandidateDialogComponent implements OnInit {
   onCVSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open('CV file size should be 1 MB or less', 'Close', {
           duration: 3000,
         });
@@ -134,7 +135,7 @@ export class AddCandidateDialogComponent implements OnInit {
   onProfilePicSelected(event: any): void {
     const file: File = event.target.files[0];
     if (file) {
-      if (file.size > 1000000) {
+      if (file.size > this.maxFileSize) {
         this.snackBar.open(
           'Profile picture size should be 1 MB or less',
           'Close',

@@ -6,6 +6,7 @@ import { AppTalentMatchTmComponent } from './talent-match-tm/talent-match-tm.com
 import { AppIntakeFormComponent } from '../intake/intake-form.component';
 import { environment } from 'src/environments/environment';
 import { PermissionService } from 'src/app/services/permission.service';
+import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
@@ -26,7 +27,10 @@ export class AppTalentMatchComponent {
   canViewTalentMatch = false;
   allowedTM = false;
 
-  constructor(private permissionService: PermissionService) {
+  constructor(
+    private permissionService: PermissionService,
+    private applicationsService: ApplicationsService
+  ) {
     const allowedEmails = environment.allowedReportEmails;
     this.allowedTM =
       this.userRole === '2' && allowedEmails.includes(this.userEmail || '');

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { WebSocketService } from './socket/web-socket.service';
 import { GeolocationData } from '../models/geolocation.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -34,6 +34,130 @@ export class LocationService {
 
   public deviceId: string;
   public userId: string | null = localStorage.getItem('id');
+
+  async reverseGeocode(latitude: number, longitude: number): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<any>(`https://nominatim.openstreetmap.org/reverse`, {
+          params: {
+            format: 'json',
+            lat: latitude.toString(),
+            lon: longitude.toString(),
+            zoom: '10',
+            addressdetails: '1'
+          },
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+      );
+
+      if (!response || !response.address) {
+        throw new Error('Geocoding failed: No address data');
+      }
+
+      let cityName = 'Unknown City';
+      const address = response.address;
+
+      if (address.city) {
+        cityName = address.city;
+      } else if (address.town) {
+        cityName = address.town;
+      } else if (address.village) {
+        cityName = address.village;
+      } else if (address.municipality) {
+        cityName = address.municipality;
+      } else if (address.county) {
+        cityName = address.county;
+      } else if (address.state) {
+        cityName = address.state;
+      }
+
+      const timezoneAbbreviation = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0] || 'LOCAL';
+
+      return {
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        city: cityName,
+        country: address.country || 'Unknown Country',
+        fullAddress: address,
+        timezone: {
+          abbreviation: timezoneAbbreviation,
+          name: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }
+      };
+      
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      
+      return {
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        city: `Location (${latitude.toFixed(2)}, ${longitude.toFixed(2)})`,
+        country: 'Your Location',
+        timezone: {
+          abbreviation: 'LOCAL',
+          name: 'Local Time'
+        }
+      };
+    }
+  }
+
+  async getClientLocationWithGeocoding(): Promise<any> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        this.locationError = 'Geolocation is not supported by your browser';
+        resolve(null);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const geocodedData = await this.reverseGeocode(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+            resolve(geocodedData);
+          } catch (error) {
+            console.error('Error in getClientLocationWithGeocoding:', error);
+            resolve(null);
+          }
+        },
+        (error) => {
+          let errorMessage = 'An unknown error occurred.';
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access was denied. Please enable location services.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+          }
+          this.locationError = errorMessage;
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  private locationError: string = '';
+
+  getLocationError(): string {
+    return this.locationError;
+  }
+
+  clearLocationError(): void {
+    this.locationError = '';
+  }
 
   private checkGeolocationAvailability(): void {
     if (!navigator.geolocation) {

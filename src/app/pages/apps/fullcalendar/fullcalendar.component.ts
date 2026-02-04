@@ -50,6 +50,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { addWeeks, subWeeks } from 'date-fns';
 import { AppKanbanDialogComponent } from '../kanban/kanban-dialog.component';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 const colors: any = {
   red: {
@@ -243,6 +244,7 @@ interface CustomCalendarEvent extends CalendarEvent {
     MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
+    TourMatMenuModule,
   ],
   providers: [provideNativeDateAdapter(), CalendarDateFormatter],
 })

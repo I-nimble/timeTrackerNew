@@ -47,6 +47,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-chat',
@@ -64,7 +65,8 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MatButtonModule,
     MatMenuModule,
     CreateRoomComponent,
-    ChatInfoComponent
+    ChatInfoComponent,
+    TourMatMenuModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -102,6 +104,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   pressedMessageId: string | null = null;
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
+  private editingQuoteUrl: string | null = null;
+
+  private quotedMessageCache = new Map<string, RocketChatMessage | null>();
+  private quotedMessageInFlight = new Set<string>();
 
   protected mediaPlayable = new Map<string, boolean>();
 
@@ -127,6 +133,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
         try {
+          console.log('[chat] global message stream', message);
           if (!message || !message.rid) return;
           const room = this.rooms.find(r => r._id === message.rid);
           if (room) {
@@ -383,6 +390,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return userRoles.some(r => roles.includes(r));
   }
 
+  isActionsVisible(message: RocketChatMessage) {
+    if (!this.isMobile) return true;
+    return this.pressedMessageId === message._id;
+  }
+
   isSystemMessage(message: RocketChatMessage): boolean {
     const systemTypes = [
       'rm', 'r',
@@ -553,40 +565,90 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return 'file';
   }
 
-async downloadFile(attachment: RocketChatMessageAttachment) {
-  const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
-  if (!fullFileName) return;
+  async downloadFile(attachment: RocketChatMessageAttachment, messageId?: string) {
+    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+    if (!fullFileName) return;
 
-  const fileNameInS3 = fullFileName.split('/')[2];
-  const groupId = this.selectedConversation?._id;
-  
-  if (!groupId) return;
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+    
+    if (!groupId) return;
 
-  const segment1 = groupId;
-  const segment2 = groupId.substring(17);
-  const downloadUrl = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
-  const originalFileName = attachment.title || fileNameInS3;
+    const segment1 = groupId;
+    const segment2 = groupId.substring(0, 17);
+    const segment3 = groupId.substring(17);
 
-  try {
-    const response = await fetch(downloadUrl);
-    const blob = await response.blob();
-    
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = originalFileName;
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    window.URL.revokeObjectURL(blobUrl);
-    
-  } catch (error) {
-    window.open(downloadUrl, '_blank');
+    const url1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const url2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
+    const originalFileName = attachment.title || fileNameInS3;
+
+    if (messageId) {
+      if (this.mediaPlayable.get(`${messageId}|1`)) {
+        if (await this.tryDownloadAndSave(url1, originalFileName)) return;
+        window.open(url1, '_blank');
+        return;
+      }
+      if (this.mediaPlayable.get(`${messageId}|2`)) {
+        if (await this.tryDownloadAndSave(url2, originalFileName)) return;
+        window.open(url2, '_blank');
+        return;
+      }
+    }
+
+    const tryDownload = async (url: string): Promise<'ok' | 'error' | 'network_error'> => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return 'error';
+        const blob = await response.blob();
+        
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = originalFileName;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(blobUrl);
+        return 'ok';
+      } catch (error) {
+        return 'network_error';
+      }
+    };
+
+    const result1 = await tryDownload(url1);
+    if (result1 === 'ok') return;
+
+    const result2 = await tryDownload(url2);
+    if (result2 === 'ok') return;
+
+    if (result2 === 'network_error') {
+      window.open(url2, '_blank');
+    } else {
+      window.open(url1, '_blank');
+    }
   }
-}
+
+  private async tryDownloadAndSave(url: string, fileName: string): Promise<boolean> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return false;
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 
   selectFile() {
     this.isSendingMessage = true;
@@ -1168,6 +1230,9 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
     this.selectedConversation = room;
     this.typingUsers = [];
+    if (this.isMobile) {
+      this.sidebar?.close();
+    }
 
     try {
       this.chatService.setActiveRoom(room._id);
@@ -1337,7 +1402,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
-    getTypingText(): string {
+  getTypingText(): string {
     if (this.typingUsers.length === 0) return '';
 
     if (this.typingUsers.length === 1) {
@@ -1413,8 +1478,8 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     const lastMessage = room.lastMessage;
     if (!lastMessage) return 'No messages yet';
     if (lastMessage.t === 'videoconf') return 'Call started';
-    const msgText = lastMessage.msg || '';
-    if (room.t !== 'd' && lastMessage.u?.username) {
+    const msgText = this.stripQuoteUrlFromText(lastMessage.msg || '');
+    if (room.t !== 'd' && lastMessage.u?.username && msgText) {
       return `${lastMessage.u.username}: ${msgText}`;
     }
     return msgText || 'No messages yet';
@@ -1462,7 +1527,10 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     if (this.editingMessage) {
-      const updatedText = this.newMessage.trim();
+      const baseText = this.newMessage.trim();
+      const updatedText = this.editingQuoteUrl
+        ? `${this.editingQuoteUrl}\n${baseText}`
+        : baseText;
 
       this.chatService
         .editMessage(
@@ -1474,6 +1542,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
           next: (res) => {
             this.editingMessage!.msg = updatedText;
             this.editingMessage = null;
+            this.editingQuoteUrl = null;
             this.newMessage = '';
 
             this.cdr.detectChanges();
@@ -1489,13 +1558,21 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
     this.chatService.stopTyping(this.selectedConversation._id);
     this.typingUsers = [];
-    const threadId = this.replyToMessage?._id;
+
+    const baseText = this.newMessage.trim();
+    const quoteUrl = this.replyToMessage
+      ? this.buildQuoteUrl(this.selectedConversation._id, this.replyToMessage._id)
+      : null;
+    const finalMessage = quoteUrl ? `${quoteUrl}\n${baseText}` : baseText;
+    const previewUrls = quoteUrl ? [] : undefined;
 
     this.chatService
-      .sendMessageWithConfirmation(
+      .sendMessage(
         this.selectedConversation._id,
-        this.newMessage.trim(),
-        threadId
+        finalMessage,
+        [],
+        undefined,
+        previewUrls
       )
       .subscribe({
         next: (result) => {
@@ -1511,7 +1588,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
         },
       });
   }
-  
+
   getLocalTime(offset: number | undefined): string {
     if (offset === undefined || offset === null) return '';
 
@@ -1523,6 +1600,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarOpen ? this.sidebar.open() : this.sidebar.close();
   }
 
   private scrollToBottom() {
@@ -1654,18 +1732,6 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     }
   }
 
-/*   reactToMessage(message: RocketChatMessage) {
-    const emoji = ':smile:';
-    this.chatService.reactToMessage(message._id, emoji).subscribe({
-      next: (res) => {
-        console.log('Reacted to message:', res);
-      },
-      error: (err) => {
-        console.error('Error reacting to message:', err);
-      }
-    });
-  } */
-
   quoteMessage(message: RocketChatMessage) {
     this.replyToMessage = message;
     this.scrollToBottom();
@@ -1675,26 +1741,159 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
     this.replyToMessage = null;
   }
 
-  getRepliedMessage(message: RocketChatMessage): RocketChatMessage | null {
-    const anyMsg: any = message as any;
-    const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
-    const tmid = possibleIds.find((id) => !!id) as string | undefined;
-    if (!tmid) return null;
-    return this.messages.find((m) => m._id === tmid) || null;
+  private buildQuoteUrl(roomId: string, messageId: string): string {
+    const base = (environment.rocketChatUrl || '').replace(/\/$/, '');
+    const rid = encodeURIComponent(roomId || '');
+    const msg = encodeURIComponent(messageId || '');
+    return `[ ](${base}/direct/${rid}?msg=${msg})`;
   }
 
-  getRepliedTextOrAttachment(msg: RocketChatMessage): string {
+  private extractQuoteInfoFromText(text: string): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    if (!text || text.trim().length === 0) {
+      return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+    }
+
+    const markdownMatch = text.match(/\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i);
+    const normalized = text.replace(/<([^>]+)>/g, '$1');
+    const urls = [
+      ...(markdownMatch ? [markdownMatch[1]] : []),
+      ...(normalized.match(/https?:\/\/\S+/g) || [])
+    ];
+    for (const rawUrl of urls) {
+      const cleaned = rawUrl.replace(/[)>.,]*$/, '').replace(/^\(/, '');
+      try {
+        const url = new URL(cleaned);
+        const msgId = url.searchParams.get('msg') || url.searchParams.get('messageId');
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const directIdx = pathParts.indexOf('direct');
+        const roomId = directIdx >= 0 ? pathParts[directIdx + 1] : pathParts[pathParts.length - 1];
+
+        if (msgId && roomId) {
+          return { quoteUrl: cleaned, quoteMessageId: msgId, quoteRoomId: roomId };
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+
+    return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+  }
+
+  private extractQuoteInfo(message: RocketChatMessage | null): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    return this.extractQuoteInfoFromText(message?.msg || '');
+  }
+
+  private stripQuoteUrlFromText(text: string): string {
+    if (!text) return text;
+    const markdownQuotePattern = /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const quoteUrlPattern = /<?https?:\/\/[^\s>]+\/direct\/[^\s?]+\?msg=[^\s>]+>?/gi;
+    const cleaned = text
+      .replace(markdownQuotePattern, '')
+      .replace(quoteUrlPattern, '')
+      .replace(/^[\s\r\n-]+/, '')
+      .trimEnd();
+    return cleaned;
+  }
+
+  private isQuoteUrl(text: string | undefined | null): boolean {
+    if (!text) return false;
+    return /\/direct\/[^\s?]+\?msg=[^\s)]+/i.test(text);
+  }
+
+  isQuoteMessage(message: RocketChatMessage): boolean {
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
+    return this.isQuoteUrl(message?.msg || '');
+  }
+
+  shouldRenderAttachments(message: RocketChatMessage): boolean {
+    if (!message?.attachments || message.attachments.length === 0) return false;
+    if (!this.isQuoteMessage(message)) return true;
+
+    const allQuotePreviews = message.attachments.every((att: any) => {
+      const candidates = [
+        att?.message_link,
+        att?.title_link,
+        att?.title,
+        att?.text,
+        att?.description
+      ].filter(Boolean) as string[];
+      return candidates.some((c) => this.isQuoteUrl(c));
+    });
+
+    return !allQuotePreviews;
+  }
+
+  getQuotedMessage(message: RocketChatMessage): RocketChatMessage | null {
+    const info = this.extractQuoteInfo(message);
+    if (!info.quoteMessageId) {
+      const anyMsg: any = message as any;
+      const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
+      const tmid = possibleIds.find((id) => !!id) as string | undefined;
+      return tmid ? this.messages.find((m) => m._id === tmid) || null : null;
+    }
+
+    if (this.quotedMessageCache.has(info.quoteMessageId)) {
+      return this.quotedMessageCache.get(info.quoteMessageId) || null;
+    }
+
+    if (this.quotedMessageInFlight.has(info.quoteMessageId)) {
+      return null;
+    }
+
+    this.quotedMessageInFlight.add(info.quoteMessageId);
+    this.chatService.getMessage(info.quoteMessageId).subscribe({
+      next: (res: any) => {
+        const resolved = (res as any)?.message || res || null;
+        this.quotedMessageCache.set(info.quoteMessageId!, resolved);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.quotedMessageCache.set(info.quoteMessageId!, null);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+      }
+    });
+
+    return null;
+  }
+
+  getQuotedTextOrAttachment(msg: RocketChatMessage): string {
     if (!msg) return '';
-    if (msg.msg && msg.msg.trim().length > 0) return msg.msg;
+    if (msg.msg && msg.msg.trim().length > 0) return this.stripQuoteUrlFromText(msg.msg);
     if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
+    return '';
+  }
+
+  getMessageTextWithoutQuote(message: RocketChatMessage): string {
+    const text = message?.msg || '';
+    return this.stripQuoteUrlFromText(text);
+  }
+
+  getReplyPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+    const text = this.stripQuoteUrlFromText(message.msg || '').trim();
+    if (text) return text;
+    if (message.attachments && message.attachments.length > 0) {
+      return message.attachments[0]?.title || 'Attachment';
+    }
     return '';
   }
   
   isReplyMessage(message: RocketChatMessage): boolean {
     if (!message) return false;
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
 
     const anyMsg: any = message;
-
     const possibleIds = [
       anyMsg.tmid,
       anyMsg.tmidString,
@@ -1722,7 +1921,7 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   pinnedPreview(msg: RocketChatMessage | null): string {
     if (!msg) return '';
     if (msg.msg && msg.msg.trim().length > 0) {
-      const txt = msg.msg.trim();
+      const txt = this.stripQuoteUrlFromText(msg.msg.trim());
       return txt.length > 120 ? txt.slice(0, 120) + '...' : txt;
     }
     if (msg.attachments && msg.attachments.length > 0) {
@@ -1781,12 +1980,30 @@ async downloadFile(attachment: RocketChatMessageAttachment) {
   editMessage(message: RocketChatMessage) {
     this.replyToMessage = null;
     this.editingMessage = message;
-    this.newMessage = message.msg;
+    const quoteInfo = this.extractQuoteInfoFromText(message.msg || '');
+    this.editingQuoteUrl = quoteInfo.quoteUrl;
+    this.newMessage = this.getMessageTextWithoutQuote(message) || '';
   }
   
   cancelEditing() {
     this.editingMessage = null;
+    this.editingQuoteUrl = null;
     this.newMessage = '';
+  }
+
+  getEditingPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+
+    const quoted = this.getQuotedMessage(message);
+    const currentText = (this.newMessage || '').trim() || this.getMessageTextWithoutQuote(message);
+
+    if (quoted) {
+      const quotedText = this.getQuotedTextOrAttachment(quoted);
+      const quotedName = this.getSenderName(quoted);
+      return `replied to ${quotedName}: ${quotedText}\n${currentText}`;
+    }
+
+    return currentText;
   }
 
   deleteMessage(message: RocketChatMessage) {

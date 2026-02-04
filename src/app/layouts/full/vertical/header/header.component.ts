@@ -26,7 +26,10 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { UsersService } from 'src/app/services/users.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { PermissionService } from 'src/app/services/permission.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { RoleTourService } from 'src/app/services/role-tour.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 interface notifications {
   id: number;
@@ -66,6 +69,7 @@ interface quicklinks {
     NgScrollbarModule,
     TablerIconsModule,
     MaterialModule,
+    TourMatMenuModule,
   ],
   templateUrl: './header.component.html',
   encapsulation: ViewEncapsulation.None,
@@ -101,6 +105,8 @@ export class HeaderComponent implements OnInit {
   canViewCandidates: boolean = false;
   canViewExpertMatch: boolean = false;
   canViewMySentinel: boolean = false;
+  isTourActive$ = this.roleTourService.isActive$;
+  showTourHelpButton: boolean = false;
   canViewRejected: boolean = false;
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -154,6 +160,7 @@ export class HeaderComponent implements OnInit {
     private router: Router,
     private usersService: UsersService,
     private permissionService: PermissionService,
+    private roleTourService: RoleTourService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -209,6 +216,15 @@ export class HeaderComponent implements OnInit {
     this.permissionService.permissionsUpdated$.subscribe(() => {
       this.reloadPermissions();
     });
+
+    this.updateTourHelpVisibility();
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => this.updateTourHelpVisibility());
+  }
+
+  private updateTourHelpVisibility(): void {
+    this.showTourHelpButton = this.roleTourService.hasStepsForRoute();
   }
 
   reloadPermissions(): void {
@@ -369,6 +385,31 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+  }
+
+  startTour() {
+    this.roleTourService.maybeStartForCurrentRoute(true);
+  }
+
+  skipTour() {
+    this.roleTourService.skipActiveTour();
+  }
+
+  getProfileTourAnchor(profile: profiledd): string | null {
+    switch (profile.title) {
+      case 'My Profile':
+        return 'profile-my-profile';
+      case 'My Inbox':
+        return 'profile-my-inbox';
+      case 'My Team':
+        return 'profile-my-team';
+      case 'Payments':
+        return 'profile-payments';
+      case 'R3':
+        return 'profile-r3';
+      default:
+        return null;
+    }
   }
 
   notificationIcons = [
