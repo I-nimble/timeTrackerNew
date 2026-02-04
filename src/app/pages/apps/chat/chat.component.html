@@ -322,7 +322,7 @@
                           : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
                       "
                     >
-                      <div class="message-actions" [class.visible]="isActionsVisible(message)" [class.hidden]="!isActionsVisible(message)" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
+                      <div class="message-actions" [class.visible]="isActionsVisible(message)" [class.hidden]="!isActionsVisible(message)" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf'" [class.from-me]="isFromMe(message)">
   <!--                       <button mat-icon-button aria-label="React" (click)="$event.stopPropagation(); reactToMessage(message)">
                           <mat-icon>emoji_emotions</mat-icon>
                         </button> -->
