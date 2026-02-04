@@ -85,10 +85,9 @@
                 {{ getConversationName(room) }}
               </div>
               <div class="d-flex justify-content-between">
-                <div
-                  class="last-message"
-                  [innerHTML]="getLastMessage(room) | emojiMart | markdown"
-                ></div>
+                <div class="last-message">
+                  {{ getLastMessage(room) | slice:0:30 }}{{ getLastMessage(room).length > 30 ? '...' : '' }}
+                </div>
                 <span
                   *ngIf="getUnreadMessageCount(room) > 0"
                   class="badge badge-pill badge-success"
@@ -323,75 +322,25 @@
                           : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
                       "
                     >
-                      <div
-                        class="message-actions"
-                        [class.visible]="isActionsVisible(message)"
-                        [class.hidden]="!isActionsVisible(message)"
-                        *ngIf="
-                          !isSystemMessage(message) &&
-                          message.t !== 'videoconf'
-                        "
-                        [class.from-me]="isFromMe(message)"
-                      >
-                        <!--                           <button mat-icon-button
-                                  aria-label="React"
-                                  (click)="$event.stopPropagation(); openReactionPicker(message)">
-                            <mat-icon>emoji_emotions</mat-icon>
-                          </button> -->
-                        <div
-                          *ngIf="showReactionPicker"
-                          class="emoji-panel"
-                          (click)="$event.stopPropagation()"
-                        >
-                          <emoji-mart
-                            set="apple"
-                            (emojiClick)="sendReaction($event)"
-                          ></emoji-mart>
-                        </div>
-                        <button
-                          mat-icon-button
-                          aria-label="Quote"
-                          (click)="
-                            $event.stopPropagation(); quoteMessage(message)
-                          "
-                        >
+                      <div class="message-actions" [class.visible]="isActionsVisible(message)" [class.hidden]="!isActionsVisible(message)" *ngIf="!isSystemMessage(message) && message.t !== 'videoconf' && (!isReplyMessage(message) || isFromMe(message))" [class.from-me]="isFromMe(message)">
+  <!--                       <button mat-icon-button aria-label="React" (click)="$event.stopPropagation(); reactToMessage(message)">
+                          <mat-icon>emoji_emotions</mat-icon>
+                        </button> -->
+                        <button mat-icon-button aria-label="Quote" (click)="$event.stopPropagation(); quoteMessage(message)">
                           <mat-icon>format_quote</mat-icon>
                         </button>
-                        <button
-                          mat-icon-button
-                          aria-label="Pin"
-                          (click)="$event.stopPropagation(); togglePin(message)"
-                        >
+                        <button mat-icon-button aria-label="Pin" (click)="$event.stopPropagation(); togglePin(message)">
                           @if(message.pinned) {
-                          <i
-                            class="fa-solid fa-thumbtack-slash"
-                            style="font-size: 1.25rem"
-                          ></i>
-                          } @else {
-                          <i
-                            class="fa-solid fa-thumbtack"
-                            style="font-size: 1.25rem"
-                          ></i>
+                            <i class="fa-solid fa-thumbtack-slash" style="font-size: 1.25rem;"></i>
+                          }
+                          @else {
+                            <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem;"></i>
                           }
                         </button>
-                        <button
-                          mat-icon-button
-                          aria-label="Edit"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); editMessage(message)
-                          "
-                        >
+                        <button mat-icon-button aria-label="Edit" *ngIf="isFromMe(message)" (click)="$event.stopPropagation(); editMessage(message)">
                           <mat-icon>edit</mat-icon>
                         </button>
-                        <button
-                          mat-icon-button
-                          aria-label="Delete"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); deleteMessage(message)
-                          "
-                        >
+                        <button mat-icon-button aria-label="Delete" *ngIf="isFromMe(message)" (click)="$event.stopPropagation(); deleteMessage(message)">
                           <mat-icon>delete</mat-icon>
                         </button>
                       </div>
@@ -527,46 +476,9 @@
                         >
                           {{ getSenderName(message) }}
                         </strong>
-                        <span
-                          [innerHTML]="
-                            getMessageTextWithoutQuote(message)
-                              | emojiMart
-                              | linebreak
-                              | markdown
-                          "
-                          class="f-s-14"
-                        ></span>
+                        <span class="f-s-14">{{ message.msg }}</span>
                       </div>
                       }
-                    </div>
-                    <div
-                      class="message-reactions-outside"
-                      *ngIf="
-                        message.reactions && getReactionKeys(message).length > 0
-                      "
-                    >
-                      <ng-container
-                        *ngFor="let emoji of getReactionKeys(message)"
-                      >
-                        <div
-                          class="reaction-pill-outside"
-                          matTooltip="{{
-                            getReactionUsernames(message, emoji)
-                          }}"
-                          matTooltipPosition="above"
-                          (click)="toggleReaction(message, emoji)"
-                          [class.me-reacted]="didIReact(message, emoji)"
-                        >
-                          <span
-                            [innerHTML]="
-                              emojiPipe.getAppleImgFromShortcode(emoji)
-                            "
-                          ></span>
-                          <span class="count">{{
-                            message.reactions[emoji].usernames.length
-                          }}</span>
-                        </div>
-                      </ng-container>
                     </div>
                     <span class="f-s-12">{{
                       getMessageTimestamp(message) | date : "hh:mm a"
@@ -675,27 +587,15 @@
         </div>
 
         <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
-          <button mat-icon-button matPrefix (click)="selectFile()">
+          <button mat-icon-button matPrefix>
             <mat-icon>attach_file</mat-icon>
           </button>
           <button
             mat-icon-button
-            matPrefix
-            (click)="toggleEmojiPicker(); $event.stopPropagation()"
-          >
+            matPrefix>
             <mat-icon>emoji_emotions</mat-icon>
           </button>
-          <textarea
-            matInput
-            placeholder="Send message"
-            [(ngModel)]="newMessage"
-            (keydown.enter)="onEnter($event)"
-            (input)="onMessageInput()"
-            [disabled]="isRecording"
-            rows="1"
-            cdkTextareaAutosize
-            #autosize="cdkTextareaAutosize"
-          ></textarea>
+          <input matInput placeholder="Send message" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" (input)="onMessageInput()" />
           <button
             *ngIf="isEmptyText"
             mat-icon-button
@@ -717,13 +617,6 @@
             <mat-icon>send</mat-icon>
           </button>
         </mat-form-field>
-        <div
-          *ngIf="showEmojiPicker"
-          class="emoji-panel"
-          (click)="$event.stopPropagation()"
-        >
-          <emoji-mart set="apple" (emojiClick)="addEmoji($event)"></emoji-mart>
-        </div>
       </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
