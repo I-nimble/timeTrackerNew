@@ -93,7 +93,7 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
-     private locationService: LocationService
+      private locationService: LocationService
   ) {}
 
   form = new FormGroup({
@@ -147,16 +147,11 @@ export class AppSideLoginComponent {
           this.rocketChatService.initializeRocketChat(chatCredentials);
           this.socketService.socket.emit('client:joinRoom', jwt);
 
-          if (Number(role) === 2) {
-            this.locationService.startTracking();
-            this.locationService.forceUpdate();
-          }
-
           this.authService.setUserType(role);
           this.authService.checkTokenExpiration();
           this.notificationsService.loadNotifications();
           this.entriesService.loadEntries();
-          this.authService.userTypeRouting(role);
+          this.authService.userTypeRouting(String(role));
 
           let visibleChatCollection: HTMLCollectionOf<Element>;
           let hiddenChatCollection: HTMLCollectionOf<Element>;

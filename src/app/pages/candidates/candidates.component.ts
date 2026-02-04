@@ -25,6 +25,7 @@ import { MatchPercentagesModalComponent } from 'src/app/components/match-percent
 import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
+import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 
 @Component({
   selector: 'app-candidates',
@@ -56,6 +57,7 @@ export class CandidatesComponent {
   canView: boolean = false;
   canManage: boolean = false;
   canEdit: boolean = false;
+  canDelete: boolean = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -88,6 +90,7 @@ export class CandidatesComponent {
         this.canManage = effective.includes('candidates.manage');
         this.canEdit = effective.includes('candidates.edit');
         this.canView = effective.includes('candidates.view');
+        this.canDelete = effective.includes('candidates.delete');
 
         if (this.role != '1' && !this.canView) {
           this.router.navigate(['/dashboard']);
@@ -241,11 +244,14 @@ export class CandidatesComponent {
 
   private loadCandidates(): void {
     this.applicationsService.get().subscribe((applications: any[]) => {
-      this.pendingCandidates.set(applications.filter((application: any) => application.status === 'pending'));
-      this.reviewingCandidates.set(applications.filter((application: any) => application.status === 'reviewing'));
-      this.talentMatchCandidates.set(applications.filter((application: any) => application.status === 'talent match'));
+      const visibleApplications = applications.filter(
+        (application: any) => application.status !== 'rejected'
+      );
+      this.pendingCandidates.set(visibleApplications.filter((a: any) => a.status === 'pending'));
+      this.reviewingCandidates.set(visibleApplications.filter((a: any) => a.status === 'reviewing'));
+      this.talentMatchCandidates.set(visibleApplications.filter((a: any) => a.status === 'talent match'));
 
-      this.candidatesList = new MatTableDataSource(applications);
+      this.candidatesList = new MatTableDataSource(visibleApplications);
       this.candidatesList.paginator = this.paginator;
       this.candidatesList.sort = this.sort;
     });
@@ -276,21 +282,21 @@ export class CandidatesComponent {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        type: 'application',
+        subject: 'application',
       }
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
       this.loadCandidates();
       if (result) {
-        this.applicationsService.delete(id).subscribe({
+        this.applicationsService.delete(id, 'delete').subscribe({
           next: () => {
             this.loadCandidates();
             this.filterCandidates();
-            this.showSnackbar('Invoice deleted successfully!');
+            this.showSnackbar('Application deleted successfully!');
           },
           error: () => {
-            this.showSnackbar('Error deleting invoice.');
+            this.showSnackbar('Error deleting application.');
           }
         });
       }
@@ -402,6 +408,24 @@ export class CandidatesComponent {
       this.showSnackbar('Candidate marked as unavailable');
       this.loadCandidates();
       this.filterCandidates();
+    });
+  }
+
+  openRejectDialog(candidate: any): void {
+    const dialogRef = this.dialog.open(RejectionDialogComponent, {
+      width: '500px',
+      data: {
+        mode: 'reject',
+        candidate: candidate
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.showSnackbar('Candidate rejected successfully');
+        this.loadCandidates();
+        this.filterCandidates();
+      }
     });
   }
 

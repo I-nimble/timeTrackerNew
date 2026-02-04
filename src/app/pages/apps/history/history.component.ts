@@ -23,6 +23,7 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { ViewChild } from '@angular/core';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-history',
@@ -37,6 +38,7 @@ import { ViewChild } from '@angular/core';
     MatNativeDateModule,
     NgIf,
     TablerIconsModule,
+    TourMatMenuModule
   ],
   providers: [
     provideNativeDateAdapter(),

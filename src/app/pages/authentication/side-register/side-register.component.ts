@@ -355,7 +355,7 @@ export class AppSideRegisterComponent {
                 this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
                 this.authService.setUserType(role);
-                this.authService.userTypeRouting(role);
+                this.authService.userTypeRouting(String(role));
                 this.notificationsService.loadNotifications();
                 this.entriesService.loadEntries();
                 localStorage.setItem('showWelcomePopup', 'true');

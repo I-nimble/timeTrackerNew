@@ -51,6 +51,7 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { MatTooltip } from '@angular/material/tooltip';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-chat',
@@ -73,7 +74,8 @@ import { MatTooltip } from '@angular/material/tooltip';
     LinebreakPipe,
     PickerModule,
     EmojiMartPipe,
-    MatTooltip
+    MatTooltip,
+    TourMatMenuModule
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -114,6 +116,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   showEmojiPicker = false;
   reactionTargetMessage: RocketChatMessage | null = null;
   showReactionPicker = false;
+  private editingQuoteUrl: string | null = null;
+
+  private quotedMessageCache = new Map<string, RocketChatMessage | null>();
+  private quotedMessageInFlight = new Set<string>();
 
   protected mediaPlayable = new Map<string, boolean>();
 
@@ -139,6 +145,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
         try {
+          console.log('[chat] global message stream', message);
           if (!message || !message.rid) return;
           const room = this.rooms.find(r => r._id === message.rid);
           if (room) {
@@ -1483,8 +1490,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const lastMessage = room.lastMessage;
     if (!lastMessage) return 'No messages yet';
     if (lastMessage.t === 'videoconf') return 'Call started';
-    const msgText = lastMessage.msg || '';
-    if (room.t !== 'd' && lastMessage.u?.username) {
+    const msgText = this.stripQuoteUrlFromText(lastMessage.msg || '');
+    if (room.t !== 'd' && lastMessage.u?.username && msgText) {
       return `${lastMessage.u.username}: ${msgText}`;
     }
     return msgText || 'No messages yet';
@@ -1532,7 +1539,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   sendMessage() {
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     if (this.editingMessage) {
-      const updatedText = this.newMessage.trim();
+      const baseText = this.newMessage.trim();
+      const updatedText = this.editingQuoteUrl
+        ? `${this.editingQuoteUrl}\n${baseText}`
+        : baseText;
 
       this.chatService
         .editMessage(
@@ -1544,6 +1554,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           next: (res) => {
             this.editingMessage!.msg = updatedText;
             this.editingMessage = null;
+            this.editingQuoteUrl = null;
             this.newMessage = '';
 
             this.cdr.detectChanges();
@@ -1559,14 +1570,21 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     this.chatService.stopTyping(this.selectedConversation._id);
     this.typingUsers = [];
-    const threadId = this.replyToMessage?._id;
+
+    const baseText = this.newMessage.trim();
+    const quoteUrl = this.replyToMessage
+      ? this.buildQuoteUrl(this.selectedConversation._id, this.replyToMessage._id)
+      : null;
+    const finalMessage = quoteUrl ? `${quoteUrl}\n${baseText}` : baseText;
+    const previewUrls = quoteUrl ? [] : undefined;
 
     this.chatService
       .sendMessage(
         this.selectedConversation._id,
-        this.newMessage.trim(),
+        finalMessage,
         [],
-        threadId
+        undefined,
+        previewUrls
       )
       .subscribe({
         next: (result) => {
@@ -1797,26 +1815,159 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.replyToMessage = null;
   }
 
-  getRepliedMessage(message: RocketChatMessage): RocketChatMessage | null {
-    const anyMsg: any = message as any;
-    const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
-    const tmid = possibleIds.find((id) => !!id) as string | undefined;
-    if (!tmid) return null;
-    return this.messages.find((m) => m._id === tmid) || null;
+  private buildQuoteUrl(roomId: string, messageId: string): string {
+    const base = (environment.rocketChatUrl || '').replace(/\/$/, '');
+    const rid = encodeURIComponent(roomId || '');
+    const msg = encodeURIComponent(messageId || '');
+    return `[ ](${base}/direct/${rid}?msg=${msg})`;
   }
 
-  getRepliedTextOrAttachment(msg: RocketChatMessage): string {
+  private extractQuoteInfoFromText(text: string): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    if (!text || text.trim().length === 0) {
+      return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+    }
+
+    const markdownMatch = text.match(/\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i);
+    const normalized = text.replace(/<([^>]+)>/g, '$1');
+    const urls = [
+      ...(markdownMatch ? [markdownMatch[1]] : []),
+      ...(normalized.match(/https?:\/\/\S+/g) || [])
+    ];
+    for (const rawUrl of urls) {
+      const cleaned = rawUrl.replace(/[)>.,]*$/, '').replace(/^\(/, '');
+      try {
+        const url = new URL(cleaned);
+        const msgId = url.searchParams.get('msg') || url.searchParams.get('messageId');
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const directIdx = pathParts.indexOf('direct');
+        const roomId = directIdx >= 0 ? pathParts[directIdx + 1] : pathParts[pathParts.length - 1];
+
+        if (msgId && roomId) {
+          return { quoteUrl: cleaned, quoteMessageId: msgId, quoteRoomId: roomId };
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+
+    return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+  }
+
+  private extractQuoteInfo(message: RocketChatMessage | null): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    return this.extractQuoteInfoFromText(message?.msg || '');
+  }
+
+  private stripQuoteUrlFromText(text: string): string {
+    if (!text) return text;
+    const markdownQuotePattern = /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const quoteUrlPattern = /<?https?:\/\/[^\s>]+\/direct\/[^\s?]+\?msg=[^\s>]+>?/gi;
+    const cleaned = text
+      .replace(markdownQuotePattern, '')
+      .replace(quoteUrlPattern, '')
+      .replace(/^[\s\r\n-]+/, '')
+      .trimEnd();
+    return cleaned;
+  }
+
+  private isQuoteUrl(text: string | undefined | null): boolean {
+    if (!text) return false;
+    return /\/direct\/[^\s?]+\?msg=[^\s)]+/i.test(text);
+  }
+
+  isQuoteMessage(message: RocketChatMessage): boolean {
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
+    return this.isQuoteUrl(message?.msg || '');
+  }
+
+  shouldRenderAttachments(message: RocketChatMessage): boolean {
+    if (!message?.attachments || message.attachments.length === 0) return false;
+    if (!this.isQuoteMessage(message)) return true;
+
+    const allQuotePreviews = message.attachments.every((att: any) => {
+      const candidates = [
+        att?.message_link,
+        att?.title_link,
+        att?.title,
+        att?.text,
+        att?.description
+      ].filter(Boolean) as string[];
+      return candidates.some((c) => this.isQuoteUrl(c));
+    });
+
+    return !allQuotePreviews;
+  }
+
+  getQuotedMessage(message: RocketChatMessage): RocketChatMessage | null {
+    const info = this.extractQuoteInfo(message);
+    if (!info.quoteMessageId) {
+      const anyMsg: any = message as any;
+      const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
+      const tmid = possibleIds.find((id) => !!id) as string | undefined;
+      return tmid ? this.messages.find((m) => m._id === tmid) || null : null;
+    }
+
+    if (this.quotedMessageCache.has(info.quoteMessageId)) {
+      return this.quotedMessageCache.get(info.quoteMessageId) || null;
+    }
+
+    if (this.quotedMessageInFlight.has(info.quoteMessageId)) {
+      return null;
+    }
+
+    this.quotedMessageInFlight.add(info.quoteMessageId);
+    this.chatService.getMessage(info.quoteMessageId).subscribe({
+      next: (res: any) => {
+        const resolved = (res as any)?.message || res || null;
+        this.quotedMessageCache.set(info.quoteMessageId!, resolved);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.quotedMessageCache.set(info.quoteMessageId!, null);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+      }
+    });
+
+    return null;
+  }
+
+  getQuotedTextOrAttachment(msg: RocketChatMessage): string {
     if (!msg) return '';
-    if (msg.msg && msg.msg.trim().length > 0) return msg.msg;
+    if (msg.msg && msg.msg.trim().length > 0) return this.stripQuoteUrlFromText(msg.msg);
     if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
+    return '';
+  }
+
+  getMessageTextWithoutQuote(message: RocketChatMessage): string {
+    const text = message?.msg || '';
+    return this.stripQuoteUrlFromText(text);
+  }
+
+  getReplyPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+    const text = this.stripQuoteUrlFromText(message.msg || '').trim();
+    if (text) return text;
+    if (message.attachments && message.attachments.length > 0) {
+      return message.attachments[0]?.title || 'Attachment';
+    }
     return '';
   }
   
   isReplyMessage(message: RocketChatMessage): boolean {
     if (!message) return false;
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
 
     const anyMsg: any = message;
-
     const possibleIds = [
       anyMsg.tmid,
       anyMsg.tmidString,
@@ -1844,7 +1995,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   pinnedPreview(msg: RocketChatMessage | null): string {
     if (!msg) return '';
     if (msg.msg && msg.msg.trim().length > 0) {
-      const txt = msg.msg.trim();
+      const txt = this.stripQuoteUrlFromText(msg.msg.trim());
       return txt.length > 120 ? txt.slice(0, 120) + '...' : txt;
     }
     if (msg.attachments && msg.attachments.length > 0) {
@@ -1903,12 +2054,30 @@ export class AppChatComponent implements OnInit, OnDestroy {
   editMessage(message: RocketChatMessage) {
     this.replyToMessage = null;
     this.editingMessage = message;
-    this.newMessage = message.msg;
+    const quoteInfo = this.extractQuoteInfoFromText(message.msg || '');
+    this.editingQuoteUrl = quoteInfo.quoteUrl;
+    this.newMessage = this.getMessageTextWithoutQuote(message) || '';
   }
   
   cancelEditing() {
     this.editingMessage = null;
+    this.editingQuoteUrl = null;
     this.newMessage = '';
+  }
+
+  getEditingPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+
+    const quoted = this.getQuotedMessage(message);
+    const currentText = (this.newMessage || '').trim() || this.getMessageTextWithoutQuote(message);
+
+    if (quoted) {
+      const quotedText = this.getQuotedTextOrAttachment(quoted);
+      const quotedName = this.getSenderName(quoted);
+      return `replied to ${quotedName}: ${quotedText}\n${currentText}`;
+    }
+
+    return currentText;
   }
 
   deleteMessage(message: RocketChatMessage) {

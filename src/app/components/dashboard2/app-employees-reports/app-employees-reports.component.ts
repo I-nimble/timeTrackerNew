@@ -24,6 +24,7 @@ import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-
 import { environment } from 'src/environments/environment';
 import { RouterLink } from '@angular/router';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-employees-reports',
@@ -39,7 +40,8 @@ import { WebSocketService } from 'src/app/services/socket/web-socket.service';
     NgIf,
     TablerIconsModule,
     AppEmployeeTableComponent,
-    RouterLink
+    RouterLink,
+    TourMatMenuModule
   ],
   providers: [
     provideNativeDateAdapter(),

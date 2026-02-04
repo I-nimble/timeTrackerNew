@@ -260,6 +260,7 @@ export class AppAccountSettingComponent implements OnInit {
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
+  maxPictureSize: number =  1 * 1024 * 1024;
   sentinelSubscription: SubscriptionStatus | null = null;
   isLoadingSubscription = false;
   formChanged: boolean = false;
@@ -304,11 +305,6 @@ export class AppAccountSettingComponent implements OnInit {
       this.checkSubscriptionSuccess();
     }); 
     this.loadSubscriptionStatus();
-    if (this.isCandidate) {
-      this.checkOlympiaStatus();
-      this.loadExistingVideo();
-      this.initializeApplicationFormDependencies();
-    }
 
     this.setupNameTrimming(this.personalForm, 'name');
     this.setupNameTrimming(this.personalForm, 'last_name');
@@ -538,10 +534,12 @@ export class AppAccountSettingComponent implements OnInit {
           this.initializeForm();
           if (this.role === '2') {
              this.loadCertifications();
-             if (this.user.availability) {
+             if (this.user.availability || this.isOrphan) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
-              this.checkMatchRequestStatus()              
+              this.checkMatchRequestStatus();
+              this.checkOlympiaStatus();
+              this.initializeApplicationFormDependencies();              
              }
           }
           this.usersService.getProfilePic(this.user.id).subscribe({
@@ -787,8 +785,9 @@ export class AppAccountSettingComponent implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-      if (file.size > 1000000) {
+      if (file.size > this.maxPictureSize) {
         this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
+        this.openSnackBar('Image size should be 1 MB or less', 'Close');
         return
       }
       if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {

@@ -46,6 +46,7 @@ import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-pr
 import { AppEmployeeTableComponent } from "./employee-table/employee-table.component";
 import { AppEmployeeDialogContentComponent } from './employee-dialog-content';
 import { PermissionService } from 'src/app/services/permission.service';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -60,7 +61,8 @@ import { PermissionService } from 'src/app/services/permission.service';
     TeamProductivityComponent,
     AppEmployeesReportsComponent,
     EmployeeDetailsComponent,
-    AppEmployeeTableComponent
+    AppEmployeeTableComponent,
+    TourMatMenuModule
 ],
   standalone: true,
 })

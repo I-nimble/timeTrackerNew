@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-match',
@@ -11,7 +12,8 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     CommonModule,
     FormsModule,
     MaterialModule,
-    TablerIconsModule
+    TablerIconsModule,
+    TourMatMenuModule
   ],
   templateUrl: './match.component.html'
 })

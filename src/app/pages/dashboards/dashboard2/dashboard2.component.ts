@@ -14,6 +14,7 @@ import { AppUpcomingSchedulesComponent } from '../../../components/dashboard2/up
 import { AppVisitUsaComponent } from '../../../components/dashboard1/visit-usa/visit-usa.component';
 import { AppWeeklyHoursComponent } from '../../../components/dashboard1/weekly-hours/weekly-hours.component';
 import { AppEmployeesReportsComponent } from '../../../components/dashboard2/app-employees-reports/app-employees-reports.component';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   selector: 'app-dashboard2',
@@ -32,11 +33,14 @@ import { AppEmployeesReportsComponent } from '../../../components/dashboard2/app
     AppVisitUsaComponent,
     AppWeeklyHoursComponent,
     AppEmployeesReportsComponent,
+    TourMatMenuModule,
   ],
   templateUrl: './dashboard2.component.html',
 })
 export class AppDashboard2Component {
   activityDataSource: any[] = [];
+  constructor() {}
+
   onEmployeesDataSourceChange(data: any[]) {
     this.activityDataSource = data;
   }

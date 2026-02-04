@@ -2,6 +2,26 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.no-scroll {
+  overflow: hidden !important;
+}
+
+body.tour-active #app-main-content {
+  pointer-events: none;
+}
+
+body.tour-active .cdk-overlay-container,
+body.tour-active .cdk-overlay-pane,
+body.tour-active .tour-step,
+body.tour-active .tour-step-container {
+  pointer-events: auto;
+}
+
+.tour-step,
+.tour-step-container,
+.cdk-overlay-container > .cdk-overlay-connected-position-bounding-box:first-of-type {
+  z-index: 99999999 !important;
+}
 .card-dashboard {
   margin-bottom: 0!important;
 }
@@ -190,5 +210,9 @@ app-jitsi-meet iframe {
   font-weight: 600;
   font-size: 0.875rem;
   color: #333;
+}
+
+.skip:hover {
+  text-decoration: underline;
 }
 

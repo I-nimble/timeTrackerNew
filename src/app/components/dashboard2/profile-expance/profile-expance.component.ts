@@ -24,6 +24,7 @@ import { RatingsEntriesService } from 'src/app/services/ratings_entries.service'
 import { forkJoin } from 'rxjs';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { RouterModule } from '@angular/router';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 export interface revenuetwoChart {
   series: ApexAxisChartSeries;
@@ -48,6 +49,7 @@ export interface revenuetwoChart {
     NgApexchartsModule,
     TablerIconsModule,
     RouterModule,
+    TourMatMenuModule
   ],
   templateUrl: './profile-expance.component.html',
 })

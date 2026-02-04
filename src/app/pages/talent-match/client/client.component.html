@@ -9,6 +9,7 @@
             mat-raised-button
             color="primary"
             (click)="goToCustomSearch()"
+            tourAnchor="tm-custom-search"
           >
             Custom Search
           </button>
@@ -26,7 +27,7 @@
       <div class="p-16">
         <h4 class="f-w-700 m-b-16">Main Filters</h4>
         <div class="row m-t-10">
-          <div class="col-lg-6">
+          <div class="col-lg-6" tourAnchor="tm-main-filters">
             <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role *</mat-label>
             <mat-form-field appearance="outline" class="w-100">
               <mat-select
@@ -81,7 +82,7 @@
               </mat-error>
             </mat-form-field>
           </div>
-          <div class="col-lg-6">
+          <div class="col-lg-6" tourAnchor="tm-budget">
             <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
               >Budget Range</mat-label
             >
@@ -110,7 +111,7 @@
             ></ngx-slider>
           </div>
         </div>
-        <mat-accordion multi>
+        <mat-accordion multi tourAnchor="tm-advanced">
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>
@@ -171,46 +172,49 @@
             </div>
           </mat-expansion-panel>
         </mat-accordion>
-        <h4 class="f-w-700 m-b-16 m-t-16">
-          Use AI to better describe the position
-        </h4>
-        <mat-form-field appearance="outline" class="w-100">
-          <textarea
-            matInput
-            rows="4"
-            placeholder="Tell us more about what you need for this role."
-            [(ngModel)]="roleDescription"
-            name="roleDescription"
-            #roleDescModel="ngModel"
-            maxlength="200"
-          ></textarea>
-          <mat-hint align="end"
-            >{{ roleDescription?.length || 0 }}/200</mat-hint
-          >
-          <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
-            Maximum 200 characters allowed.
-          </mat-error>
-        </mat-form-field>
+        <div tourAnchor="tm-ai-box">
+          <h4 class="f-w-700 m-b-16 m-t-16">
+            Use AI to better describe the position
+          </h4>
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              rows="4"
+              placeholder="Tell us more about what you need for this role."
+              [(ngModel)]="roleDescription"
+              name="roleDescription"
+              #roleDescModel="ngModel"
+              maxlength="200"
+            ></textarea>
+            <mat-hint align="end"
+              >{{ roleDescription?.length || 0 }}/200</mat-hint
+            >
+            <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
+              Maximum 200 characters allowed.
+            </mat-error>
+          </mat-form-field>
+          <div class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16">
+            <app-match
+              appearance="outline"
+              class="flex-grow-1 hide-hint m-b-0"
+              style="max-width: max-content;"
+              [loading]="aiLoading"
+              [aiEnabled]="!useManualSearch"
+              [canSearch]="canSearchAI"
+              [showInterviewButton]="true"
+              [interviewDisabled]="selection.selected.length === 0"
+              [showCustomSearch]="!showCustomFilterInput"
+              (interview)="openDialog('Schedule')"
+              [query]="query"
+              placeholder="What position are you looking for?"
+              (askAI)="searchCandidatesWithAI($event)"
+              (searchChange)="useManualSearch ? onManualSearch($event) : null"
+            >
+            </app-match>
+          </div>
+        </div>
       </div>
       <div output>
-        <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
-          <app-match
-            appearance="outline"
-            class="flex-grow-1 hide-hint m-b-0"
-            [loading]="aiLoading"
-            [aiEnabled]="!useManualSearch"
-            [canSearch]="canSearchAI"
-            [showInterviewButton]="true"
-            [interviewDisabled]="selection.selected.length === 0"
-            [showCustomSearch]="!showCustomFilterInput"
-            (interview)="openDialog('Schedule')"
-            [query]="query"
-            placeholder="What position are you looking for?"
-            (askAI)="searchCandidatesWithAI($event)"
-            (searchChange)="useManualSearch ? onManualSearch($event) : null"
-          >
-          </app-match>
-        </div>
         <div *ngIf="aiLoading || aiAnswer" class="mt-16">
           <mat-card color="accent" class="p-16">
             <div>
@@ -230,10 +234,7 @@
             </div>
           </mat-card>
         </div>
-        <div
-          class="table-responsive"
-          *ngIf="dataSource?.data && dataSource.data.length > 0"
-        >
+        <div class="table-responsive" tourAnchor="tm-results">
           <table
             mat-table
             [dataSource]="dataSource"
@@ -453,7 +454,7 @@
             </ng-container>
 
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14" tourAnchor="tm-actions">
                 Actions
               </th>
               <td mat-cell *matCellDef="let element">
