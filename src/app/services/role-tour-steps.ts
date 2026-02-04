@@ -323,6 +323,93 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         horizontal: true,
       } as const,
     }),
+    withBase({
+      anchorId: 'kanban-board-actions',
+      title: 'Board actions',
+      content: 'Edit or delete an existing board.',
+      route: '/apps/kanban',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'kanban-first-board',
+      title: 'Open a board',
+      content: 'Click Next to open the first board and continue the tour.',
+      route: '/apps/kanban',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+      nextBtnTitle: 'Open board',
+    }),
+    withBase({
+      anchorId: 'kanban-board-header',
+      title: 'Board details',
+      content: 'See the board title and visibility here.',
+    }),
+    withBase({
+      anchorId: 'kanban-search-tasks',
+      title: 'Search tasks',
+      content: 'Search tasks within the selected board.',
+    }),
+    withBase({
+      anchorId: 'kanban-columns',
+      title: 'Columns',
+      content: 'Manage columns and tasks in this board.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-add-column',
+      title: 'Add column',
+      content: 'Create a new column for this board.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-column-actions',
+      title: 'Column actions',
+      content: 'Edit or delete a column from this menu.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'kanban-create-task',
+      title: 'Create task',
+      content: 'Add a new task to this column.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-task-actions',
+      title: 'Task actions',
+      content: 'Edit or delete a task from here.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
   ];
 
   const timeTrackerSteps = [

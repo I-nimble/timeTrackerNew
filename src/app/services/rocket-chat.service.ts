@@ -706,7 +706,7 @@ export class RocketChatService {
                     try {
                       this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
-                      console.debug('Error showing push for call user notify message:', err);
+                      console.log('Error showing push for call user notify message:', err);
                     }
                   } else {
                     try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
@@ -716,14 +716,14 @@ export class RocketChatService {
                       const body = text || 'New message';
                       this.showPushNotification(title, body, icon, { roomId: payload.rid, messageId: lastMessage._id });
                     } catch (err) {
-                      console.debug('Error showing push for user notify message:', err);
+                      console.log('Error showing push for user notify message:', err);
                     }
                   }
                 }
               }
             });
           } catch (err) {
-            console.debug('Error while handling user notify payload for audio:', err);
+            console.log('Error while handling user notify payload for audio:', err);
           }
         } else {
           this.userNotifySubject.next(message);
@@ -1179,7 +1179,7 @@ export class RocketChatService {
         audio.play().catch(() => {});
       }
     } catch (err) {
-      console.debug('playNotificationSound error:', err);
+      console.log('playNotificationSound error:', err);
     }
   }
 
@@ -1194,7 +1194,7 @@ export class RocketChatService {
         audio.play().catch(() => {});
       }
     } catch (err) {
-      console.debug('playCallSound error:', err);
+      console.log('playCallSound error:', err);
     }
   }
 

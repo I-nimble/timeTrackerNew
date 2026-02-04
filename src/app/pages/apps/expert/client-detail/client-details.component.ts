@@ -109,7 +109,7 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
     if (this.loadingCompanyForUserId === userId) return;
     this.loadingCompanyForUserId = userId;
     this.companiesService.getByUserId(userId).subscribe((ownerResp: any) => {
-      console.debug('[ClientDetails] company response for userId', userId, ownerResp);
+      console.log('[ClientDetails] company response for userId', userId, ownerResp);
       const fullCompany = ownerResp?.company || this.client?.company;
       if (fullCompany) {
         this.client.company = { ...this.client.company, ...fullCompany };
