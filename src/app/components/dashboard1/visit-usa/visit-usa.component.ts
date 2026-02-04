@@ -127,6 +127,12 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     });
   }
+  isMobile(): boolean {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.innerWidth < 768;
+  }
 
   fetchLocations() {
     this.employeesService.getLocations().subscribe(
