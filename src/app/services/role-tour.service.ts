@@ -239,7 +239,7 @@ export class RoleTourService {
   }
 
   private getSectionForRoute(role: string, route: string): SectionConfig | null {
-    if (role !== '3') return null;
+    if (role != '3') return null;
     const sections = this.getClientSections();
     return sections.find((section) =>
       section.routes.some((r) => route === r || route.startsWith(`${r}/`))

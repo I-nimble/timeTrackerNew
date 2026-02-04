@@ -267,7 +267,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
     withBase({
       anchorId: 'chat-start-conversation',
       title: 'Start a conversation',
-      content: 'Start a new conversation with your team members or Inimble support.',
+      content: 'Start a new conversation with your team members, Inimble support or create a group.',
       route: '/apps/chat',
     }),
     withBase({
@@ -369,6 +369,30 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         xPosition: 'before',
         horizontal: true,
       } as const,
+    }),
+    withBase({
+      anchorId: 'employee-report-download',
+      title: 'Download reports',
+      content: 'Download the selected team member report from here.',
+      route: '/apps/time-tracker',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-action-menu',
+      title: 'Team member actions',
+      content: 'Edit or delete a team member from this menu.',
+      route: '/apps/time-tracker',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
     }),
   ];
 
@@ -612,21 +636,21 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       routes: ['/dashboards/productivity'],
       steps: productivitySteps,
     },
-    // {
-    //   key: 'chat',
-    //   routes: ['/apps/chat'],
-    //   steps: chatSteps,
-    // },
-    // {
-    //   key: 'kanban',
-    //   routes: ['/apps/kanban'],
-    //   steps: kanbanSteps,
-    // },
-    // {
-    //   key: 'time-tracker',
-    //   routes: ['/apps/time-tracker'],
-    //   steps: timeTrackerSteps,
-    // },
+    {
+      key: 'chat',
+      routes: ['/apps/chat'],
+      steps: chatSteps,
+    },
+    {
+      key: 'kanban',
+      routes: ['/apps/kanban'],
+      steps: kanbanSteps,
+    },
+    {
+      key: 'time-tracker',
+      routes: ['/apps/time-tracker'],
+      steps: timeTrackerSteps,
+    },
     // {
     //   key: 'notes',
     //   routes: ['/apps/notes'],
