@@ -1,4 +1,4 @@
-<div *ngIf="userRole !== '2' || userPermissions.includes('users.view'); else employeeReport">
+<div *ngIf="permissions.canView; else employeeReport">
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="row justify-content-between gap-16">
@@ -15,7 +15,7 @@
             </mat-icon>
           </mat-form-field>
   
-          <mat-form-field appearance="outline" *ngIf="userRole === '1' || userRole === '4'" class="w-100 hide-hint">
+          <mat-form-field appearance="outline" *ngIf="userRole !== '3' && permissions.canView" class="w-100 hide-hint">
             <mat-label class="f-s-14 m-b-8">Select a Company</mat-label>
             <mat-select [(ngModel)]="companyId" (selectionChange)="applyCombinedFilters()">
               <mat-option *ngFor="let company of companies" [value]="company.id">
@@ -26,7 +26,7 @@
         </div>
         <div class="col-lg-4 d-flex align-items-center justify-content-end">
           <!-- add employee -->
-          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary" tourAnchor="employee-add">
+          <button mat-flat-button (click)="openDialog('Invite', {profile: {company_id: companyId}})" color="primary" tourAnchor="employee-add" *ngIf="permissions.canManage">
             Add Team Member
           </button>
         </div>
@@ -36,7 +36,7 @@
   <mat-card class="cardWithShadow">
     <mat-card-content>
       <div class="table-responsive" tourAnchor="employee-table">
-         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource" (getEmployees)="getEmployees()"></app-employee-table>
+         <app-employee-table [displayedColumns]="customColumns" [dataSource]="dataSource" [permissions]="permissions" (getEmployees)="getEmployees()"></app-employee-table>
       </div>
     </mat-card-content>
   </mat-card>
