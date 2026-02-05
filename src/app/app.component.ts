@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { MaterialModule } from './material.module';
 import { RocketChatService } from './services/rocket-chat.service';
 import { Subscription, firstValueFrom } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, timeout } from 'rxjs/operators';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { WebSocketService } from './services/socket/web-socket.service';
@@ -46,6 +46,10 @@ export class AppComponent implements OnInit, OnDestroy {
   private anchorLogSub: Subscription | null = null;
   private routeTourSub: Subscription | null = null;
   private isRepositioning = false;
+  private kanbanAutoOpenInProgress = false;
+  private employeeDetailsAutoOpenInProgress = false;
+  private pendingTourRouteAnchor: string | null = null;
+  private isTourRouteTransitioning = false;
   private readonly MAIN_CONTENT_SELECTOR = '#app-main-content';
   private readonly NO_SCROLL_CLASS = 'no-scroll';
   private readonly TOUR_ACTIVE_CLASS = 'tour-active';
@@ -145,11 +149,22 @@ export class AppComponent implements OnInit, OnDestroy {
       if (step?.anchorId?.startsWith('profile-') && step?.anchorId !== 'profile-menu-trigger') {
         this.openProfileMenuForTour();
       }
-      this.repositionTourStep(step);
+      if (step?.anchorId === 'chat-menu-call-btns' || step?.anchorId === 'chat-menu-info-btn') {
+        this.openChatActionsMenuForTour();
+      }
+      if (step?.anchorId === 'kanban-first-board') {
+        this.pendingTourRouteAnchor = step.anchorId ?? null;
+      }
+      if (!this.isTourRouteTransitioning) {
+        this.repositionTourStep(step);
+      }
       void this.roleTourService.notifyStepShown(step);
     }) ?? null;
 
     this.tourEndSub = svc.end$?.subscribe(() => {
+      if (this.isTourRouteTransitioning) {
+        return;
+      }
       this.setIsScrollable(true);
       void this.roleTourService.notifyEnded();
     }) ?? null;
@@ -157,7 +172,24 @@ export class AppComponent implements OnInit, OnDestroy {
     this.routeTourSub = this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd)
     ).subscribe(() => {
+      if (this.isTourRouteTransitioning) {
+        this.isTourRouteTransitioning = false;
+        this.pendingTourRouteAnchor = null;
+        return;
+      }
       void this.roleTourService.maybeStartForCurrentRoute();
+    });
+
+    this.anchorLogSub = this.roleTourService.kanbanOpenRequests$.subscribe(() => {
+      this.openKanbanFirstBoardForTour();
+    });
+
+    this.roleTourService.chatOpenRequests$.subscribe(() => {
+      this.openChatFirstConversationForTour();
+    });
+
+    this.roleTourService.employeeDetailsOpenRequests$.subscribe(() => {
+      this.openEmployeeDetailsForTour();
     });
   }
 
@@ -199,6 +231,132 @@ export class AppComponent implements OnInit, OnDestroy {
           trigger.click();
         }
       }, 50);
+    });
+  }
+
+  private openChatActionsMenuForTour() {
+    if (typeof document === 'undefined') return;
+    requestAnimationFrame(() => {
+      const trigger = document.getElementById('selected-chat-actions') as HTMLElement | null;
+      console.log('TRIGGER', trigger);
+      if (!trigger) return;
+      const isExpanded = () => trigger.getAttribute('aria-expanded') === 'true';
+      if (!isExpanded()) {
+        trigger.click();
+      }
+      setTimeout(() => {
+        if (!isExpanded()) {
+          trigger.click();
+        }
+      }, 50);
+    });
+  }
+
+  private openKanbanFirstBoardForTour() {
+    if (typeof document === 'undefined' || this.kanbanAutoOpenInProgress) return;
+    this.kanbanAutoOpenInProgress = true;
+    this.isTourRouteTransitioning = true;
+
+    const anchor = document.querySelector('[tourAnchor="kanban-first-board"]') as HTMLElement | null;
+    if (!anchor) {
+      this.kanbanAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
+      return;
+    }
+
+    const currentStep = this.tourService.currentStep;
+    const currentIndex = currentStep ? this.tourService.steps.indexOf(currentStep) : -1;
+    const nextIndex = currentIndex + 1;
+
+    try { anchor.click(); } catch (e) {}
+
+    firstValueFrom(
+      this.router.events.pipe(
+        filter((e) => e instanceof NavigationEnd),
+        filter((e) => (e as NavigationEnd).urlAfterRedirects.startsWith('/apps/kanban/')),
+        take(1)
+      )
+    ).then(async () => {
+      try {
+        await firstValueFrom(this.ngZone.onStable.pipe(take(1))).catch(() => undefined);
+      } catch (e) {}
+
+      const nextStep = this.tourService.steps[nextIndex];
+      const nextAnchor = nextStep?.anchorId;
+      if (nextAnchor) {
+        await this.waitForTourAnchor(nextAnchor, 2500);
+      }
+      this.roleTourService.resumeAtIndex(nextIndex);
+    }).catch(() => undefined).finally(() => {
+      this.kanbanAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
+    });
+  }
+
+  private async waitForTourAnchor(anchorId: string, timeoutMs: number): Promise<void> {
+    const svc: any = this.tourService as any;
+    if (svc?.anchors?.[anchorId]) return;
+    await firstValueFrom(
+      svc.anchorRegister$?.pipe(
+        filter((id: string) => id === anchorId),
+        take(1),
+        timeout({ first: timeoutMs })
+      ) ?? new Promise(() => undefined)
+    ).catch(() => console.warn('Tour anchor wait timed out', { anchorId }));
+  }
+
+  private async openChatFirstConversationForTour() {
+    if (typeof document === 'undefined') return;
+    const anchor = document.querySelector('[ng-reflect-tour-anchor="chat-first-conversation"]') as HTMLElement | null;
+    if (!anchor) {
+      console.warn('chat first conversation anchor missing');
+      return;
+    }
+    try { anchor.click(); } catch (e) {console.error(e)}
+
+    const nextAnchor = 'chat-message-input';
+    await this.waitForTourAnchor(nextAnchor, 2000);
+    this.tourService.next();
+  }
+
+  private openEmployeeDetailsForTour() {
+    if (typeof document === 'undefined' || this.employeeDetailsAutoOpenInProgress) return;
+    this.employeeDetailsAutoOpenInProgress = true;
+    this.isTourRouteTransitioning = true;
+
+    const anchor = document.querySelector('[ng-reflect-tour-anchor="employee-first-name"]') as HTMLElement | null;
+    if (!anchor) {
+      this.employeeDetailsAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
+      return;
+    }
+
+    const currentStep = this.tourService.currentStep;
+    const currentIndex = currentStep ? this.tourService.steps.indexOf(currentStep) : -1;
+    const nextIndex = currentIndex + 1;
+
+    try { anchor.click(); } catch (e) {}
+
+    firstValueFrom(
+      this.router.events.pipe(
+        filter((e) => e instanceof NavigationEnd),
+        filter((e) => (e as NavigationEnd).urlAfterRedirects.startsWith('/apps/employee')),
+        take(1)
+      )
+    ).then(async () => {
+      try {
+        await firstValueFrom(this.ngZone.onStable.pipe(take(1))).catch(() => undefined);
+      } catch (e) {}
+
+      const nextStep = this.tourService.steps[nextIndex];
+      const nextAnchor = nextStep?.anchorId;
+      if (nextAnchor) {
+        await this.waitForTourAnchor(nextAnchor, 2500);
+      }
+      this.roleTourService.resumeAtIndex(nextIndex);
+    }).catch(() => undefined).finally(() => {
+      this.employeeDetailsAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
     });
   }
 

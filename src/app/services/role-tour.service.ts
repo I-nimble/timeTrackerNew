@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { TourService } from 'ngx-ui-tour-md-menu';
-import { BehaviorSubject, ReplaySubject, firstValueFrom, of } from 'rxjs';
+import { BehaviorSubject, ReplaySubject, Subject, firstValueFrom, of } from 'rxjs';
 import { catchError, filter, take, timeout } from 'rxjs/operators';
 import { TourApiService, TourProgress } from './tour-api.service';
 import { RoleTourStep, SectionConfig, buildClientSections } from './role-tour-steps';
@@ -25,6 +25,15 @@ export class RoleTourService {
 
   private startRequests = new ReplaySubject<{ steps: RoleTourStep[]; startIndex: number }>(1);
   startRequests$ = this.startRequests.asObservable();
+
+  private kanbanOpenRequests = new Subject<void>();
+  kanbanOpenRequests$ = this.kanbanOpenRequests.asObservable();
+
+  private chatOpenRequests = new Subject<void>();
+  chatOpenRequests$ = this.chatOpenRequests.asObservable();
+
+  private employeeDetailsOpenRequests = new Subject<void>();
+  employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
 
   constructor(
     private tourService: TourService<RoleTourStep>,
@@ -71,6 +80,25 @@ export class RoleTourService {
     if (!this.activeTourKey || !this.isActiveSubject.value) return;
     this.skipRequested = true;
     this.tourService.end();
+  }
+
+  requestKanbanBoardOpen() {
+    this.kanbanOpenRequests.next();
+  }
+
+  requestChatConversationOpen() {
+    this.chatOpenRequests.next();
+  }
+
+  requestEmployeeDetailsOpen() {
+    this.employeeDetailsOpenRequests.next();
+  }
+
+  resumeAtIndex(index: number) {
+    if (!this.activeSteps.length) return;
+    const safeIndex = Math.min(Math.max(index, 0), this.activeSteps.length - 1);
+    this.isActiveSubject.next(true);
+    this.startRequests.next({ steps: this.activeSteps, startIndex: safeIndex });
   }
 
   private async handleEnd() {
@@ -239,7 +267,7 @@ export class RoleTourService {
   }
 
   private getSectionForRoute(role: string, route: string): SectionConfig | null {
-    if (role !== '3') return null;
+    if (role != '3') return null;
     const sections = this.getClientSections();
     return sections.find((section) =>
       section.routes.some((r) => route === r || route.startsWith(`${r}/`))
