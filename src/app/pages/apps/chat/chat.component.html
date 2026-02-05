@@ -191,42 +191,46 @@
           </div>
         </div>
         <div *ngIf="selectedConversation">
-          <button
-            *ngIf="!isMobile"
-            mat-icon-button
-            (click)="call('audio')"
-            class="m-l-auto"
-            aria-label="Call"
-            tourAnchor="chat-start-call"
-          >
-            <mat-icon>call</mat-icon>
-          </button>
-          <button
-            *ngIf="!isMobile"
-            mat-icon-button
-            (click)="call('video')"
-            class="m-l-auto"
-            aria-label="Video call"
-            tourAnchor="chat-start-video-call"
-          >
-            <mat-icon>video_call</mat-icon>
-          </button>
+          <div class="m-0 p-0 d-inline-block" tourAnchor="chat-start-call">
+            <button
+              *ngIf="!isMobile"
+              mat-icon-button
+              (click)="call('audio')"
+              class="m-l-auto"
+              aria-label="Call"
+            >
+              <mat-icon>call</mat-icon>
+            </button>
+            <button
+              *ngIf="!isMobile"
+              mat-icon-button
+              (click)="call('video')"
+              class="m-l-auto"
+              aria-label="Video call"
+              tourAnchor="chat-start-video-call"
+            >
+              <mat-icon>video_call</mat-icon>
+            </button>
+          </div>
           <button
             mat-icon-button
             [matMenuTriggerFor]="chatMenu"
             class="m-l-auto"
             tourAnchor="chat-selected-actions"
+            id="selected-chat-actions"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
-            <button *ngIf="isMobile" mat-menu-item (click)="call('audio')">
-              Call
-            </button>
-            <button *ngIf="isMobile" mat-menu-item (click)="call('video')">
-              Video Call
-            </button>
-            <button mat-menu-item (click)="openInfoDialog()">
+            <div class="m-0 p-0 d-inline-block" tourAnchor="chat-menu-call-btns">
+              <button *ngIf="isMobile" mat-menu-item (click)="call('audio')">
+                Call
+              </button>
+              <button *ngIf="isMobile" mat-menu-item (click)="call('video')">
+                Video Call
+              </button>
+            </div>
+            <button mat-menu-item (click)="openInfoDialog()" tourAnchor="chat-menu-info-btn">
               {{ getInfoTitle() }}
             </button>
             <button mat-menu-item disabled>Mute</button>

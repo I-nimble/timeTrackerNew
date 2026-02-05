@@ -322,6 +322,11 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       title: 'Message input',
       content: 'Type your message here and send it to the conversation.',
       route: '/apps/chat',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: false,
+      }
     }),
     withBase({
       anchorId: 'chat-audio-record',
@@ -348,7 +353,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       isOptional: true,
     }),
     withBase({
-      anchorId: isMobile() ? 'chat-selected-actions' : 'chat-start-call',
+      anchorId: isMobile() ? 'chat-menu-call-btns' : 'chat-start-call',
       title: 'Start a call',
       content: 'Start an audio or video call with this conversation.',
       route: '/apps/chat',
@@ -360,7 +365,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       isOptional: true,
     }),
     withBase({
-      anchorId: 'chat-selected-actions',
+      anchorId: 'chat-menu-info-btn',
       title: 'Conversation details',
       content: 'View contact or group info from here.',
       route: '/apps/chat',
@@ -574,6 +579,65 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       placement: {
         yPosition: isMobile() ? 'above' : 'below',
         xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-first-name',
+      title: 'Open team member details',
+      content: 'Select a team member name to review their activity and location.',
+      route: '/apps/time-tracker',
+      nextBtnTitle: 'Go to details',
+      placement: {
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-weekly-hours-chart',
+      title: 'Weekly hours',
+      content: 'Review weekly worked hours for this team member.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'employee-daily-hours-chart',
+      title: 'Daily hours',
+      content: 'See the distribution of daily hours worked.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'employee-worked-hours-list',
+      title: 'Worked hours list',
+      content: 'Inspect individual entries and edit times when needed.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-current-location-map',
+      title: 'Current location',
+      content: 'Check the last known location for this team member.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
         horizontal: isMobile() ? false : true,
       } as const,
       isOptional: true,

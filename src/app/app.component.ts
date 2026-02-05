@@ -47,6 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private routeTourSub: Subscription | null = null;
   private isRepositioning = false;
   private kanbanAutoOpenInProgress = false;
+  private employeeDetailsAutoOpenInProgress = false;
   private pendingTourRouteAnchor: string | null = null;
   private isTourRouteTransitioning = false;
   private readonly MAIN_CONTENT_SELECTOR = '#app-main-content';
@@ -148,6 +149,9 @@ export class AppComponent implements OnInit, OnDestroy {
       if (step?.anchorId?.startsWith('profile-') && step?.anchorId !== 'profile-menu-trigger') {
         this.openProfileMenuForTour();
       }
+      if (step?.anchorId === 'chat-menu-call-btns' || step?.anchorId === 'chat-menu-info-btn') {
+        this.openChatActionsMenuForTour();
+      }
       if (step?.anchorId === 'kanban-first-board') {
         this.pendingTourRouteAnchor = step.anchorId ?? null;
       }
@@ -183,6 +187,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.roleTourService.chatOpenRequests$.subscribe(() => {
       this.openChatFirstConversationForTour();
     });
+
+    this.roleTourService.employeeDetailsOpenRequests$.subscribe(() => {
+      this.openEmployeeDetailsForTour();
+    });
   }
 
   private setIsScrollable(isScrollable: boolean) {
@@ -213,6 +221,24 @@ export class AppComponent implements OnInit, OnDestroy {
     if (typeof document === 'undefined') return;
     requestAnimationFrame(() => {
       const trigger = document.getElementById('profile-menu-trigger') as HTMLElement | null;
+      if (!trigger) return;
+      const isExpanded = () => trigger.getAttribute('aria-expanded') === 'true';
+      if (!isExpanded()) {
+        trigger.click();
+      }
+      setTimeout(() => {
+        if (!isExpanded()) {
+          trigger.click();
+        }
+      }, 50);
+    });
+  }
+
+  private openChatActionsMenuForTour() {
+    if (typeof document === 'undefined') return;
+    requestAnimationFrame(() => {
+      const trigger = document.getElementById('selected-chat-actions') as HTMLElement | null;
+      console.log('TRIGGER', trigger);
       if (!trigger) return;
       const isExpanded = () => trigger.getAttribute('aria-expanded') === 'true';
       if (!isExpanded()) {
@@ -291,6 +317,47 @@ export class AppComponent implements OnInit, OnDestroy {
     const nextAnchor = 'chat-message-input';
     await this.waitForTourAnchor(nextAnchor, 2000);
     this.tourService.next();
+  }
+
+  private openEmployeeDetailsForTour() {
+    if (typeof document === 'undefined' || this.employeeDetailsAutoOpenInProgress) return;
+    this.employeeDetailsAutoOpenInProgress = true;
+    this.isTourRouteTransitioning = true;
+
+    const anchor = document.querySelector('[ng-reflect-tour-anchor="employee-first-name"]') as HTMLElement | null;
+    if (!anchor) {
+      this.employeeDetailsAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
+      return;
+    }
+
+    const currentStep = this.tourService.currentStep;
+    const currentIndex = currentStep ? this.tourService.steps.indexOf(currentStep) : -1;
+    const nextIndex = currentIndex + 1;
+
+    try { anchor.click(); } catch (e) {}
+
+    firstValueFrom(
+      this.router.events.pipe(
+        filter((e) => e instanceof NavigationEnd),
+        filter((e) => (e as NavigationEnd).urlAfterRedirects.startsWith('/apps/employee')),
+        take(1)
+      )
+    ).then(async () => {
+      try {
+        await firstValueFrom(this.ngZone.onStable.pipe(take(1))).catch(() => undefined);
+      } catch (e) {}
+
+      const nextStep = this.tourService.steps[nextIndex];
+      const nextAnchor = nextStep?.anchorId;
+      if (nextAnchor) {
+        await this.waitForTourAnchor(nextAnchor, 2500);
+      }
+      this.roleTourService.resumeAtIndex(nextIndex);
+    }).catch(() => undefined).finally(() => {
+      this.employeeDetailsAutoOpenInProgress = false;
+      this.isTourRouteTransitioning = false;
+    });
   }
 
   private repositionTourStep(step: RoleTourStep | undefined) {
