@@ -348,7 +348,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       isOptional: true,
     }),
     withBase({
-      anchorId: 'chat-start-call',
+      anchorId: isMobile() ? 'chat-selected-actions' : 'chat-start-call',
       title: 'Start a call',
       content: 'Start an audio or video call with this conversation.',
       route: '/apps/chat',
@@ -391,8 +391,8 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Manage your boards and tasks from this view.',
       route: '/apps/kanban',
       placement: {
-        yPosition: 'below',
-        xPosition: 'before',
+        yPosition: 'above',
+        xPosition: isMobile() ? 'after' : 'before',
         horizontal: true,
       } as const,
     }),
@@ -402,9 +402,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Create a new board and start tracking your tasks here.',
       route: '/apps/kanban',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'before',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
     }),
     withBase({
@@ -413,9 +413,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Edit or delete an existing board.',
       route: '/apps/kanban',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'after',
-        horizontal: true,
+        horizontal: isMobile() ? false : true,
       } as const,
       isOptional: true,
     }),
@@ -441,16 +441,57 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       anchorId: 'kanban-search-tasks',
       title: 'Search tasks',
       content: 'Search tasks within the selected board.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: true,
+      }
     }),
     withBase({
       anchorId: 'kanban-columns',
       title: 'Columns',
       content: 'Manage columns and tasks in this board.',
       placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: false,
       } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-column-actions',
+      title: 'Column actions',
+      content: 'Edit or delete a column from this menu.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+      disableScrollToAnchor: true,
+      centerAnchorOnScroll: false,
+    }),
+    withBase({
+      anchorId: 'kanban-create-task',
+      title: 'Create task',
+      content: 'Add a new task to this column.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-task-actions',
+      title: 'Task actions',
+      content: 'Edit or delete a task from here.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+      disableScrollToAnchor: true,
+      centerAnchorOnScroll: false,
     }),
     withBase({
       anchorId: 'kanban-add-column',
@@ -461,38 +502,10 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         xPosition: 'before',
         horizontal: isMobile() ? false : true,
       } as const,
-    }),
-    withBase({
-      anchorId: 'kanban-column-actions',
-      title: 'Column actions',
-      content: 'Edit or delete a column from this menu.',
-      placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
-      } as const,
-      isOptional: true,
-    }),
-    withBase({
-      anchorId: 'kanban-create-task',
-      title: 'Create task',
-      content: 'Add a new task to this column.',
-      placement: {
-        yPosition: 'above',
-        xPosition: 'after',
-        horizontal: true,
-      } as const,
-    }),
-    withBase({
-      anchorId: 'kanban-task-actions',
-      title: 'Task actions',
-      content: 'Edit or delete a task from here.',
-      placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
-      } as const,
-      isOptional: true,
+      disableScrollToAnchor: false,
+      centerAnchorOnScroll: true,
+      smoothScroll: true,
+      scrollContainer: document.querySelector('.task-list-section') as HTMLElement,
     }),
   ];
 
@@ -547,9 +560,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Download the selected team member report from here.',
       route: '/apps/time-tracker',
       placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
       } as const,
       isOptional: true,
     }),
@@ -559,9 +572,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Edit or delete a team member from this menu.',
       route: '/apps/time-tracker',
       placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
       } as const,
       isOptional: true,
     }),
