@@ -85,11 +85,18 @@ export class AppEmployeeComponent {
     multipleUsers: false,
   };
   userRole = localStorage.getItem('role');
+  userId = localStorage.getItem('id');
   companies: any[] = [];
   companyId: number | null = null;
   userPermissions: string[] = [];
   searchText: string = '';
-
+  permissions = {
+    canView: false,
+    canEdit: false,
+    canManage: false,
+    canDelete: false
+  };
+  permissionsLoaded = false;
   displayedColumns: string[] = [
     'select',
     'name',
@@ -122,17 +129,17 @@ export class AppEmployeeComponent {
 
   ngOnInit(): void {
     this.userRole = localStorage.getItem('role');
-
-    const userId = Number(localStorage.getItem('id'));
-    this.permissionService.getUserPermissions(userId).subscribe({
-      next: (userPerms: any) => {
-        this.userPermissions = userPerms.effectivePermissions || [];
-        this.initComponent();
-      },
-      error: (err) => {
-        console.error('Error fetching user permissions', err);
-        this.initComponent();
-      }
+    this.userId = localStorage.getItem('id');
+    this.permissionService.getUserPermissions(Number(this.userId)).subscribe(res => {
+      const effective = res.effectivePermissions || [];
+      this.permissions = {
+        canView: effective.includes('users.view'),
+        canEdit: effective.includes('users.edit'),
+        canManage: effective.includes('users.manage'),
+        canDelete: effective.includes('users.delete')
+      };
+      this.permissionsLoaded = true;
+      this.initComponent();
     });
   }
 
@@ -175,7 +182,7 @@ export class AppEmployeeComponent {
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
-      data: { action, employee },
+      data: { action, employee, permissions: this.permissions },
       autoFocus: false,
     });
 
