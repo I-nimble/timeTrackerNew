@@ -108,7 +108,7 @@
                 <button
                   mat-menu-item
                   (click)="openDialog('Update', element)"
-                  [disabled]="userRole == '4'"
+                  [disabled]="!permissions.canEdit"
                 >
                   <mat-icon>edit</mat-icon>
                   <span>Edit team member</span>
@@ -116,7 +116,7 @@
                 <button
                   mat-menu-item
                   (click)="openDialog('Delete', element)"
-                  [disabled]="userRole == '4'"
+                  [disabled]="!permissions.canDelete"
                 >
                   <mat-icon>delete</mat-icon>
                   <span>Delete team member</span>
