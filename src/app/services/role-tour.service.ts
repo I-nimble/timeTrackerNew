@@ -32,6 +32,9 @@ export class RoleTourService {
   private chatOpenRequests = new Subject<void>();
   chatOpenRequests$ = this.chatOpenRequests.asObservable();
 
+  private employeeDetailsOpenRequests = new Subject<void>();
+  employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
+
   constructor(
     private tourService: TourService<RoleTourStep>,
     private tourApi: TourApiService,
@@ -85,6 +88,10 @@ export class RoleTourService {
 
   requestChatConversationOpen() {
     this.chatOpenRequests.next();
+  }
+
+  requestEmployeeDetailsOpen() {
+    this.employeeDetailsOpenRequests.next();
   }
 
   resumeAtIndex(index: number) {

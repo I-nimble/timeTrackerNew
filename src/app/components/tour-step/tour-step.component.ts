@@ -32,4 +32,8 @@ export class TourStepComponent {
   onChatOpenNext(): void {
     this.roleTourService.requestChatConversationOpen();
   }
+
+  onEmployeeDetailsOpenNext(): void {
+    this.roleTourService.requestEmployeeDetailsOpen();
+  }
 }
