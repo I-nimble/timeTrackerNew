@@ -96,6 +96,7 @@ export class AppEmployeeComponent {
     canManage: false,
     canDelete: false
   };
+  permissionsLoaded = false;
   displayedColumns: string[] = [
     'select',
     'name',
@@ -137,7 +138,8 @@ export class AppEmployeeComponent {
         canManage: effective.includes('users.manage'),
         canDelete: effective.includes('users.delete')
       };
-    this.initComponent();
+      this.permissionsLoaded = true;
+      this.initComponent();
     });
   }
 

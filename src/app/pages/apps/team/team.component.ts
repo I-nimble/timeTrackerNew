@@ -82,6 +82,7 @@ export class TeamComponent {
     canManage: false,
     canDelete: false
   };
+  permissionsLoaded = false;
   displayedColumns: string[] = [
     'nameUser',
     'role',
@@ -115,6 +116,7 @@ export class TeamComponent {
         canManage: effective.includes('users.manage'),
         canDelete: effective.includes('users.delete')
       };
+      this.permissionsLoaded = true;
     });
     this.getEmployees();
     this.getCompanies();
