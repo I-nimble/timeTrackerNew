@@ -32,6 +32,7 @@
                     class="text-decoration-none"
                     (click)="setUser(element)"
                     [routerLink]="['/apps/employee']"
+                    [state]="{ user: element.user, permissions: permissions }"
                   >
                     <h6 class="f-w-600 f-s-16 m-t-0">
                       {{ element.profile.name }} {{ element.profile.last_name }}
