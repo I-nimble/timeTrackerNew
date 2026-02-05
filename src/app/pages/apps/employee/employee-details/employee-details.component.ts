@@ -44,6 +44,7 @@ import { GeolocationUpdate } from 'src/app/models/geolocation.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { LocationService } from 'src/app/services/location.service';
 import { map, tileLayer, icon, marker } from 'leaflet';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 interface EditEntryForm {
   start_time: FormControl<string>;
@@ -89,7 +90,8 @@ export type ChartOptions = {
     MatButtonModule,
     MatMenuModule,
     TablerIconsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TourMatMenuModule
   ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChecked {

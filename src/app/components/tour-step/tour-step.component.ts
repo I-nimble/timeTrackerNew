@@ -24,4 +24,16 @@ export class TourStepComponent {
   onTourSkip(): void {
     this.roleTourService.skipActiveTour();
   }
+
+  onKanbanOpenNext(): void {
+    this.roleTourService.requestKanbanBoardOpen();
+  }
+
+  onChatOpenNext(): void {
+    this.roleTourService.requestChatConversationOpen();
+  }
+
+  onEmployeeDetailsOpenNext(): void {
+    this.roleTourService.requestEmployeeDetailsOpen();
+  }
 }

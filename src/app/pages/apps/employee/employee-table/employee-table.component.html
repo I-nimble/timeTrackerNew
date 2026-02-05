@@ -18,7 +18,7 @@
   
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
-            <td mat-cell *matCellDef="let element">
+            <td mat-cell *matCellDef="let element; let i = index">
               <div class="d-flex align-items-center gap-16">
                 <img
                   [src]="element.profile.imagePath || element.profile.image || 'assets/images/default-user-profile-pic.png'"
@@ -30,9 +30,11 @@
                 <div>
                   <a
                     class="text-decoration-none"
+                    [tourAnchor]="i === 0 ? 'employee-first-name' : ''"
+                    [attr.data-user-id]="element?.profile?.id"
                     (click)="setUser(element)"
                     [routerLink]="['/apps/employee']"
-                    [state]="{ user: element.user, permissions: permissions }"
+                    [state]="{ userId: element?.profile?.id }"
                   >
                     <h6 class="f-w-600 f-s-16 m-t-0">
                       {{ element.profile.name }} {{ element.profile.last_name }}
@@ -85,11 +87,12 @@
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
               Reports
             </th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">
+            <td mat-cell *matCellDef="let element; let i = index" class="f-s-14">
               <button
                 mat-icon-button
                 (click)="downloadReport(element)"
                 title="Download Report"
+                [tourAnchor]="i === 0 ? 'employee-report-download' : ''"
               >
                 <i-tabler name="download" class="icon-18"></i-tabler>
               </button>
@@ -101,8 +104,13 @@
             <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">
               Action
             </th>
-            <td mat-cell *matCellDef="let element" class="action-link">
-              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" class="m-l-10">
+            <td mat-cell *matCellDef="let element; let i = index" class="action-link">
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="actionsMenu"
+                class="m-l-10"
+                [tourAnchor]="i === 0 ? 'employee-action-menu' : ''"
+              >
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #actionsMenu="matMenu">

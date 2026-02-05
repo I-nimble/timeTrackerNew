@@ -75,9 +75,10 @@
         <div class="contacts-wrapper" tourAnchor="chat-contacts">
           <div
             class="contact-item"
-            *ngFor="let room of filteredRooms()"
+            *ngFor="let room of filteredRooms(); let i = index"
             [class.active]="selectedConversation?._id === room?._id"
             (click)="selectRoom(room)"
+            [tourAnchor]="i === 0 ? 'chat-first-conversation' : ''"
           >
             <img [src]="getConversationPicture(room) || defaultAvatarUrl" />
             <div class="contact-info">
@@ -103,6 +104,7 @@
               [matMenuTriggerFor]="menu"
               #menuTrigger="matMenuTrigger"
               (click)="$event.stopPropagation()"
+              [tourAnchor]="i === 0 ? 'chat-conversation-actions' : ''"
             >
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -190,39 +192,46 @@
           </div>
         </div>
         <div *ngIf="selectedConversation">
-          <button
-            *ngIf="!isMobile"
-            mat-icon-button
-            (click)="call('audio')"
-            class="m-l-auto"
-            aria-label="Call"
-          >
-            <mat-icon>call</mat-icon>
-          </button>
-          <button
-            *ngIf="!isMobile"
-            mat-icon-button
-            (click)="call('video')"
-            class="m-l-auto"
-            aria-label="Video call"
-          >
-            <mat-icon>video_call</mat-icon>
-          </button>
+          <div class="m-0 p-0 d-inline-block" tourAnchor="chat-start-call">
+            <button
+              *ngIf="!isMobile"
+              mat-icon-button
+              (click)="call('audio')"
+              class="m-l-auto"
+              aria-label="Call"
+            >
+              <mat-icon>call</mat-icon>
+            </button>
+            <button
+              *ngIf="!isMobile"
+              mat-icon-button
+              (click)="call('video')"
+              class="m-l-auto"
+              aria-label="Video call"
+              tourAnchor="chat-start-video-call"
+            >
+              <mat-icon>video_call</mat-icon>
+            </button>
+          </div>
           <button
             mat-icon-button
             [matMenuTriggerFor]="chatMenu"
             class="m-l-auto"
+            tourAnchor="chat-selected-actions"
+            id="selected-chat-actions"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #chatMenu="matMenu">
-            <button *ngIf="isMobile" mat-menu-item (click)="call('audio')">
-              Call
-            </button>
-            <button *ngIf="isMobile" mat-menu-item (click)="call('video')">
-              Video Call
-            </button>
-            <button mat-menu-item (click)="openInfoDialog()">
+            <div class="m-0 p-0 d-inline-block" tourAnchor="chat-menu-call-btns">
+              <button *ngIf="isMobile" mat-menu-item (click)="call('audio')">
+                Call
+              </button>
+              <button *ngIf="isMobile" mat-menu-item (click)="call('video')">
+                Video Call
+              </button>
+            </div>
+            <button mat-menu-item (click)="openInfoDialog()" tourAnchor="chat-menu-info-btn">
               {{ getInfoTitle() }}
             </button>
             <button mat-menu-item disabled>Mute</button>
@@ -674,8 +683,8 @@
           </div>
         </div>
 
-        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100">
-          <button mat-icon-button matPrefix (click)="selectFile()">
+        <mat-form-field appearance="outline" class="mat-mdc-form-field w-100" tourAnchor="chat-message-input">
+          <button mat-icon-button matPrefix (click)="selectFile()" tourAnchor="chat-attach-files">
             <mat-icon>attach_file</mat-icon>
           </button>
           <button
@@ -703,6 +712,7 @@
             class="voice-btn"
             (click)="onVoiceButtonClick($event)"
             aria-label="Voice message"
+            tourAnchor="chat-audio-record"
           >
             <mat-icon *ngIf="!isRecording">mic</mat-icon>
             <mat-icon *ngIf="isRecording">stop</mat-icon>
