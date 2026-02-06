@@ -34,12 +34,12 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Select the role and practice area to refine matches.',
       route: '/apps/talent-match',
     }),
-    withBase({
+/*     withBase({
       anchorId: 'tm-budget',
       title: 'Adjust the budget',
       content: 'Set the rate range and type for candidates.',
       route: '/apps/talent-match',
-    }),
+    }), */
     withBase({
       anchorId: 'tm-advanced',
       title: 'Advanced filters',
