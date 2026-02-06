@@ -82,8 +82,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     'name',
     'personality profile',
     'position',
+    'experience',    
     'trainings',
-    'rate',
     'actions',
   ];
   dataSource = new MatTableDataSource<any>([]);
