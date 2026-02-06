@@ -40,7 +40,7 @@ import { MatIcon } from '@angular/material/icon';
   ]
 })
 export class CreateRoomComponent implements OnInit {
-  roomType: 'd' | 'c' | 't';
+  roomType: 'd' | 'c' | 't' | 'p';
   name = '';
   isPrivate = false;
   selectedTeamId?: string;
@@ -52,7 +52,7 @@ export class CreateRoomComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<CreateRoomComponent>,
     @Inject(MAT_DIALOG_DATA) public data: {
-      type: 'd' | 'c' | 't';
+      type: 'd' | 'c' | 't' | 'p';
       teamId?: string;
       teamName?: string;
     },
@@ -75,7 +75,7 @@ export class CreateRoomComponent implements OnInit {
     teams$.subscribe(teams => {
       this.teams = teams;
 
-      if (this.roomType === 'c') {
+      if (this.roomType === 'c' || this.roomType === 'p') {
         if (this.isAdmin || this.isModerator) {
           if (teams.length > 0) {
             this.selectedTeamId = teams[0]._id;
@@ -139,6 +139,25 @@ export class CreateRoomComponent implements OnInit {
         this.chatService.createDirectMessage(this.name)
           .then(room => this.dialogRef.close({ success: true, room }))
           .catch(err => console.error('Error creating direct message:', err));
+        break;
+      }
+      case 'p': {
+        if (!this.selectedTeamId) return;
+        const type = this.isPrivate ? 'p' : 'c';
+        const memberIds = this.selectedUsers.map(u => u._id);
+
+        this.chatService.createRoom(this.name, type, memberIds, this.selectedTeamId)
+          .subscribe({
+            next: room => this.dialogRef.close({ success: true, room }),
+            error: err => {
+              console.error('Error creating channel:', err);
+              this.snackBar.open(
+                'Failed to create channel: ' + (err?.error?.error || err?.message || 'Unknown error'),
+                'Close',
+                { duration: 5000 }
+              );
+            }
+          });
         break;
       }
       case 'c': {
