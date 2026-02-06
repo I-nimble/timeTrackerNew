@@ -20,6 +20,7 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 import { Observable, map, switchMap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 
 @Component({
   selector: 'app-candidate-details',
@@ -36,7 +37,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
     DatePipe,
     UpperCasePipe,
     FormsModule,
-    ReactiveFormsModule   
+    ReactiveFormsModule,
+    FormatNamePipe  
   ]
 })
 
