@@ -557,6 +557,100 @@
             </td>
           </tr>
 
+          <tr>
+            <td><b>Trainings</b></td>
+            <td>
+              <ng-container *ngIf="certifications.length > 0; else noCertifications">
+                <div
+                  class="m-b-12"
+                  *ngFor="let cert of certifications"
+                >
+                  <div class="p-16">
+                    <div class="d-flex align-items-start justify-content-between">
+                      <div class="flex-grow-1">
+                        <div class="f-w-600 f-s-14 text-primary" *ngIf="cert.name">
+                          {{ cert.name }}
+                        </div>
+                        <div class="f-s-12 text-muted" *ngIf="cert.issuer">
+                          Issuer: {{ cert.issuer }}
+                        </div>
+                        <div class="f-s-12 text-muted" *ngIf="cert.date || cert.expiration_date">
+                          <span *ngIf="cert.date">
+                            {{ cert.date | date:'MMM yyyy' }}
+                          </span>
+                          <span *ngIf="cert.date && cert.expiration_date"> - </span>
+                          <span *ngIf="cert.expiration_date">
+                            {{ cert.expiration_date | date:'MMM yyyy' }}
+                          </span>
+                        </div>
+                        <div class="m-t-8" *ngIf="cert.attachment_url">
+                          <div *ngIf="isImage(cert.attachment_url)">
+                            <img
+                              [src]="getAttachmentUrl(cert.attachment_url)"
+                              alt="Certification attachment"
+                              class="rounded"
+                              style="max-width: 140px; height: auto;"
+                            />
+                          </div>
+                          <div *ngIf="!isImage(cert.attachment_url)">
+                            <a
+                              [href]="getAttachmentUrl(cert.attachment_url)"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="d-inline-flex align-items-center"
+                            >
+                              {{ getFileName(cert.attachment_url) }}
+                            </a>
+                          </div>
+                        </div>
+                        <div class="m-t-8" *ngIf="cert.url">
+                          <a
+                            [href]="cert.url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            See credential
+                          </a>
+                        </div>
+                      </div>
+                      <div *ngIf="(canEdit || canManage) && (editMode || isCreateMode)">
+                        <button mat-icon-button [matMenuTriggerFor]="certActions">
+                          <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #certActions="matMenu">
+                          <button mat-menu-item (click)="editCertification(cert)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Edit</span>
+                          </button>
+                          <button mat-menu-item (click)="deleteCertification(cert)">
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete</span>
+                          </button>
+                        </mat-menu>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #noCertifications>
+                <span class="text-muted">No trainings</span>
+              </ng-template>
+              <div class="m-t-12" *ngIf="(canEdit || canManage) && (editMode || isCreateMode)">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="addCertification()"
+                  [disabled]="isCreateMode"
+                >
+                  Add Certification
+                </button>
+                <div class="text-muted f-s-12 m-t-4" *ngIf="isCreateMode">
+                  Save the candidate before adding certifications.
+                </div>
+              </div>
+            </td>
+          </tr>
+
           <tr *ngIf="userRole !== '3'">
             <td><b>Education</b></td>
             <td *ngIf="!editMode">

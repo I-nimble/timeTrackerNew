@@ -133,40 +133,7 @@
               </th>
               <td mat-cell *matCellDef="let element" class="f-s-14">
                 <ng-container *ngIf="element.certifications && element.certifications.length > 0; else noCerts">
-                  <div class="certifications-container">
-                    <div *ngFor="let cert of element.certifications; let i = index" class="cert-item m-b-8">
-                      <div *ngIf="cert.name" class="cert-name f-w-600 f-s-14 text-primary">
-                        {{ cert.name }}
-                      </div>
-                      <div *ngIf="cert.issuer" class="cert-issuer f-s-12 text-muted">
-                        Issuer: {{ cert.issuer }}
-                      </div>
-                      <div *ngIf="cert.date || cert.expiration_date" class="cert-dates f-s-12 text-muted">
-                        <span *ngIf="cert.date">
-                          {{ cert.date | date:'MMM yyyy' }}
-                        </span>
-                        <span *ngIf="cert.date && cert.expiration_date"> - </span>
-                        <span *ngIf="cert.expiration_date">
-                          {{ cert.expiration_date | date:'MMM yyyy' }}
-                        </span>
-                      </div>
-                      <div *ngIf="cert.url" class="cert-link m-t-4">
-                        <a
-                          [href]="cert.url"
-                          target="_blank"
-                          mat-stroked-button
-                          color="primary"
-                          class="custom-btn"
-                        >
-                          See credential
-                          <i-tabler
-                            name="external-link"
-                            class="icon-16 m-l-4"
-                          ></i-tabler>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                  {{ getTrainingNames(element.certifications) }}
                 </ng-container>
                 
                 <ng-template #noCerts>

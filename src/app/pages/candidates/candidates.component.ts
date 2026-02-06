@@ -101,6 +101,7 @@ export class CandidatesComponent {
             'name',
             'position',
             'skills',
+            'trainings',
             'location',
             'submission_date',
             'status',
@@ -110,6 +111,7 @@ export class CandidatesComponent {
           this.displayedColumns = [
             'name',
             'skills',
+            'trainings',
             'location',
             'submission_date',
             'status',
@@ -170,6 +172,14 @@ export class CandidatesComponent {
 
   getDiscProfileColor(profileName: string): string {
     return this.discProfilesService.getDiscProfileColor(profileName);
+  }
+
+  getTrainingNames(certifications: any[] | undefined): string {
+    if (!certifications || certifications.length === 0) return '';
+    return certifications
+      .map(cert => cert?.name)
+      .filter(Boolean)
+      .join(', ');
   }
 
   openPositionDiscModal(): void {
