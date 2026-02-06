@@ -242,6 +242,14 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
+  getTrainingNames(certifications: any[] | undefined): string {
+    if (!certifications || certifications.length === 0) return '';
+    return certifications
+      .map(cert => cert?.name)
+      .filter(Boolean)
+      .join(', ');
+  }
+
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate([`apps/talent-match/${id}`]);
