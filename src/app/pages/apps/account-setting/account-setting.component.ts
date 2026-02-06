@@ -45,6 +45,7 @@ import { AppCertificationModalComponent } from './certification-modal.component'
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { Loader } from 'src/app/app.models';
 import { PermissionService } from 'src/app/services/permission.service';
+import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 
 @Component({
   standalone: true,
@@ -225,7 +226,7 @@ export class AppAccountSettingComponent implements OnInit {
     currentResidence: [''],
     address: ['', Validators.required],
     children: [0, [Validators.min(0)]],
-    englishLevel: ['', Validators.required],
+    englishLevel: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
     competencies: ['', Validators.required],
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
@@ -247,7 +248,6 @@ export class AppAccountSettingComponent implements OnInit {
     { title: "Virtual Assistant", position_id: 16 },
     { title: "Technology", position_id: 41 }
   ];
-  englishLevels: string[] = ['Beginner', 'Intermediate', 'Advanced'];
   applicationId: number | null = null;
   private originalApplicationValues: any = null;
   resumeFileName: string | null = null;
@@ -284,6 +284,18 @@ export class AppAccountSettingComponent implements OnInit {
             private certificationsService: CertificationsService,
             private permissionService: PermissionService,
           ) {}
+
+  getAttachmentUrl(key: string): string {
+    return this.certificationsService.getAttachmentUrl(key);
+  }
+
+  formatEnglishLevelDisplay(value: number): string {
+    return formatEnglishLevelDisplay(value);
+  }
+
+  getEnglishLevelLabel(value: number): string {
+    return getEnglishLevelLabel(value);
+  }
 
   ngOnInit(): void {
     this.isOrphan = localStorage.getItem('isOrphan') === 'true';    
