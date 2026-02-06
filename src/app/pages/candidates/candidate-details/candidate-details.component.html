@@ -609,14 +609,36 @@
                 <span class="text-danger" *ngIf="editMode">*</span></b
               >
             </td>
-            <td *ngIf="!editMode">{{ candidate()?.english_level || "" }}</td>
+            <td *ngIf="!editMode">
+              {{ formatEnglishLevelDisplay(candidate()?.english_level) || "" }}
+            </td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['english_level']" />
+              <mat-slider
+                [style.width]="'calc(100% - 1rem)'"
+                min="1"
+                max="10"
+                step="1"
+                discrete
+              >
+                <input matSliderThumb [formControl]="f['english_level']" />
+              </mat-slider>
+              <div class="m-t-4">
+                {{ formatEnglishLevelDisplay(f['english_level']?.value) }}
+              </div>
               <p
                 class="text-danger f-s-12 m-t-0"
                 *ngIf="f['english_level'].hasError('required')"
               >
                 English level is required.
+              </p>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="
+                  f['english_level'].hasError('min') ||
+                  f['english_level'].hasError('max')
+                "
+              >
+                English level must be between 1 and 10.
               </p>
             </td>
           </tr>

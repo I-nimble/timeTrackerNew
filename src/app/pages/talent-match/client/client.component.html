@@ -621,23 +621,21 @@
                         <h5 class="f-s-20 f-w-600 m-b-16 text-primary">Language</h5>
                         <div class="d-flex">
                           <div class="col-6">
-                          <p class="f-s-16 f-w-600">English</p>
+                          <p class="f-s-16 f-w-600">
+                            English: {{ formatEnglishLevelDisplay(element.english_level) }}
+                          </p>
                           
                           <div class="progress-container m-t-8 m-b-8">
                             <div class="progress-bar-background">
                               <div 
                                 class="progress-bar-fill"
-                                [ngClass]="{
-                                  'basic-level': element.english_level.toLowerCase() === 'basic',
-                                  'intermediate-level': element.english_level.toLowerCase() === 'intermediate',
-                                  'advanced-level': element.english_level.toLowerCase() === 'advanced'
-                                }">
+                                [style.width.%]="getEnglishLevelPercent(element.english_level)">
                               </div>
                               </div>
                               <div class="progress-labels">
-                                <span>Basic</span>
-                                <span>Intermediate</span>
-                                <span>Advanced</span>
+                                <span>A0</span>
+                                <span>B1</span>
+                                <span>C2</span>
                               </div>
                             </div>
                           </div> 
