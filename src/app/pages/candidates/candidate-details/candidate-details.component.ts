@@ -20,6 +20,7 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 import { switchMap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
@@ -39,7 +40,8 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     DatePipe,
     UpperCasePipe,
     FormsModule,
-    ReactiveFormsModule   
+    ReactiveFormsModule,
+    FormatNamePipe  
   ]
 })
 

@@ -103,7 +103,7 @@
             <td>
               <b>Name <span class="text-danger" *ngIf="editMode">*</span></b>
             </td>
-            <td *ngIf="!editMode">{{ candidate()?.name || "" }}</td>
+            <td *ngIf="!editMode">{{ (candidate()?.name | formatName) || "" }}</td>
             <td *ngIf="editMode">
               <input matInput [formControl]="f['name']" />
               <p
