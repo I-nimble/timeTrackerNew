@@ -53,9 +53,18 @@
   }
 }
 
+.members-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .members-title {
   font-weight: 600;
-  margin-bottom: 16px;
+  margin: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .member-row {
@@ -71,24 +80,34 @@
   }
 }
 
-::ng-deep .full-member-selector .mat-list-item-content {
-  display: flex;
-  align-items: center;
-  min-height: 56px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
 ::ng-deep .full-member-selector mat-list-option {
+  min-height: 64px;
   margin-bottom: 4px;
 }
 
-.full-member-selector .member-row img {
-  display: block;
+::ng-deep .full-member-selector .mat-list-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
 }
 
-.full-member-selector .member-row img {
-  display: block;
+::ng-deep .full-member-selector .member-row {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+::ng-deep .full-member-selector img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+::ng-deep .full-member-selector .mat-pseudo-checkbox {
+  margin-right: 12px;
 }
 
 .full-member-selector {

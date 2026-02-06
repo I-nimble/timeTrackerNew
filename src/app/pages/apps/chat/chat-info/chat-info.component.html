@@ -43,22 +43,21 @@
     </div>
   </ng-container>
   <ng-container *ngIf="(data.conversation?.t === 'c' || data.conversation?.t === 'p') && data.channelMembers?.length">
-    <div class="members-header">
-      <h4 class="members-title">
-        {{ showAddMembers ? 'Add members' : 'Members (' + data.channelMembers.length + ')' }}
-      </h4>
-
+    <div class="members-header d-flex align-center gap-8">
       <button
         mat-icon-button
-        *ngIf="canAddMembers"
+        *ngIf="canManageRoom"
         (click)="toggleAddMembers()"
       >
         <mat-icon>
           {{ showAddMembers ? 'arrow_back' : 'person_add' }}
         </mat-icon>
       </button>
+      <h4 class="members-title m-0">
+        {{ showAddMembers ? 'Add members' : 'Members (' + data.channelMembers.length + ')' }}
+      </h4>
     </div>
-    <div *ngIf="!showAddMembers">
+    <div *ngIf="!showAddMembers" class="m-t-12">
       <div
         *ngFor="let m of data.channelMembers"
         class="member-row d-flex align-center gap-12 mb-16"
@@ -69,7 +68,7 @@
         <button
           mat-icon-button
           [matMenuTriggerFor]="memberMenu"
-          *ngIf="canManageMembers(m)"
+          *ngIf="canManageRoom"
         >
           <mat-icon>more_vert</mat-icon>
         </button>
@@ -80,6 +79,15 @@
           </button>
         </mat-menu>
       </div>
+      <button
+        mat-raised-button
+        color="primary"
+        class="mt-16 w-100"
+        *ngIf="canDeleteRoom"
+        (click)="deleteRoom()"
+      >
+        Delete group
+      </button>
     </div>
     <div *ngIf="showAddMembers" class="full-member-selector mt-8">
       <mat-selection-list [(ngModel)]="selectedUsers">

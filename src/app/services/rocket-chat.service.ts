@@ -1560,6 +1560,19 @@ export class RocketChatService {
       map(res => res.team as RocketChatTeam)
     );
   }
+
+  getRoomRoles(roomId: string): Observable<any> {
+    const headers = this.getAuthHeaders();
+    return this.http.get(
+      `${this.CHAT_API_URI}rooms.roles`,
+      {
+        headers,
+        params: {
+          rid: roomId
+        }
+      }
+    );
+  }
   
   leaveRoom(roomId: string): Observable<boolean> {
     const headers = this.getAuthHeaders();
@@ -1591,12 +1604,13 @@ export class RocketChatService {
     );
   }
 
-  removeUserFromRoom(roomId: string, userId: string): Observable<any> {
+  removeUserFromRoom(
+    roomId: string,
+    userId: string,
+    type: 'c' | 'p'
+  ): Observable<any> {
     const headers = this.getAuthHeaders();
-    const endpoint =
-      this.currentActiveRoom?.startsWith('c')
-        ? 'channels.kick'
-        : 'groups.kick';
+    const endpoint = type === 'c' ? 'channels.kick' : 'groups.kick';
     return this.http.post(
       `${this.CHAT_API_URI}${endpoint}`,
       { roomId, userId },

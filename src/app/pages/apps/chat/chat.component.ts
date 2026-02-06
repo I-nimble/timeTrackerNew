@@ -1017,7 +1017,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
             avatarUrl: this.chatService.getUserAvatarUrl(user.username)
           };
 
-          this.dialog.open(ChatInfoComponent, {
+          const dialogRef = this.dialog.open(ChatInfoComponent, {
             width: this.isMobile ? '95vw' : '400px',
             maxWidth: '95vw',
             data: {
@@ -1026,6 +1026,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
               channelMembers: []
             },
             panelClass: 'chat-info-dialog'
+          });
+
+          dialogRef.afterClosed().subscribe((result: any) => {
+            if (result && result.deleted) {
+              const roomId = result.roomId || room._id;
+              this.rooms = this.rooms.filter(r => r._id !== roomId);
+              const sub = this.roomSubscriptions.get(roomId);
+              if (sub) {
+                try { sub.unsubscribe(); } catch (e) {}
+                this.roomSubscriptions.delete(roomId);
+              }
+              try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
+              try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
+              if (this.selectedConversation && this.selectedConversation._id === roomId) {
+                this.selectedConversation = null as any;
+                this.messages = [];
+              }
+              this.sortRooms();
+              this.cdr.markForCheck();
+            }
           });
         });
       }
@@ -1036,7 +1056,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           avatarUrl: this.chatService.getUserAvatarUrl(m.username)
         }));
 
-        this.dialog.open(ChatInfoComponent, {
+        const dialogRef = this.dialog.open(ChatInfoComponent, {
           width: this.isMobile ? '95vw' : '400px',
           maxWidth: '95vw',
           data: {
@@ -1045,6 +1065,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
             channelMembers: enrichedMembers
           },
           panelClass: 'chat-info-dialog'
+        });
+
+        dialogRef.afterClosed().subscribe((result: any) => {
+          if (result && result.deleted) {
+            const roomId = result.roomId || room._id;
+            this.rooms = this.rooms.filter(r => r._id !== roomId);
+            const sub = this.roomSubscriptions.get(roomId);
+            if (sub) {
+              try { sub.unsubscribe(); } catch (e) {}
+              this.roomSubscriptions.delete(roomId);
+            }
+            try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
+            try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
+            if (this.selectedConversation && this.selectedConversation._id === roomId) {
+              this.selectedConversation = null as any;
+              this.messages = [];
+            }
+            this.sortRooms();
+            this.cdr.markForCheck();
+          }
         });
       });
     }

@@ -11,7 +11,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatOption } from '@angular/material/core';
@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSelectionList } from '@angular/material/list';
 import { MatListOption } from '@angular/material/list';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-chat-info',
@@ -46,6 +47,10 @@ export class ChatInfoComponent {
   showAddMembers = false;
   availableUsers: RocketChatUser[] = [];
   selectedUsers: RocketChatUser[] = [];
+  canManageRoom = false;
+  canDeleteRoom = false;
+  roomRoles: Record<string, string[]> = {};
+  loggedUserRoomRoles: string[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<ChatInfoComponent>,
@@ -54,24 +59,77 @@ export class ChatInfoComponent {
       userInfo: any,
       channelMembers: any[]
     },
-    public chatService: RocketChatService
+    public chatService: RocketChatService,
+    private confirmationModal: MatDialog,    
   ) {}
 
   ngOnInit(): void {
     if (this.data.conversation) {
-      this.chatService.getConversationPicture(this.data.conversation)
-        .subscribe(url => this.roomPicture = url);
+      this.chatService
+        .getConversationPicture(this.data.conversation)
+        .subscribe(url => (this.roomPicture = url));
+      this.loadRoomRoles();
     }
     this.loadAvailableUsers();
   }
 
-  get canAddMembers(): boolean {
-    return this.data.conversation?.t === 'c' || this.data.conversation?.t === 'p';
+  private loadRoomRoles(): void {
+    const roomId = this.data.conversation?._id;
+    const loggedUserId = this.chatService.loggedInUser?._id;
+    if (!roomId || !loggedUserId) return;
+    this.chatService.getRoomRoles(roomId).subscribe({
+      next: res => {
+        this.roomRoles = {};
+        res.roles.forEach((r: any) => {
+          this.roomRoles[r.u._id] = r.roles;
+        });
+        this.loggedUserRoomRoles = this.roomRoles[loggedUserId] || [];
+        this.updateMemberPermissions();
+      },
+      error: err => {
+        console.error('Failed to load room roles', err);
+      }
+    });
+  }
+
+  private updateMemberPermissions(): void {
+    const type = this.data.conversation?.t;
+    if (type !== 'c' && type !== 'p') {
+      this.canManageRoom = false;
+      this.canDeleteRoom = false;
+      return;
+    }
+    const isAdmin = this.hasGlobalRole(['admin']);
+    const isLeader = this.hasGlobalRole(['leader']);
+    const isOwner  = this.hasRoomRole(['owner']);
+    this.canManageRoom = isAdmin || isLeader || isOwner;
+    this.canDeleteRoom = isAdmin || isLeader;
+  }
+
+  private hasGlobalRole(roles: string[]): boolean {
+    const userRoles = this.chatService.loggedInUser?.roles || [];
+    return roles.some(r => userRoles.includes(r));
+  }
+
+  private hasRoomRole(roles: string[]): boolean {
+    return roles.some(r => this.loggedUserRoomRoles.includes(r));
   }
 
   canManageMembers(member: any): boolean {
-    if (!this.chatService.loggedInUser) return false;
-    return member._id !== this.chatService.loggedInUser._id;
+    const loggedUser = this.chatService.loggedInUser;
+    if (!loggedUser) return false;
+    if (member._id === loggedUser._id) return false;
+    if (this.hasGlobalRole(['admin', 'moderator', 'leader'])) {
+      return true;
+    }
+    if (!this.canManageRoom) return false;
+    const memberRoles = this.roomRoles[member._id] || [];
+    if (memberRoles.includes('owner')) {
+      const ownersCount = Object.values(this.roomRoles)
+        .filter(r => r.includes('owner')).length;
+      if (ownersCount <= 1) return false;
+    }
+    return true;
   }
 
   getUserAvatar(user: any): string {
@@ -124,6 +182,7 @@ export class ChatInfoComponent {
           this.selectedUsers = [];
           this.showAddMembers = false;
           this.loadAvailableUsers();
+          this.loadRoomRoles();
         },
         error: err => {
           console.error('Failed to add members', err);
@@ -132,18 +191,48 @@ export class ChatInfoComponent {
   }
 
   removeMember(member: any): void {
-    if (!this.data.conversation?._id) return;
+    const conversation = this.data.conversation;
+    const type = conversation?.t;
+    if (type !== 'c' && type !== 'p') return;
     this.chatService
-      .removeUserFromRoom(this.data.conversation._id, member._id)
+      .removeUserFromRoom(conversation._id, member._id, type)
       .subscribe({
         next: () => {
           this.data.channelMembers = this.data.channelMembers.filter(
             m => m._id !== member._id
           );
+          this.loadRoomRoles();
         },
         error: err => {
           console.error('Failed to remove member', err);
         }
+      });
+  }
+
+  deleteRoom(): void {
+    const roomId = this.data.conversation?._id;
+    if (!roomId) return;
+    this.confirmationModal
+      .open(ModalComponent, {
+        data: {
+          action: 'delete',
+          subject: 'room',
+          message: 'This action will permanently delete this room and all its messages.'
+        }
+      })
+      .afterClosed()
+      .subscribe(result => {
+        if (!result) return;
+        this.chatService.deleteRoom(roomId).subscribe({
+          next: success => {
+            if (success) {
+              this.dialogRef.close({ deleted: true, roomId });
+            }
+          },
+          error: err => {
+            console.error('Error deleting room:', err);
+          }
+        });
       });
   }
 
