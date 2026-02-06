@@ -17,7 +17,7 @@
         </mat-select>
       </mat-form-field>
     </ng-container>
-    <ng-container *ngIf="roomType === 'c'">
+    <ng-container *ngIf="roomType === 'c' || roomType === 'p'">
       <mat-form-field appearance="outline" class="w-100">
         <mat-label>Channel Name</mat-label>
         <input matInput [(ngModel)]="name" />
