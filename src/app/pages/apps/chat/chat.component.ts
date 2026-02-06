@@ -968,7 +968,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  openCreateRoomDialog(type: 'd' | 'c' | 't', teamId?: string, teamName?: string) {
+  openCreateRoomDialog(type: 'd' | 'c' | 't' | 'p', teamId?: string, teamName?: string) {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
       data: { type, teamId, teamName },
