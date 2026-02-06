@@ -18,8 +18,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
-import { Observable, map, switchMap } from 'rxjs';
+import { switchMap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { CertificationsService } from 'src/app/services/certifications.service';
+import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-candidate-details',
@@ -65,6 +68,7 @@ export class CandidateDetailsComponent implements OnInit {
   maxFileSize: number =  1 * 1024 * 1024;
   rankingProfiles: any[] = [];
   pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
+  certifications: any[] = [];
   descriptionOptions = [
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
@@ -84,7 +88,8 @@ export class CandidateDetailsComponent implements OnInit {
     private permissionService: PermissionService,
     private dialog: MatDialog,
     private discProfilesService: DiscProfilesService,
-    private http: HttpClient
+    private http: HttpClient,
+    private certificationsService: CertificationsService
   ) { }
 
   ngOnInit(): void {
@@ -196,6 +201,7 @@ export class CandidateDetailsComponent implements OnInit {
           resume_url: candidate.resume_url || candidate.file_name || null
         };
         this.candidate.set(normalizedCandidate);
+        this.certifications = normalizedCandidate.certifications || [];
         this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
 
@@ -278,6 +284,7 @@ export class CandidateDetailsComponent implements OnInit {
     }
 
     const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
+    this.certifications = candidate.certifications || [];
     this.form.patchValue({
       name: candidate.name,
       description: descriptionValue,
@@ -381,7 +388,8 @@ export class CandidateDetailsComponent implements OnInit {
   private createCandidate() {
     const payload = {
       ...this.form.value,
-      status_id: 1
+      status_id: 1,
+      certifications: this.certifications
     };
     this.applicationService.submit(payload).subscribe({
       next: (candidate: any) => {
@@ -418,6 +426,7 @@ export class CandidateDetailsComponent implements OnInit {
       hobbies: formValues.hobbies,
       work_experience: formValues.work_experience,
       skills: formValues.skills,
+      certifications: this.certifications,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
       english_level: formValues.english_level,
@@ -440,7 +449,8 @@ export class CandidateDetailsComponent implements OnInit {
           ...this.candidate(),
           ...data,
           description: descriptionValue,
-          resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url
+          resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
+          certifications: data.certifications
         };
         
         this.candidate.set(updatedCandidate);
@@ -512,6 +522,134 @@ export class CandidateDetailsComponent implements OnInit {
     } else {
       this.updateCandidate();
     }
+  }
+
+  getAttachmentUrl(key: string): string {
+    return this.certificationsService.getAttachmentUrl(key);
+  }
+
+  isImage(url: string | undefined): boolean {
+    if (!url) return false;
+    const imageExtensions = ['jpg', 'jpeg', 'png'];
+    const extension = url.split('.').pop()?.toLowerCase();
+    return extension ? imageExtensions.includes(extension) : false;
+  }
+
+  getFileName(url: string | undefined): string {
+    if (!url) return '';
+    const decodedUrl = decodeURIComponent(url);
+    return decodedUrl.split('/').pop() || 'Attachment';
+  }
+
+  addCertification() {
+    this.openCertificationDialog('Add', {});
+  }
+
+  editCertification(cert: any) {
+    this.openCertificationDialog('Edit', cert);
+  }
+
+  deleteCertification(cert: any) {
+    const dialogRef = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'certification'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
+      this.certificationsService.delete(cert.id).subscribe({
+        next: () => {
+          this.certifications = this.certifications.filter(item => item.id !== cert.id);
+          this.updateCandidateCertifications();
+          this.snackBar.open('Certification deleted successfully', 'Close', { duration: 3000 });
+        },
+        error: () => {
+          this.snackBar.open('Error deleting certification', 'Close', { duration: 3000 });
+        }
+      });
+    });
+  }
+
+  private openCertificationDialog(action: string, cert: any): void {
+    const owner = this.getCertificationOwner();
+    const data = { ...cert, action };
+    if (!data.user_id && !data.application_id) {
+      Object.assign(data, owner);
+    }
+
+    const dialogRef = this.dialog.open(AppCertificationModalComponent, {
+      data
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result && result.event !== 'Cancel') {
+        this.handleCertificationAction(result);
+      }
+    });
+  }
+
+  private handleCertificationAction(result: any) {
+    const { event, data, file } = result;
+
+    const request$ = file
+      ? this.certificationsService.uploadAttachment(file).pipe(
+          switchMap((uploadRes: any) => {
+            data.attachment_url = uploadRes.key.split('/').pop();
+            return event === 'Add'
+              ? this.certificationsService.create(data)
+              : this.certificationsService.update(data.id, data);
+          })
+        )
+      : event === 'Add'
+        ? this.certificationsService.create(data)
+        : this.certificationsService.update(data.id, data);
+
+    request$.subscribe({
+      next: (response: any) => {
+        if (event === 'Add') {
+          this.certifications = [...this.certifications, response];
+        } else {
+          this.certifications = this.certifications.map(item =>
+            item.id === response.id ? response : item
+          );
+        }
+        this.updateCandidateCertifications();
+        this.snackBar.open(
+          event === 'Add' ? 'Certification added successfully' : 'Certification updated successfully',
+          'Close',
+          { duration: 3000 }
+        );
+      },
+      error: () => {
+        this.snackBar.open(
+          event === 'Add' ? 'Error adding certification' : 'Error updating certification',
+          'Close',
+          { duration: 3000 }
+        );
+      }
+    });
+  }
+
+  private updateCandidateCertifications() {
+    this.candidate.update(current => {
+      if (!current) return current;
+      return {
+        ...current,
+        certifications: this.certifications
+      };
+    });
+  }
+
+  private getCertificationOwner() {
+    const candidate = this.candidate();
+    if (!candidate) return {};
+    const userId = candidate.user?.id || candidate.user_id || null;
+    if (userId) {
+      return { user_id: userId, application_id: null };
+    }
+    return { user_id: null, application_id: candidate.id };
   }
 
 
