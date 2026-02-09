@@ -68,7 +68,7 @@
         <button
           mat-icon-button
           [matMenuTriggerFor]="memberMenu"
-          *ngIf="canManageRoom"
+          *ngIf="canManageMembers(m)"
         >
           <mat-icon>more_vert</mat-icon>
         </button>
