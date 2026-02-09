@@ -255,6 +255,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.sortMessagesAscending();
             this.cdr.detectChanges();
           }
+          if (ev.collection === 'stream-notify-room') {
+            try {
+              const eventName = ev.fields?.eventName || '';
+              if (typeof eventName === 'string' && !eventName.includes('/deleteMessage')) {
+                this.loadRooms();
+              }
+            } catch (err) {
+              console.error('Error handling stream-notify-room refresh:', err, ev);
+            }
+          }
         } catch (err) {
           console.error('Error handling room update event in component:', err, ev);
         }
@@ -298,16 +308,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     try {
       this.chatService.getUserNotifyStream().subscribe(async (notification: any) => {
-        if (notification.type === 'call-started') {
-          const roomName = notification.roomName || 'a room';
-          const title = `Active call in ${roomName}`;
-          const body = 'Click to join the call';
-          await this.chatService.showPushNotification(title, body, undefined, {
-            type: 'call',
-            roomId: notification.roomId,
-            callData: notification.callData,
-          });
-          this.openSnackBar(`Call started in ${roomName}`, 'Join');
+        try {
+          if (notification.type === 'call-started') {
+            const roomName = notification.roomName || 'a room';
+            const title = `Active call in ${roomName}`;
+            const body = 'Click to join the call';
+            await this.chatService.showPushNotification(title, body, undefined, {
+              type: 'call',
+              roomId: notification.roomId,
+              callData: notification.callData,
+            });
+            this.openSnackBar(`Call started in ${roomName}`, 'Join');
+            return;
+          }
+          const maybeRid = notification?.roomId || notification?.fields?.args?.[0]?.rid || notification?.fields?.args?.[1]?.rid || notification?.fields?.args?.rid;
+          if (maybeRid) {
+            this.loadRooms();
+          }
+        } catch (err) {
+          console.error('Error handling user notify event in component:', err, notification);
         }
       });
     } catch (err) {
