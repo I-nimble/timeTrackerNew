@@ -200,6 +200,7 @@ export class ApplicationsService {
           profile_pic: profilePic,
           phone: null,
           company_id: data.company_id == -1 ? null : data.company_id,
+          work_experience_summary: data.work_experience_summary || null
         };
 
         if (id) return this.http.put<any>(`${this.API_URI}/applications/${id}`, body);
