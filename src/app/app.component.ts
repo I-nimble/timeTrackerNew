@@ -46,6 +46,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private anchorLogSub: Subscription | null = null;
   private routeTourSub: Subscription | null = null;
   private isRepositioning = false;
+  private originalTourNext?: () => void;
   private kanbanAutoOpenInProgress = false;
   private employeeDetailsAutoOpenInProgress = false;
   private pendingTourRouteAnchor: string | null = null;
@@ -140,6 +141,29 @@ export class AppComponent implements OnInit, OnDestroy {
     const svc: any = this.tourService as any;
 
     this.tourStartSub = this.roleTourService.startRequests$.subscribe(({ steps, startIndex }) => {
+      if (!this.originalTourNext) {
+        this.originalTourNext = this.tourService.next.bind(this.tourService);
+        this.tourService.next = () => {
+          const step = this.tourService.currentStep;
+          if (step?.anchorId === 'kanban-first-board') {
+            this.openKanbanFirstBoardForTour();
+            return;
+          }
+          if (step?.anchorId === 'kanban-create-task') {
+            this.openKanbanCreateTaskForTour();
+            return;
+          }
+          if (step?.anchorId === 'chat-first-conversation') {
+            this.openChatFirstConversationForTour();
+            return;
+          }
+          if (step?.anchorId === 'employee-first-name') {
+            this.openEmployeeDetailsForTour();
+            return;
+          }
+          this.originalTourNext?.();
+        };
+      }
       this.setIsScrollable(false);
       void this.startTourWhenReady(steps, startIndex);
     });
@@ -164,6 +188,13 @@ export class AppComponent implements OnInit, OnDestroy {
     this.tourEndSub = svc.end$?.subscribe(() => {
       if (this.isTourRouteTransitioning) {
         return;
+      }
+      const current = this.tourService.currentStep;
+      if (current?.anchorId === 'kanban-new-board' || current?.anchorId === 'kanban-first-board') {
+        this.roleTourService.setPendingResume('kanban-board-actions');
+      }
+      if (current?.anchorId === 'kanban-create-task') {
+        this.roleTourService.setPendingResume('kanban-task-actions');
       }
       this.setIsScrollable(true);
       void this.roleTourService.notifyEnded();
@@ -238,7 +269,6 @@ export class AppComponent implements OnInit, OnDestroy {
     if (typeof document === 'undefined') return;
     requestAnimationFrame(() => {
       const trigger = document.getElementById('selected-chat-actions') as HTMLElement | null;
-      console.log('TRIGGER', trigger);
       if (!trigger) return;
       const isExpanded = () => trigger.getAttribute('aria-expanded') === 'true';
       if (!isExpanded()) {
@@ -257,7 +287,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.kanbanAutoOpenInProgress = true;
     this.isTourRouteTransitioning = true;
 
-    const anchor = document.querySelector('[tourAnchor="kanban-first-board"]') as HTMLElement | null;
+    const anchor =
+      this.getAnchorElement('kanban-first-board') ??
+      (document.querySelector('[tourAnchor="kanban-first-board"], [ng-reflect-tour-anchor="kanban-first-board"]') as HTMLElement | null);
     if (!anchor) {
       this.kanbanAutoOpenInProgress = false;
       this.isTourRouteTransitioning = false;
@@ -293,6 +325,19 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  private openKanbanCreateTaskForTour() {
+    if (typeof document === 'undefined') return;
+    const taskAnchor =
+      this.getAnchorElement('kanban-task-actions') ??
+      (document.querySelector('[tourAnchor="kanban-task-actions"], [ng-reflect-tour-anchor="kanban-task-actions"]') as HTMLElement | null);
+    if (taskAnchor) {
+      this.runTourNext();
+      return;
+    }
+    this.roleTourService.setPendingResume('kanban-task-actions');
+    this.tourService.end();
+  }
+
   private async waitForTourAnchor(anchorId: string, timeoutMs: number): Promise<void> {
     const svc: any = this.tourService as any;
     if (svc?.anchors?.[anchorId]) return;
@@ -305,9 +350,23 @@ export class AppComponent implements OnInit, OnDestroy {
     ).catch(() => console.warn('Tour anchor wait timed out', { anchorId }));
   }
 
+  private getAnchorElement(anchorId: string): HTMLElement | null {
+    const svc: any = this.tourService as any;
+    const anchor = svc?.anchors?.[anchorId];
+    return (
+      anchor?.element?.nativeElement ||
+      anchor?.elementRef?.nativeElement ||
+      anchor?.nativeElement ||
+      anchor?._elementRef?.nativeElement ||
+      null
+    );
+  }
+
   private async openChatFirstConversationForTour() {
     if (typeof document === 'undefined') return;
-    const anchor = document.querySelector('[ng-reflect-tour-anchor="chat-first-conversation"]') as HTMLElement | null;
+    const anchor =
+      this.getAnchorElement('chat-first-conversation') ??
+      (document.querySelector('[tourAnchor="chat-first-conversation"], [ng-reflect-tour-anchor="chat-first-conversation"]') as HTMLElement | null);
     if (!anchor) {
       console.warn('chat first conversation anchor missing');
       return;
@@ -316,6 +375,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const nextAnchor = 'chat-message-input';
     await this.waitForTourAnchor(nextAnchor, 2000);
+    this.runTourNext();
+  }
+
+  private runTourNext() {
+    if (this.originalTourNext) {
+      this.originalTourNext();
+      return;
+    }
     this.tourService.next();
   }
 
@@ -324,7 +391,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.employeeDetailsAutoOpenInProgress = true;
     this.isTourRouteTransitioning = true;
 
-    const anchor = document.querySelector('[ng-reflect-tour-anchor="employee-first-name"]') as HTMLElement | null;
+    const anchor =
+      this.getAnchorElement('employee-first-name') ??
+      (document.querySelector('[tourAnchor="employee-first-name"], [ng-reflect-tour-anchor="employee-first-name"]') as HTMLElement | null);
     if (!anchor) {
       this.employeeDetailsAutoOpenInProgress = false;
       this.isTourRouteTransitioning = false;
