@@ -516,10 +516,8 @@
                             >
                               <img
                                 [src]="
-                                  element.profile_pic_url
-                                    ? picturesUrl +
-                                      '/' +
-                                      element.profile_pic_url
+                                  element.profile_pic_url && element.profile_pic_url !== ''
+                                    ? element.profile_pic_url
                                     : assetsPath
                                 "
                                 alt="users"
