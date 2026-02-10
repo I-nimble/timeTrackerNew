@@ -365,7 +365,7 @@ export class RoleTourService {
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
       delayBeforeStepShow: 100,
-      enableBackdrop: true,
+      enableBackdrop: false,
       allowUserInitiatedNavigation: false,
       isOptional: true,
     };
