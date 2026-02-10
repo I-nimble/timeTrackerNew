@@ -16,6 +16,7 @@ import { RoleTourService } from 'src/app/services/role-tour.service';
 export class TourStepComponent {
   @Input({ required: true }) step!: RoleTourStep;
   private readonly emptyKanbanAnchors = ['side-kanban', 'kanban-boards', 'kanban-new-board'];
+  private readonly noTaskKanbanHiddenAnchors = ['kanban-search-tasks', 'kanban-task-actions', 'kanban-add-column'];
 
   constructor(
     public tourService: TourService<RoleTourStep>,
@@ -39,26 +40,38 @@ export class TourStepComponent {
   }
 
   getProgressIndex(): number {
-    const currentIndex = this.tourService.steps.indexOf(this.step);
-    if (this.isEmptyKanbanTour()) {
-      const emptyIndex = this.emptyKanbanAnchors.indexOf(this.step.anchorId);
-      if (emptyIndex >= 0) {
-        return emptyIndex + 1;
-      }
-      return Math.min(currentIndex + 1, this.getProgressTotal());
+    const anchors = this.getProgressAnchors();
+    const index = anchors.indexOf(this.step.anchorId);
+    if (index >= 0) {
+      return index + 1;
     }
-    return currentIndex + 1;
+    return this.tourService.steps.indexOf(this.step) + 1;
   }
 
   getProgressTotal(): number {
+    return this.getProgressAnchors().length || this.tourService.steps.length;
+  }
+
+  private getProgressAnchors(): string[] {
     if (this.isEmptyKanbanTour()) {
-      return this.emptyKanbanAnchors.length;
+      return this.emptyKanbanAnchors;
     }
-    return this.tourService.steps.length;
+    if (this.isNoTaskKanbanTour()) {
+      return this.tourService.steps
+        .map((s) => s.anchorId)
+        .filter((anchorId) => !this.noTaskKanbanHiddenAnchors.includes(anchorId));
+    }
+    return this.tourService.steps.map((s) => s.anchorId);
   }
 
   private isEmptyKanbanTour(): boolean {
     return this.emptyKanbanAnchors.includes(this.step.anchorId) && localStorage.getItem('kanban.hasBoards') !== 'true';
+  }
+
+  private isNoTaskKanbanTour(): boolean {
+    return this.step.anchorId.startsWith('kanban-') &&
+      localStorage.getItem('kanban.hasBoards') === 'true' &&
+      localStorage.getItem('kanban.hasTasks') !== 'true';
   }
 
   @HostListener('document:keydown', ['$event'])
