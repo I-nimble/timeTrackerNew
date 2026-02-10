@@ -120,6 +120,29 @@
           </mat-select>
         </mat-form-field>
       </div>
+
+      <div class="col-lg-6" *ngIf="userRole === '1' || userRole === '3'">
+        <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Hourly Rate ($)</mat-label>
+        <mat-form-field appearance="outline" class="w-100">
+          <input
+            type="number"
+            matInput
+            min="0"
+            max="1000"
+            step="0.01"
+            id="hourly_rate"
+            name="hourly_rate"
+            formControlName="hourly_rate"
+            placeholder="Hourly Rate"
+          />
+          <mat-error *ngIf="editEmployeeForm.get('hourly_rate')?.hasError('min')">
+            Hourly rate must be at least 0
+          </mat-error>
+          <mat-error *ngIf="editEmployeeForm.get('hourly_rate')?.hasError('max')">
+            Hourly rate cannot exceed $1000
+          </mat-error>
+        </mat-form-field>
+      </div>
       
       <div class="col-lg-6">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Projects</mat-label>
@@ -275,6 +298,29 @@
             {{ company.name }}
           </mat-option>
         </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="col-12" *ngIf="userRole === '1' || userRole === '3'">
+      <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Hourly Rate ($)</mat-label>
+      <mat-form-field appearance="outline" class="w-100">
+        <input
+          type="number"
+          matInput
+          min="0"
+          max="1000"
+          step="0.01"
+          id="hourly_rate"
+          name="hourly_rate"
+          formControlName="hourly_rate"
+          placeholder="Hourly Rate"
+        />
+        <mat-error *ngIf="inviteEmployeeForm.get('hourly_rate')?.hasError('min')">
+          Hourly rate must be at least 0
+        </mat-error>
+        <mat-error *ngIf="inviteEmployeeForm.get('hourly_rate')?.hasError('max')">
+          Hourly rate cannot exceed $1000
+        </mat-error>
       </mat-form-field>
     </div>
     

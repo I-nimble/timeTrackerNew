@@ -4,4 +4,5 @@
     <string name="title_activity_main">inimbleapp</string>
     <string name="package_name">com.inimbleapp.timetracker</string>
     <string name="custom_url_scheme">com.inimbleapp.timetracker</string>
+    <string name="default_notification_channel_id">inimble_general</string>
 </resources>

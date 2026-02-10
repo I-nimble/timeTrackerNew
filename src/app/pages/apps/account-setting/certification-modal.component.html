@@ -1,0 +1,185 @@
+<h2 mat-dialog-title>{{ action }} Certification</h2>
+<mat-dialog-content class="mat-typography">
+  <form #certForm="ngForm">
+    <div class="row">
+      <div class="col-12 m-b-16">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Name</mat-label>
+          <input
+            matInput
+            required
+            id="name"
+            name="name"
+            [(ngModel)]="local_data.name"
+            placeholder="Certification Name"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 m-b-16">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Issuer</mat-label>
+          <input
+            matInput
+            required
+            id="issuer"
+            name="issuer"
+            [(ngModel)]="local_data.issuer"
+            placeholder="Issuing Organization"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Issue Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="pickerDate"
+            required
+            id="date"
+            name="date"
+            [(ngModel)]="local_data.date"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="pickerDate"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #pickerDate></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Expiration Date</mat-label>
+          <input
+            matInput
+            [matDatepicker]="pickerExpDate"
+            id="expiration_date"
+            name="expiration_date"
+            [(ngModel)]="local_data.expiration_date"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="pickerExpDate"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #pickerExpDate></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12" *ngIf="dateError">
+        <mat-error class="text-danger f-s-12">{{ dateError }}</mat-error>
+      </div>
+
+      <div class="col-12 m-b-16 m-t-16">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Credential ID</mat-label>
+          <input
+            matInput
+            id="credential_id"
+            name="credential_id"
+            [(ngModel)]="local_data.credential_id"
+            placeholder="Credential ID (Optional)"
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 m-b-16">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Credential URL</mat-label>
+          <input
+            matInput
+            id="url"
+            name="url"
+            [(ngModel)]="local_data.url"
+            placeholder="https://..."
+          />
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 m-b-16">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Description</mat-label>
+          <textarea
+            matInput
+            id="description"
+            name="description"
+            [(ngModel)]="local_data.description"
+            rows="3"
+            placeholder="Description (Optional)"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="col-12 m-b-16">
+        <div class="d-flex align-items-center flex-wrap">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="fileInput.click()"
+          >
+            <mat-icon>attach_file</mat-icon>
+            {{
+              selectedFile ||
+              (local_data.attachment_url &&
+                !local_data.attachment_url.includes("undefined"))
+                ? "Change Attachment"
+                : "Add Attachment"
+            }}
+          </button>
+          <input
+            #fileInput
+            type="file"
+            (change)="onFileSelected($event)"
+            style="display: none"
+            accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png"
+          />
+          <span class="m-l-16 f-s-12 text-muted" *ngIf="selectedFile">{{
+            selectedFile.name
+          }}</span>
+          <span
+            class="m-l-16 f-s-12 text-muted"
+            *ngIf="
+              !selectedFile &&
+              local_data.attachment_url &&
+              !local_data.attachment_url.includes('undefined')
+            "
+            >Current: Attachment Present</span
+          >
+          <button
+            mat-icon-button
+            color="warn"
+            type="button"
+            *ngIf="
+              selectedFile ||
+              (local_data.attachment_url &&
+                !local_data.attachment_url.includes('undefined'))
+            "
+            (click)="removeAttachment()"
+            matTooltip="Remove attachment"
+          >
+            <i-tabler name="trash" class="icon-20"></i-tabler>
+          </button>
+        </div>
+        <mat-error *ngIf="fileError" class="d-block m-t-8">{{
+          fileError
+        }}</mat-error>
+        <mat-hint class="d-block m-t-8 f-s-12"
+          >Max 10MB. Formats: PDF, PPT, DOC, JPG, PNG.</mat-hint
+        >
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="!certForm.valid"
+    (click)="doAction()"
+  >
+    {{ action }}
+  </button>
+</mat-dialog-actions>

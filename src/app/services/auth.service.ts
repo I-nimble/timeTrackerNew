@@ -10,6 +10,8 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, user } from '@angular/fire/auth';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { PushNotificationService } from './push-notification.service';
+import { RocketChatService } from './rocket-chat.service';
 import { from } from 'rxjs';
 
 @Injectable({
@@ -30,6 +32,8 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
+    private pushNotificationService: PushNotificationService,
+    private rocketChatService: RocketChatService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -42,14 +46,31 @@ export class AuthService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
-  async logout() {
-    localStorage.clear();
-    this.isLogged.next(false);
-    this.notificationStore.removeAll();
-    this.notificationsService.clearNotifications();
-    this.updateLiveChatBubbleVisibility('0')
-    this.updateTawkVisitorAttributes('Guest', '')
-    this.routes.navigate(['/authentication/login']);
+  async logout(redirect: boolean = true) {
+    try {
+      try {
+        await this.pushNotificationService.cleanupPush(true);
+      } catch (e) {}
+      this.pushNotificationService.clearToken();
+      try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+      try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+      try { localStorage.removeItem('jwt'); } catch(e) {}
+      try { localStorage.removeItem('id'); } catch(e) {}
+      try { localStorage.removeItem('role'); } catch(e) {}
+      this.isLogged.next(false);
+      this.notificationStore.removeAll();
+      this.notificationsService.clearNotifications();
+      if (typeof this.rocketChatService.logout === 'function') {
+        this.rocketChatService.logout();
+      } else {
+        console.warn('logout method not found on Rocket.ChatService, skipping cleanup.');
+      }
+      if (redirect) {
+        this.routes.navigate(['/authentication/login']);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
 
  checkTokenExpiration(): void {
@@ -145,23 +166,6 @@ export class AuthService {
 
   getLoggedInUser(){
     return this.http.get(`${this.API_URI}/auth/loggedIn`)
-  }
-
-  updateLiveChatBubbleVisibility(role: string) {
-    if ((window as any).Tawk_API) {
-      if (role == '3') {
-        (window as any).Tawk_API.showWidget();
-      } else {
-        (window as any).Tawk_API.hideWidget();
-      }
-    }
-  }
-
-  updateTawkVisitorAttributes(name: string, email: string) {
-    (window as any).Tawk_API.setAttributes({
-      'name': localStorage.getItem('name') || name,
-      'email': localStorage.getItem('email') || email,
-    });
   }
 
   forgotPassword(email: string): Observable<any> {

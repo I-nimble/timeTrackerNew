@@ -1,0 +1,42 @@
+<mat-dialog-content>
+  <button mat-icon-button 
+          aria-label="Close dialog" 
+          (click)="closeDialog()"
+          style="position: absolute; top: 8px; right: 8px;">
+    <mat-icon>close</mat-icon>
+  </button>
+    <div *ngIf="!interviewScheduled">
+      <h2 class="m-b-20">Set up a date and time for the interview</h2>
+      <form (ngSubmit)="onScheduleInterview()">
+        <mat-form-field appearance="outline" class="w-100 m-b-16">
+            <mat-label>Interview date</mat-label>
+            <input matInput [matDatepicker]="datePicker" [matDatepickerFilter]="availableDaysFilter" [(ngModel)]="dateTime" name="dateTime">
+            <mat-datepicker #datePicker></mat-datepicker>
+            <mat-datepicker-toggle [for]="datePicker" matSuffix></mat-datepicker-toggle>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100 m-b-16">
+            <mat-label>Interview time</mat-label>
+            <input matInput
+              [matTimepicker]="timePicker"
+              [(ngModel)]="dateTime"
+              name="dateTime"
+              [ngModelOptions]="{updateOn: 'blur'}"
+              required
+              matTimepickerMin="08:00"
+              matTimepickerMax="20:00"
+            />
+            <mat-timepicker #timePicker></mat-timepicker>
+            <mat-timepicker-toggle [for]="timePicker" matSuffix></mat-timepicker-toggle>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="!dateTime">
+          {{ local_data.action === 'Schedule' ? 'Schedule interview' : 'Reeschedule interview' }}
+        </button>
+      </form>
+    </div>
+    <div *ngIf="interviewScheduled" class="text-center">
+      <h2>Interview scheduled successfully</h2>
+      <p>HR will contact you soon to confirm the interview details</p>
+      <button mat-flat-button color="primary" (click)="closeDialog()">OK</button>
+    </div>
+</mat-dialog-content>

@@ -1,12 +1,15 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, PLATFORM_ID, Inject, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RocketChatService } from './services/rocket-chat.service';
+import { PlatformPermissionsService } from './services/permissions.service';
 import { Subscription } from 'rxjs';
 import { JitsiMeetComponent } from './components/jitsi-meet/jitsi-meet.component';
 import { ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { isPlatformBrowser } from '@angular/common';
+import { PushNotificationService } from './services/push-notification.service';
+import { App } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
@@ -38,13 +41,81 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: any,
-    private rocketChatService: RocketChatService
+    private rocketChatService: RocketChatService,
+    private platformPermissionsService: PlatformPermissionsService,
+    private pushNotificationService: PushNotificationService
   ) { }
 
   async ngOnInit() {
     await this.initializeSystemBars();
+    App.addListener('appStateChange', async ({ isActive }) => {
+      if (!isActive) {
+        this.rocketChatService.setUserStatus('away').subscribe();
+      } else {
+        this.rocketChatService.setUserStatus('online').subscribe();
+        this.rocketChatService.onAppResume();
+      }
+    });
+    
+    const jwt = localStorage.getItem('jwt');
+    if (!jwt) {
+      try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+      try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+      try { localStorage.removeItem('jwt'); } catch(e) {}
+      try { localStorage.removeItem('id'); } catch(e) {}
+      try { localStorage.removeItem('role'); } catch(e) {}
+      try { this.rocketChatService.logout?.(); } catch (e) { console.warn('Error clearing Rocket.Chat credentials:', e); }
+      try { this.pushNotificationService.clearToken(); } catch (e) { console.warn('Error clearing push token:', e); }
+    }
+
+    this.rocketChatService.resetNotificationState();
     this.rocketChatService.loadCredentials();
+    try {
+      const savedCreds = this.rocketChatService.credentials;
+      const savedCredsRaw = localStorage.getItem('rocketChatCredentials');
+      let localId: string | null = null;
+      if (savedCredsRaw) {
+        try {
+          const parsed = JSON.parse(savedCredsRaw);
+          localId = parsed?.userId ?? null;
+        } catch (parseErr) {
+          console.warn('Could not parse rocketChatCredentials from localStorage:', parseErr);
+          localId = null;
+        }
+      }
+      const pushOwner = localStorage.getItem('pushTokenUserId');
+      if (savedCreds && localId && savedCreds.userId !== localId) {
+        console.warn('Detected mismatch between Rocket.Chat credentials and local user id. Clearing credentials and push token.');
+        localStorage.removeItem('rocketChatCredentials');
+        localStorage.removeItem('pushTokenUserId');
+        try { await this.pushNotificationService.cleanupPush(true); } catch (e) { console.warn('Error cleaning up push token:', e); }
+        try { this.rocketChatService.logout?.(); } catch (e) { console.warn('Error logging out Rocket.Chat service:', e); }
+        try { localStorage.removeItem('rocketChatCredentials'); } catch(e) {}
+        try { localStorage.removeItem('pushTokenUserId'); } catch(e) {}
+        try { localStorage.removeItem('jwt'); } catch(e) {}
+        try { localStorage.removeItem('id'); } catch(e) {}
+        try { localStorage.removeItem('role'); } catch(e) {}
+        return;
+      }
+      if (pushOwner && localId && pushOwner !== localId) {
+        console.warn('Detected push token owner different from local user id. Attempting to re-associate token for current user instead of deleting.');
+        try {
+          await this.pushNotificationService.registerCurrentPushTokenIfNeeded();
+        } catch (e) {
+          console.warn('Error re-registering push token for current user:', e);
+        }
+        try { localStorage.setItem('pushTokenUserId', localId); } catch (e) {}
+      }
+    } catch (e) {
+      console.warn('Error validating stored credentials/push owner:', e);
+    }
+    await this.pushNotificationService.initialize();
     this.rocketChatService.saveUserData();
+    const notificationPermission = await this.platformPermissionsService.requestNotificationPermissions();
+    if (notificationPermission) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await this.rocketChatService.initLocalNotifications();
+    }
 
     try {
       this.jitsiSub = this.rocketChatService.getActiveJitsiStream().subscribe((m) => {
@@ -69,7 +140,13 @@ export class AppComponent implements OnInit, OnDestroy {
     this.setupDarkModeListener();
   }
 
+  @HostListener('window:beforeunload')
+  async onBeforeUnload() {
+    this.rocketChatService.setUserStatus('offline').subscribe();
+  }
+
   ngOnDestroy(): void {
+    this.rocketChatService.setUserStatus('offline').subscribe();
     try { this.jitsiSub?.unsubscribe(); } catch (e) {}
     try { this.jitsiCompRef?.destroy(); } catch (e) {}
   }

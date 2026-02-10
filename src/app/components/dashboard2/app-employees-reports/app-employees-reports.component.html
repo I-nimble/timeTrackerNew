@@ -1,7 +1,7 @@
 <mat-card class="cardWithShadow h-100">
   <mat-card-header class="flex-column align-items-stretch">
     <div class="filters-row row w-100">
-      <div class="col-md-5 mb-2">
+      <div class="col-12 col-md-6 mb-2">
         <div *ngIf="role == '1' || allowedReportsManager || role =='4'">
           <mat-form-field class="w-100" appearance="outline">
             <mat-label>Select a Company</mat-label>
@@ -54,60 +54,55 @@
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-date-range-picker #picker></mat-date-range-picker>
         </mat-form-field>
-
-      </div>
-      <div 
-        class="col-12 col-md-1 d-flex justify-content-center justify-content-md-start mt-2 mt-md-0"
-      >
-        <div *ngIf="role != '2' || allowedReportsManager">
-          <button
+        <div>
+          <div *ngIf="role != '2' || allowedReportsManager" class="d-inline-block m-r-8">
+            <button
+              mat-flat-button
+              [matMenuTriggerFor]="downloadMenu"
+              [disabled]="isLoading || !dataSource?.length"
+              title="Download All Reports"
+            >
+              <i-tabler name="download" class="icon-18 me-1"></i-tabler>
+            </button>
+            <mat-menu #downloadMenu="matMenu">
+              <button 
+                mat-menu-item 
+                (click)="downloadReportAll('excel')" 
+                style="display:flex; align-items:center; gap:6px;"
+              >
+                <i-tabler 
+                  name="file-spreadsheet" 
+                  class="icon-18" 
+                  style="position:relative; top:2px;"
+                ></i-tabler>
+                <span> Excel</span>
+              </button>
+  
+              <button 
+                mat-menu-item 
+                (click)="downloadReportAll('pptx')" 
+                style="display:flex; align-items:center; gap:6px;"
+              >
+                <i-tabler 
+                  name="presentation" 
+                  class="icon-18" 
+                  style="position:relative; top:2px;"
+                ></i-tabler>
+                <span> PowerPoint</span>
+              </button>
+            </mat-menu>
+          </div>
+          <a
             mat-flat-button
-            [matMenuTriggerFor]="downloadMenu"
-            [disabled]="isLoading || !dataSource?.length"
-            title="Download All Reports"
+            color="primary"
+            [routerLink]="['/apps/payments-reports']"
+            *ngIf="role == '1' || allowedReportsManager || role == '4'"
+            title="Go to Payments Reports"
           >
-            <i-tabler name="download" class="icon-18 me-1"></i-tabler>
-          </button>
-          <mat-menu #downloadMenu="matMenu">
-            <button 
-              mat-menu-item 
-              (click)="downloadReportAll('excel')" 
-              style="display:flex; align-items:center; gap:6px;"
-            >
-              <i-tabler 
-                name="file-spreadsheet" 
-                class="icon-18" 
-                style="position:relative; top:2px;"
-              ></i-tabler>
-              <span> Excel</span>
-            </button>
-
-            <button 
-              mat-menu-item 
-              (click)="downloadReportAll('pptx')" 
-              style="display:flex; align-items:center; gap:6px;"
-            >
-              <i-tabler 
-                name="presentation" 
-                class="icon-18" 
-                style="position:relative; top:2px;"
-              ></i-tabler>
-              <span> PowerPoint</span>
-            </button>
-          </mat-menu>
+            Payments Reports
+          </a>
         </div>
       </div>
-    </div>
-    <div class="w-100 d-flex justify-content-start mt-2">
-      <a
-        mat-flat-button
-        color="primary"
-        [routerLink]="['/apps/payments-reports']"
-        *ngIf="role == '1' || allowedReportsManager || role == '4'"
-        title="Go to Payments Reports"
-      >
-        Payments Reports
-      </a>
     </div>
   </mat-card-header>
   <mat-card-content class="p-t-0">

@@ -9,6 +9,10 @@ export class IntakeService {
   constructor(private http: HttpClient) {}
   private API_URI = environment.apiUrl + '/intake';
 
+  public getIntake(uuid: string) {
+    return this.http.get(`${this.API_URI}/${uuid}`);
+  }
+
   public submitIntake(data: any) {
     const body = {
       client: data.client,
@@ -37,6 +41,39 @@ export class IntakeService {
 
   public downloadIntakePdf(id: number) {
     return this.http.get(`${this.API_URI}/${id}/pdf`, { responseType: 'blob' });
+  }
+
+  public saveIntake(data: any) {
+    const body = {
+      ...this._mapToApiBody(data),
+      status: data.status,
+      uuid: data.uuid || null,
+    };
+    return this.http.post(`${this.API_URI}`, body);
+  }
+
+  private _mapToApiBody(data: any) {
+    return {
+      client: data.client,
+      contact_person: data.contactPerson,
+      email: data.email,
+      phone: data.countryCode + ' ' + data.phone,
+      website: data.website,
+      industry: data.industry,
+      number_of_employees: data.numberOfEmployees,
+      job_title: data.jobTitle,
+      job_description: data.jobDescription,
+      kpi: data.kpi,
+      competencies: data.competencies.join(', '),
+      training_contact: data.trainingContact,
+      it_contact: data.itContact,
+      tech_needs: data.techNeeds,
+      additional_info: data.additionalInfo,
+      schedule_days: data.scheduleDays.join(', '),
+      schedule: data.scheduleStart + ' - ' + data.scheduleEnd,
+      lunchtime: data.lunchTime,
+      holidays_observed: data.holidaysObserved.join(', '),
+    };
   }
 
   public submitDiscovery(data: any) {

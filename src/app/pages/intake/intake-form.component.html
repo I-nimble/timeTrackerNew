@@ -1,0 +1,282 @@
+<!-- ----------------------------------------------------------------------------------------------------- -->
+<!-- Form wizard -->
+<!-- ----------------------------------------------------------------------------------------------------- -->
+<div class="container justify-content-center">
+  <div class="row">
+    <div class="col-12">
+      <mat-card *ngIf="!formSubmitted" class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
+        <img src="assets/images/inimble.png" id="logo" class="m-t-20 m-b-20">
+        <video controls id="introduction-video" *ngIf="showVideo">
+          <source src="assets/videos/intake-presentation.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <h1 *ngIf="showForm" class="text-center m-b-24">Intake</h1>
+        <h1 *ngIf="showVideo" class="m-b-20 intake-title">Let's connect you with <span class="highlight-green">the right talent</span></h1>
+      </mat-card>
+    </div>
+  </div>
+  <div class="row" *ngIf="showForm">
+    <div class="col-12">
+      <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-16">
+        <mat-stepper #stepper *ngIf="!formSubmitted">
+          <!-- Step 1: Client & Contact Information -->
+          <mat-step [stepControl]="contactInfoGroup">
+            <form [formGroup]="contactInfoGroup">
+              <ng-template matStepLabel>Client & Contact Information</ng-template>
+              <div class="row">
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Client</mat-label>
+                    <input matInput formControlName="client" placeholder="Client's company name" required>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Contact Person</mat-label>
+                    <input matInput formControlName="contactPerson" placeholder="Who can we contact you at?" required>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Email</mat-label>
+                    <input matInput formControlName="email" required type="email">
+                    <mat-error *ngIf="intakeForm.get('contactInfo.email')?.hasError('email')">Invalid email</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="col-12 col-md-4">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Country Code</mat-label>
+                    <mat-select formControlName="countryCode">
+                      <mat-option value="+1">+1 (US)</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12 col-md-8">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Phone Number</mat-label>
+                    <input matInput formControlName="phone" required type="tel" />
+                    <mat-error *ngIf="intakeForm.get('contactInfo.phone')?.hasError('pattern')">Invalid phone number</mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Website</mat-label>
+                    <input matInput formControlName="website" type="url">
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Industry</mat-label>
+                    <mat-select formControlName="industry" required>
+                      <mat-option *ngFor="let industry of industries" [value]="industry">{{ industry }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Number of Employees to Hire</mat-label>
+                    <input matInput formControlName="numberOfEmployees" type="number" min="0" step="1" required>
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="text-right">
+                <button mat-flat-button matStepperNext [disabled]="!contactInfoGroup.valid">Next</button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Step 2: Position Details -->
+          <mat-step [stepControl]="positionInfoGroup">
+            <form [formGroup]="positionInfoGroup">
+              <ng-template matStepLabel>Position Details</ng-template>
+              <div class="row">
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Job Title</mat-label>
+                    <mat-select formControlName="jobTitle" required>
+                      <mat-option *ngFor="let pos of positionsList" [value]="pos.title">{{ pos.title }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Job Description</mat-label>
+                    <textarea matInput formControlName="jobDescription" rows="4" required></textarea>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>KPI (Key Performance Indicators)</mat-label>
+                    <textarea matInput formControlName="kpi" rows="2" required></textarea>
+                  </mat-form-field>
+                </div>
+                <div class="col-12 m-b-16">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Add five Competencies required for the Position</mat-label>
+                    <mat-chip-grid #chipList>
+                      <mat-chip *ngFor="let competency of selectedCompetencies" [removable]="true" (removed)="removeCompetency(competency)">
+                        {{ competency }}
+                        <button matChipRemove>
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      </mat-chip>
+                      <input
+                        placeholder="Search or type a new one..."
+                        #competencyInput
+                        [formControl]="competencyCtrl"
+                        [matAutocomplete]="auto"
+                        [matChipInputFor]="chipList"
+                        [matChipInputSeparatorKeyCodes]="[13, 188]"
+                        (matChipInputTokenEnd)="addCustomCompetency()"
+                        [disabled]="selectedCompetencies.length >= 5"
+                      >
+                    </mat-chip-grid>
+                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addFromDropdown($event)">
+                      <mat-option *ngFor="let competency of filteredCompetencies | async" [value]="competency">
+                        {{ competency }}
+                      </mat-option>
+                      <mat-option *ngIf="(competencyCtrl.value?.length || 0) >= 2 && 
+                                        !isInList(competencyCtrl.value ?? '') && 
+                                        !selectedCompetencies.includes(competencyCtrl.value ?? '')"
+                                  (onSelectionChange)="addCustomCompetency()">
+                        <em (click)="addCustomCompetency()">
+                          Add "{{ competencyCtrl.value }}" as new competency
+                        </em>
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-hint>
+                      {{ selectedCompetencies.length }} of 5 added
+                    </mat-hint>
+                    <mat-error *ngIf="selectedCompetencies.length > 5">
+                      Maximum 5 competencies allowed.
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Training Contact</mat-label>
+                    <input matInput formControlName="trainingContact">
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>IT Contact</mat-label>
+                    <input matInput formControlName="itContact">
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Tech Needs</mat-label>
+                    <input matInput formControlName="techNeeds" placeholder="Will you need a client specific email address, etc.?">
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Additional Information</mat-label>
+                    <textarea matInput formControlName="additionalInfo" rows="3"></textarea>
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
+                <button mat-flat-button matStepperNext [disabled]="!positionInfoGroup.valid">Next</button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Step 3: Schedule -->
+          <mat-step [stepControl]="scheduleInfoGroup">
+            <form [formGroup]="scheduleInfoGroup">
+              <ng-template matStepLabel>Schedule</ng-template>
+              <div class="row">
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Work Days</mat-label>
+                    <mat-select formControlName="scheduleDays" multiple required>
+                      <mat-option *ngFor="let day of weekDays" [value]="day">{{ day }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Start Hour</mat-label>
+                    <input matInput formControlName="scheduleStart" type="time" required>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>End Hour</mat-label>
+                    <input matInput formControlName="scheduleEnd" type="time" required>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Lunch Time</mat-label>
+                    <mat-select formControlName="lunchTime" required>
+                      <mat-option *ngFor="let l of lunchTimes" [value]="l.value">{{ l.label }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-12">
+                  <mat-form-field appearance="outline" class="w-100 m-b-16">
+                    <mat-label>Holidays Observed</mat-label>
+                    <mat-select formControlName="holidaysObserved" multiple>
+                      <mat-option *ngFor="let holiday of holidaysList" [value]="holiday">{{ holiday }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
+                <button mat-flat-button matStepperNext [disabled]="!scheduleInfoGroup.valid">Next</button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- Step 4: Terms and Submit -->
+          <mat-step [stepControl]="termsInfoGroup">
+            <form [formGroup]="termsInfoGroup">
+              <ng-template matStepLabel>Terms and Submit</ng-template>
+              <h4 class="mat-headline-6 m-t-24">Terms and condition</h4>
+              <p class="m-t-8 f-s-14">
+                Inimble is committed to protecting and respecting your privacy, and we'll only use your personal information to administer your account and to provide the products and services you requested from us. From time to time, we would like to contact you about our products and services, as well as other content that may be of interest to you. If you consent to us contacting you for this purpose, please tick below to say how you would like us to contact you:
+              </p>
+              <mat-checkbox color="primary" formControlName="acceptOtherCommunications">
+                I agree to receive other communications from Inimble.
+              </mat-checkbox>
+              <p class="m-t-8 f-s-14">
+                In order to provide you the content requested, we need to store and process your personal data. If you consent to us storing your personal data for this purpose, please tick the checkbox below.
+              </p>
+              <mat-checkbox color="primary" required formControlName="acceptPersonalData">
+                I agree to allow Inimble to store and process my personal data.
+              </mat-checkbox>
+              <p class="m-t-8 f-s-14">
+                You can unsubscribe from these communications at any time. For more information on how to unsubscribe, our privacy practices, and how we are committed to protecting and respecting your privacy, please review our Privacy Policy.
+              </p>
+              <div class="d-flex justify-content-between m-t-16">
+                <button mat-flat-button class="bg-error text-white" matStepperPrevious>Back</button>
+               <div class="d-flex gap-8">
+                  <button mat-stroked-button color="primary" (click)="saveDraft()">Save</button>
+                  <button mat-flat-button color="primary" (click)="sendForm()" [disabled]="!intakeForm.valid">Finish</button>
+                </div>
+              </div>
+            </form>
+          </mat-step>
+        </mat-stepper>
+        <div class="d-flex flex-column justify-content-center align-items-center p-24" *ngIf="formSubmitted">
+          <h2 class="m-b-16 color-primary text-center">Thanks for your submission!</h2>
+          <p>We will get in touch with you shortly.</p>
+
+          <div class="d-flex gap-16 m-t-16">
+            <button mat-flat-button routerLink="/landingpage">
+              Go back
+            </button>
+            <button mat-flat-button color="primary" (click)="downloadPdf()" [disabled]="!lastIntakeId">
+              Download Intake
+            </button>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>
