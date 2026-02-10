@@ -104,13 +104,14 @@
               formControlName="work_experience"
               rows="3"
               placeholder="Describe the applicant work experience"
+              maxlength="50"
             ></textarea>
             <mat-error
               *ngIf="candidateForm.get('work_experience')?.hasError('maxlength')"
             >
               Text is too long. Please reduce your description from
               {{ candidateForm.get("work_experience")?.value.length }}
-              to 1000 characters.
+              to 50 characters.
             </mat-error>
           </mat-form-field>
         </div>

@@ -498,45 +498,9 @@
             <td><b>Work Experience</b></td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.work_experience; else emptyWork">
-                <ng-container
-                  *ngIf="
-                    !showFullWorkExperience &&
-                    candidate()?.work_experience?.length > 200
-                  "
-                >
-                  {{ candidate()?.work_experience | slice: 0 : 200 }}...
-                  <button
-                    mat-button
-                    color="primary"
-                    class="p-0"
-                    (click)="showFullWorkExperience = true"
-                  >
-                    Read more
-                  </button>
-                </ng-container>
-                <ng-container
-                  *ngIf="
-                    showFullWorkExperience ||
-                    candidate()?.work_experience?.length <= 200
-                  "
-                >
-                  <div
-                    *ngFor="
-                      let line of breakLines(candidate()?.work_experience)
-                    "
-                  >
-                    {{ line }}
-                  </div>
-                  <button
-                    *ngIf="candidate()?.work_experience?.length > 200"
-                    mat-button
-                    color="primary"
-                    class="p-0"
-                    (click)="showFullWorkExperience = false"
-                  >
-                    Show less
-                  </button>
-                </ng-container>
+                <div>
+                  {{ candidate()?.work_experience.length > 50 ? (candidate()?.work_experience | slice:0:50) + '...' : candidate()?.work_experience }}
+                </div>
               </div>
               <ng-template #emptyWork></ng-template>
             </td>
@@ -544,14 +508,14 @@
               <textarea
                 matInput
                 [formControl]="f['work_experience']"
-                maxLength="1000"
+                maxLength="50"
               ></textarea>
               <p
                 class="text-danger f-s-12 m-t-0"
                 *ngIf="f['work_experience'].hasError('maxlength')"
               >
                 Text is too long. Please reduce your description from
-                {{ f["work_experience"]?.value.length }} to 1000 characters.
+                {{ f["work_experience"]?.value.length }} to 50 characters.
               </p>
             </td>
           </tr>

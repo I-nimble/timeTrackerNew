@@ -375,22 +375,13 @@
               <td mat-cell *matCellDef="let element">
                 <p class="f-s-14 m-0">
                   {{
-                    expandedWorkExp[element.id]
-                      ? element.work_experience
-                      : (element.work_experience | slice:0:50)
+                    element.work_experience
+                      ? (element.work_experience.length > 50
+                          ? element.work_experience.slice(0, 50) + '...'
+                          : element.work_experience)
+                      : ''
                   }}
-                  <span *ngIf="!expandedWorkExp[element.id] && element.work_experience?.length > 50">
-                    ...
-                  </span>
                 </p>
-                <a
-                  *ngIf="element.work_experience?.length > 50"
-                  class="f-s-12 cursor-pointer"
-                  (click)="expandedWorkExp[element.id] = !expandedWorkExp[element.id];
-                           $event.stopPropagation()"
-                >
-                  {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
-                </a>
               </td>
             </ng-container>
 
@@ -587,8 +578,8 @@
                       <ng-container>
                           <h5 class="f-s-18 f-w-600 m-b-16 text-primary">Work Experience</h5>
                           <div>
-                            <p>{{ element.work_experience }}</p>
-                          </div>                       
+                            <p>{{ element.work_experience.length > 50 ? (element.work_experience.slice(0,50) + '...') : element.work_experience }}</p>
+                          </div>
                       </ng-container>
                     </mat-card-content>
                     </mat-card>

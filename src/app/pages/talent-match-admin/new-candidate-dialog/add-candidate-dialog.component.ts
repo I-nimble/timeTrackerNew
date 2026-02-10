@@ -71,7 +71,7 @@ export class AddCandidateDialogComponent implements OnInit {
       description: [''],
       talent_match_profile_summary: [''],
       hobbies: [''],
-      work_experience: ['', Validators.maxLength(1000)],
+      work_experience: ['', Validators.maxLength(50)],
       education_history: [''],
       ranking: [''],
       profile_observation: [''],
