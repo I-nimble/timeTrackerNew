@@ -104,7 +104,6 @@ export class ChatInfoComponent {
     const isModerator = this.hasGlobalRole(['moderator']);
     const isOwner  = this.hasRoomRole(['owner']);
     this.canManageRoom = isAdmin || isLeader || isOwner || isModerator;
-    this.canDeleteRoom = isAdmin || isLeader || isModerator;
   }
 
   private hasGlobalRole(roles: string[]): boolean {
