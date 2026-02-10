@@ -43,6 +43,10 @@ export class ApplicationsService {
     return this.http.post(`${this.API_URI}/applications/file/${id}/`, { format }, { responseType: 'blob' });
   }
 
+  checkProfile(id: number): Observable<any> {
+    return this.http.get(`${this.API_URI}/applications/check-profile/${id}`, {});
+  }
+
   addSelectedCard(card: any): Observable<any[]> {
     return this.http.put<any[]>(`${this.API_URI}/applications/select/${card.id}`, card)
   }
