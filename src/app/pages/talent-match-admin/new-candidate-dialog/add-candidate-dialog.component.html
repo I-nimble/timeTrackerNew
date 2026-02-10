@@ -31,17 +31,16 @@
           </mat-form-field>
         </div>
         <div class="col-12 col-md-6 mb-3">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>English Level</mat-label>
-            <mat-select formControlName="english_level">
-              <mat-option *ngFor="let level of englishLevels" [value]="level">{{
-                level
-              }}</mat-option>
-            </mat-select>
-            <mat-error *ngIf="candidateForm.get('english_level')?.invalid"
-              >English level is required</mat-error
-            >
-          </mat-form-field>
+          <mat-label>English Level</mat-label>
+          <mat-slider [style.width]="'calc(100% - 1rem)'" min="1" max="10" step="1" discrete>
+            <input matSliderThumb formControlName="english_level" />
+          </mat-slider>
+          <div class="m-t-4">
+            {{ formatEnglishLevelDisplay(candidateForm.get('english_level')?.value) }}
+          </div>
+          <mat-error *ngIf="candidateForm.get('english_level')?.invalid"
+            >English level is required</mat-error
+          >
         </div>
         <div class="col-12 col-md-6 mb-3">
           <mat-form-field appearance="outline" class="w-100">

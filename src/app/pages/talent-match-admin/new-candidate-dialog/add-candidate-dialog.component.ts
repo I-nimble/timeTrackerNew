@@ -14,6 +14,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { formatEnglishLevelDisplay } from 'src/app/utils/english-level';
+import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -30,13 +32,13 @@ import { MatchPercentagesModalComponent } from 'src/app/components/match-percent
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSliderModule
   ],
 })
 export class AddCandidateDialogComponent implements OnInit {
   candidateForm: FormGroup;
   positions: any[] = [];
-  englishLevels = ['basic', 'intermediate', 'advanced'];
   selectedCVFile: File | null = null;
   selectedProfilePicFile: File | null = null;
   isCreationAllowed: boolean = true;
@@ -60,7 +62,7 @@ export class AddCandidateDialogComponent implements OnInit {
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       skills: ['', Validators.required],
-      english_level: ['', Validators.required],
+      english_level: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
       position_id: ['', Validators.required],
       current_position: [''],
       company_id: [''],
@@ -76,6 +78,10 @@ export class AddCandidateDialogComponent implements OnInit {
       interview_link: [''],
       inimble_academy: ['']
     });
+  }
+
+  formatEnglishLevelDisplay(value: number): string {
+    return formatEnglishLevelDisplay(value);
   }
 
   ngOnInit(): void {

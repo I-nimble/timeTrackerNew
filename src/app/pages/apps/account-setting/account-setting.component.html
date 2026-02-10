@@ -824,28 +824,35 @@
                       <mat-label class="mat-subtitle-2 f-w-600 m-b-8 d-block"
                         >English Level *</mat-label
                       >
-                      <mat-form-field appearance="outline" class="w-100">
-                        <mat-select
-                          formControlName="englishLevel"
-                          placeholder="Select level"
-                        >
-                          <mat-option
-                            *ngFor="let level of englishLevels"
-                            [value]="level"
-                          >
-                            {{ level }}
-                          </mat-option>
-                        </mat-select>
-                        <mat-error
-                          *ngIf="
-                            applicationForm
-                              .get('englishLevel')
-                              ?.hasError('required')
-                          "
-                        >
-                          Required
-                        </mat-error>
-                      </mat-form-field>
+                      <mat-slider
+                        [style.width]="'calc(100% - 1rem)'"
+                        min="1"
+                        max="10"
+                        step="1"
+                        discrete
+                      >
+                        <input matSliderThumb formControlName="englishLevel" />
+                      </mat-slider>
+                      <div class="m-t-4">
+                        {{ formatEnglishLevelDisplay(applicationForm.get('englishLevel')?.value) }}
+                      </div>
+                      <mat-error
+                        *ngIf="
+                          applicationForm
+                            .get('englishLevel')
+                            ?.hasError('required')
+                        "
+                      >
+                        Required
+                      </mat-error>
+                      <mat-error
+                        *ngIf="
+                          applicationForm.get('englishLevel')?.hasError('min') ||
+                          applicationForm.get('englishLevel')?.hasError('max')
+                        "
+                      >
+                        Must be between 1 and 10
+                      </mat-error>
                     </div>
 
                     <div class="col-md-12 m-b-16">

@@ -21,6 +21,7 @@ import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candid
 import { switchMap } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
@@ -79,6 +80,14 @@ export class CandidateDetailsComponent implements OnInit {
   ];
   descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
 
+  formatEnglishLevelDisplay(value: number): string {
+    return formatEnglishLevelDisplay(value);
+  }
+
+  getEnglishLevelLabel(value: number): string {
+    return getEnglishLevelLabel(value);
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -114,7 +123,7 @@ export class CandidateDetailsComponent implements OnInit {
       skills: ['', Validators.required],
       education_history: [''],
       inimble_academy: [''],
-      english_level: ['', Validators.required]
+      english_level: ['', [Validators.required, Validators.min(1), Validators.max(10)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
