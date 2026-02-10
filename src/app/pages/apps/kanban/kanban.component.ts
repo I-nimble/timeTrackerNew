@@ -198,13 +198,17 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     if (boardId === null) {
       this.selectedBoardColumns = [];
       this.firstTaskAnchorColumnId = null;
+      localStorage.setItem('kanban.hasTasks', 'false');
       return;
     }
+
+    localStorage.setItem('kanban.hasTasks', 'false');
 
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
       this.selectedBoardColumns.sort((a, b) => a.position - b.position);
       const tasks = boardData.tasks || [];
+      localStorage.setItem('kanban.hasTasks', tasks.length > 0 ? 'true' : 'false');
       this.selectedBoardColumns.forEach((column) => {
         const columnTasks = tasks.filter(
           (task: any) => task.column_id === column.id
