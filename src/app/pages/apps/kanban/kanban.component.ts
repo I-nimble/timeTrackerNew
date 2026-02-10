@@ -53,6 +53,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   selectedBoardId: any = null;
   selectedBoardColumns: any[] = [];
   firstTaskAnchorColumnId: number | null = null;
+  hasTasks = false;
   employees: any;
   isLoading = true;
   userId: string | null;
@@ -198,17 +199,20 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     if (boardId === null) {
       this.selectedBoardColumns = [];
       this.firstTaskAnchorColumnId = null;
-      localStorage.setItem('kanban.hasTasks', 'false');
+      this.hasTasks = false;
+      this.roleTourService.setKanbanHasTasks(false);
       return;
     }
 
-    localStorage.setItem('kanban.hasTasks', 'false');
+    this.hasTasks = false;
+    this.roleTourService.setKanbanHasTasks(false);
 
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
       this.selectedBoardColumns.sort((a, b) => a.position - b.position);
       const tasks = boardData.tasks || [];
-      localStorage.setItem('kanban.hasTasks', tasks.length > 0 ? 'true' : 'false');
+      this.hasTasks = tasks.length > 0;
+      this.roleTourService.setKanbanHasTasks(tasks.length > 0);
       this.selectedBoardColumns.forEach((column) => {
         const columnTasks = tasks.filter(
           (task: any) => task.column_id === column.id

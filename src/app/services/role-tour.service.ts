@@ -20,6 +20,7 @@ export class RoleTourService {
   private skipRequested = false;
   private isStarting = false;
   private readonly pendingResumeStorageKey = 'tour.pendingResume';
+  private isResuming = false;
 
   private isActiveSubject = new BehaviorSubject<boolean>(false);
   isActive$ = this.isActiveSubject.asObservable();
@@ -35,6 +36,9 @@ export class RoleTourService {
 
   private employeeDetailsOpenRequests = new Subject<void>();
   employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
+
+  private kanbanTasksState = new Subject<boolean>();
+  kanbanTasksState$ = this.kanbanTasksState.asObservable();
 
   constructor(
     private tourService: TourService<RoleTourStep>,
@@ -100,8 +104,22 @@ export class RoleTourService {
     localStorage.setItem(this.pendingResumeStorageKey, anchorId);
   }
 
+  setKanbanHasTasks(hasTasks: boolean) {
+    localStorage.setItem('kanban.hasTasks', hasTasks ? 'true' : 'false');
+    this.kanbanTasksState.next(hasTasks);
+  }
+
+  markResumeInProgress(anchorId: string) {
+    this.setPendingResume(anchorId);
+    this.isResuming = true;
+  }
+
   clearPendingResume() {
     localStorage.removeItem(this.pendingResumeStorageKey);
+  }
+
+  clearResumeInProgress() {
+    this.isResuming = false;
   }
 
   getPendingResumeAnchor(): string | null {
@@ -160,7 +178,7 @@ export class RoleTourService {
     if (!this.activeTourKey) return;
 
     const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
-    if (pendingAnchor) {
+    if (pendingAnchor || this.isResuming) {
       this.resetState();
       return;
     }
@@ -182,6 +200,7 @@ export class RoleTourService {
     this.activeTourKey = undefined;
     this.activeSteps = [];
     this.skipRequested = false;
+    this.isResuming = false;
     this.isActiveSubject.next(false);
   }
 
@@ -320,6 +339,11 @@ export class RoleTourService {
 
   // Public callbacks from component's TourService events
   async notifyStepShown(step: RoleTourStep) {
+    const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
+    if (pendingAnchor && pendingAnchor === step.anchorId) {
+      this.clearPendingResume();
+      this.clearResumeInProgress();
+    }
     await this.persistProgress(step);
   }
 

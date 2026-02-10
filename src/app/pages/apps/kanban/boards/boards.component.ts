@@ -63,12 +63,16 @@ export class AppBoardsComponent implements OnInit {
         next: (res) => {
           this.boards = res;
           localStorage.setItem('kanban.hasBoards', this.boards.length > 0 ? 'true' : 'false');
+          if (this.boards.length === 0) {
+            this.roleTourService.setKanbanHasTasks(false);
+          }
           this.loading = false;
           resolve();
         },
         error: (err) => {
           console.error('Error fetching boards', err);
           localStorage.setItem('kanban.hasBoards', 'false');
+          this.roleTourService.setKanbanHasTasks(false);
           this.loading = false;
           resolve();
         }
@@ -137,6 +141,7 @@ export class AppBoardsComponent implements OnInit {
     this.boardsService.createBoard(newBoard).subscribe({
       next: async (res) => {
         await this.fetchBoards();
+        this.roleTourService.setKanbanHasTasks(false);
         this.showSnackbar('Board created!');
 
         const pendingAnchor = this.roleTourService.consumePendingResumeAnchor();
