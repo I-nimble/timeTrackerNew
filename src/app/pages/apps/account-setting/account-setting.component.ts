@@ -57,6 +57,7 @@ import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/e
 export class AppAccountSettingComponent implements OnInit {
   selectedTabIndex: number = 0;
   selectedTabLabel: string = '';
+  private pendingTabParam: any = null;
   isCandidate = false;
   notificationStore = inject(NotificationStore);
   private fb = inject(FormBuilder);
@@ -145,7 +146,6 @@ export class AppAccountSettingComponent implements OnInit {
       provider: [''],
       policy_number: [''],
       coverage_details: [''],
-      createdAt: ['']
     })
   });
   socialMediaForm: FormGroup = this.fb.group({
@@ -306,9 +306,8 @@ export class AppAccountSettingComponent implements OnInit {
     this.getUser();
     this.route.queryParams.subscribe(params => {
       const tab = params['tab'];
-      if (tab !== undefined && !isNaN(tab)) {
-        this.selectedTabIndex = +tab;
-        this.selectedTabLabel = '';
+      if (tab !== undefined) {
+        this.pendingTabParam = tab;
       }
       this.checkSubscriptionSuccess();
     }); 
@@ -515,6 +514,7 @@ export class AppAccountSettingComponent implements OnInit {
                 complete: () => {
                   // Initialize form after all client data is fetched
                   this.initializeForm();
+                  this.applyPendingTab();
                 }
               });
             });
@@ -540,6 +540,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.user = users[0];
           this.evaluateApplicationVisibility();
           this.initializeForm();
+          this.applyPendingTab();
           if (this.role === '2') {
              this.loadCertifications();
              if (this.user.availability || this.isOrphan) {
@@ -955,7 +956,7 @@ export class AppAccountSettingComponent implements OnInit {
         .subscribe(response => {
           if (response){
             this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            if (this.applicationId) {
+            if (this.applicationId && !this.isCandidate) {
               this.usersService.submitApplicationDetails(
                 {
                   name: `${userData.name} ${userData.last_name}`
@@ -965,7 +966,7 @@ export class AppAccountSettingComponent implements OnInit {
             }
             if (this.isCandidate && this.applicationId) {
               this.submitApplicationDetailsInternal();
-            } 
+            }
             else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
@@ -1412,6 +1413,62 @@ export class AppAccountSettingComponent implements OnInit {
           control.setValue(value.trim(), { emitEvent: false });
         }
       });
+    }
+  }
+
+  private getVisibleTabs(): string[] {
+    const tabs: string[] = [];
+    tabs.push('Account');
+    if (this.role === '2' && this.isCandidate) {
+      tabs.push('Olympia');
+    }
+    if (this.role === '2') {
+      tabs.push('Social Media');
+    }
+    if (this.role === '3') {
+      tabs.push('Company');
+    }
+    if (this.role === '2') {
+      tabs.push('Certifications');
+    }
+    return tabs;
+  }
+
+  private getTabIndexByLabel(label: string): number {
+    const tabs = this.getVisibleTabs();
+    return tabs.indexOf(label);
+  }
+
+  private applyPendingTab(): void {
+    if (this.pendingTabParam === null || this.pendingTabParam === undefined) return;
+    const raw = this.pendingTabParam;
+    const num = Number(raw);
+    if (!isNaN(num) && num === 1) {
+      const idx = this.getTabIndexByLabel('Olympia');
+      if (idx !== -1) {
+        this.selectedTabIndex = idx;
+        this.selectedTabLabel = 'Olympia';
+        this.pendingTabParam = null;
+        return;
+      }
+    }
+    if (!isNaN(num)) {
+      const tabs = this.getVisibleTabs();
+      if (num >= 0 && num < tabs.length) {
+        this.selectedTabIndex = num;
+        this.selectedTabLabel = '';
+        this.pendingTabParam = null;
+        return;
+      }
+    }
+    if (typeof raw === 'string') {
+      const idx = this.getTabIndexByLabel(raw);
+      if (idx !== -1) {
+        this.selectedTabIndex = idx;
+        this.selectedTabLabel = raw;
+        this.pendingTabParam = null;
+        return;
+      }
     }
   }
 } 
