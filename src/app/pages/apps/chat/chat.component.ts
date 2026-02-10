@@ -255,6 +255,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.sortMessagesAscending();
             this.cdr.detectChanges();
           }
+          if (ev.collection === 'stream-notify-room') {
+            try {
+              const eventName = ev.fields?.eventName || '';
+              if (typeof eventName === 'string' && !eventName.includes('/deleteMessage')) {
+                this.loadRooms();
+              }
+            } catch (err) {
+              console.error('Error handling stream-notify-room refresh:', err, ev);
+            }
+          }
         } catch (err) {
           console.error('Error handling room update event in component:', err, ev);
         }
@@ -298,16 +308,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     try {
       this.chatService.getUserNotifyStream().subscribe(async (notification: any) => {
-        if (notification.type === 'call-started') {
-          const roomName = notification.roomName || 'a room';
-          const title = `Active call in ${roomName}`;
-          const body = 'Click to join the call';
-          await this.chatService.showPushNotification(title, body, undefined, {
-            type: 'call',
-            roomId: notification.roomId,
-            callData: notification.callData,
-          });
-          this.openSnackBar(`Call started in ${roomName}`, 'Join');
+        try {
+          if (notification.type === 'call-started') {
+            const roomName = notification.roomName || 'a room';
+            const title = `Active call in ${roomName}`;
+            const body = 'Click to join the call';
+            await this.chatService.showPushNotification(title, body, undefined, {
+              type: 'call',
+              roomId: notification.roomId,
+              callData: notification.callData,
+            });
+            this.openSnackBar(`Call started in ${roomName}`, 'Join');
+            return;
+          }
+          const maybeRid = notification?.roomId || notification?.fields?.args?.[0]?.rid || notification?.fields?.args?.[1]?.rid || notification?.fields?.args?.rid;
+          if (maybeRid) {
+            this.loadRooms();
+          }
+        } catch (err) {
+          console.error('Error handling user notify event in component:', err, notification);
         }
       });
     } catch (err) {
@@ -968,7 +987,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  openCreateRoomDialog(type: 'd' | 'c' | 't', teamId?: string, teamName?: string) {
+  openCreateRoomDialog(type: 'd' | 'c' | 't' | 'p', teamId?: string, teamName?: string) {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
       data: { type, teamId, teamName },
@@ -1017,7 +1036,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
             avatarUrl: this.chatService.getUserAvatarUrl(user.username)
           };
 
-          this.dialog.open(ChatInfoComponent, {
+          const dialogRef = this.dialog.open(ChatInfoComponent, {
             width: this.isMobile ? '95vw' : '400px',
             maxWidth: '95vw',
             data: {
@@ -1026,6 +1045,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
               channelMembers: []
             },
             panelClass: 'chat-info-dialog'
+          });
+
+          dialogRef.afterClosed().subscribe((result: any) => {
+            if (result && result.deleted) {
+              const roomId = result.roomId || room._id;
+              this.rooms = this.rooms.filter(r => r._id !== roomId);
+              const sub = this.roomSubscriptions.get(roomId);
+              if (sub) {
+                try { sub.unsubscribe(); } catch (e) {}
+                this.roomSubscriptions.delete(roomId);
+              }
+              try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
+              try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
+              if (this.selectedConversation && this.selectedConversation._id === roomId) {
+                this.selectedConversation = null as any;
+                this.messages = [];
+              }
+              this.sortRooms();
+              this.cdr.markForCheck();
+            }
           });
         });
       }
@@ -1036,7 +1075,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           avatarUrl: this.chatService.getUserAvatarUrl(m.username)
         }));
 
-        this.dialog.open(ChatInfoComponent, {
+        const dialogRef = this.dialog.open(ChatInfoComponent, {
           width: this.isMobile ? '95vw' : '400px',
           maxWidth: '95vw',
           data: {
@@ -1045,6 +1084,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
             channelMembers: enrichedMembers
           },
           panelClass: 'chat-info-dialog'
+        });
+
+        dialogRef.afterClosed().subscribe((result: any) => {
+          if (result && result.deleted) {
+            const roomId = result.roomId || room._id;
+            this.rooms = this.rooms.filter(r => r._id !== roomId);
+            const sub = this.roomSubscriptions.get(roomId);
+            if (sub) {
+              try { sub.unsubscribe(); } catch (e) {}
+              this.roomSubscriptions.delete(roomId);
+            }
+            try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
+            try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
+            if (this.selectedConversation && this.selectedConversation._id === roomId) {
+              this.selectedConversation = null as any;
+              this.messages = [];
+            }
+            this.sortRooms();
+            this.cdr.markForCheck();
+          }
         });
       });
     }

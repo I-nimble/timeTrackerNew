@@ -34,7 +34,11 @@ export class AppCertificationModalComponent {
     public dialogRef: MatDialogRef<AppCertificationModalComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    this.local_data = { ...data };
+    this.local_data = {
+      user_id: data?.user_id ?? null,
+      application_id: data?.application_id ?? null,
+      ...data
+    };
     this.action = this.local_data.action;
   }
 
