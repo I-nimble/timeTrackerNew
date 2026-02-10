@@ -41,20 +41,20 @@
         {{ getProgressIndex() }} / {{ getProgressTotal() }}
       </div>
     }
-    @if ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board' || step.anchorId === 'chat-first-conversation' || step.anchorId === 'employee-first-name') {
+    @if (!isNoTaskKanbanEndStep() && ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board' || step.anchorId === 'chat-first-conversation' || step.anchorId === 'employee-first-name' || step.anchorId === 'kanban-task-actions')) {
       <button
         class="next"
-        (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : (step.anchorId === 'chat-first-conversation' ? onChatOpenNext() : (step.anchorId === 'employee-first-name' ? onEmployeeDetailsOpenNext() : tourService.next()))"
+        (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : (step.anchorId === 'chat-first-conversation' ? onChatOpenNext() : (step.anchorId === 'employee-first-name' ? onEmployeeDetailsOpenNext() : (step.anchorId === 'kanban-task-actions' ? onKanbanTaskActionsNext() : tourService.next())))"
         mat-button
       >
         {{ step.nextBtnTitle }}
         <mat-icon iconPositionEnd>chevron_right</mat-icon>
       </button>
     }
-    @if (!tourService.hasNext(step) && step.anchorId !== 'kanban-first-board' && step.anchorId !== 'employee-first-name') {
+    @if ((!tourService.hasNext(step) || isNoTaskKanbanEndStep()) && step.anchorId !== 'kanban-first-board' && step.anchorId !== 'employee-first-name' && step.anchorId !== 'kanban-task-actions') {
       <button
         mat-button
-        (click)="tourService.end()"
+        (click)="isNoTaskKanbanEndStep() ? onNoTaskKanbanEnd() : tourService.end()"
       >
         {{ step.endBtnTitle }}
       </button>
