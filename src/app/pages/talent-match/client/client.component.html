@@ -667,6 +667,7 @@
                             <div class="progress-bar-background">
                               <div 
                                 class="progress-bar-fill"
+                                [style.--match-percentage.%]="getEnglishLevelPercent(element.english_level)"
                                 [style.width.%]="getEnglishLevelPercent(element.english_level)">
                               </div>
                               </div>
@@ -768,14 +769,16 @@
                               <!-- Progress Bar -->
                               <div class="progress-container m-b-8">
                                 <div class="progress-bar-background">
-                                  <div 
-                                    class="progress-bar-fill"
-                                    [ngClass]="{
+                                    <!-- [ngClass]="{
                                       'low-match': score.match_percentage < 40,
                                       'medium-match': score.match_percentage >= 40 && score.match_percentage < 70,
                                       'high-match': score.match_percentage >= 70 && score.match_percentage < 90,
                                       'excellent-match': score.match_percentage >= 90
-                                    }"
+                                    }" -->
+                                  <div 
+                                    class="progress-bar-fill"
+                                    [style.--match-percentage.%]="score.match_percentage"
+                                    [style.right.%]="100 - score.match_percentage"
                                     [style.width.%]="score.match_percentage">
                                   </div>
                                 </div>
