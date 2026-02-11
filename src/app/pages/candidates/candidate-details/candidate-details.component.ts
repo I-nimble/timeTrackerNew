@@ -588,6 +588,10 @@ export class CandidateDetailsComponent implements OnInit {
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
 
+  getResumeUrl(filename: string | null | undefined): string {
+    return this.applicationService.getResumeUrl(filename);
+  }
+
   approveChanges() {
     const candidateId = this.candidate()?.id;
     if (!candidateId) return;
