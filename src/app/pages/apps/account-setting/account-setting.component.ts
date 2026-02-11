@@ -305,9 +305,9 @@ export class AppAccountSettingComponent implements OnInit {
       if (tab !== undefined) {
         this.pendingTabParam = tab;
       }
-      this.checkSubscriptionSuccess();
+      // this.checkSubscriptionSuccess();
     }); 
-    this.loadSubscriptionStatus();
+    // this.loadSubscriptionStatus();
 
     this.setupNameTrimming(this.personalForm, 'name');
     this.setupNameTrimming(this.personalForm, 'last_name');

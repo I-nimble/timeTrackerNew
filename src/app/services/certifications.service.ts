@@ -51,4 +51,8 @@ export class CertificationsService {
         })
      );
   }
+
+  getAttachmentUrl(key: string): string {
+    return `${environment.apiUrl}/certifications/attachment/${key}`;
+  }
 }
