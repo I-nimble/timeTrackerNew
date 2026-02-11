@@ -246,7 +246,7 @@ export class AppAccountSettingComponent implements OnInit {
   positions: any[] = [];
   careerRoles: any[] = [
     { title: "Virtual Assistant", position_id: 16 },
-    { title: "Technology", position_id: 41 }
+    { title: "IT and Technology", position_id: 41 }
   ];
   applicationId: number | null = null;
   private originalApplicationValues: any = null;
