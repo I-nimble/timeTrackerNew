@@ -138,8 +138,8 @@
                 <p class="f-s-14 m-0">
                   {{
                     expandedWorkExp[element.id]
-                      ? element.work_experience
-                      : (element.work_experience | slice:0:50)
+                      ? element.work_experience_summary
+                      : (element.work_experience_summary | slice:0:50)
                   }}
                   <span
                     *ngIf="!expandedWorkExp[element.id] && element.work_experience?.length > 50"
@@ -147,16 +147,6 @@
                     ...
                   </span>
                 </p>
-                <a
-                  *ngIf="element.work_experience?.length > 50"
-                  class="f-s-12 cursor-pointer"
-                  (click)="
-                    expandedWorkExp[element.id] = !expandedWorkExp[element.id];
-                    $event.stopPropagation()
-                  "
-                >
-                  {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
-                </a>
               </td>
             </ng-container>
 
