@@ -384,14 +384,6 @@
                       ...
                     </span>
                   </p>
-                  <a
-                    *ngIf="element.work_experience_summary?.length > 50"
-                    class="f-s-12 cursor-pointer"
-                    (click)="expandedWorkExp[element.id] = !expandedWorkExp[element.id];
-                            $event.stopPropagation()"
-                  >
-                    {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
-                  </a>
                 </div>
                 
                 <ng-template #fallbackToFull>
@@ -405,14 +397,6 @@
                       ...
                     </span>
                   </p>
-                  <a
-                    *ngIf="element.work_experience?.length > 50"
-                    class="f-s-12 cursor-pointer"
-                    (click)="expandedWorkExp[element.id] = !expandedWorkExp[element.id];
-                            $event.stopPropagation()"
-                  >
-                    {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
-                  </a>
                 </ng-template>
               </td>
             </ng-container>
