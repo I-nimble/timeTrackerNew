@@ -47,6 +47,7 @@ import { AppEmployeeTableComponent } from "./employee-table/employee-table.compo
 import { AppEmployeeDialogContentComponent } from './employee-dialog-content';
 import { PermissionService } from 'src/app/services/permission.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { RoleTourService } from 'src/app/services/role-tour.service';
 
 @Component({
   templateUrl: './employee.component.html',
@@ -117,7 +118,8 @@ export class AppEmployeeComponent {
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private companiesService: CompaniesService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private roleTourService: RoleTourService
   ) {}
 
   ngOnInit(): void {
@@ -190,6 +192,7 @@ export class AppEmployeeComponent {
         this.employees = employees;
         this.users = employees
           .filter((user: any) => user.user.active == 1 && user.user.role == 2);
+        this.roleTourService.setTimeTrackerHasMembers(this.users.length > 0);
 
         this.schedulesService.get().subscribe({
           next: (schedules: any) => {
