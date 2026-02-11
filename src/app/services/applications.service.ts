@@ -278,8 +278,8 @@ export class ApplicationsService {
     if (!filename) return '';
     if (filename.startsWith('http')) return filename;
     
-    if (environment.apiUrl.includes('localhost') || !environment.production) {
-       return `${environment.socket}/uploads/resumes/${filename}`;
+    if (!environment.production) {
+      return `${environment.socket}/uploads/resumes/${filename}`;
     }
     
     return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
