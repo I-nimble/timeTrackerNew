@@ -232,7 +232,7 @@ export class AppAccountSettingComponent implements OnInit {
     technicalSkills: ['', Validators.required],
     techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
     educationHistory: ['', Validators.required],
-    workExperience: ['', [Validators.required, Validators.maxLength(50)]],
+    workExperience: ['', [Validators.required, Validators.maxLength(1000)]],
     workReferences: ['', Validators.required],
     hobbies: ['', Validators.required],
     scheduleAvailability: [null, Validators.requiredTrue],
