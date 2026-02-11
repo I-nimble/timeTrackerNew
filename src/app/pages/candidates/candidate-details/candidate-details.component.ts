@@ -25,6 +25,7 @@ import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/e
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-candidate-details',
@@ -100,7 +101,8 @@ export class CandidateDetailsComponent implements OnInit {
     private dialog: MatDialog,
     private discProfilesService: DiscProfilesService,
     private http: HttpClient,
-    private certificationsService: CertificationsService
+    private certificationsService: CertificationsService,
+    private usersService: UsersService
   ) { }
 
   ngOnInit(): void {
@@ -146,6 +148,13 @@ export class CandidateDetailsComponent implements OnInit {
     }
     const candidateId = Number(param);
     this.loadCandidateApplications(candidateId);
+    const safeUrl = this.getCandidatePictureUrl();
+    const updatedCandidate = {
+      ...this.candidate(),
+      picture: safeUrl,
+      profile_pic_url: safeUrl
+    };
+    this.candidate.set(updatedCandidate);
   }
 
   private loadPositions() {
@@ -738,6 +747,36 @@ export class CandidateDetailsComponent implements OnInit {
 
   getResumeUrl(filename: string | null | undefined): string {
     return this.applicationService.getResumeUrl(filename);
+  }
+
+  getCandidatePictureUrl(): string {
+    const candidate = this.candidate();
+    const rawValue = candidate?.picture || candidate?.profile_pic_url || '';
+    if (!rawValue) {
+      // Try to get the user's profile picture from the database
+      this.usersService.getProfilePic(candidate?.user_id).subscribe({
+        next: (safeUrl: any) => {
+          if (safeUrl) {
+            return safeUrl;
+          }
+        },
+        error: (err) => {
+          console.error('Error getting user profile picture:', err);
+          return '';
+        }
+      });
+      return '';
+    };
+
+    if (rawValue.startsWith('http')) return rawValue;
+
+    const fileName = rawValue.startsWith('photos/') ? rawValue.split('/').pop() || rawValue : rawValue;
+
+    if (!environment.production) {
+      return `${environment.socket}/uploads/profile-pictures/${fileName}`;
+    }
+
+    return `https://inimble-app.s3.us-east-1.amazonaws.com/photos/${fileName}`;
   }
 
   approveChanges() {
