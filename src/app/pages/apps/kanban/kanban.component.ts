@@ -25,6 +25,9 @@ import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
+import { RoleTourService } from 'src/app/services/role-tour.service';
+import { RoleTourStep } from 'src/app/services/role-tour-steps';
 
 @Component({
   selector: 'app-kanban',
@@ -36,7 +39,8 @@ import { environment } from 'src/environments/environment';
     TablerIconsModule,
     DragDropModule,
     NgScrollbarModule,
-    FormsModule
+    FormsModule,
+    TourMatMenuModule
   ],
 })
 export class AppKanbanComponent implements OnInit, OnDestroy {
@@ -48,6 +52,8 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   onhold: Todos[] = [];
   selectedBoardId: any = null;
   selectedBoardColumns: any[] = [];
+  firstTaskAnchorColumnId: number | null = null;
+  hasTasks = false;
   employees: any;
   isLoading = true;
   userId: string | null;
@@ -67,6 +73,8 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     private companieService: CompaniesService,
     public ratingsEntriesService: RatingsEntriesService,
     private route: ActivatedRoute,
+    private roleTourService: RoleTourService,
+    public tourService: TourService<RoleTourStep>,
   ) {}
 
   ngOnInit(): void {
@@ -190,13 +198,21 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   loadTasks(boardId: number | null): void {
     if (boardId === null) {
       this.selectedBoardColumns = [];
+      this.firstTaskAnchorColumnId = null;
+      this.hasTasks = false;
+      this.roleTourService.setKanbanHasTasks(false);
       return;
     }
+
+    this.hasTasks = false;
+    this.roleTourService.setKanbanHasTasks(false);
 
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
       this.selectedBoardColumns.sort((a, b) => a.position - b.position);
       const tasks = boardData.tasks || [];
+      this.hasTasks = tasks.length > 0;
+      this.roleTourService.setKanbanHasTasks(tasks.length > 0);
       this.selectedBoardColumns.forEach((column) => {
         const columnTasks = tasks.filter(
           (task: any) => task.column_id === column.id
@@ -204,10 +220,22 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
         column.allTasks = columnTasks;
         column.tasks = [...columnTasks];
       });
+      this.updateFirstTaskAnchorColumnId();
       if (this.taskSearch) {
         this.applySearch(this.taskSearch);
       }
     });
+  }
+
+  private updateFirstTaskAnchorColumnId(): void {
+    this.firstTaskAnchorColumnId = null;
+    for (const column of this.selectedBoardColumns) {
+      const tasks = column.allTasks || column.tasks || [];
+      if (tasks.length > 0) {
+        this.firstTaskAnchorColumnId = column.id;
+        break;
+      }
+    }
   }
 
   dropColumn(event: CdkDragDrop<any[]>): void {
@@ -297,6 +325,12 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      if (!result || result.event === 'Cancel') {
+        if (this.roleTourService.getPendingResumeAnchor() !== 'kanban-task-actions') {
+          this.roleTourService.clearPendingResume();
+        }
+        return;
+      }
       if (result?.event === 'Add' || result?.event === 'Edit') {
         if (result.data.type === 'board') {
           if (action === 'Edit') {
@@ -374,8 +408,14 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       next: () => {
         this.loadTasks(this.selectedBoardId);
         this.showSnackbar('Task added to board successfully!');
+
+        const pendingAnchor = this.roleTourService.consumePendingResumeAnchor();
+        if (pendingAnchor === 'kanban-task-actions') {
+          void this.roleTourService.resumeAtAnchor(pendingAnchor, { ignoreCompleted: true });
+        }
       },
       error: (error: any) => {
+        this.roleTourService.clearPendingResume();
         this.showSnackbar(error.error.message);
       },
     });
@@ -483,6 +523,10 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     if(!this.selectedBoardId) {
       this.showSnackbar('Please select a board to add a task');
       return;
+    }
+    const current = this.tourService.currentStep;
+    if (current?.anchorId === 'kanban-create-task') {
+      this.roleTourService.setPendingResume('kanban-task-actions');
     }
     this.openDialog('Add', {
       columnId: column.id,

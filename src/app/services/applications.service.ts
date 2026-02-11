@@ -43,6 +43,10 @@ export class ApplicationsService {
     return this.http.post(`${this.API_URI}/applications/file/${id}/`, { format }, { responseType: 'blob' });
   }
 
+  checkProfile(id: number): Observable<any> {
+    return this.http.get(`${this.API_URI}/applications/check-profile/${id}`, {});
+  }
+
   addSelectedCard(card: any): Observable<any[]> {
     return this.http.put<any[]>(`${this.API_URI}/applications/select/${card.id}`, card)
   }
@@ -196,6 +200,7 @@ export class ApplicationsService {
           profile_pic: profilePic,
           phone: null,
           company_id: data.company_id == -1 ? null : data.company_id,
+          work_experience_summary: data.work_experience_summary || null
         };
 
         if (id) return this.http.put(`${this.API_URI}/applications/${id}`, body);
@@ -204,20 +209,26 @@ export class ApplicationsService {
     );
   }
 
-  updateAvailability(id: number, available: boolean) {
+  updateAvailability(payload: { user_id?: number, application_id?: number, availability: boolean }) {
     return this.http.patch(
-      `${this.API_URI}/applications/${id}/availability`,
-      { availability: available }
+      `${this.API_URI}/applications/availability`,
+      payload
     );
   }
-
   // Notify other components that an application was updated
   notifyApplicationUpdated(application: any) {
     this.applicationsUpdatedSource.next(application);
   }
 
+  approveApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/approve`, {});
+  }
 
-    uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
+  rejectApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/reject`, {});
+  }
+
+  uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
         const headers = new HttpHeaders({

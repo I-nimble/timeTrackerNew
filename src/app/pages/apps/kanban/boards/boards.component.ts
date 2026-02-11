@@ -14,7 +14,8 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
 import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
+import { RoleTourService } from 'src/app/services/role-tour.service';
 
 @Component({
   selector: 'app-boards',
@@ -41,24 +42,41 @@ export class AppBoardsComponent implements OnInit {
   role = localStorage.getItem('role');
   userId: string | null;
 
-  constructor(private boardsService: BoardsService, private router: Router, private snackBar: MatSnackBar, public dialog: MatDialog) {}
+  constructor(
+    private boardsService: BoardsService,
+    private router: Router,
+    private snackBar: MatSnackBar,
+    public dialog: MatDialog,
+    private roleTourService: RoleTourService,
+    public tourService: TourService,
+  ) {}
 
   ngOnInit(): void {
-    this.fetchBoards();
+    void this.fetchBoards();
     this.userId = localStorage.getItem('id');
   }
 
-  fetchBoards(): void {
+  fetchBoards(): Promise<void> {
     this.loading = true;
-    this.boardsService.getBoards().subscribe({
-      next: (res) => {
-        this.boards = res;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error fetching boards', err);
-        this.loading = false;
-      }
+    return new Promise((resolve) => {
+      this.boardsService.getBoards().subscribe({
+        next: (res) => {
+          this.boards = res;
+          localStorage.setItem('kanban.hasBoards', this.boards.length > 0 ? 'true' : 'false');
+          if (this.boards.length === 0) {
+            this.roleTourService.setKanbanHasTasks(false);
+          }
+          this.loading = false;
+          resolve();
+        },
+        error: (err) => {
+          console.error('Error fetching boards', err);
+          localStorage.setItem('kanban.hasBoards', 'false');
+          this.roleTourService.setKanbanHasTasks(false);
+          this.loading = false;
+          resolve();
+        }
+      });
     });
   }
 
@@ -85,6 +103,10 @@ export class AppBoardsComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      if (!result || result.event === 'Cancel') {
+        this.roleTourService.clearPendingResume();
+        return;
+      }
       if (result?.event === 'Add' || result?.event === 'Edit') {
         if (result.data.type === 'board') {
           if (action === 'Edit') {
@@ -97,7 +119,19 @@ export class AppBoardsComponent implements OnInit {
     });
   }
 
-  saveBoard(board: any): void {
+  onAddBoardClick(): void {
+    const current = this.tourService.currentStep;
+    if (
+      current?.anchorId === 'kanban-new-board' ||
+      current?.anchorId === 'kanban-first-board' ||
+      this.boards.length === 0
+    ) {
+      this.roleTourService.setPendingResume('kanban-board-actions');
+    }
+    this.openDialog('Add', { type: 'board' });
+  }
+
+  async saveBoard(board: any): Promise<void> {
     const newBoard = {
       name: board.goal,
       visibility: board.selectedVisibility,
@@ -105,11 +139,20 @@ export class AppBoardsComponent implements OnInit {
     };
 
     this.boardsService.createBoard(newBoard).subscribe({
-      next: () => {
-        this.fetchBoards();
+      next: async (res) => {
+        await this.fetchBoards();
+        this.roleTourService.setKanbanHasTasks(false);
         this.showSnackbar('Board created!');
+
+        const pendingAnchor = this.roleTourService.consumePendingResumeAnchor();
+        if (pendingAnchor === 'kanban-board-actions') {
+          this.router.navigate(['/apps/kanban']).then(() => {
+            void this.roleTourService.resumeAtAnchor(pendingAnchor, { ignoreCompleted: true });
+          });
+        }
       },
       error: (error: any) => {
+        this.roleTourService.clearPendingResume();
         this.showSnackbar(error.error.message);
       },
     });

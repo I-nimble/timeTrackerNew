@@ -34,12 +34,12 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Select the role and practice area to refine matches.',
       route: '/apps/talent-match',
     }),
-    withBase({
+/*     withBase({
       anchorId: 'tm-budget',
       title: 'Adjust the budget',
       content: 'Set the rate range and type for candidates.',
       route: '/apps/talent-match',
-    }),
+    }), */
     withBase({
       anchorId: 'tm-advanced',
       title: 'Advanced filters',
@@ -267,13 +267,13 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
     withBase({
       anchorId: 'chat-start-conversation',
       title: 'Start a conversation',
-      content: 'Start a new conversation with your team members or Inimble support.',
+      content: 'Start a new conversation with your team members, Inimble support or create a group.',
       route: '/apps/chat',
     }),
     withBase({
       anchorId: 'chat-search',
       title: 'Search conversations',
-      content: 'Search for team members or conversations here.',
+      content: 'Search for conversations here.',
       route: '/apps/chat',
     }),
     withBase({
@@ -286,6 +286,95 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         xPosition: 'after',
         horizontal: true,
       } as const,
+    }),
+    withBase({
+      anchorId: 'chat-conversation-actions',
+      stepId: 'chat-conversation-actions',
+      title: 'Conversation options',
+      content: 'Mark as read or delete a conversation from here.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+      nextStep: 'chat-first-conversation',
+    }),
+    withBase({
+      anchorId: 'chat-first-conversation',
+      stepId: 'chat-first-conversation',
+      title: 'Open a conversation',
+      content: 'Click Next to open the first conversation and continue the tour.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+      nextStep: 'chat-message-input',
+      nextBtnTitle: 'Open chat',
+    }),
+    withBase({
+      anchorId: 'chat-message-input',
+      stepId: 'chat-message-input',
+      title: 'Message input',
+      content: 'Type your message here and send it to the conversation.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: false,
+      }
+    }),
+    withBase({
+      anchorId: 'chat-audio-record',
+      title: 'Audio recording',
+      content: 'Record a voice message.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'chat-attach-files',
+      title: 'Attach files',
+      content: 'Attach files or media to your message.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: isMobile() ? 'chat-menu-call-btns' : 'chat-start-call',
+      title: 'Start a call',
+      content: 'Start an audio or video call with this conversation.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'chat-menu-info-btn',
+      title: 'Conversation details',
+      content: 'View contact or group info from here.',
+      route: '/apps/chat',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: true,
+      } as const,
+      isOptional: true,
     }),
   ];
 
@@ -307,8 +396,8 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Manage your boards and tasks from this view.',
       route: '/apps/kanban',
       placement: {
-        yPosition: 'below',
-        xPosition: 'before',
+        yPosition: 'above',
+        xPosition: isMobile() ? 'after' : 'before',
         horizontal: true,
       } as const,
     }),
@@ -318,10 +407,110 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Create a new board and start tracking your tasks here.',
       route: '/apps/kanban',
       placement: {
-        yPosition: 'below',
+        yPosition: 'above',
         xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-board-actions',
+      title: 'Board actions',
+      content: 'Edit or delete an existing board.',
+      route: '/apps/kanban',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'kanban-first-board',
+      title: 'Open a board',
+      content: 'Click Next to open the first board and continue the tour.',
+      route: '/apps/kanban',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
         horizontal: true,
       } as const,
+      isOptional: true,
+      nextBtnTitle: 'Open board',
+    }),
+    withBase({
+      anchorId: 'kanban-board-header',
+      title: 'Board details',
+      content: 'See the board title and visibility here.',
+    }),
+    withBase({
+      anchorId: 'kanban-search-tasks',
+      title: 'Search tasks',
+      content: 'Search tasks within the selected board.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: true,
+      }
+    }),
+    withBase({
+      anchorId: 'kanban-columns',
+      title: 'Columns',
+      content: 'Manage columns and tasks in this board.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: false,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-column-actions',
+      title: 'Column actions',
+      content: 'Edit or delete a column from this menu.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+      disableScrollToAnchor: true,
+      centerAnchorOnScroll: false,
+    }),
+    withBase({
+      anchorId: 'kanban-create-task',
+      title: 'Create task',
+      content: 'Add a new task to this column.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'kanban-task-actions',
+      title: 'Task actions',
+      content: 'Edit or delete a task from here.',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+      disableScrollToAnchor: true,
+      centerAnchorOnScroll: false,
+    }),
+    withBase({
+      anchorId: 'kanban-add-column',
+      title: 'Add column',
+      content: 'Create a new column for this board.',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      disableScrollToAnchor: false,
+      centerAnchorOnScroll: true,
+      smoothScroll: true,
+      scrollContainer: document.querySelector('.task-list-section') as HTMLElement,
     }),
   ];
 
@@ -369,6 +558,89 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         xPosition: 'before',
         horizontal: true,
       } as const,
+    }),
+    withBase({
+      anchorId: 'employee-report-download',
+      title: 'Download reports',
+      content: 'Download the selected team member report from here.',
+      route: '/apps/time-tracker',
+      placement: {
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-action-menu',
+      title: 'Team member actions',
+      content: 'Edit or delete a team member from this menu.',
+      route: '/apps/time-tracker',
+      placement: {
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-first-name',
+      title: 'Open team member details',
+      content: 'Select a team member name to review their activity and location.',
+      route: '/apps/time-tracker',
+      nextBtnTitle: 'Go to details',
+      placement: {
+        yPosition: isMobile() ? 'above' : 'below',
+        xPosition: isMobile() ? 'before' : 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-weekly-hours-chart',
+      title: 'Weekly hours',
+      content: 'Review weekly worked hours for this team member.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'employee-daily-hours-chart',
+      title: 'Daily hours',
+      content: 'See the distribution of daily hours worked.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'below',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+    }),
+    withBase({
+      anchorId: 'employee-worked-hours-list',
+      title: 'Worked hours list',
+      content: 'Inspect individual entries and edit times when needed.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'after',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
+    }),
+    withBase({
+      anchorId: 'employee-current-location-map',
+      title: 'Current location',
+      content: 'Check the last known location for this team member.',
+      route: '/apps/employee',
+      placement: {
+        yPosition: 'above',
+        xPosition: 'before',
+        horizontal: isMobile() ? false : true,
+      } as const,
+      isOptional: true,
     }),
   ];
 
@@ -612,21 +884,21 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       routes: ['/dashboards/productivity'],
       steps: productivitySteps,
     },
-    // {
-    //   key: 'chat',
-    //   routes: ['/apps/chat'],
-    //   steps: chatSteps,
-    // },
-    // {
-    //   key: 'kanban',
-    //   routes: ['/apps/kanban'],
-    //   steps: kanbanSteps,
-    // },
-    // {
-    //   key: 'time-tracker',
-    //   routes: ['/apps/time-tracker'],
-    //   steps: timeTrackerSteps,
-    // },
+    {
+      key: 'chat',
+      routes: ['/apps/chat'],
+      steps: chatSteps,
+    },
+    {
+      key: 'kanban',
+      routes: ['/apps/kanban'],
+      steps: kanbanSteps,
+    },
+    {
+      key: 'time-tracker',
+      routes: ['/apps/time-tracker'],
+      steps: timeTrackerSteps,
+    },
     // {
     //   key: 'notes',
     //   routes: ['/apps/notes'],

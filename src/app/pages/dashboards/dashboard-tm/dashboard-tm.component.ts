@@ -200,7 +200,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     this.checkOlympiaStatus();
     this.checkPictureUploaded();
-    this.checkVideoStatus();
+    this.checkProfile();
   }
 
   getUser() {
@@ -231,6 +231,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
         });
 
         this.getEmployees();
+        this.checkProfile();
       },
     });
   }
@@ -387,23 +388,26 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
     this.setStepperToLastCompletedStep();
   }
 
-  checkVideoStatus() {
-    const email = localStorage.getItem('email') || '';
-    if (!email) return;
-
-    this.usersService.checkIntroductionVideo(email).subscribe({
-      next: (res: any) => {
+  checkProfile() {
+    if (!this.user?.id) return;
+    this.applicationsService.checkProfile(this.user.id).subscribe({
+      next: (res) => {
+        this.profileCompleted = res.isComplete;
         this.videoUploaded = res.hasVideo;
         this.setStepperToLastCompletedStep();
       },
       error: (err) => {
-        console.error('Error checking video status', err);
+        console.error('Error checking profile', err);
         this.setStepperToLastCompletedStep();
       }
     });
   }
 
   setStepperToLastCompletedStep() {
+    if (this.matchRequested) {
+      this.selectedStepperIndex = -1;
+      return;
+    }
     const profileConfigured = this.pictureUploaded && this.videoUploaded && this.applicationDetailsSubmitted;
 
     if (!profileConfigured) {

@@ -44,6 +44,7 @@ import { GeolocationUpdate } from 'src/app/models/geolocation.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { LocationService } from 'src/app/services/location.service';
 import { map, tileLayer, icon, marker } from 'leaflet';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 interface EditEntryForm {
   start_time: FormControl<string>;
@@ -89,7 +90,8 @@ export type ChartOptions = {
     MatButtonModule,
     MatMenuModule,
     TablerIconsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TourMatMenuModule
   ]
 })
 export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChecked {
@@ -120,7 +122,7 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
   private timezoneSubscription!: Subscription;
   userPermissions: string[] = [];
   canManageTeamMembers: boolean = false;
-
+  canViewTeamMembers: boolean = false;
   employeeLocation: GeolocationUpdate | null = null;
   isMapLoading: boolean = false;
   mapError: string | null = null;
@@ -156,30 +158,45 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   ngOnInit(): void {
-    if(this.userRole === '2') {
-      this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
-        next: (res: any) => {
-          this.user = res[0];
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        this.userPermissions = userPerms.effectivePermissions || [];
+        this.canManageTeamMembers = this.userPermissions.includes('users.manage');
+        this.canViewTeamMembers = this.userPermissions.includes('users.view');
+        if(!this.canViewTeamMembers) {
+          this.user = this.userService.getUsers({ searchField: "", filter: { currentUser: true } }).subscribe({
+            next: (res: any) => {
+              this.user = res[0];
+              this.userId = this.user.id;
+              this.defaultWeek();
+              this.getDailyHours();
+              this.loadWeekEntries();
+            }
+          })
+        }
+        else {
+          this.user = this.userService.getSelectedUser();
           this.userId = this.user.id;
           this.defaultWeek();
           this.getDailyHours();
           this.loadWeekEntries();
-        }
-      })
-    }
-    else {
-      this.user = this.userService.getSelectedUser();
-      this.userId = this.user.id;
-      this.defaultWeek();
-      this.getDailyHours();
-      this.loadWeekEntries();
 
-      if (!this.user.name || !this.userId) {
-        this.openSnackBar("Click a user to see their report", "Close");
-        this.router.navigate(['/apps/time-tracker']);
-        return;
-      }
-    }
+          if (!this.user.name || !this.userId) {
+            this.openSnackBar("Click a user to see their report", "Close");
+            this.router.navigate(['/apps/time-tracker']);
+            return;
+          }
+        }
+        if (this.canManageTeamMembers && this.userRole !== '2' && this.userId) {
+          this.setupGeolocationListeners();
+          this.requestEmployeeGeolocation();
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching user permissions', err);
+      },
+    });
 
     this.refreshInterval = setInterval(() => {
       this.defaultWeek();
@@ -190,22 +207,6 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy, AfterViewChe
     this.timezoneSubscription = this.timezoneService.userTimezone$.subscribe(timezone => {
       this.userTimezone = timezone;
       this.timezoneOffset = this.timezoneService.getCurrentTimezoneOffset();
-    });
-
-    const userId = Number(localStorage.getItem('id'));
-    this.permissionService.getUserPermissions(userId).subscribe({
-      next: (userPerms: any) => {
-        this.userPermissions = userPerms.effectivePermissions || [];
-        this.canManageTeamMembers = this.userPermissions.includes('users.manage');
-        
-        if (this.canManageTeamMembers && this.userRole !== '2' && this.userId) {
-          this.setupGeolocationListeners();
-          this.requestEmployeeGeolocation();
-        }
-      },
-      error: (err) => {
-        console.error('Error fetching user permissions', err);
-      },
     });
   }
 

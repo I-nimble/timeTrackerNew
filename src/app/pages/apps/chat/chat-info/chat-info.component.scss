@@ -21,11 +21,18 @@
 .info-avatar-wrapper {
   margin-bottom: 24px;
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   .info-avatar {
     width: 120px;
     height: 120px;
+    max-width: 100%;
     border-radius: 50%;
     object-fit: cover;
+    display: block;
   }
 }
 
@@ -46,9 +53,18 @@
   }
 }
 
+.members-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .members-title {
   font-weight: 600;
-  margin-bottom: 16px;
+  margin: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .member-row {
@@ -56,4 +72,80 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.add-members-section {
+  h4.members-title {
+    margin-bottom: 8px;
+  }
+}
+
+::ng-deep .full-member-selector mat-list-option {
+  min-height: 64px;
+  margin-bottom: 4px;
+}
+
+::ng-deep .full-member-selector .mat-list-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+}
+
+::ng-deep .full-member-selector .member-row {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+
+::ng-deep .full-member-selector img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+::ng-deep .full-member-selector .mat-pseudo-checkbox {
+  margin-right: 12px;
+}
+
+.full-member-selector {
+  max-height: none;
+  overflow: visible;
+
+  mat-list-option {
+    margin-bottom: 4px;
+  }
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  img {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+}
+
+.member-row.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.flex-spacer {
+  flex: 1 1 auto;
+}
+
+.members-header button mat-icon {
+  transition: transform 150ms ease;
+}
+
+.members-header button:hover mat-icon {
+  transform: translateX(-2px);
 }

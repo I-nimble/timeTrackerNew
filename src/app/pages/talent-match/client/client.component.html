@@ -16,9 +16,13 @@
         </div>
       </div>
 
-            <div class="d-flex justify-content-center aling-items-center m-t-8">
-                <img src="assets/images/talent-match.png" alt="Talent Match Logo" height="60" />
-            </div>
+      <div class="d-flex justify-content-center aling-items-center m-t-8">
+        <img
+          src="assets/images/talent-match.png"
+          alt="Talent Match Logo"
+          height="60"
+        />
+      </div>
 
       <div class="p-16">
         <h4 class="f-w-700 m-b-16">Main Filters</h4>
@@ -33,19 +37,33 @@
                 required
               >
                 <mat-option
-                  *ngFor="let role of positionsOptions"
-                  [value]="role"
+                  *ngFor="let position of positions"
+                  [value]="position.title"
                 >
-                  {{ role }}
+                  <span class="d-flex align-items-center">
+                    <span>{{ position.title }}</span>
+                    <span class="disc-badges m-l-8" *ngIf="position.disc_profiles?.length">
+                      (
+                      <span
+                        *ngFor="let profile of position.disc_profiles"
+                        class="disc-badge-small"
+                        [style.background-color]="getDiscProfileColor(profile.name)"
+                        [title]="profile.name"
+                      >
+                        {{ profile.name.charAt(0) }}
+                      </span>
+                      )
+                    </span>
+                  </span>
                 </mat-option>
               </mat-select>
               <mat-error *ngIf="roleModel.invalid && roleModel.touched">
                 Role is required.
               </mat-error>
             </mat-form-field>
-            <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
-              >Practice Area *</mat-label
-            >
+          </div>
+          <div class="col-lg-6">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Practice Area *</mat-label>
             <mat-form-field appearance="outline" class="w-100">
               <mat-select
                 [(ngModel)]="selectedPracticeArea"
@@ -64,19 +82,19 @@
               </mat-error>
             </mat-form-field>
           </div>
-          <div class="col-lg-6" tourAnchor="tm-budget">
+<!--           <div class="col-lg-6" tourAnchor="tm-budget">
             <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
               >Budget Range</mat-label
             >
             <div class="m-b-12">
-              <!-- <mat-chip-listbox selectable>
+              <mat-chip-listbox selectable>
                                 <mat-chip-option
                                     *ngFor="let preset of budgetPresets"
                                     (click)="onPresetClick(preset)"
                                 >
                                     {{ preset.label }}
                                 </mat-chip-option>
-                            </mat-chip-listbox> -->
+                            </mat-chip-listbox> 
             </div>
             <div class="d-flex align-items-center gap-3 m-b-16">
               <mat-slide-toggle (change)="toggleRateType()">
@@ -91,7 +109,7 @@
                 onBudgetChange({ min: budgetRange.min, max: budgetRange.max })
               "
             ></ngx-slider>
-          </div>
+          </div> -->
         </div>
         <mat-accordion multi tourAnchor="tm-advanced">
           <mat-expansion-panel>
@@ -278,7 +296,7 @@
                   />
                   <div class="m-l-16">
                     <h6 class="f-s-14 f-w-600 cursor-pointer">
-                      {{ element.name }}
+                      {{ element.name | formatName }}
                       <span class="disc-badges m-l-4">
                         <span
                           *ngFor="let profile of element.disc_profiles"
@@ -350,6 +368,55 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="experience">
+              <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+                Experience
+              </th>
+              <td mat-cell *matCellDef="let element">
+                <div *ngIf="element.work_experience_summary; else fallbackToFull">
+                  <p class="f-s-14 m-0">
+                    {{
+                      expandedWorkExp[element.id]
+                        ? element.work_experience_summary
+                        : (element.work_experience_summary | slice:0:50)
+                    }}
+                    <span *ngIf="!expandedWorkExp[element.id] && element.work_experience_summary?.length > 50">
+                      ...
+                    </span>
+                  </p>
+                  <a
+                    *ngIf="element.work_experience_summary?.length > 50"
+                    class="f-s-12 cursor-pointer"
+                    (click)="expandedWorkExp[element.id] = !expandedWorkExp[element.id];
+                            $event.stopPropagation()"
+                  >
+                    {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
+                  </a>
+                </div>
+                
+                <ng-template #fallbackToFull>
+                  <p class="f-s-14 m-0">
+                    {{
+                      expandedWorkExp[element.id]
+                        ? element.work_experience
+                        : (element.work_experience | slice:0:50)
+                    }}
+                    <span *ngIf="!expandedWorkExp[element.id] && element.work_experience?.length > 50">
+                      ...
+                    </span>
+                  </p>
+                  <a
+                    *ngIf="element.work_experience?.length > 50"
+                    class="f-s-12 cursor-pointer"
+                    (click)="expandedWorkExp[element.id] = !expandedWorkExp[element.id];
+                            $event.stopPropagation()"
+                  >
+                    {{ expandedWorkExp[element.id] ? 'Show less' : 'Show more' }}
+                  </a>
+                </ng-template>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="trainings">
               <th
                 mat-header-cell
@@ -404,29 +471,25 @@
               </td>
             </ng-container>
 
-                        <ng-container matColumnDef="rate">
-                            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
-                                Rate
-                            </th>
-                            <td mat-cell *matCellDef="let element">
-                                <p class="f-s-14 m-0">
-                                    <span>
-                                       $3
-                                    </span>
-                                </p>
-                            </td>
-                        </ng-container>
-
-
-                        <ng-container matColumnDef="expand">
-                        <th mat-header-cell *matHeaderCellDef></th>
-                        <td mat-cell *matCellDef="let row">
-                            <button mat-icon-button (click)="expandedElement = expandedElement === row ? null : row; $event.stopPropagation()">
-                            <mat-icon *ngIf="expandedElement !== row">keyboard_arrow_down</mat-icon>
-                            <mat-icon *ngIf="expandedElement === row">keyboard_arrow_up</mat-icon>
-                            </button>
-                        </td>
-                        </ng-container>
+            <ng-container matColumnDef="expand">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let row">
+                <button
+                  mat-icon-button
+                  (click)="
+                    expandedElement = expandedElement === row ? null : row;
+                    $event.stopPropagation()
+                  "
+                >
+                  <mat-icon *ngIf="expandedElement !== row"
+                    >keyboard_arrow_down</mat-icon
+                  >
+                  <mat-icon *ngIf="expandedElement === row"
+                    >keyboard_arrow_up</mat-icon
+                  >
+                </button>
+              </td>
+            </ng-container>
 
             <ng-container matColumnDef="actions">
               <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14" tourAnchor="tm-actions">
@@ -594,23 +657,21 @@
                         <h5 class="f-s-20 f-w-600 m-b-16 text-primary">Language</h5>
                         <div class="d-flex">
                           <div class="col-6">
-                          <p class="f-s-16 f-w-600">English</p>
+                          <p class="f-s-16 f-w-600">
+                            English: {{ formatEnglishLevelDisplay(element.english_level) }}
+                          </p>
                           
                           <div class="progress-container m-t-8 m-b-8">
                             <div class="progress-bar-background">
                               <div 
                                 class="progress-bar-fill"
-                                [ngClass]="{
-                                  'basic-level': element.english_level.toLowerCase() === 'basic',
-                                  'intermediate-level': element.english_level.toLowerCase() === 'intermediate',
-                                  'advanced-level': element.english_level.toLowerCase() === 'advanced'
-                                }">
+                                [style.width.%]="getEnglishLevelPercent(element.english_level)">
                               </div>
                               </div>
                               <div class="progress-labels">
-                                <span>Basic</span>
-                                <span>Intermediate</span>
-                                <span>Advanced</span>
+                                <span>A0</span>
+                                <span>B1</span>
+                                <span>C2</span>
                               </div>
                             </div>
                           </div> 

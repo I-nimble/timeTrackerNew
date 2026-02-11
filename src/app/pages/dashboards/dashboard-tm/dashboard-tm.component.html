@@ -183,14 +183,14 @@
               </div>
             </mat-step>
 
-            <mat-step [completed]="pictureUploaded || videoUploaded">
+            <mat-step [completed]="profileCompleted">
               <ng-template matStepLabel>
                 <span
                   [style.cursor]="
-                    pictureUploaded && videoUploaded ? 'default' : 'pointer'
+                    profileCompleted ? 'default' : 'pointer'
                   "
                   (click)="
-                    !(pictureUploaded && videoUploaded)
+                    !profileCompleted
                       ? goToAccountSettings(0)
                       : null;
                     $event.stopPropagation()
@@ -219,9 +219,7 @@
                   color="primary"
                   matStepperNext
                   [disabled]="
-                    !pictureUploaded ||
-                    !videoUploaded ||
-                    !applicationDetailsSubmitted
+                    !profileCompleted
                   "
                 >
                   Next

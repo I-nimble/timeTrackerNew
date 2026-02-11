@@ -29,6 +29,12 @@ import { Subscription } from 'rxjs';
 interface DialogData {
   action: string;
   employee: Employee;
+  permissions: {
+    canView: false,
+    canEdit: false,
+    canManage: false,
+    canDelete: false,
+  };
 }
 
 @Component({
@@ -61,6 +67,13 @@ export class AppEmployeeDialogContentComponent implements OnInit {
   userTimezone: string = 'UTC';
   timezoneOffset: string = '';
   maxFileSize: number =  1 * 1024 * 1024;
+  permissions!: {
+    canView: false,
+    canEdit: false,
+    canManage: false,
+    canDelete: false,
+  };
+
   private timezoneSubscription!: Subscription;
 
   constructor(
@@ -79,7 +92,7 @@ export class AppEmployeeDialogContentComponent implements OnInit {
   ) {
     this.action = data.action;
     this.local_data = { ...data.employee };
-
+    this.permissions = data.permissions; 
     this.editEmployeeForm = this.fb.group({
       name: ['', Validators.required],
       last_name: ['', Validators.required],

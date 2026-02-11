@@ -43,7 +43,7 @@ import { TimerComponent } from 'src/app/components/timer-component/timer.compone
 import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
-
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
   templateUrl: './employee-table.component.html',
@@ -55,7 +55,8 @@ import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
     CommonModule,
     RouterModule,
     TimerComponent,
-    MatPaginatorModule
+    MatPaginatorModule,
+    TourMatMenuModule
   ],
   selector: 'app-employee-table',
   standalone: true,
@@ -107,7 +108,7 @@ export class AppEmployeeTableComponent implements AfterViewInit {
       : [];
     this.dataSourceTable.data = sorted;
   }
-
+  @Input() permissions: any;
   @Output() getEmployees = new EventEmitter<any>();
 
   dataSourceTable = new MatTableDataSource<any>([]);
@@ -131,7 +132,7 @@ export class AppEmployeeTableComponent implements AfterViewInit {
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
-      data: { action, employee },
+      data: { action, employee, permissions: this.permissions },
       autoFocus: false,
     });
 

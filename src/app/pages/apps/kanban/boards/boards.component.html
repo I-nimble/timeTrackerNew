@@ -11,7 +11,87 @@
       </div>
     </div>
     <div class="row" tourAnchor="kanban-boards">
-      <div class="col-sm-6 col-lg-4" *ngFor="let board of boards">
+      <div class="col-sm-6 col-lg-4" *ngFor="let board of boards; let i = index">
+        @if (i === 0) {
+        <mat-card 
+          class="mat-mdc-card mdc-card cardWithShadow productcard overflow-hidden b-1 rounded"
+          style="cursor: pointer;"
+          (click)="openBoard(board.id)"
+          tourAnchor="kanban-first-board"
+        >
+          <a>
+            <img
+              alt="Board image"
+              height="220"
+              mat-card-image
+              class="mat-mdc-card-image mdc-card__media w-100 object-cover"
+              [src]="'assets/images/taskboard/kanban-img-' + (board.id % 2 === 0 ? '3' : '4') + '.jpg'"
+            >
+          </a>
+          <mat-card-content class="mat-mdc-card-content p-b-24 p-t-12 position-relative">
+            <mat-card-title class="mat-mdc-card-title mat-headline-2 f-s-16 m-b-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="f-s-16 lh-sm f-w-600">{{ board.name }}</h6>
+                  <p class="f-s-12 f-w-400 m-y-0">
+                    {{ board.createdAt | date:'EEE, MMM dd, yyyy' }}
+                  </p>
+                </div>
+                <button
+                  mat-icon-button
+                  [matMenuTriggerFor]="boardMenu"
+                  (click)="$event.stopPropagation()"
+                  class="mdc-icon-button mat-mdc-icon-button mat-mdc-button-base mat-unthemed"
+                  mat-ripple-loader-class-name="mat-mdc-button-ripple"
+                  mat-ripple-loader-centered
+                  aria-label="More options"
+                  tourAnchor="kanban-board-actions"
+                >
+                  <span class="mat-mdc-button-persistent-ripple mdc-icon-button__ripple"></span>
+                  <mat-icon 
+                    role="img"
+                    class="mat-icon notranslate material-icons mat-ligature-font mat-icon-no-color"
+                    aria-hidden="true"
+                    data-mat-icon-type="font"
+                  >
+                    more_vert
+                  </mat-icon>
+                  <span class="mat-focus-indicator"></span>
+                  <span class="mat-mdc-button-touch-target"></span>
+                  <span class="mat-ripple mat-mdc-button-ripple"></span>
+                </button>
+
+                <mat-menu #boardMenu="matMenu">
+                  <button 
+                    mat-menu-item 
+                    (click)="openDialog('Edit', { 
+                      type: 'board',
+                      id: board.id,
+                      company_id: board.company_id,
+                      name: board.name,
+                      visibility: board.visibility,
+                      restrictedUsers: board.restrictedUsers
+                    })"
+                    [disabled]="role=='4'"
+                  >
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit</span>
+                  </button>
+                  <button 
+                    mat-menu-item 
+                    (click)="deleteBoard(board.id)" 
+                    [disabled]="board.user_id != userId && (role != '1' && role != '4')"
+                    >
+                    <mat-icon>delete</mat-icon>
+                    <span>Delete</span>
+                  </button>
+                </mat-menu>
+              </div>
+            </mat-card-title>
+          </mat-card-content>
+        </mat-card>
+        }
+        @else {
         <mat-card 
           class="mat-mdc-card mdc-card cardWithShadow productcard overflow-hidden b-1 rounded"
           style="cursor: pointer;"
@@ -87,14 +167,16 @@
             </mat-card-title>
           </mat-card-content>
         </mat-card>
+        }
       </div>
       <!-- ADD NEW BOARD CARD -->
-      <div class="col-sm-6 col-lg-4" tourAnchor="kanban-new-board">
+      <div class="col-sm-6 col-lg-4">
         <mat-card 
+          tourAnchor="kanban-new-board"
           class="mat-mdc-card mdc-card productcard overflow-hidden b-1 rounded"
           style="cursor: pointer;"
           id="new-board"
-          (click)="openDialog('Add', { type: 'board' })"
+          (click)="onAddBoardClick()"
         >
           <mat-card-content class="mat-mdc-card-content p-b-24 p-t-12 position-relative d-flex justify-content-center align-items-center flex-column h-100">
             <i-tabler name="plus" class="icon-36 p-b-8 new-card-text"></i-tabler>

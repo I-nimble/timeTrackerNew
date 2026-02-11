@@ -124,7 +124,7 @@ export class AppTalentMatchTmComponent implements OnInit {
 			.map(d => d.id!)
 			.filter(Boolean);
 		}
-		if (currentPosition === 'Technology') {
+		if (currentPosition === 'IT and Technology') {
 			return this.departments
 			.filter(d => d.name === 'IT and Technology')
 			.map(d => d.id!)

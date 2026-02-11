@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { TourService } from 'ngx-ui-tour-md-menu';
-import { BehaviorSubject, ReplaySubject, firstValueFrom, of } from 'rxjs';
+import { BehaviorSubject, ReplaySubject, Subject, firstValueFrom, of } from 'rxjs';
 import { catchError, filter, take, timeout } from 'rxjs/operators';
 import { TourApiService, TourProgress } from './tour-api.service';
 import { RoleTourStep, SectionConfig, buildClientSections } from './role-tour-steps';
@@ -19,12 +19,26 @@ export class RoleTourService {
   private activeSteps: RoleTourStep[] = [];
   private skipRequested = false;
   private isStarting = false;
+  private readonly pendingResumeStorageKey = 'tour.pendingResume';
+  private isResuming = false;
 
   private isActiveSubject = new BehaviorSubject<boolean>(false);
   isActive$ = this.isActiveSubject.asObservable();
 
   private startRequests = new ReplaySubject<{ steps: RoleTourStep[]; startIndex: number }>(1);
   startRequests$ = this.startRequests.asObservable();
+
+  private kanbanOpenRequests = new Subject<void>();
+  kanbanOpenRequests$ = this.kanbanOpenRequests.asObservable();
+
+  private chatOpenRequests = new Subject<void>();
+  chatOpenRequests$ = this.chatOpenRequests.asObservable();
+
+  private employeeDetailsOpenRequests = new Subject<void>();
+  employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
+
+  private kanbanTasksState = new Subject<boolean>();
+  kanbanTasksState$ = this.kanbanTasksState.asObservable();
 
   constructor(
     private tourService: TourService<RoleTourStep>,
@@ -73,8 +87,101 @@ export class RoleTourService {
     this.tourService.end();
   }
 
+  requestKanbanBoardOpen() {
+    this.kanbanOpenRequests.next();
+  }
+
+  requestChatConversationOpen() {
+    this.chatOpenRequests.next();
+  }
+
+  requestEmployeeDetailsOpen() {
+    this.employeeDetailsOpenRequests.next();
+  }
+
+  setPendingResume(anchorId: string) {
+    if (!anchorId) return;
+    localStorage.setItem(this.pendingResumeStorageKey, anchorId);
+  }
+
+  setKanbanHasTasks(hasTasks: boolean) {
+    localStorage.setItem('kanban.hasTasks', hasTasks ? 'true' : 'false');
+    this.kanbanTasksState.next(hasTasks);
+  }
+
+  markResumeInProgress(anchorId: string) {
+    this.setPendingResume(anchorId);
+    this.isResuming = true;
+  }
+
+  clearPendingResume() {
+    localStorage.removeItem(this.pendingResumeStorageKey);
+  }
+
+  clearResumeInProgress() {
+    this.isResuming = false;
+  }
+
+  getPendingResumeAnchor(): string | null {
+    return localStorage.getItem(this.pendingResumeStorageKey);
+  }
+
+  consumePendingResumeAnchor(): string | null {
+    const anchorId = localStorage.getItem(this.pendingResumeStorageKey);
+    if (!anchorId) return null;
+    localStorage.removeItem(this.pendingResumeStorageKey);
+    return anchorId;
+  }
+
+  async resumeAtAnchor(anchorId: string, options?: { currentRoute?: string; ignoreCompleted?: boolean }) {
+    const role = localStorage.getItem('role');
+    if (!role) return;
+
+    const currentRoute = this.normalizeRoute(options?.currentRoute ?? this.router.url);
+    const section = this.getSectionForRoute(role, currentRoute);
+    if (!section) return;
+
+    const stepIndex = section.steps.findIndex((step) => step.anchorId === anchorId);
+    if (stepIndex < 0) return;
+
+    const tourKey = this.getTourKeyForRoleSection(role, section.key);
+    const progress = await this.safeFetchProgress(tourKey);
+    if (progress?.skipped) return;
+    if (progress?.completed && !options?.ignoreCompleted) return;
+
+    const progressPayload = {
+      current_step: stepIndex,
+      progress: { anchorId, route: section.steps[stepIndex]?.route },
+    };
+
+    if (!progress) {
+      await firstValueFrom(this.tourApi.start(progressPayload, tourKey)).catch(() => undefined);
+    } else {
+      await firstValueFrom(this.tourApi.updateProgress(progressPayload, tourKey)).catch(() => undefined);
+    }
+
+    this.activeTourKey = tourKey;
+    this.activeSteps = section.steps;
+    this.skipRequested = false;
+    this.isActiveSubject.next(true);
+    this.startRequests.next({ steps: section.steps, startIndex: stepIndex });
+  }
+
+  resumeAtIndex(index: number) {
+    if (!this.activeSteps.length) return;
+    const safeIndex = Math.min(Math.max(index, 0), this.activeSteps.length - 1);
+    this.isActiveSubject.next(true);
+    this.startRequests.next({ steps: this.activeSteps, startIndex: safeIndex });
+  }
+
   private async handleEnd() {
     if (!this.activeTourKey) return;
+
+    const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
+    if (pendingAnchor || this.isResuming) {
+      this.resetState();
+      return;
+    }
 
     try {
       if (this.skipRequested) {
@@ -93,6 +200,7 @@ export class RoleTourService {
     this.activeTourKey = undefined;
     this.activeSteps = [];
     this.skipRequested = false;
+    this.isResuming = false;
     this.isActiveSubject.next(false);
   }
 
@@ -231,6 +339,11 @@ export class RoleTourService {
 
   // Public callbacks from component's TourService events
   async notifyStepShown(step: RoleTourStep) {
+    const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
+    if (pendingAnchor && pendingAnchor === step.anchorId) {
+      this.clearPendingResume();
+      this.clearResumeInProgress();
+    }
     await this.persistProgress(step);
   }
 
@@ -239,7 +352,7 @@ export class RoleTourService {
   }
 
   private getSectionForRoute(role: string, route: string): SectionConfig | null {
-    if (role !== '3') return null;
+    if (role != '3') return null;
     const sections = this.getClientSections();
     return sections.find((section) =>
       section.routes.some((r) => route === r || route.startsWith(`${r}/`))
@@ -252,7 +365,7 @@ export class RoleTourService {
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
       delayBeforeStepShow: 100,
-      enableBackdrop: true,
+      enableBackdrop: false,
       allowUserInitiatedNavigation: false,
       isOptional: true,
     };
