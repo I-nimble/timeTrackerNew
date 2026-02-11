@@ -19,6 +19,8 @@ export class RoleTourService {
   private activeSteps: RoleTourStep[] = [];
   private skipRequested = false;
   private isStarting = false;
+  private readonly pendingResumeStorageKey = 'tour.pendingResume';
+  private isResuming = false;
 
   private isActiveSubject = new BehaviorSubject<boolean>(false);
   isActive$ = this.isActiveSubject.asObservable();
@@ -34,6 +36,9 @@ export class RoleTourService {
 
   private employeeDetailsOpenRequests = new Subject<void>();
   employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
+
+  private kanbanTasksState = new Subject<boolean>();
+  kanbanTasksState$ = this.kanbanTasksState.asObservable();
 
   constructor(
     private tourService: TourService<RoleTourStep>,
@@ -94,6 +99,74 @@ export class RoleTourService {
     this.employeeDetailsOpenRequests.next();
   }
 
+  setPendingResume(anchorId: string) {
+    if (!anchorId) return;
+    localStorage.setItem(this.pendingResumeStorageKey, anchorId);
+  }
+
+  setKanbanHasTasks(hasTasks: boolean) {
+    localStorage.setItem('kanban.hasTasks', hasTasks ? 'true' : 'false');
+    this.kanbanTasksState.next(hasTasks);
+  }
+
+  markResumeInProgress(anchorId: string) {
+    this.setPendingResume(anchorId);
+    this.isResuming = true;
+  }
+
+  clearPendingResume() {
+    localStorage.removeItem(this.pendingResumeStorageKey);
+  }
+
+  clearResumeInProgress() {
+    this.isResuming = false;
+  }
+
+  getPendingResumeAnchor(): string | null {
+    return localStorage.getItem(this.pendingResumeStorageKey);
+  }
+
+  consumePendingResumeAnchor(): string | null {
+    const anchorId = localStorage.getItem(this.pendingResumeStorageKey);
+    if (!anchorId) return null;
+    localStorage.removeItem(this.pendingResumeStorageKey);
+    return anchorId;
+  }
+
+  async resumeAtAnchor(anchorId: string, options?: { currentRoute?: string; ignoreCompleted?: boolean }) {
+    const role = localStorage.getItem('role');
+    if (!role) return;
+
+    const currentRoute = this.normalizeRoute(options?.currentRoute ?? this.router.url);
+    const section = this.getSectionForRoute(role, currentRoute);
+    if (!section) return;
+
+    const stepIndex = section.steps.findIndex((step) => step.anchorId === anchorId);
+    if (stepIndex < 0) return;
+
+    const tourKey = this.getTourKeyForRoleSection(role, section.key);
+    const progress = await this.safeFetchProgress(tourKey);
+    if (progress?.skipped) return;
+    if (progress?.completed && !options?.ignoreCompleted) return;
+
+    const progressPayload = {
+      current_step: stepIndex,
+      progress: { anchorId, route: section.steps[stepIndex]?.route },
+    };
+
+    if (!progress) {
+      await firstValueFrom(this.tourApi.start(progressPayload, tourKey)).catch(() => undefined);
+    } else {
+      await firstValueFrom(this.tourApi.updateProgress(progressPayload, tourKey)).catch(() => undefined);
+    }
+
+    this.activeTourKey = tourKey;
+    this.activeSteps = section.steps;
+    this.skipRequested = false;
+    this.isActiveSubject.next(true);
+    this.startRequests.next({ steps: section.steps, startIndex: stepIndex });
+  }
+
   resumeAtIndex(index: number) {
     if (!this.activeSteps.length) return;
     const safeIndex = Math.min(Math.max(index, 0), this.activeSteps.length - 1);
@@ -103,6 +176,12 @@ export class RoleTourService {
 
   private async handleEnd() {
     if (!this.activeTourKey) return;
+
+    const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
+    if (pendingAnchor || this.isResuming) {
+      this.resetState();
+      return;
+    }
 
     try {
       if (this.skipRequested) {
@@ -121,6 +200,7 @@ export class RoleTourService {
     this.activeTourKey = undefined;
     this.activeSteps = [];
     this.skipRequested = false;
+    this.isResuming = false;
     this.isActiveSubject.next(false);
   }
 
@@ -259,6 +339,11 @@ export class RoleTourService {
 
   // Public callbacks from component's TourService events
   async notifyStepShown(step: RoleTourStep) {
+    const pendingAnchor = localStorage.getItem(this.pendingResumeStorageKey);
+    if (pendingAnchor && pendingAnchor === step.anchorId) {
+      this.clearPendingResume();
+      this.clearResumeInProgress();
+    }
     await this.persistProgress(step);
   }
 
@@ -280,7 +365,7 @@ export class RoleTourService {
       asyncStepTimeout: 30000,
       delayAfterNavigation: 500,
       delayBeforeStepShow: 100,
-      enableBackdrop: true,
+      enableBackdrop: false,
       allowUserInitiatedNavigation: false,
       isOptional: true,
     };

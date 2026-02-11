@@ -83,7 +83,7 @@
                       <button
                         mat-icon-button
                         [matMenuTriggerFor]="columnMenu"
-                        [tourAnchor]="i === 0 ? 'kanban-column-actions' : ''"
+                        tourAnchor="kanban-column-actions"
                       >
                         <mat-icon>more_horiz</mat-icon>
                       </button>
@@ -184,7 +184,7 @@
                         } }
                       </div>
 
-                      @if (i === 0 && tIndex === 0) {
+                      @if (column.id === firstTaskAnchorColumnId && tIndex === 0) {
                         <button
                           class="d-flex align-items-center justify-content-center"
                           mat-icon-button
