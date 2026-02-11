@@ -210,12 +210,18 @@ export class ApplicationsService {
       { availability: available }
     );
   }
-
   // Notify other components that an application was updated
   notifyApplicationUpdated(application: any) {
     this.applicationsUpdatedSource.next(application);
   }
 
+  approveApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/approve`, {});
+  }
+
+  rejectApplicationUpdates(id: number): Observable<any> {
+    return this.http.put(`${this.API_URI}/applications/${id}/reject`, {});
+  }
 
     uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(

@@ -767,8 +767,4 @@ export class CandidateDetailsComponent implements OnInit {
       this.selectedResumeFile = file;
     }
   }
-
-  getResumeUrl(filename: string | null | undefined): string {
-    return this.applicationService.getResumeUrl(filename);
-  }
 }
