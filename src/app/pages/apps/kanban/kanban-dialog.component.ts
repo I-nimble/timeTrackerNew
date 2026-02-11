@@ -473,41 +473,114 @@ export class AppKanbanDialogComponent implements OnInit {
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
 
-    if (clipboardData.files.length > 0 && clipboardData.files[0].type.startsWith('image/')) {
+    if (clipboardData.files.length > 0) {
       event.preventDefault();
+      
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            try {
+              const newFileName = `image.png`;
+              const renamedFile = new File([file], newFileName, { type: file.type });
+              this.attachments.push(renamedFile);
+              this.updateFirstAttachmentImage();
+              this.insertImageInEditor(renamedFile);
 
-      const file = clipboardData.files[0];
-      try {
-        const upload$ = this.kanbanService.uploadTaskAttachments([file]);
-        const uploadedFiles = await lastValueFrom(upload$);
+              try {
+                const upload$ = this.kanbanService.uploadTaskAttachments([renamedFile]);
+                const uploadedFiles = await lastValueFrom(upload$);
 
-        if (uploadedFiles.length > 0) {
-          const uploadedFile = uploadedFiles[0];
-          this.pastedAttachments.push(uploadedFile);
+                if (uploadedFiles.length > 0) {
+                  const uploadedFile = uploadedFiles[0];
+                  const idx = this.attachments.findIndex(a => a instanceof File && (a as File).name === renamedFile.name);
+                  if (idx !== -1) {
+                    this.attachments[idx] = uploadedFile;
+                  } else {
+                    this.attachments.push(uploadedFile);
+                  }
 
-          this.insertImageInEditor(uploadedFile);
+                  try {
+                    const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(uploadedFile.file_name));
+                    this.imageUrls[uploadedFile.file_name] = response.url;
+
+                    const editor = this.descriptionEditor?.nativeElement;
+                    if (editor) {
+                      const imgs = Array.from(editor.getElementsByTagName('img')) as HTMLImageElement[];
+                      imgs.forEach(img => {
+                        if (img.alt && img.alt === renamedFile.name && img.src.startsWith('blob:')) {
+                          img.setAttribute('data-file-name', uploadedFile.file_name);
+                          img.src = response.url;
+                        }
+                      });
+                    }
+
+                    this.updateFirstAttachmentImage();
+                    this.updateRecommendationsValue();
+                  } catch (err) {
+                    console.error('Error fetching uploaded file url after paste', err);
+                  }
+                }
+              } catch (uploadError) {
+                console.error('Error uploading pasted image:', uploadError);
+              }
+              
+            } catch (error) {
+              console.error('Error processing pasted image:', error);
+              this.showSnackbar('Error processing pasted image');
+            }
+          }
+          break; 
         }
-      } catch (error) {
-        console.error('Error uploading pasted image:', error);
-        this.showSnackbar('Error uploading image');
+      }
+    } else {
+      const html = clipboardData.getData('text/html');
+      if (html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const images = doc.querySelectorAll('img');
+        
+        if (images.length > 0) {
+          event.preventDefault();
+        }
       }
     }
   }
 
-  insertImageInEditor(file: any) {
+  async insertImageInEditor(file: any) {
+    let imageUrl: string;
+    
+    if (file instanceof File) {
+      imageUrl = URL.createObjectURL(file);
+    } else {
+      if (!this.imageUrls[file.file_name]) {
+        const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(file.file_name));
+        this.imageUrls[file.file_name] = response.url;
+      }
+      imageUrl = this.imageUrls[file.file_name];
+    }
+    
     const editor = this.descriptionEditor.nativeElement;
     const img = document.createElement('img');
-    img.src = this.attachmentsUrl + file.s3_filename;
+    img.src = imageUrl;
     img.style.maxWidth = '100%';
+    img.alt = file.name || 'Pasted image';
 
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
+      range.deleteContents();
       range.insertNode(img);
       range.collapse(false);
-
-      this.updateRecommendationsValue();
+      
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      editor.appendChild(img);
     }
+
+    this.updateRecommendationsValue();
   }
 
   updateRecommendationsValue() {
@@ -531,7 +604,12 @@ export class AppKanbanDialogComponent implements OnInit {
           const uploadedFiles = await lastValueFrom(upload$);
 
           if (uploadedFiles.length > 0) {
-            this.insertImageInEditor(uploadedFiles[0]);
+            const uploadedFile = uploadedFiles[0];
+            if (!this.attachments.some(a => (a instanceof File ? false : a.file_name) === uploadedFile.file_name)) {
+              this.attachments.push(uploadedFile);
+            }
+            this.updateFirstAttachmentImage();
+            this.insertImageInEditor(uploadedFile);
           }
         } catch (error) {
           console.error('Error uploading image:', error);

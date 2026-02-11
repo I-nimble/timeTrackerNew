@@ -63,11 +63,10 @@ export class BoardsService {
           });
           return this.http.put(uploadUrl, file, { headers }).pipe(
             map(() => {
-              const urlParts = uploadUrl.split('?')[0].split('/');
-              const s3_filename = urlParts[urlParts.length - 1];
+              const returnedFileName = fileName || (uploadUrlRes.key ? uploadUrlRes.key.split('/').pop() : newName);
               return {
-                s3_filename,
-                file_name: file.name,
+                file_name: returnedFileName,
+                original_file_name: newName,
                 file_type: file.type,
                 file_size: file.size,
               };
