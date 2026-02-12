@@ -412,14 +412,14 @@
             <td><b>Resume</b></td>
             <td *ngIf="!editMode">
               <a
-                *ngIf="candidate()?.resume_url"
-                [href]="getResumeUrl(candidate()?.resume_url)"
+                *ngIf="resumeLink"
+                [href]="resumeLink"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {{ getResumeUrl(candidate()?.resume_url) }}
+                {{ resumeLink }}
               </a>
-              <span *ngIf="!candidate()?.resume_url" class="text-muted"
+              <span *ngIf="!resumeLink" class="text-muted"
                 >No resume provided</span
               >
             </td>
