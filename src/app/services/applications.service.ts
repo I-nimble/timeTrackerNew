@@ -277,14 +277,45 @@ export class ApplicationsService {
     return event;
   }
 
-  getResumeUrl(filename: string | null | undefined): string {
-    if (!filename) return '';
-    if (filename.startsWith('http')) return filename;
-    
-    if (!environment.production) {
-      return `${environment.socket}/uploads/resumes/${filename}`;
+  private async checkUrlExists(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.status === 200 || response.status != 403;
+    } catch (error) {
+      return false;
     }
-    
-    return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
+  }
+
+  async getResumeUrl(
+    filename: string | null | undefined,
+    applicationId?: number,
+  ): Promise<string> {
+    if (!filename && !applicationId) return '';
+
+    if (filename?.startsWith('http')) {
+      const urlExists = await this.checkUrlExists(filename);
+      if (urlExists) return filename;
+      filename = filename.split('/').pop();
+    }
+
+    const baseUrl = !environment.production
+      ? `${environment.socket}/uploads/resumes`
+      : 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+
+    const candidates: string[] = [];
+    if (filename) candidates.push(filename);
+    if (applicationId) {
+      ['pdf', 'doc', 'docx'].forEach((ext) => {
+        candidates.push(`app-${applicationId}.${ext}`);
+      });
+    }
+
+    for (const candidate of candidates) {
+      const url = `${baseUrl}/${candidate}`;
+      const urlExists = await this.checkUrlExists(url);
+      if (urlExists) return url;
+    }
+
+    return '';
   }
 }

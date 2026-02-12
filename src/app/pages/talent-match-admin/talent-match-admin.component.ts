@@ -210,12 +210,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
-  openCandidateResume(resumeUrl: string) {
+  async openCandidateResume(resumeUrl: string, applicationId?: number) {
     if(!resumeUrl) {
       this.openSnackBar('No resume found for this candidate', 'Close');
       return;
     }
-    const url = this.applicationService.getResumeUrl(resumeUrl);
+    const url = await this.applicationService.getResumeUrl(resumeUrl, applicationId);
+    if (!url) {
+      this.openSnackBar('No resume found for this candidate', 'Close');
+      return;
+    }
     window.open(url, '_blank');
   }
 
