@@ -37,6 +37,7 @@ import { EmployeeDetailsComponent } from '../employee/employee-details/employee-
 import { SelectionModel } from '@angular/cdk/collections';
 import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
 import { AppEmployeeDialogContentComponent } from '../employee/employee-dialog-content';
+import { PermissionService } from 'src/app/services/permission.service';
 
 @Component({
   templateUrl: './team.component.html',
@@ -71,11 +72,17 @@ export class TeamComponent {
     multipleUsers: false,
   };
   userRole = localStorage.getItem('role');
+  userId = localStorage.getItem('id');
   companies: any[] = [];
   companyId: number | null = null;
-
   searchText: any;
-
+  permissions = {
+    canView: false,
+    canEdit: false,
+    canManage: false,
+    canDelete: false
+  };
+  permissionsLoaded = false;
   displayedColumns: string[] = [
     'nameUser',
     'role',
@@ -94,12 +101,23 @@ export class TeamComponent {
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private companiesService: CompaniesService,
+    private permissionService: PermissionService,
   ) {}
 
   ngOnInit(): void {
     if (this.userRole === '3') {
       this.loadCompany();
     }
+    this.permissionService.getUserPermissions(Number(this.userId)).subscribe(res => {
+      const effective = res.effectivePermissions || [];
+      this.permissions = {
+        canView: effective.includes('users.view'),
+        canEdit: effective.includes('users.edit'),
+        canManage: effective.includes('users.manage'),
+        canDelete: effective.includes('users.delete')
+      };
+      this.permissionsLoaded = true;
+    });
     this.getEmployees();
     this.getCompanies();
   }
@@ -137,7 +155,7 @@ export class TeamComponent {
 
   openDialog(action: string, employee: Employee | any): void {
     const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
-      data: { action, employee },
+      data: { action, employee, permissions: this.permissions },
       autoFocus: false,
     });
 

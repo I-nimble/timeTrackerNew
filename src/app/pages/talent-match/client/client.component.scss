@@ -141,7 +141,7 @@
   color: #4e4e4e;
   position: absolute;
   top: -25px;
-  right: 0;
+  right: calc(100% - var(--match-percentage, 0%) + 5px);
   width: 0;
   height: 0;
 }
@@ -149,6 +149,7 @@
   height: 100%;
   border-radius: 15px;
   transition: width 0.3s ease;
+  background-color: #92b46c;
 }
 
 .basic-level {
@@ -208,40 +209,6 @@
 
 .progress-container {
   width: 100%;
-}
-
-.progress-bar-fill {
-  height: 100%;
-  border-radius: 15px;
-  transition: width 0.5s ease-in-out;
-  
-  &.low-match {
-    background-color: #92b46c;
-    &::after {
-      right: 75%!important;
-    }
-  }
-  
-  &.medium-match {
-    background-color: #92b46c;
-    &::after {
-      right: 50%!important;
-    }
-  }
-  
-  &.high-match {
-    background-color: #92b46c;
-    &::after {
-      right: 25%!important;
-    }
-  }
-  
-  &.excellent-match {
-    background-color: #92b46c;
-    &::after {
-      right: 0%!important;
-    }
-  }
 }
 
 .progress-labels {

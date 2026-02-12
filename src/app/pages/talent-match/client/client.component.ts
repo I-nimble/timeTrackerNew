@@ -33,6 +33,7 @@ import { Options } from '@angular-slider/ngx-slider';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 
 @Component({
   standalone: true,
@@ -82,8 +83,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     'name',
     'personality profile',
     'position',
+    'experience',    
     'trainings',
-    'rate',
     'actions',
   ];
   dataSource = new MatTableDataSource<any>([]);
@@ -231,6 +232,14 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     'Office Administration',
     'International Relations'
   ];
+
+  formatEnglishLevelDisplay(value: number): string {
+    return formatEnglishLevelDisplay(value);
+  }
+
+  getEnglishLevelPercent(value: number): number {
+    return getEnglishLevelPercent(value);
+  }
 
   constructor(
     private applicationsService: ApplicationsService,

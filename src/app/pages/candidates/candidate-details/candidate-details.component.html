@@ -103,7 +103,7 @@
             <td>
               <b>Name <span class="text-danger" *ngIf="editMode">*</span></b>
             </td>
-            <td *ngIf="!editMode">{{ candidate()?.name || "" }}</td>
+            <td *ngIf="!editMode">{{ (candidate()?.name | formatName) || "" }}</td>
             <td *ngIf="editMode">
               <input matInput [formControl]="f['name']" />
               <p
@@ -556,6 +556,36 @@
             </td>
           </tr>
 
+          <tr *ngIf="userRole !== '3'">
+            <td><b>Summary Experience</b></td>
+            <td *ngIf="!editMode">
+              <div *ngIf="candidate()?.work_experience_summary; else emptySummary">
+                {{ candidate()?.work_experience_summary }}
+              </div>
+              <ng-template #emptySummary>
+                <span class="text-muted">No summary provided</span>
+              </ng-template>
+            </td>
+            <td *ngIf="editMode">
+              <textarea
+                matInput
+                [formControl]="f['work_experience_summary']"
+                placeholder="Brief summary of work experience (max 200 characters)"
+                maxLength="200"
+                rows="3"
+              ></textarea>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['work_experience_summary'].hasError('maxlength')"
+              >
+                Summary is too long. Please reduce to 200 characters.
+              </p>
+              <div class="text-muted f-s-12 m-t-4">
+                {{ f['work_experience_summary']?.value?.length || 0 }}/200 characters
+              </div>
+            </td>
+          </tr>
+
           <tr>
             <td>
               <b>Skills <span class="text-danger" *ngIf="editMode">*</span></b>
@@ -569,6 +599,100 @@
               >
                 Skills are required.
               </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td><b>Trainings</b></td>
+            <td>
+              <ng-container *ngIf="certifications.length > 0; else noCertifications">
+                <div
+                  class="m-b-12"
+                  *ngFor="let cert of certifications"
+                >
+                  <div class="p-16">
+                    <div class="d-flex align-items-start justify-content-between">
+                      <div class="flex-grow-1">
+                        <div class="f-w-600 f-s-14 text-primary" *ngIf="cert.name">
+                          {{ cert.name }}
+                        </div>
+                        <div class="f-s-12 text-muted" *ngIf="cert.issuer">
+                          Issuer: {{ cert.issuer }}
+                        </div>
+                        <div class="f-s-12 text-muted" *ngIf="cert.date || cert.expiration_date">
+                          <span *ngIf="cert.date">
+                            {{ cert.date | date:'MMM yyyy' }}
+                          </span>
+                          <span *ngIf="cert.date && cert.expiration_date"> - </span>
+                          <span *ngIf="cert.expiration_date">
+                            {{ cert.expiration_date | date:'MMM yyyy' }}
+                          </span>
+                        </div>
+                        <div class="m-t-8" *ngIf="cert.attachment_url">
+                          <div *ngIf="isImage(cert.attachment_url)">
+                            <img
+                              [src]="getAttachmentUrl(cert.attachment_url)"
+                              alt="Certification attachment"
+                              class="rounded"
+                              style="max-width: 140px; height: auto;"
+                            />
+                          </div>
+                          <div *ngIf="!isImage(cert.attachment_url)">
+                            <a
+                              [href]="getAttachmentUrl(cert.attachment_url)"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="d-inline-flex align-items-center"
+                            >
+                              {{ getFileName(cert.attachment_url) }}
+                            </a>
+                          </div>
+                        </div>
+                        <div class="m-t-8" *ngIf="cert.url">
+                          <a
+                            [href]="cert.url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            See credential
+                          </a>
+                        </div>
+                      </div>
+                      <div *ngIf="(canEdit || canManage) && (editMode || isCreateMode)">
+                        <button mat-icon-button [matMenuTriggerFor]="certActions">
+                          <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #certActions="matMenu">
+                          <button mat-menu-item (click)="editCertification(cert)">
+                            <mat-icon>edit</mat-icon>
+                            <span>Edit</span>
+                          </button>
+                          <button mat-menu-item (click)="deleteCertification(cert)">
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete</span>
+                          </button>
+                        </mat-menu>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #noCertifications>
+                <span class="text-muted">No trainings</span>
+              </ng-template>
+              <div class="m-t-12" *ngIf="(canEdit || canManage) && (editMode || isCreateMode)">
+                <button
+                  mat-raised-button
+                  color="primary"
+                  (click)="addCertification()"
+                  [disabled]="isCreateMode"
+                >
+                  Add Certification
+                </button>
+                <div class="text-muted f-s-12 m-t-4" *ngIf="isCreateMode">
+                  Save the candidate before adding certifications.
+                </div>
+              </div>
             </td>
           </tr>
 
@@ -609,14 +733,36 @@
                 <span class="text-danger" *ngIf="editMode">*</span></b
               >
             </td>
-            <td *ngIf="!editMode">{{ candidate()?.english_level || "" }}</td>
+            <td *ngIf="!editMode">
+              {{ formatEnglishLevelDisplay(candidate()?.english_level) || "" }}
+            </td>
             <td *ngIf="editMode">
-              <input matInput [formControl]="f['english_level']" />
+              <mat-slider
+                [style.width]="'calc(100% - 1rem)'"
+                min="1"
+                max="10"
+                step="1"
+                discrete
+              >
+                <input matSliderThumb [formControl]="f['english_level']" />
+              </mat-slider>
+              <div class="m-t-4">
+                {{ formatEnglishLevelDisplay(f['english_level']?.value) }}
+              </div>
               <p
                 class="text-danger f-s-12 m-t-0"
                 *ngIf="f['english_level'].hasError('required')"
               >
                 English level is required.
+              </p>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="
+                  f['english_level'].hasError('min') ||
+                  f['english_level'].hasError('max')
+                "
+              >
+                English level must be between 1 and 10.
               </p>
             </td>
           </tr>

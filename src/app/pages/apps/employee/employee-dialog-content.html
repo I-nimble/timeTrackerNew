@@ -99,7 +99,7 @@
         </mat-form-field>
       </div>
 
-      <div class="col-12" *ngIf="userRole === '1'">
+      <div class="col-12" *ngIf="userRole !== '3' && permissions.canView">
         <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Company</mat-label>
         <mat-form-field appearance="outline" class="w-100">
           <mat-select formControlName="company_id" name="company_id" required>
@@ -156,7 +156,7 @@
       </div>
 
       <!-- Schedule Section -->
-      <div class="col-12" *ngIf="userRole == '1' || userRole == '3'">
+      <div class="col-12" *ngIf="permissions.canView">
         <div class="schedule-header d-flex align-items-center justify-content-between m-b-16 m-t-24">
           <div>
             <h4 class="f-s-16 f-w-600 m-b-0">Schedule</h4>
@@ -290,7 +290,7 @@
       </mat-form-field>
     </div>
 
-    <div class="col-12" *ngIf="userRole === '1' || userRole === '4'">
+    <div class="col-12" *ngIf="userRole !== '3' && permissions.canView">
       <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Company</mat-label>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select formControlName="company_id" name="company_id" required>
