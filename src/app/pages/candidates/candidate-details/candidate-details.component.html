@@ -13,7 +13,7 @@
 </ng-template>
 <mat-card
   class="cardWithShadow"
-  *ngIf="(userRole == '1' || userRole == '4') && pendingChanges().length > 0"
+  *ngIf="pendingChanges().length > 0"
 >
   <mat-card-content>
     <div class="header-row mb-4">
