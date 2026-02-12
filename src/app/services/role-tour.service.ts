@@ -40,6 +40,9 @@ export class RoleTourService {
   private kanbanTasksState = new Subject<boolean>();
   kanbanTasksState$ = this.kanbanTasksState.asObservable();
 
+  private timeTrackerMembersState = new Subject<boolean>();
+  timeTrackerMembersState$ = this.timeTrackerMembersState.asObservable();
+
   constructor(
     private tourService: TourService<RoleTourStep>,
     private tourApi: TourApiService,
@@ -107,6 +110,11 @@ export class RoleTourService {
   setKanbanHasTasks(hasTasks: boolean) {
     localStorage.setItem('kanban.hasTasks', hasTasks ? 'true' : 'false');
     this.kanbanTasksState.next(hasTasks);
+  }
+
+  setTimeTrackerHasMembers(hasMembers: boolean) {
+    localStorage.setItem('timeTracker.hasMembers', hasMembers ? 'true' : 'false');
+    this.timeTrackerMembersState.next(hasMembers);
   }
 
   markResumeInProgress(anchorId: string) {
