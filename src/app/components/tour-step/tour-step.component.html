@@ -41,7 +41,7 @@
         {{ getProgressIndex() }} / {{ getProgressTotal() }}
       </div>
     }
-    @if (!isNoTaskKanbanEndStep() && ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board' || step.anchorId === 'chat-first-conversation' || step.anchorId === 'employee-first-name' || step.anchorId === 'kanban-task-actions')) {
+    @if (!isNoTaskKanbanEndStep() && !isNoMemberTimeTrackerEndStep() && ((tourService.hasNext(step) && !step.nextOnAnchorClick) || step.anchorId === 'kanban-first-board' || step.anchorId === 'chat-first-conversation' || step.anchorId === 'employee-first-name' || step.anchorId === 'kanban-task-actions')) {
       <button
         class="next"
         (click)="step.anchorId === 'kanban-first-board' ? onKanbanOpenNext() : (step.anchorId === 'chat-first-conversation' ? onChatOpenNext() : (step.anchorId === 'employee-first-name' ? onEmployeeDetailsOpenNext() : (step.anchorId === 'kanban-task-actions' ? onKanbanTaskActionsNext() : tourService.next())))"
@@ -51,7 +51,7 @@
         <mat-icon iconPositionEnd>chevron_right</mat-icon>
       </button>
     }
-    @if ((!tourService.hasNext(step) || isNoTaskKanbanEndStep()) && step.anchorId !== 'kanban-first-board' && step.anchorId !== 'employee-first-name' && step.anchorId !== 'kanban-task-actions') {
+    @if ((!tourService.hasNext(step) || isNoTaskKanbanEndStep() || isNoMemberTimeTrackerEndStep()) && step.anchorId !== 'kanban-first-board' && step.anchorId !== 'employee-first-name' && step.anchorId !== 'kanban-task-actions') {
       <button
         mat-button
         (click)="isNoTaskKanbanEndStep() ? onNoTaskKanbanEnd() : tourService.end()"
