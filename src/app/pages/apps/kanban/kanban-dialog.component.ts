@@ -472,77 +472,56 @@ export class AppKanbanDialogComponent implements OnInit {
   async onPaste(event: ClipboardEvent) {
     const clipboardData = event.clipboardData;
     if (!clipboardData) return;
-
-    if (clipboardData.files.length > 0) {
-      event.preventDefault();
-      
-      const items = clipboardData.items;
+    const items = clipboardData.items;
+    if (items && items.length > 0) {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
           const file = items[i].getAsFile();
           if (file) {
+            event.preventDefault();
             try {
-              const newFileName = `image.png`;
-              const renamedFile = new File([file], newFileName, { type: file.type });
-              this.attachments.push(renamedFile);
-              this.updateFirstAttachmentImage();
-              this.insertImageInEditor(renamedFile);
+              const upload$ = this.kanbanService.uploadTaskAttachments([file]);
+              const uploadedFiles = await lastValueFrom(upload$);
 
-              try {
-                const upload$ = this.kanbanService.uploadTaskAttachments([renamedFile]);
-                const uploadedFiles = await lastValueFrom(upload$);
-
-                if (uploadedFiles.length > 0) {
-                  const uploadedFile = uploadedFiles[0];
-                  const idx = this.attachments.findIndex(a => a instanceof File && (a as File).name === renamedFile.name);
-                  if (idx !== -1) {
-                    this.attachments[idx] = uploadedFile;
-                  } else {
-                    this.attachments.push(uploadedFile);
-                  }
-
-                  try {
-                    const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(uploadedFile.file_name));
-                    this.imageUrls[uploadedFile.file_name] = response.url;
-
-                    const editor = this.descriptionEditor?.nativeElement;
-                    if (editor) {
-                      const imgs = Array.from(editor.getElementsByTagName('img')) as HTMLImageElement[];
-                      imgs.forEach(img => {
-                        if (img.alt && img.alt === renamedFile.name && img.src.startsWith('blob:')) {
-                          img.setAttribute('data-file-name', uploadedFile.file_name);
-                          img.src = response.url;
-                        }
-                      });
-                    }
-
-                    this.updateFirstAttachmentImage();
-                    this.updateRecommendationsValue();
-                  } catch (err) {
-                    console.error('Error fetching uploaded file url after paste', err);
-                  }
+              if (uploadedFiles && uploadedFiles.length > 0) {
+                const uploadedFile = uploadedFiles[0];
+                if (!this.attachments.some(a => (a instanceof File ? false : a.file_name) === uploadedFile.file_name)) {
+                  this.attachments.push(uploadedFile);
                 }
-              } catch (uploadError) {
-                console.error('Error uploading pasted image:', uploadError);
+                this.updateFirstAttachmentImage();
+                await this.insertImageInEditor(uploadedFile);
+              } else {
+                await this.insertImageInEditor(file);
               }
-              
             } catch (error) {
               console.error('Error processing pasted image:', error);
               this.showSnackbar('Error processing pasted image');
             }
           }
-          break; 
+          break;
         }
       }
-    } else {
-      const html = clipboardData.getData('text/html');
-      if (html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const images = doc.querySelectorAll('img');
-        
-        if (images.length > 0) {
-          event.preventDefault();
+      return;
+    }
+
+    const html = clipboardData.getData('text/html');
+    if (html) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const images = doc.querySelectorAll('img');
+
+      if (images.length > 0) {
+        event.preventDefault();
+        const editor = this.descriptionEditor?.nativeElement;
+        if (editor) {
+          images.forEach(imgEl => {
+            const img = document.createElement('img');
+            img.src = imgEl.src;
+            img.style.maxWidth = '100%';
+            img.alt = imgEl.alt || 'Pasted image';
+            editor.appendChild(img);
+          });
+          this.updateRecommendationsValue();
         }
       }
     }
@@ -553,6 +532,11 @@ export class AppKanbanDialogComponent implements OnInit {
     
     if (file instanceof File) {
       imageUrl = URL.createObjectURL(file);
+      this.pastedAttachments.push({ file, url: imageUrl });
+      if (!this.attachments.includes(file)) {
+        this.attachments.push(file);
+        this.updateFirstAttachmentImage();
+      }
     } else {
       if (!this.imageUrls[file.file_name]) {
         const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(file.file_name));
@@ -583,12 +567,55 @@ export class AppKanbanDialogComponent implements OnInit {
     this.updateRecommendationsValue();
   }
 
+  async syncAttachmentsWithEditor() {
+    const editor = this.descriptionEditor?.nativeElement;
+    if (!editor) return;
+
+    const imgs = Array.from(editor.querySelectorAll('img')).map((img: any) => img.src);
+    const imgSet = new Set(imgs);
+
+    for (let i = this.attachments.length - 1; i >= 0; i--) {
+      const att = this.attachments[i];
+      if (att instanceof File) continue; 
+
+      if (att && att.file_name) {
+        if (!this.imageUrls[att.file_name]) {
+          try {
+            const resp: any = await lastValueFrom(this.kanbanService.getAttachmentUrl(att.file_name));
+            this.imageUrls[att.file_name] = resp.url;
+          } catch (e) {}
+        }
+
+        const url = this.imageUrls[att.file_name] || '';
+        if (url && !imgSet.has(url)) {
+          this.attachments.splice(i, 1);
+          if (this.firstAttachmentImage === att) this.updateFirstAttachmentImage();
+        }
+      }
+    }
+
+    for (let i = this.attachments.length - 1; i >= 0; i--) {
+      const att = this.attachments[i];
+      if (!(att instanceof File)) continue;
+
+      const mapped = this.pastedAttachments.find(p => p.file === att);
+      const url = mapped ? mapped.url : '';
+      if (url && !imgSet.has(url)) {
+        this.attachments.splice(i, 1);
+        const mi = this.pastedAttachments.findIndex(p => p.file === att);
+        if (mi !== -1) this.pastedAttachments.splice(mi, 1);
+        if (this.firstAttachmentImage === att) this.updateFirstAttachmentImage();
+      }
+    }
+  }
+
   updateRecommendationsValue() {
     this.local_data.recommendations = this.descriptionEditor.nativeElement.innerHTML;
   }
 
   onEditorInput() {
     this.updateRecommendationsValue();
+    void this.syncAttachmentsWithEditor();
   }
 
 
