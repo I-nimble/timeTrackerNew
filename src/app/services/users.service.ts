@@ -2,7 +2,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
 import { RocketChatService } from './rocket-chat.service';
 
@@ -10,7 +9,7 @@ import { RocketChatService } from './rocket-chat.service';
   providedIn: 'root',
 })
 export class UsersService {
-  constructor(private http: HttpClient, private sanitizer: DomSanitizer, private chatService: RocketChatService) { }
+  constructor(private http: HttpClient, private chatService: RocketChatService) { }
   selectedUser: any = { id: null, name: '' };
   private teamMemberSource = new BehaviorSubject<number | null>(null);
   teamMember$ = this.teamMemberSource.asObservable();
@@ -29,7 +28,7 @@ export class UsersService {
     return this.http.put(`${this.API_URI}/users/password`, passwordData);
   }
 
-  public getProfilePic(id?: number): Observable<SafeResourceUrl | null> {
+  public getProfilePic(id?: number): Observable<string | null> {
     const headers = new HttpHeaders({ Accept: 'image/jpeg' });
     const options = { headers: headers, responseType: 'blob' as 'json' };
     return this.http.post<Blob>(`${this.API_URI}/users/profile`, { id }, options).pipe(
@@ -57,8 +56,7 @@ export class UsersService {
 
         if (response.type.startsWith('image/')) {
           const url = URL.createObjectURL(response);
-          const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-          return of(safeUrl);
+          return of(url);
         } else {
           console.warn('Unexpected response type:', response.type);
           return of(null);
