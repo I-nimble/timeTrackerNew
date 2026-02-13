@@ -294,10 +294,12 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   formatEnglishLevelDisplay(value: number): string {
+    if (!value) return '';
     return formatEnglishLevelDisplay(value);
   }
 
   getEnglishLevelLabel(value: number): string {
+    if (!value) return '';
     return getEnglishLevelLabel(value);
   }
 

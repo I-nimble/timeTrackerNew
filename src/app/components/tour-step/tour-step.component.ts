@@ -19,8 +19,10 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) step!: RoleTourStep;
   private readonly emptyKanbanAnchors = ['side-kanban', 'kanban-boards', 'kanban-new-board'];
   private readonly noTaskKanbanHiddenAnchors = ['kanban-task-actions', 'kanban-add-column'];
+  private readonly timeTrackerEmptyAnchors = ['side-time-tracker', 'employee-search', 'employee-add', 'employee-table'];
   private kanbanObserver?: MutationObserver;
   private kanbanTasksSub?: Subscription;
+  private timeTrackerMembersSub?: Subscription;
 
   constructor(
     public tourService: TourService<RoleTourStep>,
@@ -35,11 +37,16 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       this.cdr.markForCheck();
       this.cdr.detectChanges();
     });
+    this.timeTrackerMembersSub = this.roleTourService.timeTrackerMembersState$.subscribe(() => {
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+    });
   }
 
   ngOnDestroy(): void {
     try { this.kanbanObserver?.disconnect(); } catch (e) {}
     try { this.kanbanTasksSub?.unsubscribe(); } catch (e) {}
+    try { this.timeTrackerMembersSub?.unsubscribe(); } catch (e) {}
   }
 
   onTourSkip(): void {
@@ -120,6 +127,9 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
     if (this.isEmptyKanbanTour()) {
       return this.emptyKanbanAnchors;
     }
+    if (this.isNoMemberTimeTrackerTour()) {
+      return this.timeTrackerEmptyAnchors;
+    }
     if (this.isNoTaskKanbanTour()) {
       return this.tourService.steps
         .map((s) => s.anchorId)
@@ -145,6 +155,24 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
     return isKanbanStep &&
       localStorage.getItem('kanban.hasBoards') === 'true' &&
       localStorage.getItem('kanban.hasTasks') !== 'true';
+  }
+
+  private isNoMemberTimeTrackerTour(): boolean {
+    const anchorId = this.step?.anchorId;
+    if (!anchorId) {
+      return false;
+    }
+
+    const isTimeTrackerStep = this.timeTrackerEmptyAnchors.includes(anchorId);
+    if (!isTimeTrackerStep) {
+      return false;
+    }
+
+    return localStorage.getItem('timeTracker.hasMembers') !== 'true';
+  }
+
+  isNoMemberTimeTrackerEndStep(): boolean {
+    return this.isNoMemberTimeTrackerTour() && this.step?.anchorId === 'employee-table';
   }
 
   isNoTaskKanbanEndStep(): boolean {
@@ -213,6 +241,12 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       event.preventDefault();
       event.stopPropagation();
       this.onKanbanTaskActionsNext();
+      return;
+    }
+    if (current.anchorId === 'employee-table' && this.isNoMemberTimeTrackerEndStep()) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.tourService.end();
       return;
     }
     if (current.anchorId === 'chat-first-conversation') {
