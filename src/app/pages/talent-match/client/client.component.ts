@@ -678,8 +678,11 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
   }
 
-  downloadFile(url: string, filename: string) {
-    const resumeUrl = this.applicationsService.getResumeUrl(url);
+  async downloadFile(url: string, filename: string, applicationId?: number) {
+    const resumeUrl = await this.applicationsService.getResumeUrl(url, applicationId);
+    if (!resumeUrl) {
+      return;
+    }
     fetch(resumeUrl)
       .then((response) => response.blob())
       .then((blob) => {

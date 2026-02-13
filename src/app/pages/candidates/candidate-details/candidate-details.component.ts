@@ -25,6 +25,7 @@ import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/e
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-candidate-details',
@@ -59,6 +60,7 @@ export class CandidateDetailsComponent implements OnInit {
   originalData: any;
   selectedProfilePicFile: File | null = null;
   selectedResumeFile: File | null = null;
+  resumeLink: string = '';
   locations: any[] = [];
   picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   userRole: string | null = null;
@@ -100,7 +102,8 @@ export class CandidateDetailsComponent implements OnInit {
     private dialog: MatDialog,
     private discProfilesService: DiscProfilesService,
     private http: HttpClient,
-    private certificationsService: CertificationsService
+    private certificationsService: CertificationsService,
+    private usersService: UsersService
   ) { }
 
   ngOnInit(): void {
@@ -214,6 +217,7 @@ export class CandidateDetailsComponent implements OnInit {
         };
         this.candidate.set(normalizedCandidate);
         this.certifications = normalizedCandidate.certifications || [];
+        this.resolveResumeLink(normalizedCandidate);
         this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
 
@@ -268,7 +272,20 @@ export class CandidateDetailsComponent implements OnInit {
         this.applicationMatchScoreService.getPositionCategories()
           .subscribe(categories => this.positionCategories = categories);
 
-        this.loader.complete = true;
+        this.getCandidatePictureUrl()
+          .then((safeUrl) => {
+            const updatedCandidate = {
+              ...this.candidate(),
+              picture: safeUrl,
+              profile_pic_url: safeUrl
+            };
+            this.candidate.set(updatedCandidate);
+            this.loader.complete = true;
+          })
+          .catch((err) => {
+            console.error('Error loading candidate picture', err);
+            this.loader.complete = true;
+          });
       },
       error: (err) => {
         console.error('Error loading applications', err);
@@ -277,6 +294,18 @@ export class CandidateDetailsComponent implements OnInit {
         this.message = 'Failed to load candidate applications.';
       }
     });
+  }
+
+  private async resolveResumeLink(candidate: any) {
+    if (!candidate) {
+      this.resumeLink = '';
+      return;
+    }
+
+    this.resumeLink = await this.applicationService.getResumeUrl(
+      candidate.resume_url,
+      candidate.id,
+    );
   }
 
   initializeForm(candidate: any) {
@@ -469,6 +498,7 @@ export class CandidateDetailsComponent implements OnInit {
         };
         
         this.candidate.set(updatedCandidate);
+        this.resolveResumeLink(updatedCandidate);
 
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
         
@@ -737,7 +767,50 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   getResumeUrl(filename: string | null | undefined): string {
-    return this.applicationService.getResumeUrl(filename);
+    return this.resumeLink;
+  }
+
+  async checkUrlExists(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  async getCandidatePictureUrl(): Promise<string> {
+    const candidate = this.candidate();
+    const rawValue = candidate?.picture || candidate?.profile_pic_url || '';
+
+    if (rawValue) {
+      if (rawValue.startsWith('http')) {
+        const exists = await this.checkUrlExists(rawValue);
+        if (exists) return rawValue;
+      }
+
+      const fileName = rawValue.startsWith('photos/')
+        ? rawValue.split('/').pop() || rawValue
+        : rawValue;
+
+      if (!environment.production) {
+        const localUrl = `${environment.socket}/uploads/profile-pictures/${fileName}`;
+        if (await this.checkUrlExists(localUrl)) return localUrl;
+      } else {
+        const prodUrl = `${this.picturesUrl}/${fileName}`;
+        if (await this.checkUrlExists(prodUrl)) return prodUrl;
+      }
+    }
+
+    return new Promise((resolve) => {
+      this.usersService.getProfilePic(candidate?.user_id).subscribe({
+        next: (safeUrl: any) => resolve(safeUrl || ''),
+        error: (err) => {
+          console.error('Error getting user profile picture:', err);
+          resolve('');
+        }
+      });
+    });
   }
 
   approveChanges() {
