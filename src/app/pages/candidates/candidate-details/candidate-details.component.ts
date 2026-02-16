@@ -1,7 +1,6 @@
 import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { environment } from 'src/environments/environment';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -62,7 +61,6 @@ export class CandidateDetailsComponent implements OnInit {
   selectedResumeFile: File | null = null;
   resumeLink: string = '';
   locations: any[] = [];
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   userRole: string | null = null;
   userId: number;
   canView: boolean = false;
@@ -102,8 +100,7 @@ export class CandidateDetailsComponent implements OnInit {
     private dialog: MatDialog,
     private discProfilesService: DiscProfilesService,
     private http: HttpClient,
-    private certificationsService: CertificationsService,
-    private usersService: UsersService
+    private certificationsService: CertificationsService
   ) { }
 
   ngOnInit(): void {
@@ -272,20 +269,7 @@ export class CandidateDetailsComponent implements OnInit {
         this.applicationMatchScoreService.getPositionCategories()
           .subscribe(categories => this.positionCategories = categories);
 
-        this.getCandidatePictureUrl()
-          .then((safeUrl) => {
-            const updatedCandidate = {
-              ...this.candidate(),
-              picture: safeUrl,
-              profile_pic_url: safeUrl
-            };
-            this.candidate.set(updatedCandidate);
-            this.loader.complete = true;
-          })
-          .catch((err) => {
-            console.error('Error loading candidate picture', err);
-            this.loader.complete = true;
-          });
+        this.loader.complete = true;
       },
       error: (err) => {
         console.error('Error loading applications', err);
@@ -777,48 +761,6 @@ export class CandidateDetailsComponent implements OnInit {
     return this.resumeLink;
   }
 
-  async checkUrlExists(url: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve(true);
-      img.onerror = () => resolve(false);
-      img.src = url;
-    });
-  }
-
-  async getCandidatePictureUrl(): Promise<string> {
-    const candidate = this.candidate();
-    const rawValue = candidate?.picture || candidate?.profile_pic_url || '';
-
-    if (rawValue) {
-      if (rawValue.startsWith('http')) {
-        const exists = await this.checkUrlExists(rawValue);
-        if (exists) return rawValue;
-      }
-
-      const fileName = rawValue.startsWith('photos/')
-        ? rawValue.split('/').pop() || rawValue
-        : rawValue;
-
-      if (!environment.production) {
-        const localUrl = `${environment.socket}/uploads/profile-pictures/${fileName}`;
-        if (await this.checkUrlExists(localUrl)) return localUrl;
-      } else {
-        const prodUrl = `${this.picturesUrl}/${fileName}`;
-        if (await this.checkUrlExists(prodUrl)) return prodUrl;
-      }
-    }
-
-    return new Promise((resolve) => {
-      this.usersService.getProfilePic(candidate?.user_id).subscribe({
-        next: (safeUrl: any) => resolve(safeUrl || ''),
-        error: (err) => {
-          console.error('Error getting user profile picture:', err);
-          resolve('');
-        }
-      });
-    });
-  }
 
   approveChanges() {
     const candidateId = this.candidate()?.id;

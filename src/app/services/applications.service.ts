@@ -277,7 +277,7 @@ export class ApplicationsService {
   private async checkUrlExists(url: string): Promise<boolean> {
     try {
       const response = await fetch(url, { method: 'HEAD' });
-      return response.status === 200 || response.status != 403;
+      return response.status === 200;
     } catch (error) {
       return false;
     }
@@ -295,22 +295,27 @@ export class ApplicationsService {
       filename = filename.split('/').pop();
     }
 
-    const baseUrl = !environment.production
-      ? `${environment.socket}/uploads/resumes`
-      : 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+    const localBaseUrl = `${environment.socket}/uploads/resumes`;
+    const s3BaseUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
 
     const candidates: string[] = [];
     if (filename) candidates.push(filename);
     if (applicationId) {
-      ['pdf', 'doc', 'docx'].forEach((ext) => {
+      ['pdf', 'doc', 'docx', ''].forEach((ext) => {
         candidates.push(`app-${applicationId}.${ext}`);
       });
     }
 
     for (const candidate of candidates) {
-      const url = `${baseUrl}/${candidate}`;
-      const urlExists = await this.checkUrlExists(url);
-      if (urlExists) return url;
+      if (!environment.production) {
+        const localUrl = `${localBaseUrl}/${candidate}`;
+        const localExists = await this.checkUrlExists(localUrl);
+        if (localExists) return localUrl;
+      }
+
+      const s3Url = `${s3BaseUrl}/${candidate}`;
+      const s3Exists = await this.checkUrlExists(s3Url);
+      if (s3Exists) return s3Url;
     }
 
     return '';
