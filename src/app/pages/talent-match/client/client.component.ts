@@ -487,7 +487,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any[]) => {
-        console.log('Applications:', applications);
         const sortedApplications = applications
           .map((a: any) => ({ ...a }))
           .sort((a, b) => {
