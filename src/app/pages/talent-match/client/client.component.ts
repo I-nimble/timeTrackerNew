@@ -75,7 +75,6 @@ import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils
 export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   userRole = localStorage.getItem('role');
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   positions: any[] = [];
   searchText: string = '';
   displayedColumns: string[] = [
@@ -488,6 +487,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   getApplications() {
     this.applicationsService.get().subscribe({
       next: (applications: any[]) => {
+        console.log('Applications:', applications);
         const sortedApplications = applications
           .map((a: any) => ({ ...a }))
           .sort((a, b) => {
