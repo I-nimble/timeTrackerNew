@@ -29,6 +29,7 @@ export class AppCertificationModalComponent {
   selectedFile: File | null = null;
   fileError: string | null = null;
   dateError: string | null = null;
+  credentialError: string | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<AppCertificationModalComponent>,
@@ -43,10 +44,13 @@ export class AppCertificationModalComponent {
   }
 
   doAction(): void {
-    if (!this.validateDates()) {
+    if (!this.validateDates() || !this.validateCredentialFields()) {
       return;
     }
-    this.dialogRef.close({ event: this.action, data: this.local_data, file: this.selectedFile });
+    this.dialogRef.close({
+      event: this.action,
+      data: this.local_data
+    });
   }
 
   closeDialog(): void {
@@ -58,50 +62,50 @@ export class AppCertificationModalComponent {
     this.validateDates();
   }
 
-  handleExpirationDateChange(event: any): void {
-    this.local_data.expiration_date = event.value;
-    this.validateDates();
-  }
+  // handleExpirationDateChange(event: any): void {
+  //   this.local_data.expiration_date = event.value;
+  //   this.validateDates();
+  // }
 
-  onFileSelected(event: any): void {
-    this.fileError = null;
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        this.fileError = 'File size must be less than 10MB.';
-        this.selectedFile = null;
-        return;
-      }
+  // onFileSelected(event: any): void {
+  //   this.fileError = null;
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     if (file.size > 10 * 1024 * 1024) {
+  //       this.fileError = 'File size must be less than 10MB.';
+  //       this.selectedFile = null;
+  //       return;
+  //     }
 
-      const allowedTypes = [
-        'application/pdf',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'image/jpeg',
-        'image/jpg',
-        'image/png'
-      ];
+  //     const allowedTypes = [
+  //       'application/pdf',
+  //       'application/vnd.ms-powerpoint',
+  //       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  //       'application/msword',
+  //       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  //       'image/jpeg',
+  //       'image/jpg',
+  //       'image/png'
+  //     ];
       
-      const extension = file.name.split('.').pop()?.toLowerCase();
-      const allowedExtensions = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
+  //     const extension = file.name.split('.').pop()?.toLowerCase();
+  //     const allowedExtensions = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
 
-      if (!allowedTypes.includes(file.type) && (!extension || !allowedExtensions.includes(extension))) {
-        this.fileError = 'Invalid file type. Allowed: PDF, PPT, DOC, JPG, PNG.';
-        this.selectedFile = null;
-        return;
-      }
+  //     if (!allowedTypes.includes(file.type) && (!extension || !allowedExtensions.includes(extension))) {
+  //       this.fileError = 'Invalid file type. Allowed: PDF, PPT, DOC, JPG, PNG.';
+  //       this.selectedFile = null;
+  //       return;
+  //     }
 
-      this.selectedFile = file;
-    }
-  }
+  //     this.selectedFile = file;
+  //   }
+  // }
 
-  removeAttachment(): void {
-    this.selectedFile = null;
-    this.local_data.attachment_url = null;
-    this.fileError = null;
-  }
+  // removeAttachment(): void {
+  //   this.selectedFile = null;
+  //   this.local_data.attachment_url = null;
+  //   this.fileError = null;
+  // }
 
   validateDates(): boolean {
     this.dateError = null;
@@ -116,13 +120,25 @@ export class AppCertificationModalComponent {
       return false;
     }
 
-    if (this.local_data.expiration_date) {
-      const expirationDate = new Date(this.local_data.expiration_date);
-      if (expirationDate < issueDate) {
-        this.dateError = 'Expiration date cannot be before issue date.';
-        return false;
-      }
+    // if (this.local_data.expiration_date) {
+    //   const expirationDate = new Date(this.local_data.expiration_date);
+    //   if (expirationDate < issueDate) {
+    //     this.dateError = 'Expiration date cannot be before issue date.';
+    //     return false;
+    //   }
+    // }
+    return true;
+  }
+
+  validateCredentialFields(): boolean {
+    this.credentialError = null;
+
+    if (this.local_data.credential_id && this.local_data.url) {
+      this.credentialError =
+        'Please provide either Credential ID or Credential URL, not both.';
+      return false;
     }
+
     return true;
   }
 }
