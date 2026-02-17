@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -122,6 +123,7 @@ export class AppIntakeFormComponent implements OnInit {
   lastIntakeId: number | null = null;
   lastIntakeUuid: number | null = null;
   lastClientName: string = '';
+  videoUrl = environment.videos + '/intake-presentation.mp4';
 
   constructor(
     private fb: FormBuilder,

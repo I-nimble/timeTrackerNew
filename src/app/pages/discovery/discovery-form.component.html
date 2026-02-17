@@ -7,7 +7,7 @@
       <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex align-items-center">
         <img src="assets/images/inimble.png" id="logo" class="m-t-20 m-b-20">
         <video controls id="introduction-video">
-          <source src="assets/videos/intake-presentation.mp4" type="video/mp4">
+          <source [src]="videoUrl" type="video/mp4">
           Your browser does not support the video tag.
         </video>
         <h1 class="m-b-20">Let's connect you with <span class="highlight-green">the right talent</span></h1>

@@ -12,6 +12,7 @@ import { allSkills } from './skills';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -58,6 +59,7 @@ export class AppDiscoveryFormComponent implements OnInit {
   skills: any[] = [];
   formSubmitted = false;
   otherSkillset = false;
+  videoUrl = environment.videos + '/intake-presentation.mp4';
 
   constructor(
     private fb: FormBuilder,
