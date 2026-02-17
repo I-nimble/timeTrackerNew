@@ -85,7 +85,6 @@ export class BoardsService {
   getAttachmentUrl(filename: string): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/attachment-url/${filename}`);
   }
-
 /*   downloadTaskAttachment(s3Key: string): void {
     const encodedKey = encodeURIComponent(s3Key);
     this.http.get<{ url: string }>(`${environment.apiUrl}/generate_download_url/task_attachments${encodedKey}`)
