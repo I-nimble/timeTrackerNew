@@ -112,6 +112,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   protected mediaPlayable = new Map<string, boolean>();
 
   isRecording: boolean = false;
+  isComposeMode = false;
   mediaRecorder: any = null;
   recordedChunks: BlobPart[] = [];
   recordedAudioUrl: string | null = null;
@@ -1638,6 +1639,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           if (result.success) {
             this.newMessage = '';
             this.replyToMessage = null;
+            this.isComposeMode = false;
           }
           this.isSendingMessage = false;
         },
@@ -1646,6 +1648,30 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.isSendingMessage = false;
         },
       });
+  }
+
+  onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    const shouldSend = this.isComposeMode
+      ? keyboardEvent.shiftKey
+      : !keyboardEvent.shiftKey;
+
+    if (shouldSend) {
+      keyboardEvent.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  toggleComposeMode() {
+    this.isComposeMode = !this.isComposeMode;
+  }
+
+  getComposeModeTooltip(): string {
+    if (this.isComposeMode) {
+      return 'Format mode enabled.';
+    }
+
+    return 'Enable format mode, or use Shift + Enter to add a line break.';
   }
 
   getLocalTime(offset: number | undefined): string {
