@@ -274,14 +274,50 @@ export class ApplicationsService {
     return event;
   }
 
-  getResumeUrl(filename: string | null | undefined): string {
-    if (!filename) return '';
-    if (filename.startsWith('http')) return filename;
-    
-    if (environment.apiUrl.includes('localhost') || !environment.production) {
-       return `${environment.socket}/uploads/resumes/${filename}`;
+  private async checkUrlExists(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.status === 200;
+    } catch (error) {
+      return false;
     }
-    
-    return `https://inimble-app.s3.us-east-1.amazonaws.com/resumes/${filename}`;
+  }
+
+  async getResumeUrl(
+    filename: string | null | undefined,
+    applicationId?: number,
+  ): Promise<string> {
+    if (!filename && !applicationId) return '';
+
+    if (filename?.startsWith('http')) {
+      const urlExists = await this.checkUrlExists(filename);
+      if (urlExists) return filename;
+      filename = filename.split('/').pop();
+    }
+
+    const localBaseUrl = `${environment.socket}/uploads/resumes`;
+    const s3BaseUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+
+    const candidates: string[] = [];
+    if (filename) candidates.push(filename);
+    if (applicationId) {
+      ['pdf', 'doc', 'docx', ''].forEach((ext) => {
+        candidates.push(`app-${applicationId}.${ext}`);
+      });
+    }
+
+    for (const candidate of candidates) {
+      if (!environment.production) {
+        const localUrl = `${localBaseUrl}/${candidate}`;
+        const localExists = await this.checkUrlExists(localUrl);
+        if (localExists) return localUrl;
+      }
+
+      const s3Url = `${s3BaseUrl}/${candidate}`;
+      const s3Exists = await this.checkUrlExists(s3Url);
+      if (s3Exists) return s3Url;
+    }
+
+    return '';
   }
 }

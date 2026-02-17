@@ -282,11 +282,7 @@
               <td mat-cell *matCellDef="let element">
                 <div class="d-flex align-items-center">
                   <img
-                    [src]="
-                      element.profile_pic_url && element.profile_pic_url !== ''
-                        ? element.profile_pic_url
-                        : assetsPath
-                    "
+                    [src]="element.profile_pic_url || assetsPath"
                     alt="users"
                     width="45"
                     height="45"
@@ -551,7 +547,7 @@
                             >
                               <img
                                 [src]="
-                                  element.profile_pic_url && element.profile_pic_url !== ''
+                                  element.profile_pic_url
                                     ? element.profile_pic_url
                                     : assetsPath
                                 "

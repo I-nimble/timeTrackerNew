@@ -1,7 +1,6 @@
 import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { environment } from 'src/environments/environment';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -24,6 +23,7 @@ import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { UsersService } from 'src/app/services/users.service';
 import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 
 @Component({
@@ -59,8 +59,8 @@ export class CandidateDetailsComponent implements OnInit {
   originalData: any;
   selectedProfilePicFile: File | null = null;
   selectedResumeFile: File | null = null;
+  resumeLink: string = '';
   locations: any[] = [];
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   userRole: string | null = null;
   userId: number;
   canView: boolean = false;
@@ -214,6 +214,7 @@ export class CandidateDetailsComponent implements OnInit {
         };
         this.candidate.set(normalizedCandidate);
         this.certifications = normalizedCandidate.certifications || [];
+        this.resolveResumeLink(normalizedCandidate);
         this.computePendingChanges();
         const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
 
@@ -277,6 +278,18 @@ export class CandidateDetailsComponent implements OnInit {
         this.message = 'Failed to load candidate applications.';
       }
     });
+  }
+
+  private async resolveResumeLink(candidate: any) {
+    if (!candidate) {
+      this.resumeLink = '';
+      return;
+    }
+
+    this.resumeLink = await this.applicationService.getResumeUrl(
+      candidate.resume_url,
+      candidate.id,
+    );
   }
 
   initializeForm(candidate: any) {
@@ -469,6 +482,7 @@ export class CandidateDetailsComponent implements OnInit {
         };
         
         this.candidate.set(updatedCandidate);
+        this.resolveResumeLink(updatedCandidate);
 
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
         
@@ -744,8 +758,9 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   getResumeUrl(filename: string | null | undefined): string {
-    return this.applicationService.getResumeUrl(filename);
+    return this.resumeLink;
   }
+
 
   approveChanges() {
     const candidateId = this.candidate()?.id;

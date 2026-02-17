@@ -75,7 +75,6 @@ import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils
 export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   userRole = localStorage.getItem('role');
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
   positions: any[] = [];
   searchText: string = '';
   displayedColumns: string[] = [
@@ -678,8 +677,11 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
   }
 
-  downloadFile(url: string, filename: string) {
-    const resumeUrl = this.applicationsService.getResumeUrl(url);
+  async downloadFile(url: string, filename: string, applicationId?: number) {
+    const resumeUrl = await this.applicationsService.getResumeUrl(url, applicationId);
+    if (!resumeUrl) {
+      return;
+    }
     fetch(resumeUrl)
       .then((response) => response.blob())
       .then((blob) => {
