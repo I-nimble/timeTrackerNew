@@ -448,13 +448,42 @@
   display: flex;
 }
 
+
 .chat-input {
-  padding: 16px 24px;
+  padding: 24px 24px;
   background: var(--mat-sys-surface);
   border-top: 1px solid var(--mat-sys-outline-variant);
-
+  
   mat-form-field {
     width: 100%;
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none!important;
+    }
+  }
+  
+  .compose-actions-bar {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .compose-actions-left,
+  .compose-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .compose-mode-btn.compose-mode-active {
+    --mdc-icon-button-icon-color: var(--mat-sys-primary);
+    --mat-icon-button-state-layer-color: var(--mat-sys-primary);
+    color: var(--mat-sys-primary);
+  }
+
+  .compose-mode-btn.compose-mode-active mat-icon {
+    color: var(--mat-sys-primary);
   }
 }
 
