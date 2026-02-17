@@ -80,6 +80,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
   isSidebarOpen = true;
   @ViewChild('messagesContainer', { static: false })
   messagesContainer?: ElementRef;
+  @ViewChild('composeEditor', { static: false })
+  composeEditor?: ElementRef<HTMLDivElement>;
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
   @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
@@ -113,6 +115,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   isRecording: boolean = false;
   isComposeMode = false;
+  composeBoldActive = false;
+  composeItalicActive = false;
   mediaRecorder: any = null;
   recordedChunks: BlobPart[] = [];
   recordedAudioUrl: string | null = null;
@@ -1585,6 +1589,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   sendMessage() {
+    if (this.isComposeMode) {
+      this.syncComposeMessageFromEditor();
+    }
+
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     if (this.editingMessage) {
       const baseText = this.newMessage.trim();
@@ -1604,6 +1612,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.editingMessage = null;
             this.editingQuoteUrl = null;
             this.newMessage = '';
+            this.isComposeMode = false;
+            this.composeBoldActive = false;
+            this.composeItalicActive = false;
+            this.clearComposeEditor();
 
             this.cdr.detectChanges();
           },
@@ -1640,6 +1652,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.newMessage = '';
             this.replyToMessage = null;
             this.isComposeMode = false;
+            this.composeBoldActive = false;
+            this.composeItalicActive = false;
+            this.clearComposeEditor();
           }
           this.isSendingMessage = false;
         },
@@ -1664,6 +1679,154 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   toggleComposeMode() {
     this.isComposeMode = !this.isComposeMode;
+    if (!this.isComposeMode) {
+      this.composeBoldActive = false;
+      this.composeItalicActive = false;
+      return;
+    }
+
+    setTimeout(() => {
+      this.syncComposeEditorFromMessage();
+      this.focusComposeEditor();
+      this.onComposeCursorChange();
+    }, 0);
+  }
+
+  discardComposeDraft() {
+    this.confirmationModal.open(ModalComponent, {
+      data: {
+        action: 'discard',
+        subject: 'draft',
+        message: 'This action will discard your current draft message.',
+      }
+    }).afterClosed().subscribe((result) => {
+      if (!result) return;
+      this.newMessage = '';
+      this.isComposeMode = false;
+      this.composeBoldActive = false;
+      this.composeItalicActive = false;
+      this.clearComposeEditor();
+    });
+  }
+
+  toggleComposeTextStyle(style: 'bold' | 'italic') {
+    if (!this.isComposeMode) return;
+
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+
+    const command = style === 'bold' ? 'bold' : 'italic';
+    editor.focus();
+    document.execCommand(command, false);
+    this.syncComposeMessageFromEditor();
+    this.onComposeCursorChange();
+  }
+
+  onComposeCursorChange() {
+    if (!this.isComposeMode) return;
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor || !this.isSelectionInsideEditor(editor)) return;
+
+    try {
+      this.composeBoldActive = document.queryCommandState('bold');
+      this.composeItalicActive = document.queryCommandState('italic');
+    } catch (e) {
+      this.composeBoldActive = false;
+      this.composeItalicActive = false;
+    }
+  }
+
+  onComposeEditorInput() {
+    this.syncComposeMessageFromEditor();
+    this.onComposeCursorChange();
+  }
+
+  onComposeEditorKeydown(event: KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+
+    if (event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+      return;
+    }
+
+    event.preventDefault();
+    document.execCommand('insertLineBreak');
+    this.syncComposeMessageFromEditor();
+  }
+
+  private syncComposeEditorFromMessage() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = this.markdownToEditorHtml(this.newMessage || '');
+  }
+
+  private clearComposeEditor() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = '';
+  }
+
+  private focusComposeEditor() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.focus();
+  }
+
+  private syncComposeMessageFromEditor() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
+  }
+
+  private isSelectionInsideEditor(editor: HTMLElement): boolean {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const anchorNode = sel.anchorNode;
+    return !!anchorNode && editor.contains(anchorNode);
+  }
+
+  private markdownToEditorHtml(markdown: string): string {
+    const escaped = (markdown || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    return escaped
+      .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
+  private editorHtmlToMarkdown(html: string): string {
+    const container = document.createElement('div');
+    container.innerHTML = html || '';
+
+    const nodeToMarkdown = (node: Node): string => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const element = node as HTMLElement;
+      const tag = element.tagName.toLowerCase();
+      const childText = Array.from(element.childNodes).map(nodeToMarkdown).join('');
+
+      if (tag === 'br') return '\n';
+      if (tag === 'strong' || tag === 'b') return `**${childText}**`;
+      if (tag === 'em' || tag === 'i') return `*${childText}*`;
+      if (tag === 'div' || tag === 'p') return `${childText}\n`;
+      return childText;
+    };
+
+    return Array.from(container.childNodes)
+      .map(nodeToMarkdown)
+      .join('')
+      .replace(/\u00a0/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd();
   }
 
   getComposeModeTooltip(): string {
@@ -1815,6 +1978,72 @@ export class AppChatComponent implements OnInit, OnDestroy {
       clearTimeout(this.touchTimer);
       this.touchTimer = null;
     }
+  }
+
+  toggleEmojiPicker() {
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  openReactionPicker(message: RocketChatMessage) {
+    this.reactionTargetMessage = message;
+    this.showReactionPicker = true;
+    
+  }
+
+  addEmoji(event: any) {
+    const emoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!emoji) return;
+
+    if (this.isComposeMode) {
+      const editor = this.composeEditor?.nativeElement;
+      if (editor) {
+        editor.focus();
+        document.execCommand('insertText', false, emoji);
+        this.syncComposeMessageFromEditor();
+        this.onComposeCursorChange();
+      }
+      return;
+    }
+
+    this.newMessage = (this.newMessage || '') + emoji;
+  }
+
+  sendReaction(event: any) {
+    if (!this.reactionTargetMessage) return;
+    const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!nativeEmoji) return;
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
+    this.chatService.reactToMessage(this.reactionTargetMessage._id, shortcode).subscribe({
+      error: (err) => {
+        console.error('Error reacting to message:', err);
+      }
+    });
+    this.showReactionPicker = false;
+    this.reactionTargetMessage = null;
+  }
+
+  getReactionKeys(message: RocketChatMessage): string[] {
+    return message.reactions ? Object.keys(message.reactions) : [];
+  }
+
+  getReactionUsernames(message: RocketChatMessage, emoji: string): string {
+    const users = message.reactions?.[emoji]?.usernames || [];
+    return users.length > 0 ? users.join(', ') : '';
+  }
+
+  didIReact(message: RocketChatMessage, emoji: string): boolean {
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return false;
+    return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
+  }
+
+  toggleReaction(message: RocketChatMessage, emoji: string) {
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      next: () => {
+      },
+      error: err => console.error('Error toggling reaction:', err)
+    });
   }
 
   quoteMessage(message: RocketChatMessage) {
@@ -2068,12 +2297,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const quoteInfo = this.extractQuoteInfoFromText(message.msg || '');
     this.editingQuoteUrl = quoteInfo.quoteUrl;
     this.newMessage = this.getMessageTextWithoutQuote(message) || '';
+
+    this.isComposeMode = true;
+    this.composeBoldActive = false;
+    this.composeItalicActive = false;
+
+    setTimeout(() => {
+      this.syncComposeEditorFromMessage();
+      this.focusComposeEditor();
+      this.onComposeCursorChange();
+    }, 0);
   }
   
   cancelEditing() {
     this.editingMessage = null;
     this.editingQuoteUrl = null;
     this.newMessage = '';
+    this.isComposeMode = false;
+    this.composeBoldActive = false;
+    this.composeItalicActive = false;
+    this.clearComposeEditor();
   }
 
   getEditingPreviewText(message: RocketChatMessage | null): string {
