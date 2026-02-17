@@ -545,7 +545,7 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Summary Experience</b></td>
+            <td><b>Summary Experience <span class="text-danger" *ngIf="editMode">*</span></b></td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.work_experience_summary; else emptySummary">
                 {{ candidate()?.work_experience_summary }}
@@ -567,6 +567,12 @@
                 *ngIf="f['work_experience_summary'].hasError('maxlength')"
               >
                 Summary is too long. Please reduce to 200 characters.
+              </p>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['work_experience_summary'].hasError('required')"
+              >
+                Summary experience is required.
               </p>
               <div class="text-muted f-s-12 m-t-4">
                 {{ f['work_experience_summary']?.value?.length || 0 }}/200 characters
