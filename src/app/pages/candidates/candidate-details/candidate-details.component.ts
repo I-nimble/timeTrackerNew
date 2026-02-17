@@ -123,7 +123,7 @@ export class CandidateDetailsComponent implements OnInit {
       skills: ['', Validators.required],
       education_history: [''],
       inimble_academy: [''],
-      english_level: ['', [Validators.required, Validators.min(1), Validators.max(10)]]
+      english_level: [1, [Validators.required, Validators.min(1), Validators.max(10)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
