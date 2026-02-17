@@ -33,12 +33,15 @@
         </div>
         <!-- Invoices image -->
         <div class="">
-          <div class="container" id="invoices-img" *ngIf="!isMobileScreen; else invoicesImgMobile">
+          <div class="container" id="invoices-img" *ngIf="!isMobileScreen; else invoicesImgMobile"
+            [ngStyle]="{ 'background-image': 'url(' + invoicesDesktopImage + ')' }">
           </div>
           <ng-template #invoicesImgMobile>
-            <div class="container" id="invoices-img-mobile-1">
+            <div class="container" id="invoices-img-mobile-1"
+              [ngStyle]="{ 'background-image': 'url(' + invoicesMobileImage1 + ')' }">
             </div>
-            <div class="container" id="invoices-img-mobile-2">
+            <div class="container" id="invoices-img-mobile-2"
+              [ngStyle]="{ 'background-image': 'url(' + invoicesMobileImage2 + ')' }">
             </div>
           </ng-template>
         </div>
@@ -107,28 +110,28 @@
             <div class="features-row">
               <div class="feature-card gray">
                 <h3 class="feature-heading">Legal compliance and payroll management</h3>
-                <img src="assets/images/products/Products-01.svg " alt="Product 1" />
+                <img [src]="assetsBase + '/Products-01.svg'" alt="Product 1" />
               </div>
               <div class="feature-card green">
                 <h3 class="feature-heading">Real Human Supervision</h3>
-                <img src="assets/images/products/Products-02.svg " alt="Product 2" />
+                <img [src]="assetsBase + '/Products-02.svg'" alt="Product 2" />
               </div>
               <div class="feature-card gray">
                 <h3 class="feature-heading">Seamless integration with Clio, Filevine & more</h3>
-                <img src="assets/images/products/Products-03.svg" alt="Product 3" />
+                <img [src]="assetsBase + '/Products-03.svg'" alt="Product 3" />
               </div>
               <div class="feature-card green">
                 <h3 class="feature-heading">Productivity Tools
                 </h3>
-                <img src="assets/images/products/Products-04.svg" alt="Product 4" />
+                <img [src]="assetsBase + '/Products-04.svg'" alt="Product 4" />
               </div>
               <div class="feature-card white">
                 <h3 class="feature-heading">Remote IT onboarding & ongoing support</h3>
-                <img src="assets/images/products/Products-05.svg" alt="Product 5" />
+                <img [src]="assetsBase + '/Products-05.svg'" alt="Product 5" />
               </div>
               <div class="feature-card green">
                 <h3 class="feature-heading">Bilingual, pre-vetted legal talent</h3>
-                <img src="assets/images/products/Products-06.svg" alt="Product 6" />
+                <img [src]="assetsBase + '/Products-06.svg'" alt="Product 6" />
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ import { NgxDropzoneModule } from 'ngx-dropzone';
 import { R3Service } from 'src/app/services/r3.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { switchMap, tap } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-r3-vision',
@@ -37,6 +38,7 @@ export class R3VisionComponent implements OnInit {
   deletedVisionItemIds: number[] = [];
   currentVisionId: number | null = null;
   uploadingMap: Record<number, boolean> = {};
+  assetsBase = environment.assets;
   
   constructor(private fb: FormBuilder, private r3Service: R3Service, public snackBar: MatSnackBar) {}
   @ViewChild('dropzone', { static: false }) dropzoneRef!: ElementRef<HTMLDivElement>;
