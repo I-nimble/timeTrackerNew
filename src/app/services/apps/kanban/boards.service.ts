@@ -47,19 +47,24 @@ export class BoardsService {
   uploadTaskAttachments(files: File[]): Observable<any[]> {
     if (!files || files.length === 0) return of([]);
 
-    const uploads$ = files.map(file =>
-      this.http.post<any>(
+    const uploads$ = files.map(file => {
+      const timestamp = Date.now();
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+      const ext = file.name.substring(file.name.lastIndexOf('.'));
+      const newName = `${nameWithoutExt}-${timestamp}${ext}`;
+      return this.http.post<any>(
         `${environment.apiUrl}/generate_upload_url/task_attachments`,
           {
             contentType: file.type || 'application/octet-stream',
-            originalFileName: file.name
+            originalFileName: newName
           }
       ).pipe(
         switchMap((uploadUrlRes: any) => {
           const uploadUrl = uploadUrlRes.url;
+          const fileName = uploadUrlRes.fileName || uploadUrlRes.key.split('/').pop();
           const headers = new HttpHeaders({
             'Content-Type': file.type || 'application/octet-stream',
-            'Content-Disposition': `attachment; filename="${file.name}"`
+            'X-Filename': fileName
           });
           return this.http.put(uploadUrl, file, { headers }).pipe(
             map(() => {
@@ -74,8 +79,11 @@ export class BoardsService {
           );
         })
       )
-    );
+    });
     return forkJoin(uploads$);
+  }
+  getAttachmentUrl(filename: string): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/attachment-url/${filename}`);
   }
 
 /*   downloadTaskAttachment(s3Key: string): void {
