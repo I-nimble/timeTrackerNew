@@ -38,7 +38,9 @@ export class EmojiMartPipe implements PipeTransform {
     value = value.replace(/:([a-zA-Z0-9_+-]+):/g, (full, sc) => {
       const native = this.map[sc];
       if (!native) return full;
-      const hex = native.codePointAt(0)?.toString(16);
+      const hex = Array.from(native)
+        .map(c => c.codePointAt(0)?.toString(16))
+        .join('-');
       return `<img src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/${hex}.png" width="22" height="22"/>`;
     });
 
@@ -64,7 +66,9 @@ export class EmojiMartPipe implements PipeTransform {
     const key = shortcode.replace(/:/g, '');
     const native = this.map[key];
     if (!native) return null;
-    const hex = native.codePointAt(0)?.toString(16);
+    const hex = Array.from(native)
+      .map(c => c.codePointAt(0)?.toString(16))
+      .join('-');
     if (!hex) return null;
     return `<img src="https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/${hex}.png"
                 width="18" height="18" style="vertical-align:middle;" />`;

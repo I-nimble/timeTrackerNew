@@ -521,13 +521,7 @@ export class RocketChatService {
       return {
         history,
         realtimeStream: this.getMessageStream().pipe(
-          filter((message) => message.rid === roomId),
-          filter((message) => {
-            const messageTimestamp = this.normalizeTimestamp(
-              message.ts
-            ).getTime();
-            return messageTimestamp > latestHistoryTimestamp;
-          })
+          filter((message) => message.rid === roomId)
         ),
         typingStream: this.typing$.pipe(
           filter((event) => event.roomId === roomId)
@@ -1653,7 +1647,8 @@ export class RocketChatService {
   }
 
   reactToMessage(messageId: string, emoji: string): Observable<RocketChatApiResponse> {
-    const body = { messageId, emoji };
+    const cleanEmoji = (emoji || '').toString().replace(/:/g, '');
+    const body = { messageId, emoji: cleanEmoji };
     return this.http.post<RocketChatApiResponse>(
       `${this.CHAT_API_URI}chat.react`,
       body,
