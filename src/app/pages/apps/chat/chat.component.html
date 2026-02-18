@@ -341,20 +341,24 @@
                         "
                         [class.from-me]="isFromMe(message)"
                       >
-                        <!--                           <button mat-icon-button
-                                  aria-label="React"
-                                  (click)="$event.stopPropagation(); openReactionPicker(message)">
-                            <mat-icon>emoji_emotions</mat-icon>
-                          </button> -->
+                        <button mat-icon-button
+                                aria-label="React"
+                                (click)="$event.stopPropagation(); openReactionPicker(message)">
+                          <mat-icon>emoji_emotions</mat-icon>
+                        </button>
                         <div
-                          *ngIf="showReactionPicker"
-                          class="emoji-panel"
+                          *ngIf="reactionPickerForMessageId === message._id"
+                          class="compact-emoji-panel"
                           (click)="$event.stopPropagation()"
                         >
-                          <emoji-mart
-                            set="apple"
-                            (emojiClick)="sendReaction($event)"
-                          ></emoji-mart>
+                          <button
+                            type="button"
+                            class="emoji-btn"
+                            *ngFor="let e of basicEmojis"
+                            (click)="selectReactionEmoji(e, message)"
+                            [attr.aria-label]="'React ' + e"
+                            [innerHTML]="getAppleEmojiHtml(e)"
+                          ></button>
                         </div>
                         <button
                           mat-icon-button
