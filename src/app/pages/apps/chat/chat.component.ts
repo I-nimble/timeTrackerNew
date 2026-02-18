@@ -1805,9 +1805,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
       .replace(/>/g, '&gt;');
 
     return escaped
-      .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br>');
   }
 
