@@ -2157,10 +2157,10 @@
                     {{ cert.description }}
                   </div>
 
-                  <div class="m-t-12" *ngIf="cert.attachment_url">
+                  <div class="m-t-12" *ngIf="getAttachmentUrl(cert.attachment_url)">
                     <div *ngIf="isImage(cert.attachment_url)">
                       <img
-                        [src]="cert.attachment_url"
+                        [src]="getAttachmentUrl(cert.attachment_url)"
                         class="rounded m-b-4"
                         style="
                           max-height: 150px;
@@ -2191,7 +2191,7 @@
                         </div>
                       </div>
                       <a
-                        [href]="cert.attachment_url"
+                        [href]="getAttachmentUrl(cert.attachment_url)"
                         target="_blank"
                         mat-icon-button
                         color="primary"
