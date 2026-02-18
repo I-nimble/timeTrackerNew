@@ -32,6 +32,8 @@
     "@capacitor/core": "^7.4.4",
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/ios": "^7.4.4",
+    "@ctrl/ngx-emoji-mart": "^9.3.0",
+    "@emoji-mart/data": "^1.2.1",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@kolkov/angular-editor": "^2.1.0",
     "@ng-matero/extensions": "^17.0.0",
@@ -80,6 +82,7 @@
     "sweetalert2": "^11.10.5",
     "swiper": "^11.2.5",
     "tslib": "^2.3.0",
+    "twemoji": "^14.0.2",
     "uuid": "^11.1.0",
     "zone.js": "~0.15.0"
   },

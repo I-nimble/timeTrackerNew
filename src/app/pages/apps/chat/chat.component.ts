@@ -47,6 +47,10 @@ import {
 import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { MatTooltip } from '@angular/material/tooltip';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
@@ -66,6 +70,11 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     MatMenuModule,
     CreateRoomComponent,
     ChatInfoComponent,
+    MarkdownPipe,
+    LinebreakPipe,
+    PickerModule,
+    EmojiMartPipe,
+    MatTooltip,
     TourMatMenuModule
   ],
   templateUrl: './chat.component.html',
@@ -106,6 +115,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
   pressedMessageId: string | null = null;
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
+  showEmojiPicker = false;
+  reactionTargetMessage: RocketChatMessage | null = null;
+  showReactionPicker = false;
   private editingQuoteUrl: string | null = null;
 
   private quotedMessageCache = new Map<string, RocketChatMessage | null>();
@@ -131,7 +143,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.isMobile = event.target.innerWidth <= 768;
   }
 
-  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog) {}
+  constructor(protected chatService: RocketChatService, private dialog: MatDialog, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar, private permissionsService: PlatformPermissionsService, private confirmationModal: MatDialog, public emojiPipe: EmojiMartPipe) {}
 
   ngOnInit(): void {
     this.loadRooms();
@@ -1793,9 +1805,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
       .replace(/>/g, '&gt;');
 
     return escaped
-      .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br>');
   }
 

@@ -155,6 +155,17 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
+  private loadPermissions() {
+    this.permissionService.getUserPermissions(this.userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('candidates.manage');
+        this.canEdit = effective.includes('candidates.edit');
+        this.canView = effective.includes('candidates.view');
+      }
+    });
+  }
+
   private setupFormValueListeners() {
     this.form.get('ranking_id')?.valueChanges.subscribe((rankingId) => {
       if (!this.editMode) return;
