@@ -17,6 +17,7 @@ import { ButtonComponent } from 'src/app/components/button/button.component';
 import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 interface apps {
   id: number;
@@ -80,11 +81,16 @@ export class AppLandingpageComponent implements AfterViewInit {
   @Output() toggleCollapsed = new EventEmitter<void>();
   @ViewChild('inimbleVideo') inimbleVideoRef!: ElementRef<HTMLVideoElement>;
 
+  assetsBase = environment.assets;
+  invoicesDesktopImage = `${this.assetsBase}/invoices.svg`;
+  invoicesMobileImage1 = `${this.assetsBase}/mobile_invoices_01.svg`;
+  invoicesMobileImage2 = `${this.assetsBase}/mobile_invoices_02.svg`;
+
   currentComparisonTableSlide = 0;
   comparisonTables = [
     {
       id: 1,
-      img: 'assets/images/comparison-table.svg',
+      img: `${this.assetsBase}/comparison-table.svg`,
       title: 'Inimble vs freelance platforms',
     },
     {
