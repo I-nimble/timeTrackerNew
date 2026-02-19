@@ -96,7 +96,7 @@ export class ApplicationsService {
   }
 
   public getApplicationsByPosition(position_id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/${position_id}`);
+    return this.http.get<any[]>(`${this.API_URI}/applications/position/${position_id}`);
   }
 
   public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
