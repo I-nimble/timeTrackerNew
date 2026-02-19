@@ -68,7 +68,7 @@
                 mat-flat-button
                 color="primary"
                 (click)="save()"
-                [disabled]="form.invalid"
+                [disabled]="form.invalid || !form.dirty"
               >
                 Save
               </button>

@@ -292,6 +292,7 @@ export class CandidateDetailsComponent implements OnInit {
     });
 
     this.originalData = JSON.parse(JSON.stringify(this.form.value));
+    this.form.markAsPristine();
   }
 
   get f() {
@@ -360,6 +361,7 @@ export class CandidateDetailsComponent implements OnInit {
     this.selectedResumeFile = null;
     
     this.editMode = false;
+    this.form.markAsPristine();
   }
 
   getSelectedDescriptionOption(): string {
@@ -460,6 +462,7 @@ export class CandidateDetailsComponent implements OnInit {
         
         this.selectedProfilePicFile = null;
         this.selectedResumeFile = null;
+        this.form.markAsPristine();
       },
       error: (error) => {
         console.error('Error updating candidate:', error);
