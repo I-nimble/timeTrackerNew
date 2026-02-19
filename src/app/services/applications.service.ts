@@ -23,6 +23,10 @@ export class ApplicationsService {
   getUserApplication(id: number): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
   }
+  
+  getApplication(id: number): Observable<any> {
+    return this.http.get<any>(`${this.API_URI}/applications/${id}`);
+  }
 
   reject(id: number, reason: string | null): Observable<any> {
     return this.http.put<any>(
