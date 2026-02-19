@@ -121,6 +121,7 @@ export class CandidateDetailsComponent implements OnInit {
       hobbies: [''],
       work_experience: ['', Validators.maxLength(1000)],
       work_experience_summary: ['', [Validators.required, Validators.maxLength(200)]],
+      work_experience_summary: ['', [Validators.required, Validators.maxLength(200)]],
       skills: ['', Validators.required],
       education_history: [''],
       inimble_academy: [''],
