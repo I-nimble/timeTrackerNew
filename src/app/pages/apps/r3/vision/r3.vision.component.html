@@ -38,7 +38,7 @@
               <ngx-dropzone-label>
                 <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
                   <ng-container *ngIf="!item.get('picture')?.value; else previewTpl">
-                    <img src="assets/images/products/Products-07.png"
+                    <img [src]="assetsBase + '/Products-07.png'"
                         alt="Upload" width="80" class="upload-icon m-b-16">
                     <p class="headline">Drop or select file</p>
                     <p class="subtext f-s-14">
@@ -89,7 +89,7 @@
               <ngx-dropzone-label>
                 <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
                   <ng-container *ngIf="!item.get('picture')?.value; else previewTplFocus">
-                    <img src="assets/images/products/Products-07.png" alt="Upload" width="80">
+                    <img [src]="assetsBase + '/Products-07.png'" alt="Upload" width="80">
                     <p class="headline">Drop or select file</p>
                   </ng-container>
                   <ng-template #previewTplFocus>
@@ -135,7 +135,7 @@
               <ngx-dropzone-label>
                 <div class="dropzone-content d-flex align-items-center justify-content-center flex-col">
                   <ng-container *ngIf="!item.get('picture')?.value; else previewTplStrategy">
-                    <img src="assets/images/products/Products-07.png" alt="Upload" width="80">
+                    <img [src]="assetsBase + '/Products-07.png'" alt="Upload" width="80">
                     <p class="headline">Drop or select file</p>
                   </ng-container>
                   <ng-template #previewTplStrategy>

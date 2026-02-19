@@ -8,6 +8,7 @@ export const environment = {
   s3: 'https://inimble-app.s3.us-east-1.amazonaws.com',
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',
   mp3: "https://inimble-app.s3.us-east-1.amazonaws.com/assets/sounds",
+  videos: 'https://inimble-app.s3.us-east-1.amazonaws.com/assets/videos',
   upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
   stripePublicKey:'pk_live_51RoRhKPR12udsRYO3kJF97GF3NLPFrpugiDJbts3ehAfbQLzOLKsNEXKBJA2VCjw1YM9679mUjtu5WSnZkB2cUu300wKcDfj0x',
   firebaseConfig: {

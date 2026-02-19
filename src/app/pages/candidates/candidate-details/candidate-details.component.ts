@@ -120,11 +120,11 @@ export class CandidateDetailsComponent implements OnInit {
       interview_link: [''],
       hobbies: [''],
       work_experience: ['', Validators.maxLength(1000)],
-      work_experience_summary: ['', Validators.maxLength(200)],
+      work_experience_summary: ['', [Validators.required, Validators.maxLength(200)]],
       skills: ['', Validators.required],
       education_history: [''],
       inimble_academy: [''],
-      english_level: ['', [Validators.required, Validators.min(1), Validators.max(10)]]
+      english_level: [1, [Validators.required, Validators.min(1), Validators.max(10)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
@@ -145,13 +145,24 @@ export class CandidateDetailsComponent implements OnInit {
       return;
     }
     const candidateId = Number(param);
-    this.loadCandidateApplications(candidateId);
+    this.loadCandidate(candidateId);
   }
 
   private loadPositions() {
     this.positionsService.get().subscribe({
       next: positions => this.positions = positions,
       error: err => console.error('Error loading positions', err)
+    });
+  }
+
+  private loadPermissions() {
+    this.permissionService.getUserPermissions(this.userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canManage = effective.includes('candidates.manage');
+        this.canEdit = effective.includes('candidates.edit');
+        this.canView = effective.includes('candidates.view');
+      }
     });
   }
 
@@ -178,104 +189,54 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
-  private loadPermissions() {
-    this.permissionService.getUserPermissions(this.userId).subscribe({
-      next: (userPerms: any) => {
-        const effective = userPerms.effectivePermissions || [];
-        this.canManage = effective.includes('candidates.manage');
-        this.canEdit = effective.includes('candidates.edit');
-        this.canView = effective.includes('candidates.view');
-      }
-    });
-  }
-
-  private loadCandidateApplications(candidateId: number) {
-    this.applicationService.get().subscribe({
-      next: (applications) => {
-        const candidate = applications.find(
-          a => a.id === candidateId || a.application_id === candidateId
-        );
-
+  private loadCandidate(candidateId: number) {
+    this.applicationService.getApplication(candidateId).subscribe({
+      next: async (candidate) => {
         if (!candidate) {
           this.loader.complete = true;
           this.loader.error = true;
           this.message = 'Candidate not found.';
           return;
         }
-
         this.candidate.set(candidate);
-
         const normalizedCandidate = {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
           pending_updates: candidate.pending_updates || null,
-          resume_url: candidate.resume_url || candidate.file_name || null
+          resume_url: candidate.resume_url || null
         };
         this.candidate.set(normalizedCandidate);
         this.certifications = normalizedCandidate.certifications || [];
-        this.resolveResumeLink(normalizedCandidate);
+        await this.resolveResumeLink(normalizedCandidate);
         this.computePendingChanges();
-        const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
-
-        let descriptionValue = '';
-        let selectedOption = '';
-        
-        if (candidate.description) {
-          if (candidate.description.includes(this.descriptionBaseText)) {
-            const parts = candidate.description.split(this.descriptionBaseText);
-            if (parts[1] && parts[1].trim()) {
-              selectedOption = parts[1].trim();
-            }
-            descriptionValue = candidate.description;
-          } else {
-            descriptionValue = candidate.description;
-            selectedOption = candidate.description;
-          }
-        }
-
-        this.form.patchValue({
-          name: candidate.name,
-          description: descriptionValue,
-          descriptionOption: selectedOption,
-          talent_match_profile_summary: candidate.talent_match_profile_summary,
-          ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
-          profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
-          position_id: candidate.position_id,
-          profile_pic: normalizedCandidate.picture,
-          interview_link: candidate.interview_link,
-          hobbies: candidate.hobbies,
-          work_experience: candidate.work_experience,
-          work_experience_summary: candidate.work_experience_summary,
-          skills: candidate.skills,
-          education_history: candidate.education_history,
-          inimble_academy: candidate.inimble_academy,
-          english_level: candidate.english_level
-        });
-
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));
-
-        this.applicationMatchScoreService.getByApplicationId(candidate.id)
+        this.initializeForm(normalizedCandidate);
+        this.applicationMatchScoreService
+          .getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
             scores.forEach(score => {
               const controlName = 'matchScores_' + score.id;
               if (!this.form.get(controlName)) {
-                this.form.addControl(controlName, new FormControl(score.match_percentage));
+                this.form.addControl(
+                  controlName,
+                  new FormControl(score.match_percentage)
+                );
               }
             });
           });
-
-        this.applicationMatchScoreService.getPositionCategories()
-          .subscribe(categories => this.positionCategories = categories);
-
+        this.applicationMatchScoreService
+          .getPositionCategories()
+          .subscribe(categories => {
+            this.positionCategories = categories;
+          });
         this.loader.complete = true;
       },
       error: (err) => {
-        console.error('Error loading applications', err);
+        console.error('Error loading candidate', err);
         this.loader.complete = true;
         this.loader.error = true;
-        this.message = 'Failed to load candidate applications.';
+        this.message = 'Failed to load candidate.';
       }
     });
   }
@@ -454,7 +415,6 @@ export class CandidateDetailsComponent implements OnInit {
       work_experience: formValues.work_experience,
       work_experience_summary: formValues.work_experience_summary,
       skills: formValues.skills,
-      certifications: this.certifications,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
       english_level: formValues.english_level,
@@ -478,7 +438,6 @@ export class CandidateDetailsComponent implements OnInit {
           ...data,
           description: descriptionValue,
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
-          certifications: data.certifications
         };
         
         this.candidate.set(updatedCandidate);
