@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, switchMap, map, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -83,7 +84,9 @@ export class BoardsService {
     return forkJoin(uploads$);
   }
   getAttachmentUrl(filename: string): Observable<any> {
-    return this.http.get<any>(`${this.API_URI}/attachment-url/${filename}`);
+    return this.http.get<any>(`${this.API_URI}/attachment-url/${filename}`).pipe(
+      catchError(() => of({ url: `${environment.s3}/task_attachments/${filename}` }))
+    );
   }
 /*   downloadTaskAttachment(s3Key: string): void {
     const encodedKey = encodeURIComponent(s3Key);

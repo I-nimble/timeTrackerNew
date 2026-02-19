@@ -1,10 +1,11 @@
 export const environment = {
-  production: false,
+  production: true,
   apiUrl: 'http://localhost:3000/api',
   socket: 'http://localhost:3000',
   url: 'https://localhost:4200/',
   baseWP: 'https://i-nimble.com',
   form:'https://forms.office.com/r',
+  s3: 'https://inimble-app.s3.us-east-1.amazonaws.com',
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',
   mp3: "https://inimble-app.s3.us-east-1.amazonaws.com/assets/sounds",
   upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
