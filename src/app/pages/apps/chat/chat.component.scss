@@ -771,18 +771,18 @@
   left: 20px;
   z-index: 2000;
 
-  width: 360px;
+  width: 330px;
   max-width: calc(100vw - 32px);
   max-height: 420px;
 
   border-radius: 18px;
   overflow: hidden;
 
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--mat-sys-surface);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--mat-sys-outline-variant);
 
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.08),
@@ -810,10 +810,12 @@
   }
 
   ::ng-deep .emoji-mart-anchors {
+    fill: var(--mat-sys-on-background);
     display: flex !important;
     justify-content: space-between !important;
     padding: 8px 12px !important;
     border-bottom: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer!important;
   }
 
   ::ng-deep .emoji-mart-anchor {
@@ -829,21 +831,40 @@
   ::ng-deep .emoji-mart-scroll,
   ::ng-deep .emoji-mart-body {
     max-height: 300px !important;
+    height: auto!important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: 8px 12px !important;
+    padding: 8px 2px 8px 12px !important;
   }
 
   ::ng-deep .emoji-mart-emoji {
-    width: 30px !important;
-    height: 30px !important;
+    width: 28px !important;
+    height: 28px !important;
     border-radius: 10px !important;
     transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    > span {
+      display: inline-flex !important;
+      transform: scale(1);
+      transform-origin: center;
+      transition: transform .15s ease !important;
+      will-change: transform;
+    }
   }
 
   ::ng-deep .emoji-mart-emoji:hover {
     background: rgba(0,0,0,0.05) !important;
-    transform: scale(1.15);
+    cursor: pointer;
+    > span {
+      transform: scale(1.2);
+    }
+  }
+
+  :ng-deep section.emoji-mart-category {
+    max-width: 308px !important;
   }
 
   ::ng-deep .emoji-mart-scroll::-webkit-scrollbar {
@@ -873,6 +894,11 @@
 
   ::ng-deep .emoji-mart-search input:focus {
     background: rgba(0,0,0,0.08) !important;
+  }
+
+  ::ng-deep .emoji-mart-search-icon,
+  ::ng-deep .emoji-mart-sr-only {
+    display: none !important;
   }
 }
 
