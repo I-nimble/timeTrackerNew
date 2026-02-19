@@ -53,6 +53,7 @@ import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { MatTooltip } from '@angular/material/tooltip';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { ThemeService } from 'src/app/services/theme.service';
 
 @Component({
   selector: 'app-chat',
@@ -160,7 +161,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
     private permissionsService: PlatformPermissionsService,
     private confirmationModal: MatDialog,
     public emojiPipe: EmojiMartPipe,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    public themeService: ThemeService
   ) {}
 
   getAppleEmojiHtml(nativeEmoji: string): SafeHtml {

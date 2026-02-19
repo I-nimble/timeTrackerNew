@@ -407,6 +407,7 @@
                           <mat-icon>delete</mat-icon>
                         </button>
                       </div>
+                      
                       @if(message.t === 'videoconf') {
                       <span class="f-s-14"> Call ongoing </span>
                       <button
@@ -849,7 +850,12 @@
           class="emoji-panel"
           (click)="$event.stopPropagation()"
         >
-          <emoji-mart set="apple" (emojiClick)="addEmoji($event)"></emoji-mart>
+          <emoji-mart 
+            [darkMode]="themeService.theme === 'dark'" 
+            set="apple" 
+            (emojiClick)="addEmoji($event)"
+          >
+          </emoji-mart>
         </div>
       </div>
     </mat-sidenav-content>
