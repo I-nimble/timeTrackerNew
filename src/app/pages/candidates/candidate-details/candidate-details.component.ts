@@ -414,7 +414,6 @@ export class CandidateDetailsComponent implements OnInit {
       work_experience: formValues.work_experience,
       work_experience_summary: formValues.work_experience_summary,
       skills: formValues.skills,
-      certifications: this.certifications,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
       english_level: formValues.english_level,
@@ -438,7 +437,6 @@ export class CandidateDetailsComponent implements OnInit {
           ...data,
           description: descriptionValue,
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
-          certifications: data.certifications
         };
         
         this.candidate.set(updatedCandidate);
