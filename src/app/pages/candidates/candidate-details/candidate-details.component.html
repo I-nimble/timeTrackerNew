@@ -63,7 +63,7 @@
     </div>
   </mat-card-content>
 </mat-card>
-<div *ngIf="loader.complete; else loaderElement">
+<div *ngIf="loader.complete || candidate(); else loaderElement">
   <mat-card class="cardWithShadow" id="candidate-view">
     <mat-card-content>
       <div class="container">
