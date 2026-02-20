@@ -215,7 +215,7 @@
                 </mat-form-field>
               </td>
             </ng-container>
-            <ng-container matColumnDef="locations">
+<!--             <ng-container matColumnDef="locations">
               <th mat-header-cell *matHeaderCellDef>Location(s)</th>
               <td mat-cell *matCellDef="let element">
                 <ng-container *ngIf="(locationLinksMap[element.id] || []).length > 0; else noLocs">
@@ -228,7 +228,7 @@
                 </ng-container>
                 <ng-template #noLocs>-</ng-template>
               </td>
-            </ng-container>
+            </ng-container> -->
             <ng-container matColumnDef="total-hours">
               <th mat-header-cell *matHeaderCellDef>Total Hours</th>
               <td mat-cell *matCellDef="let element">{{ decimalToTime(element.entry_hours) }}</td>
