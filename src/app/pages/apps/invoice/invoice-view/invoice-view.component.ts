@@ -30,7 +30,7 @@ export class AppInvoiceViewComponent {
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'locations', 'total-hours', 'comments'];
+  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
   tax: number = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
