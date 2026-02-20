@@ -112,6 +112,7 @@ export class CandidateDetailsComponent implements OnInit {
       description: [''],
       descriptionOption: [''],
       talent_match_profile_summary: [''],
+      profile_summary: [''],
       profile_observation: [''],
       ranking_id: [null],
       position_id: [null],
@@ -276,6 +277,7 @@ export class CandidateDetailsComponent implements OnInit {
       description: descriptionValue,
       descriptionOption: selectedOption,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
+      profile_summary: candidate.profile_summary,
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
@@ -408,6 +410,7 @@ export class CandidateDetailsComponent implements OnInit {
       name: formValues.name,
       description: descriptionValue,
       talent_match_profile_summary: formValues.talent_match_profile_summary,
+      profile_summary: formValues.profile_summary,
       profile_observation: formValues.profile_observation,
       ranking_id: formValues.ranking_id,
       position_id: formValues.position_id,
@@ -416,7 +419,6 @@ export class CandidateDetailsComponent implements OnInit {
       work_experience: formValues.work_experience,
       work_experience_summary: formValues.work_experience_summary,
       skills: formValues.skills,
-      certifications: this.certifications,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
       english_level: formValues.english_level,
@@ -440,7 +442,6 @@ export class CandidateDetailsComponent implements OnInit {
           ...data,
           description: descriptionValue,
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
-          certifications: data.certifications
         };
         
         this.candidate.set(updatedCandidate);
@@ -742,6 +743,7 @@ export class CandidateDetailsComponent implements OnInit {
           name: updatedCandidate.name,
           description: updatedCandidate.description,
           talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
+          profile_summary: updatedCandidate.profile_summary,
           position_id: updatedCandidate.position_id,
           interview_link: updatedCandidate.interview_link,
           hobbies: updatedCandidate.hobbies,

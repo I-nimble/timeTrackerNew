@@ -154,7 +154,15 @@
               <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
             </td>
           </tr>
-
+          <tr>
+            <td>
+              <b>Profile Summary</b>
+            </td>
+            <td *ngIf="!editMode">{{ candidate()?.profile_summary || "" }}</td>
+            <td *ngIf="editMode">
+              <textarea matInput [formControl]="f['profile_summary']"></textarea>
+            </td>
+          </tr>
           <tr *ngIf="!isCreateMode">
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
