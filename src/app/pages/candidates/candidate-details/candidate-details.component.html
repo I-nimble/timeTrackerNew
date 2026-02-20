@@ -101,7 +101,7 @@
         <table class="table table-bordered w-100 mb-4">
           <tr>
             <td>
-              <b>Name <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Name</b>
             </td>
             <td *ngIf="!editMode">{{ (candidate()?.name | formatName) || "" }}</td>
             <td *ngIf="editMode">
@@ -147,7 +147,7 @@
 
           <tr>
             <td>
-              <b>Talent Match Profile Summary<span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Talent Match Profile Summary</b>
             </td>
             <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || "" }}</td>
             <td *ngIf="editMode">
@@ -264,7 +264,7 @@
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
             <td>
-              <b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Ranking</b>
             </td>
             <td *ngIf="!editMode">
               {{ getRankingName(candidate()?.ranking_id) }}
@@ -557,7 +557,9 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Summary Experience <span class="text-danger" *ngIf="editMode">*</span></b></td>
+            <td>
+              <b>Summary Experience</b>
+            </td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.work_experience_summary; else emptySummary">
                 {{ candidate()?.work_experience_summary }}
@@ -594,7 +596,7 @@
 
           <tr>
             <td>
-              <b>Skills <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Skills</b>
             </td>
             <td *ngIf="!editMode">{{ candidate()?.skills || "" }}</td>
             <td *ngIf="editMode">
@@ -734,10 +736,7 @@
 
           <tr>
             <td>
-              <b
-                >English Level
-                <span class="text-danger" *ngIf="editMode">*</span></b
-              >
+              <b>English Level</b>
             </td>
             <td *ngIf="!editMode">
               {{ formatEnglishLevelDisplay(candidate()?.english_level) || "" }}

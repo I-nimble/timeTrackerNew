@@ -108,22 +108,22 @@ export class CandidateDetailsComponent implements OnInit {
     this.isCreateMode = param === 'new';
     this.getLocations();
     this.form = this.fb.group({
-      name: ['', Validators.required],
+      name: [''],
       description: [''],
       descriptionOption: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
-      ranking_id: ['', Validators.required],
-      position_id: ['', Validators.required],
+      ranking_id: [''],
+      position_id: [''],
       profile_pic: [''],
       interview_link: [''],
       hobbies: [''],
       work_experience: ['', Validators.maxLength(1000)],
-      work_experience_summary: ['', [Validators.required, Validators.maxLength(200)]],
-      skills: ['', Validators.required],
+      work_experience_summary: ['', [Validators.maxLength(200)]],
+      skills: [''],
       education_history: [''],
       inimble_academy: [''],
-      english_level: [1, [Validators.required, Validators.min(1), Validators.max(10)]]
+      english_level: [null, [Validators.min(1), Validators.max(10)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
@@ -396,10 +396,10 @@ export class CandidateDetailsComponent implements OnInit {
     const formValues = this.form.value;
 
     const selectedOption = this.form.value.descriptionOption;
-    let descriptionValue = this.descriptionBaseText;
-    
+    let descriptionValue: string | null = null;
+
     if (selectedOption && selectedOption.trim()) {
-      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption.trim()}`;
     }
 
     const data: any = {
@@ -496,10 +496,10 @@ export class CandidateDetailsComponent implements OnInit {
   save() {
     if (this.form.invalid) return;
     const selectedOption = this.form.value.descriptionOption;
-    let descriptionValue = this.descriptionBaseText;
-    
+    let descriptionValue: string | null = null;
+
     if (selectedOption && selectedOption.trim()) {
-      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption.trim()}`;
     }
     
     this.form.patchValue({
