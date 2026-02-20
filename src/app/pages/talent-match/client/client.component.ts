@@ -668,6 +668,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getRankingArrowPosition(rankingId: number | string | null | undefined): number {
+    const level = this.getRankingVisualLevel(rankingId);
+    return ((level - 0.5) / 4) * 100;
+  }
+
+  private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
+    const id = Number(rankingId);
+    if (!id || Number.isNaN(id)) {
+      return 0;
+    }
+    return Math.min(4, Math.max(1, 5 - id));
+  }
+
   getIconForCategory(categoryName: string): string {
     switch (categoryName.toLowerCase()) {
       case 'legal': return 'file-description';
