@@ -84,7 +84,7 @@
                 mat-flat-button
                 color="primary"
                 (click)="save()"
-                [disabled]="form.invalid"
+                [disabled]="form.invalid || !form.dirty"
               >
                 Save
               </button>
@@ -311,7 +311,7 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Position</b></td>
+            <td><b>Position <span class="text-danger" *ngIf="editMode">*</span></b>
             <td *ngIf="!editMode">
               <span class="d-flex align-items-center">
                 <span>{{ getPositionTitle(candidate()?.position_id) }}</span>
