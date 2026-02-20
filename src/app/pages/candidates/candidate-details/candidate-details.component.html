@@ -85,7 +85,7 @@
         <table class="table table-bordered w-100 mb-4">
           <tr>
             <td>
-              <b>Name</b>
+              <b>Name <span class="text-danger" *ngIf="editMode">*</span></b>
             </td>
             <td *ngIf="!editMode">{{ (candidate()?.name | formatName) || "" }}</td>
             <td *ngIf="editMode">
@@ -299,7 +299,7 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Position</b></td>
+            <td><b>Position</b>
             <td *ngIf="!editMode">
               <span class="d-flex align-items-center">
                 <span>{{ getPositionTitle(candidate()?.position_id) }}</span>

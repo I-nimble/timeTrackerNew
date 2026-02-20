@@ -109,13 +109,13 @@ export class CandidateDetailsComponent implements OnInit {
     this.isCreateMode = param === 'new';
     this.getLocations();
     this.form = this.fb.group({
-      name: [''],
+      name: ['', Validators.required],
       description: [''],
       descriptionOption: [''],
       talent_match_profile_summary: [''],
       profile_observation: [''],
-      ranking_id: [''],
-      position_id: [''],
+      ranking_id: [null],
+      position_id: [null],
       profile_pic: [''],
       interview_link: [''],
       hobbies: [''],
