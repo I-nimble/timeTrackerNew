@@ -63,7 +63,7 @@
     </div>
   </mat-card-content>
 </mat-card>
-<div *ngIf="loader.complete; else loaderElement">
+<div *ngIf="loader.complete || candidate(); else loaderElement">
   <mat-card class="cardWithShadow" id="candidate-view">
     <mat-card-content>
       <div class="container">
@@ -84,7 +84,7 @@
                 mat-flat-button
                 color="primary"
                 (click)="save()"
-                [disabled]="form.invalid"
+                [disabled]="form.invalid || !form.dirty"
               >
                 Save
               </button>
@@ -147,14 +147,22 @@
 
           <tr>
             <td>
-              <b>Talent Match Profile Summary<span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Talent Match Profile Summary</b>
             </td>
             <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || "" }}</td>
             <td *ngIf="editMode">
               <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
             </td>
           </tr>
-
+          <tr>
+            <td>
+              <b>Profile Summary</b>
+            </td>
+            <td *ngIf="!editMode">{{ candidate()?.profile_summary || "" }}</td>
+            <td *ngIf="editMode">
+              <textarea matInput [formControl]="f['profile_summary']"></textarea>
+            </td>
+          </tr>
           <tr *ngIf="!isCreateMode">
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
@@ -264,7 +272,7 @@
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
             <td>
-              <b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Ranking</b>
             </td>
             <td *ngIf="!editMode">
               {{ getRankingName(candidate()?.ranking_id) }}
@@ -311,7 +319,7 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Position</b></td>
+            <td><b>Position</b>
             <td *ngIf="!editMode">
               <span class="d-flex align-items-center">
                 <span>{{ getPositionTitle(candidate()?.position_id) }}</span>
@@ -557,7 +565,9 @@
           </tr>
 
           <tr *ngIf="userRole !== '3'">
-            <td><b>Summary Experience <span class="text-danger" *ngIf="editMode">*</span></b></td>
+            <td>
+              <b>Summary Experience</b>
+            </td>
             <td *ngIf="!editMode">
               <div *ngIf="candidate()?.work_experience_summary; else emptySummary">
                 {{ candidate()?.work_experience_summary }}
@@ -594,7 +604,7 @@
 
           <tr>
             <td>
-              <b>Skills <span class="text-danger" *ngIf="editMode">*</span></b>
+              <b>Skills</b>
             </td>
             <td *ngIf="!editMode">{{ candidate()?.skills || "" }}</td>
             <td *ngIf="editMode">
@@ -734,10 +744,7 @@
 
           <tr>
             <td>
-              <b
-                >English Level
-                <span class="text-danger" *ngIf="editMode">*</span></b
-              >
+              <b>English Level</b>
             </td>
             <td *ngIf="!editMode">
               {{ formatEnglishLevelDisplay(candidate()?.english_level) || "" }}

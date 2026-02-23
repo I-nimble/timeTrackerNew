@@ -112,18 +112,19 @@ export class CandidateDetailsComponent implements OnInit {
       description: [''],
       descriptionOption: [''],
       talent_match_profile_summary: [''],
+      profile_summary: [''],
       profile_observation: [''],
-      ranking_id: ['', Validators.required],
-      position_id: ['', Validators.required],
+      ranking_id: [null],
+      position_id: [null],
       profile_pic: [''],
       interview_link: [''],
       hobbies: [''],
       work_experience: ['', Validators.maxLength(1000)],
-      work_experience_summary: ['', Validators.required, Validators.maxLength(200)],
-      skills: ['', Validators.required],
+      work_experience_summary: ['', [Validators.maxLength(200)]],
+      skills: [''],
       education_history: [''],
       inimble_academy: [''],
-      english_level: [1, [Validators.required, Validators.min(1), Validators.max(10)]]
+      english_level: [null, [Validators.min(1), Validators.max(10)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
@@ -144,7 +145,7 @@ export class CandidateDetailsComponent implements OnInit {
       return;
     }
     const candidateId = Number(param);
-    this.loadCandidateApplications(candidateId);
+    this.loadCandidate(candidateId);
   }
 
   private loadPositions() {
@@ -188,93 +189,54 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
-  private loadCandidateApplications(candidateId: number) {
-    this.applicationService.get().subscribe({
-      next: (applications) => {
-        const candidate = applications.find(
-          a => a.id === candidateId || a.application_id === candidateId
-        );
-
+  private loadCandidate(candidateId: number) {
+    this.applicationService.getApplication(candidateId).subscribe({
+      next: async (candidate) => {
         if (!candidate) {
           this.loader.complete = true;
           this.loader.error = true;
           this.message = 'Candidate not found.';
           return;
         }
-
         this.candidate.set(candidate);
-
         const normalizedCandidate = {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
           pending_updates: candidate.pending_updates || null,
-          resume_url: candidate.resume_url || candidate.file_name || null
+          resume_url: candidate.resume_url || null
         };
         this.candidate.set(normalizedCandidate);
         this.certifications = normalizedCandidate.certifications || [];
-        this.resolveResumeLink(normalizedCandidate);
+        await this.resolveResumeLink(normalizedCandidate);
         this.computePendingChanges();
-        const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
-
-        let descriptionValue = '';
-        let selectedOption = '';
-        
-        if (candidate.description) {
-          if (candidate.description.includes(this.descriptionBaseText)) {
-            const parts = candidate.description.split(this.descriptionBaseText);
-            if (parts[1] && parts[1].trim()) {
-              selectedOption = parts[1].trim();
-            }
-            descriptionValue = candidate.description;
-          } else {
-            descriptionValue = candidate.description;
-            selectedOption = candidate.description;
-          }
-        }
-
-        this.form.patchValue({
-          name: candidate.name,
-          description: descriptionValue,
-          descriptionOption: selectedOption,
-          talent_match_profile_summary: candidate.talent_match_profile_summary,
-          ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
-          profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
-          position_id: candidate.position_id,
-          profile_pic: normalizedCandidate.picture,
-          interview_link: candidate.interview_link,
-          hobbies: candidate.hobbies,
-          work_experience: candidate.work_experience,
-          work_experience_summary: candidate.work_experience_summary,
-          skills: candidate.skills,
-          education_history: candidate.education_history,
-          inimble_academy: candidate.inimble_academy,
-          english_level: candidate.english_level
-        });
-
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));
-
-        this.applicationMatchScoreService.getByApplicationId(candidate.id)
+        this.initializeForm(normalizedCandidate);
+        this.applicationMatchScoreService
+          .getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
             scores.forEach(score => {
               const controlName = 'matchScores_' + score.id;
               if (!this.form.get(controlName)) {
-                this.form.addControl(controlName, new FormControl(score.match_percentage));
+                this.form.addControl(
+                  controlName,
+                  new FormControl(score.match_percentage)
+                );
               }
             });
           });
-
-        this.applicationMatchScoreService.getPositionCategories()
-          .subscribe(categories => this.positionCategories = categories);
-
+        this.applicationMatchScoreService
+          .getPositionCategories()
+          .subscribe(categories => {
+            this.positionCategories = categories;
+          });
         this.loader.complete = true;
       },
       error: (err) => {
-        console.error('Error loading applications', err);
+        console.error('Error loading candidate', err);
         this.loader.complete = true;
         this.loader.error = true;
-        this.message = 'Failed to load candidate applications.';
+        this.message = 'Failed to load candidate.';
       }
     });
   }
@@ -315,6 +277,7 @@ export class CandidateDetailsComponent implements OnInit {
       description: descriptionValue,
       descriptionOption: selectedOption,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
+      profile_summary: candidate.profile_summary,
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
       profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
       position_id: candidate.position_id,
@@ -330,6 +293,7 @@ export class CandidateDetailsComponent implements OnInit {
     });
 
     this.originalData = JSON.parse(JSON.stringify(this.form.value));
+    this.form.markAsPristine();
   }
 
   get f() {
@@ -398,6 +362,7 @@ export class CandidateDetailsComponent implements OnInit {
     this.selectedResumeFile = null;
     
     this.editMode = false;
+    this.form.markAsPristine();
   }
 
   getSelectedDescriptionOption(): string {
@@ -435,16 +400,17 @@ export class CandidateDetailsComponent implements OnInit {
     const formValues = this.form.value;
 
     const selectedOption = this.form.value.descriptionOption;
-    let descriptionValue = this.descriptionBaseText;
-    
+    let descriptionValue: string | null = null;
+
     if (selectedOption && selectedOption.trim()) {
-      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption.trim()}`;
     }
 
     const data: any = {
       name: formValues.name,
       description: descriptionValue,
       talent_match_profile_summary: formValues.talent_match_profile_summary,
+      profile_summary: formValues.profile_summary,
       profile_observation: formValues.profile_observation,
       ranking_id: formValues.ranking_id,
       position_id: formValues.position_id,
@@ -453,7 +419,6 @@ export class CandidateDetailsComponent implements OnInit {
       work_experience: formValues.work_experience,
       work_experience_summary: formValues.work_experience_summary,
       skills: formValues.skills,
-      certifications: this.certifications,
       education_history: formValues.education_history,
       inimble_academy: formValues.inimble_academy,
       english_level: formValues.english_level,
@@ -477,7 +442,6 @@ export class CandidateDetailsComponent implements OnInit {
           ...data,
           description: descriptionValue,
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
-          certifications: data.certifications
         };
         
         this.candidate.set(updatedCandidate);
@@ -500,6 +464,7 @@ export class CandidateDetailsComponent implements OnInit {
         
         this.selectedProfilePicFile = null;
         this.selectedResumeFile = null;
+        this.form.markAsPristine();
       },
       error: (error) => {
         console.error('Error updating candidate:', error);
@@ -535,10 +500,10 @@ export class CandidateDetailsComponent implements OnInit {
   save() {
     if (this.form.invalid) return;
     const selectedOption = this.form.value.descriptionOption;
-    let descriptionValue = this.descriptionBaseText;
-    
+    let descriptionValue: string | null = null;
+
     if (selectedOption && selectedOption.trim()) {
-      descriptionValue = `${this.descriptionBaseText} ${selectedOption}`;
+      descriptionValue = `${this.descriptionBaseText} ${selectedOption.trim()}`;
     }
     
     this.form.patchValue({
@@ -778,6 +743,7 @@ export class CandidateDetailsComponent implements OnInit {
           name: updatedCandidate.name,
           description: updatedCandidate.description,
           talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
+          profile_summary: updatedCandidate.profile_summary,
           position_id: updatedCandidate.position_id,
           interview_link: updatedCandidate.interview_link,
           hobbies: updatedCandidate.hobbies,

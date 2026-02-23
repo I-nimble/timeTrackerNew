@@ -121,23 +121,6 @@ export class RocketChatService {
         this.callAudio.muted = false;
         this.callAudio.volume = 1.0;
       }
-      try {
-        if (this.notificationAudio) {
-          const na = this.notificationAudio;
-          const p: any = na.play();
-          if (p && typeof p.then === 'function') {
-            p.then(() => { try { na.pause(); na.currentTime = 0; } catch (e) {} }).catch(() => {});
-          }
-        }
-        if (this.callAudio) {
-          const ca = this.callAudio;
-          const p2: any = ca.play();
-          if (p2 && typeof p2.then === 'function') {
-            p2.then(() => { try { ca.pause(); ca.currentTime = 0; } catch (e) {} }).catch(() => {});
-          }
-        }
-      } catch (e) {
-      }
     } catch (err) {
       console.error('Failed to init notification sounds:', err);
     }
