@@ -249,9 +249,15 @@
           <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem"></i>
           <div class="pinned-message-content">
             <div class="pinned-label">Pinned message</div>
-            <div class="pinned-preview">
-              {{ pinnedPreview(pinnedMessage()) }}
-            </div>
+            <div
+              class="pinned-preview"
+              [innerHTML]="
+                pinnedPreview(pinnedMessage())
+                  | emojiMart
+                  | linebreak
+                  | markdown
+              "
+            ></div>
           </div>
         </div>
       </mat-toolbar>
@@ -293,7 +299,7 @@
                   (touchstart)="onMessageTouchStart($event, message)"
                   (touchend)="onMessageTouchEnd($event, message)"
                   (touchcancel)="onMessageTouchCancel($event)"
-                  [class.show-actions]="pressedMessageId === message?._id"
+                  [class.show-actions]="pressedMessageId === message?._id || actionsMenuMessageId === message?._id"
                   [class.from-me]="isFromMe(message)"
                 >
                   <div
@@ -314,12 +320,17 @@
                           {{ getSenderName(quoted) }}:
                         </strong>
                         <span class="f-s-12">
-                          {{ getQuotedTextOrAttachment(quoted) | slice : 0 : 120 }}
-                          {{
-                            getQuotedTextOrAttachment(quoted).length > 120
-                              ? "..."
-                              : ""
-                          }}
+                          <span
+                            [innerHTML]="
+                              (
+                                (getQuotedTextOrAttachment(quoted) | slice : 0 : 120) +
+                                (getQuotedTextOrAttachment(quoted).length > 120 ? '...' : '')
+                              )
+                                | emojiMart
+                                | linebreak
+                                | markdown
+                            "
+                          ></span>
                         </span>
                       </div>
                     </div>
@@ -328,7 +339,7 @@
                       [ngClass]="
                         !isFromMe(message)
                           ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16'
-                          : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
+                          : 'from-me bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
                       "
                     >
                       <div
@@ -341,71 +352,170 @@
                         "
                         [class.from-me]="isFromMe(message)"
                       >
-                        <button mat-icon-button
-                                aria-label="React"
-                                (click)="$event.stopPropagation(); openReactionPicker(message)">
-                          <mat-icon>emoji_emotions</mat-icon>
-                        </button>
-                        <div
-                          *ngIf="reactionPickerForMessageId === message._id"
-                          class="compact-emoji-panel"
-                          (click)="$event.stopPropagation()"
-                        >
-                          <button
-                            type="button"
-                            class="emoji-btn"
-                            *ngFor="let e of basicEmojis"
-                            (click)="selectReactionEmoji(e, message)"
-                            [attr.aria-label]="'React ' + e"
-                            [innerHTML]="getAppleEmojiHtml(e)"
-                          ></button>
-                        </div>
                         <button
                           mat-icon-button
+                          class="quick-emoji-btn"
+                          [class.me-reacted]="didIReactNative(message, '👍')"
+                          aria-label="React thumbs up"
+                          (click)="$event.stopPropagation(); selectReactionEmoji('👍', message)"
+                        >
+                          <span [innerHTML]="getAppleEmojiHtml('👍')"></span>
+                        </button>
+                        <button
+                          mat-icon-button
+                          class="quick-emoji-btn"
+                          [class.me-reacted]="didIReactNative(message, '❤️')"
+                          aria-label="React heart"
+                          (click)="$event.stopPropagation(); selectReactionEmoji('❤️', message)"
+                        >
+                          <span [innerHTML]="getAppleEmojiHtml('❤️')"></span>
+                        </button>
+                        <button
+                          mat-icon-button
+                          class="quick-emoji-btn"
+                          [class.me-reacted]="didIReactNative(message, '😂')"
+                          aria-label="React laugh"
+                          (click)="$event.stopPropagation(); selectReactionEmoji('😂', message)"
+                        >
+                          <span [innerHTML]="getAppleEmojiHtml('😂')"></span>
+                        </button>
+                        <button
+                          mat-icon-button
+                          class="quick-emoji-btn"
+                          [class.me-reacted]="didIReactNative(message, '😮')"
+                          aria-label="React surprised"
+                          (click)="$event.stopPropagation(); selectReactionEmoji('😮', message)"
+                        >
+                          <span [innerHTML]="getAppleEmojiHtml('😮')"></span>
+                        </button>
+                        <button
+                          mat-icon-button
+                          aria-label="See more emojis"
+                          [matMenuTriggerFor]="moreEmojiMenu"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>add_reaction</mat-icon>
+                        </button>
+                        <mat-menu #moreEmojiMenu="matMenu" class="emoji-menu">
+                          <div class="compact-emoji-panel" (click)="$event.stopPropagation()">
+                            <button
+                              type="button"
+                              class="emoji-btn"
+                              *ngFor="let e of basicEmojis"
+                              (click)="selectReactionEmoji(e, message)"
+                              [class.me-reacted]="didIReactNative(message, e)"
+                              [attr.aria-label]="'React ' + e"
+                              [innerHTML]="getAppleEmojiHtml(e)"
+                            ></button>
+                          </div>
+                        </mat-menu>
+                        <span class="action-separator"></span>
+
+                        <button
+                          *ngIf="!isFromMe(message)"
+                          mat-icon-button
                           aria-label="Quote"
-                          (click)="
-                            $event.stopPropagation(); quoteMessage(message)
-                          "
+                          (click)="$event.stopPropagation(); quoteMessage(message)"
                         >
                           <mat-icon>format_quote</mat-icon>
                         </button>
+
                         <button
-                          mat-icon-button
-                          aria-label="Pin"
-                          (click)="$event.stopPropagation(); togglePin(message)"
-                        >
-                          @if(message.pinned) {
-                          <i
-                            class="fa-solid fa-thumbtack-slash"
-                            style="font-size: 1.25rem"
-                          ></i>
-                          } @else {
-                          <i
-                            class="fa-solid fa-thumbtack"
-                            style="font-size: 1.25rem"
-                          ></i>
-                          }
-                        </button>
-                        <button
+                          *ngIf="isFromMe(message)"
                           mat-icon-button
                           aria-label="Edit"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); editMessage(message)
-                          "
+                          (click)="$event.stopPropagation(); editMessage(message)"
                         >
                           <mat-icon>edit</mat-icon>
                         </button>
+
                         <button
+                          *ngIf="!isFromMe(message)"
                           mat-icon-button
-                          aria-label="Delete"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); deleteMessage(message)
-                          "
+                          aria-label="More options"
+                          [matMenuTriggerFor]="otherUserActionsMenu"
+                          (menuOpened)="onMoreActionsMenuOpened(message)"
+                          (menuClosed)="onMoreActionsMenuClosed()"
+                          (click)="$event.stopPropagation()"
                         >
-                          <mat-icon>delete</mat-icon>
+                          <mat-icon>more_horiz</mat-icon>
                         </button>
+                        <mat-menu #otherUserActionsMenu="matMenu">
+                          @if (message.pinned) {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack-slash"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Unpin message</span>
+                          </button>
+                          } @else {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Pin message</span>
+                          </button>
+                          }
+                        </mat-menu>
+
+                        <button
+                          *ngIf="isFromMe(message)"
+                          mat-icon-button
+                          aria-label="More options"
+                          [matMenuTriggerFor]="myActionsMenu"
+                          (menuOpened)="onMoreActionsMenuOpened(message)"
+                          (menuClosed)="onMoreActionsMenuClosed()"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>more_horiz</mat-icon>
+                        </button>
+                        <mat-menu #myActionsMenu="matMenu">
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); deleteMessage(message)"
+                          >
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete message</span>
+                          </button>
+                          @if (message.pinned) {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack-slash"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Unpin message</span>
+                          </button>
+                          } @else {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Pin message</span>
+                          </button>
+                          }
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); quoteMessage(message)"
+                          >
+                            <mat-icon>format_quote</mat-icon>
+                            <span>Quote message</span>
+                          </button>
+                        </mat-menu>
                       </div>
                       
                       @if(message.t === 'videoconf') {
@@ -559,7 +669,7 @@
                       "
                     >
                       <ng-container
-                        *ngFor="let emoji of getReactionKeys(message)"
+                        *ngFor="let emoji of getVisibleReactionKeys(message)"
                       >
                         <div
                           class="reaction-pill-outside"
@@ -580,6 +690,39 @@
                           }}</span>
                         </div>
                       </ng-container>
+
+                      <div
+                        class="reaction-overflow"
+                        *ngIf="getHiddenReactionCount(message) > 0"
+                      >
+                        <div class="reaction-pill-outside reaction-pill-more">
+                          +{{ getHiddenReactionCount(message) }}
+                        </div>
+                        <div class="reaction-overflow-menu">
+                          <ng-container
+                            *ngFor="let emoji of getHiddenReactionKeys(message)"
+                          >
+                            <div
+                              class="reaction-pill-outside"
+                              matTooltip="{{
+                                getReactionUsernames(message, emoji)
+                              }}"
+                              matTooltipPosition="above"
+                              (click)="toggleReaction(message, emoji)"
+                              [class.me-reacted]="didIReact(message, emoji)"
+                            >
+                              <span
+                                [innerHTML]="
+                                  emojiPipe.getAppleImgFromShortcode(emoji)
+                                "
+                              ></span>
+                              <span class="count">{{
+                                message.reactions[emoji].usernames.length
+                              }}</span>
+                            </div>
+                          </ng-container>
+                        </div>
+                      </div>
                     </div>
                     <span class="f-s-12">{{
                       getMessageTimestamp(message) | date : "hh:mm a"
@@ -619,11 +762,15 @@
               <div class="reply-author f-s-12 f-w-600">
                 Replying to {{ getSenderName(replyToMessage) }}
               </div>
-              <div class="reply-text f-s-12 text-muted">
-                {{
+              <div
+                class="reply-text f-s-12 text-muted"
+                [innerHTML]="
                   getReplyPreviewText(replyToMessage)
-                }}
-              </div>
+                    | emojiMart
+                    | linebreak
+                    | markdown
+                "
+              ></div>
             </div>
           </div>
           <div>

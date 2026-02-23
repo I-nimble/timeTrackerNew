@@ -330,12 +330,18 @@
   }
 }
 
+// message bubble that is not from me
+.message-bubble:not(.from-me) .message-actions {
+  left: 0;
+  right: auto;
+}
+
 .message-actions {
   position: absolute;
-  top: -3.5rem;
-  right: .5rem;
+  top: -3rem;
+  right: 0;
   display: flex;
-  gap: 6px;
+  gap: 2px;
   align-items: center;
   opacity: 0;
   transform: translateY(-6px);
@@ -343,9 +349,33 @@
   transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 800ms;
   z-index: 20;
   background: var(--mat-sys-surface);
-  padding: 6px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 4px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.message-actions .quick-emoji-btn {
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  padding: 0;
+}
+
+.message-actions .quick-emoji-btn span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-actions .quick-emoji-btn.me-reacted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 50%, var(--mat-sys-surface));
+}
+
+.action-separator {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--mat-sys-outline-variant);
 }
 
 .message-bubble:hover .message-actions,
@@ -662,13 +692,14 @@
 
 .pinned-message-bar {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 12px;
   padding: 8px 12px;
   margin-bottom: 12px;
   cursor: pointer;
   flex: 1;
   min-width: 0;
+  max-height: 100%;
 }
 
 .pinned-message-bar mat-icon {
@@ -687,6 +718,7 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--mat-sys-on-surface);
+  line-height: 1;
 }
 
 .pinned-preview {
@@ -736,7 +768,7 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  background: #f1f1f1;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, var(--mat-sys-surface));
   border-radius: 12px;
   padding: 2px 6px;
   gap: 4px;
@@ -746,12 +778,12 @@
 }
 
 .reaction-pill-outside:hover {
-  background: #e2e2e2;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 14%, var(--mat-sys-surface));
 }
 
 .reaction-pill-outside.me-reacted {
-  background: #cce5ff;
-  border: 1px solid #80bfff;
+  background: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface));
+  border: 1px solid var(--mat-sys-primary);
 }
 
 .reaction-pill-outside img {
@@ -906,14 +938,10 @@
   display: inline-flex;
   gap: 6px;
   padding: 6px;
-  background: rgba(255,255,255,0.98);
-  border: 1px solid rgba(0,0,0,0.06);
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   z-index: 2200;
-  position: absolute;
-  top: -44px;
-  right: 0;
   max-width: 240px;
   flex-wrap: wrap;
 }
@@ -929,7 +957,59 @@
 }
 
 .compact-emoji-panel .emoji-btn:hover {
-  background: rgba(0,0,0,0.04);
+  background: var(--mat-menu-item-hover-state-layer-color);
+}
+
+.compact-emoji-panel .emoji-btn.me-reacted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface));
+  border: 1px solid var(--mat-sys-primary);
+}
+
+.message-reactions-outside {
+  margin-top: -5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.reaction-overflow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.reaction-pill-more {
+  font-weight: 600;
+}
+
+.reaction-overflow-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -100%;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: max-content;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  z-index: 30;
+}
+
+.fa-thumbtack-slash, .fa-thumbtack {
+  margin-right: var(--mat-menu-item-spacing, 8px)!important;
+  height: var(--mat-menu-item-icon-size, 24px)!important;
+  width: var(--mat-menu-item-icon-size, 24px)!important;
+  margin-left: 4px!important;
+}
+
+.reaction-overflow:hover .reaction-overflow-menu {
+  display: inline-flex;
+  flex-direction: column;
 }
 
 @keyframes emojiFadeIn {
