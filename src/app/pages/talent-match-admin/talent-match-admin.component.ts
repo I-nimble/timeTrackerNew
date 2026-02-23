@@ -23,6 +23,7 @@ import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { getTrainingNames } from 'src/app/utils/candidate.utils';
 
 export interface PeriodicElement {
   id: number;
@@ -247,11 +248,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getTrainingNames(certifications: any[] | undefined): string {
-    if (!certifications || certifications.length === 0) return '';
-    return certifications
-      .map(cert => cert?.name)
-      .filter(Boolean)
-      .join(', ');
+    return getTrainingNames(certifications);
   }
 
   goToCandidate(id: number, event: MouseEvent) {
