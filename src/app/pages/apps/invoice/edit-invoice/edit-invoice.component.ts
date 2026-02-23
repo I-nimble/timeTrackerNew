@@ -41,7 +41,7 @@ export class AppEditInvoiceComponent {
   itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
   itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
   itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'locations', 'total-hours', 'comments', 'actions'];
+  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments', 'actions'];
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column', 'empty-column'];
   footerAddEntryColumns = ['add-entry'];
   tax: number = 0;
