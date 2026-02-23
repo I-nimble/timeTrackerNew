@@ -115,13 +115,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
   editingMessage: RocketChatMessage | null = null;
   replyToMessage: RocketChatMessage | null = null;
   pressedMessageId: string | null = null;
+  actionsMenuMessageId: string | null = null;
   private touchTimer: any = null;
   userNameCache = new Map<string, string>();
   showEmojiPicker = false;
   reactionTargetMessage: RocketChatMessage | null = null;
   showReactionPicker = false;
   reactionPickerForMessageId: string | null = null;
-  basicEmojis: string[] = ['👍','❤️','😂','🎉','😮','😢','👀', '👎','🙌','❤️','😆','😄','😅','😂','😱','😓','😳','😢','😬'];
+  basicEmojis: string[] = ['🎉','😢','👀', '👎','🙌','😆','😄','😅','😱','😓','😳','😢','😬'];
   basicEmojiHtml = new Map<string, SafeHtml>();
   private editingQuoteUrl: string | null = null;
 
@@ -474,7 +475,15 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   isActionsVisible(message: RocketChatMessage) {
     if (!this.isMobile) return true;
-    return this.pressedMessageId === message._id;
+    return this.pressedMessageId === message._id || this.actionsMenuMessageId === message._id;
+  }
+
+  onMoreActionsMenuOpened(message: RocketChatMessage) {
+    this.actionsMenuMessageId = message?._id || null;
+  }
+
+  onMoreActionsMenuClosed() {
+    this.actionsMenuMessageId = null;
   }
 
   isSystemMessage(message: RocketChatMessage): boolean {
@@ -2056,16 +2065,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!message || !nativeEmoji) return;
     const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
     if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
-    this.chatService.reactToMessage(message._id, shortcode).subscribe({
-      next: () => {
-        this.reactionPickerForMessageId = null;
-        this.reactionTargetMessage = null;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Error reacting to message:', err);
-      }
-    });
+    this.toggleReaction(message, shortcode);
+    this.reactionPickerForMessageId = null;
+    this.reactionTargetMessage = null;
+    this.cdr.markForCheck();
   }
 
   addEmoji(event: any) {
@@ -2092,11 +2095,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!nativeEmoji) return;
     const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
     if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
-    this.chatService.reactToMessage(this.reactionTargetMessage._id, shortcode).subscribe({
-      error: (err) => {
-        console.error('Error reacting to message:', err);
-      }
-    });
+    this.toggleReaction(this.reactionTargetMessage, shortcode);
     this.showReactionPicker = false;
     this.reactionTargetMessage = null;
   }
@@ -2114,6 +2113,25 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const myUsername = this.chatService.loggedInUser?.username;
     if (!myUsername) return false;
     return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
+  }
+
+  didIReactNative(message: RocketChatMessage, nativeEmoji: string): boolean {
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    if (!shortcode) return false;
+    return this.didIReact(message, shortcode);
+  }
+
+  getVisibleReactionKeys(message: RocketChatMessage, limit: number = 5): string[] {
+    return this.getReactionKeys(message).slice(0, limit);
+  }
+
+  getHiddenReactionKeys(message: RocketChatMessage, limit: number = 5): string[] {
+    return this.getReactionKeys(message).slice(limit);
+  }
+
+  getHiddenReactionCount(message: RocketChatMessage, limit: number = 5): number {
+    const hidden = this.getReactionKeys(message).length - limit;
+    return hidden > 0 ? hidden : 0;
   }
 
   toggleReaction(message: RocketChatMessage, emoji: string) {
