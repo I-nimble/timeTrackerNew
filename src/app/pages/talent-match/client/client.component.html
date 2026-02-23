@@ -604,6 +604,21 @@
                         </div>
                       </div>
                     </mat-card>
+                     <!-- Talent Match Profile Summary -->
+                    <mat-card
+                      class="shadow-none"
+                      *ngIf="element.talent_match_profile_summary"
+                    >
+                      <mat-divider></mat-divider>
+                      <mat-card-content>
+                        <ng-container>
+                          <h5 class="f-s-18 f-w-600 m-b-16">Talent Match Profile Summary</h5>
+                          <div>
+                            <p>{{ element.talent_match_profile_summary }}</p>
+                          </div>
+                        </ng-container>
+                      </mat-card-content>
+                    </mat-card>
                     <!-- Olympia -->
                     <mat-card
                       class="shadow-none"
@@ -776,21 +791,6 @@
                                 *ngTemplateOutlet="showFallback"
                               ></ng-container>
                             </div>
-                          </div>
-                        </ng-container>
-                      </mat-card-content>
-                    </mat-card>
-                    <!-- Talent Match Profile Summary -->
-                    <mat-card
-                      class="shadow-none"
-                      *ngIf="element.talent_match_profile_summary"
-                    >
-                      <mat-divider></mat-divider>
-                      <mat-card-content>
-                        <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">Talent Match Profile Summary</h5>
-                          <div>
-                            <p>{{ element.talent_match_profile_summary }}</p>
                           </div>
                         </ng-container>
                       </mat-card-content>
