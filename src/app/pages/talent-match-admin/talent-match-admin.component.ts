@@ -25,6 +25,7 @@ import { DepartmentsService } from 'src/app/services/departments.service';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { getTrainingNames } from 'src/app/utils/candidate.utils';
 
 export interface PeriodicElement {
   id: number;
@@ -248,11 +249,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getTrainingNames(certifications: any[] | undefined): string {
-    if (!certifications || certifications.length === 0) return '';
-    return certifications
-      .map(cert => cert?.name)
-      .filter(Boolean)
-      .join(', ');
+    return getTrainingNames(certifications);
   }
 
   goToCandidate(id: number, event: MouseEvent) {
