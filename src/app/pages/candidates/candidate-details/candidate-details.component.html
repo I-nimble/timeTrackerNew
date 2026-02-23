@@ -24,21 +24,37 @@
           Approve
         </button>
         <button
-          mat-flat-button class="bg-error text-white" (click)="rejectChanges()">
+          mat-flat-button
+          class="bg-error text-white"
+          (click)="rejectChanges()"
+        >
           Reject
         </button>
       </div>
     </div>
     <div class="p-16">
       <div class="table-responsive">
-        <table mat-table [dataSource]="pendingChanges()" class="mat-mdc-table mdc-data-table__table cdk-table w-100" role="table">
+        <table
+          mat-table
+          [dataSource]="pendingChanges()"
+          class="mat-mdc-table mdc-data-table__table cdk-table w-100"
+          role="table"
+        >
           <ng-container matColumnDef="field">
-            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Field</th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">{{ element.field }}</td>
+            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+              Field
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.field }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="value">
-            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Updated Info</th>
-            <td mat-cell *matCellDef="let element" class="f-s-14">{{ element.value }}</td>
+            <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+              Updated Info
+            </th>
+            <td mat-cell *matCellDef="let element" class="f-s-14">
+              {{ element.value }}
+            </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="['field', 'value']"></tr>
           <tr mat-row *matRowDef="let row; columns: ['field', 'value']"></tr>
@@ -131,25 +147,13 @@
 
           <tr>
             <td>
-              <b
-                >Talent Match Profile Summary<span
-                  class="text-danger"
-                  *ngIf="editMode"
-                  >*</span
-                ></b
-              >
+              <b>Talent Match Profile Summary</b>
             </td>
-            <td *ngIf="!editMode">
-              {{ candidate()?.talent_match_profile_summary || "" }}
-            </td>
+            <td *ngIf="!editMode">{{ candidate()?.talent_match_profile_summary || "" }}</td>
             <td *ngIf="editMode">
-              <textarea
-                matInput
-                [formControl]="f['talent_match_profile_summary']"
-              ></textarea>
+              <textarea matInput [formControl]="f['talent_match_profile_summary']"></textarea>
             </td>
           </tr>
-
           <tr *ngIf="!isCreateMode">
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
@@ -258,8 +262,12 @@
         <h4>RESUMES</h4>
         <table class="table table-bordered w-100">
           <tr *ngIf="userRole !== '3'">
-            <td><b>Ranking <span class="text-danger" *ngIf="editMode">*</span></b></td>
-            <td *ngIf="!editMode">{{ getRankingName(candidate()?.ranking_id) }}</td>
+            <td>
+              <b>Ranking</b>
+            </td>
+            <td *ngIf="!editMode">
+              {{ getRankingName(candidate()?.ranking_id) }}
+            </td>
             <td *ngIf="editMode">
               <mat-select
                 [formControl]="f['ranking_id']"
@@ -272,7 +280,10 @@
                   {{ profile.ranking }}
                 </mat-option>
               </mat-select>
-              <p class="text-danger f-s-12 m-t-0" *ngIf="f['ranking_id'].hasError('required')">
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['ranking_id'].hasError('required')"
+              >
                 Ranking is required.
               </p>
             </td>
@@ -364,7 +375,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {{ candidate()?.profile_pic_url || candidate()?.picture}}
+                  {{ candidate()?.picture || candidate()?.profile_pic_url }}
                 </a>
               </div>
               <span
