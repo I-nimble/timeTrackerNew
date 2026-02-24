@@ -184,7 +184,7 @@ export class AppEmployeeTableComponent implements AfterViewInit {
       selectedIds.push(user.profile.id);
     }
     this.filters = {
-      user: { id: selectedIds.length > 1 ? selectedIds : user.profile.id },
+      user: { id: selectedIds.length > 1 ? selectedIds : [user.profile.id] },
       company: 'all',
       project: 'all',
       byClient: false,
@@ -198,36 +198,32 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        const datesRange = {
-          firstSelect: result.firstSelect,
-          lastSelect: result.lastSelect,
-        };
-
-        this.employees.map((employee: any) => {
-          user.id == employee.user.id ? user = employee.user : null;
+      if (!result) return;
+      const datesRange = {
+        firstSelect: result.firstSelect,
+        lastSelect: result.lastSelect,
+      };
+      const multipleUsers = this.filters.multipleUsers;
+      const userId = user?.profile?.id ?? user?.id;
+      const requestUser = {
+        id: multipleUsers ? this.filters.user.id : userId
+      };
+      this.reportsService
+        .getReport(datesRange, requestUser, this.filters)
+        .subscribe((v) => {
+          let displayName = 'multiple_users';
+          if (!multipleUsers) {
+            const name = user?.profile?.name ?? user?.name ?? '';
+            const last = user?.profile?.last_name ?? user?.last_name ?? '';
+            displayName = `${name}_${last}`.replace(/\s+/g, '_');
+          }
+          const filename = `I-nimble_Report_${displayName}_${moment(
+            result.firstSelect
+          ).format('DD-MM-YYYY')}_${moment(
+            result.lastSelect
+          ).format('DD-MM-YYYY')}.xlsx`;
+          filesaver.saveAs(v, filename);
         });
-        this.reportsService
-          .getReport(datesRange, user, this.filters)
-          .subscribe((v) => {
-            let filename;
-            let display_name;
-            if (this.filters.multipleUsers) {
-              display_name = 'multiple_users';
-            }
-            else {
-              display_name = `${user.name}_${user.last_name}`;
-            }
-    
-            filename = `I-nimble_Report_${display_name}_${moment( 
-              new Date(datesRange.firstSelect)
-            ).format('DD-MM-YYYY')}_${moment(
-              new Date(datesRange.lastSelect)
-            ).format('DD-MM-YYYY')}.xlsx`;
-    
-            filesaver.saveAs(v, filename);
-          });
-      }
     });
   }
 
