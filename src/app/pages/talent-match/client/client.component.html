@@ -604,17 +604,17 @@
                         </div>
                       </div>
                     </mat-card>
-                    <!-- Profile Summary -->
+                     <!-- Talent Match Profile Summary -->
                     <mat-card
                       class="shadow-none"
-                      *ngIf="element.profile_summary"
+                      *ngIf="element.talent_match_profile_summary"
                     >
                       <mat-divider></mat-divider>
                       <mat-card-content>
                         <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">Profile Summary</h5>
+                          <h5 class="f-s-18 f-w-600 m-b-16">Talent Match Profile Summary</h5>
                           <div>
-                            <p>{{ element.profile_summary }}</p>
+                            <p>{{ element.talent_match_profile_summary }}</p>
                           </div>
                         </ng-container>
                       </mat-card-content>
@@ -791,21 +791,6 @@
                                 *ngTemplateOutlet="showFallback"
                               ></ng-container>
                             </div>
-                          </div>
-                        </ng-container>
-                      </mat-card-content>
-                    </mat-card>
-                    <!-- Talent Match Profile Summary -->
-                    <mat-card
-                      class="shadow-none"
-                      *ngIf="element.talent_match_profile_summary"
-                    >
-                      <mat-divider></mat-divider>
-                      <mat-card-content>
-                        <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">Talent Match Profile Summary</h5>
-                          <div>
-                            <p>{{ element.talent_match_profile_summary }}</p>
                           </div>
                         </ng-container>
                       </mat-card-content>
