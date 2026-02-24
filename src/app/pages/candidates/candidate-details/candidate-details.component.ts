@@ -125,7 +125,8 @@ export class CandidateDetailsComponent implements OnInit {
       skills: [''],
       education_history: [''],
       inimble_academy: [''],
-      english_level: [null, [Validators.min(1), Validators.max(10)]]
+      english_level: [null, [Validators.min(1), Validators.max(10)]],
+      suggested_salary: [null, [Validators.min(0)]]
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
@@ -290,7 +291,8 @@ export class CandidateDetailsComponent implements OnInit {
       skills: candidate.skills,
       education_history: candidate.education_history,
       inimble_academy: candidate.inimble_academy,
-      english_level: candidate.english_level
+      english_level: candidate.english_level,
+      suggested_salary: candidate.suggested_salary
     });
 
     this.originalData = JSON.parse(JSON.stringify(this.form.value));
