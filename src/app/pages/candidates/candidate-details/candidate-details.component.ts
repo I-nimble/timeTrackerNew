@@ -451,8 +451,7 @@ export class CandidateDetailsComponent implements OnInit {
       english_level: formValues.english_level,
       email: this.candidate()?.email,
       cv: this.selectedResumeFile,
-      suggested_salary: formValues.suggested_salary,
-      certifications: this.certifications
+      suggested_salary: formValues.suggested_salary
     };
 
     if (this.selectedProfilePicFile) {
