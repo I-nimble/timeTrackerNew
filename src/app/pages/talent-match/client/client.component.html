@@ -903,19 +903,22 @@
                         </ng-container>
                       </mat-card-content>
                     </mat-card>
-                    <!-- Coworking location -->
-                    <mat-card class="shadow-none" *ngIf="element.location">
+                    <!-- Suggested Salary -->
+                    <mat-card class="shadow-none">
                       <mat-divider></mat-divider>
                       <mat-card-content>
                         <ng-container>
                           <div class="d-flex">
                             <div class="col-6">
                               <h5 class="f-s-24 f-w-600 m-b-16">
-                                Coworking location
+                                Suggested Salary: 
                               </h5>
-                              <div>
-                                {{ element.location }}, {{ element.country }}
+                              <div *ngIf="element.suggested_salary; else noSalary" class="f-w-600">
+                                {{ element.suggested_salary | currency:'USD':'symbol':'1.2-2'  }}
                               </div>
+                              <ng-template #noSalary>
+                                <span class="text-muted">Not provided</span>
+                              </ng-template>
                             </div>
                             <div class="col-6 cta-container">
                               <h5 class="f-s-24 f-w-600 m-b-16 text-center">
