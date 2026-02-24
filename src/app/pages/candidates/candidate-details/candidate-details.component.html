@@ -779,6 +779,26 @@
               </p>
             </td>
           </tr>
+
+          <tr>
+            <td>
+              <b>Suggested Salary</b>
+            </td>
+            <td *ngIf="!editMode">{{ candidate()?.suggested_salary || "" }}</td>
+            <td *ngIf="editMode">
+              <mat-form-field appearance="outline" class="w-100">
+                <input matInput type="number" class="right-align" placeholder="0" [formControl]="f['suggested_salary']" />
+                <span matTextPrefix>$&nbsp;</span>
+                <span matTextSuffix>.00</span>
+              </mat-form-field>
+              <p
+                class="text-danger f-s-12 m-t-0"
+                *ngIf="f['suggested_salary'].hasError('min')"
+              >
+                Suggested Salary must be greater than 0.
+              </p>
+            </td>
+          </tr>
         </table>
       </div>
     </mat-card-content>
