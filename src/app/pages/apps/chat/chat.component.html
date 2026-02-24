@@ -873,64 +873,66 @@
           </div>
         </div>
 
-        <mat-form-field *ngIf="!isComposeMode" appearance="outline" class="mat-mdc-form-field w-100" tourAnchor="chat-message-input">
-          <button mat-icon-button matPrefix (click)="selectFile()" tourAnchor="chat-attach-files">
-            <mat-icon>attach_file</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            matPrefix
-            (click)="toggleEmojiPicker(); $event.stopPropagation()"
-          >
-            <mat-icon>emoji_emotions</mat-icon>
-          </button>
-          <textarea
-            *ngIf="!isComposeMode"
-            matInput
-            placeholder="Send message"
-            [(ngModel)]="newMessage"
-            (keydown.enter)="onEnter($event)"
-            (input)="onMessageInput()"
-            [disabled]="isRecording"
-            rows="1"
-            cdkTextareaAutosize
-            [cdkAutosizeMinRows]="1"
-            #autosize="cdkTextareaAutosize"
-          ></textarea>
-          <button
-            mat-icon-button
-            matSuffix
-            class="compose-mode-btn"
-            (click)="toggleComposeMode()"
-            [matTooltip]="getComposeModeTooltip()"
-            matTooltipPosition="above"
-            aria-label="Toggle format mode"
-            [color]="undefined"
-          >
-            <mat-icon>notes</mat-icon>
-          </button>
-          <button
-            *ngIf="isEmptyText"
-            mat-icon-button
-            matSuffix
-            class="voice-btn"
-            (click)="onVoiceButtonClick($event)"
-            aria-label="Voice message"
-            tourAnchor="chat-audio-record"
-          >
-            <mat-icon *ngIf="!isRecording">mic</mat-icon>
-            <mat-icon *ngIf="isRecording">stop</mat-icon>
-          </button>
-          <button
-            *ngIf="!isEmptyText"
-            mat-icon-button
-            matSuffix
-            (click)="sendMessage()"
-            [disabled]="isSendingMessage"
-          >
-            <mat-icon>send</mat-icon>
-          </button>
-        </mat-form-field>
+        <div *ngIf="!isComposeMode" class="plain-input-row" tourAnchor="chat-message-input">
+          <div class="plain-input-prefix">
+            <button mat-icon-button (click)="selectFile()" tourAnchor="chat-attach-files">
+              <mat-icon>attach_file</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="emoji-toggle-btn"
+              (click)="toggleEmojiPicker(); $event.stopPropagation()"
+            >
+              <mat-icon>emoji_emotions</mat-icon>
+            </button>
+          </div>
+
+          <div class="compose-editor-wrapper plain-editor-wrapper">
+            <div
+              #plainEditor
+              class="compose-editor plain-editor"
+              [attr.contenteditable]="isRecording ? 'false' : 'true'"
+              data-placeholder="Send message"
+              (input)="onPlainEditorInput()"
+              (keydown)="onPlainEditorKeydown($event)"
+              (click)="onPlainCursorChange()"
+              (keyup)="onPlainCursorChange()"
+            ></div>
+          </div>
+
+          <div class="plain-input-suffix">
+            <button
+              mat-icon-button
+              class="compose-mode-btn"
+              (click)="toggleComposeMode()"
+              [matTooltip]="getComposeModeTooltip()"
+              matTooltipPosition="above"
+              aria-label="Toggle format mode"
+              [color]="undefined"
+            >
+              <mat-icon>notes</mat-icon>
+            </button>
+            <button
+              *ngIf="isEmptyText"
+              mat-icon-button
+              class="voice-btn"
+              (click)="onVoiceButtonClick($event)"
+              aria-label="Voice message"
+              tourAnchor="chat-audio-record"
+            >
+              <mat-icon *ngIf="!isRecording">mic</mat-icon>
+              <mat-icon *ngIf="isRecording">stop</mat-icon>
+            </button>
+            <button
+              *ngIf="!isEmptyText"
+              mat-icon-button
+              (click)="sendMessage()"
+              [disabled]="isSendingMessage"
+            >
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
+        </div>
 
         <div *ngIf="isComposeMode" class="compose-editor-wrapper" tourAnchor="chat-message-input">
           <div
@@ -952,6 +954,7 @@
             </button>
             <button
               mat-icon-button
+              class="emoji-toggle-btn"
               (click)="toggleEmojiPicker(); $event.stopPropagation()"
             >
               <mat-icon>emoji_emotions</mat-icon>

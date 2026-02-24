@@ -531,6 +531,26 @@
     gap: 4px;
   }
 
+  .plain-input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .plain-input-prefix,
+  .plain-input-suffix {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+
+  .plain-editor-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .compose-editor {
     min-height: 72px;
     max-height: 220px;
@@ -542,6 +562,13 @@
     outline: none;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .plain-editor {
+    min-height: 24px;
+    max-height: 80px;
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 
   .compose-editor-wrapper {

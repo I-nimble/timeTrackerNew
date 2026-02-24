@@ -51,9 +51,9 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
 import { MatTooltip } from '@angular/material/tooltip';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { ThemeService } from 'src/app/services/theme.service';
+import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-chat',
@@ -93,6 +93,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
   messagesContainer?: ElementRef;
   @ViewChild('composeEditor', { static: false })
   composeEditor?: ElementRef<HTMLDivElement>;
+  @ViewChild('plainEditor', { static: false })
+  plainEditor?: ElementRef<HTMLDivElement>;
   @ViewChild('sidebar') sidebar!: MatSidenav;
   isMobile = window.innerWidth <= 768;
   @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
@@ -143,56 +145,44 @@ export class AppChatComponent implements OnInit, OnDestroy {
   voiceRecorderTime: string = '00:00';
   shouldSendAfterStop: boolean = false;
   currentAudioMimeType: string | null = null;
+  private composeEditorSelectionRange: Range | null = null;
+  private plainEditorSelectionRange: Range | null = null;
+  private readonly composeEmojiSequenceRegex = /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     this.isMobile = event.target.innerWidth <= 768;
   }
-  @HostListener('document:click')
-  onDocumentClick() {
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.showEmojiPicker) return;
+
+    const target = event.target as HTMLElement | null;
+    if (!target) {
+      this.showEmojiPicker = false;
+      return;
+    }
+
+    if (target.closest('.emoji-panel') || target.closest('.emoji-toggle-btn')) {
+      return;
+    }
+
     this.showEmojiPicker = false;
-    this.reactionPickerForMessageId = null;
   }
 
   constructor(
-    protected chatService: RocketChatService,
-    private dialog: MatDialog,
-    private cdr: ChangeDetectorRef,
-    private snackBar: MatSnackBar,
-    private permissionsService: PlatformPermissionsService,
-    private confirmationModal: MatDialog,
+    protected chatService: RocketChatService, 
+    private dialog: MatDialog, 
+    private cdr: ChangeDetectorRef, 
+    private snackBar: MatSnackBar, 
+    private permissionsService: PlatformPermissionsService, 
+    private confirmationModal: MatDialog, 
     public emojiPipe: EmojiMartPipe,
-    private sanitizer: DomSanitizer,
     public themeService: ThemeService
   ) {}
 
-  getAppleEmojiHtml(nativeEmoji: string): SafeHtml {
-    if (!nativeEmoji) return nativeEmoji as any;
-    const existing = this.basicEmojiHtml.get(nativeEmoji);
-    if (existing) return existing;
-    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
-    if (!shortcode) return nativeEmoji as any;
-    const imgHtml = this.emojiPipe.getAppleImgFromShortcode(shortcode);
-    if (!imgHtml) return nativeEmoji as any;
-    const safe = this.sanitizer.bypassSecurityTrustHtml(imgHtml);
-    this.basicEmojiHtml.set(nativeEmoji, safe);
-    return safe;
-  }
-
-  private buildBasicEmojiHtml(): void {
-    this.basicEmojiHtml.clear();
-    for (const e of this.basicEmojis) {
-      const shortcode = this.emojiPipe.getShortcodeFromNative(e);
-      if (!shortcode) continue;
-      const imgHtml = this.emojiPipe.getAppleImgFromShortcode(shortcode);
-      if (!imgHtml) continue;
-      const safe = this.sanitizer.bypassSecurityTrustHtml(imgHtml);
-      this.basicEmojiHtml.set(e, safe);
-    }
-  }
-
   ngOnInit(): void {
-    this.buildBasicEmojiHtml();
     this.loadRooms();
     try {
       this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
@@ -475,15 +465,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   isActionsVisible(message: RocketChatMessage) {
     if (!this.isMobile) return true;
-    return this.pressedMessageId === message._id || this.actionsMenuMessageId === message._id;
-  }
-
-  onMoreActionsMenuOpened(message: RocketChatMessage) {
-    this.actionsMenuMessageId = message?._id || null;
-  }
-
-  onMoreActionsMenuClosed() {
-    this.actionsMenuMessageId = null;
+    return this.pressedMessageId === message._id;
   }
 
   isSystemMessage(message: RocketChatMessage): boolean {
@@ -1557,6 +1539,21 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     return of([]);
   }
+
+  private refreshCurrentRoomMessages(): void {
+    if (!this.selectedConversation) return;
+
+    this.loadRoomMessages(this.selectedConversation).subscribe({
+      next: (msgs) => {
+        this.messages = msgs || [];
+        this.sortMessagesAscending();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Failed to refresh room messages after reaction update:', err);
+      }
+    });
+  }
   
   onDeleteRoom(room: RocketChatRoom) {
     if (!room || !room._id) return;
@@ -1658,6 +1655,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
   sendMessage() {
     if (this.isComposeMode) {
       this.syncComposeMessageFromEditor();
+    } else {
+      this.syncPlainMessageFromEditor();
     }
 
     if (!this.newMessage.trim() || !this.selectedConversation) return;
@@ -1683,6 +1682,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.composeBoldActive = false;
             this.composeItalicActive = false;
             this.clearComposeEditor();
+            this.clearPlainEditor();
 
             this.cdr.detectChanges();
           },
@@ -1722,6 +1722,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.composeBoldActive = false;
             this.composeItalicActive = false;
             this.clearComposeEditor();
+            this.clearPlainEditor();
           }
           this.isSendingMessage = false;
         },
@@ -1749,6 +1750,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!this.isComposeMode) {
       this.composeBoldActive = false;
       this.composeItalicActive = false;
+      setTimeout(() => {
+        this.syncPlainEditorFromMessage();
+        this.focusPlainEditor();
+      }, 0);
       return;
     }
 
@@ -1773,6 +1778,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       this.composeBoldActive = false;
       this.composeItalicActive = false;
       this.clearComposeEditor();
+      this.clearPlainEditor();
     });
   }
 
@@ -1792,7 +1798,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
   onComposeCursorChange() {
     if (!this.isComposeMode) return;
     const editor = this.composeEditor?.nativeElement;
-    if (!editor || !this.isSelectionInsideEditor(editor)) return;
+    const range = this.captureEditorSelection(editor);
+    if (!range) return;
+    this.composeEditorSelectionRange = range;
 
     try {
       this.composeBoldActive = document.queryCommandState('bold');
@@ -1804,6 +1812,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   onComposeEditorInput() {
+    this.normalizeComposeEditorEmojiRendering();
     this.syncComposeMessageFromEditor();
     this.onComposeCursorChange();
   }
@@ -1822,14 +1831,64 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.syncComposeMessageFromEditor();
   }
 
+  onPlainEditorInput() {
+    this.normalizePlainEditorEmojiRendering();
+    this.syncPlainMessageFromEditor();
+    this.onPlainCursorChange();
+    this.onMessageInput();
+  }
+
+  onPlainCursorChange() {
+    const editor = this.plainEditor?.nativeElement;
+    const range = this.captureEditorSelection(editor);
+    if (!range) return;
+    this.plainEditorSelectionRange = range;
+  }
+
+  private captureEditorSelection(editor?: HTMLElement | null): Range | null {
+    if (!editor) return null;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    if (!this.isSelectionInsideEditor(editor)) return null;
+
+    return selection.getRangeAt(0).cloneRange();
+  }
+
+  onPlainEditorKeydown(event: KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+
+    if (!event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+      return;
+    }
+
+    event.preventDefault();
+    document.execCommand('insertLineBreak');
+    this.syncPlainMessageFromEditor();
+  }
+
   private syncComposeEditorFromMessage() {
     const editor = this.composeEditor?.nativeElement;
     if (!editor) return;
     editor.innerHTML = this.markdownToEditorHtml(this.newMessage || '');
   }
 
+  private syncPlainEditorFromMessage() {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = this.plainTextToEditorHtml(this.newMessage || '');
+  }
+
   private clearComposeEditor() {
     const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = '';
+  }
+
+  private clearPlainEditor() {
+    const editor = this.plainEditor?.nativeElement;
     if (!editor) return;
     editor.innerHTML = '';
   }
@@ -1840,8 +1899,62 @@ export class AppChatComponent implements OnInit, OnDestroy {
     editor.focus();
   }
 
+  private restoreComposeEditorSelection(): void {
+    const editor = this.composeEditor?.nativeElement;
+    const selection = window.getSelection();
+    if (!editor || !selection) return;
+
+    if (this.composeEditorSelectionRange) {
+      const savedRange = this.composeEditorSelectionRange.cloneRange();
+      if (editor.contains(savedRange.startContainer) && editor.contains(savedRange.endContainer)) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        return;
+      }
+    }
+
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private focusPlainEditor() {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+    editor.focus();
+  }
+
+  private restorePlainEditorSelection(): void {
+    const editor = this.plainEditor?.nativeElement;
+    const selection = window.getSelection();
+    if (!editor || !selection) return;
+
+    if (this.plainEditorSelectionRange) {
+      const savedRange = this.plainEditorSelectionRange.cloneRange();
+      if (editor.contains(savedRange.startContainer) && editor.contains(savedRange.endContainer)) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        return;
+      }
+    }
+
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
   private syncComposeMessageFromEditor() {
     const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
+  }
+
+  private syncPlainMessageFromEditor() {
+    const editor = this.plainEditor?.nativeElement;
     if (!editor) return;
     this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
   }
@@ -1859,11 +1972,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    return escaped
-      .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
-      .replace(/\n/g, '<br>');
+    return this.renderComposeEmojis(
+      escaped
+        .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>')
+    );
+  }
+
+  private plainTextToEditorHtml(text: string): string {
+    return this.markdownToEditorHtml(text || '');
   }
 
   private editorHtmlToMarkdown(html: string): string {
@@ -1872,13 +1991,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     const nodeToMarkdown = (node: Node): string => {
       if (node.nodeType === Node.TEXT_NODE) {
-        return node.textContent || '';
+        const raw = node.textContent || '';
+        const cleaned = this.cleanComposeLeakedHtmlText(raw);
+        return cleaned;
       }
 
       if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
       const element = node as HTMLElement;
       const tag = element.tagName.toLowerCase();
+
+      if (tag === 'img') {
+        return this.getEmojiShortcodeFromImage(element) || '';
+      }
+
       const childText = Array.from(element.childNodes).map(nodeToMarkdown).join('');
 
       if (tag === 'br') return '\n';
@@ -1891,9 +2017,263 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return Array.from(container.childNodes)
       .map(nodeToMarkdown)
       .join('')
+      .replace(/(:[a-zA-Z0-9_+-]+:)(?=:[a-zA-Z0-9_+-]+:)/g, '$1 ')
       .replace(/\u00a0/g, ' ')
       .replace(/\n{3,}/g, '\n\n')
       .trimEnd();
+  }
+
+  private renderComposeEmojis(value: string): string {
+    if (!value) return '';
+
+    const original = value;
+    const container = document.createElement('div');
+    container.innerHTML = value;
+
+    const textNodes: Text[] = [];
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let currentNode: Node | null = walker.nextNode();
+    while (currentNode) {
+      textNodes.push(currentNode as Text);
+      currentNode = walker.nextNode();
+    }
+
+    let shortcodeReplacements = 0;
+    let nativeReplacements = 0;
+
+    textNodes.forEach((textNode) => {
+      const originalText = textNode.textContent || '';
+      const cleanedText = this.cleanComposeLeakedHtmlText(originalText);
+      const transformedText = this.renderComposeEmojiText(cleanedText, {
+        onShortcode: () => shortcodeReplacements += 1,
+        onNative: () => nativeReplacements += 1
+      });
+
+      if (transformedText === originalText) {
+        return;
+      }
+
+      const parent = textNode.parentNode;
+      if (!parent) return;
+
+      const holder = document.createElement('span');
+      holder.innerHTML = transformedText;
+      const fragment = document.createDocumentFragment();
+      while (holder.firstChild) {
+        fragment.appendChild(holder.firstChild);
+      }
+
+      parent.replaceChild(fragment, textNode);
+    });
+
+    const transformed = container.innerHTML;
+
+    return transformed;
+  }
+
+  private renderComposeEmojiText(
+    value: string,
+    counters?: { onShortcode?: () => void; onNative?: () => void; }
+  ): string {
+    if (!value) return '';
+
+    const withShortcodes = value.replace(/:([a-zA-Z0-9_+-]+):/g, (full, shortcode) => {
+      const html = this.getComposeEmojiImageHtml(`:${shortcode}:`);
+      if (html) {
+        counters?.onShortcode?.();
+      }
+      return html || full;
+    });
+
+    return withShortcodes.replace(this.composeEmojiSequenceRegex, (emoji) => {
+      const html = this.getComposeEmojiImageHtmlFromNative(emoji);
+      if (html) {
+        counters?.onNative?.();
+      }
+      return html || emoji;
+    });
+  }
+
+  private cleanComposeLeakedHtmlText(value: string): string {
+    if (!value) return '';
+
+    return value
+      .replace(/<img[^>]*>/gi, '')
+      .replace(/"?\s*data-native-codepoints="[^"]+"[^>]*>/gi, '')
+      .replace(/"?\s*src="https?:\/\/cdn\.jsdelivr\.net\/npm\/emoji-datasource-apple\/img\/apple\/64\/[^"]+"[^>]*>/gi, '');
+  }
+
+  private getComposeEmojiImageHtml(shortcode: string): string | null {
+    const normalizedShortcode = this.normalizeEmojiShortcode(shortcode);
+    if (!normalizedShortcode) return null;
+
+    const baseImageHtml = this.emojiPipe.getAppleImgFromShortcode(normalizedShortcode);
+    if (!baseImageHtml) return null;
+
+    const nativeEmoji = this.emojiPipe.getNativeFromShortcode(normalizedShortcode);
+    const nativeCodepoints = nativeEmoji ? this.nativeToCodepoints(nativeEmoji) : null;
+
+    return baseImageHtml.replace(
+      '<img ',
+      `<img class="emoji compose-emoji" data-shortcode="${normalizedShortcode}"${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${normalizedShortcode}" `
+    );
+  }
+
+  private getComposeEmojiImageHtmlFromNative(nativeEmoji: string): string | null {
+    if (!nativeEmoji) return null;
+
+    const baseImageHtml = this.emojiPipe.getAppleImgFromNative(nativeEmoji, 18);
+    if (!baseImageHtml) return null;
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    const nativeCodepoints = this.nativeToCodepoints(nativeEmoji);
+    return baseImageHtml.replace(
+      '<img ',
+      `<img class="emoji compose-emoji"${shortcode ? ` data-shortcode="${shortcode}"` : ''}${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${shortcode || 'emoji'}" `
+    );
+  }
+
+  private getEmojiShortcodeFromImage(imageElement: HTMLElement): string | null {
+    const fromData = imageElement.getAttribute('data-shortcode') || imageElement.getAttribute('alt');
+    if (fromData) {
+      const normalizedShortcode = this.normalizeEmojiShortcode(fromData);
+      if (normalizedShortcode) return normalizedShortcode;
+      return fromData;
+    }
+
+    const nativeCodepoints = imageElement.getAttribute('data-native-codepoints');
+    if (nativeCodepoints) {
+      const nativeFromData = this.codepointsToNative(nativeCodepoints);
+      if (nativeFromData) {
+        const shortcodeFromNative = this.emojiPipe.getShortcodeFromNative(nativeFromData);
+        if (shortcodeFromNative) {
+          return this.normalizeEmojiShortcode(shortcodeFromNative) || shortcodeFromNative;
+        }
+        return nativeFromData;
+      }
+    }
+
+    const source = imageElement.getAttribute('src') || '';
+    const match = source.match(/\/apple\/64\/([a-fA-F0-9-]+)\.png/);
+    if (!match?.[1]) return null;
+
+    const native = match[1]
+      .split('-')
+      .map(hex => String.fromCodePoint(parseInt(hex, 16)))
+      .join('');
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(native);
+    if (shortcode) {
+      return this.normalizeEmojiShortcode(shortcode);
+    }
+    return native || null;
+  }
+
+  private nativeToCodepoints(nativeEmoji: string): string {
+    return Array.from(nativeEmoji || '')
+      .map((char) => char.codePointAt(0)?.toString(16))
+      .filter((value): value is string => !!value)
+      .join('-');
+  }
+
+  private codepointsToNative(codepoints: string): string | null {
+    if (!codepoints) return null;
+
+    try {
+      return codepoints
+        .split('-')
+        .map((hex) => String.fromCodePoint(parseInt(hex, 16)))
+        .join('');
+    } catch (error) {
+      console.error('Error converting codepoints to native emoji:', error);
+      return null;
+    }
+  }
+
+  private normalizeEmojiShortcode(shortcode: string): string | null {
+    const clean = (shortcode || '').replace(/:/g, '').trim();
+    if (!clean) return null;
+    if (!/^[a-zA-Z0-9_+-]+$/.test(clean)) return null;
+    return `:${clean}:`;
+  }
+
+  private normalizeComposeEditorEmojiRendering(): void {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+
+    this.normalizeEditorEmojiRendering(editor, 'compose');
+  }
+
+  private normalizePlainEditorEmojiRendering(): void {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+
+    this.normalizeEditorEmojiRendering(editor, 'plain');
+  }
+
+  private normalizeEditorEmojiRendering(editor: HTMLElement, scope: 'compose' | 'plain'): void {
+
+    const selection = window.getSelection();
+    const hasSelectionInsideEditor = !!selection && selection.rangeCount > 0 && this.isSelectionInsideEditor(editor);
+
+    let markerId = '';
+    if (hasSelectionInsideEditor && selection) {
+      markerId = `compose-caret-${Date.now()}`;
+      const range = selection.getRangeAt(0).cloneRange();
+      range.collapse(true);
+      const marker = document.createElement('span');
+      marker.setAttribute('data-compose-caret', markerId);
+      marker.style.display = 'inline-block';
+      marker.style.width = '0';
+      marker.style.height = '0';
+      marker.style.overflow = 'hidden';
+      range.insertNode(marker);
+    }
+
+    const currentHtml = editor.innerHTML || '';
+    let normalizedHtml = '';
+
+    if (scope === 'plain') {
+      const caretToken = markerId ? `@@CARET_${markerId}@@` : '';
+      const htmlWithCaretToken = markerId
+        ? currentHtml.replace(
+            new RegExp(`<span[^>]*data-compose-caret="${markerId}"[^>]*><\\/span>`, 'g'),
+            caretToken
+          )
+        : currentHtml;
+
+      normalizedHtml = this.plainTextToEditorHtml(this.editorHtmlToMarkdown(htmlWithCaretToken));
+
+      if (caretToken) {
+        normalizedHtml = normalizedHtml.replace(
+          caretToken,
+          `<span data-compose-caret="${markerId}" style="display:inline-block;width:0;height:0;overflow:hidden"></span>`
+        );
+      }
+    } else {
+      normalizedHtml = this.renderComposeEmojis(currentHtml);
+    }
+    if (normalizedHtml !== currentHtml) {
+      editor.innerHTML = normalizedHtml;
+    }
+
+    if (markerId && selection) {
+      const marker = editor.querySelector(`[data-compose-caret="${markerId}"]`) as HTMLElement | null;
+      if (marker) {
+        const range = document.createRange();
+        range.setStartAfter(marker);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        marker.remove();
+      } else if (scope === 'plain') {
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
   }
 
   getComposeModeTooltip(): string {
@@ -2048,27 +2428,21 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   toggleEmojiPicker() {
+    if (!this.showEmojiPicker) {
+      if (this.isComposeMode) {
+        this.onComposeCursorChange();
+      } else {
+        this.onPlainCursorChange();
+      }
+    }
+
     this.showEmojiPicker = !this.showEmojiPicker;
   }
 
   openReactionPicker(message: RocketChatMessage) {
-    if (this.reactionPickerForMessageId === message._id) {
-      this.reactionPickerForMessageId = null;
-      this.reactionTargetMessage = null;
-    } else {
-      this.reactionPickerForMessageId = message._id;
-      this.reactionTargetMessage = message;
-    }
-  }
-
-  selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage) {
-    if (!message || !nativeEmoji) return;
-    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
-    if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
-    this.toggleReaction(message, shortcode);
-    this.reactionPickerForMessageId = null;
-    this.reactionTargetMessage = null;
-    this.cdr.markForCheck();
+    this.reactionTargetMessage = message;
+    this.showReactionPicker = true;
+    
   }
 
   addEmoji(event: any) {
@@ -2079,23 +2453,59 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const editor = this.composeEditor?.nativeElement;
       if (editor) {
         editor.focus();
-        document.execCommand('insertText', false, emoji);
+        this.restoreComposeEditorSelection();
+        const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+        const emojiHtml = (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) || this.getComposeEmojiImageHtmlFromNative(emoji);
+        if (emojiHtml) {
+          document.execCommand('insertHTML', false, emojiHtml);
+        } else {
+          document.execCommand('insertText', false, emoji);
+        }
         this.syncComposeMessageFromEditor();
         this.onComposeCursorChange();
       }
       return;
     }
 
-    this.newMessage = (this.newMessage || '') + emoji;
+    const plainEditor = this.plainEditor?.nativeElement;
+    if (plainEditor) {
+      plainEditor.focus();
+      this.restorePlainEditorSelection();
+      const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+      const emojiHtml = (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) || this.getComposeEmojiImageHtmlFromNative(emoji);
+      if (emojiHtml) {
+        document.execCommand('insertHTML', false, emojiHtml);
+      } else {
+        document.execCommand('insertText', false, shortcode || emoji);
+      }
+      this.syncPlainMessageFromEditor();
+      this.onPlainCursorChange();
+      this.onMessageInput();
+      return;
+    }
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+    this.newMessage = (this.newMessage || '') + (shortcode || emoji);
   }
 
   sendReaction(event: any) {
     if (!this.reactionTargetMessage) return;
     const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
     if (!nativeEmoji) return;
-    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
-    if (!shortcode) return console.error('No shortcode for emoji', nativeEmoji);
-    this.toggleReaction(this.reactionTargetMessage, shortcode);
+
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    const existingKey = candidates.find((key) => !!this.reactionTargetMessage?.reactions?.[key]);
+    const reactionKey = existingKey || candidates[0] || nativeEmoji;
+    if (!reactionKey) return console.error('No reaction key for emoji', nativeEmoji);
+
+    this.chatService.reactToMessage(this.reactionTargetMessage._id, reactionKey).subscribe({
+      next: () => {
+        this.refreshCurrentRoomMessages();
+      },
+      error: (err) => {
+        console.error('Error reacting to message:', err);
+      }
+    });
     this.showReactionPicker = false;
     this.reactionTargetMessage = null;
   }
@@ -2115,74 +2525,86 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
   }
 
-  didIReactNative(message: RocketChatMessage, nativeEmoji: string): boolean {
-    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
-    if (!shortcode) return false;
-    return this.didIReact(message, shortcode);
-  }
-
-  getVisibleReactionKeys(message: RocketChatMessage, limit: number = 5): string[] {
-    return this.getReactionKeys(message).slice(0, limit);
-  }
-
-  getHiddenReactionKeys(message: RocketChatMessage, limit: number = 5): string[] {
-    return this.getReactionKeys(message).slice(limit);
-  }
-
-  getHiddenReactionCount(message: RocketChatMessage, limit: number = 5): number {
-    const hidden = this.getReactionKeys(message).length - limit;
-    return hidden > 0 ? hidden : 0;
-  }
-
   toggleReaction(message: RocketChatMessage, emoji: string) {
-    try {
-      const myUsername = this.chatService.loggedInUser?.username;
-      if (!myUsername) return;
-      if (!message.reactions) {
-        message.reactions = {} as any;
-      }
-      const reactions: any = message.reactions as any;
-      const key = emoji;
-      const reaction = reactions[key];
-      const userList: string[] = reaction?.usernames ? [...reaction.usernames] : [];
-      const i = userList.indexOf(myUsername);
-      let optimisticAdded = false;
-      if (i >= 0) {
-        userList.splice(i, 1);
-      } else {
-        userList.push(myUsername);
-        optimisticAdded = true;
-      }
-      if (userList.length === 0) {
-        delete reactions[key];
-      } else {
-        reactions[key] = { usernames: userList } as any;
-      }
-      this.cdr.markForCheck();
-      this.chatService.reactToMessage(message._id, emoji).subscribe({
-        next: () => {
-        },
-        error: err => {
-          console.error('Error toggling reaction:', err);
-          if (optimisticAdded) {
-            const list = reactions[key]?.usernames || [];
-            const idx = list.indexOf(myUsername);
-            if (idx >= 0) list.splice(idx, 1);
-            if (list.length === 0) delete reactions[key];
-            else reactions[key] = { usernames: list } as any;
-          } else {
-            if (!reactions[key]) reactions[key] = { usernames: [myUsername] } as any;
-            else {
-              reactions[key].usernames = reactions[key].usernames || [];
-              reactions[key].usernames.push(myUsername);
-            }
-          }
-          this.cdr.markForCheck();
-        }
-      });
-    } catch (err) {
-      console.error('toggleReaction error', err);
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      next: () => {
+        this.refreshCurrentRoomMessages();
+      },
+      error: err => console.error('Error toggling reaction:', err)
+    });
+  }
+
+  didIReactNative(message: RocketChatMessage, nativeEmoji: string): boolean {
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    return candidates.some((key) => this.didIReact(message, key));
+  }
+
+  selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage): void {
+    if (!message?._id) return;
+
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    const existingKey = candidates.find((key) => !!message.reactions?.[key]);
+    const reactionKey = existingKey || candidates[0] || nativeEmoji;
+    if (!reactionKey) return;
+
+    this.chatService.reactToMessage(message._id, reactionKey).subscribe({
+      next: () => {
+        this.refreshCurrentRoomMessages();
+      },
+      error: (err) => console.error('Error selecting reaction:', err)
+    });
+  }
+
+  getAppleEmojiHtml(nativeEmoji: string): string {
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    if (!shortcode) {
+      return this.emojiPipe.transform(nativeEmoji);
     }
+
+    const appleHtml = this.emojiPipe.getAppleImgFromShortcode(shortcode);
+    return appleHtml || this.emojiPipe.transform(nativeEmoji);
+  }
+
+  onMoreActionsMenuOpened(message: RocketChatMessage): void {
+    this.actionsMenuMessageId = message?._id || null;
+  }
+
+  onMoreActionsMenuClosed(): void {
+    this.actionsMenuMessageId = null;
+  }
+
+  getVisibleReactionKeys(message: RocketChatMessage): string[] {
+    return this.getReactionKeys(message).slice(0, 3);
+  }
+
+  getHiddenReactionKeys(message: RocketChatMessage): string[] {
+    return this.getReactionKeys(message).slice(3);
+  }
+
+  getHiddenReactionCount(message: RocketChatMessage): number {
+    const total = this.getReactionKeys(message).length;
+    return total > 3 ? total - 3 : 0;
+  }
+
+  private getReactionKeysForNative(nativeEmoji: string): string[] {
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    const normalizedNative = this.normalizeNativeEmoji(nativeEmoji);
+
+    const keys = new Set<string>();
+    if (shortcode) {
+      keys.add(shortcode);
+      keys.add(shortcode.replace(/:/g, ''));
+    }
+
+    if (normalizedNative) {
+      keys.add(normalizedNative);
+    }
+
+    return Array.from(keys);
+  }
+
+  private normalizeNativeEmoji(value: string): string {
+    return (value || '').replace(/\uFE0F/g, '');
   }
 
   quoteMessage(message: RocketChatMessage) {
