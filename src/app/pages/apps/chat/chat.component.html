@@ -893,10 +893,10 @@
               class="compose-editor plain-editor"
               [attr.contenteditable]="isRecording ? 'false' : 'true'"
               data-placeholder="Send message"
-              (input)="onPlainEditorInput()"
-              (keydown)="onPlainEditorKeydown($event)"
-              (click)="onPlainCursorChange()"
-              (keyup)="onPlainCursorChange()"
+              (input)="handleEditorInput('plain')"
+              (keydown)="handleEditorKeydown($event, 'plain')"
+              (click)="handleCursorChange('plain')"
+              (keyup)="handleCursorChange('plain')"
             ></div>
           </div>
 
@@ -940,10 +940,10 @@
             class="compose-editor"
             contenteditable="true"
             data-placeholder="Send message"
-            (input)="onComposeEditorInput()"
-            (keydown)="onComposeEditorKeydown($event)"
-            (click)="onComposeCursorChange()"
-            (keyup)="onComposeCursorChange()"
+            (input)="handleEditorInput('compose')"
+            (keydown)="handleEditorKeydown($event, 'compose')"
+            (click)="handleCursorChange('compose')"
+            (keyup)="handleCursorChange('compose')"
           ></div>
         </div>
 

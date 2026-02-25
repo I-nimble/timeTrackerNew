@@ -1653,11 +1653,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   sendMessage() {
-    if (this.isComposeMode) {
-      this.syncComposeMessageFromEditor();
-    } else {
-      this.syncPlainMessageFromEditor();
-    }
+    this.syncMessageFromEditor(this.isComposeMode ? 'compose' : 'plain');
 
     if (!this.newMessage.trim() || !this.selectedConversation) return;
     if (this.editingMessage) {
@@ -1760,7 +1756,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.syncComposeEditorFromMessage();
       this.focusComposeEditor();
-      this.onComposeCursorChange();
+      this.handleCursorChange('compose');
     }, 0);
   }
 
@@ -1791,57 +1787,52 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const command = style === 'bold' ? 'bold' : 'italic';
     editor.focus();
     document.execCommand(command, false);
-    this.syncComposeMessageFromEditor();
-    this.onComposeCursorChange();
+    this.syncMessageFromEditor('compose');
+    this.handleCursorChange('compose');
   }
 
-  onComposeCursorChange() {
-    if (!this.isComposeMode) return;
-    const editor = this.composeEditor?.nativeElement;
-    const range = this.captureEditorSelection(editor);
-    if (!range) return;
-    this.composeEditorSelectionRange = range;
+  handleEditorInput(mode: 'compose' | 'plain'): void {
+    const editor = mode === 'compose'
+      ? this.composeEditor?.nativeElement
+      : this.plainEditor?.nativeElement;
 
-    try {
-      this.composeBoldActive = document.queryCommandState('bold');
-      this.composeItalicActive = document.queryCommandState('italic');
-    } catch (e) {
-      this.composeBoldActive = false;
-      this.composeItalicActive = false;
-    }
-  }
+    if (!editor) return;
 
-  onComposeEditorInput() {
-    this.normalizeComposeEditorEmojiRendering();
-    this.syncComposeMessageFromEditor();
-    this.onComposeCursorChange();
-  }
+    this.normalizeEditorEmojiRendering(editor, mode);
 
-  onComposeEditorKeydown(event: KeyboardEvent) {
-    if (event.key !== 'Enter') return;
-
-    if (event.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
+    if (mode === 'compose') {
+      this.syncMessageFromEditor('compose');
+      this.handleCursorChange('compose');
       return;
     }
 
-    event.preventDefault();
-    document.execCommand('insertLineBreak');
-    this.syncComposeMessageFromEditor();
-  }
-
-  onPlainEditorInput() {
-    this.normalizePlainEditorEmojiRendering();
-    this.syncPlainMessageFromEditor();
-    this.onPlainCursorChange();
+    this.syncMessageFromEditor('plain');
+    this.handleCursorChange('plain');
     this.onMessageInput();
   }
 
-  onPlainCursorChange() {
-    const editor = this.plainEditor?.nativeElement;
+  handleCursorChange(mode: 'compose' | 'plain'): void {
+    if (mode === 'compose' && !this.isComposeMode) return;
+
+    const editor = mode === 'compose'
+      ? this.composeEditor?.nativeElement
+      : this.plainEditor?.nativeElement;
+
     const range = this.captureEditorSelection(editor);
     if (!range) return;
+
+    if (mode === 'compose') {
+      this.composeEditorSelectionRange = range;
+      try {
+        this.composeBoldActive = document.queryCommandState('bold');
+        this.composeItalicActive = document.queryCommandState('italic');
+      } catch (e) {
+        this.composeBoldActive = false;
+        this.composeItalicActive = false;
+      }
+      return;
+    }
+
     this.plainEditorSelectionRange = range;
   }
 
@@ -1855,10 +1846,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return selection.getRangeAt(0).cloneRange();
   }
 
-  onPlainEditorKeydown(event: KeyboardEvent) {
+  handleEditorKeydown(event: KeyboardEvent, mode: 'compose' | 'plain') {
     if (event.key !== 'Enter') return;
 
-    if (!event.shiftKey) {
+    if ((event.shiftKey && mode === 'compose') || (!event.shiftKey && mode === 'plain')) {
       event.preventDefault();
       this.sendMessage();
       return;
@@ -1866,7 +1857,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     event.preventDefault();
     document.execCommand('insertLineBreak');
-    this.syncPlainMessageFromEditor();
+    this.syncMessageFromEditor(mode);
   }
 
   private syncComposeEditorFromMessage() {
@@ -1947,14 +1938,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     selection.addRange(range);
   }
 
-  private syncComposeMessageFromEditor() {
-    const editor = this.composeEditor?.nativeElement;
-    if (!editor) return;
-    this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
-  }
+  private syncMessageFromEditor(mode: 'compose' | 'plain'): void {
+    const editor = mode === 'compose'
+      ? this.composeEditor?.nativeElement
+      : this.plainEditor?.nativeElement;
 
-  private syncPlainMessageFromEditor() {
-    const editor = this.plainEditor?.nativeElement;
     if (!editor) return;
     this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
   }
@@ -2197,20 +2185,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return `:${clean}:`;
   }
 
-  private normalizeComposeEditorEmojiRendering(): void {
-    const editor = this.composeEditor?.nativeElement;
-    if (!editor) return;
-
-    this.normalizeEditorEmojiRendering(editor, 'compose');
-  }
-
-  private normalizePlainEditorEmojiRendering(): void {
-    const editor = this.plainEditor?.nativeElement;
-    if (!editor) return;
-
-    this.normalizeEditorEmojiRendering(editor, 'plain');
-  }
-
   private normalizeEditorEmojiRendering(editor: HTMLElement, scope: 'compose' | 'plain'): void {
 
     const selection = window.getSelection();
@@ -2430,9 +2404,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
   toggleEmojiPicker() {
     if (!this.showEmojiPicker) {
       if (this.isComposeMode) {
-        this.onComposeCursorChange();
+        this.handleCursorChange('compose');
       } else {
-        this.onPlainCursorChange();
+        this.handleCursorChange('plain');
       }
     }
 
@@ -2461,8 +2435,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
         } else {
           document.execCommand('insertText', false, emoji);
         }
-        this.syncComposeMessageFromEditor();
-        this.onComposeCursorChange();
+        this.syncMessageFromEditor('compose');
+        this.handleCursorChange('compose');
       }
       return;
     }
@@ -2478,8 +2452,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
       } else {
         document.execCommand('insertText', false, shortcode || emoji);
       }
-      this.syncPlainMessageFromEditor();
-      this.onPlainCursorChange();
+      this.syncMessageFromEditor('plain');
+      this.handleCursorChange('plain');
       this.onMessageInput();
       return;
     }
@@ -2866,7 +2840,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.syncComposeEditorFromMessage();
       this.focusComposeEditor();
-      this.onComposeCursorChange();
+      this.handleCursorChange('compose');
     }, 0);
   }
   
