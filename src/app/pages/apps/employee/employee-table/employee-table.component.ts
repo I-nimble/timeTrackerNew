@@ -210,19 +210,24 @@ export class AppEmployeeTableComponent implements AfterViewInit {
       };
       this.reportsService
         .getReport(datesRange, requestUser, this.filters)
-        .subscribe((v) => {
-          let displayName = 'multiple_users';
-          if (!multipleUsers) {
-            const name = user?.profile?.name ?? user?.name ?? '';
-            const last = user?.profile?.last_name ?? user?.last_name ?? '';
-            displayName = `${name}_${last}`.replace(/\s+/g, '_');
+        .subscribe({
+          next: (v: any) => {
+            let displayName = 'multiple_users';
+            if (!multipleUsers) {
+              const name = user?.profile?.name ?? user?.name ?? '';
+              const last = user?.profile?.last_name ?? user?.last_name ?? '';
+              displayName = `${name}_${last}`.replace(/\s+/g, '_');
+            }
+            const filename = `I-nimble_Report_${displayName}_${moment(
+              result.firstSelect
+            ).format('DD-MM-YYYY')}_${moment(
+              result.lastSelect
+            ).format('DD-MM-YYYY')}.xlsx`;
+            filesaver.saveAs(v, filename);
+          },
+          error: (error: any) => {
+            console.error('Error downloading report:', error);
           }
-          const filename = `I-nimble_Report_${displayName}_${moment(
-            result.firstSelect
-          ).format('DD-MM-YYYY')}_${moment(
-            result.lastSelect
-          ).format('DD-MM-YYYY')}.xlsx`;
-          filesaver.saveAs(v, filename);
         });
     });
   }
