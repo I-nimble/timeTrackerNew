@@ -741,40 +741,12 @@ export class CandidateDetailsComponent implements OnInit {
     if (!candidateId) return;
     this.applicationService.approveApplicationUpdates(candidateId).subscribe({
       next: (res: any) => {
-        const applied = res?.applied_updates || {};
-        const candidate = this.candidate();
-        const updatedCandidate = {
-          ...candidate,
-          ...applied,
-          pending_updates: null,
-          pending_update_status: 'approved'
-        };
-        this.candidate.set(updatedCandidate);
-        this.applicationService.notifyApplicationUpdated(updatedCandidate);
-        this.pendingChanges.set([]);
-        this.applicationMatchScoreService.getByApplicationId(candidateId)
-          .subscribe(scores => this.matchScores = scores);
-        this.applicationMatchScoreService.getPositionCategories()
-          .subscribe(categories => this.positionCategories = categories);
-        this.form.patchValue({
-          name: updatedCandidate.name,
-          description: updatedCandidate.description,
-          talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
-          position_id: updatedCandidate.position_id,
-          interview_link: updatedCandidate.interview_link,
-          hobbies: updatedCandidate.hobbies,
-          work_experience: updatedCandidate.work_experience,
-          skills: updatedCandidate.skills,
-          education_history: updatedCandidate.education_history,
-          inimble_academy: updatedCandidate.inimble_academy,
-          english_level: updatedCandidate.english_level
-        });
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));
-        this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });
+        this.snackBar.open('Pending changes approved!', 'Close');
+        this.loadCandidate(candidateId);
       },
       error: (err) => {
         console.error('Failed to approve changes', err);
-        this.snackBar.open('Failed to approve changes', 'Close', { duration: 3000 });
+        this.snackBar.open('Failed to approve changes', 'Close');
       }
     });
   }
@@ -784,23 +756,12 @@ export class CandidateDetailsComponent implements OnInit {
     if (!candidateId) return;
     this.applicationService.rejectApplicationUpdates(candidateId).subscribe({
       next: (res: any) => {
-        const candidate = this.candidate();
-        const updatedCandidate = {
-          ...candidate,
-          pending_updates: null,
-          pending_update_status: 'rejected'
-        };
-        this.candidate.set(updatedCandidate);
-        this.applicationService.notifyApplicationUpdated(updatedCandidate);
-        this.pendingChanges.set([]);
-        this.applicationMatchScoreService.getByApplicationId(candidateId)
-          .subscribe(scores => this.matchScores = scores);
-        this.snackBar.open('Pending changes rejected!', 'Close', { duration: 3000 });
-        this.form.patchValue(this.originalData);
+        this.snackBar.open('Pending changes rejected!', 'Close');
+        this.loadCandidate(candidateId);
       },
       error: (err) => {
         console.error('Failed to reject changes', err);
-        this.snackBar.open('Failed to reject changes', 'Close', { duration: 3000 });
+        this.snackBar.open('Failed to reject changes', 'Close');
       }
     });
   }
