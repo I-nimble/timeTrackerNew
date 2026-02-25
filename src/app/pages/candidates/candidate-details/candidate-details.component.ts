@@ -326,6 +326,28 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   private getFieldValue(key: string, value: any): any {
+    if (key === 'certifications' && Array.isArray(value)) {
+      const validCerts = value.filter(
+        cert => cert.application_id != null || cert.user_id != null
+      );
+
+      if (validCerts.length === 0) {
+        return 'No certifications';
+      }
+
+      return validCerts.map(cert => {
+        const parts = [];
+        if (cert.name) parts.push(cert.name);
+        if (cert.issuer) parts.push(`(${cert.issuer})`);
+        if (cert.credential_id) {
+          parts.push(`Credential: ${cert.credential_id}`);
+        } else if (cert.url) {
+          parts.push(`URL: ${cert.url}`);
+        }
+        return parts.join(' ');
+      }).join('; ');
+    }
+
     if (key === 'location_id') {
       const loc = this.locations.find(l => l.id === Number(value));
       return loc ? `${loc.city}, ${loc.country}` : value;
