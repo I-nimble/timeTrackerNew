@@ -72,6 +72,7 @@ export class CandidateDetailsComponent implements OnInit {
   rankingProfiles: any[] = [];
   pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   certifications: any[] = [];
+  originalCertifications: any[] = [];
   descriptionOptions = [
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
@@ -272,6 +273,7 @@ export class CandidateDetailsComponent implements OnInit {
 
     const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
     this.certifications = candidate.certifications || [];
+    this.originalCertifications = JSON.parse(JSON.stringify(this.certifications || []));
     this.form.patchValue({
       name: candidate.name,
       description: descriptionValue,
@@ -382,6 +384,8 @@ export class CandidateDetailsComponent implements OnInit {
     
     this.selectedProfilePicFile = null;
     this.selectedResumeFile = null;
+    this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
+    this.updateCandidateCertifications();
     
     this.editMode = false;
     this.form.markAsPristine();
