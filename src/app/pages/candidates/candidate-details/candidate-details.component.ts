@@ -18,7 +18,7 @@ import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/a
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 import { switchMap } from 'rxjs';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 import { CertificationsService } from 'src/app/services/certifications.service';
@@ -71,6 +71,7 @@ export class CandidateDetailsComponent implements OnInit {
   rankingProfiles: any[] = [];
   pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   certifications: any[] = [];
+  originalCertifications: any[] = [];
   descriptionOptions = [
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
@@ -272,6 +273,7 @@ export class CandidateDetailsComponent implements OnInit {
 
     const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
     this.certifications = candidate.certifications || [];
+    this.originalCertifications = JSON.parse(JSON.stringify(this.certifications || []));
     this.form.patchValue({
       name: candidate.name,
       description: descriptionValue,
@@ -321,12 +323,35 @@ export class CandidateDetailsComponent implements OnInit {
       work_references: 'Work References',
       salary_range: 'Salary Range',
       resume: 'Resume',
-      programming_languages: 'Programming Languages'
+      programming_languages: 'Programming Languages',
+      certifications: 'Certifications'
     };
     return labels[key] || key;
   }
 
   private getFieldValue(key: string, value: any): any {
+    if (key === 'certifications' && Array.isArray(value)) {
+      const validCerts = value.filter(
+        cert => cert.application_id != null || cert.user_id != null
+      );
+
+      if (validCerts.length === 0) {
+        return 'No certifications';
+      }
+
+      return validCerts.map(cert => {
+        const parts = [];
+        if (cert.name) parts.push(cert.name);
+        if (cert.issuer) parts.push(`(${cert.issuer})`);
+        if (cert.credential_id) {
+          parts.push(`Credential: ${cert.credential_id}`);
+        } else if (cert.url) {
+          parts.push(`URL: ${cert.url}`);
+        }
+        return parts.join(' ');
+      }).join('; ');
+    }
+
     if (key === 'location_id') {
       const loc = this.locations.find(l => l.id === Number(value));
       return loc ? `${loc.city}, ${loc.country}` : value;
@@ -360,6 +385,8 @@ export class CandidateDetailsComponent implements OnInit {
     
     this.selectedProfilePicFile = null;
     this.selectedResumeFile = null;
+    this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
+    this.updateCandidateCertifications();
     
     this.editMode = false;
     this.form.markAsPristine();
@@ -423,7 +450,8 @@ export class CandidateDetailsComponent implements OnInit {
       english_level: formValues.english_level,
       email: this.candidate()?.email,
       cv: this.selectedResumeFile,
-      suggested_salary: formValues.suggested_salary
+      suggested_salary: formValues.suggested_salary,
+      certifications: this.certifications
     };
 
     if (this.selectedProfilePicFile) {
@@ -437,14 +465,21 @@ export class CandidateDetailsComponent implements OnInit {
         this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
         this.editMode = false;
         
+        let updatedCertifications = this.certifications;
+        if (response.certifications) {
+          updatedCertifications = response.certifications;
+        }
+        
         const updatedCandidate = {
           ...this.candidate(),
           ...data,
           description: descriptionValue,
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
+          certifications: updatedCertifications
         };
         
         this.candidate.set(updatedCandidate);
+        this.certifications = updatedCertifications;
         this.resolveResumeLink(updatedCandidate);
 
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
@@ -498,7 +533,7 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   save() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) return; 
     const selectedOption = this.form.value.descriptionOption;
     let descriptionValue: string | null = null;
 
@@ -552,16 +587,13 @@ export class CandidateDetailsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (!result) return;
-      this.certificationsService.delete(cert.id).subscribe({
-        next: () => {
-          this.certifications = this.certifications.filter(item => item.id !== cert.id);
-          this.updateCandidateCertifications();
-          this.snackBar.open('Certification deleted successfully', 'Close', { duration: 3000 });
-        },
-        error: () => {
-          this.snackBar.open('Error deleting certification', 'Close', { duration: 3000 });
-        }
-      });
+      if (this.editMode) {
+      this.certifications = this.certifications.filter(item => item.id !== cert.id);
+      this.updateCandidateCertifications();
+      this.form.markAsDirty();
+    } else {
+      this.snackBar.open('Please enter edit mode to delete certifications', 'Close', { duration: 3000 });
+      }
     });
   }
 
@@ -578,51 +610,35 @@ export class CandidateDetailsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.event !== 'Cancel') {
-        this.handleCertificationAction(result);
+        if (this.editMode) {
+          this.handleCertificationActionInEditMode(result);
+        } else {
+          this.snackBar.open('Please enter edit mode to modify certifications', 'Close', { duration: 3000 });
+        }
       }
     });
   }
 
-  private handleCertificationAction(result: any) {
+  private handleCertificationActionInEditMode(result: any) {
     const { event, data, file } = result;
 
-    const request$ = file
-      ? this.certificationsService.uploadAttachment(file).pipe(
-          switchMap((uploadRes: any) => {
-            data.attachment_url = uploadRes.key.split('/').pop();
-            return event === 'Add'
-              ? this.certificationsService.create(data)
-              : this.certificationsService.update(data.id, data);
-          })
-        )
-      : event === 'Add'
-        ? this.certificationsService.create(data)
-        : this.certificationsService.update(data.id, data);
-
-    request$.subscribe({
-      next: (response: any) => {
-        if (event === 'Add') {
-          this.certifications = [...this.certifications, response];
-        } else {
-          this.certifications = this.certifications.map(item =>
-            item.id === response.id ? response : item
-          );
-        }
-        this.updateCandidateCertifications();
-        this.snackBar.open(
-          event === 'Add' ? 'Certification added successfully' : 'Certification updated successfully',
-          'Close',
-          { duration: 3000 }
-        );
-      },
-      error: () => {
-        this.snackBar.open(
-          event === 'Add' ? 'Error adding certification' : 'Error updating certification',
-          'Close',
-          { duration: 3000 }
-        );
-      }
-    });
+    if (event === 'Add') {
+      const tempCert = {
+        ...data,
+        id: data.id || `temp_${Date.now()}_${Math.random()}`,
+        isTemp: true
+      };
+      this.certifications = [...this.certifications, tempCert];
+      this.snackBar.open('Certification added. Click Save to persist changes.', 'Close', { duration: 3000 });
+    } else if (event === 'Edit') {
+      this.certifications = this.certifications.map(item =>
+        item.id === data.id ? { ...item, ...data } : item
+      );
+      this.snackBar.open('Certification updated. Click Save to persist changes.', 'Close', { duration: 3000 });
+    }
+    
+    this.updateCandidateCertifications();
+    this.form.markAsDirty();
   }
 
   private updateCandidateCertifications() {
@@ -724,41 +740,12 @@ export class CandidateDetailsComponent implements OnInit {
     if (!candidateId) return;
     this.applicationService.approveApplicationUpdates(candidateId).subscribe({
       next: (res: any) => {
-        const applied = res?.applied_updates || {};
-        const candidate = this.candidate();
-        const updatedCandidate = {
-          ...candidate,
-          ...applied,
-          pending_updates: null,
-          pending_update_status: 'approved'
-        };
-        this.candidate.set(updatedCandidate);
-        this.applicationService.notifyApplicationUpdated(updatedCandidate);
-        this.pendingChanges.set([]);
-        this.applicationMatchScoreService.getByApplicationId(candidateId)
-          .subscribe(scores => this.matchScores = scores);
-        this.applicationMatchScoreService.getPositionCategories()
-          .subscribe(categories => this.positionCategories = categories);
-        this.form.patchValue({
-          name: updatedCandidate.name,
-          description: updatedCandidate.description,
-          talent_match_profile_summary: updatedCandidate.talent_match_profile_summary,
-          position_id: updatedCandidate.position_id,
-          interview_link: updatedCandidate.interview_link,
-          hobbies: updatedCandidate.hobbies,
-          work_experience: updatedCandidate.work_experience,
-          skills: updatedCandidate.skills,
-          education_history: updatedCandidate.education_history,
-          inimble_academy: updatedCandidate.inimble_academy,
-          english_level: updatedCandidate.english_level,
-          resume: updatedCandidate.resume
-        });
-        this.originalData = JSON.parse(JSON.stringify(this.form.value));
-        this.snackBar.open('Pending changes approved!', 'Close', { duration: 3000 });
+        this.snackBar.open('Pending changes approved!', 'Close');
+        this.loadCandidate(candidateId);
       },
       error: (err) => {
         console.error('Failed to approve changes', err);
-        this.snackBar.open('Failed to approve changes', 'Close', { duration: 3000 });
+        this.snackBar.open('Failed to approve changes', 'Close');
       }
     });
   }
@@ -768,23 +755,12 @@ export class CandidateDetailsComponent implements OnInit {
     if (!candidateId) return;
     this.applicationService.rejectApplicationUpdates(candidateId).subscribe({
       next: (res: any) => {
-        const candidate = this.candidate();
-        const updatedCandidate = {
-          ...candidate,
-          pending_updates: null,
-          pending_update_status: 'rejected'
-        };
-        this.candidate.set(updatedCandidate);
-        this.applicationService.notifyApplicationUpdated(updatedCandidate);
-        this.pendingChanges.set([]);
-        this.applicationMatchScoreService.getByApplicationId(candidateId)
-          .subscribe(scores => this.matchScores = scores);
-        this.snackBar.open('Pending changes rejected!', 'Close', { duration: 3000 });
-        this.form.patchValue(this.originalData);
+        this.snackBar.open('Pending changes rejected!', 'Close');
+        this.loadCandidate(candidateId);
       },
       error: (err) => {
         console.error('Failed to reject changes', err);
-        this.snackBar.open('Failed to reject changes', 'Close', { duration: 3000 });
+        this.snackBar.open('Failed to reject changes', 'Close');
       }
     });
   }
