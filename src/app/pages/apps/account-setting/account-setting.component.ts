@@ -270,6 +270,8 @@ export class AppAccountSettingComponent implements OnInit {
   certifications: any[] = [];
   isLoadingCertifications = false;
   loader: Loader = new Loader(false, false, false);
+  originalCertifications: any[] = [];
+  certificationsChanged = false;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
@@ -1055,9 +1057,11 @@ export class AppAccountSettingComponent implements OnInit {
     };
     if (this.resumeFile) payload.resume = this.resumeFile;
     if (this.portfolioFile) payload.portfolio = this.portfolioFile;
+
     const diff: any = {};
     const orig = this.originalApplicationValues || {};
     const keys = Object.keys(payload);
+
     const isDifferent = (a: any, b: any) => {
       if (a === b) return false;
       if (a == null && b == null) return false;
@@ -1067,6 +1071,7 @@ export class AppAccountSettingComponent implements OnInit {
         return String(a) !== String(b);
       }
     };
+
     for (const k of keys) {
       const val = payload[k];
       if (val instanceof File) {
@@ -1077,13 +1082,21 @@ export class AppAccountSettingComponent implements OnInit {
         diff[k] = val;
       }
     }
+
+    if (this.certificationsChanged) {
+      diff.certifications = this.certifications;
+    }
+
     if (Object.keys(diff).length === 0) {
       this.openSnackBar('No changes detected', 'Close');
       this.isSubmitting = false;
       return;
     }
+
     this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
       next: (res: any) => {
+        this.certificationsChanged = false;
+        this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
         if (this.selectedVideoFile) {
           this.uploadVideo();
         } else {
@@ -1286,6 +1299,8 @@ export class AppAccountSettingComponent implements OnInit {
     this.certificationsService.getAll().subscribe({
       next: (res: any) => {
         this.certifications = res;
+        this.originalCertifications = JSON.parse(JSON.stringify(res));
+        this.certificationsChanged = false;
         this.isLoadingCertifications = false;
         this.loader.started = false;
       },
@@ -1298,7 +1313,7 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  deleteCertification(id: number) {
+  deleteCertification(cert: any) {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
@@ -1308,82 +1323,105 @@ export class AppAccountSettingComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loader.started = true;
-        this.certificationsService.delete(id).subscribe({
-            next: () => {
-                this.openSnackBar('Certification deleted successfully', 'Close');
-                this.loadCertifications();
-            },
-            error: () => {
-                 this.openSnackBar('Error deleting certification', 'Close');
-                 this.loader.started = false;
-            }
-        })
+        this.certifications = this.certifications.filter(c => c.id !== cert.id);
+        this.certificationsChanged = true;
+        this.openSnackBar('Certification removed. Click Save to persist changes.', 'Close');
       }
     });
   }
 
-  openCertificationDialog(action: string, obj: any): void {
-    obj.action = action;
+  private openCertificationDialog(action: string, cert: any): void {
+    const owner = this.getCertificationOwner();
+    const data = { ...cert, action };
+    if (!data.user_id && !data.application_id) {
+      Object.assign(data, owner);
+    }
+
     const dialogRef = this.dialog.open(AppCertificationModalComponent, {
-      data: obj,
+      data
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result && result.event !== 'Cancel') {
-          this.handleCertificationAction(result);
+        this.handleCertificationAction(result);
       }
     });
   }
 
-  handleCertificationAction(result: any) {
-     const { event, data, file } = result;
-     this.loader.started = true;
+  private handleCertificationAction(result: any) {
+    const { event, data, file } = result;
 
-     if (event === 'Add') {
-        const createObs = file
-          ? this.certificationsService.uploadAttachment(file).pipe(
-              switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.key.split('/').pop();
-                  return this.certificationsService.create(data);
-              })
-            )
-          : this.certificationsService.create(data);
-
-        createObs.subscribe({
-            next: () => {
-                this.openSnackBar('Certification added successfully', 'Close');
-                this.loadCertifications();
-            },
-             error: (err) => {
-                console.error(err);
-                this.openSnackBar('Error adding certification', 'Close');
-                this.loader.started = false;
-            }
+    if (event === 'Add') {
+      if (file) {
+        this.loader.started = true;
+        this.certificationsService.uploadAttachment(file).subscribe({
+          next: (uploadRes: any) => {
+            const attachmentUrl = uploadRes.key.split('/').pop();
+            const newCert = {
+              ...data,
+              id: `temp_${Date.now()}_${Math.random()}`,
+              attachment_url: attachmentUrl,
+              isTemp: true
+            };
+            this.certifications = [...this.certifications, newCert];
+            this.certificationsChanged = true;
+            this.loader.started = false;
+            this.openSnackBar('Certification added. Click Save to persist changes.', 'Close');
+          },
+          error: (err) => {
+            console.error('Error uploading file', err);
+            this.openSnackBar('Error uploading file. Please try again.', 'Close');
+            this.loader.started = false;
+          }
         });
-
-     } else if (event === 'Edit') {
-        const updateObs = file
-          ? this.certificationsService.uploadAttachment(file).pipe(
-              switchMap((uploadRes: any) => {
-                  data.attachment_url = uploadRes.key.split('/').pop();
-                  return this.certificationsService.update(data.id, data);
-              })
-            )
-          : this.certificationsService.update(data.id, data);
-          
-        updateObs.subscribe({
-            next: () => {
-                this.openSnackBar('Certification updated successfully', 'Close');
-                this.loadCertifications();
-            },
-             error: (err) => {
-                console.error(err);
-                this.openSnackBar('Error updating certification', 'Close');
-                this.loader.started = false;
-            }
+      } else {
+        const newCert = {
+          ...data,
+          id: `temp_${Date.now()}_${Math.random()}`,
+          isTemp: true
+        };
+        this.certifications = [...this.certifications, newCert];
+        this.certificationsChanged = true;
+        this.openSnackBar('Certification added. Click Save to persist changes.', 'Close');
+      }
+    } else if (event === 'Edit') {
+      if (file) {
+        this.loader.started = true;
+        this.certificationsService.uploadAttachment(file).subscribe({
+          next: (uploadRes: any) => {
+            const attachmentUrl = uploadRes.key.split('/').pop();
+            const updatedCert = {
+              ...data,
+              attachment_url: attachmentUrl
+            };
+            this.certifications = this.certifications.map(c =>
+              c.id === data.id ? updatedCert : c
+            );
+            this.certificationsChanged = true;
+            this.loader.started = false;
+            this.openSnackBar('Certification updated. Click Save to persist changes.', 'Close');
+          },
+          error: (err) => {
+            console.error('Error uploading file', err);
+            this.openSnackBar('Error uploading file. Please try again.', 'Close');
+            this.loader.started = false;
+          }
         });
-     }
+      } else {
+        this.certifications = this.certifications.map(c =>
+          c.id === data.id ? { ...c, ...data } : c
+        );
+        this.certificationsChanged = true;
+        this.openSnackBar('Certification updated. Click Save to persist changes.', 'Close');
+      }
+    }
+  }
+
+  private getCertificationOwner(): { user_id: number | null, application_id: number | null } {
+    if (this.user?.id) {
+      return { user_id: this.user.id, application_id: null };
+    }
+    return { user_id: null, application_id: this.applicationId || null };
   }
 
   editCertification(cert: any) {
