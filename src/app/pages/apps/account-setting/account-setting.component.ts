@@ -655,6 +655,7 @@ export class AppAccountSettingComponent implements OnInit {
 
           this.applicationForm.markAllAsTouched();
           this.personalForm.markAllAsTouched();
+          this.mergePendingCertifications();
         }
       },
       error: (error) => {
@@ -1303,6 +1304,7 @@ export class AppAccountSettingComponent implements OnInit {
         this.certificationsChanged = false;
         this.isLoadingCertifications = false;
         this.loader.started = false;
+        this.mergePendingCertifications();
       },
       error: (err) => {
         console.error('Error loading certifications', err);
@@ -1311,6 +1313,75 @@ export class AppAccountSettingComponent implements OnInit {
         this.loader.started = false;
       }
     });
+  }
+
+  cancelChanges(): void {
+    try {
+      this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
+      this.certificationsChanged = false;
+      this.resetFileInput();
+      this.resetVideoInput();
+      if (this.originalUserData) {
+        this.personalForm.patchValue({
+          name: this.originalUserData.name,
+          last_name: this.originalUserData.last_name,
+          email: this.originalUserData.email,
+          phone: this.originalUserData.phone,
+          address: this.originalUserData.address,
+          availability: this.originalUserData.availability
+        });
+      }
+      if (this.role === '3') {
+        this.initializeForm();
+      }
+      this.cdr.detectChanges();
+    } catch (err) {
+      console.error('Error restoring changes on cancel', err);
+    }
+  }
+
+  private mergePendingCertifications(): void {
+    try {
+      if (!this.application) return;
+
+      let pending: any = this.application.pending_updates ?? this.application.certifications;
+
+      if (!pending) return;
+
+      if (typeof pending === 'string') {
+        try {
+          const parsed = JSON.parse(pending);
+          pending = parsed?.certifications ?? parsed;
+        } catch (e) {
+          return;
+        }
+      } else if (pending && pending.certifications) {
+        pending = pending.certifications;
+      }
+
+      if (!Array.isArray(pending) || pending.length === 0) return;
+
+      this.certifications = this.certifications || [];
+
+      for (const p of pending) {
+        const pendingIdNum = typeof p.id === 'number' ? p.id : (typeof p.id === 'string' && /^\d+$/.test(p.id) ? Number(p.id) : null);
+
+        const exists = this.certifications.some((c: any) => {
+          if (pendingIdNum != null && typeof c.id === 'number') {
+            return c.id === pendingIdNum;
+          }
+          return c.name === p.name && (c.date || '') === (p.date || '');
+        });
+
+        if (!exists) {
+          const item = { ...p };
+          (item as any).isPending = true;
+          this.certifications.push(item);
+        }
+      }
+    } catch (err) {
+      console.error('Error merging pending certifications', err);
+    }
   }
 
   deleteCertification(id: number) {
