@@ -112,6 +112,35 @@ html .topbar {
   }
 }
 
+.topbar .header-logo-button.mat-mdc-button-base {
+  background-color: #DCEFC2;
+  border-radius: 100px;
+  min-width: 0;
+  height: 36px;
+  padding: 6px 12px;
+  line-height: 1;
+  margin-right: .5rem;
+
+  .mdc-button__label {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.topbar .header-logo-button:hover {
+  background-color: #EAEAEA;
+}
+
+.topbar .header-logo-button.active-header-logo-button {
+  background-color: #DCEFC2;
+}
+
+.topbar .header-logo-button .header-logo-image {
+  height: 14px;
+  width: auto;
+  display: block;
+}
+
 .profile-btn.mat-mdc-fab {
   background-color: transparent;
   &:hover {
