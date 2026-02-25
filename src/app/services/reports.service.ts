@@ -61,7 +61,7 @@ export class ReportsService {
       lastSelect: dates.lastSelect,
       timezone: new Intl.DateTimeFormat().resolvedOptions().timeZone,
       ...filters,
-      ...user,
+      user,
     };
     return info;
   }
