@@ -321,7 +321,8 @@ export class CandidateDetailsComponent implements OnInit {
       work_references: 'Work References',
       salary_range: 'Salary Range',
       resume: 'Resume',
-      programming_languages: 'Programming Languages'
+      programming_languages: 'Programming Languages',
+      certifications: 'Certifications'
     };
     return labels[key] || key;
   }
