@@ -1313,7 +1313,7 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  deleteCertification(cert: any) {
+  deleteCertification(id: number) {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
@@ -1323,9 +1323,17 @@ export class AppAccountSettingComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.certifications = this.certifications.filter(c => c.id !== cert.id);
-        this.certificationsChanged = true;
-        this.openSnackBar('Certification removed. Click Save to persist changes.', 'Close');
+        this.loader.started = true;
+        this.certificationsService.delete(id).subscribe({
+            next: () => {
+                this.openSnackBar('Certification deleted successfully', 'Close');
+                this.loadCertifications();
+            },
+            error: () => {
+                this.openSnackBar('Error deleting certification', 'Close');
+                this.loader.started = false;
+            }
+        })
       }
     });
   }
