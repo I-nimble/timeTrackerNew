@@ -1397,6 +1397,25 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   deleteCertification(id: number) {
+    const cert = this.certifications.find(c => c.id === id);
+    if (cert && cert.isTemp) {
+      const dialogRef = this.dialog.open(ModalComponent, {
+        data: {
+          action: 'delete',
+          subject: 'certification'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.certifications = this.certifications.filter(c => c.id !== id);
+          this.certificationsChanged = true;
+          this.openSnackBar('Certification deleted. Click Save to persist changes', 'Close');
+        }
+      });
+      return;
+    }
+
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
@@ -1448,9 +1467,9 @@ export class AppAccountSettingComponent implements OnInit {
         this.certificationsService.uploadAttachment(file).subscribe({
           next: (uploadRes: any) => {
             const attachmentUrl = uploadRes.key.split('/').pop();
-            const newCert = {
+            const newCert: any = {
               ...data,
-              id: `temp_${Date.now()}_${Math.random()}`,
+              id: Date.now() + Math.random(),
               attachment_url: attachmentUrl,
               isTemp: true
             };
@@ -1466,9 +1485,9 @@ export class AppAccountSettingComponent implements OnInit {
           }
         });
       } else {
-        const newCert = {
+        const newCert: any = {
           ...data,
-          id: `temp_${Date.now()}_${Math.random()}`,
+          id: Date.now() + Math.random(),
           isTemp: true
         };
         this.certifications = [...this.certifications, newCert];
