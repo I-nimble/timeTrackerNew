@@ -26,6 +26,7 @@ import { MatchPercentagesModalComponent } from 'src/app/components/match-percent
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
+import { getTrainingNames } from 'src/app/utils/candidate.utils';
 
 @Component({
   selector: 'app-candidates',
@@ -175,11 +176,7 @@ export class CandidatesComponent {
   }
 
   getTrainingNames(certifications: any[] | undefined): string {
-    if (!certifications || certifications.length === 0) return '';
-    return certifications
-      .map(cert => cert?.name)
-      .filter(Boolean)
-      .join(', ');
+    return getTrainingNames(certifications);
   }
 
   openPositionDiscModal(): void {

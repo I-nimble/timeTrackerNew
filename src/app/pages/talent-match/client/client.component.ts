@@ -34,6 +34,7 @@ import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
+import { getTrainingNames } from 'src/app/utils/candidate.utils';
 
 @Component({
   standalone: true,
@@ -529,6 +530,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getTrainingNames(certifications: any[] | undefined): string {
+    return getTrainingNames(certifications);
+  }
+
   togglePositionFilter(position: string): void {
     const index = this.selectedPositionFilters.indexOf(position);
     if (index > -1) {
@@ -666,6 +671,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         console.error('Error loading position categories:', err);
       }
     });
+  }
+
+  getRankingArrowPosition(rankingId: number | string | null | undefined): number {
+    const level = this.getRankingVisualLevel(rankingId);
+    return ((level - 0.5) / 4) * 100;
+  }
+
+  private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
+    const id = Number(rankingId);
+    if (!id || Number.isNaN(id)) {
+      return 0;
+    }
+    return Math.min(4, Math.max(1, 5 - id));
   }
 
   getIconForCategory(categoryName: string): string {

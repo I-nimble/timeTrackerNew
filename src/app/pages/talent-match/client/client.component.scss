@@ -1,4 +1,8 @@
 
+.text-muted {
+  color: #6c757d!important;
+}
+
 .resume {
   font-family: 'Montserrat', sans-serif;
   
@@ -217,4 +221,51 @@
 
 .score-status {
   font-weight: 500;
+}
+
+.application-ranking {
+  .ranking-bar-wrapper {
+    position: relative;
+    padding-top: 14px;
+    max-width: 350px;
+  }
+
+  .ranking-arrow {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    color: #30b34b;
+    font-size: 18px;
+    line-height: 1;
+    z-index: 1;
+  }
+
+  .ranking-segments {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    height: 14px;
+  }
+
+  .ranking-segment {
+    background-color: #30b34b;
+    border-radius: 2px;
+    opacity: 0.2;
+  }
+
+  .segment-1 {
+    opacity: 0.25;
+  }
+
+  .segment-2 {
+    opacity: 0.45;
+  }
+
+  .segment-3 {
+    opacity: 0.65;
+  }
+
+  .segment-4 {
+    opacity: 1;
+  }
 }
