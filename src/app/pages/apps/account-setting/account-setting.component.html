@@ -2157,7 +2157,7 @@
                     {{ cert.description }}
                   </div>
 
-                  <div class="m-t-12" *ngIf="getAttachmentUrl(cert.attachment_url)">
+                  <div class="m-t-12" *ngIf="cert.attachment_url">
                     <div *ngIf="isImage(cert.attachment_url)">
                       <img
                         [src]="getAttachmentUrl(cert.attachment_url)"
