@@ -269,12 +269,14 @@
   background: var(--mat-sys-surface);
   height: 100%;
   overflow-y: hidden;
+  overflow-x: hidden;
 }
 
 .chat-messages {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   background: var(--mat-sys-surface);
   padding: 24px;
@@ -330,6 +332,9 @@
   }
 }
 
+#message-actions-inner {
+  position: relative;
+}
 // message bubble that is not from me
 .message-bubble:not(.from-me) .message-actions {
   left: 0;
@@ -352,6 +357,7 @@
   padding: 4px 6px;
   border-radius: 10px;
   border: 1px solid var(--mat-sys-outline-variant);
+  overflow: visible;
 }
 
 .message-actions .quick-emoji-btn {
@@ -369,6 +375,10 @@
 
 .message-actions .quick-emoji-btn.me-reacted {
   background: color-mix(in srgb, var(--mat-sys-primary) 50%, var(--mat-sys-surface));
+}
+
+.message-actions .reaction-picker-toggle.me-reacted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 25%, var(--mat-sys-surface));
 }
 
 .action-separator {
@@ -407,6 +417,14 @@
 .message-actions.hidden {
   opacity: 0;
   visibility: hidden !important;
+  transition-delay: 0ms, 0ms, 0ms;
+}
+
+.message-actions.picker-open,
+.message-actions.picker-open.hidden {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
   transition-delay: 0ms, 0ms, 0ms;
 }
 
@@ -824,10 +842,30 @@
   align-items: center;
 }
 
+.reaction-emoji-container {
+  position: relative;
+}
+
+.reaction-emoji-picker {
+  position: fixed;
+  z-index: 2200;
+  top: 45px !important;
+}
+.message-bubble.from-me .reaction-emoji-picker {
+  left: -60px !important;
+}
+.message-bubble:not(.from-me) .reaction-emoji-picker {
+  right: -60px !important;
+}
+
 .emoji-panel {
   position: absolute;
   bottom: 80px;
   left: 20px;
+}
+
+.reaction-emoji-picker,
+.emoji-panel {
   z-index: 2000;
 
   width: 330px;
@@ -848,14 +886,6 @@
     0 8px 20px rgba(0, 0, 0, 0.06);
 
   animation: emojiFadeIn 160ms ease-out;
-
-  @media (max-width: 768px) {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    max-height: 60vh;
-    bottom: 100px;
-  }
 
   ::ng-deep .emoji-mart {
     width: 100% !important;
@@ -958,6 +988,21 @@
   ::ng-deep .emoji-mart-search-icon,
   ::ng-deep .emoji-mart-sr-only {
     display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .emoji-panel {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 60vh;
+    bottom: 100px;
+  }
+
+  .reaction-emoji-picker {
+    max-width: calc(100vw - 16px);
+    max-height: 60vh;
   }
 }
 
