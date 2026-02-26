@@ -2,6 +2,7 @@ import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
+import { DiscProfile } from 'src/app/services/disc-profiles.service';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -52,6 +53,9 @@ export class CandidateDetailsComponent implements OnInit {
   loader = new Loader(false, false, false);
   message = '';
   matchScores: MatchScore[] = [];
+  pendingMatchScores: MatchScore[] = [];
+  originalDiscProfiles: DiscProfile[] = [];
+  originalMatchScores: MatchScore[] = [];
   positionCategories: PositionCategory[] = [];
   editMode = false;
   form!: FormGroup;
@@ -208,6 +212,7 @@ export class CandidateDetailsComponent implements OnInit {
           resume_url: candidate.resume_url || null
         };
         this.candidate.set(normalizedCandidate);
+        this.originalDiscProfiles = normalizedCandidate.disc_profiles || [];
         this.certifications = normalizedCandidate.certifications || [];
         await this.resolveResumeLink(normalizedCandidate);
         this.computePendingChanges();
@@ -216,6 +221,7 @@ export class CandidateDetailsComponent implements OnInit {
           .getByApplicationId(candidate.id)
           .subscribe(scores => {
             this.matchScores = scores;
+            this.originalMatchScores = JSON.parse(JSON.stringify(scores || []));
             scores.forEach(score => {
               const controlName = 'matchScores_' + score.id;
               if (!this.form.get(controlName)) {
@@ -387,6 +393,12 @@ export class CandidateDetailsComponent implements OnInit {
     this.selectedResumeFile = null;
     this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
     this.updateCandidateCertifications();
+    this.candidate.update(c => ({
+      ...c!,
+      disc_profiles: JSON.parse(JSON.stringify(this.originalDiscProfiles || []))
+    }));
+    this.matchScores = JSON.parse(JSON.stringify(this.originalMatchScores || []));
+    this.pendingMatchScores = [];
     
     this.editMode = false;
     this.form.markAsPristine();
@@ -453,6 +465,12 @@ export class CandidateDetailsComponent implements OnInit {
       suggested_salary: formValues.suggested_salary,
       certifications: this.certifications
     };
+    if (this.candidate()?.disc_profiles) {
+      data.disc_profiles = this.candidate()?.disc_profiles;
+    }
+    if (this.pendingMatchScores && this.pendingMatchScores.length > 0) {
+      data.match_scores = this.pendingMatchScores;
+    }
 
     if (this.selectedProfilePicFile) {
       data.profile_pic = this.selectedProfilePicFile;
@@ -477,8 +495,14 @@ export class CandidateDetailsComponent implements OnInit {
           resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
           certifications: updatedCertifications
         };
-        
+        if (response?.disc_profiles) {
+          updatedCandidate.disc_profiles = response.disc_profiles;
+        }
+        if (response?.match_scores) {
+          this.matchScores = response.match_scores;
+        }
         this.candidate.set(updatedCandidate);
+        this.pendingMatchScores = [];
         this.certifications = updatedCertifications;
         this.resolveResumeLink(updatedCandidate);
 
@@ -813,25 +837,29 @@ export class CandidateDetailsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result?.success) {
-        this.applicationMatchScoreService.getByApplicationId(candidate.id)
-          .subscribe(scores => {
-            this.matchScores = scores;
-            scores.forEach(score => {
-              const controlName = 'matchScores_' + score.id;
-              if (this.form.get(controlName)) {
-                this.form.get(controlName)?.setValue(score.match_percentage);
-              }
-            });
-          });
-        
+        this.pendingMatchScores = result.matchScores || [];
+        if (this.pendingMatchScores.length > 0) {
+          this.matchScores = this.pendingMatchScores.map((m: any, i: number) => ({
+            id: m.id || undefined,
+            application_id: candidate.id,
+            position_category_id: m.position_category_id,
+            match_percentage: m.match_percentage
+          }));
+        }
         if (result.discProfiles) {
           this.candidate.update(c => ({
             ...c!,
             disc_profiles: result.discProfiles
           }));
         }
-        
-        this.snackBar.open('Match percentages and DISC profile updated!', 'Close', { duration: 3000 });
+        const stagedCandidate = {
+          ...candidate,
+          disc_profiles: result.discProfiles || candidate.disc_profiles,
+          match_scores: this.matchScores
+        };
+        this.applicationService.notifyApplicationUpdated(stagedCandidate);
+        this.form.markAsDirty();
+        this.snackBar.open('Match percentages and DISC profile staged (save to persist).', 'Close', { duration: 3000 });
       }
     });
   }

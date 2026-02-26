@@ -163,48 +163,17 @@ export class MatchPercentagesModalComponent implements OnInit {
   }
 
   onSubmit(): void {
-    this.saving = true;
-
     const matchScoresData = Object.entries(this.matchScores).map(([categoryId, percentage]) => ({
       position_category_id: parseInt(categoryId),
       match_percentage: percentage
     }));
-
-    const requestData = {
-      application_id: this.data.candidate.id,
-      match_scores: matchScoresData
-    };
-
-    const matchScores$ = this.matchScoresService.createMatchScores(requestData);
-    const discProfiles$ = this.discProfilesService.assignToApplication(
-      this.data.candidate.id,
-      this.selectedDiscProfileIds
+    const selectedProfiles = this.discProfiles.filter(p => 
+      this.selectedDiscProfileIds.includes(p.id)
     );
-
-    forkJoin([matchScores$, discProfiles$]).subscribe({
-      next: ([matchResponse, discResponse]) => {
-        this.saving = false;
-        
-        if (matchResponse.errors && matchResponse.errors.length > 0) {
-          this.snackBar.open('Error saving some match percentages', 'Close', { duration: 5000 });
-          return;
-        }
-        
-        const selectedProfiles = this.discProfiles.filter(p => 
-          this.selectedDiscProfileIds.includes(p.id)
-        );
-        
-        this.snackBar.open('Match percentages and DISC profile saved successfully!', 'Close', { duration: 3000 });
-        this.dialogRef.close({ 
-          success: true, 
-          discProfiles: selectedProfiles 
-        });
-      },
-      error: (error) => {
-        this.saving = false;
-        console.error('Error saving data:', error);
-        this.snackBar.open('Error saving data', 'Close', { duration: 3000 });
-      }
+    this.dialogRef.close({
+      success: true,
+      matchScores: matchScoresData,
+      discProfiles: selectedProfiles
     });
   }
 
