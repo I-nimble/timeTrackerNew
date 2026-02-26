@@ -55,6 +55,11 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { ThemeService } from 'src/app/services/theme.service';
 import { SafeHtml } from '@angular/platform-browser';
 
+interface Emoji {
+  emoji: string;
+  description: string;
+}
+
 @Component({
   selector: 'app-chat',
   imports: [
@@ -124,7 +129,12 @@ export class AppChatComponent implements OnInit, OnDestroy {
   reactionTargetMessage: RocketChatMessage | null = null;
   showReactionPicker = false;
   reactionPickerForMessageId: string | null = null;
-  basicEmojis: string[] = ['🎉','😢','👀', '👎','🙌','😆','😄','😅','😱','😓','😳','😢','😬'];
+  basicEmojis: Emoji[] = [
+    { emoji: '👍', description: 'Thumbs Up' },
+    { emoji: '❤️', description: 'Heart' },
+    { emoji: '😂', description: 'Face with Tears of Joy' },
+    { emoji: '😮', description: 'Face with Open Mouth' }
+  ];
   basicEmojiHtml = new Map<string, SafeHtml>();
   private editingQuoteUrl: string | null = null;
 
@@ -156,19 +166,27 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.showEmojiPicker) return;
-
+    if (!this.showEmojiPicker && !this.showReactionPicker) return;
+    
     const target = event.target as HTMLElement | null;
+
     if (!target) {
       this.showEmojiPicker = false;
+      this.closeReactionPicker();
       return;
     }
 
-    if (target.closest('.emoji-panel') || target.closest('.emoji-toggle-btn')) {
-      return;
+    if (this.showEmojiPicker) {
+      if (!target.closest('.emoji-panel') && !target.closest('.emoji-toggle-btn')) {
+        this.showEmojiPicker = false;
+      }
     }
 
-    this.showEmojiPicker = false;
+    if (this.showReactionPicker) {
+      if (!target.closest('.reaction-emoji-container') && !target.closest('.reaction-picker-toggle')) {
+        this.closeReactionPicker();
+      }
+    }
   }
 
   constructor(
@@ -2414,9 +2432,27 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   openReactionPicker(message: RocketChatMessage) {
+    this.toggleReactionPicker(message);
+  }
+
+  toggleReactionPicker(message: RocketChatMessage, event?: Event): void {
+    event?.stopPropagation();
+
+    const isSameMessage = this.showReactionPicker && this.reactionPickerForMessageId === message?._id;
+    if (isSameMessage) {
+      this.closeReactionPicker();
+      return;
+    }
+
     this.reactionTargetMessage = message;
+    this.reactionPickerForMessageId = message?._id || null;
     this.showReactionPicker = true;
-    
+  }
+
+  private closeReactionPicker(): void {
+    this.showReactionPicker = false;
+    this.reactionPickerForMessageId = null;
+    this.reactionTargetMessage = null;
   }
 
   addEmoji(event: any) {
@@ -2515,6 +2551,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage): void {
     if (!message?._id) return;
+
+    this.closeReactionPicker();
 
     const candidates = this.getReactionKeysForNative(nativeEmoji);
     const existingKey = candidates.find((key) => !!message.reactions?.[key]);

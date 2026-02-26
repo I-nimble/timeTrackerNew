@@ -346,6 +346,7 @@
                         class="message-actions"
                         [class.visible]="isActionsVisible(message)"
                         [class.hidden]="!isActionsVisible(message)"
+                        [class.picker-open]="showReactionPicker && reactionPickerForMessageId === message._id"
                         *ngIf="
                           !isSystemMessage(message) &&
                           message.t !== 'videoconf'
@@ -353,62 +354,37 @@
                         [class.from-me]="isFromMe(message)"
                       >
                         <button
+                          *ngFor="let emoji of basicEmojis"
                           mat-icon-button
                           class="quick-emoji-btn"
-                          [class.me-reacted]="didIReactNative(message, '👍')"
-                          aria-label="React thumbs up"
-                          (click)="$event.stopPropagation(); selectReactionEmoji('👍', message)"
+                          [class.me-reacted]="didIReactNative(message, emoji.emoji)"
+                          (click)="$event.stopPropagation(); selectReactionEmoji(emoji.emoji, message)"
                         >
-                          <span [innerHTML]="getAppleEmojiHtml('👍')"></span>
+                          <span [innerHTML]="getAppleEmojiHtml(emoji.emoji)"></span>
                         </button>
                         <button
                           mat-icon-button
-                          class="quick-emoji-btn"
-                          [class.me-reacted]="didIReactNative(message, '❤️')"
-                          aria-label="React heart"
-                          (click)="$event.stopPropagation(); selectReactionEmoji('❤️', message)"
-                        >
-                          <span [innerHTML]="getAppleEmojiHtml('❤️')"></span>
-                        </button>
-                        <button
-                          mat-icon-button
-                          class="quick-emoji-btn"
-                          [class.me-reacted]="didIReactNative(message, '😂')"
-                          aria-label="React laugh"
-                          (click)="$event.stopPropagation(); selectReactionEmoji('😂', message)"
-                        >
-                          <span [innerHTML]="getAppleEmojiHtml('😂')"></span>
-                        </button>
-                        <button
-                          mat-icon-button
-                          class="quick-emoji-btn"
-                          [class.me-reacted]="didIReactNative(message, '😮')"
-                          aria-label="React surprised"
-                          (click)="$event.stopPropagation(); selectReactionEmoji('😮', message)"
-                        >
-                          <span [innerHTML]="getAppleEmojiHtml('😮')"></span>
-                        </button>
-                        <button
-                          mat-icon-button
+                          class="reaction-picker-toggle"
+                          [class.me-reacted]="showReactionPicker && reactionPickerForMessageId === message._id"
                           aria-label="See more emojis"
-                          [matMenuTriggerFor]="moreEmojiMenu"
-                          (click)="$event.stopPropagation()"
+                          (click)="toggleReactionPicker(message, $event)"
                         >
                           <mat-icon>add_reaction</mat-icon>
                         </button>
-                        <mat-menu #moreEmojiMenu="matMenu" class="emoji-menu">
-                          <div class="compact-emoji-panel" (click)="$event.stopPropagation()">
-                            <button
-                              type="button"
-                              class="emoji-btn"
-                              *ngFor="let e of basicEmojis"
-                              (click)="selectReactionEmoji(e, message)"
-                              [class.me-reacted]="didIReactNative(message, e)"
-                              [attr.aria-label]="'React ' + e"
-                              [innerHTML]="getAppleEmojiHtml(e)"
-                            ></button>
-                          </div>
-                        </mat-menu>
+                        <div
+                          class="reaction-emoji-container"
+                          *ngIf="showReactionPicker && reactionPickerForMessageId === message._id"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <emoji-mart
+                            class="reaction-emoji-picker"
+                            [darkMode]="themeService.theme === 'dark'"
+                            set="apple"
+                            (emojiClick)="selectReactionEmoji($event.emoji.native, message)"
+                            [hideObsolete]="true"
+                          >
+                          </emoji-mart>
+                        </div>
                         <span class="action-separator"></span>
 
                         <button
@@ -1004,6 +980,7 @@
             [darkMode]="themeService.theme === 'dark'" 
             set="apple" 
             (emojiClick)="addEmoji($event)"
+            [hideObsolete]="true"
           >
           </emoji-mart>
         </div>
