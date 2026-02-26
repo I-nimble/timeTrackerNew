@@ -20,11 +20,10 @@ import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candid
 import { switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 import { CertificationsService } from 'src/app/services/certifications.service';
 import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { UsersService } from 'src/app/services/users.service';
-import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
 
 @Component({
   selector: 'app-candidate-details',
@@ -451,7 +450,8 @@ export class CandidateDetailsComponent implements OnInit {
       english_level: formValues.english_level,
       email: this.candidate()?.email,
       cv: this.selectedResumeFile,
-      suggested_salary: formValues.suggested_salary
+      suggested_salary: formValues.suggested_salary,
+      certifications: this.certifications
     };
 
     if (this.selectedProfilePicFile) {
@@ -667,6 +667,7 @@ export class CandidateDetailsComponent implements OnInit {
     this.applicationService.getLocations().subscribe({
       next: (locs) => {
         this.locations = locs;
+        this.computePendingChanges();
       },
       error: (err) => console.error('Error loading locations', err)
     });
@@ -702,14 +703,6 @@ export class CandidateDetailsComponent implements OnInit {
   getDiscProfileNames(profiles: any[] | undefined): string {
     if (!profiles || profiles.length === 0) return '';
     return profiles.map(p => p.name).join(', ');
-  }
-
-  getProfileByRanking(ranking: string) {
-    return this.rankingProfiles.find(p => p.key === ranking);
-  }
-
-  getProfileByDescription(description: string) {
-    return this.rankingProfiles.find(p => p.description === description);
   }
 
   breakLines(value: string | null): string[] {
@@ -854,7 +847,9 @@ export class CandidateDetailsComponent implements OnInit {
         );
         return;
       }
-      if (!['image/jpeg', 'image/png'].includes(file.type)){
+      
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
         this.snackBar.open(
           'Only JPG and PNG files are allowed for profile picture',
           'Close',
@@ -899,4 +894,5 @@ export class CandidateDetailsComponent implements OnInit {
       this.selectedResumeFile = file;
     }
   }
+
 }
