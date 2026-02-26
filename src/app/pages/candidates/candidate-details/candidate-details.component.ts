@@ -624,7 +624,7 @@ export class CandidateDetailsComponent implements OnInit {
     if (event === 'Add') {
       const tempCert = {
         ...data,
-        id: data.id || `temp_${Date.now()}_${Math.random()}`,
+        id: data.id || (Date.now() + Math.random()),
         isTemp: true
       };
       this.certifications = [...this.certifications, tempCert];
