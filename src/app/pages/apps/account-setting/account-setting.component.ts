@@ -1097,6 +1097,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
       next: (res: any) => {
         this.certificationsChanged = false;
+        this.certifications = this.certifications.filter(c => !c.isTemp);
         this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
         if (this.selectedVideoFile) {
           this.uploadVideo();
@@ -1370,7 +1371,10 @@ export class AppAccountSettingComponent implements OnInit {
           if (pendingIdNum != null && typeof c.id === 'number') {
             return c.id === pendingIdNum;
           }
-          return c.name === p.name && (c.date || '') === (p.date || '');
+          const nameEqual = (c.name || '').toLowerCase() === (p.name || '').toLowerCase();
+          const dateA = (c.date || '').split('T')[0];
+          const dateB = (p.date || '').split('T')[0];
+          return nameEqual && dateA === dateB;
         });
 
         if (!exists) {
@@ -1379,12 +1383,39 @@ export class AppAccountSettingComponent implements OnInit {
           this.certifications.push(item);
         }
       }
+      const unique: any[] = [];
+      for (const c of this.certifications) {
+        const key = `${(c.name||'').toLowerCase()}|${(c.date||'').split('T')[0]}`;
+        if (!unique.some(u => `${(u.name||'').toLowerCase()}|${(u.date||'').split('T')[0]}` === key)) {
+          unique.push(c);
+        }
+      }
+      this.certifications = unique;
     } catch (err) {
       console.error('Error merging pending certifications', err);
     }
   }
 
   deleteCertification(id: number) {
+    const cert = this.certifications.find(c => c.id === id);
+    if (cert && cert.isTemp) {
+      const dialogRef = this.dialog.open(ModalComponent, {
+        data: {
+          action: 'delete',
+          subject: 'certification'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.certifications = this.certifications.filter(c => c.id !== id);
+          this.certificationsChanged = true;
+          this.openSnackBar('Certification deleted. Click Save to persist changes', 'Close');
+        }
+      });
+      return;
+    }
+
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
@@ -1436,9 +1467,9 @@ export class AppAccountSettingComponent implements OnInit {
         this.certificationsService.uploadAttachment(file).subscribe({
           next: (uploadRes: any) => {
             const attachmentUrl = uploadRes.key.split('/').pop();
-            const newCert = {
+            const newCert: any = {
               ...data,
-              id: `temp_${Date.now()}_${Math.random()}`,
+              id: Date.now() + Math.random(),
               attachment_url: attachmentUrl,
               isTemp: true
             };
@@ -1454,9 +1485,9 @@ export class AppAccountSettingComponent implements OnInit {
           }
         });
       } else {
-        const newCert = {
+        const newCert: any = {
           ...data,
-          id: `temp_${Date.now()}_${Math.random()}`,
+          id: Date.now() + Math.random(),
           isTemp: true
         };
         this.certifications = [...this.certifications, newCert];
