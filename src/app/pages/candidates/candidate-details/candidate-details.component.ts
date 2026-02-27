@@ -497,9 +497,11 @@ export class CandidateDetailsComponent implements OnInit {
         };
         if (response?.disc_profiles) {
           updatedCandidate.disc_profiles = response.disc_profiles;
+          this.originalDiscProfiles = JSON.parse(JSON.stringify(response.disc_profiles || []));
         }
         if (response?.match_scores) {
           this.matchScores = response.match_scores;
+          this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
         }
         this.candidate.set(updatedCandidate);
         this.pendingMatchScores = [];
@@ -507,6 +509,45 @@ export class CandidateDetailsComponent implements OnInit {
         this.resolveResumeLink(updatedCandidate);
 
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
+        this.originalCertifications = JSON.parse(JSON.stringify(updatedCertifications || []));
+        const savedId = id;
+        this.applicationMatchScoreService.getByApplicationId(savedId).subscribe({
+          next: (scores) => {
+            this.matchScores = scores || [];
+            this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
+            this.candidate.update(c => (c ? { ...c, match_scores: this.matchScores } : c));
+          },
+          error: (err) => {
+            console.error('Failed to reload match scores after save', err);
+          }
+        });
+        this.applicationService.getApplication(id).subscribe({
+          next: (fresh) => {
+            if (fresh) {
+              const normalized = {
+                ...fresh,
+                picture: fresh.picture || fresh.profile_pic_url || null,
+                profile_pic_url: fresh.profile_pic_url || fresh.picture || null,
+                pending_updates: fresh.pending_updates || null,
+                resume_url: fresh.resume_url || null
+              };
+              this.candidate.set(normalized);
+              this.originalDiscProfiles = normalized.disc_profiles || [];
+              this.certifications = normalized.certifications || [];
+              this.originalCertifications = JSON.parse(JSON.stringify(this.certifications || []));
+              this.computePendingChanges();
+              this.applicationMatchScoreService.getByApplicationId(id).subscribe({
+                next: (scores) => {
+                  this.matchScores = scores || [];
+                  this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
+                  this.candidate.update(c => (c ? { ...c, match_scores: this.matchScores } : c));
+                },
+                error: (err) => console.error('Failed to reload match scores after refreshing candidate', err)
+              });
+            }
+          },
+          error: (err) => console.error('Error reloading candidate after save', err)
+        });
         
         if (response?.profile_pic_url) {
           const updatedCandidate = {
