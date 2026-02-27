@@ -137,7 +137,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   ];
   basicEmojiHtml = new Map<string, SafeHtml>();
   private editingQuoteUrl: string | null = null;
-
+  private emojiNormalizeTimeout: any;
   private quotedMessageCache = new Map<string, RocketChatMessage | null>();
   private quotedMessageInFlight = new Set<string>();
 
@@ -541,6 +541,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
+  trackByMessageId(index: number, message: RocketChatMessage): string {
+    return message._id;
+  }
+  
   getDisplayName(user: any): string {
     if (!user) return 'Unknown';
     if (user.name && user.name.trim().length > 0) return user.name.trim();
@@ -1815,17 +1819,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
       : this.plainEditor?.nativeElement;
 
     if (!editor) return;
+    clearTimeout(this.emojiNormalizeTimeout);
 
-    this.normalizeEditorEmojiRendering(editor, mode);
+    this.emojiNormalizeTimeout = setTimeout(() => {
+      this.normalizeEditorEmojiRendering(editor, mode);
+    }, 250);
 
     if (mode === 'compose') {
       this.syncMessageFromEditor('compose');
-      this.handleCursorChange('compose');
+      // this.handleCursorChange('compose');
       return;
     }
 
     this.syncMessageFromEditor('plain');
-    this.handleCursorChange('plain');
+    // this.handleCursorChange('plain');
     this.onMessageInput();
   }
 
@@ -2502,20 +2509,34 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!this.reactionTargetMessage) return;
     const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
     if (!nativeEmoji) return;
-
+    const message = this.reactionTargetMessage;
     const candidates = this.getReactionKeysForNative(nativeEmoji);
     const existingKey = candidates.find((key) => !!this.reactionTargetMessage?.reactions?.[key]);
     const reactionKey = existingKey || candidates[0] || nativeEmoji;
     if (!reactionKey) return console.error('No reaction key for emoji', nativeEmoji);
-
-    this.chatService.reactToMessage(this.reactionTargetMessage._id, reactionKey).subscribe({
-      next: () => {
-        this.refreshCurrentRoomMessages();
-      },
-      error: (err) => {
-        console.error('Error reacting to message:', err);
-      }
-    });
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[reactionKey]) {
+      message.reactions[reactionKey] = { usernames: [] };
+    }
+    const usernames = message.reactions[reactionKey].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      message.reactions[reactionKey].usernames =
+        usernames.filter((u) => u !== myUsername);
+    } else {
+      message.reactions[reactionKey].usernames.push(myUsername);
+    }
+    this.chatService
+      .reactToMessage(message._id, reactionKey)
+      .subscribe({
+        error: (err) => {
+          console.error('Error reacting to message:', err);
+        },
+      });
     this.showReactionPicker = false;
     this.reactionTargetMessage = null;
   }
@@ -2536,10 +2557,24 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   toggleReaction(message: RocketChatMessage, emoji: string) {
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[emoji]) {
+      message.reactions[emoji] = { usernames: [] };
+    }
+    const usernames = message.reactions[emoji].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      message.reactions[emoji].usernames =
+        usernames.filter((u) => u !== myUsername);
+    } else {
+      message.reactions[emoji].usernames.push(myUsername);
+    }
+
     this.chatService.reactToMessage(message._id, emoji).subscribe({
-      next: () => {
-        this.refreshCurrentRoomMessages();
-      },
       error: err => console.error('Error toggling reaction:', err)
     });
   }
@@ -2555,15 +2590,32 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.closeReactionPicker();
 
     const candidates = this.getReactionKeysForNative(nativeEmoji);
-    const existingKey = candidates.find((key) => !!message.reactions?.[key]);
+    const existingKey = candidates.find(
+      (key) => !!message.reactions?.[key]
+    );
     const reactionKey = existingKey || candidates[0] || nativeEmoji;
     if (!reactionKey) return;
 
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[reactionKey]) {
+      message.reactions[reactionKey] = { usernames: [] };
+    }
+    const usernames = message.reactions[reactionKey].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      message.reactions[reactionKey].usernames =
+        usernames.filter((u) => u !== myUsername);
+    } else {
+      message.reactions[reactionKey].usernames.push(myUsername);
+    }
     this.chatService.reactToMessage(message._id, reactionKey).subscribe({
-      next: () => {
-        this.refreshCurrentRoomMessages();
-      },
-      error: (err) => console.error('Error selecting reaction:', err)
+      error: (err) => {
+        console.error('Error selecting reaction:', err);
+      }
     });
   }
 
