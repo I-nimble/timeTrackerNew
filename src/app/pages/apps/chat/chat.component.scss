@@ -617,9 +617,6 @@
   .chat-main {
     width: 100%;
   }
-  .chat-messages {
-    height: calc(100vh - 200px);
-  }
 }
 
 .typing-indicator {
@@ -993,11 +990,12 @@
 
 @media (max-width: 768px) {
   .emoji-panel {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    max-height: 60vh;
-    bottom: 100px;
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 8px;
+    border-radius: 16px;
+    max-height: 40vh;
   }
 
   .reaction-emoji-picker {
