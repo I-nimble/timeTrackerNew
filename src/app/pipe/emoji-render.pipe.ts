@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform, Injectable  } from '@angular/core';
 import data from '@emoji-mart/data';
 
-@Pipe({ name: 'emojiMart' })
+@Pipe({ name: 'emojiMart', pure: true })
 @Injectable({ providedIn: 'root' })
 export class EmojiMartPipe implements PipeTransform {
   private map: Record<string, string> = {};

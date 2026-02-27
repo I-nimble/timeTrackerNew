@@ -269,7 +269,7 @@
         >
           <ng-container *ngIf="selectedConversation; else noConversation">
             <div class="messages-list">
-              <ng-container *ngFor="let message of messages; let i = index">
+              <ng-container *ngFor="let message of messages; let i = index; trackBy: trackByMessageId">
                 <div
                   *ngIf="
                     i === 0 ||
