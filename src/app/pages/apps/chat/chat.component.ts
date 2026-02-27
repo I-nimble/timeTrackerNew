@@ -307,22 +307,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
       console.error('Failed to subscribe to server updated stream:', err);
     }
     try {
-      this.rooms.forEach(r => this.chatService.subscribeToCallEvents(r._id));
-    } catch (err) {
-      console.error('Failed to subscribe to call notifications:', err);
-    }
-    try {
-      this.chatService.getUserNotifyStream().subscribe(async (notification: any) => {
+      this.chatService.getUserNotifyStream().subscribe((notification: any) => {
         try {
           if (notification.type === 'call-started') {
             const roomName = notification.roomName || 'a room';
-            const title = `Active call in ${roomName}`;
-            const body = 'Click to join the call';
-            await this.chatService.showPushNotification(title, body, undefined, {
-              type: 'call',
-              roomId: notification.roomId,
-              callData: notification.callData,
-            });
             this.openSnackBar(`Call started in ${roomName}`, 'Join');
             return;
           }
@@ -1431,20 +1419,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
           } catch (e) {}
 
           try {
-            this.chatService.getAllSubscriptions().subscribe({
-              next: (sres: any) => {
-                try {
-                  const payload = sres?.update || sres?.subscriptions || sres;
-                  const subsArray = Array.isArray(payload) ? payload : [payload];
-                  this.chatService.updateUnreadFromSubscriptions(subsArray);
-                } catch (e) {
-                  console.error('Error updating unread from subscriptions after mark-as-read:', e, sres);
-                }
-              },
-              error: (e) => console.error('Failed to refresh subscriptions after mark-as-read:', e)
-            });
+            this.chatService.refreshUnreadFromCurrentUserRooms().subscribe();
           } catch (e) {
-            console.error('Error calling getAllSubscriptions after markChannelAsRead:', e);
+            console.error('Error refreshing unread after markChannelAsRead:', e);
           }
         },
         error: (err) => {
