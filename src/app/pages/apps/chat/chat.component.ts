@@ -150,7 +150,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
         try {
-          console.log('[chat] global message stream', message);
           if (!message || !message.rid) return;
           const room = this.rooms.find(r => r._id === message.rid);
           if (room) {

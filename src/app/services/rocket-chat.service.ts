@@ -411,12 +411,10 @@ export class RocketChatService {
     }
 
     if (this.connectionInProgress) {
-      // console.log('WebSocket connection already in progress, skipping...');
       return;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      // console.log('WebSocket already connected, skipping...');
       return;
     }
 
@@ -744,11 +742,6 @@ export class RocketChatService {
                     const caller = messageData.u?.name || messageData.u?.username || 'Someone';
                     const title = 'Call ongoing';
                     const body = `${caller} is calling`;
-                    console.log('[rocket-chat] call fallback from stream-room-messages', {
-                      roomId: messageData.rid,
-                      messageId: messageData._id,
-                      caller,
-                    });
                     this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
                     try { this.playCallSound(); } catch (e) {}
                   } catch (pushErr) {
@@ -796,15 +789,6 @@ export class RocketChatService {
       if (isCallEvent) {
         const callData = args[1];
         const roomId = message.roomId || roomIdFromEvent || callData?.rid || callData?.roomId || null;
-        console.log('[rocket-chat] call event received', {
-          eventName,
-          roomId,
-          roomIdFromEvent,
-          messageRoomId: message.roomId,
-          event,
-          callData,
-          activeRoom: this.currentActiveRoom,
-        });
         this.userNotifySubject.next({
           type: 'call-started',
           roomId,
@@ -893,7 +877,6 @@ export class RocketChatService {
               }
             });
           } catch (err) {
-            console.log('Error while handling user notify payload for audio:', err);
           }
         } else {
           this.userNotifySubject.next(message);
@@ -996,15 +979,6 @@ export class RocketChatService {
       name: 'stream-notify-room',
       params: [param, false],
     });
-
-    if (eventName === 'call') {
-      console.log('[rocket-chat] subscribe call notifications', {
-        roomId,
-        param,
-        subscriptionId,
-        socketReadyState: this.socket?.readyState,
-      });
-    }
     
     this.activeSubscriptions.set(`${roomId}:notify:${eventName}`, subscriptionId);
   }
@@ -1441,7 +1415,6 @@ export class RocketChatService {
         console.warn('[push] Notification API not available in this environment');
         return;
       }
-      console.log('Attempting to show push notification:', { title, body, icon, data });
       const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());
       if (!granted) {
         console.warn('[push] Notification permission not granted', {
@@ -1458,16 +1431,10 @@ export class RocketChatService {
 
       const roomId = data?.roomId;
       if (roomId && this.currentActiveRoom && roomId === this.currentActiveRoom) {
-        console.log('[push] Skipped because room is currently active', {
-          roomId,
-          activeRoom: this.currentActiveRoom,
-          title,
-        });
         return;
       }
 
       const notif = new Notification(title, options);
-      console.log('[push] Notification sent', { title, body, data });
       notif.onclick = (ev: any) => {
         try {
           if (window && (window as any).focus) (window as any).focus();
