@@ -24,6 +24,8 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { ApplicationMatchScoresService } from 'src/app/services/application-match-scores.service';
+import { forkJoin, of, Observable } from 'rxjs';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
@@ -71,7 +73,8 @@ export class CandidatesComponent {
     private positionsService: PositionsService,
     private companiesService: CompaniesService,
     private permissionService: PermissionService,
-    private discProfilesService: DiscProfilesService
+    private discProfilesService: DiscProfilesService,
+    private applicationMatchScoresService: ApplicationMatchScoresService
   ) { }
 
   ngOnInit(): void {
@@ -328,14 +331,38 @@ export class CandidatesComponent {
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result?.success) {
-        this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
+        const discProfileIds = (result.discProfiles || []).map((p: any) => p.id);
+        const matchScores = result.matchScores || [];
+        const discReq = discProfileIds.length
+          ? this.discProfilesService.assignToApplication(candidate.id, discProfileIds)
+          : null;
+        const matchReq = matchScores.length
+          ? this.applicationMatchScoresService.createMatchScores({ application_id: candidate.id, match_scores: matchScores })
+          : null;
+        const requests: Observable<any>[] = [];
+        if (discReq) requests.push(discReq);
+        if (matchReq) requests.push(matchReq);
+        const executePersist: Observable<any> = requests.length ? forkJoin(requests) : of(null);
+        executePersist.subscribe({
           next: () => {
-            this.showSnackbar('Candidate sent to talent match successfully!');
-            this.loadCandidates();
-            this.filterCandidates();
+            this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
+              next: () => {
+                if (result.discProfiles) candidate.disc_profiles = result.discProfiles;
+                if (result.matchScores) {
+                  candidate.match_scores = result.matchScores;
+                  candidate.all_match_scores = result.matchScores;
+                }
+                this.showSnackbar('Candidate sent to talent match successfully!');
+                this.loadCandidates();
+                this.filterCandidates();
+              },
+              error: () => {
+                this.showSnackbar('Error sending candidate to talent match.');
+              }
+            });
           },
           error: () => {
-            this.showSnackbar('Error sending candidate to talent match.');
+            this.showSnackbar('Error saving DISC profiles or match scores.');
           }
         });
       }
