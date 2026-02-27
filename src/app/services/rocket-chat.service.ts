@@ -11,6 +11,7 @@ import {
   forkJoin,
   filter,
   firstValueFrom,
+  tap,
   throwError
 } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -70,6 +71,7 @@ export class RocketChatService {
   public typing$ = this.typingSubject.asObservable();
   private notificationAudio: HTMLAudioElement | null = null;
   private callAudio: HTMLAudioElement | null = null;
+  private recentlyNotifiedMessageIds = new Map<string, number>();
 
   loggedInUser: RocketChatUser | null = null;
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
@@ -82,6 +84,7 @@ export class RocketChatService {
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
     this.initNotificationSounds();
+    this.setupAudioUnlockListeners();
 
     try {
       this.webSocketService.getTypingStream().subscribe((evt) => {
@@ -124,6 +127,20 @@ export class RocketChatService {
     } catch (err) {
       console.error('Failed to init notification sounds:', err);
     }
+  }
+
+  private setupAudioUnlockListeners() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const unlock = () => {
+      document.removeEventListener('click', unlock, true);
+      document.removeEventListener('touchstart', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+    };
+
+    document.addEventListener('click', unlock, true);
+    document.addEventListener('touchstart', unlock, true);
+    document.addEventListener('keydown', unlock, true);
   }
 
    async initializeRocketChat(chatCredentials?: any): Promise<void> {
@@ -326,9 +343,29 @@ export class RocketChatService {
     const roomId = sub?.rid || sub?._id || sub?.roomId;
     if (!roomId) return false;
     if (this.hiddenRoomIds.has(roomId)) return false;
-    if (this.isTeamMainRoom(sub)) return false;
     if (this.isBotUser(sub?.u)) return false;
     return true;
+  }
+
+  private updateUnreadMapFromUserRooms(userRooms: any[] | undefined | null): number {
+    const nextMap: Record<string, number> = {};
+    const rooms = Array.isArray(userRooms) ? userRooms : [];
+
+    rooms.forEach((room: any) => {
+      const roomId = room?.rid || room?.roomId || room?._id;
+      if (!roomId) return;
+      if (this.currentActiveRoom && roomId === this.currentActiveRoom) return;
+      if (this.hiddenRoomIds.has(roomId)) return;
+
+      const unread = Number(room?.unread || 0);
+      if (unread > 0) {
+        nextMap[roomId] = unread;
+      }
+    });
+
+    this.unreadMap = nextMap;
+    this.publishUnreadMap();
+    return Object.values(nextMap).reduce((acc, value) => acc + value, 0);
   }
   
   private formatNotificationBody(rawText: string): string {
@@ -351,18 +388,33 @@ export class RocketChatService {
     return base.length > 200 ? base.slice(0, 200) : base;
   }
 
+  private shouldSendPushForMessage(messageId?: string): boolean {
+    const now = Date.now();
+    const ttlMs = 15000;
+
+    this.recentlyNotifiedMessageIds.forEach((timestamp, id) => {
+      if (now - timestamp > ttlMs) {
+        this.recentlyNotifiedMessageIds.delete(id);
+      }
+    });
+
+    if (!messageId) return true;
+    if (this.recentlyNotifiedMessageIds.has(messageId)) return false;
+
+    this.recentlyNotifiedMessageIds.set(messageId, now);
+    return true;
+  }
+
   async connectWebSocket(): Promise<void> {
     if (!this.credentials) {
       throw new Error('Not authenticated');
     }
 
     if (this.connectionInProgress) {
-      // console.log('WebSocket connection already in progress, skipping...');
       return;
     }
 
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      // console.log('WebSocket already connected, skipping...');
       return;
     }
 
@@ -681,8 +733,41 @@ export class RocketChatService {
               (typeof text === 'string' && /jitsi|call/i.test(text)) ||
               (!!messageData.attachments && messageData.attachments.some((a: any) => (a.title || '').toLowerCase().includes('call')));
 
-            if (!isCallMessage && this.shouldCountUnread(messageData.rid, messageData)) {
-              try { this.incrementUnreadForRoom(messageData.rid); } catch (e) {}
+            if (this.shouldCountUnread(messageData.rid, messageData)) {
+              const shouldNotify = this.shouldSendPushForMessage(messageData._id);
+
+              if (isCallMessage) {
+                if (shouldNotify) {
+                  try {
+                    const caller = messageData.u?.name || messageData.u?.username || 'Someone';
+                    const title = 'Call ongoing';
+                    const body = `${caller} is calling`;
+                    this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
+                    try { this.playCallSound(); } catch (e) {}
+                  } catch (pushErr) {
+                    console.error('Error showing fallback call push for stream-room-messages:', pushErr, messageData);
+                  }
+                }
+              } else {
+                try { this.refreshUnreadFromCurrentUserRooms().subscribe(); } catch (e) {}
+
+                const hasVisibleContent =
+                  !!String(messageData.msg || '').trim() ||
+                  !!messageData.attachments?.length;
+
+                if (hasVisibleContent && shouldNotify) {
+                  try {
+                    const title = messageData.u?.name || messageData.u?.username || 'New message';
+                    const body = String(messageData.msg || '').trim().length > 0
+                      ? this.formatNotificationBody(String(messageData.msg || ''))
+                      : 'Sent an attachment';
+                    try { this.playNotificationSound(); } catch (e) {}
+                    this.showPushNotification(title, body, icon, { roomId: messageData.rid, messageId: messageData._id });
+                  } catch (pushErr) {
+                    console.error('Error showing push for stream-room-messages:', pushErr, messageData);
+                  }
+                }
+              }
             }
           }
         } catch (err) {
@@ -692,21 +777,28 @@ export class RocketChatService {
     }
 
     if (message.msg === 'changed' && message.collection === 'stream-notify-room') {
+      const eventName = message.fields?.eventName || '';
+      const roomIdFromEvent = typeof eventName === 'string' ? eventName.split('/')[0] : null;
       const args = message.fields?.args ?? [];
       const event = args[0];
+      const isCallEvent =
+        event === 'call' ||
+        event?.type === 'call' ||
+        (typeof eventName === 'string' && eventName.endsWith('/call'));
 
-      if (event?.type === 'call' || event === 'call') {
+      if (isCallEvent) {
         const callData = args[1];
+        const roomId = message.roomId || roomIdFromEvent || callData?.rid || callData?.roomId || null;
         this.userNotifySubject.next({
           type: 'call-started',
-          roomId: message.roomId,
+          roomId,
           callData
         });
         try {
           const title = 'Call ongoing';
           const caller = callData?.from || callData?.callerName || '';
           const body = caller ? `${caller} is calling` : 'Call ongoing';
-          this.showPushNotification(title, 'Call ongoing', undefined, { roomId: message.roomId, callData });
+          this.showPushNotification(title, body, undefined, { roomId, callData });
           try { this.playCallSound(); } catch (e) {}
         } catch (err) {
           console.error('Error showing push for call-started:', err);
@@ -748,13 +840,16 @@ export class RocketChatService {
                   const isCallMessage = lastMessage.t === 'videoconf' || (typeof previewText === 'string' && /jitsi|call/i.test(previewText));
                   const icon = lastMessage.u?.username ? this.getUserAvatarUrl(lastMessage.u.username) : undefined;
                   const canCountUnread = this.shouldCountUnread(payload.rid, lastMessage);
+                  const shouldNotify = this.shouldSendPushForMessage(lastMessage._id);
 
                   if (isCallMessage) {
                     if (canCountUnread) {
-                      try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                      try { this.playCallSound(); } catch (e) {}
+                      try { this.refreshUnreadFromCurrentUserRooms().subscribe(); } catch (e) {}
+                      if (shouldNotify) {
+                        try { this.playCallSound(); } catch (e) {}
+                      }
                     }
-                    if (canCountUnread) {
+                    if (canCountUnread && shouldNotify) {
                       try {
                         this.showPushNotification('Call ongoing', 'A new call is starting', icon, { roomId: payload.rid, messageId: lastMessage._id });
                       } catch (err) {
@@ -763,10 +858,12 @@ export class RocketChatService {
                     }
                   } else {
                     if (canCountUnread) {
-                      try { this.incrementUnreadForRoom(payload.rid); } catch (e) {}
-                      try { this.playNotificationSound(); } catch (e) {}
+                      try { this.refreshUnreadFromCurrentUserRooms().subscribe(); } catch (e) {}
+                      if (shouldNotify) {
+                        try { this.playNotificationSound(); } catch (e) {}
+                      }
                     }
-                    if (canCountUnread) {
+                    if (canCountUnread && shouldNotify) {
                       try {
                         const title = lastMessage.u?.name || lastMessage.u?.username || 'New message';
                         const body = this.formatNotificationBody(rawText);
@@ -780,7 +877,6 @@ export class RocketChatService {
               }
             });
           } catch (err) {
-            console.log('Error while handling user notify payload for audio:', err);
           }
         } else {
           this.userNotifySubject.next(message);
@@ -864,6 +960,7 @@ export class RocketChatService {
     this.activeSubscriptions.set(roomId, subscriptionId);
     
     await this.subscribeToRoomNotifications(roomId, 'deleteMessage');
+    await this.subscribeToRoomNotifications(roomId, 'call');
   }
 
   async subscribeToRoomNotifications(roomId: string, eventName: string): Promise<void> {
@@ -953,6 +1050,28 @@ export class RocketChatService {
     return this.unreadMapSubject.asObservable();
   }
 
+  refreshUnreadFromCurrentUserRooms(): Observable<number> {
+    const userId = this.credentials?.userId || this.loggedInUser?._id;
+    if (!userId) {
+      this.unreadMap = {};
+      this.publishUnreadMap();
+      return of(0);
+    }
+
+    return this.http
+      .get<any>(
+        `${this.CHAT_API_URI}users.info?userId=${encodeURIComponent(userId)}&includeUserRooms=true`,
+        { headers: this.getAuthHeaders() }
+      )
+      .pipe(
+        map((res: any) => this.updateUnreadMapFromUserRooms(res?.user?.rooms)),
+        catchError((err) => {
+          console.error('Failed to refresh unread from users.info:', err);
+          return of(0);
+        })
+      );
+  }
+
   getActiveJitsiStream(): Observable<any | null> {
     return this.activeJitsiSubject.asObservable();
   }
@@ -1008,6 +1127,10 @@ export class RocketChatService {
 
   setActiveRoom(roomId: string | null): void {
     this.currentActiveRoom = roomId;
+    if (roomId) {
+      delete this.unreadMap[roomId];
+      this.publishUnreadMap();
+    }
     this.activeRoomSubject.next(roomId);
   }
 
@@ -1237,7 +1360,13 @@ export class RocketChatService {
       if (this.notificationAudio) {
         try { this.notificationAudio.currentTime = 0; } catch (e) {}
         const p = this.notificationAudio.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
+        if (p && typeof p.catch === 'function') {
+          p.catch((err) => {
+            console.warn('[audio] notification sound blocked, using fallback:', err);
+            const audio = new Audio(`${environment.mp3}/message.mp3`);
+            audio.play().catch(() => {});
+          });
+        }
       } else {
         const audio = new Audio(`${environment.mp3}/message.mp3`);
         audio.play().catch(() => {});
@@ -1252,7 +1381,13 @@ export class RocketChatService {
       if (this.callAudio) {
         try { this.callAudio.currentTime = 0; } catch (e) {}
         const p = this.callAudio.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
+        if (p && typeof p.catch === 'function') {
+          p.catch((err) => {
+            console.warn('[audio] call sound blocked, using fallback:', err);
+            const audio = new Audio(`${environment.mp3}/ringtone.mp3`);
+            audio.play().catch(() => {});
+          });
+        }
       } else {
         const audio = new Audio(`${environment.mp3}/ringtone.mp3`);
         audio.play().catch(() => {});
@@ -1276,13 +1411,28 @@ export class RocketChatService {
 
   public async showPushNotification(title: string, body: string, icon?: string, data?: any) {
     try {
-      if (!('Notification' in window)) return;
+      if (!('Notification' in window)) {
+        console.warn('[push] Notification API not available in this environment');
+        return;
+      }
       const granted = Notification.permission === 'granted' || (await this.requestNotificationPermission());
-      if (!granted) return;
+      if (!granted) {
+        console.warn('[push] Notification permission not granted', {
+          permission: Notification.permission,
+          title,
+          data,
+        });
+        return;
+      }
 
       const options: any = { body };
       if (icon) options.icon = icon;
       if (data) options.data = data;
+
+      const roomId = data?.roomId;
+      if (roomId && this.currentActiveRoom && roomId === this.currentActiveRoom) {
+        return;
+      }
 
       const notif = new Notification(title, options);
       notif.onclick = (ev: any) => {
@@ -1396,9 +1546,12 @@ export class RocketChatService {
   }
 
   saveUserData() {
-    this.getCurrentUser().subscribe((user: RocketChatUser) => {
-      this.loggedInUser = user;
-    });
+    this.getCurrentUser().pipe(
+      tap((user: RocketChatUser) => {
+        this.loggedInUser = user;
+      }),
+      switchMap(() => this.refreshUnreadFromCurrentUserRooms())
+    ).subscribe();
   }
 
   getCurrentUser(): Observable<RocketChatUser> {
@@ -1416,7 +1569,7 @@ export class RocketChatService {
 
   getUserInfo(username: string): Observable<RocketChatUser> {
     return this.http.get<RocketChatUserResponse>(
-      `${this.CHAT_API_URI}users.info?username=${username}&fields={"emails":1,"name":1,"username":1,"utcOffset":1,"createdAt":1,"lastLogin":1}`,
+      `${this.CHAT_API_URI}users.info?username=${encodeURIComponent(username)}`,
       { headers: this.getAuthHeaders() }
     ).pipe(map(res => res.user));
   }
