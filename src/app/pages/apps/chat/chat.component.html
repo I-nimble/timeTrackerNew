@@ -249,9 +249,15 @@
           <i class="fa-solid fa-thumbtack" style="font-size: 1.25rem"></i>
           <div class="pinned-message-content">
             <div class="pinned-label">Pinned message</div>
-            <div class="pinned-preview">
-              {{ pinnedPreview(pinnedMessage()) }}
-            </div>
+            <div
+              class="pinned-preview"
+              [innerHTML]="
+                pinnedPreview(pinnedMessage())
+                  | emojiMart
+                  | linebreak
+                  | markdown
+              "
+            ></div>
           </div>
         </div>
       </mat-toolbar>
@@ -263,7 +269,7 @@
         >
           <ng-container *ngIf="selectedConversation; else noConversation">
             <div class="messages-list">
-              <ng-container *ngFor="let message of messages; let i = index">
+              <ng-container *ngFor="let message of messages; let i = index; trackBy: trackByMessageId">
                 <div
                   *ngIf="
                     i === 0 ||
@@ -293,7 +299,7 @@
                   (touchstart)="onMessageTouchStart($event, message)"
                   (touchend)="onMessageTouchEnd($event, message)"
                   (touchcancel)="onMessageTouchCancel($event)"
-                  [class.show-actions]="pressedMessageId === message?._id"
+                  [class.show-actions]="pressedMessageId === message?._id || actionsMenuMessageId === message?._id"
                   [class.from-me]="isFromMe(message)"
                 >
                   <div
@@ -314,12 +320,17 @@
                           {{ getSenderName(quoted) }}:
                         </strong>
                         <span class="f-s-12">
-                          {{ getQuotedTextOrAttachment(quoted) | slice : 0 : 120 }}
-                          {{
-                            getQuotedTextOrAttachment(quoted).length > 120
-                              ? "..."
-                              : ""
-                          }}
+                          <span
+                            [innerHTML]="
+                              (
+                                (getQuotedTextOrAttachment(quoted) | slice : 0 : 120) +
+                                (getQuotedTextOrAttachment(quoted).length > 120 ? '...' : '')
+                              )
+                                | emojiMart
+                                | linebreak
+                                | markdown
+                            "
+                          ></span>
                         </span>
                       </div>
                     </div>
@@ -328,81 +339,161 @@
                       [ngClass]="
                         !isFromMe(message)
                           ? 'bg-light-primary p-10 rounded d-flex align-items-center gap-16'
-                          : 'bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
+                          : 'from-me bg-light-secondary p-10 rounded d-flex align-items-center f-s-14 message-out'
                       "
                     >
                       <div
                         class="message-actions"
                         [class.visible]="isActionsVisible(message)"
                         [class.hidden]="!isActionsVisible(message)"
+                        [class.picker-open]="showReactionPicker && reactionPickerForMessageId === message._id"
                         *ngIf="
                           !isSystemMessage(message) &&
                           message.t !== 'videoconf'
                         "
                         [class.from-me]="isFromMe(message)"
                       >
-                        <!--                           <button mat-icon-button
-                                  aria-label="React"
-                                  (click)="$event.stopPropagation(); openReactionPicker(message)">
-                            <mat-icon>emoji_emotions</mat-icon>
-                          </button> -->
+                        <button
+                          *ngFor="let emoji of basicEmojis"
+                          mat-icon-button
+                          class="quick-emoji-btn"
+                          [class.me-reacted]="didIReactNative(message, emoji.emoji)"
+                          (click)="$event.stopPropagation(); selectReactionEmoji(emoji.emoji, message)"
+                        >
+                          <span [innerHTML]="getAppleEmojiHtml(emoji.emoji)"></span>
+                        </button>
+                        <button
+                          mat-icon-button
+                          class="reaction-picker-toggle"
+                          [class.me-reacted]="showReactionPicker && reactionPickerForMessageId === message._id"
+                          aria-label="See more emojis"
+                          (click)="toggleReactionPicker(message, $event)"
+                        >
+                          <mat-icon>add_reaction</mat-icon>
+                        </button>
                         <div
-                          *ngIf="showReactionPicker"
-                          class="emoji-panel"
+                          class="reaction-emoji-container"
+                          *ngIf="showReactionPicker && reactionPickerForMessageId === message._id"
                           (click)="$event.stopPropagation()"
                         >
                           <emoji-mart
+                            class="reaction-emoji-picker"
+                            [darkMode]="themeService.theme === 'dark'"
                             set="apple"
-                            (emojiClick)="sendReaction($event)"
-                          ></emoji-mart>
+                            (emojiClick)="selectReactionEmoji($event.emoji.native, message)"
+                            [hideObsolete]="true"
+                          >
+                          </emoji-mart>
                         </div>
+                        <span class="action-separator"></span>
+
                         <button
+                          *ngIf="!isFromMe(message)"
                           mat-icon-button
                           aria-label="Quote"
-                          (click)="
-                            $event.stopPropagation(); quoteMessage(message)
-                          "
+                          (click)="$event.stopPropagation(); quoteMessage(message)"
                         >
                           <mat-icon>format_quote</mat-icon>
                         </button>
+
                         <button
-                          mat-icon-button
-                          aria-label="Pin"
-                          (click)="$event.stopPropagation(); togglePin(message)"
-                        >
-                          @if(message.pinned) {
-                          <i
-                            class="fa-solid fa-thumbtack-slash"
-                            style="font-size: 1.25rem"
-                          ></i>
-                          } @else {
-                          <i
-                            class="fa-solid fa-thumbtack"
-                            style="font-size: 1.25rem"
-                          ></i>
-                          }
-                        </button>
-                        <button
+                          *ngIf="isFromMe(message)"
                           mat-icon-button
                           aria-label="Edit"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); editMessage(message)
-                          "
+                          (click)="$event.stopPropagation(); editMessage(message)"
                         >
                           <mat-icon>edit</mat-icon>
                         </button>
+
                         <button
+                          *ngIf="!isFromMe(message)"
                           mat-icon-button
-                          aria-label="Delete"
-                          *ngIf="isFromMe(message)"
-                          (click)="
-                            $event.stopPropagation(); deleteMessage(message)
-                          "
+                          aria-label="More options"
+                          [matMenuTriggerFor]="otherUserActionsMenu"
+                          (menuOpened)="onMoreActionsMenuOpened(message)"
+                          (menuClosed)="onMoreActionsMenuClosed()"
+                          (click)="$event.stopPropagation()"
                         >
-                          <mat-icon>delete</mat-icon>
+                          <mat-icon>more_horiz</mat-icon>
                         </button>
+                        <mat-menu #otherUserActionsMenu="matMenu">
+                          @if (message.pinned) {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack-slash"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Unpin message</span>
+                          </button>
+                          } @else {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Pin message</span>
+                          </button>
+                          }
+                        </mat-menu>
+
+                        <button
+                          *ngIf="isFromMe(message)"
+                          mat-icon-button
+                          aria-label="More options"
+                          [matMenuTriggerFor]="myActionsMenu"
+                          (menuOpened)="onMoreActionsMenuOpened(message)"
+                          (menuClosed)="onMoreActionsMenuClosed()"
+                          (click)="$event.stopPropagation()"
+                        >
+                          <mat-icon>more_horiz</mat-icon>
+                        </button>
+                        <mat-menu #myActionsMenu="matMenu">
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); deleteMessage(message)"
+                          >
+                            <mat-icon>delete</mat-icon>
+                            <span>Delete message</span>
+                          </button>
+                          @if (message.pinned) {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack-slash"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Unpin message</span>
+                          </button>
+                          } @else {
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); togglePin(message)"
+                          >
+                            <i
+                              class="fa-solid fa-thumbtack"
+                              style="font-size: 1.25rem"
+                            ></i>
+                            <span>Pin message</span>
+                          </button>
+                          }
+                          <button
+                            mat-menu-item
+                            (click)="$event.stopPropagation(); quoteMessage(message)"
+                          >
+                            <mat-icon>format_quote</mat-icon>
+                            <span>Quote message</span>
+                          </button>
+                        </mat-menu>
                       </div>
+                      
                       @if(message.t === 'videoconf') {
                       <span class="f-s-14"> Call ongoing </span>
                       <button
@@ -554,7 +645,7 @@
                       "
                     >
                       <ng-container
-                        *ngFor="let emoji of getReactionKeys(message)"
+                        *ngFor="let emoji of getVisibleReactionKeys(message)"
                       >
                         <div
                           class="reaction-pill-outside"
@@ -575,6 +666,39 @@
                           }}</span>
                         </div>
                       </ng-container>
+
+                      <div
+                        class="reaction-overflow"
+                        *ngIf="getHiddenReactionCount(message) > 0"
+                      >
+                        <div class="reaction-pill-outside reaction-pill-more">
+                          +{{ getHiddenReactionCount(message) }}
+                        </div>
+                        <div class="reaction-overflow-menu">
+                          <ng-container
+                            *ngFor="let emoji of getHiddenReactionKeys(message)"
+                          >
+                            <div
+                              class="reaction-pill-outside"
+                              matTooltip="{{
+                                getReactionUsernames(message, emoji)
+                              }}"
+                              matTooltipPosition="above"
+                              (click)="toggleReaction(message, emoji)"
+                              [class.me-reacted]="didIReact(message, emoji)"
+                            >
+                              <span
+                                [innerHTML]="
+                                  emojiPipe.getAppleImgFromShortcode(emoji)
+                                "
+                              ></span>
+                              <span class="count">{{
+                                message.reactions[emoji].usernames.length
+                              }}</span>
+                            </div>
+                          </ng-container>
+                        </div>
+                      </div>
                     </div>
                     <span class="f-s-12">{{
                       getMessageTimestamp(message) | date : "hh:mm a"
@@ -614,11 +738,15 @@
               <div class="reply-author f-s-12 f-w-600">
                 Replying to {{ getSenderName(replyToMessage) }}
               </div>
-              <div class="reply-text f-s-12 text-muted">
-                {{
+              <div
+                class="reply-text f-s-12 text-muted"
+                [innerHTML]="
                   getReplyPreviewText(replyToMessage)
-                }}
-              </div>
+                    | emojiMart
+                    | linebreak
+                    | markdown
+                "
+              ></div>
             </div>
           </div>
           <div>
@@ -721,64 +849,66 @@
           </div>
         </div>
 
-        <mat-form-field *ngIf="!isComposeMode" appearance="outline" class="mat-mdc-form-field w-100" tourAnchor="chat-message-input">
-          <button mat-icon-button matPrefix (click)="selectFile()" tourAnchor="chat-attach-files">
-            <mat-icon>attach_file</mat-icon>
-          </button>
-          <button
-            mat-icon-button
-            matPrefix
-            (click)="toggleEmojiPicker(); $event.stopPropagation()"
-          >
-            <mat-icon>emoji_emotions</mat-icon>
-          </button>
-          <textarea
-            *ngIf="!isComposeMode"
-            matInput
-            placeholder="Send message"
-            [(ngModel)]="newMessage"
-            (keydown.enter)="onEnter($event)"
-            (input)="onMessageInput()"
-            [disabled]="isRecording"
-            rows="1"
-            cdkTextareaAutosize
-            [cdkAutosizeMinRows]="1"
-            #autosize="cdkTextareaAutosize"
-          ></textarea>
-          <button
-            mat-icon-button
-            matSuffix
-            class="compose-mode-btn"
-            (click)="toggleComposeMode()"
-            [matTooltip]="getComposeModeTooltip()"
-            matTooltipPosition="above"
-            aria-label="Toggle format mode"
-            [color]="undefined"
-          >
-            <mat-icon>notes</mat-icon>
-          </button>
-          <button
-            *ngIf="isEmptyText"
-            mat-icon-button
-            matSuffix
-            class="voice-btn"
-            (click)="onVoiceButtonClick($event)"
-            aria-label="Voice message"
-            tourAnchor="chat-audio-record"
-          >
-            <mat-icon *ngIf="!isRecording">mic</mat-icon>
-            <mat-icon *ngIf="isRecording">stop</mat-icon>
-          </button>
-          <button
-            *ngIf="!isEmptyText"
-            mat-icon-button
-            matSuffix
-            (click)="sendMessage()"
-            [disabled]="isSendingMessage"
-          >
-            <mat-icon>send</mat-icon>
-          </button>
-        </mat-form-field>
+        <div *ngIf="!isComposeMode" class="plain-input-row" tourAnchor="chat-message-input">
+          <div class="plain-input-prefix">
+            <button mat-icon-button (click)="selectFile()" tourAnchor="chat-attach-files">
+              <mat-icon>attach_file</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="emoji-toggle-btn"
+              (click)="toggleEmojiPicker(); $event.stopPropagation()"
+            >
+              <mat-icon>emoji_emotions</mat-icon>
+            </button>
+          </div>
+
+          <div class="compose-editor-wrapper plain-editor-wrapper">
+            <div
+              #plainEditor
+              class="compose-editor plain-editor"
+              [attr.contenteditable]="isRecording ? 'false' : 'true'"
+              data-placeholder="Send message"
+              (input)="handleEditorInput('plain')"
+              (keydown)="handleEditorKeydown($event, 'plain')"
+              (click)="handleCursorChange('plain')"
+              (keyup)="handleCursorChange('plain')"
+            ></div>
+          </div>
+
+          <div class="plain-input-suffix">
+            <button
+              mat-icon-button
+              class="compose-mode-btn"
+              (click)="toggleComposeMode()"
+              [matTooltip]="getComposeModeTooltip()"
+              matTooltipPosition="above"
+              aria-label="Toggle format mode"
+              [color]="undefined"
+            >
+              <mat-icon>notes</mat-icon>
+            </button>
+            <button
+              *ngIf="isEmptyText"
+              mat-icon-button
+              class="voice-btn"
+              (click)="onVoiceButtonClick($event)"
+              aria-label="Voice message"
+              tourAnchor="chat-audio-record"
+            >
+              <mat-icon *ngIf="!isRecording">mic</mat-icon>
+              <mat-icon *ngIf="isRecording">stop</mat-icon>
+            </button>
+            <button
+              *ngIf="!isEmptyText"
+              mat-icon-button
+              (click)="sendMessage()"
+              [disabled]="isSendingMessage"
+            >
+              <mat-icon>send</mat-icon>
+            </button>
+          </div>
+        </div>
 
         <div *ngIf="isComposeMode" class="compose-editor-wrapper" tourAnchor="chat-message-input">
           <div
@@ -786,10 +916,10 @@
             class="compose-editor"
             contenteditable="true"
             data-placeholder="Send message"
-            (input)="onComposeEditorInput()"
-            (keydown)="onComposeEditorKeydown($event)"
-            (click)="onComposeCursorChange()"
-            (keyup)="onComposeCursorChange()"
+            (input)="handleEditorInput('compose')"
+            (keydown)="handleEditorKeydown($event, 'compose')"
+            (click)="handleCursorChange('compose')"
+            (keyup)="handleCursorChange('compose')"
           ></div>
         </div>
 
@@ -800,6 +930,7 @@
             </button>
             <button
               mat-icon-button
+              class="emoji-toggle-btn"
               (click)="toggleEmojiPicker(); $event.stopPropagation()"
             >
               <mat-icon>emoji_emotions</mat-icon>
@@ -845,7 +976,13 @@
           class="emoji-panel"
           (click)="$event.stopPropagation()"
         >
-          <emoji-mart set="apple" (emojiClick)="addEmoji($event)"></emoji-mart>
+          <emoji-mart 
+            [darkMode]="themeService.theme === 'dark'" 
+            set="apple" 
+            (emojiClick)="addEmoji($event)"
+            [hideObsolete]="true"
+          >
+          </emoji-mart>
         </div>
       </div>
     </mat-sidenav-content>
