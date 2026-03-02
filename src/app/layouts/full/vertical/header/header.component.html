@@ -107,22 +107,55 @@
     <a mat-button [routerLink]="['/apps/rejected']" *ngIf="canViewRejected">
       Rejected
     </a>
-    <a mat-button [routerLink]="['/apps/talent-match']" *ngIf="canViewTalentMatch"
-     (click)="clearTalentMatchNotification()">
-        Talent Match
-        <div class="pulse" *ngIf="hasNewTalentMatch">
-          <span class="heartbit border-primary"></span>
-          <span class="point bg-primary"></span>
-        </div>
+    <a
+      mat-button
+      [routerLink]="['/apps/talent-match']"
+      *ngIf="canViewTalentMatch"
+      (click)="clearTalentMatchNotification()"
+      class="header-logo-button"
+      routerLinkActive="active-header-logo-button"
+      aria-label="Talent Match"
+    >
+      <img
+        src="/assets/images/header-buttons/talent-match-btn.png"
+        alt="Talent Match"
+        class="header-logo-image"
+      />
+      <div class="pulse" *ngIf="hasNewTalentMatch">
+        <span class="heartbit border-primary"></span>
+        <span class="point bg-primary"></span>
+      </div>
     </a>
     <a mat-button [routerLink]="['/apps/permission']" *ngIf="role == '1'">
       Permissions
     </a>
-    <a mat-button [routerLink]="['/apps/expert']" *ngIf="canViewExpertMatch">
-      Expert Match
+    <a
+      mat-button
+      [routerLink]="['/apps/expert']"
+      *ngIf="canViewExpertMatch"
+      class="header-logo-button"
+      routerLinkActive="active-header-logo-button"
+      aria-label="Expert Match"
+    >
+      <img
+        src="/assets/images/header-buttons/expert-match-btn.png"
+        alt="Expert Match"
+        class="header-logo-image"
+      />
     </a>
-    <a mat-button [routerLink]="['/apps/scrapper']" *ngIf="canViewMySentinel">
-      My Sentinel
+    <a
+      mat-button
+      [routerLink]="['/apps/scrapper']"
+      *ngIf="canViewMySentinel"
+      class="header-logo-button"
+      routerLinkActive="active-header-logo-button"
+      aria-label="My Sentinel"
+    >
+      <img
+        src="/assets/images/header-buttons/my-sentinel-btn.png"
+        alt="My Sentinel"
+        class="header-logo-image"
+      />
     </a>
     <a mat-button [routerLink]="['/apps/events']" *ngIf="role == '1'">
       Events

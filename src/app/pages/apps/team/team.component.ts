@@ -142,13 +142,14 @@ export class TeamComponent {
   }
 
   applyCombinedFilters(): void {
-    const value = this.searchText.trim().toLowerCase();
+    const value = this.searchText?.trim().toLowerCase();
     this.dataSource = this.users.filter((user: any) => {
-      const matchesSearch =
+      const matchesCompany = this.companyId ? user.profile.company_id === this.companyId : true;
+      if (!value) return matchesCompany;
+      const matchesSearch = 
         (user.profile.name && user.profile.name.toLowerCase().includes(value)) ||
         (user.profile.last_name && user.profile.last_name.toLowerCase().includes(value)) ||
         (user.profile.email && user.profile.email.toLowerCase().includes(value));
-      const matchesCompany = this.companyId ? user.profile.company_id === this.companyId : true;
       return matchesSearch && matchesCompany;
     });
   }
