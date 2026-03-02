@@ -128,7 +128,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
   showEmojiPicker = false;
   reactionTargetMessage: RocketChatMessage | null = null;
   showReactionPicker = false;
-  reactionPickerForMessageId: string | null = null;
   basicEmojis: Emoji[] = [
     { emoji: '👍', description: 'Thumbs Up' },
     { emoji: '❤️', description: 'Heart' },
@@ -2421,20 +2420,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
   toggleReactionPicker(message: RocketChatMessage, event?: Event): void {
     event?.stopPropagation();
 
-    const isSameMessage = this.showReactionPicker && this.reactionPickerForMessageId === message?._id;
-    if (isSameMessage) {
+    if (this.showReactionPicker && this.reactionTargetMessage?._id === message._id) {
       this.closeReactionPicker();
       return;
     }
 
     this.reactionTargetMessage = message;
-    this.reactionPickerForMessageId = message?._id || null;
     this.showReactionPicker = true;
   }
 
-  private closeReactionPicker(): void {
+ closeReactionPicker(): void {
     this.showReactionPicker = false;
-    this.reactionPickerForMessageId = null;
     this.reactionTargetMessage = null;
   }
 
@@ -2560,7 +2556,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return candidates.some((key) => this.didIReact(message, key));
   }
 
-  selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage): void {
+  selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage | null): void {
     if (!message?._id) return;
 
     this.closeReactionPicker();

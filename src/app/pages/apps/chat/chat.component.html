@@ -346,7 +346,7 @@
                         class="message-actions"
                         [class.visible]="isActionsVisible(message)"
                         [class.hidden]="!isActionsVisible(message)"
-                        [class.picker-open]="showReactionPicker && reactionPickerForMessageId === message._id"
+                        [class.picker-open]="showReactionPicker && reactionTargetMessage?._id === message._id"
                         *ngIf="
                           !isSystemMessage(message) &&
                           message.t !== 'videoconf'
@@ -365,7 +365,7 @@
                         <button
                           mat-icon-button
                           class="reaction-picker-toggle"
-                          [class.me-reacted]="showReactionPicker && reactionPickerForMessageId === message._id"
+                          [class.me-reacted]="showReactionPicker && reactionTargetMessage?._id === message._id"
                           aria-label="See more emojis"
                           (click)="toggleReactionPicker(message, $event)"
                         >
@@ -373,12 +373,13 @@
                         </button>
                         <div
                           class="reaction-emoji-container"
-                          *ngIf="showReactionPicker && reactionPickerForMessageId === message._id"
+                          *ngIf="!isMobile && showReactionPicker && reactionTargetMessage?._id === message._id"
                           (click)="$event.stopPropagation()"
                         >
                           <emoji-mart
-                            class="reaction-emoji-picker"
+                            class="reaction-emoji-picker desktop"
                             [darkMode]="themeService.theme === 'dark'"
+                            [perLine]="7"
                             set="apple"
                             (emojiClick)="selectReactionEmoji($event.emoji.native, message)"
                             [hideObsolete]="true"
@@ -730,7 +731,7 @@
       <mat-divider></mat-divider>
       <div
         class="p-t-20 p-x-24 bg-white chat-input"
-        *ngIf="selectedConversation"
+        *ngIf="selectedConversation && (!isMobile || !showReactionPicker)"
       >
         <div *ngIf="replyToMessage" class="reply-preview p-8 mb-8 d-flex">
           <div class="d-flex gap-8 align-items-center">
@@ -986,6 +987,20 @@
           </emoji-mart>
         </div>
       </div>
+        <div
+          class="p-t-20 p-x-24 bg-white chat-input reaction-mode"
+          *ngIf="selectedConversation && showReactionPicker && isMobile"
+          (click)="$event.stopPropagation()"
+        >
+          <emoji-mart
+            class="reaction-emoji-picker mobile"
+            [darkMode]="themeService.theme === 'dark'"
+            set="apple"
+            (emojiClick)="selectReactionEmoji($event.emoji.native, reactionTargetMessage)"
+            [hideObsolete]="true"
+          >
+          </emoji-mart>
+        </div>
     </mat-sidenav-content>
   </mat-sidenav-container>
   <ng-template #noAvailableMessage>
