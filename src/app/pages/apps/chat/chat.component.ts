@@ -1835,8 +1835,6 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   handleCursorChange(mode: 'compose' | 'plain'): void {
-    if (mode === 'compose' && !this.isComposeMode) return;
-
     const editor = mode === 'compose'
       ? this.composeEditor?.nativeElement
       : this.plainEditor?.nativeElement;
@@ -2608,10 +2606,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const usernames = message.reactions[reactionKey].usernames;
     const alreadyReacted = usernames.includes(myUsername);
     if (alreadyReacted) {
-      message.reactions[reactionKey].usernames =
-        usernames.filter((u) => u !== myUsername);
+      const updated = usernames.filter(u => u !== myUsername);
+      if (updated.length === 0) {
+        delete message.reactions[reactionKey];
+      } else {
+        message.reactions[reactionKey].usernames = updated;
+      }
     } else {
       message.reactions[reactionKey].usernames.push(myUsername);
+    }
+    if (Object.keys(message.reactions).length === 0) {
+      delete message.reactions;
     }
     this.chatService.reactToMessage(message._id, reactionKey).subscribe({
       error: (err) => {
