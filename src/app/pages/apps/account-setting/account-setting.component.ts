@@ -421,7 +421,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.usersService.getIntroductionVideo(this.user.email).subscribe({
       next: (res: any) => {
         if (res.videoURL) {
-          this.videoPreview = this.addCacheBust(res.videoURL);
+          this.videoPreview = this.getCacheBustedUrl(res.videoURL);
           this.cdr.detectChanges();
         }
       },
@@ -992,18 +992,27 @@ export class AppAccountSettingComponent implements OnInit {
           this.isSubmitting = false;
           this.selectedVideoFile = null;
           this.videoUploadProgress = 0;
+          this.resetVideoInput();
+          this.checkFormChanges();
         })
       )
       .subscribe({
         next: (res: any) => {
           this.openSnackBar('Video uploaded successfully!', 'Close');
-          this.videoPreview = this.addCacheBust(res.videoURL);
+          if (res?.videoURL) {
+            this.videoPreview = this.getCacheBustedUrl(res.videoURL);
+          }
         },
         error: (error) => {
           this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
           console.error('Video upload error:', error);
         }
       });
+  }
+
+  private getCacheBustedUrl(url: string): string {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
   }
 
   submitApplicationDetails(): void {
@@ -1086,9 +1095,17 @@ export class AppAccountSettingComponent implements OnInit {
       diff.certifications = this.certifications;
     }
 
-    if (Object.keys(diff).length === 0) {
+    const hasApplicationChanges = Object.keys(diff).length > 0;
+    const hasSelectedVideo = !!this.selectedVideoFile;
+
+    if (!hasApplicationChanges && !hasSelectedVideo) {
       this.openSnackBar('No changes detected', 'Close');
       this.isSubmitting = false;
+      return;
+    }
+
+    if (!hasApplicationChanges && hasSelectedVideo) {
+      this.uploadVideo();
       return;
     }
 
@@ -1097,7 +1114,7 @@ export class AppAccountSettingComponent implements OnInit {
         this.certificationsChanged = false;
         this.certifications = this.certifications.filter(c => !c.isTemp);
         this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
-        if (this.selectedVideoFile) {
+        if (hasSelectedVideo) {
           this.uploadVideo();
         } else {
           this.openSnackBar('Profile and application details updated successfully', 'Close');
