@@ -988,7 +988,7 @@
         </div>
       </div>
         <div
-          class="p-t-20 p-x-24 bg-white chat-input reaction-mode"
+          class="bg-white chat-input reaction-mode"
           *ngIf="selectedConversation && showReactionPicker && isMobile"
           (click)="$event.stopPropagation()"
         >
@@ -1007,7 +1007,7 @@
     <div class="empty-cta p-24 text-center">
       <mat-icon class="text-warning">error</mat-icon>
       <h3>Chat is not available</h3>
-      <p>Please check your internet connection and try again.</p>
+      <p>Please reload the page and try again.</p>
     </div>
   </ng-template>
 </mat-card>

@@ -2540,12 +2540,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const usernames = message.reactions[emoji].usernames;
     const alreadyReacted = usernames.includes(myUsername);
     if (alreadyReacted) {
-      message.reactions[emoji].usernames =
-        usernames.filter((u) => u !== myUsername);
+      const updated = usernames.filter(u => u !== myUsername);
+      if (updated.length === 0) {
+        delete message.reactions[emoji];
+      } else {
+        message.reactions[emoji].usernames = updated;
+      }
     } else {
       message.reactions[emoji].usernames.push(myUsername);
     }
-
+    if (Object.keys(message.reactions).length === 0) {
+      delete message.reactions;
+    }
     this.chatService.reactToMessage(message._id, emoji).subscribe({
       error: err => console.error('Error toggling reaction:', err)
     });
