@@ -30,7 +30,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -1221,7 +1221,7 @@ export class AppAccountSettingComponent implements OnInit {
       salary_range: formValues.salaryRange,
       programming_languages: formValues.programmingLanguages,
     };
-    if (this.resumeFile) payload.resume = this.resumeFile;
+    // resume is uploaded separately to bypass pending review flow
     if (this.portfolioFile) payload.portfolio = this.portfolioFile;
 
     const diff: any = {};
@@ -1255,30 +1255,62 @@ export class AppAccountSettingComponent implements OnInit {
 
     const hasApplicationChanges = Object.keys(diff).length > 0;
     const hasSelectedVideo = !!this.selectedVideoFile;
+    const hasSelectedResume = !!this.resumeFile;
 
-    if (!hasApplicationChanges && !hasSelectedVideo) {
+    if (!hasApplicationChanges && !hasSelectedVideo && !hasSelectedResume) {
       this.openSnackBar('No changes detected', 'Close');
       this.isSubmitting = false;
       return;
     }
 
-    if (!hasApplicationChanges && hasSelectedVideo) {
-      this.uploadVideo();
+    const finalizeSaveFlow = () => {
+      if (hasSelectedVideo) {
+        this.uploadVideo();
+      } else {
+        this.openSnackBar('Profile and application details updated successfully', 'Close');
+        this.isSubmitting = false;
+        this.loadApplicationDetails(this.user.id);
+      }
+    };
+
+    const uploadResumeIfNeeded = () => {
+      if (!hasSelectedResume || !this.resumeFile || !this.applicationId) {
+        finalizeSaveFlow();
+        return;
+      }
+
+      this.usersService.uploadApplicationResume(
+        this.resumeFile,
+        this.user.email,
+        this.applicationId
+      ).subscribe({
+        next: () => {
+          this.resumeFile = null;
+          finalizeSaveFlow();
+        },
+        error: (err: any) => {
+          this.openSnackBar('Error updating application details', 'Close');
+          this.isSubmitting = false;
+          console.error(err);
+        }
+      });
+    };
+
+    if (!hasApplicationChanges) {
+      uploadResumeIfNeeded();
       return;
     }
 
     this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
-      next: (res: any) => {
+      next: () => {
+        if (hasSelectedResume) {
+          this.resumeFileName = this.resumeFile?.name || this.resumeFileName;
+        }
+
         this.certificationsChanged = false;
         this.certifications = this.certifications.filter(c => !c.isTemp);
         this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
-        if (hasSelectedVideo) {
-          this.uploadVideo();
-        } else {
-          this.openSnackBar('Profile and application details updated successfully', 'Close');
-          this.isSubmitting = false;
-          this.loadApplicationDetails(this.user.id);
-        }
+        uploadResumeIfNeeded();
       },
       error: (err: any) => {
         this.openSnackBar('Error updating application details', 'Close');

@@ -231,6 +231,27 @@ export class UsersService {
     );
   }
 
+  uploadApplicationResume(file: File, email: string, applicationId: number) {
+    return this.getUploadUrl('resumes', file, undefined, applicationId, false).pipe(
+      switchMap((res: any) => {
+        const fileName = res.fileName || res.key.split('/').pop();
+        const headers = new HttpHeaders({
+          'Content-Type': file.type,
+          'X-Filename': fileName
+        });
+
+        return this.http.put(res.url, file, { headers }).pipe(
+          map(() => fileName)
+        );
+      }),
+      switchMap((fileName: string) => {
+        return this.http.put(`${this.API_URI}/applications/resume/${applicationId}`, {
+          resume: fileName
+        });
+      })
+    );
+  }
+
   public submitApplicationDetails(data: any, applicationId: number) {
     let resumeUpload$ = of(null);
     let pictureUpload$ = of(null);
