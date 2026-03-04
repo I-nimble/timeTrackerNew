@@ -44,9 +44,9 @@ export class AppCertificationModalComponent {
   }
 
   doAction(): void {
-    if (!this.validateDates() || !this.validateCredentialFields()) {
-      return;
-    }
+    // if (!this.validateDates() || !this.validateCredentialFields()) {
+    //   return;
+    // }
     this.dialogRef.close({
       event: this.action,
       data: this.local_data
@@ -57,10 +57,10 @@ export class AppCertificationModalComponent {
     this.dialogRef.close({ event: 'Cancel' });
   }
 
-  handleDateChange(event: any): void {
-    this.local_data.date = event.value;
-    this.validateDates();
-  }
+  // handleDateChange(event: any): void {
+  //   this.local_data.date = event.value;
+  //   this.validateDates();
+  // }
 
   // handleExpirationDateChange(event: any): void {
   //   this.local_data.expiration_date = event.value;
@@ -107,38 +107,38 @@ export class AppCertificationModalComponent {
   //   this.fileError = null;
   // }
 
-  validateDates(): boolean {
-    this.dateError = null;
-    if (!this.local_data.date) return true;
+  // validateDates(): boolean {
+  //   this.dateError = null;
+  //   if (!this.local_data.date) return true;
 
-    const issueDate = new Date(this.local_data.date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  //   const issueDate = new Date(this.local_data.date);
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
 
-    if (issueDate > today) {
-      this.dateError = 'Issue date cannot be in the future.';
-      return false;
-    }
+  //   if (issueDate > today) {
+  //     this.dateError = 'Issue date cannot be in the future.';
+  //     return false;
+  //   }
 
-    // if (this.local_data.expiration_date) {
-    //   const expirationDate = new Date(this.local_data.expiration_date);
-    //   if (expirationDate < issueDate) {
-    //     this.dateError = 'Expiration date cannot be before issue date.';
-    //     return false;
-    //   }
-    // }
-    return true;
-  }
+  //   // if (this.local_data.expiration_date) {
+  //   //   const expirationDate = new Date(this.local_data.expiration_date);
+  //   //   if (expirationDate < issueDate) {
+  //   //     this.dateError = 'Expiration date cannot be before issue date.';
+  //   //     return false;
+  //   //   }
+  //   // }
+  //   return true;
+  // }
 
-  validateCredentialFields(): boolean {
-    this.credentialError = null;
+  // validateCredentialFields(): boolean {
+  //   this.credentialError = null;
 
-    if (this.local_data.credential_id && this.local_data.url) {
-      this.credentialError =
-        'Please provide either Credential ID or Credential URL, not both.';
-      return false;
-    }
+  //   if (this.local_data.credential_id && this.local_data.url) {
+  //     this.credentialError =
+  //       'Please provide either Credential ID or Credential URL, not both.';
+  //     return false;
+  //   }
 
-    return true;
-  }
+  //   return true;
+  // }
 }
