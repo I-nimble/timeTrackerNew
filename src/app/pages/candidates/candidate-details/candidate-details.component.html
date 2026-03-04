@@ -618,12 +618,12 @@
                   *ngFor="let cert of certifications"
                 >
                   <div class="p-16">
-                    <div class="d-flex align-items-start justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between">
                       <div class="flex-grow-1">
                         <div class="f-w-600 f-s-14 text-primary" *ngIf="cert.name">
                           {{ cert.name }}
                         </div>
-                        <div class="f-s-12 text-muted" *ngIf="cert.issuer">
+<!--                         <div class="f-s-12 text-muted" *ngIf="cert.issuer">
                           Issuer: {{ cert.issuer }}
                         </div>
                         <div class="f-s-12 text-muted" *ngIf="cert.date || cert.expiration_date">
@@ -663,7 +663,7 @@
                           >
                             See credential
                           </a>
-                        </div>
+                        </div> -->
                       </div>
                       <div *ngIf="(canEdit || canManage) && (editMode || isCreateMode)">
                         <button mat-icon-button [matMenuTriggerFor]="certActions">
