@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
+  production: true,
   apiUrl: 'http://localhost:3000/api',
   socket: 'http://localhost:3000',
   url: 'https://localhost:4200/',

@@ -290,20 +290,41 @@ export class ApplicationsService {
     }
   }
 
+  async getApplicationAssetUrl(
+    bucket: 'resumes' | 'applications',
+    filename: string | null | undefined,
+  ): Promise<string> {
+    if (!filename) return '';
+
+    if (filename.startsWith('http')) {
+      const urlExists = await this.checkUrlExists(filename);
+      if (urlExists) return filename;
+      filename = filename.split('/').pop() || filename;
+    }
+
+    const localBaseUrl = `${environment.socket}/uploads/${bucket}`;
+    const s3BaseUrl = `https://inimble-app.s3.us-east-1.amazonaws.com/${bucket}`;
+
+    if (environment.production) {
+      return `${s3BaseUrl}/${filename}`;
+    }
+
+    if (!environment.production) {
+      const localUrl = `${localBaseUrl}/${filename}`;
+      const localExists = await this.checkUrlExists(localUrl);
+      if (localExists) return localUrl;
+    }
+
+    const s3Url = `${s3BaseUrl}/${filename}`;
+    const s3Exists = await this.checkUrlExists(s3Url);
+    return s3Exists ? s3Url : '';
+  }
+
   async getResumeUrl(
     filename: string | null | undefined,
     applicationId?: number,
   ): Promise<string> {
     if (!filename && !applicationId) return '';
-
-    if (filename?.startsWith('http')) {
-      const urlExists = await this.checkUrlExists(filename);
-      if (urlExists) return filename;
-      filename = filename.split('/').pop();
-    }
-
-    const localBaseUrl = `${environment.socket}/uploads/resumes`;
-    const s3BaseUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
 
     const candidates: string[] = [];
     if (filename) candidates.push(filename);
@@ -314,15 +335,8 @@ export class ApplicationsService {
     }
 
     for (const candidate of candidates) {
-      if (!environment.production) {
-        const localUrl = `${localBaseUrl}/${candidate}`;
-        const localExists = await this.checkUrlExists(localUrl);
-        if (localExists) return localUrl;
-      }
-
-      const s3Url = `${s3BaseUrl}/${candidate}`;
-      const s3Exists = await this.checkUrlExists(s3Url);
-      if (s3Exists) return s3Url;
+      const resolvedUrl = await this.getApplicationAssetUrl('resumes', candidate);
+      if (resolvedUrl) return resolvedUrl;
     }
 
     return '';

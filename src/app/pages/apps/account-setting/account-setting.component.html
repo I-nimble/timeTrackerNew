@@ -1143,6 +1143,12 @@
                           resumeFileName
                         }}</span>
                       </div>
+                      <div
+                        class="f-s-12 text-warning m-t-8"
+                        *ngIf="pendingResumeFileName"
+                      >
+                        Your last submission is pending for HR approval
+                      </div>
                       <mat-error *ngIf="!resumeFileName" class="f-s-12"
                         >Required</mat-error
                       >
@@ -1221,6 +1227,13 @@
                       />
                     </button>
                     <!--                     <button mat-stroked-button color="warn" (click)="deleteVideo()" [disabled]="!videoPreview">Delete</button> -->
+                  </div>
+
+                  <div
+                    class="f-s-12 text-warning m-t-8"
+                    *ngIf="pendingVideoFileName"
+                  >
+                    Your last submission is pending for HR approval
                   </div>
 
                   <div class="m-t-16">

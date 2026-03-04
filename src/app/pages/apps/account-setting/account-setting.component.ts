@@ -253,11 +253,13 @@ export class AppAccountSettingComponent implements OnInit {
   private originalApplicationValues: any = null;
   private originalApplicationFormData: any = null;
   resumeFileName: string | null = null;
+  pendingResumeFileName: string | null = null;
   resumeFile: File | null = null;
   portfolioFileName: string | null = null;
   portfolioFile: File | null = null;
   application!: any;
   videoPreview: string | null = null;
+  pendingVideoFileName: string | null = null;
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
@@ -580,6 +582,7 @@ export class AppAccountSettingComponent implements OnInit {
   loadApplicationDetails(userId: number): void {
     this.applicationsService.getUserApplication(userId).subscribe({
       next: (application: any) => {
+        const pendingUpdates = this.parsePendingUpdates(application?.pending_updates);
         const mergedApplication = this.mergePendingApplication(application);
         this.application = mergedApplication;
         this.user.application = mergedApplication;
@@ -631,6 +634,9 @@ export class AppAccountSettingComponent implements OnInit {
           if (mergedApplication.resume) {
             this.resumeFileName = mergedApplication.resume;
           }
+          this.pendingResumeFileName = pendingUpdates?.resume_pending_file || null;
+          this.pendingVideoFileName = pendingUpdates?.introduction_video_pending_file || null;
+
           if (mergedApplication.portfolio) {
             this.portfolioFileName = mergedApplication.portfolio;
           }
@@ -706,6 +712,18 @@ export class AppAccountSettingComponent implements OnInit {
       ...application,
       ...pending
     };
+  }
+
+  private parsePendingUpdates(pendingUpdates: any): any {
+    if (!pendingUpdates) return null;
+    if (typeof pendingUpdates === 'string') {
+      try {
+        return JSON.parse(pendingUpdates);
+      } catch {
+        return null;
+      }
+    }
+    return pendingUpdates;
   }
 
   checkFormChanges(): void {
@@ -1141,10 +1159,17 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
-  uploadVideo(): void {
+  uploadVideo(onCompleted?: () => void): void {
     if (!this.selectedVideoFile) return;
 
-    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email, this.applicationId || undefined)
+    const isPendingReplacement = !!this.originalApplicationValues?.introduction_video;
+
+    this.usersService.uploadIntroductionVideo(
+      this.selectedVideoFile,
+      this.user.email,
+      this.applicationId || undefined,
+      isPendingReplacement
+    )
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
@@ -1156,10 +1181,20 @@ export class AppAccountSettingComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.openSnackBar('Video uploaded successfully!', 'Close');
-          if (res?.videoURL) {
-            this.videoPreview = this.getCacheBustedUrl(res.videoURL);
+          if (isPendingReplacement) {
+            this.pendingVideoFileName =
+              res?.pending_updates?.introduction_video_pending_file ||
+              `app-pending-${this.applicationId}.mp4`;
+            this.openSnackBar('Video update submitted for approval', 'Close');
+          } else {
+            this.pendingVideoFileName = null;
+            this.openSnackBar('Video uploaded successfully!', 'Close');
+            if (res?.videoURL) {
+              this.videoPreview = this.getCacheBustedUrl(res.videoURL);
+            }
           }
+          this.loadApplicationDetails(this.user.id);
+          if (onCompleted) onCompleted();
         },
         error: (error) => {
           this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
@@ -1279,12 +1314,24 @@ export class AppAccountSettingComponent implements OnInit {
         return;
       }
 
+      const isPendingResumeReplacement = !!this.originalApplicationValues?.resume;
+
       this.usersService.uploadApplicationResume(
         this.resumeFile,
         this.user.email,
-        this.applicationId
+        this.applicationId,
+        isPendingResumeReplacement
       ).subscribe({
-        next: () => {
+        next: (res: any) => {
+          if (isPendingResumeReplacement) {
+            this.pendingResumeFileName =
+              res?.pending_updates?.resume_pending_file ||
+              `app-pending-${this.applicationId}`;
+            this.openSnackBar('Resume update submitted for approval', 'Close');
+          } else {
+            this.pendingResumeFileName = null;
+          }
+
           this.resumeFile = null;
           finalizeSaveFlow();
         },
