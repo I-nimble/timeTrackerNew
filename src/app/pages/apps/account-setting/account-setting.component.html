@@ -2285,6 +2285,13 @@
                     {{ cert.description }}
                   </div>
 
+                  <div
+                    class="m-t-8 f-s-12 text-warning"
+                    *ngIf="cert.isPendingDeletion"
+                  >
+                    Deletion pending HR approval
+                  </div>
+
                   <div class="m-t-12" *ngIf="cert.attachment_url">
                     <div *ngIf="isImage(cert.attachment_url)">
                       <img

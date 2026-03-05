@@ -1285,7 +1285,7 @@ export class AppAccountSettingComponent implements OnInit {
     }
 
     if (this.certificationsChanged) {
-      diff.certifications = this.certifications;
+      diff.certifications = this.getCertificationsPayloadForApproval();
     }
 
     const hasApplicationChanges = Object.keys(diff).length > 0;
@@ -1616,27 +1616,32 @@ export class AppAccountSettingComponent implements OnInit {
         pending = pending.certifications;
       }
 
+      this.certifications = (this.certifications || []).map((c: any) => ({
+        ...c,
+        isPending: false,
+        isPendingDeletion: false,
+      }));
+
       if (!Array.isArray(pending) || pending.length === 0) return;
 
-      this.certifications = this.certifications || [];
+      const pendingKeys = new Set(
+        pending.map((p: any) => this.getCertificationComparisonKey(p))
+      );
+
+      // Existing certifications missing from pending list are pending deletion.
+      this.certifications = this.certifications.map((c: any) => ({
+        ...c,
+        isPendingDeletion: !pendingKeys.has(this.getCertificationComparisonKey(c)),
+      }));
 
       for (const p of pending) {
-        const pendingIdNum = typeof p.id === 'number' ? p.id : (typeof p.id === 'string' && /^\d+$/.test(p.id) ? Number(p.id) : null);
-
-        const exists = this.certifications.some((c: any) => {
-          if (pendingIdNum != null && typeof c.id === 'number') {
-            return c.id === pendingIdNum;
-          }
-          const nameEqual = (c.name || '').toLowerCase() === (p.name || '').toLowerCase();
-          const dateA = (c.date || '').split('T')[0];
-          const dateB = (p.date || '').split('T')[0];
-          return nameEqual && dateA === dateB;
-        });
+        const pendingKey = this.getCertificationComparisonKey(p);
+        const exists = this.certifications.some(
+          (c: any) => this.getCertificationComparisonKey(c) === pendingKey
+        );
 
         if (!exists) {
-          const item = { ...p };
-          (item as any).isPending = true;
-          this.certifications.push(item);
+          this.certifications.push({ ...p, isPending: true, isPendingDeletion: false });
         }
       }
       const unique: any[] = [];
@@ -1652,6 +1657,30 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
+  private getCertificationComparisonKey(cert: any): string {
+    const id = cert?.id;
+    if (id !== null && id !== undefined && `${id}` !== '' && /^\d+$/.test(String(id))) {
+      return `id:${id}`;
+    }
+
+    const name = (cert?.name || '').toLowerCase().trim();
+    const issuer = (cert?.issuer || '').toLowerCase().trim();
+    const date = (cert?.date || '').split('T')[0];
+    return `meta:${name}|${issuer}|${date}`;
+  }
+
+  private getCertificationsPayloadForApproval(): any[] {
+    return (this.certifications || [])
+      .filter((c: any) => !c.isPendingDeletion)
+      .map((c: any) => {
+        const payload = { ...c };
+        delete payload.isTemp;
+        delete payload.isPending;
+        delete payload.isPendingDeletion;
+        return payload;
+      });
+  }
+
   deleteCertification(id: number) {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
@@ -1665,10 +1694,19 @@ export class AppAccountSettingComponent implements OnInit {
         return;
       }
 
-      this.certifications = this.certifications.filter(c => c.id !== id);
+      const cert = this.certifications.find((c: any) => c.id === id);
+      if (!cert) return;
+
+      if (cert.isTemp) {
+        this.certifications = this.certifications.filter(c => c.id !== id);
+        this.openSnackBar('Certification removed. Click Save to persist changes', 'Close');
+      } else {
+        cert.isPendingDeletion = true;
+        this.openSnackBar('Certification deletion submitted for HR approval', 'Close');
+      }
+
       this.certificationsChanged = true;
       this.checkFormChanges();
-      this.openSnackBar('Certification deleted. Click Save to persist changes', 'Close');
     });
   }
 
