@@ -30,7 +30,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { environment } from 'src/environments/environment';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { OlympiaService } from 'src/app/services/olympia.service';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -253,11 +253,13 @@ export class AppAccountSettingComponent implements OnInit {
   private originalApplicationValues: any = null;
   private originalApplicationFormData: any = null;
   resumeFileName: string | null = null;
+  pendingResumeFileName: string | null = null;
   resumeFile: File | null = null;
   portfolioFileName: string | null = null;
   portfolioFile: File | null = null;
   application!: any;
   videoPreview: string | null = null;
+  pendingVideoFileName: string | null = null;
   selectedVideoFile: File | null = null;
   videoUploadProgress: number = 0;
   maxVideoSize: number = 100 * 1024 * 1024; 
@@ -580,6 +582,7 @@ export class AppAccountSettingComponent implements OnInit {
   loadApplicationDetails(userId: number): void {
     this.applicationsService.getUserApplication(userId).subscribe({
       next: (application: any) => {
+        const pendingUpdates = this.parsePendingUpdates(application?.pending_updates);
         const mergedApplication = this.mergePendingApplication(application);
         this.application = mergedApplication;
         this.user.application = mergedApplication;
@@ -631,6 +634,9 @@ export class AppAccountSettingComponent implements OnInit {
           if (mergedApplication.resume) {
             this.resumeFileName = mergedApplication.resume;
           }
+          this.pendingResumeFileName = pendingUpdates?.resume_pending_file || null;
+          this.pendingVideoFileName = pendingUpdates?.introduction_video_pending_file || null;
+
           if (mergedApplication.portfolio) {
             this.portfolioFileName = mergedApplication.portfolio;
           }
@@ -706,6 +712,18 @@ export class AppAccountSettingComponent implements OnInit {
       ...application,
       ...pending
     };
+  }
+
+  private parsePendingUpdates(pendingUpdates: any): any {
+    if (!pendingUpdates) return null;
+    if (typeof pendingUpdates === 'string') {
+      try {
+        return JSON.parse(pendingUpdates);
+      } catch {
+        return null;
+      }
+    }
+    return pendingUpdates;
   }
 
   checkFormChanges(): void {
@@ -1141,10 +1159,17 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
-  uploadVideo(): void {
+  uploadVideo(onCompleted?: () => void): void {
     if (!this.selectedVideoFile) return;
 
-    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email, this.applicationId || undefined)
+    const isPendingReplacement = !!this.originalApplicationValues?.introduction_video;
+
+    this.usersService.uploadIntroductionVideo(
+      this.selectedVideoFile,
+      this.user.email,
+      this.applicationId || undefined,
+      isPendingReplacement
+    )
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
@@ -1156,10 +1181,20 @@ export class AppAccountSettingComponent implements OnInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.openSnackBar('Video uploaded successfully!', 'Close');
-          if (res?.videoURL) {
-            this.videoPreview = this.getCacheBustedUrl(res.videoURL);
+          if (isPendingReplacement) {
+            this.pendingVideoFileName =
+              res?.pending_updates?.introduction_video_pending_file ||
+              `app-pending-${this.applicationId}.mp4`;
+            this.openSnackBar('Video update submitted for approval', 'Close');
+          } else {
+            this.pendingVideoFileName = null;
+            this.openSnackBar('Video uploaded successfully!', 'Close');
+            if (res?.videoURL) {
+              this.videoPreview = this.getCacheBustedUrl(res.videoURL);
+            }
           }
+          this.loadApplicationDetails(this.user.id);
+          if (onCompleted) onCompleted();
         },
         error: (error) => {
           this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
@@ -1221,7 +1256,7 @@ export class AppAccountSettingComponent implements OnInit {
       salary_range: formValues.salaryRange,
       programming_languages: formValues.programmingLanguages,
     };
-    if (this.resumeFile) payload.resume = this.resumeFile;
+    // resume is uploaded separately to bypass pending review flow
     if (this.portfolioFile) payload.portfolio = this.portfolioFile;
 
     const diff: any = {};
@@ -1250,35 +1285,79 @@ export class AppAccountSettingComponent implements OnInit {
     }
 
     if (this.certificationsChanged) {
-      diff.certifications = this.certifications;
+      diff.certifications = this.getCertificationsPayloadForApproval();
     }
 
     const hasApplicationChanges = Object.keys(diff).length > 0;
     const hasSelectedVideo = !!this.selectedVideoFile;
+    const hasSelectedResume = !!this.resumeFile;
 
-    if (!hasApplicationChanges && !hasSelectedVideo) {
+    if (!hasApplicationChanges && !hasSelectedVideo && !hasSelectedResume) {
       this.openSnackBar('No changes detected', 'Close');
       this.isSubmitting = false;
       return;
     }
 
-    if (!hasApplicationChanges && hasSelectedVideo) {
-      this.uploadVideo();
+    const finalizeSaveFlow = () => {
+      if (hasSelectedVideo) {
+        this.uploadVideo();
+      } else {
+        this.openSnackBar('Profile and application details updated successfully', 'Close');
+        this.isSubmitting = false;
+        this.loadApplicationDetails(this.user.id);
+      }
+    };
+
+    const uploadResumeIfNeeded = () => {
+      if (!hasSelectedResume || !this.resumeFile || !this.applicationId) {
+        finalizeSaveFlow();
+        return;
+      }
+
+      const isPendingResumeReplacement = !!this.originalApplicationValues?.resume;
+
+      this.usersService.uploadApplicationResume(
+        this.resumeFile,
+        this.user.email,
+        this.applicationId,
+        isPendingResumeReplacement
+      ).subscribe({
+        next: (res: any) => {
+          if (isPendingResumeReplacement) {
+            this.pendingResumeFileName =
+              res?.pending_updates?.resume_pending_file ||
+              `app-pending-${this.applicationId}`;
+            this.openSnackBar('Resume update submitted for approval', 'Close');
+          } else {
+            this.pendingResumeFileName = null;
+          }
+
+          this.resumeFile = null;
+          finalizeSaveFlow();
+        },
+        error: (err: any) => {
+          this.openSnackBar('Error updating application details', 'Close');
+          this.isSubmitting = false;
+          console.error(err);
+        }
+      });
+    };
+
+    if (!hasApplicationChanges) {
+      uploadResumeIfNeeded();
       return;
     }
 
     this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
-      next: (res: any) => {
+      next: () => {
+        if (hasSelectedResume) {
+          this.resumeFileName = this.resumeFile?.name || this.resumeFileName;
+        }
+
         this.certificationsChanged = false;
         this.certifications = this.certifications.filter(c => !c.isTemp);
         this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
-        if (hasSelectedVideo) {
-          this.uploadVideo();
-        } else {
-          this.openSnackBar('Profile and application details updated successfully', 'Close');
-          this.isSubmitting = false;
-          this.loadApplicationDetails(this.user.id);
-        }
+        uploadResumeIfNeeded();
       },
       error: (err: any) => {
         this.openSnackBar('Error updating application details', 'Close');
@@ -1537,27 +1616,32 @@ export class AppAccountSettingComponent implements OnInit {
         pending = pending.certifications;
       }
 
+      this.certifications = (this.certifications || []).map((c: any) => ({
+        ...c,
+        isPending: false,
+        isPendingDeletion: false,
+      }));
+
       if (!Array.isArray(pending) || pending.length === 0) return;
 
-      this.certifications = this.certifications || [];
+      const pendingKeys = new Set(
+        pending.map((p: any) => this.getCertificationComparisonKey(p))
+      );
+
+      // Existing certifications missing from pending list are pending deletion.
+      this.certifications = this.certifications.map((c: any) => ({
+        ...c,
+        isPendingDeletion: !pendingKeys.has(this.getCertificationComparisonKey(c)),
+      }));
 
       for (const p of pending) {
-        const pendingIdNum = typeof p.id === 'number' ? p.id : (typeof p.id === 'string' && /^\d+$/.test(p.id) ? Number(p.id) : null);
-
-        const exists = this.certifications.some((c: any) => {
-          if (pendingIdNum != null && typeof c.id === 'number') {
-            return c.id === pendingIdNum;
-          }
-          const nameEqual = (c.name || '').toLowerCase() === (p.name || '').toLowerCase();
-          const dateA = (c.date || '').split('T')[0];
-          const dateB = (p.date || '').split('T')[0];
-          return nameEqual && dateA === dateB;
-        });
+        const pendingKey = this.getCertificationComparisonKey(p);
+        const exists = this.certifications.some(
+          (c: any) => this.getCertificationComparisonKey(c) === pendingKey
+        );
 
         if (!exists) {
-          const item = { ...p };
-          (item as any).isPending = true;
-          this.certifications.push(item);
+          this.certifications.push({ ...p, isPending: true, isPendingDeletion: false });
         }
       }
       const unique: any[] = [];
@@ -1573,6 +1657,30 @@ export class AppAccountSettingComponent implements OnInit {
     }
   }
 
+  private getCertificationComparisonKey(cert: any): string {
+    const id = cert?.id;
+    if (id !== null && id !== undefined && `${id}` !== '' && /^\d+$/.test(String(id))) {
+      return `id:${id}`;
+    }
+
+    const name = (cert?.name || '').toLowerCase().trim();
+    const issuer = (cert?.issuer || '').toLowerCase().trim();
+    const date = (cert?.date || '').split('T')[0];
+    return `meta:${name}|${issuer}|${date}`;
+  }
+
+  private getCertificationsPayloadForApproval(): any[] {
+    return (this.certifications || [])
+      .filter((c: any) => !c.isPendingDeletion)
+      .map((c: any) => {
+        const payload = { ...c };
+        delete payload.isTemp;
+        delete payload.isPending;
+        delete payload.isPendingDeletion;
+        return payload;
+      });
+  }
+
   deleteCertification(id: number) {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
@@ -1586,10 +1694,19 @@ export class AppAccountSettingComponent implements OnInit {
         return;
       }
 
-      this.certifications = this.certifications.filter(c => c.id !== id);
+      const cert = this.certifications.find((c: any) => c.id === id);
+      if (!cert) return;
+
+      if (cert.isTemp) {
+        this.certifications = this.certifications.filter(c => c.id !== id);
+        this.openSnackBar('Certification removed. Click Save to persist changes', 'Close');
+      } else {
+        cert.isPendingDeletion = true;
+        this.openSnackBar('Certification deletion submitted for HR approval', 'Close');
+      }
+
       this.certificationsChanged = true;
       this.checkFormChanges();
-      this.openSnackBar('Certification deleted. Click Save to persist changes', 'Close');
     });
   }
 
