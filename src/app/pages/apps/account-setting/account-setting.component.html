@@ -2253,7 +2253,7 @@
                   <h4 class="m-0 f-w-600">{{ cert.name }}</h4>
                   <div class="f-s-14 m-t-4">
                     {{ cert.issuer }}
-                    <span class="text-muted m-l-4">
+                    <span class="text-muted m-l-4" *ngIf="cert.date">
                       Issued {{ cert.date | date : "MMM yyyy" }}
                       <span *ngIf="cert.expiration_date">
                         · Expires {{ cert.expiration_date | date : "MMM yyyy" }}
