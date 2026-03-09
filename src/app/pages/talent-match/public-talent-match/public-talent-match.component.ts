@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
-import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { Positions } from 'src/app/models/Position.model';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
@@ -57,7 +56,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
     'profile_summary',
     'age'
   ];
-
+  loading: boolean = false;
   page = 1;
   pageSize = 5;
   totalRecords = 0;
@@ -71,6 +70,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
   }
 
   loadRecords(extraFilters: any = {}) {
+    this.loading = true;
     this.publicService.getRecords({
       page: this.page,
       pageSize: this.pageSize,
@@ -83,11 +83,15 @@ export class AppPublicTalentMatchComponent implements OnInit {
           name: c.full_name,
           profile_pic_url: c.picture ? `${environment.upload}/profile-pictures/${c.picture}` : null
         }));
+        this.loading = false;
         this.allCandidates = mapped;
         this.dataSource.data = mapped;
         this.totalRecords = res.meta.total;
       },
-      error: err => console.error(err)
+      error: err => {
+        this.loading = false;
+        console.error(err);
+      }
     });
   }
 

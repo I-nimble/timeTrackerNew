@@ -4,13 +4,19 @@
     <mat-form-field appearance="outline" class="w-100">
       <mat-select
         [(ngModel)]="selectedRole"
+        name="selectedRole"
+        #roleModel="ngModel"
         (selectionChange)="emitFilters()"
         required
+        placeholder="Select a role"
       >
         <mat-option *ngFor="let position of positions" [value]="position.id">
           {{ position.title }}
         </mat-option>
       </mat-select>
+      <mat-error *ngIf="roleModel.invalid && roleModel.touched">
+        Role is required.
+      </mat-error>
     </mat-form-field>
   </div>
 
@@ -21,13 +27,19 @@
     <mat-form-field appearance="outline" class="w-100">
       <mat-select
         [(ngModel)]="selectedPracticeArea"
+        name="practiceArea"
+        #practiceModel="ngModel"
         (selectionChange)="emitFilters()"
         required
+        placeholder="Select a practice area"
       >
         <mat-option *ngFor="let area of practiceAreas" [value]="area">
           {{ area }}
         </mat-option>
       </mat-select>
+      <mat-error *ngIf="practiceModel.invalid && practiceModel.touched">
+        Practice Area is required.
+      </mat-error>
     </mat-form-field>
   </div>
 </div>
