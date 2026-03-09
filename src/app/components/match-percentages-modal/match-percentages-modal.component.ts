@@ -11,7 +11,8 @@ import { ApplicationMatchScoresService, PositionCategory, MatchScore } from 'src
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSelectModule } from '@angular/material/select';
-import { DiscProfilesService, DiscProfile } from 'src/app/services/disc-profiles.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 import { forkJoin } from 'rxjs';
 
 export interface MatchPercentagesModalData {
