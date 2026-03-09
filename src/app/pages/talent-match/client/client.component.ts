@@ -109,9 +109,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   query: string = '';
   selectedRole: string | null = null;
   selectedPracticeArea: string | null = null;
-  selectedSkillsTools: string[] = [];
-  selectedCertifications: string[] = [];
-  selectedBackground: string[] = [];
   roleDescription: string = '';
   budgetMin: number = 4;
   budgetMax: number = 15;
@@ -166,71 +163,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     'Bankruptcy Law',
     'Corporate / Business Law',
     'General Practice'
-  ];
-
-  skillsList: string[] = [
-    'Intake',
-    'Client Communication',
-    'Case Management',
-    'Legal Research',
-    'Drafting',
-    'Demand Letter Drafting',
-    'Discovery',
-    'Medical Records Review',
-    'Billing and Invoicing',
-    'Calendar Management',
-    'CRM Management',
-    'Lead Intake',
-    'Trial Preparation'
-  ];
-
-  toolsList: string[] = [
-    'Clio',
-    'CASEpeer',
-    'Filevine',
-    'MyCase',
-    'RingCentral',
-    'Dialpad',
-    'Zoom',
-    'Google Workspace',
-    'Microsoft Office',
-    'Slack',
-    'Notion',
-    'Trello',
-    'QuickBooks'
-  ];
-
-  certificationsOptions: string[] = [
-    'Paralegal Certificate',
-    'Bilingual Certification',
-    'Medical Background',
-    'Accounting / Finance Training',
-    'Customer Support Training',
-    'AI Tools Training'
-  ];
-
-  relatedBackgroundOptions: string[] = [
-    'Law Student / Pre-Law',
-    'Legal Studies',
-    'Criminology',
-    'Political Science',
-    'Sociology',
-    'Psychology',
-    'Public Administration',
-    'Business Administration',
-    'Accounting',
-    'Finance',
-    'Human Resources',
-    'Communications',
-    'Journalism',
-    'English / Literature',
-    'Healthcare Administration',
-    'Medical Assistant / Nursing Assistant',
-    'Customer Service / Call Center',
-    'Marketing / Advertising',
-    'Project Management',
-    'Office Administration',
-    'International Relations'
   ];
 
   formatEnglishLevelDisplay(value: number): string {
@@ -328,9 +260,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           selectedPracticeArea: this.selectedPracticeArea,
           budgetRange: this.budgetRange,
           isMonthlyRate: this.isMonthlyRate,
-          selectedSkillsTools: this.selectedSkillsTools,
-          selectedCertifications: this.selectedCertifications,
-          selectedBackground: this.selectedBackground,
           roleDescription: this.roleDescription,
           query: this.query
         });
@@ -360,15 +289,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
     if (this.roleDescription) {
       stage1.push(`Role description: ${this.roleDescription}`);
-    }
-    if (this.selectedSkillsTools?.length > 0) {
-      stage2.push(`Preferred skills/tools: ${this.selectedSkillsTools.join(', ')}`);
-    }
-    if (this.selectedCertifications?.length > 0) {
-      stage2.push(`Relevant certifications: ${this.selectedCertifications.join(', ')}`);
-    }
-    if (this.selectedBackground?.length > 0) {
-      stage2.push(`Related background: ${this.selectedBackground.join(', ')}`);
     }
     if (this.budgetRange.min !== this.budgetMin || this.budgetRange.max !== this.budgetMax) {
       stage2.push(
@@ -507,9 +427,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           if (stored.filters.selectedPracticeArea !== undefined) this.selectedPracticeArea = stored.filters.selectedPracticeArea;
           if (stored.filters.budgetRange) this.budgetRange = stored.filters.budgetRange;
           if (stored.filters.isMonthlyRate !== undefined) this.isMonthlyRate = stored.filters.isMonthlyRate;
-          if (stored.filters.selectedSkillsTools) this.selectedSkillsTools = stored.filters.selectedSkillsTools;
-          if (stored.filters.selectedCertifications) this.selectedCertifications = stored.filters.selectedCertifications;
-          if (stored.filters.selectedBackground) this.selectedBackground = stored.filters.selectedBackground;
           if (stored.filters.roleDescription !== undefined) this.roleDescription = stored.filters.roleDescription;
           if (stored.filters.query !== undefined) this.query = stored.filters.query;
 
