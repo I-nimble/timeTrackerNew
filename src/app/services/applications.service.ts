@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpEventType, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable, forkJoin, of, Subject, tap } from 'rxjs';
+import { Observable, forkJoin, of, Subject } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
+import { Application, ApplicationListParams } from '../models/application.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,8 +11,8 @@ import { switchMap, map, filter } from 'rxjs/operators';
 export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
-  selectedCards: any[] = [];
-  selectedApplicants: any[] = [];
+  selectedCards: Application[] = [];
+  selectedApplicants: Application[] = [];
   resumeUrl: any = null;
   photoUrl: any = null;
   private applicationsSeenSource = new Subject<void>();
@@ -20,12 +21,12 @@ export class ApplicationsService {
   private applicationsUpdatedSource = new Subject<any>();
   applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
 
-  getUserApplication(id: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
+  getUserApplication(id: number): Observable<Application> {
+    return this.http.get<Application>(`${this.API_URI}/applications/user/${id}`);
   }
   
-  getApplication(id: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URI}/applications/${id}`);
+  getApplication(id: number): Observable<Application> {
+    return this.http.get<Application>(`${this.API_URI}/applications/${id}`);
   }
 
   reject(id: number, reason: string | null): Observable<any> {
@@ -51,12 +52,12 @@ export class ApplicationsService {
     return this.http.get(`${this.API_URI}/applications/check-profile/${id}`, {});
   }
 
-  addSelectedCard(card: any): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/select/${card.id}`, card)
+  addSelectedCard(card: Application): Observable<Application[]> {
+    return this.http.put<Application[]>(`${this.API_URI}/applications/select/${card.id}`, card)
   }
 
-  removeSelectedCard(id: number): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/deselect/${id}`, {});
+  removeSelectedCard(id: number): Observable<Application[]> {
+    return this.http.put<Application[]>(`${this.API_URI}/applications/deselect/${id}`, {});
   }
 
   getSelectedCards() {
@@ -67,7 +68,7 @@ export class ApplicationsService {
     this.selectedCards = [];
   }
 
-  setSelectedApplicants(applicants: any[]) {
+  setSelectedApplicants(applicants: Application[]) {
     this.selectedApplicants = applicants;
   }
 
@@ -87,16 +88,55 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
   }
 
-  public get(onlyTalentPool: boolean = false): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
+  public get(
+    onlyTalentPool: boolean = false,
+    page?: number,
+    offset?: number,
+    sortBy?: string,
+    sortOrder?: ApplicationListParams['sortOrder'],
+  ): Observable<Application[]> {
+    const params = this.buildApplicationListParams({
+      onlyTalentPool,
+      page,
+      offset,
+      sortBy,
+      sortOrder,
+    });
+
+    return this.http.get<Application[]>(`${this.API_URI}/applications`, { params });
   }
 
-  public getSelectedApplications(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/selected`);
+  public getSelectedApplications(
+    page?: number,
+    offset?: number,
+    sortBy?: string,
+    sortOrder?: ApplicationListParams['sortOrder'],
+  ): Observable<Application[]> {
+    const params = this.buildApplicationListParams({
+      page,
+      offset,
+      sortBy,
+      sortOrder,
+    });
+
+    return this.http.get<Application[]>(`${this.API_URI}/applications/selected`, { params });
   }
 
-  public getApplicationsByPosition(position_id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/position/${position_id}`);
+  public getApplicationsByPosition(
+    position_id: number,
+    page?: number,
+    offset?: number,
+    sortBy?: string,
+    sortOrder?: ApplicationListParams['sortOrder'],
+  ): Observable<Application[]> {
+    const params = this.buildApplicationListParams({
+      page,
+      offset,
+      sortBy,
+      sortOrder,
+    });
+
+    return this.http.get<Application[]>(`${this.API_URI}/applications/position/${position_id}`, { params });
   }
 
   public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
@@ -340,5 +380,16 @@ export class ApplicationsService {
     }
 
     return '';
+  }
+
+  private buildApplicationListParams(
+    params: ApplicationListParams & { onlyTalentPool?: boolean },
+  ): HttpParams {
+    let httpParams = new HttpParams();
+
+    for (const [key, value] of Object.entries(params)) {
+      httpParams = httpParams.set(key, String(value));
+    }
+    return httpParams;
   }
 }
