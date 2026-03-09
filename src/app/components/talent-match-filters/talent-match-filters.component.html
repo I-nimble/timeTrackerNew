@@ -1,0 +1,33 @@
+<div class="row m-t-10">
+  <div class="col-lg-6">
+    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role *</mat-label>
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-select
+        [(ngModel)]="selectedRole"
+        (selectionChange)="emitFilters()"
+        required
+      >
+        <mat-option *ngFor="let position of positions" [value]="position.id">
+          {{ position.title }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="col-lg-6">
+    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">
+      Practice Area *
+    </mat-label>
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-select
+        [(ngModel)]="selectedPracticeArea"
+        (selectionChange)="emitFilters()"
+        required
+      >
+        <mat-option *ngFor="let area of practiceAreas" [value]="area">
+          {{ area }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

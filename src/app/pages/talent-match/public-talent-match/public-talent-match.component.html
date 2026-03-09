@@ -1,0 +1,42 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-11">
+      <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex justify-content-center align-items-center">
+        <img src="assets/images/talent-match.png" alt="Talent Match Logo" style="max-width: 100%; height: auto; max-height: 80px;">
+      </mat-card>
+    </div>
+  </div>
+  <div class="row justify-content-center m-t-16">
+    <div class="col-12 col-xl-11">
+      <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-24">
+        <app-talent-match-filters
+          [positions]="positions"
+          [practiceAreas]="practiceAreas"
+          (filtersChange)="onFiltersChange($event)">
+        </app-talent-match-filters>
+        <div class="d-flex justify-content-center align-items-center m-t-16">
+          <app-match
+            appearance="outline"
+            class="flex-grow-1 hide-hint m-b-0"
+            style="max-width: 600px"
+            [aiEnabled]="false"
+            [canSearch]="true"
+            [showCustomSearch]="false"
+            [query]="query"
+            placeholder="Search candidates..."
+            (searchChange)="onManualSearch($event)">
+          </app-match>
+        </div>
+        <div class="m-t-16">
+          <app-talent-match-table
+            [dataSource]="dataSource"
+            [displayedColumns]="displayedColumns"
+            [totalRecords]="totalRecords"
+            [pageSize]="pageSize"
+            (pageChange)="onPageChange($event)">
+          </app-talent-match-table>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>
