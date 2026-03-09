@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-talent-match-table',
@@ -18,6 +19,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     MatCardModule,
     MatDividerModule,
     MatPaginatorModule,
+    MatProgressSpinnerModule,
     FormatNamePipe
   ]
 })
@@ -28,7 +30,7 @@ export class TalentMatchTableComponent {
   @Input() totalRecords = 0;
   @Input() pageSize = 10;
   @Input() pageSizeOptions = [5, 10, 25];
-
+  @Input() loading: boolean = false;
   @Output() pageChange = new EventEmitter<any>();
   assetsPath: string = 'assets/images/default-user-profile-pic.png';
 
