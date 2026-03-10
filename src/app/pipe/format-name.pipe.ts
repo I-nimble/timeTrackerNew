@@ -5,7 +5,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true
 })
 export class FormatNamePipe implements PipeTransform {
-    transform(fullName: string): string {
+    transform(fullName: unknown): string {
     if (!fullName || typeof fullName !== 'string') {
       return '';
     }
