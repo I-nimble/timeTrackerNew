@@ -3,7 +3,7 @@
         <mat-progress-spinner diameter="56" mode="indeterminate"></mat-progress-spinner>
     </div>
 
-    <ng-container *ngIf="!loading && visibleRows.length > 0; else emptyState">
+    <ng-container *ngIf="!loading && rows.length > 0; else emptyState">
         <div class="table-responsive">
             <table
                 mat-table
@@ -12,7 +12,7 @@
                 [matSortActive]="activeMatSortBy"
                 [matSortDirection]="activeMatSortDirection"
                 (matSortChange)="onMatSortChange($event)"
-                [dataSource]="visibleRows"
+                [dataSource]="rows"
                 class="w-100">
                 <ng-container *ngFor="let column of columns" [matColumnDef]="column.id">
                     <th mat-header-cell  *matHeaderCellDef [class]="column.headerClass || ''">
@@ -61,8 +61,8 @@
             </table>
         </div>
 
-        <app-dynamic-paginator *ngIf="showPaginator" [currentPage]="effectiveCurrentPage"
-            [totalPages]="effectiveTotalPages" (pageChange)="handlePageChange($event)"></app-dynamic-paginator>
+        <app-dynamic-paginator *ngIf="showPaginator" [currentPage]="currentPage"
+            [totalPages]="paginatorTotalPages" (pageChange)="handlePageChange($event)"></app-dynamic-paginator>
     </ng-container>
 
     <ng-template #emptyState>

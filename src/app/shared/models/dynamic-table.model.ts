@@ -1,7 +1,6 @@
 import { TemplateRef } from '@angular/core';
 
 export type DynamicSortOrder = 'asc' | 'desc';
-export type DynamicTableMode = 'local' | 'remote';
 export type DynamicValueAccessor<T, TValue = unknown> =
   | keyof T
   | string
