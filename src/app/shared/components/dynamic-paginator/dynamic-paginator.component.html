@@ -1,0 +1,34 @@
+<div class="dynamic-paginator d-flex align-items-center justify-content-between gap-8 p-t-16" *ngIf="totalPages > 1">
+  <div class="f-s-12 text-muted">
+    Page {{ currentPage }} of {{ totalPages }}
+  </div>
+
+  <div class="d-flex align-items-center gap-4">
+    <button mat-icon-button type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">
+      <mat-icon>first_page</mat-icon>
+    </button>
+
+    <button mat-icon-button type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+      <mat-icon>keyboard_arrow_left</mat-icon>
+    </button>
+
+    <button
+      *ngFor="let page of visiblePages"
+      mat-stroked-button
+      type="button"
+      class="dynamic-paginator__page f-s-12"
+      [class.dynamic-paginator__page--active]="page === currentPage"
+      (click)="goToPage(page)"
+    >
+      {{ page }}
+    </button>
+
+    <button mat-icon-button type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      <mat-icon>keyboard_arrow_right</mat-icon>
+    </button>
+
+    <button mat-icon-button type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+      <mat-icon>last_page</mat-icon>
+    </button>
+  </div>
+</div>
