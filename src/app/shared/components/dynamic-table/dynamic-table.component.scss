@@ -1,0 +1,38 @@
+.dynamic-table__state {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.dynamic-table__empty-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dynamic-table__sort-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dynamic-table__sort-trigger--active {
+  color: var(--mat-sys-primary);
+}
+
+.dynamic-table__sort-indicator {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.dynamic-table__row--clickable {
+  cursor: pointer;
+}

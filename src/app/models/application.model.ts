@@ -6,9 +6,27 @@ export type ApplicationSortOrder = 'asc' | 'desc' | 'ASC' | 'DESC';
 
 export interface ApplicationListParams {
 	page?: number;
+	limit?: number;
 	offset?: number;
 	sortBy?: string;
 	sortOrder?: ApplicationSortOrder;
+	search?: string;
+	onlyTalentPool?: boolean;
+}
+
+export interface ApplicationListMeta {
+	total: number;
+	totalPages: number;
+	currentPage: number;
+	limit: number;
+	sortBy: string;
+	sortOrder: ApplicationSortOrder;
+}
+
+export interface ApplicationListResponse {
+	items: Application[];
+	message: string;
+	meta: ApplicationListMeta;
 }
 
 export interface ApplicationUser {
