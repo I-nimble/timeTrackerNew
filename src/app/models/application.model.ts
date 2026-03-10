@@ -25,7 +25,7 @@ export interface ApplicationListMeta {
 
 export interface ApplicationListResponse {
 	items: Application[];
-	message: string;
+	message?: string;
 	meta: ApplicationListMeta;
 }
 

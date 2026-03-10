@@ -25,6 +25,8 @@ export class ApplicationsService {
   private applicationsUpdatedSource = new Subject<any>();
   applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
 
+  private readonly defaultListOffset = 10;
+
   getUserApplication(id: number): Observable<Application> {
     return this.http.get<Application>(`${this.API_URI}/applications/user/${id}`);
   }
@@ -370,8 +372,16 @@ export class ApplicationsService {
   ): HttpParams {
     let httpParams = new HttpParams();
 
-    for (const [key, value] of Object.entries(params)) {
+    const normalizedParams = {
+      ...params,
+      offset: params.offset ?? params.limit,
+    };
+
+    for (const [key, value] of Object.entries(normalizedParams)) {
       if (value === undefined || value === null || value === '') {
+        continue;
+      }
+      if (key === 'limit') {
         continue;
       }
       httpParams = httpParams.set(key, String(value));
