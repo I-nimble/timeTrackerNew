@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { JwtInterceptor } from './services/jwt.interceptor';
+import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { ReportsService } from './services/reports.service';
 // import { MatDatepicker } from "@angular/material/datepicker";

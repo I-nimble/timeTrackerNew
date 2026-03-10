@@ -14,6 +14,7 @@ import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
 import { RoleTourService } from './services/role-tour.service';
 import { RoleTourStep } from './services/role-tour-steps';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
+import { FingerprintService } from './services/fingerprint.service';
 
 @Component({
   selector: 'app-root',
@@ -64,10 +65,16 @@ export class AppComponent implements OnInit, OnDestroy {
     private roleTourService: RoleTourService,
     public tourService: TourService<RoleTourStep>,
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private fingerprintService: FingerprintService,
   ) { }
 
   async ngOnInit() {
+    try {
+      await this.fingerprintService.getFingerprint();
+    } catch (e) {
+      console.warn('Fingerprint generation failed', e);
+    }
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
 
