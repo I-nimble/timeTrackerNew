@@ -3,11 +3,15 @@ import { HttpClient, HttpEventType, HttpHeaders, HttpParams } from '@angular/com
 import { environment } from '../../environments/environment';
 import { Observable, forkJoin, of, Subject } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
-import { Application, ApplicationListParams } from '../models/application.model';
+import {
+  Application,
+  ApplicationListParams,
+  ApplicationListResponse,
+} from '../models/application.model';
 
 @Injectable({
   providedIn: 'root',
-})
+}) 
 export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
@@ -89,54 +93,33 @@ export class ApplicationsService {
   }
 
   public get(
-    onlyTalentPool: boolean = false,
-    page?: number,
-    offset?: number,
-    sortBy?: string,
-    sortOrder?: ApplicationListParams['sortOrder'],
-  ): Observable<Application[]> {
-    const params = this.buildApplicationListParams({
-      onlyTalentPool,
-      page,
-      offset,
-      sortBy,
-      sortOrder,
-    });
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse> {
+    const httpParams = this.buildApplicationListParams(params || {});
 
-    return this.http.get<Application[]>(`${this.API_URI}/applications`, { params });
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications`, {
+        params: httpParams,
+      })
   }
 
   public getSelectedApplications(
-    page?: number,
-    offset?: number,
-    sortBy?: string,
-    sortOrder?: ApplicationListParams['sortOrder'],
-  ): Observable<Application[]> {
-    const params = this.buildApplicationListParams({
-      page,
-      offset,
-      sortBy,
-      sortOrder,
-    });
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse> {
+    const httpParams = this.buildApplicationListParams(params || {});
 
-    return this.http.get<Application[]>(`${this.API_URI}/applications/selected`, { params });
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications/selected`, { params: httpParams })
   }
 
   public getApplicationsByPosition(
     position_id: number,
-    page?: number,
-    offset?: number,
-    sortBy?: string,
-    sortOrder?: ApplicationListParams['sortOrder'],
-  ): Observable<Application[]> {
-    const params = this.buildApplicationListParams({
-      page,
-      offset,
-      sortBy,
-      sortOrder,
-    });
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse> {
+    const httpParams = this.buildApplicationListParams(params || {});
 
-    return this.http.get<Application[]>(`${this.API_URI}/applications/position/${position_id}`, { params });
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications/position/${position_id}`, { params: httpParams })
   }
 
   public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
@@ -388,6 +371,9 @@ export class ApplicationsService {
     let httpParams = new HttpParams();
 
     for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
       httpParams = httpParams.set(key, String(value));
     }
     return httpParams;
