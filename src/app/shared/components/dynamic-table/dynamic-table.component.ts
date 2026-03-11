@@ -7,6 +7,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  TemplateRef,
 } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { MaterialModule } from 'src/app/material.module';
@@ -42,15 +43,22 @@ export class DynamicTableComponent<T> implements OnChanges {
   @Input() sortBy = '';
   @Input() sortOrder: DynamicSortOrder = 'asc';
   @Input() rowClickable = false;
+  @Input() expandedRow: T | null = null;
+  @Input() expandedRowTemplate?: TemplateRef<DynamicTableCellContext<T>>;
   @Output() sortChange = new EventEmitter<DynamicTableSortChange>();
   @Output() pageChange = new EventEmitter<DynamicTablePageChange>();
   @Output() rowClick = new EventEmitter<T>();
   @Output() rowAction = new EventEmitter<DynamicTableRowActionEvent<T>>();
 
   displayedColumns: string[] = [];
+  expansionRowColumns: string[] = ['__expandedDetail'];
 
   private activeSortBy = '';
   private activeSortOrder: DynamicSortOrder = 'asc';
+  private readonly expansionColumn: DynamicTableColumn<T> = {
+    id: '__expandedDetail',
+    header: '',
+  };
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['columns']) {
@@ -68,6 +76,10 @@ export class DynamicTableComponent<T> implements OnChanges {
 
   get paginatorTotalPages(): number {
     return Math.max(this.totalPages, 1);
+  }
+
+  get hasExpandedRowTemplate(): boolean {
+    return !!this.expandedRowTemplate;
   }
 
   get showPaginator(): boolean {
@@ -146,6 +158,22 @@ export class DynamicTableComponent<T> implements OnChanges {
       column,
       index,
     };
+  }
+
+  isExpandedRow = (_index: number, row: T): boolean => this.hasExpandedRow(row);
+
+  getExpandedRowContext(row: T, index: number): DynamicTableCellContext<T> {
+    return {
+      $implicit: row,
+      row,
+      value: row,
+      column: this.expansionColumn,
+      index,
+    };
+  }
+
+  hasExpandedRow(row: T): boolean {
+    return !!this.expandedRowTemplate && this.expandedRow === row;
   }
 
   private resolvePathValue(row: Record<string, unknown>, path: string): unknown {
