@@ -8,7 +8,7 @@
         </span>
       </h4>
       <div class="m-t-16">
-        <app-dynamic-table [columns]="tableColumns" [rows]="rows"></app-dynamic-table>
+        <app-dynamic-table [columns]="tableColumns" [rows]="rows" [loading]="tableLoading"></app-dynamic-table>
 
 			<ng-template #applyActionTemplate let-position>
 				<button

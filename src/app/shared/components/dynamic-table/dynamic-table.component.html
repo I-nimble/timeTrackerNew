@@ -1,9 +1,11 @@
 <div class="dynamic-table">
-    <div *ngIf="loading" class="dynamic-table__state text-center p-24">
-        <mat-progress-spinner diameter="56" mode="indeterminate"></mat-progress-spinner>
+    <div *ngIf="showLoader" class="dynamic-table__state text-center p-24">
+        <div class="d-flex justify-content-center">
+            <app-loader [loader]="tableLoader" [diameter]="56"></app-loader>
+        </div>
     </div>
 
-    <ng-container *ngIf="!loading && rows.length > 0 && displayedColumns.length > 0; else emptyState">
+    <ng-container *ngIf="!showLoader && rows.length > 0 && displayedColumns.length > 0; else emptyState">
         <div class="table-responsive">
             <table
                 mat-table
@@ -88,7 +90,7 @@
     </ng-container>
 
     <ng-template #emptyState>
-        <div *ngIf="!loading" class="dynamic-table__state text-center p-24">
+        <div *ngIf="!showLoader" class="dynamic-table__state text-center p-24">
             <div class="dynamic-table__empty-icon rounded-circle d-inline-flex align-items-center justify-content-center m-b-12">
                 <mat-icon>{{ emptyIcon }}</mat-icon>
             </div>

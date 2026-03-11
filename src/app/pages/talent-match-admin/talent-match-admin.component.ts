@@ -67,6 +67,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   sortBy = 'name';
   sortOrder: 'asc' | 'desc' = 'asc';
   backendMessage = '';
+  tableLoading = false;
   private readonly formatNamePipe = new FormatNamePipe();
   
   constructor(
@@ -115,6 +116,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getApplications() {
+    this.tableLoading = true;
+
     this.applicationService.get({
       onlyTalentPool: true,
       page: this.currentPage,
@@ -122,15 +125,23 @@ export class AppTalentMatchAdminComponent implements OnInit {
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
       search: this.searchTerm,
-    }).subscribe((response: ApplicationListResponse) => {
-      this.applicationsData = response.items;
-      this.rows = response.items;
-      this.totalPages = response.meta.totalPages;
-      this.currentPage = response.meta.currentPage;
-      this.pageSize = response.meta.limit;
-      this.sortBy = response.meta.sortBy;
-      this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
-      this.backendMessage = response.message || '';
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.applicationsData = response.items;
+        this.rows = response.items;
+        this.totalPages = response.meta.totalPages;
+        this.currentPage = response.meta.currentPage;
+        this.pageSize = response.meta.limit;
+        this.sortBy = response.meta.sortBy;
+        this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
+        this.backendMessage = response.message || '';
+        this.tableLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching applications:', err);
+        this.rows = [];
+        this.tableLoading = false;
+      }
     });
     this.companiesService.getCompanies().subscribe({
       next: companies => {

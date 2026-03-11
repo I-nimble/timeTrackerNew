@@ -13,6 +13,8 @@ import { Sort } from '@angular/material/sort';
 import { MaterialModule } from 'src/app/material.module';
 import { DynamicPaginatorComponent } from '../dynamic-paginator/dynamic-paginator.component';
 import { DynamicTableCellComponent } from './dynamic-table-cell.component';
+import { Loader } from 'src/app/app.models';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import {
   DynamicSortOrder,
   DynamicTableCellContext,
@@ -25,7 +27,7 @@ import {
 @Component({
   selector: 'app-dynamic-table',
   standalone: true,
-  imports: [CommonModule, MaterialModule, DynamicPaginatorComponent, DynamicTableCellComponent],
+  imports: [CommonModule, MaterialModule, DynamicPaginatorComponent, DynamicTableCellComponent, LoaderComponent],
   templateUrl: './dynamic-table.component.html',
   styleUrl: './dynamic-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,9 +54,11 @@ export class DynamicTableComponent<T> implements OnChanges {
 
   displayedColumns: string[] = [];
   expansionRowColumns: string[] = ['__expandedDetail'];
+  readonly tableLoader = new Loader(true, false, false);
 
   private activeSortBy = '';
   private activeSortOrder: DynamicSortOrder = 'asc';
+  private hasResolvedInitialState = false;
   private readonly expansionColumn: DynamicTableColumn<T> = {
     id: '__expandedDetail',
     header: '',
@@ -63,6 +67,21 @@ export class DynamicTableComponent<T> implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['columns']) {
       this.displayedColumns = this.columns.map((column) => column.id);
+    }
+
+    if (changes['rows']) {
+      const rowsChange = changes['rows'];
+      if (this.rows.length > 0 || !rowsChange.firstChange) {
+        this.hasResolvedInitialState = true;
+      }
+    }
+
+    if (changes['loading'] && this.loading === false) {
+      this.hasResolvedInitialState = true;
+    }
+
+    if (changes['backendMessage'] && this.backendMessage) {
+      this.hasResolvedInitialState = true;
     }
 
     if (changes['sortBy']) {
@@ -80,6 +99,10 @@ export class DynamicTableComponent<T> implements OnChanges {
 
   get hasExpandedRowTemplate(): boolean {
     return !!this.expandedRowTemplate;
+  }
+
+  get showLoader(): boolean {
+    return this.loading || !this.hasResolvedInitialState;
   }
 
   get showPaginator(): boolean {

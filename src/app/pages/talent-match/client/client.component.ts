@@ -17,11 +17,8 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
-import {
-  AIService,
-  CandidateEvaluationFilters,
-  CandidateEvaluationResponse,
-} from 'src/app/services/ai.service';
+import { AIService } from 'src/app/services/ai.service';
+import { CandidateEvaluationResponse, CandidateEvaluationFilters } from 'src/app/models/ai.model';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
@@ -327,6 +324,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getApplications() {
+    this.aiLoading = true;
+
     if (!this.hasRestoredStoredSearch) {
       const stored = this.loadAISearchState();
       if (stored?.filters) {

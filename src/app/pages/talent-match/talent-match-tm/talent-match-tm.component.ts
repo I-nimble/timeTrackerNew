@@ -35,6 +35,7 @@ export class AppTalentMatchTmComponent implements OnInit {
   departments: Department[] = [];
   allPositions: Positions[] = [];
 	rows: Positions[] = [];
+  tableLoading = false;
 
 	@ViewChild('applyActionTemplate', { static: true })
 	applyActionTemplate!: TemplateRef<any>;
@@ -54,23 +55,31 @@ export class AppTalentMatchTmComponent implements OnInit {
   }
 
   getPositions(): void {
+		this.tableLoading = true;
 		this.positionsService.get().subscribe({
 			next: (positions: any[]) => {
 				this.rows = positions;
+				this.tableLoading = false;
 			},
 			error: err => {
 				console.error('Error loading positions', err);
+				this.tableLoading = false;
 			}
 		});
   }
 
   loadDepartments(): void {
+		this.tableLoading = true;
 		this.departmentsService.get().subscribe({
 			next: (departments: Department[]) => {
 				this.departments = departments;
 				this.loadPositions();
 			},
-			error: err => console.error('Error loading departments', err)
+			error: err => {
+				console.error('Error loading departments', err);
+				this.rows = [];
+				this.tableLoading = false;
+			}
 		});
   }
 
@@ -80,7 +89,11 @@ export class AppTalentMatchTmComponent implements OnInit {
 			this.allPositions = positions;
 			this.filterPositionsByCurrentPosition();
 		},
-		error: err => console.error('Error loading positions', err)
+		error: err => {
+			console.error('Error loading positions', err);
+			this.rows = [];
+			this.tableLoading = false;
+		}
 		});
   }
 
@@ -91,6 +104,7 @@ export class AppTalentMatchTmComponent implements OnInit {
 				if (!application) {
 					console.warn('No application found for user');
 					this.rows = [];
+					this.tableLoading = false;
 					return;
 				}
 				this.applicationId = application.id;
@@ -99,6 +113,7 @@ export class AppTalentMatchTmComponent implements OnInit {
 				if (!currentPosition) {
 					console.warn('No current_position found for user');
 					this.rows = [];
+					this.tableLoading = false;
 					return;
 				}
 
@@ -108,10 +123,12 @@ export class AppTalentMatchTmComponent implements OnInit {
 					const deptId = p.department_id ?? p.department?.id ?? null;
 					return deptId && allowedDepartmentIds.includes(Number(deptId));
 				});
+				this.tableLoading = false;
 			},
 			error: err => {
 				console.error('Error fetching user application', err);
 				this.rows = [];
+				this.tableLoading = false;
 			}
 		});
 	}
