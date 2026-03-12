@@ -1,0 +1,95 @@
+<div class="dynamic-table">
+    <div *ngIf="showLoader" class="dynamic-table__state text-center p-24">
+        <div class="d-flex justify-content-center">
+            <app-loader [loader]="tableLoader" [diameter]="56"></app-loader>
+        </div>
+    </div>
+
+    <ng-container *ngIf="!showLoader && rows.length > 0 && displayedColumns.length > 0; else emptyState">
+        <div class="table-responsive">
+            <table
+                mat-table
+                multiTemplateDataRows
+                matSort
+                matSortDisableClear
+                [matSortActive]="activeMatSortBy"
+                [matSortDirection]="activeMatSortDirection"
+                (matSortChange)="onMatSortChange($event)"
+                [dataSource]="rows"
+                class="w-100">
+                <ng-container *ngFor="let column of columns" [matColumnDef]="column.id">
+                    <th mat-header-cell *matHeaderCellDef [class]="column.headerClass || ''">
+                        <ng-container *ngIf="column.headerTemplate; else defaultHeader">
+                            <ng-container *ngTemplateOutlet="column.headerTemplate; context: { column: column }"></ng-container>
+                        </ng-container>
+
+                        <ng-template #defaultHeader>
+                            <ng-container *ngIf="column.sortable; else plainHeader">
+                                <span
+                                    class="f-w-600 f-s-14"
+                                    [mat-sort-header]="column.sortKey || column.id"
+                                    [disableClear]="true">
+                                    {{ column.header }}
+                                </span>
+                            </ng-container>
+
+                            <ng-template #plainHeader>
+                                <span class="f-w-600 f-s-14">{{ column.header }}</span>
+                            </ng-template>
+                        </ng-template>
+                    </th>
+
+                    <td mat-cell *matCellDef="let row; let index = index" [class]="column.cellClass || ''">
+                        <ng-container *ngIf="column.cellTemplate; else defaultCell">
+                            <ng-container *ngTemplateOutlet="column.cellTemplate; context: getCellContext(row, column, index)"></ng-container>
+                        </ng-container>
+
+                        <ng-template #defaultCell>
+                            <app-dynamic-table-cell
+                                [row]="row"
+                                [column]="column"
+                                (rowAction)="rowAction.emit($event)"></app-dynamic-table-cell>
+                        </ng-template>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="__expandedDetail">
+                    <td
+                        mat-cell
+                        *matCellDef="let row; let index = dataIndex"
+                        [attr.colspan]="displayedColumns.length"
+                        class="dynamic-table__detail-cell p-0 border-0">
+                        <div class="dynamic-table__detail-content" [class.dynamic-table__detail-content--expanded]="hasExpandedRow(row)">
+                            <ng-container *ngIf="hasExpandedRowTemplate && hasExpandedRow(row)">
+                                <ng-container *ngTemplateOutlet="expandedRowTemplate || null; context: getExpandedRowContext(row, index)"></ng-container>
+                            </ng-container>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let row; columns: displayedColumns"
+                    [class.dynamic-table__row--clickable]="rowClickable"
+                    (click)="onRowClicked(row)">
+                </tr>
+                <tr
+                    mat-row
+                    class="dynamic-table__detail-row"
+                    *matRowDef="let row; columns: expansionRowColumns">
+                </tr>
+            </table>
+        </div>
+
+        <app-dynamic-paginator
+            *ngIf="showPaginator"
+            [currentPage]="currentPage"
+            [totalPages]="paginatorTotalPages"
+            (pageChange)="handlePageChange($event)"></app-dynamic-paginator>
+    </ng-container>
+
+    <ng-template #emptyState>
+        <!-- To be implemented on SD-1498 -->
+    </ng-template>
+</div>
