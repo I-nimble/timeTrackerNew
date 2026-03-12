@@ -2,11 +2,11 @@ import { Component, signal, WritableSignal, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
-import { DiscProfile } from 'src/app/services/disc-profiles.service';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { MatTableModule } from '@angular/material/table';
@@ -37,7 +37,6 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     MatIconModule,
     MatCardModule,
     LoaderComponent,
-    DatePipe,
     FormsModule,
     ReactiveFormsModule,
     FormatNamePipe  

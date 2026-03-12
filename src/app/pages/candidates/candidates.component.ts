@@ -14,7 +14,6 @@ import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 import { PositionsService } from 'src/app/services/positions.service';
@@ -29,6 +28,7 @@ import { forkJoin, of, Observable } from 'rxjs';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { ApplicationListResponse } from 'src/app/models/application.model';
 
 @Component({
   selector: 'app-candidates',
@@ -39,7 +39,6 @@ import { getTrainingNames } from 'src/app/utils/candidate.utils';
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
-    StripeComponent,
   ],
   templateUrl: './candidates.component.html',
   styleUrl: './candidates.component.scss'
@@ -253,7 +252,8 @@ export class CandidatesComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((applications: any[]) => {
+    this.applicationsService.get().subscribe((response: ApplicationListResponse) => {
+      const applications = response.items || [];
       const visibleApplications = applications.filter(
         (application: any) => application.status !== 'rejected'
       );
