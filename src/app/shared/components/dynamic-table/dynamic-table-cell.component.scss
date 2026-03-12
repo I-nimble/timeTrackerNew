@@ -1,0 +1,26 @@
+.dynamic-table__avatar-cell {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+img.dynamic-table__avatar-image {
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+  min-height: 45px;
+  flex: 0 0 45px;
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  margin-right: 12px;
+}
+
+.dynamic-table__title {
+  line-height: 1.35;
+}
+
+.dynamic-table__status-pill {
+  display: inline-flex;
+  align-items: center;
+}

@@ -1,0 +1,72 @@
+<ng-container [ngSwitch]="getRendererType()">
+    <ng-container *ngSwitchCase="'avatar-name'">
+        <div class="dynamic-table__avatar-cell d-flex align-items-center">
+            <img width="45" height="45" class="rounded-circle dynamic-table__avatar-image" [src]="getAvatarImage()"
+                alt="Profile image" (error)="onRendererImageError($event, getAvatarFallback())" />
+            <div>
+                <h6 class="f-s-14 f-w-600 dynamic-table__title m-0">
+                    {{ getAvatarTitle() }}
+                    <span class="disc-badges m-l-4" *ngIf="getBadges().length > 0">
+                        <span *ngFor="let badge of getBadges()" class="disc-badge-small"
+                            [style.background-color]="getBadgeColor(badge)" [title]="getBadgeLabel(badge)">
+                            {{ getBadgeLabel(badge).charAt(0) }}
+                        </span>
+                    </span>
+                </h6>
+                <span class="f-s-12 f-w-400 d-block" *ngIf="getAvatarSubtitle()">
+                    {{ getAvatarSubtitle() }}
+                </span>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'text-badges'">
+        <span class="f-s-14">
+            {{ getTextBadgesText() }}
+            <span class="disc-badges m-l-8" *ngIf="getBadges().length > 0">
+                <span *ngFor="let badge of getBadges()" class="disc-badge-small"
+                    [style.background-color]="getBadgeColor(badge)" [title]="getBadgeLabel(badge)">
+                    {{ getBadgeLabel(badge).charAt(0) }}
+                </span>
+            </span>
+        </span>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'metric'">
+        <span class="f-w-600">{{ getMetricPrimary() }}</span>
+        <span *ngIf="getMetricSecondary()"> {{ getMetricSecondary() }}</span>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'truncated-text'">
+        <p class="f-s-14 m-0">{{ getTruncatedText() }}</p>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'status-pill'">
+        <span class="p-x-8 p-y-4 f-w-500 rounded-pill f-s-12 dynamic-table__status-pill" [ngStyle]="getStatusStyles()">
+            {{ getStatusLabel() }}
+        </span>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'date'">
+        <span class="f-s-14">{{ getFormattedDate() }}</span>
+    </ng-container>
+
+    <ng-container *ngSwitchCase="'actions'">
+        <ng-container *ngIf="getVisibleActions().length > 0">
+            <button mat-icon-button [matMenuTriggerFor]="actionsMenu" (click)="$event.stopPropagation()">
+                <mat-icon>{{ getActionTriggerIcon() }}</mat-icon>
+            </button>
+            <mat-menu #actionsMenu="matMenu">
+                <button *ngFor="let action of getVisibleActions()" mat-menu-item [disabled]="isActionDisabled(action)"
+                    (click)="onActionClick(action, $event)">
+                    <mat-icon *ngIf="action.icon">{{ action.icon }}</mat-icon>
+                    <span>{{ action.label }}</span>
+                </button>
+            </mat-menu>
+        </ng-container>
+    </ng-container>
+
+    <ng-container *ngSwitchDefault>
+        <span class="f-s-14">{{ getFallbackText() }}</span>
+    </ng-container>
+</ng-container>
