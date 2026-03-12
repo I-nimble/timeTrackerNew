@@ -1,0 +1,11 @@
+.dynamic-paginator__page {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+}
+
+.dynamic-paginator__page--active {
+  background: var(--mat-sys-primary);
+  border-color: var(--mat-sys-primary);
+  color: #fff;
+}
