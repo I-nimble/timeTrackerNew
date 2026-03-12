@@ -24,6 +24,7 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { ApplicationListParams, ApplicationListResponse } from 'src/app/models/application.model';
 
 export interface PeriodicElement {
   id: number;
@@ -128,9 +129,18 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   getApplications() {
-    this.applicationService.get(true).subscribe((applications) => {
-      this.applicationsData = applications;
-      this.dataSource.data = applications;
+    const params: ApplicationListParams = {
+      page: 1,
+      limit: 10,
+      offset: 0,
+      sortBy: 'submission_date',
+      sortOrder: 'desc',
+      search: undefined,
+      onlyTalentPool: true
+    };
+    this.applicationService.get(params).subscribe((applications: ApplicationListResponse) => {
+      this.applicationsData = applications.items || [];
+      this.dataSource.data = applications.items || [];
     });
     this.companiesService.getCompanies().subscribe({
       next: companies => {
