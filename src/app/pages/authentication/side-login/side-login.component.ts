@@ -27,6 +27,7 @@ import { Loader } from 'src/app/app.models';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { ThemeService } from 'src/app/services/theme.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -93,7 +94,8 @@ export class AppSideLoginComponent {
      private authService: AuthService,
      private snackBar: MatSnackBar,
      private rocketChatService: RocketChatService,
-      private locationService: LocationService
+      private locationService: LocationService,
+      private themeService: ThemeService
   ) {}
 
   form = new FormGroup({
@@ -133,12 +135,14 @@ export class AppSideLoginComponent {
           const id = v.id;
           const isOrphan = v.isOrphan;
           const chatCredentials = v.chatCredentials;
+          const themePreference = v.theme_preference;
           localStorage.setItem('role', role);
           localStorage.setItem('username', name + ' ' + last_name);
           localStorage.setItem('jwt', jwt);
           localStorage.setItem('email', email);
           localStorage.setItem('id', id);
           localStorage.setItem('isOrphan', isOrphan);
+          this.themeService.initializeFromLogin(themePreference);
 
           if (Number(role) === 2) {
             this.locationService.startTracking();

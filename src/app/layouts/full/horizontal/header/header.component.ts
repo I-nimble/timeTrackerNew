@@ -13,6 +13,8 @@ import { NgScrollbarModule } from 'ngx-scrollbar';
 import {CompaniesService} from 'src/app/services/companies.service';
 import {environment} from 'src/environments/environment';
 import { AuthService } from 'src/app/services/auth.service';
+import { ThemeService } from 'src/app/services/theme.service';
+import { ThemePreference } from 'src/app/config';
 
 interface notifications {
   id: number;
@@ -114,6 +116,7 @@ export class AppHorizontalHeaderComponent implements OnInit {
     private translate: TranslateService,
     private companieService: CompaniesService,
     private authService: AuthService,
+    private themeService: ThemeService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -160,8 +163,9 @@ export class AppHorizontalHeaderComponent implements OnInit {
     this.optionsChange.emit(this.options);
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
+  setlightDark(theme: ThemePreference) {
+    this.themeService.setTheme(theme, true);
+    this.options = this.settings.getOptions();
     this.emitOptions();
   }
 
