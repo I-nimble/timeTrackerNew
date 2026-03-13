@@ -9,7 +9,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { DiscProfilesService, DiscProfile } from 'src/app/services/disc-profiles.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 import { forkJoin } from 'rxjs';
 import { MaterialModule } from 'src/app/material.module';
 

@@ -341,8 +341,8 @@ export class HeaderComponent implements OnInit {
 
   getApplications() {
     this.applicationsService.get().subscribe({
-      next: (apps) => {
-        this.applications = apps;
+      next: (response) => {
+        this.applications = response.items;
         const role = localStorage.getItem('role');
         
         if(role === '3' && this.applications.find((app: any) => app.status_id === 1)) {

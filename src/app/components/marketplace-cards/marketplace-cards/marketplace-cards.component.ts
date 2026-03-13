@@ -33,8 +33,8 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.applicationsService.getApplicationsByPosition(this.selectedPosition?.id).subscribe({
-      next: (applications) => {
-        this.cards = applications;
+      next: (response) => {
+        this.cards = response.items;
       }
     })
   }

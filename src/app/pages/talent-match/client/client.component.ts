@@ -35,6 +35,7 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { ApplicationListParams, ApplicationListResponse, Application } from 'src/app/models/application.model';
 
 @Component({
   standalone: true,
@@ -406,13 +407,22 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getApplications() {
-    this.applicationsService.get().subscribe({
-      next: (applications: any[]) => {
-        const sortedApplications = applications
-          .map((a: any) => ({ ...a }))
+    const params: ApplicationListParams = {
+      page: 1,
+      limit: 10,
+      offset: 0,
+      sortBy: 'submission_date',
+      sortOrder: 'desc',
+      search: undefined,
+      onlyTalentPool: true
+    };
+    this.applicationsService.get(params).subscribe({
+      next: (applications: ApplicationListResponse) => {
+        const sortedApplications = applications.items
+          .map((a: Application) => ({ ...a }))
           .sort((a, b) => {
-            const aMatch = a.overall_match_percentage || a.match_percentage || 0;
-            const bMatch = b.overall_match_percentage || b.match_percentage || 0;
+            const aMatch = a.match_percentage || 0;
+            const bMatch = b.match_percentage || 0;
             return bMatch - aMatch;
           });
 
