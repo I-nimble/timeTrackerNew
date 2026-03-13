@@ -14,6 +14,7 @@ import { from } from 'rxjs';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { RoleTourService } from './role-tour.service';
 import { filter, take } from 'rxjs/operators';
+import { THEME_STORAGE_KEY } from './theme.service';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +50,17 @@ export class AuthService {
   }
   async logout(redirect: boolean = true) {
     try { this.roleTourService.skipActiveTour(); } catch (e) {}
-    localStorage.clear();
+    const keysToRemove = [
+      'jwt',
+      'role',
+      'username',
+      'email',
+      'id',
+      'isOrphan',
+      'clientHasTeam',
+      THEME_STORAGE_KEY,
+    ];
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
