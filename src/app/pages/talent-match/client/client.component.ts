@@ -78,6 +78,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   interviews: any[] = [];
   assetsPath: string = 'assets/images/default-user-profile-pic.png';
   aiLoading = false;
+  tableLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
   allCandidates: any[] = [];
@@ -186,6 +187,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortBy = 'match_percentage';
     this.sortOrder = 'desc';
     this.aiLoading = true;
+    this.tableLoading = false;
     this.aiAnswer = '';
     this.hasSearchResults = false;
 
@@ -198,6 +200,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.activeAISearchSessionId = response.sessionId || '';
         this.hasSearchResults = response.meta.total > 0;
         this.aiLoading = false;
+        this.tableLoading = false;
         this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
 
         this.saveAISearchState(this.activeAISearchSessionId, this.buildAISearchFilters());
@@ -207,11 +210,13 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
           this.useManualSearch = true;
           this.aiLoading = false;
+          this.tableLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
           console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
+        this.tableLoading = false;
       }
     });
   }
@@ -324,7 +329,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getApplications() {
-    this.aiLoading = true;
+    this.tableLoading = true;
 
     if (!this.hasRestoredStoredSearch) {
       const stored = this.loadAISearchState();
@@ -356,12 +361,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.applyApplicationListResponse(response);
         this.hasSearchResults = false;
         this.aiAnswer = '';
-        this.aiLoading = false;
+        this.tableLoading = false;
         this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
-        this.aiLoading = false;
+        this.tableLoading = false;
       },
     });
   }
@@ -779,7 +784,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.aiLoading = true;
+    this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
       page: this.currentPage,
       offset: this.pageSize,
@@ -790,12 +795,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.applyApplicationListResponse(response);
         this.activeAISearchSessionId = response.sessionId || this.activeAISearchSessionId;
         this.hasSearchResults = response.meta.total > 0;
-        this.aiLoading = false;
+        this.tableLoading = false;
         this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
       },
       error: (err) => {
         console.error('AI evaluation error:', err);
-        this.aiLoading = false;
+        this.tableLoading = false;
         if (restoreFallback && err.status === 404) {
           localStorage.removeItem('aiSearchSessionId');
           this.resetActiveAISearch();
