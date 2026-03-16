@@ -241,6 +241,10 @@
     }
   }
 
+  .border-none {
+    border: none !important;
+  }
+
   .dialog-actions {
     justify-content: flex-end;
     padding: 16px 0;
