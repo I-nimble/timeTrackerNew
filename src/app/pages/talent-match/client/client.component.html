@@ -149,12 +149,7 @@
               [loading]="aiLoading"
               [aiEnabled]="!useManualSearch"
               [canSearch]="canSearchAI"
-              [showInterviewButton]="true"
-              [interviewDisabled]="selection.selected.length === 0"
               [showCustomSearch]="!showCustomFilterInput"
-              (interview)="openDialog('Schedule')"
-              [query]="query"
-              placeholder="What position are you looking for?"
               (askAI)="searchCandidatesWithAI($event)"
               (searchChange)="useManualSearch ? onManualSearch($event) : null"
             >
@@ -207,13 +202,6 @@
                   color="primary"
                   [checked]="selection.isSelected(row)"
                   [aria-label]="checkboxLabel(row)"
-                  *ngIf="!getInterviewDateTime(row.id)"
-                >
-                </mat-checkbox>
-                <mat-checkbox
-                  [checked]="true"
-                  *ngIf="getInterviewDateTime(row.id)"
-                  [disabled]="true"
                 >
                 </mat-checkbox>
               </td>
@@ -397,27 +385,6 @@
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
-                  @if (getInterviewDateTime(element.id)) {
-                    <button
-                      mat-menu-item
-                      (click)="openDialog('Reeschedule', element)"
-                    >
-                      <mat-icon>edit</mat-icon>
-                      <span>Reeschedule</span>
-                    </button>
-                    <button mat-menu-item (click)="cancelInterview(element.id)">
-                      <mat-icon>delete</mat-icon>
-                      <span>Cancel Interview</span>
-                    </button>
-                  } @else {
-                    <button
-                      mat-menu-item
-                      (click)="openDialog('Schedule', element)"
-                    >
-                      <mat-icon>event</mat-icon>
-                      <span>Schedule</span>
-                    </button>
-                  }
                   <button
                     mat-menu-item
                     (click)="
@@ -753,83 +720,6 @@
                         </ng-container>
                       </mat-card-content>
                     </mat-card>
-                    <!-- Skills - Hobbies -->
-                    <mat-card
-                      class="shadow-none"
-                      *ngIf="element.skills || element.hobbies"
-                    >
-                      <mat-divider></mat-divider>
-                      <mat-card-content class="d-flex row">
-                        <div class="col-6 flex-column" *ngIf="element.skills">
-                          <h5 class="f-s-24 f-w-600 m-b-16 text-primary">
-                            Skills
-                          </h5>
-                          <div>
-                            <p>{{ element.skills }}</p>
-                          </div>
-                        </div>
-                        <div *ngIf="element.hobbies" class="col-6 hobbies">
-                          <h5 class="f-s-24 f-w-600 m-b-16 text-primary">
-                            Hobbies
-                          </h5>
-                          <div>
-                            <p>{{ element.hobbies }}</p>
-                          </div>
-                        </div>
-                      </mat-card-content>
-                    </mat-card>
-                    <!-- Education -->
-                    <mat-card
-                      class="shadow-none"
-                      *ngIf="element.education_history"
-                    >
-                      <mat-divider></mat-divider>
-                      <mat-card-content>
-                        <ng-container>
-                          <h5 class="f-s-20 f-w-600 m-b-16 text-primary">
-                            Education
-                          </h5>
-                          <div>
-                            <p>{{ element.education_history }}</p>
-                          </div>
-                        </ng-container>
-                      </mat-card-content>
-                    </mat-card>
-                    <!-- Suggested Salary -->
-                    <mat-card class="shadow-none">
-                      <mat-divider></mat-divider>
-                      <mat-card-content>
-                        <ng-container>
-                          <div class="d-flex">
-                            <div class="col-6">
-                              <h5 class="f-s-24 f-w-600 m-b-16">
-                                Suggested Salary: 
-                              </h5>
-                              <div *ngIf="element.suggested_salary; else noSalary" class="f-w-600">
-                                {{ element.suggested_salary | currency:'USD':'symbol':'1.2-2'  }}
-                              </div>
-                              <ng-template #noSalary>
-                                <span class="text-muted">Not provided</span>
-                              </ng-template>
-                            </div>
-                            <div class="col-6 cta-container">
-                              <h5 class="f-s-24 f-w-600 m-b-16 text-center">
-                                Set up an interview with your integrator
-                              </h5>
-                              <div class="d-flex justify-content-center m-t-16">
-                                <button
-                                  mat-flat-button
-                                  color="primary"
-                                  (click)="openDialog('Schedule', element)"
-                                >
-                                  Click here!
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </ng-container>
-                      </mat-card-content>
-                    </mat-card>
                   </div>
                 </div>
               </td>
@@ -839,7 +729,6 @@
               mat-row
               *matRowDef="let row; columns: columnsToDisplayWithExpand"
               (click)="onRowClick(row)"
-              [class.disabled]="getInterviewDateTime(row.id)"
             ></tr>
             <tr
               mat-row
