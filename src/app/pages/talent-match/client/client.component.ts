@@ -238,7 +238,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
             }
             return null;
           })
-          .filter((c): c is any => c !== undefined);
+          .filter((c): c is any => c != null);
 
         this.dataSource.data = orderedCandidates;
 
@@ -599,7 +599,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }`;
   }
 
-  onRowClick(row: any) {
+  onRowClick(row: any, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest('button, a, mat-checkbox, [mat-menu-item], .mat-mdc-menu-trigger')) {
+      return;
+    }
+
     this.expandedElement = this.expandedElement === row ? null : row;
     this.selection.toggle(row);
     this.onRowSelectionChange();
