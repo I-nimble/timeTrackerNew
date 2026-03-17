@@ -68,12 +68,12 @@ export class NotificationsService {
   notificationsChanged = new Subject<void>()
 
   constructor(private http: HttpClient,
-              private router: Router,
-              private dialog: MatDialog,
-              private sanitizer: DomSanitizer) {}
+    private router: Router,
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer) { }
 
   get(days?: number) {
-    if(days) return this.http.get<any>(`${this.API_URI}/${days}`);
+    if (days) return this.http.get<any>(`${this.API_URI}/${days}`);
     return this.http.get<any>(`${this.API_URI}`);
   }
 
@@ -81,7 +81,7 @@ export class NotificationsService {
     return this.http.post(`${this.API_URI}/all`, {});
   }
 
-  getById(id:number) {
+  getById(id: number) {
     return this.http.post<any>(`${this.API_URI}/${id}`, {});
   }
 
@@ -105,31 +105,31 @@ export class NotificationsService {
     return this.http.post(`${this.API_URI}/to-do`, data);
   }
 
-  update(notifications: Notification[], status: number): Observable<any> { 
-  if (notifications.length > 0) {
-    const promises = notifications.map((notification: any) => {
-      if (notification.users_notifications) {
-        if (notification.users_notifications.user_id && notification.id) {
-          const now = new Date();
-          const body: any = {
-            "user_id": notification.users_notifications.user_id,
-            "notification_id": notification.id,
-            "status": status,
-            "updatedAt": now
-          };
+  update(notifications: Notification[], status: number): Observable<any> {
+    if (notifications.length > 0) {
+      const promises = notifications.map((notification: any) => {
+        if (notification.users_notifications) {
+          if (notification.users_notifications.user_id && notification.id) {
+            const now = new Date();
+            const body: any = {
+              "user_id": notification.users_notifications.user_id,
+              "notification_id": notification.id,
+              "status": status,
+              "updatedAt": now
+            };
 
-          return this.http.put(`${this.API_URI}/${notification.id}/${notification.users_notifications.user_id}`, body);
+            return this.http.put(`${this.API_URI}/${notification.id}/${notification.users_notifications.user_id}`, body);
+          }
         }
-      }
-      return null; 
-    }).filter(Boolean); 
+        return null;
+      }).filter(Boolean);
 
-    return forkJoin(promises);
+      return forkJoin(promises);
+    }
+    return of(null);
   }
-  return of(null); 
-}
 
-  delete(id:number) {
+  delete(id: number) {
     return this.http.delete<any>(`${this.API_URI}/${id}`, {});
   }
 
@@ -137,13 +137,13 @@ export class NotificationsService {
     this.get().subscribe({
       next: (notifications: Notification[]) => {
         if (notifications.length > 0) {
-          notifications.sort((a, b) => {            
+          notifications.sort((a, b) => {
             return (b.type_id == 6) ? 1 : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           });
           const today = new Date();
           const twoDaysAgo = new Date();
           twoDaysAgo.setDate(today.getDate() - 2);
-  
+
           let recentNotifications: notificationCategory[] = this.notificationCategories.map(category => ({
             ...category,
             notifications: []
@@ -154,13 +154,13 @@ export class NotificationsService {
           }));
           this.recentNotifications = [];
           this.earlierNotifications = [];
-  
+
           notifications.forEach(notification => {
             const category = this.notificationCategories.find(cat => cat.id === notification.type_id);
             if (category) {
-              if (new Date(notification.createdAt) >= twoDaysAgo && new Date(notification.createdAt) <= today && 
+              if (new Date(notification.createdAt) >= twoDaysAgo && new Date(notification.createdAt) <= today &&
                 notification.users_notifications.status !== 2 && notification.users_notifications.status !== 5) {
-                  
+
                 recentNotifications.find(cat => cat.id === category.id)?.notifications.push(notification);
                 this.recentNotifications.push(notification);
               } else {
@@ -169,7 +169,7 @@ export class NotificationsService {
               }
             }
           });
-  
+
           recentNotifications = recentNotifications.filter(category => category.notifications.length > 0);
           earlierNotifications = earlierNotifications.filter(category => category.notifications.length > 0);
 
@@ -192,7 +192,7 @@ export class NotificationsService {
   public getResume(applicationId?: number): Observable<{ url: SafeResourceUrl | null, extension: string | null }> {
     const headers = new HttpHeaders({ Accept: 'application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
     const options = { headers: headers, responseType: 'blob' as 'json' };
-  
+
     return this.http.post<Blob>(`${this.API_URI}/resume`, { applicationId }, options).pipe(
       switchMap((response: Blob) => {
         if (response.type === 'application/json') {
@@ -202,26 +202,33 @@ export class NotificationsService {
               const responseText = reader.result as string;
               if (responseText.includes('Resume does not exist')) {
                 console.warn('No resume available: ', responseText);
-                observer.next({ url: null, extension: null });  
+                observer.next({ url: null, extension: null });
               }
-              observer.complete(); 
+              observer.complete();
             };
             reader.onerror = (error) => {
-              observer.error(error); 
+              observer.error(error);
             };
-            reader.readAsText(response); 
+            reader.readAsText(response);
           });
         }
 
         const url = URL.createObjectURL(response);
         const safeUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
         const extension = response.type === 'application/pdf' ? 'pdf' : 'docx';
-        return of({ url: safeUrl, extension: extension }); 
+        return of({ url: safeUrl, extension: extension });
       }),
       catchError((error) => {
         console.error('Error fetching resume:', error);
-        return of({ url: null, extension: null });  
+        return of({ url: null, extension: null });
       })
+    );
+  }
+
+  markInterested(userId: number, candidateId: number, candidatePosition: string, candidateArea: string) {
+    return this.http.post(
+      `${this.API_URI}/interested`,
+      { userId, candidateId, candidatePosition, candidateArea },
     );
   }
 }
