@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ApplicationListResponse } from '../models/application.model';
+import { CandidateEvaluationRequest, CandidateEvaluationResponse, CandidateEvaluationResultsParams } from '../models/ai.model';
 
 @Injectable({ providedIn: 'root' })
 export class AIService {
@@ -16,38 +18,29 @@ export class AIService {
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ 
-    answer: { parts: { text: string }[] }; 
-    enhanced_results: Array<{
-      name: string;
-      match_percentage: number;
-      overall_match_percentage?: number;
-      position_category: string;
-      category_description?: string;
-      best_position_category_id?: number;
-    }>;
-    best_position_category?: {
-      id: number;
-      name: string;
-    };
-  }> {
-    return this.http.post<{ 
-      answer: { parts: { text: string }[] }; 
-      enhanced_results: Array<{
-        name: string;
-        match_percentage: number;
-        overall_match_percentage?: number;
-        position_category: string;
-        category_description?: string;
-        best_position_category_id?: number;
-      }>;
-      best_position_category?: {
-        id: number;
-        name: string;
-      };
-    }>(
+  evaluateCandidates(request: CandidateEvaluationRequest): Observable<CandidateEvaluationResponse> {
+    return this.http.post<CandidateEvaluationResponse>(
       `${this.API_URI}/ai/candidate-evaluation`,
-      { candidates, question }
+      request
+    );
+  }
+
+  getCandidateEvaluationResults(
+    sessionId: string,
+    params: CandidateEvaluationResultsParams,
+  ): Observable<CandidateEvaluationResponse> {
+    let httpParams = new HttpParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        return;
+      }
+      httpParams = httpParams.set(key, String(value));
+    });
+
+    return this.http.get<CandidateEvaluationResponse>(
+      `${this.API_URI}/ai/candidate-evaluation/${sessionId}/results`,
+      { params: httpParams },
     );
   }
 
