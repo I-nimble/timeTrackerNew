@@ -593,7 +593,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (data: any) => {
           if (data.success) {
-            this.snackBar.open('Interest registered and HR notified.', 'Close', { duration: 2000 });
+            this.snackBar.open('Your interest has been recorded, and the HR team has been alerted.', 'Close', { duration: 2000 });
           } else {
             this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
           }
