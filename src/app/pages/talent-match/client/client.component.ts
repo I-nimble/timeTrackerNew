@@ -35,6 +35,7 @@ import {
   DynamicTableRowActionEvent,
   DynamicTableSortChange,
 } from 'src/app/shared/models/dynamic-table.model';
+import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
   standalone: true,
@@ -160,7 +161,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private router: Router,
     private matchScoresService: ApplicationMatchScoresService,
     private discProfilesService: DiscProfilesService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notificationsService: NotificationsService,
+    public snackBar: MatSnackBar
   ) {}
   
   ngOnInit(): void {
@@ -645,9 +648,38 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       case 'not-interested':
         this.deleteApplication(event.row.id);
         break;
+      case 'interested':
+        this.markInterested(event.row);
+        break;
       default:
         break;
     }
+  }
+
+  markInterested(candidate: any): void {
+    if (!(this.selectedRole && this.selectedPracticeArea)) {
+      this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
+      return;
+    }
+
+    const userId = Number(localStorage.getItem('id')) || 0;
+    const candidateId = candidate.id;
+    const candidatePosition = this.selectedRole;
+    const candidateArea = this.selectedPracticeArea;
+
+    this.notificationsService.markInterested(userId, candidateId, candidatePosition, candidateArea)
+      .subscribe({
+        next: (data: any) => {
+          if (data.success) {
+            this.snackBar.open('Interest registered and HR notified.', 'Close', { duration: 2000 });
+          } else {
+            this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+        }
+      });
   }
 
   goToCandidate(id: number, event: MouseEvent) {

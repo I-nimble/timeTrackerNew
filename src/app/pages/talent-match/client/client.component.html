@@ -261,13 +261,16 @@
               }
               <button
                 mat-menu-item
-                (click)="
-                  downloadFile(element.resume_url, element.name, element.id);
-                  $event.preventDefault()
-                "
+                (click)="downloadFile(element.resume_url, element.name, element.id); $event.preventDefault()"
               >
                 <mat-icon>download</mat-icon>
                 <span>Download Resume</span>
+              </button>
+              <button mat-menu-item
+                (click)="markInterested(element)"
+              >
+              <mat-icon>favorite_border</mat-icon>
+              <span>Interested</span>
               </button>
               <button mat-menu-item (click)="deleteApplication(element.id)">
                 <mat-icon>delete</mat-icon>
