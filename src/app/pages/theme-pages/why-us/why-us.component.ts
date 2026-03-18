@@ -5,9 +5,7 @@ import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RouterLink } from '@angular/router';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
 import { AppFooterComponent } from '../footer/footer.component';
-import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
 import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
@@ -59,9 +57,7 @@ interface features {
     TablerIconsModule,
     RouterLink,
     BrandingComponent,
-    AppBlogsComponent,
     AppFooterComponent,
-    AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
     ButtonComponent
