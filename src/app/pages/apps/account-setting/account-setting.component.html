@@ -1143,6 +1143,12 @@
                           resumeFileName
                         }}</span>
                       </div>
+                      <div
+                        class="f-s-12 text-warning m-t-8"
+                        *ngIf="pendingResumeFileName"
+                      >
+                        Your last submission is pending for HR approval
+                      </div>
                       <mat-error *ngIf="!resumeFileName" class="f-s-12"
                         >Required</mat-error
                       >
@@ -1221,6 +1227,13 @@
                       />
                     </button>
                     <!--                     <button mat-stroked-button color="warn" (click)="deleteVideo()" [disabled]="!videoPreview">Delete</button> -->
+                  </div>
+
+                  <div
+                    class="f-s-12 text-warning m-t-8"
+                    *ngIf="pendingVideoFileName"
+                  >
+                    Your last submission is pending for HR approval
                   </div>
 
                   <div class="m-t-16">
@@ -2240,7 +2253,7 @@
                   <h4 class="m-0 f-w-600">{{ cert.name }}</h4>
                   <div class="f-s-14 m-t-4">
                     {{ cert.issuer }}
-                    <span class="text-muted m-l-4">
+                    <span class="text-muted m-l-4" *ngIf="cert.date">
                       Issued {{ cert.date | date : "MMM yyyy" }}
                       <span *ngIf="cert.expiration_date">
                         · Expires {{ cert.expiration_date | date : "MMM yyyy" }}
@@ -2270,6 +2283,13 @@
                     style="white-space: pre-wrap"
                   >
                     {{ cert.description }}
+                  </div>
+
+                  <div
+                    class="m-t-8 f-s-12 text-warning"
+                    *ngIf="cert.isPendingDeletion"
+                  >
+                    Deletion pending HR approval
                   </div>
 
                   <div class="m-t-12" *ngIf="cert.attachment_url">

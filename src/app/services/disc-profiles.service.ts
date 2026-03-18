@@ -2,12 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-
-export interface DiscProfile {
-  id: number;
-  name: string;
-  description: string;
-}
+import { DiscProfile } from '../models/disc-profile.model';
 
 @Injectable({
   providedIn: 'root',

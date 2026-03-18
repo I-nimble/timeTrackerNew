@@ -14,7 +14,6 @@ import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
 import { Router } from '@angular/router';
 import { PositionsService } from 'src/app/services/positions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
@@ -22,6 +21,7 @@ import { CompaniesService } from 'src/app/services/companies.service';
 import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.component';
+import { Application, ApplicationListResponse } from 'src/app/models/application.model';
 
 @Component({
   selector: 'app-rejected',
@@ -32,7 +32,6 @@ import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.co
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
-    StripeComponent,
   ],
   templateUrl: './rejected.component.html',
   styleUrl: './rejected.component.scss'
@@ -178,8 +177,11 @@ export class RejectedComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((applications: any[]) => {
-      this.rejectedCandidates = applications.filter(a => a.status === 'rejected' || a.status === 6);
+    this.applicationsService.get().subscribe((response: ApplicationListResponse) => {
+      const applications: Application[] = response.items || [];
+      this.rejectedCandidates = applications.filter(
+        (a) => a.status === 'rejected' || a.status_id === 6
+      );
       this.applyFilters();
     });
   }

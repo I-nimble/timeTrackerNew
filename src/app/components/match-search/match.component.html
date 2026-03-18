@@ -21,11 +21,13 @@
         <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
       </ng-template>
     </button>
-    <button *ngIf="showInterviewButton"
-            mat-raised-button
-            color="primary"
-            (click)="onInterviewClick()"
-            [disabled]="interviewDisabled">
+    <button 
+      *ngIf="showInterviewButton"
+      mat-raised-button
+      color="primary"
+      (click)="onInterviewClick()"
+      [disabled]="interviewDisabled"
+    >
       Interview
     </button>
   </div>

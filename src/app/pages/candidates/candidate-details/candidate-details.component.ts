@@ -1,12 +1,12 @@
 import { Component, signal, WritableSignal, OnInit } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
-import { DiscProfile } from 'src/app/services/disc-profiles.service';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 import { Loader } from 'src/app/app.models';
 import { PositionsService } from 'src/app/services/positions.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CommonModule, DatePipe, UpperCasePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { LoaderComponent } from 'src/app/components/loader/loader.component';
 import { MatTableModule } from '@angular/material/table';
@@ -32,14 +32,11 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
   styleUrls: ['./candidate-details.component.scss'],
   imports: [
     CommonModule,
-    RouterLink,
     MaterialModule,
     MatTableModule,
     MatIconModule,
     MatCardModule,
     LoaderComponent,
-    DatePipe,
-    UpperCasePipe,
     FormsModule,
     ReactiveFormsModule,
     FormatNamePipe  
@@ -73,7 +70,7 @@ export class CandidateDetailsComponent implements OnInit {
   isCreateMode = false;
   maxFileSize: number =  1 * 1024 * 1024;
   rankingProfiles: any[] = [];
-  pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
+  pendingChanges: WritableSignal<{ key: string; field: string; value: any; link?: string }[]> = signal([]);
   certifications: any[] = [];
   originalCertifications: any[] = [];
   descriptionOptions = [
@@ -209,7 +206,7 @@ export class CandidateDetailsComponent implements OnInit {
           picture: candidate.picture || candidate.profile_pic_url || null,
           profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
           pending_updates: candidate.pending_updates || null,
-          resume_url: candidate.resume_url || null
+          resume_url: candidate.resume_url || candidate.resume || null
         };
         this.candidate.set(normalizedCandidate);
         this.originalDiscProfiles = normalizedCandidate.disc_profiles || [];
@@ -329,6 +326,8 @@ export class CandidateDetailsComponent implements OnInit {
       work_references: 'Work References',
       salary_range: 'Salary Range',
       resume: 'Resume',
+      resume_pending_file: 'Pending Resume',
+      introduction_video_pending_file: 'Pending Introduction Video',
       programming_languages: 'Programming Languages',
       certifications: 'Certifications'
     };
@@ -529,7 +528,7 @@ export class CandidateDetailsComponent implements OnInit {
                 picture: fresh.picture || fresh.profile_pic_url || null,
                 profile_pic_url: fresh.profile_pic_url || fresh.picture || null,
                 pending_updates: fresh.pending_updates || null,
-                resume_url: fresh.resume_url || null
+                resume_url: fresh.resume_url || fresh.resume || null
               };
               this.candidate.set(normalized);
               this.originalDiscProfiles = normalized.disc_profiles || [];
@@ -573,7 +572,7 @@ export class CandidateDetailsComponent implements OnInit {
     });
   }
 
-  private computePendingChanges() {
+  private async computePendingChanges() {
     const candidate = this.candidate();
     if (!candidate?.pending_updates) {
       this.pendingChanges.set([]);
@@ -589,12 +588,45 @@ export class CandidateDetailsComponent implements OnInit {
       this.pendingChanges.set([]);
       return;
     }
-    this.pendingChanges.set(
-      Object.keys(pending).map(key => ({
-        field: this.getFieldLabel(key),
-        value: this.getFieldValue(key, pending[key])
-      }))
+    const pendingRows = await Promise.all(
+      Object.keys(pending).map(async (key) => {
+        const rawValue = pending[key];
+        return {
+          key,
+          field: this.getFieldLabel(key),
+          value: this.getFieldValue(key, rawValue),
+          link: await this.resolvePendingFieldLink(key, rawValue, candidate),
+        };
+      })
     );
+
+    this.pendingChanges.set(pendingRows);
+  }
+
+  private async resolvePendingFieldLink(
+    key: string,
+    value: any,
+    candidate: any,
+  ): Promise<string | undefined> {
+    if (!value) return undefined;
+
+    if (key === 'resume_pending_file') {
+      const pendingResumeUrl = await this.applicationService.getResumeUrl(
+        String(value),
+        candidate?.id,
+      );
+      return pendingResumeUrl || undefined;
+    }
+
+    if (key === 'introduction_video_pending_file') {
+      const pendingVideoUrl = await this.applicationService.getApplicationAssetUrl(
+        'applications',
+        String(value),
+      );
+      return pendingVideoUrl || undefined;
+    }
+
+    return undefined;
   }
 
   save() {
@@ -803,9 +835,12 @@ export class CandidateDetailsComponent implements OnInit {
   approveChanges() {
     const candidateId = this.candidate()?.id;
     if (!candidateId) return;
+
     this.applicationService.approveApplicationUpdates(candidateId).subscribe({
       next: (res: any) => {
         this.snackBar.open('Pending changes approved!', 'Close');
+        this.resumeLink = '';
+        this.pendingChanges.set([]);
         this.loadCandidate(candidateId);
       },
       error: (err) => {
