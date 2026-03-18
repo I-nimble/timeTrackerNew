@@ -61,6 +61,8 @@ export class AppPublicTalentMatchComponent implements OnInit {
   pageSize = 5;
   totalRecords = 0;
   query = '';
+  sortBy: string | null = null;
+  sortOrder: 'asc' | 'desc' | null = null;
 
   constructor(private publicService: PublicService, private positionsService: PositionsService, private aiService: AIService) {}
 
@@ -71,11 +73,15 @@ export class AppPublicTalentMatchComponent implements OnInit {
 
   loadRecords(extraFilters: any = {}) {
     this.loading = true;
+    this.aiLoading = true;
+    const mergedFilters = { ...(this.filters || {}), ...(extraFilters || {}) };
     this.publicService.getRecords({
       page: this.page,
       pageSize: this.pageSize,
       keyword: this.query || undefined,
-      ...extraFilters
+      sortBy: this.sortBy || undefined,
+      sortOrder: this.sortOrder || undefined,
+      ...mergedFilters
     }).subscribe({
       next: (res: any) => {
         const mapped = res.data.map((c: any) => ({
@@ -84,12 +90,14 @@ export class AppPublicTalentMatchComponent implements OnInit {
           profile_pic_url: c.picture ? `${environment.upload}/profile-pictures/${c.picture}` : null
         }));
         this.loading = false;
+        this.aiLoading = false;
         this.allCandidates = mapped;
         this.dataSource.data = mapped;
         this.totalRecords = res.meta.total;
       },
       error: err => {
         this.loading = false;
+        this.aiLoading = false;
         console.error(err);
       }
     });
@@ -105,9 +113,12 @@ export class AppPublicTalentMatchComponent implements OnInit {
   }
 
   searchCandidates(keyword?: string) {
-    this.query = keyword || this.query;
+    if (keyword !== undefined) {
+      this.query = keyword;
+    }
     this.page = 1;
-    this.loadRecords();
+    this.aiLoading = true;
+    this.loadRecords(this.filters);
   }
 
   onManualSearch(text: string) {
@@ -118,8 +129,19 @@ export class AppPublicTalentMatchComponent implements OnInit {
     this.page = 1;
     this.filters.position_id = filters.position_id ?? undefined;
     this.filters.practiceArea = filters.practiceArea ?? undefined;
-    this.loadRecords(this.filters);
   }
+
+  onSortChange(event: any) {
+    if (!event.active || event.direction === '') {
+      this.sortBy = null;
+      this.sortOrder = null;
+    } else {
+      this.sortBy = event.active;
+      this.sortOrder = event.direction;
+    }
+    this.page = 1;
+    this.loadRecords(this.filters);
+  }  
 
   onPageChange(event: any) {
     this.page = event.pageIndex + 1;
