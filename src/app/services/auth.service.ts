@@ -50,7 +50,7 @@ export class AuthService {
   }
   async logout(redirect: boolean = true) {
     try { this.roleTourService.skipActiveTour(); } catch (e) {}
-›   localStorage.clear();
+    localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
