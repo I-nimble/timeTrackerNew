@@ -50,17 +50,7 @@ export class AuthService {
   }
   async logout(redirect: boolean = true) {
     try { this.roleTourService.skipActiveTour(); } catch (e) {}
-    const keysToRemove = [
-      'jwt',
-      'role',
-      'username',
-      'email',
-      'id',
-      'isOrphan',
-      'clientHasTeam',
-      THEME_STORAGE_KEY,
-    ];
-    keysToRemove.forEach((key) => localStorage.removeItem(key));
+›   localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
