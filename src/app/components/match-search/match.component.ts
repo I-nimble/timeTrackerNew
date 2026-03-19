@@ -20,15 +20,18 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 export class MatchComponent {
   @Input() aiEnabled: boolean = false;
   @Input() canSearch: boolean = false;
+  @Input() skipCooldown: boolean = false;
   @Input() placeholder: string = 'Search...';
   @Input() loading = false;
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
   @Input() showCustomSearch: boolean = true;
   @Input() hasKeywords: boolean = false;
+  @Input() searchDisabled: boolean = false;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
+  @Output() searchRequest = new EventEmitter<string>();
   @Output() interview = new EventEmitter<void>();
 
   @Input() query: string = '';
@@ -39,13 +42,19 @@ export class MatchComponent {
   }
 
   onAskAI() {
-  if ((!this.query && !this.canSearch && !this.hasKeywords) || this.cooldownActive) return;
-    this.loading = true;
-    this.askAI.emit(this.query);
-    this.cooldownActive = true;
-    setTimeout(() => {
-      this.cooldownActive = false;
-    }, 15000);
+    if ((!this.query && !this.canSearch && !this.hasKeywords) || (this.searchDisabled) || (this.cooldownActive && !this.skipCooldown)) return;
+    if (this.aiEnabled) {
+      this.loading = true;
+      this.askAI.emit(this.query);
+    } else {
+      this.searchRequest.emit(this.query);
+    }
+    if (!this.skipCooldown) {
+      this.cooldownActive = true;
+      setTimeout(() => {
+        this.cooldownActive = false;
+      }, 15000);
+    }
   }
 
   finishLoading() {

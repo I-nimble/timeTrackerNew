@@ -8,17 +8,18 @@
         matInput
         [placeholder]="placeholder"
         [(ngModel)]="query"
-        (ngModelChange)="onSearchChange()" />
+        (ngModelChange)="onSearchChange()"
+        [disabled]="!canSearch" />
     </mat-form-field>
   </div>
   <div class="d-flex justify-content-center gap-2">
-    <button 
-      *ngIf="aiEnabled"
-      mat-raised-button color="primary"
-      (click)="onAskAI()" 
-      [disabled]="loading || (!query && !canSearch && !hasKeywords) || cooldownActive"
-    >
-      Search
+    <button *ngIf="canSearch"
+            mat-raised-button color="primary"
+            (click)="onAskAI()" [disabled]="loading || searchDisabled || cooldownActive">
+      <ng-container *ngIf="!loading; else loadingTpl">Search</ng-container>
+      <ng-template #loadingTpl>
+        <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+      </ng-template>
     </button>
     <button 
       *ngIf="showInterviewButton"
