@@ -14,6 +14,7 @@ import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
 import { RoleTourService } from './services/role-tour.service';
 import { RoleTourStep } from './services/role-tour-steps';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
+import { ThemeService } from './services/theme.service';
 import { FingerprintService } from './services/fingerprint.service';
 
 @Component({
@@ -46,6 +47,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private tourEndSub: Subscription | null = null;
   private anchorLogSub: Subscription | null = null;
   private routeTourSub: Subscription | null = null;
+  private routeThemeSub: Subscription | null = null;
   private isRepositioning = false;
   private originalTourNext?: () => void;
   private kanbanAutoOpenInProgress = false;
@@ -66,6 +68,7 @@ export class AppComponent implements OnInit, OnDestroy {
     public tourService: TourService<RoleTourStep>,
     private router: Router,
     private ngZone: NgZone,
+    private themeService: ThemeService,
     private fingerprintService: FingerprintService,
   ) { }
 
@@ -75,8 +78,16 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.warn('Fingerprint generation failed', e);
     }
+    this.themeService.syncThemeWithRoute(this.router.url);
+    this.themeService.hydrateFromServerIfAuthenticated();
     this.rocketChatService.loadCredentials();
     this.rocketChatService.saveUserData();
+
+    this.routeThemeSub = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.themeService.syncThemeWithRoute((event as NavigationEnd).urlAfterRedirects);
+      });
 
     try {
       this.jitsiSub = this.rocketChatService.getActiveJitsiStream().subscribe((m) => {
@@ -127,6 +138,7 @@ export class AppComponent implements OnInit, OnDestroy {
     try { this.tourEndSub?.unsubscribe(); } catch (e) {}
     try { this.anchorLogSub?.unsubscribe(); } catch (e) {}
     try { this.routeTourSub?.unsubscribe(); } catch (e) {}
+    try { this.routeThemeSub?.unsubscribe(); } catch (e) {}
   }
 
   onJitsiClosed() {

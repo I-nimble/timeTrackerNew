@@ -41,12 +41,6 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       route: '/apps/talent-match',
     }), */
     withBase({
-      anchorId: 'tm-advanced',
-      title: 'Advanced filters',
-      content: 'Filter by skills, tools, background, and trainings.',
-      route: '/apps/talent-match',
-    }),
-    withBase({
       anchorId: 'tm-ai-box',
       title: 'AI-powered search',
       content: 'Describe the role and let AI rank the best candidates.',

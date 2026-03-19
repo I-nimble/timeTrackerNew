@@ -4,6 +4,7 @@ import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
 import { RocketChatService } from './rocket-chat.service';
+import { ThemePreference } from 'src/app/config';
 
 @Injectable({
   providedIn: 'root',
@@ -66,6 +67,17 @@ export class UsersService {
         console.error('Error fetching profile picture:', error);
         return of(null);
       })
+    );
+  }
+
+  getThemePreference(): Observable<ThemePreference> {
+    return this.http.get<ThemePreference>(`${this.API_URI}/theme/preference`);
+  }
+
+  updateThemePreference(theme_preference: ThemePreference): Observable<ThemePreference> {
+    return this.http.patch<ThemePreference>(
+      `${this.API_URI}/theme/preference`,
+      { theme_preference }
     );
   }
 
@@ -194,7 +206,15 @@ export class UsersService {
     return this.http.post(`${this.API_URI}/users/register/invited`, userData);
   }
 
-  getUploadUrl(type: string, file?: File, email?: string, applicationId?: number, isProfilePicture: boolean = false) {
+  getUploadUrl(
+    type: string,
+    file?: File,
+    email?: string,
+    applicationId?: number,
+    isProfilePicture: boolean = false,
+    isPendingReplacement: boolean = false,
+    mediaType?: 'resume' | 'video'
+  ) {
     return this.http.post<any>(
       `${this.API_URI}/generate_upload_url/${type}`,
       { 
@@ -202,7 +222,9 @@ export class UsersService {
         originalFileName: file?.name,
         email: email,
         applicationId: applicationId,
-        isProfilePicture: isProfilePicture
+        isProfilePicture: isProfilePicture,
+        isPendingReplacement: isPendingReplacement,
+        mediaType: mediaType
       }
     );
   }
@@ -211,11 +233,12 @@ export class UsersService {
     return this.http.post<{ videoURL: string }>(`${this.API_URI}/generate_upload_url/video/introduction/download`, { email });
   }
   
-  uploadIntroductionVideo(file: File, email: string, applicationId?: number) {
+  uploadIntroductionVideo(file: File, email: string, applicationId?: number, isPendingReplacement: boolean = false) {
     return this.http.post(`${this.API_URI}/generate_upload_url/video/introduction`, {
       email: email,
       applicationId: applicationId,
-      contentType: file.type
+      contentType: file.type,
+      isPendingReplacement: isPendingReplacement
     }).pipe(
       switchMap((res: any) => {
         const headers = new HttpHeaders({ 
@@ -224,9 +247,43 @@ export class UsersService {
         });
         return this.http.put(res.url, file, { headers }).pipe(
           switchMap(() => {
+            if (isPendingReplacement && applicationId) {
+              return this.http.put(
+                `${this.API_URI}/applications/video/pending/${applicationId}`,
+                { introduction_video: res.fileName || res.key.split('/').pop() }
+              );
+            }
+
             return this.getIntroductionVideo(email);
           })
         );
+      })
+    );
+  }
+
+  uploadApplicationResume(file: File, email: string, applicationId: number, isPendingReplacement: boolean = false) {
+    return this.getUploadUrl('resumes', file, undefined, applicationId, false, isPendingReplacement, 'resume').pipe(
+      switchMap((res: any) => {
+        const fileName = res.fileName || res.key.split('/').pop();
+        const headers = new HttpHeaders({
+          'Content-Type': file.type,
+          'X-Filename': fileName
+        });
+
+        return this.http.put(res.url, file, { headers }).pipe(
+          map(() => fileName)
+        );
+      }),
+      switchMap((fileName: string) => {
+        if (isPendingReplacement) {
+          return this.http.put(`${this.API_URI}/applications/resume/pending/${applicationId}`, {
+            resume: fileName
+          });
+        }
+
+        return this.http.put(`${this.API_URI}/applications/resume/${applicationId}`, {
+          resume: fileName
+        });
       })
     );
   }

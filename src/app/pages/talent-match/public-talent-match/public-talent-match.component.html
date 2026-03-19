@@ -21,10 +21,12 @@
             style="max-width: 600px"
             [aiEnabled]="false"
             [canSearch]="true"
+            [searchDisabled]="!filters.position_id"
+            [skipCooldown]="true"
             [showCustomSearch]="false"
             [query]="query"
             placeholder="Search candidates..."
-            (searchChange)="onManualSearch($event)">
+            (searchRequest)="onManualSearch($event)">
           </app-match>
         </div>
         <div class="m-t-16">
@@ -34,7 +36,10 @@
             [totalRecords]="totalRecords"
             [pageSize]="pageSize"
             [loading]="loading"
-            (pageChange)="onPageChange($event)">
+            (pageChange)="onPageChange($event)"
+            [sortBy]="sortBy"
+            [sortOrder]="sortOrder"
+            (sortChange)="onSortChange($event)">
           </app-talent-match-table>
         </div>
       </mat-card>

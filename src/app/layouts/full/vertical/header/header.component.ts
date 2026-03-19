@@ -30,6 +30,8 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { RoleTourService } from 'src/app/services/role-tour.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { ThemeService } from 'src/app/services/theme.service';
+import { ThemePreference } from 'src/app/config';
 
 interface notifications {
   id: number;
@@ -161,6 +163,7 @@ export class HeaderComponent implements OnInit {
     private usersService: UsersService,
     private permissionService: PermissionService,
     private roleTourService: RoleTourService,
+    private themeService: ThemeService,
   ) {
     translate.setDefaultLang('en');
   }
@@ -341,8 +344,8 @@ export class HeaderComponent implements OnInit {
 
   getApplications() {
     this.applicationsService.get().subscribe({
-      next: (apps) => {
-        this.applications = apps;
+      next: (response) => {
+        this.applications = response.items;
         const role = localStorage.getItem('role');
         
         if(role === '3' && this.applications.find((app: any) => app.status_id === 1)) {
@@ -375,8 +378,9 @@ export class HeaderComponent implements OnInit {
     this.selectedLanguage = lang;
   }
 
-  setlightDark(theme: string) {
-    this.options.theme = theme;
+  setlightDark(theme: ThemePreference) {
+    this.themeService.setTheme(theme, true);
+    this.options = this.settings.getOptions();
     this.emitOptions();
   }
 
