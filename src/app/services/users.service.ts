@@ -4,6 +4,7 @@ import { environment } from 'src/environments/environment';
 import { PossibleMember } from '../models/Client';
 import { BehaviorSubject, catchError, Observable, of, switchMap, Subject, map, forkJoin } from 'rxjs';
 import { RocketChatService } from './rocket-chat.service';
+import { ThemePreference } from 'src/app/config';
 
 @Injectable({
   providedIn: 'root',
@@ -66,6 +67,17 @@ export class UsersService {
         console.error('Error fetching profile picture:', error);
         return of(null);
       })
+    );
+  }
+
+  getThemePreference(): Observable<ThemePreference> {
+    return this.http.get<ThemePreference>(`${this.API_URI}/theme/preference`);
+  }
+
+  updateThemePreference(theme_preference: ThemePreference): Observable<ThemePreference> {
+    return this.http.patch<ThemePreference>(
+      `${this.API_URI}/theme/preference`,
+      { theme_preference }
     );
   }
 

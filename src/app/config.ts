@@ -1,6 +1,8 @@
+export type ThemePreference = 'light' | 'dark';
+
 export interface AppSettings {
   dir: 'ltr' | 'rtl';
-  theme: string;
+  theme: ThemePreference;
   sidenavOpened: boolean;
   sidenavCollapsed: boolean;
   boxed: boolean;
