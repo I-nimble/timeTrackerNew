@@ -7,6 +7,7 @@ import { AppPublicTalentMatchComponent } from './pages/talent-match/public-talen
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { UserTypeGuardService } from './services/guards/user-type-guard.service';
+import { externalRedirectGuard } from './services/guards/external-redirect-guard.service';
 
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
@@ -105,21 +106,10 @@ export const routes: Routes = [
           ),
         canActivate: [notAuthGuard],
       },
-      // {
-      //   path: 'landingpage',
-      //   loadChildren: () =>
-      //     import('./pages/theme-pages/landingpage/landingpage.routes').then(
-      //       (m) => m.LandingPageRoutes
-      //     ),
-      //   canActivate: [notAuthGuard], 
-      // },
       {
         path: 'landingpage',
-        loadChildren: () =>
-          import('./pages/theme-pages/front.routes').then(
-            (m) => m.HomePageRoutes
-          ),
-        canActivate: [notAuthGuard],
+        canActivate: [notAuthGuard, externalRedirectGuard],
+        component: BlankComponent,
       },
       {
         path: 'discovery',
