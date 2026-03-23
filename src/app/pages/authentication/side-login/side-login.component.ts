@@ -9,7 +9,6 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { environment } from 'src/environments/environment';
 import {AuthService} from '../../../services/auth.service';
 import { LocationService } from 'src/app/services/location.service';
@@ -39,10 +38,9 @@ export function jwtOptionsFactory() {
 @Component({
   selector: 'app-side-login',
   standalone: true,
-  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, BrandingComponent],
+  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule],
   providers: [
     AuthService,
-    WebSocketService,
     NotificationsService,
     EntriesService,
     SignupDataService,
@@ -145,7 +143,7 @@ export class AppSideLoginComponent {
             this.locationService.forceUpdate();
           }
           this.rocketChatService.initializeRocketChat(chatCredentials);
-          this.socketService.socket.emit('client:joinRoom', jwt);
+          this.socketService.joinAuthenticatedRoom(jwt);
 
           this.authService.setUserType(role);
           this.authService.checkTokenExpiration();
