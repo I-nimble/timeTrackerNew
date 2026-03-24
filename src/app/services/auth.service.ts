@@ -14,6 +14,8 @@ import { from } from 'rxjs';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { RoleTourService } from './role-tour.service';
 import { filter, take } from 'rxjs/operators';
+import { WebSocketService } from './socket/web-socket.service';
+import { RocketChatService } from './rocket-chat.service';
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +36,9 @@ export class AuthService {
     private routes: Router,
     private notificationsService: NotificationsService,
     private employeesService: EmployeesService,
-    private roleTourService: RoleTourService
+    private roleTourService: RoleTourService,
+    private webSocketService: WebSocketService,
+    private rocketChatService: RocketChatService
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -49,6 +53,8 @@ export class AuthService {
   }
   async logout(redirect: boolean = true) {
     try { this.roleTourService.skipActiveTour(); } catch (e) {}
+    try { this.webSocketService.disconnectAndPauseReconnect(); } catch (e) {}
+    try { await this.rocketChatService.logout(); } catch (e) {}
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();

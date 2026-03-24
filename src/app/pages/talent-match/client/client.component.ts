@@ -14,7 +14,6 @@ import { PositionsService } from 'src/app/services/positions.service';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NgModel } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { InterviewsService } from 'src/app/services/interviews.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
@@ -90,7 +89,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
-  interviews: any[] = [];
   assetsPath: string = 'assets/images/default-user-profile-pic.png';
   aiLoading = false;
   aiAnswer: string = '';
@@ -178,7 +176,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
-    private interviewsService: InterviewsService,
     private aiService: AIService,
     private router: Router,
     private matchScoresService: ApplicationMatchScoresService,
@@ -189,7 +186,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getApplications();
     this.getPositions();
     this.getCompany();
-    this.getInterviews();
     this.getPositionCategories();
   }
 
@@ -242,7 +238,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
             }
             return null;
           })
-          .filter((c): c is any => c !== undefined);
+          .filter((c): c is any => c != null);
 
         this.dataSource.data = orderedCandidates;
 
@@ -319,71 +315,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.hasSearchResults = this.dataSource.data.length > 0;
   }
 
-  getInterviewDateTime(applicationId: number) {
-    const interview = this.interviews.find(
-      (interview) => interview.application_id === applicationId
-    );
-    if (interview) {
-      return interview.date_time;
-    }
-    return null;
-  }
-
-  getInterviews() {
-    this.interviewsService.get().subscribe({
-      next: (interviews: any) => {
-        this.interviews = interviews;
-      },
-      error: (err: any) => {
-        console.error('Error fetching interviews:', err);
-      },
-    });
-  }
-
   getCompany() {
     this.companiesService.getByOwner().subscribe((company: any) => {
       this.companyId = company.company.id;
-    });
-  }
-
-  openDialog(action: string, row?: any): void {
-    if (row && !this.selection.isSelected(row)) {
-      this.selection.toggle(row);
-    }
-    let interview = null;
-    if (action === 'Reeschedule' && row) {
-      interview = this.interviews.find(
-        (interview) => interview.application_id === row.id
-      );
-    }
-    const dialogRef = this.dialog.open(AppInterviewDialogContentComponent, {
-      data: {
-        action,
-        date_time: interview?.date_time || null,
-        interviewId: interview?.id || null,
-        selected: this.selection.selected,
-        companyId: this.companyId,
-      },
-      autoFocus: false,
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      this.getInterviews();
-      this.selection.clear();
-    });
-  }
-
-  cancelInterview(applicationId: number) {
-    const interview = this.interviews.find(
-      (interview) => interview.application_id === applicationId
-    );
-    this.interviewsService.cancel(interview.id).subscribe({
-      next: (response: any) => {
-        this.getInterviews();
-      },
-      error: (err: any) => {
-        console.error('Error cancelling interview:', err);
-      },
     });
   }
 
@@ -665,12 +599,15 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }`;
   }
 
-  onRowClick(row: any) {
-    this.expandedElement = this.expandedElement === row ? null : row;
-    if (!this.getInterviewDateTime(row.id)) {
-      this.selection.toggle(row);
-      this.onRowSelectionChange();
+  onRowClick(row: any, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest('button, a, mat-checkbox, [mat-menu-item], .mat-mdc-menu-trigger')) {
+      return;
     }
+
+    this.expandedElement = this.expandedElement === row ? null : row;
+    this.selection.toggle(row);
+    this.onRowSelectionChange();
   }
 
   goToCandidate(id: number, event: MouseEvent) {
@@ -814,115 +751,5 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   hasDescription(element: any): boolean {
     return !!element?.description && element.description.trim() !== '';
-  }
-}
-
-// Interview modal component
-@Component({
-  selector: 'app-dialog-content',
-  standalone: true,
-  imports: [
-    MaterialModule,
-    FormsModule,
-    ReactiveFormsModule,
-    CommonModule,
-    TablerIconsModule,
-  ],
-  templateUrl: 'interview-dialog-content.html',
-})
-export class AppInterviewDialogContentComponent {
-  local_data: any;
-  dateTime: Date | null = null;
-  interviewScheduled = false;
-  availableDaysFilter = (d: Date | null): boolean => {
-    if (!d) return false;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const currentMonday = new Date(today);
-    currentMonday.setDate(today.getDate() - today.getDay() + 1);
-
-    const nextMonday = new Date(currentMonday);
-    nextMonday.setDate(currentMonday.getDate() + 7);
-
-    const date = new Date(d);
-    date.setHours(0, 0, 0, 0);
-
-    // Only allow Wednesday and Thursday of any week starting from next week
-    const day = date.getDay();
-    const isWedOrThu = day === 3 || day === 4;
-    const isFromNextWeekOnward = date >= nextMonday;
-
-    return isWedOrThu && isFromNextWeekOnward;
-  };
-
-  constructor(
-    public dialog: MatDialog,
-    public dialogRef: MatDialogRef<AppInterviewDialogContentComponent>,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder,
-    private interviewsService: InterviewsService,
-    private applicationsService: ApplicationsService,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {
-    this.local_data = data;
-    const m = moment(this.local_data.date_time).local();
-    if (this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
-      this.dateTime = m.toDate();
-    }
-  }
-
-  onScheduleInterview() {
-    if(!this.dateTime) {
-      this.openSnackBar('Please select a date and time', 'Close');
-      return;
-    }
-
-    const applicants = this.local_data.selected;
-    const company_id = this.data.companyId;
-
-    const data = {
-      date_time: this.dateTime,
-      applicants,
-      company_id,
-    };
-    if (this.local_data.action === 'Schedule') {
-      this.interviewsService.post(data).subscribe({
-        next: () => {
-          this.interviewScheduled = true;
-        },
-        error: (err: any) => {
-          console.error('Error scheduling interview:', err);
-          this.openSnackBar('Error scheduling interview', 'Close');
-          this.dialogRef.close({ event: 'Cancel' });
-        },
-      });
-    } else if (this.local_data.action === 'Reeschedule') {
-      this.interviewsService
-        .put(data, this.local_data.interviewId)
-        .subscribe({
-          next: (response: any) => {
-            this.interviewScheduled = true;
-          },
-          error: (err: any) => {
-            console.error('Error reescheduling interview:', err);
-            this.openSnackBar('Error reescheduling interview', 'Close');
-            this.dialogRef.close({ event: 'Cancel' });
-          },
-        });
-    }
-  }
-
-  openSnackBar(message: string, action: string) {
-    this.snackBar.open(message, action, {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-    });
-  }
-
-  closeDialog(): void {
-    this.dialogRef.close({ event: 'Cancel' });
   }
 }

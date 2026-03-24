@@ -12,7 +12,6 @@ import {
 } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { environment } from 'src/environments/environment';
 import { AuthService } from '../../../services/auth.service';
 import { Login, SignUp } from 'src/app/models/Auth';
@@ -43,14 +42,12 @@ import { RocketChatService } from 'src/app/services/rocket-chat.service';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    BrandingComponent,
     NgIf,
     RouterLink,
     TablerIconsModule
   ],
   providers: [
     AuthService,
-    WebSocketService
   ],
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
@@ -351,9 +348,9 @@ export class AppSideRegisterComponent {
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
-                this.rocketChatService.initializeRocketChat(chatCredentials);
-                this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
+                this.rocketChatService.initializeRocketChat(chatCredentials);
+                this.socketService.joinAuthenticatedRoom(jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(String(role));
                 this.notificationsService.loadNotifications();
@@ -413,9 +410,9 @@ export class AppSideRegisterComponent {
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
-                this.rocketChatService.loginWithCredentials(chatCredentials);
-                this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
+                this.socketService.joinAuthenticatedRoom(jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();
@@ -472,9 +469,9 @@ export class AppSideRegisterComponent {
                 localStorage.setItem('username', name + ' ' + lastName);
                 localStorage.setItem('email', email);
                 localStorage.setItem('isOrphan', isOrphan);
-                this.rocketChatService.loginWithCredentials(chatCredentials);
-                this.socketService.socket.emit('client:joinRoom', jwt);
                 localStorage.setItem('jwt', jwt);
+                this.rocketChatService.loginWithCredentials(chatCredentials);
+                this.socketService.joinAuthenticatedRoom(jwt);
                 this.authService.setUserType(role);
                 this.authService.userTypeRouting(role);
                 this.notificationsService.loadNotifications();

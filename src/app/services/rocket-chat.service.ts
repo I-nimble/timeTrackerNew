@@ -80,6 +80,8 @@ export class RocketChatService {
   isChatAvailable: boolean = false;
   callsAvailable: boolean = false;
   private connectionInProgress = false;
+  private reconnectAttempts = 0;
+  private readonly maxReconnectAttempts = 10;
 
   constructor(private http: HttpClient, private webSocketService: WebSocketService, private snackBar: MatSnackBar, private platformPermissionsService: PlatformPermissionsService) {
     this.loadCredentials();
@@ -434,6 +436,7 @@ export class RocketChatService {
         this.socket.onopen = () => {
             clearTimeout(connectionTimeout);
             this.connectionInProgress = false;
+          this.reconnectAttempts = 0;
             
             this.sendWebSocketMessage({
                 msg: 'connect',
@@ -476,7 +479,19 @@ export class RocketChatService {
             this.connectionInProgress = false;
             this.connectionSubject.next(false);
 
+            const authLikeCloseCode = event.code === 1008 || event.code === 4001 || event.code === 4003;
+            if (authLikeCloseCode) {
+              console.warn('Rocket.Chat websocket auth-related close. Reconnect paused until re-authentication.', event.code);
+              return;
+            }
+
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+              console.warn('Rocket.Chat websocket reached max reconnect attempts.');
+              return;
+            }
+
             if (this.credentials && event.code !== 1000) {
+              this.reconnectAttempts++;
               setTimeout(() => {
                 this.connectWebSocket().catch(err => {
                   console.error('Reconnection failed:', err);
