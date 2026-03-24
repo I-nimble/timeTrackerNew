@@ -20,8 +20,7 @@ export class WebSocketService {
   
   API_URI = environment.socket;
   private sendQueue: Array<{ event: string; data: any }> = [];
-  private reconnectionAttempts = 0;
-  private readonly maxReconnectionAttempts = 10;
+  private pausedByAuthError = false;
 
   constructor() {
     this.initializeSocket();
@@ -37,10 +36,7 @@ export class WebSocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       randomizationFactor: 0.5,
-      auth: {
-        jwt: localStorage.getItem('jwt'),
-        userId: localStorage.getItem('email')
-      },
+      auth: this.getAuthPayload(),
       extraHeaders: {
         'X-Requested-With': 'XMLHttpRequest'
       }
@@ -51,7 +47,7 @@ export class WebSocketService {
 
   private setupEventListeners() {
     this.socket.on('connect', () => {
-      this.reconnectionAttempts = 0;
+      this.pausedByAuthError = false;
       this.flushQueue();
       try {
         const jwt = localStorage.getItem('jwt');
@@ -62,8 +58,20 @@ export class WebSocketService {
     });
 
     this.socket.on('connect_error', (err) => {
+      const message = String(err?.message ?? '').toLowerCase();
+      const isAuthError =
+        message.includes('jwt expired') ||
+        message.includes('unauthorized') ||
+        message.includes('invalid token') ||
+        message.includes('authentication');
+
+      if (isAuthError) {
+        this.pauseReconnectUntilReauthenticated();
+        console.warn('WebSocket auth error. Reconnect paused until token is refreshed.');
+        return;
+      }
+
       console.error('WebSocket connect_error:', err?.message ?? err);
-      this.tryReconnect();
     });
 
     this.socket.on('server:notificationsUpdated', () => {
@@ -121,9 +129,6 @@ export class WebSocketService {
     });
     this.socket.on('disconnect', (reason) => {
       console.warn('WebSocket disconnected:', reason);
-      if (reason !== 'io client disconnect') {
-        this.tryReconnect();
-      }
     });
 
     this.socket.on('server:closedEntry', (data?: any) => {
@@ -223,13 +228,39 @@ export class WebSocketService {
     return this.socket && this.socket.connected;
   }
 
+  joinAuthenticatedRoom(jwt?: string) {
+    try {
+      const token = jwt || localStorage.getItem('jwt');
+      if (!token) return;
+
+      this.pausedByAuthError = false;
+      this.socket.io.opts.reconnection = true;
+      this.refreshAuthFromStorage();
+
+      if (!this.socket.connected) {
+        this.socket.connect();
+      }
+
+      this.safeEmit('client:joinRoom', token);
+    } catch (err) {
+      console.error('Failed to join authenticated room', err);
+    }
+  }
+
+  disconnectAndPauseReconnect() {
+    this.pauseReconnectUntilReauthenticated();
+  }
+
   private safeEmit(event: string, data: any) {
     try {
       if (this.socket && this.socket.connected) {
         this.socket.emit(event, data);
       } else {
         this.sendQueue.push({ event, data });
-        this.tryReconnect();
+        if (!this.pausedByAuthError) {
+          this.refreshAuthFromStorage();
+          this.socket.connect();
+        }
       }
     } catch (err) {
       console.error('safeEmit error', err, event, data);
@@ -249,21 +280,22 @@ export class WebSocketService {
     }
   }
 
-  private tryReconnect() {
+  private getAuthPayload() {
+    return {
+      jwt: localStorage.getItem('jwt'),
+      userId: localStorage.getItem('email')
+    };
+  }
+
+  private refreshAuthFromStorage() {
     if (!this.socket) return;
-    if (this.socket.connected) return;
-    if (this.reconnectionAttempts >= this.maxReconnectionAttempts) return;
-    const delay = Math.min(5000, 1000 * Math.pow(2, this.reconnectionAttempts));
-    this.reconnectionAttempts++;
-    setTimeout(() => {
-      try {
-        if (this.socket && !this.socket.connected) {
-          console.log('Attempting WebSocket reconnect, attempt', this.reconnectionAttempts);
-          this.socket.connect();
-        }
-      } catch (err) {
-        console.error('tryReconnect error', err);
-      }
-    }, delay);
+    this.socket.auth = this.getAuthPayload();
+  }
+
+  private pauseReconnectUntilReauthenticated() {
+    if (!this.socket) return;
+    this.pausedByAuthError = true;
+    this.socket.io.opts.reconnection = false;
+    this.socket.disconnect();
   }
 }
