@@ -1,6 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { Note } from './note';
-import { NoteService } from 'src/app/services/apps/notes/note.service';
+import { Note } from 'src/app/models/Note.model';
 import { CommonModule } from '@angular/common';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -29,6 +28,8 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 export class AppNotesComponent implements OnInit {
   sidePanelOpened = signal(true);
 
+  allNotes = signal<Note[]>([]);
+
   notes = signal<Note[]>([]);
 
   selectedNote = signal<Note | null>(null);
@@ -54,9 +55,8 @@ export class AppNotesComponent implements OnInit {
   changedTitle: string = '';
 
   constructor(
-    public noteService: NoteService, 
     private snackBar: MatSnackBar, 
-    private usersService: UsersService, 
+    private usersService: UsersService,
     private notesService: NotesService
   ) { }
 
@@ -74,9 +74,9 @@ export class AppNotesComponent implements OnInit {
   }
 
   filter(v: string): Note[] {
-    return this.noteService
-      .getNotes()
-      .filter((x) => x.content.toLowerCase().includes(v.toLowerCase()));
+    return this.allNotes().filter((x) =>
+      (x.content ?? '').toLowerCase().includes(v.toLowerCase())
+    );
   }
 
   isOver(): boolean {
@@ -85,10 +85,10 @@ export class AppNotesComponent implements OnInit {
 
   onSelect(note: Note): void {
     this.selectedNote.set(note);
-    this.clrName.set(note.color);
-    this.currentNoteTitle.set(note.content);
-    this.selectedColor.set(note.color);
-    this.changedTitle = note.content;
+    this.clrName.set(note.color ?? 'warning');
+    this.currentNoteTitle.set(note.content ?? '');
+    this.selectedColor.set(note.color ?? null);
+    this.changedTitle = note.content ?? '';
   }
 
   onSelectColor(colorName: string): void {
@@ -158,7 +158,7 @@ export class AppNotesComponent implements OnInit {
         .updateNote(currentNote.id, {
           date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
           content: newTitle,
-          color: currentNote.color,
+          color: currentNote.color ?? 'warning',
         })
         .subscribe({
           next: () => {
@@ -191,16 +191,27 @@ export class AppNotesComponent implements OnInit {
   loadNotes(userId: number): void {
     this.notesService.getNotesByUserId(userId).subscribe({
       next: (notes: Note[]) => {
+        this.allNotes.set(notes);
         this.notes.set(notes);
-        if (!this.selectedNote()) {
+
+        const selectedNoteId = this.selectedNote()?.id;
+        if (selectedNoteId != null) {
+          this.selectedNote.set(notes.find((note) => note.id === selectedNoteId) ?? null);
+        }
+
+        if (!this.selectedNote() && notes.length > 0) {
           this.selectedNote.set(this.notes()[0]);
           const currentNote = this.selectedNote();
           if (currentNote) {
-            this.selectedColor.set(currentNote.color);
-            this.clrName.set(currentNote.color);
-            this.currentNoteTitle.set(currentNote.content);
-            if (this.changedTitle == '') { this.changedTitle = currentNote.content; }
+            this.selectedColor.set(currentNote.color ?? null);
+            this.clrName.set(currentNote.color ?? 'warning');
+            this.currentNoteTitle.set(currentNote.content ?? '');
+            if (this.changedTitle == '') { this.changedTitle = currentNote.content ?? ''; }
           }
+        } else if (!this.selectedNote()) {
+          this.selectedColor.set(null);
+          this.currentNoteTitle.set('');
+          this.changedTitle = '';
         }
       },
       error: (error) => {
