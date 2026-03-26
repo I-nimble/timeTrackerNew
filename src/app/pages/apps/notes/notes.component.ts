@@ -341,16 +341,7 @@ export class AppNotesComponent implements OnInit, OnDestroy {
           this.changedTitle = currentNote.content ?? '';
         }
 
-        if (!this.selectedNote() && notes.length > 0) {
-          this.selectedNote.set(this.notes()[0]);
-          const firstNote = this.selectedNote();
-          if (firstNote) {
-            this.selectedColor.set(firstNote.color ?? null);
-            this.clrName.set(firstNote.color ?? 'warning');
-            this.currentNoteTitle.set(firstNote.content ?? '');
-            if (this.changedTitle == '') { this.changedTitle = firstNote.content ?? ''; }
-          }
-        } else if (!this.selectedNote()) {
+        if (!this.selectedNote()) {
           this.selectedColor.set(null);
           this.currentNoteTitle.set('');
           this.changedTitle = '';
