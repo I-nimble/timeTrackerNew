@@ -391,35 +391,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
         accessor: (row: any) => this.getTrainingNames(row.certifications),
       },
       {
-        id: 'status',
-        header: 'Status',
-        sortable: true,
-        sortKey: 'status',
-        accessor: 'status',
-        renderer: {
-          type: 'status-pill',
-          valueAccessor: 'status',
-          palettes: {
-            pending: { backgroundColor: 'var(--mat-sys-error)' },
-            'talent match': { backgroundColor: 'rgb(253, 253, 150)', color: 'black' },
-            hired: { backgroundColor: 'var(--mat-sys-primary)' },
-            reviewing: { backgroundColor: 'rgb(255, 174, 105)' },
-          },
-          defaultPalette: { backgroundColor: 'rgb(72, 72, 72)' },
-        },
-      },
-      {
-        id: 'interviewingOn',
-        header: 'Interviewing on',
-        accessor: (row: any) => this.getInterviewDateTime(row.id) || 'No scheduled',
-        renderer: {
-          type: 'date',
-          valueAccessor: (row) => this.getInterviewDateTime(row.id),
-          format: 'short',
-          fallbackText: 'No scheduled',
-        },
-      },
-      {
         id: 'actions',
         header: 'Actions',
         renderer: {
