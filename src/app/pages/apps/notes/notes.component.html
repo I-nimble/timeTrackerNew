@@ -29,7 +29,7 @@
       </div>
       <ng-scrollbar
         class="position-relative"
-        style="height: calc(100vh - 400px)"
+        style="height: calc(100vh - 205px)"
         tourAnchor="notes-list"
       >
         <h4 class=" f-s-16 f-w-600 p-x-16 m-t-16">All Notes</h4>
@@ -38,7 +38,7 @@
           @if(notes().length > 0) { @for(note of notes(); track note.date_time) {
           <mat-list-item
             class="notes-item rounded m-b-8 bg-light-{{ note.color }}"
-            (click)="onSelect(note)"
+            (click)="onSelect(note); isOver() && noteslist.close()"
             [class.selected]="note === selectedNote()"
           >
             <span
@@ -75,14 +75,14 @@
       <i-tabler name="menu-2" class="icon-20"></i-tabler>
     </button>
     <div class="d-flex align-items-center gap-2">
-      <button mat-flat-button (click)="addNoteClick()" tourAnchor="add-note">Add Note</button>
-      @if(selectedNote()){
-        <button mat-flat-button color="primary" (click)="updateNoteTitle(changedTitle)">Save Note</button>
-      }
+      <button mat-flat-button matFab extended (click)="addNoteClick()" tourAnchor="add-note">
+        <mat-icon class="icon-24" class="d-flex align-center">add</mat-icon>
+        Add Note
+      </button>
     </div>
   </div>
 </mat-toolbar>
-    <ng-scrollbar class="position-relative" style="height: calc(100vh - 370px)">
+    <ng-scrollbar class="position-relative" style="height: calc(100vh - 205px)">
       <mat-card-content>
         @if(selectedNote()){
         <div tourAnchor="edit-note">

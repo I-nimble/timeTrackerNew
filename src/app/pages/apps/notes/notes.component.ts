@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { Note } from 'src/app/models/Note.model';
 import { CommonModule } from '@angular/common';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -25,7 +25,7 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     TourMatMenuModule,
   ]
 })
-export class AppNotesComponent implements OnInit {
+export class AppNotesComponent implements OnInit, OnDestroy {
   sidePanelOpened = signal(true);
 
   allNotes = signal<Note[]>([]);
@@ -53,6 +53,9 @@ export class AppNotesComponent implements OnInit {
 
   userInfo: any;
   changedTitle: string = '';
+  private autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly autoSaveDelayMs = 800;
+  private lastSavedContentByNoteId = new Map<number, string>();
 
   constructor(
     private snackBar: MatSnackBar, 
@@ -64,13 +67,18 @@ export class AppNotesComponent implements OnInit {
     this.getUserInfo();
   }
 
+  ngOnDestroy(): void {
+    this.clearAutoSaveTimeout();
+  }
+
   get currentNote(): Note | null {
     return this.selectedNote();
   }
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.notes.set(this.filter(filterValue));
+    this.searchText.set(filterValue);
+    this.refreshVisibleNotes();
   }
 
   filter(v: string): Note[] {
@@ -92,22 +100,31 @@ export class AppNotesComponent implements OnInit {
   }
 
   onSelectColor(colorName: string): void {
-    this.clrName.set(colorName);
-    this.selectedColor.set(colorName);
-    if (this.selectedNote()) {
-      this.selectedNote()!.color = colorName;
-    }
     const currentNote = this.selectedNote();
     if (currentNote) {
+      const contentToSave = this.changedTitle ?? currentNote.content ?? '';
+      const currentColor = currentNote.color ?? 'warning';
+
+      if (currentColor === colorName && this.isSameAsLastSaved(currentNote.id, contentToSave)) {
+        return;
+      }
+
+      this.clrName.set(colorName);
+      this.selectedColor.set(colorName);
+
       this.notesService
         .updateNote(currentNote.id, {
           date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
-          content: this.changedTitle,
+          content: contentToSave,
           color: colorName,
         })
         .subscribe({
           next: () => {
-            this.loadNotes(this.userInfo.id);
+            this.updateLocalNote(currentNote.id, {
+              color: colorName,
+              content: contentToSave,
+            });
+            this.lastSavedContentByNoteId.set(currentNote.id, contentToSave);
           },
           error: () => {
             this.openSnackBar('Error updating note color', 'Close', 'delete');
@@ -120,11 +137,7 @@ export class AppNotesComponent implements OnInit {
   removenote(note: Note): void {
     this.notesService.deleteNote(note.id).subscribe({
       next: () => {
-        this.loadNotes(this.userInfo.id);
-        if (this.selectedNote() && this.selectedNote()!.id === note.id) {
-          this.selectedNote.set(null);
-          this.currentNoteTitle.set('');
-        }
+        this.removeLocalNote(note.id);
         this.openSnackBar('Note deleted successfully!');
       },
       error: () => {
@@ -141,8 +154,9 @@ export class AppNotesComponent implements OnInit {
       color: this.clrName(),
     };
     this.notesService.createNote(newNote).subscribe({
-      next: () => {
-        this.loadNotes(this.userInfo.id);
+      next: (createdNote: Note) => {
+        this.addLocalNote(createdNote);
+        this.onSelect(createdNote);
         this.openSnackBar('Note added successfully!');
       },
       error: () => {
@@ -153,16 +167,23 @@ export class AppNotesComponent implements OnInit {
 
   updateNoteTitle(newTitle: string): void {
     const currentNote = this.selectedNote();
+    const contentToSave = newTitle ?? '';
+
     if (currentNote) {
+      if (this.isSameAsLastSaved(currentNote.id, contentToSave)) {
+        return;
+      }
+
       this.notesService
         .updateNote(currentNote.id, {
           date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
-          content: newTitle,
+          content: contentToSave,
           color: currentNote.color ?? 'warning',
         })
         .subscribe({
           next: () => {
-            this.loadNotes(this.userInfo.id);
+            this.setLocalNoteContent(currentNote.id, contentToSave);
+            this.lastSavedContentByNoteId.set(currentNote.id, contentToSave);
           },
           error: () => {
             this.openSnackBar('Error updating note', 'Close', 'delete');
@@ -172,7 +193,110 @@ export class AppNotesComponent implements OnInit {
   }
 
   changeNoteTitle(newTitle: string): void {
-    this.changedTitle = newTitle;
+    this.changedTitle = newTitle ?? '';
+    this.scheduleAutoSave();
+  }
+
+  private scheduleAutoSave(): void {
+    const currentNote = this.selectedNote();
+    if (!currentNote) {
+      return;
+    }
+
+    this.clearAutoSaveTimeout();
+    this.autoSaveTimeout = setTimeout(() => {
+      this.updateNoteTitle(this.changedTitle);
+    }, this.autoSaveDelayMs);
+  }
+
+  private clearAutoSaveTimeout(): void {
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+      this.autoSaveTimeout = null;
+    }
+  }
+
+  private isSameAsLastSaved(noteId: number, content: string): boolean {
+    const currentSelected = this.selectedNote();
+    const currentContent = currentSelected?.id === noteId ? currentSelected.content ?? '' : '';
+    const lastSavedContent = this.lastSavedContentByNoteId.get(noteId) ?? currentContent;
+
+    return content === currentContent || content === lastSavedContent;
+  }
+
+  private setLocalNoteContent(noteId: number, content: string): void {
+    this.updateLocalNote(noteId, { content });
+
+    const currentSelected = this.selectedNote();
+    if (currentSelected?.id === noteId) {
+      this.currentNoteTitle.set(content);
+    }
+  }
+
+  private refreshVisibleNotes(): void {
+    const query = (this.searchText() ?? '').trim();
+    this.notes.set(query ? this.filter(query) : [...this.allNotes()]);
+  }
+
+  private addLocalNote(note: Note): void {
+    const normalizedNote: Note = {
+      ...note,
+      content: note.content ?? '',
+      color: note.color ?? 'warning',
+    };
+
+    this.allNotes.set([normalizedNote, ...this.allNotes()]);
+    this.lastSavedContentByNoteId.set(normalizedNote.id, normalizedNote.content ?? '');
+    this.refreshVisibleNotes();
+  }
+
+  private removeLocalNote(noteId: number): void {
+    this.allNotes.set(this.allNotes().filter((note) => note.id !== noteId));
+    this.lastSavedContentByNoteId.delete(noteId);
+    this.refreshVisibleNotes();
+
+    const currentSelected = this.selectedNote();
+    if (currentSelected?.id !== noteId) {
+      return;
+    }
+
+    const fallback = this.allNotes()[0] ?? null;
+    this.selectedNote.set(fallback);
+
+    if (fallback) {
+      this.currentNoteTitle.set(fallback.content ?? '');
+      this.changedTitle = fallback.content ?? '';
+      this.selectedColor.set(fallback.color ?? null);
+      this.clrName.set(fallback.color ?? 'warning');
+      return;
+    }
+
+    this.currentNoteTitle.set('');
+    this.changedTitle = '';
+    this.selectedColor.set(null);
+  }
+
+  private updateLocalNote(noteId: number, changes: Partial<Note>): void {
+    this.allNotes.set(
+      this.allNotes().map((note) =>
+        note.id === noteId ? { ...note, ...changes } : note
+      )
+    );
+    this.refreshVisibleNotes();
+
+    const currentSelected = this.selectedNote();
+    if (currentSelected?.id === noteId) {
+      const updatedSelected = { ...currentSelected, ...changes };
+      this.selectedNote.set(updatedSelected);
+      if (changes.content !== undefined) {
+        this.currentNoteTitle.set(changes.content ?? '');
+        this.changedTitle = changes.content ?? '';
+      }
+      if (changes.color !== undefined) {
+        this.selectedColor.set(changes.color ?? null);
+        this.clrName.set(changes.color ?? 'warning');
+      }
+    }
   }
 
   getUserInfo() {
@@ -188,25 +312,43 @@ export class AppNotesComponent implements OnInit {
     });
   }
 
-  loadNotes(userId: number): void {
+  loadNotes(userId: number, noteIdToSelect?: number): void {
     this.notesService.getNotesByUserId(userId).subscribe({
       next: (notes: Note[]) => {
         this.allNotes.set(notes);
-        this.notes.set(notes);
+        this.refreshVisibleNotes();
+        this.lastSavedContentByNoteId.clear();
+        notes.forEach((note) => {
+          this.lastSavedContentByNoteId.set(note.id, note.content ?? '');
+        });
+
+        if (noteIdToSelect != null) {
+          this.selectedNote.set(
+            notes.find((note) => note.id === noteIdToSelect) ?? null
+          );
+        }
 
         const selectedNoteId = this.selectedNote()?.id;
         if (selectedNoteId != null) {
           this.selectedNote.set(notes.find((note) => note.id === selectedNoteId) ?? null);
         }
 
+        const currentNote = this.selectedNote();
+        if (currentNote) {
+          this.selectedColor.set(currentNote.color ?? null);
+          this.clrName.set(currentNote.color ?? 'warning');
+          this.currentNoteTitle.set(currentNote.content ?? '');
+          this.changedTitle = currentNote.content ?? '';
+        }
+
         if (!this.selectedNote() && notes.length > 0) {
           this.selectedNote.set(this.notes()[0]);
-          const currentNote = this.selectedNote();
-          if (currentNote) {
-            this.selectedColor.set(currentNote.color ?? null);
-            this.clrName.set(currentNote.color ?? 'warning');
-            this.currentNoteTitle.set(currentNote.content ?? '');
-            if (this.changedTitle == '') { this.changedTitle = currentNote.content ?? ''; }
+          const firstNote = this.selectedNote();
+          if (firstNote) {
+            this.selectedColor.set(firstNote.color ?? null);
+            this.clrName.set(firstNote.color ?? 'warning');
+            this.currentNoteTitle.set(firstNote.content ?? '');
+            if (this.changedTitle == '') { this.changedTitle = firstNote.content ?? ''; }
           }
         } else if (!this.selectedNote()) {
           this.selectedColor.set(null);
