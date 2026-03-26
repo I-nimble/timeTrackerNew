@@ -1,14 +1,15 @@
-<div class="container">
+<div class="tm-page">
+<div class="container-fluid">
   <div class="row justify-content-center">
-    <div class="col-12 col-xl-11">
+    <div class="content-wrapper">
       <mat-card class="m-t-30 mat-card-top cardWithShadow position-relative overflow-hidden p-24 d-flex justify-content-center align-items-center">
         <img src="assets/images/talent-match.png" alt="Talent Match Logo" style="max-width: 100%; height: auto; max-height: 80px;">
       </mat-card>
     </div>
   </div>
   <div class="row justify-content-center m-t-16">
-    <div class="col-12 col-xl-11">
-      <mat-card class="mat-card-top cardWithShadow position-relative overflow-hidden p-24">
+    <div class="content-wrapper">
+      <mat-card class="mat-card-top cardWithShadow position-relative p-24">
         <app-talent-match-filters
           [positions]="positions"
           [practiceAreas]="practiceAreas"
@@ -45,4 +46,5 @@
       </mat-card>
     </div>
   </div>
+</div>
 </div>
