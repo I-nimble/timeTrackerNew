@@ -26,7 +26,7 @@ export class TalentMatchFiltersComponent {
   emitFilters() {
     this.filtersChange.emit({
       position_id: this.selectedRole,
-      // practiceArea: this.selectedPracticeArea
+      practiceArea: this.selectedPracticeArea
     });
   }
 }

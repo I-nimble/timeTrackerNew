@@ -50,11 +50,11 @@ export class AppPublicTalentMatchComponent implements OnInit {
   ];
   displayedColumns = [
     'name',
-    'skills',
+    'personality_profile',
     'position',
+    'skills',
     'experience',
-    'profile_summary',
-    'age'
+    'trainings'
   ];
   loading: boolean = false;
   page = 1;
@@ -71,27 +71,44 @@ export class AppPublicTalentMatchComponent implements OnInit {
     this.loadPositions();
   }
 
-  loadRecords(extraFilters: any = {}) {
+  loadRecords() {
     this.loading = true;
     this.aiLoading = true;
-    const mergedFilters = { ...(this.filters || {}), ...(extraFilters || {}) };
-    this.publicService.getRecords({
+    const payload = {
       page: this.page,
-      pageSize: this.pageSize,
-      keyword: this.query || undefined,
+      offset: this.pageSize,
       sortBy: this.sortBy || undefined,
       sortOrder: this.sortOrder || undefined,
-      ...mergedFilters
-    }).subscribe({
+      question: this.query || '',
+      filters: {
+        selectedRole: this.filters.position_id ? String(this.filters.position_id) : undefined,
+        selectedPracticeArea: this.filters.practiceArea || undefined,
+        query: this.query || undefined
+      }
+    };
+    this.publicService.getRecords(payload).subscribe({
       next: (res: any) => {
-        const mapped = res.data.map((c: any) => ({
-          ...c,
-          name: c.full_name,
-          profile_pic_url: c.picture ? `${environment.upload}/profile-pictures/${c.picture}` : null
-        }));
+        const mapped = res.items.map((c: any) => {
+          const bestMatch = c.all_match_scores?.reduce(
+            (max: any, curr: any) =>
+              curr.match_percentage > (max?.match_percentage || 0) ? curr : max,
+            null
+          );
+          const trainings = c.certifications?.length
+            ? c.certifications.map((cert: any) => cert.name).join(', ')
+            : 'No trainings';
+          return {
+            ...c,
+            position: c.position_category,
+            experience: c.work_experience_summary || c.work_experience,
+            personality_profile: bestMatch
+              ? `${bestMatch.match_percentage}% ${bestMatch.category_name}`
+              : 'N/A',
+            trainings
+          };
+        });
         this.loading = false;
         this.aiLoading = false;
-        this.allCandidates = mapped;
         this.dataSource.data = mapped;
         this.totalRecords = res.meta.total;
       },
@@ -113,12 +130,13 @@ export class AppPublicTalentMatchComponent implements OnInit {
   }
 
   searchCandidates(keyword?: string) {
+    if (!this.filters.position_id) return;
     if (keyword !== undefined) {
       this.query = keyword;
     }
     this.page = 1;
     this.aiLoading = true;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }
 
   onManualSearch(text: string) {
@@ -127,8 +145,10 @@ export class AppPublicTalentMatchComponent implements OnInit {
 
   onFiltersChange(filters: any) {
     this.page = 1;
-    this.filters.position_id = filters.position_id ?? undefined;
-    this.filters.practiceArea = filters.practiceArea ?? undefined;
+    this.filters = {
+      position_id: filters.position_id ?? undefined,
+      practiceArea: filters.practiceArea ?? undefined
+    };
   }
 
   onSortChange(event: any) {
@@ -140,12 +160,12 @@ export class AppPublicTalentMatchComponent implements OnInit {
       this.sortOrder = event.direction;
     }
     this.page = 1;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }  
 
   onPageChange(event: any) {
     this.page = event.pageIndex + 1;
     this.pageSize = event.pageSize;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }
 }
