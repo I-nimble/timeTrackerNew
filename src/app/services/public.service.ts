@@ -10,15 +10,7 @@ export class PublicService {
   private API_URI = `${environment.apiUrl}/public`;
   constructor(private http: HttpClient) {}
 
-  getRecords(params: any): Observable<any> {
-    let httpParams = new HttpParams();
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null) {
-        httpParams = httpParams.set(key, params[key]);
-      }
-    });
-    return this.http.get<any>(`${this.API_URI}/records`, {
-      params: httpParams
-    });
+  getRecords(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URI}/records`, payload);
   }
 }
