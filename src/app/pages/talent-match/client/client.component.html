@@ -133,7 +133,7 @@
               maxlength="200"
             ></textarea>
             <mat-hint align="end"
-              >{{ roleDescription?.length || 0 }}/200</mat-hint
+              >{{ roleDescription.length || 0 }}/200</mat-hint
             >
             <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
               Maximum 200 characters allowed.
@@ -399,6 +399,13 @@
                     <mat-icon>download</mat-icon>
                     <span>Download Resume</span>
                   </button>
+                  <button
+                    mat-menu-item
+                    (click)="markInterested(element)"
+                  >
+                    <mat-icon>favorite_border</mat-icon>
+                    <span>Interested</span>
+                  </button>
                   <button mat-menu-item (click)="deleteApplication(element.id)">
                     <mat-icon>delete</mat-icon>
                     <span>Not interested</span>
@@ -475,7 +482,9 @@
                       <mat-divider></mat-divider>
                       <mat-card-content>
                         <ng-container>
-                          <h5 class="f-s-18 f-w-600 m-b-16">Talent Match Profile Summary</h5>
+                          <h5 class="f-s-18 f-w-600 m-b-16">
+                            Talent Match Profile Summary
+                          </h5>
                           <div>
                             <p>{{ element.talent_match_profile_summary }}</p>
                           </div>

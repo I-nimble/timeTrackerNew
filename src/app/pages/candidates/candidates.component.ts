@@ -29,6 +29,7 @@ import { forkJoin, of, Observable } from 'rxjs';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { ApplicationListResponse } from 'src/app/models/application.model';
 
 @Component({
   selector: 'app-candidates',
@@ -253,7 +254,7 @@ export class CandidatesComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((applications: any[]) => {
+    this.applicationsService.get().subscribe((applications: ApplicationListResponse[]) => {
       const visibleApplications = applications.filter(
         (application: any) => application.status !== 'rejected'
       );
