@@ -28,12 +28,6 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse } from 'src/app/models/application.model';
-import { DynamicTableComponent } from 'src/app/shared/components/dynamic-table/dynamic-table.component';
-import {
-  DynamicTableColumn,
-  DynamicTableRowActionEvent,
-  DynamicTableSortChange,
-} from 'src/app/shared/models/dynamic-table.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 
 @Component({
@@ -52,7 +46,6 @@ import { NotificationsService } from 'src/app/services/notifications.service';
     LinebreakPipe,
     FormatNamePipe,
     TourMatMenuModule,
-    DynamicTableComponent,
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -70,7 +63,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   positions: any[] = [];
   searchText: string = '';
   rows: any[] = [];
-  tableColumns: DynamicTableColumn<any>[] = [];
   dataSource = new MatTableDataSource<any>([]);
   paginatedRows: any[] = [];
   selection = new SelectionModel<any>(true, []);
@@ -99,8 +91,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   totalPages = 1;
   backendMessage = '';
   searchTerm = '';
-  sortBy = 'submission_date';
-  sortOrder: 'asc' | 'desc' = 'asc';
+  sortBy = 'match_percentage';
+  sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
   positionsOptions: string[] = [
@@ -141,6 +133,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   @ViewChild('expandedDetailTemplate')
   expandedDetailTemplate!: TemplateRef<any>;
 
+  displayedColumns: string[] = [
+    'select',
+    'name',
+    'personality profile',
+    'position',
+    'experience',    
+    'trainings',
+    'actions',
+  ];
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  activeSortBy: string = '';
+  activeSortOrder: 'asc' | 'desc' = 'asc';
+
   formatEnglishLevelDisplay(value: number): string {
     return formatEnglishLevelDisplay(value);
   }
@@ -171,7 +176,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.refreshTableColumns();
     this.cdr.detectChanges();
   }
 
@@ -184,7 +188,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.currentPage = 1;
     this.sortBy = 'match_percentage';
-    this.sortOrder = 'desc';
+    this.sortOrder = 'asc';
     this.aiLoading = true;
     this.tableLoading = false;
     this.aiAnswer = '';
@@ -285,8 +289,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
 
     this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
+      page: 1,
+      offset: 1000,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
       search: '',
@@ -298,7 +302,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.hasSearchResults = false;
         this.aiAnswer = '';
         this.tableLoading = false;
-        this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -395,7 +398,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       next: (positions: any) => {
         this.positions = positions;
         this.filterPositions = [...new Set(positions.map((p: any) => p.title))];
-        this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching positions:', err);
@@ -528,7 +530,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }`;
   }
 
-  onRowClick(row: any) {
+  onRowClick(row: any, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest('button, a, mat-checkbox, [mat-menu-item], .mat-mdc-menu-trigger')) {
+      return;
+    }
+
     this.expandedElement = this.expandedElement === row ? null : row;
     this.selection.toggle(row);
     this.onRowSelectionChange();
@@ -547,35 +554,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       return;
     }
     this.getApplications();
-  }
-
-  handleSortChange(event: DynamicTableSortChange): void {
-    this.sortBy = event.sortBy;
-    this.sortOrder = event.sortOrder;
-    this.currentPage = event.page;
-    this.pageSize = event.pageSize;
-    this.expandedElement = null;
-    if (this.isAISearchActive()) {
-      this.fetchAICandidates();
-      return;
-    }
-    this.getApplications();
-  }
-
-  handleTableRowAction(event: DynamicTableRowActionEvent<any>): void {
-    switch (event.action.id) {
-      case 'download-resume':
-        this.downloadFile(event.row.resume_url, event.row.name, event.row.id);
-        break;
-      case 'not-interested':
-        this.deleteApplication(event.row.id);
-        break;
-      case 'interested':
-        this.markInterested(event.row);
-        break;
-      default:
-        break;
-    }
   }
 
   markInterested(candidate: any): void {
@@ -729,7 +707,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
-    this.refreshTableColumns();
   }
 
   private fetchAICandidates(restoreFallback = false): void {
@@ -740,8 +717,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
-      page: this.currentPage,
-      offset: this.pageSize,
+      page: 1,
+      offset: 1000,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
     }).subscribe({
@@ -789,110 +766,5 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     const endIndex = startIndex + this.pageSize;
     this.paginatedRows = [...this.dataSource.data.slice(startIndex, endIndex)];
     this.rows = [...this.paginatedRows];
-  }
-
-  private refreshTableColumns(): void {
-    if (
-      !this.selectHeaderTemplate ||
-      !this.selectCellTemplate ||
-      !this.actionsCellTemplate ||
-      !this.expandCellTemplate ||
-      !this.expandedDetailTemplate
-    ) {
-      return;
-    }
-
-    this.initializeColumns();
-  }
-
-  private initializeColumns(): void {
-    this.tableColumns = [
-      {
-        id: 'select',
-        header: '',
-        headerTemplate: this.selectHeaderTemplate,
-        cellTemplate: this.selectCellTemplate,
-      },
-      {
-        id: 'name',
-        header: 'Name',
-        sortable: true,
-        sortKey: 'name',
-        accessor: 'name',
-        renderer: {
-          type: 'avatar-name',
-          imageAccessor: (row) => row.profile_pic_url || this.assetsPath,
-          imageFallback: this.assetsPath,
-          titleAccessor: 'name',
-          titleTransform: (value) => new FormatNamePipe().transform(value),
-          subtitleAccessor: 'current_position',
-          badges: {
-            accessor: (row) => row.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
-          },
-        },
-      },
-      {
-        id: 'personalityProfile',
-        header: 'Personality profile',
-        sortable: true,
-        sortKey: 'match_percentage',
-        accessor: 'match_percentage',
-        renderer: {
-          type: 'metric',
-          primaryAccessor: (row) => row.match_percentage || '0',
-          primarySuffix: '%',
-          secondaryAccessor: 'position_category',
-        },
-      },
-      {
-        id: 'position',
-        header: 'Position',
-        sortable: true,
-        sortKey: 'position',
-        accessor: (row) => this.getPositionTitle(row.position_id),
-        renderer: {
-          type: 'text-badges',
-          textAccessor: (row) => this.getPositionTitle(row.position_id),
-          badges: {
-            accessor: (row) => this.getPositionById(row.position_id)?.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
-          },
-        },
-      },
-      {
-        id: 'experience',
-        header: 'Experience',
-        sortable: true,
-        sortKey: 'experience',
-        accessor: (row) => row.work_experience_summary || row.work_experience,
-        renderer: {
-          type: 'truncated-text',
-          textAccessor: 'work_experience_summary',
-          fallbackAccessor: 'work_experience',
-          maxLength: 50,
-        },
-      },
-      {
-        id: 'trainings',
-        header: 'Trainings',
-        sortable: true,
-        sortKey: 'trainings',
-        accessor: (row) => this.getTrainingNames(row.certifications),
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        headerClass: 'f-w-600 f-s-14',
-        cellTemplate: this.actionsCellTemplate,
-      },
-      {
-        id: 'expand',
-        header: '',
-        cellTemplate: this.expandCellTemplate,
-      },
-    ];
   }
 }
