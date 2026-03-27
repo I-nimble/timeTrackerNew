@@ -92,7 +92,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   backendMessage = '';
   searchTerm = '';
   sortBy = 'match_percentage';
-  sortOrder: 'asc' | 'desc' = 'desc';
+  sortOrder: 'asc' | 'desc' = 'asc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
   positionsOptions: string[] = [
@@ -291,8 +291,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.applicationsService.get({
       page: 1,
       offset: 1000,
-      sortBy: this.activeSortBy || this.sortBy,
-      sortOrder: this.activeSortOrder || this.sortOrder,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -745,8 +745,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
       page: 1,
       offset: 1000,
-      sortBy: this.activeSortBy || this.sortBy,
-      sortOrder: this.activeSortOrder || this.sortOrder,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
