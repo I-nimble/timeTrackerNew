@@ -141,6 +141,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   @ViewChild('expandedDetailTemplate')
   expandedDetailTemplate!: TemplateRef<any>;
 
+  displayedColumns: string[] = [
+    'select',
+    'name',
+    'personality profile',
+    'position',
+    'experience',    
+    'trainings',
+    'actions',
+  ];
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  activeSortBy: string = '';
+  activeSortOrder: 'asc' | 'desc' = 'asc';
+
   formatEnglishLevelDisplay(value: number): string {
     return formatEnglishLevelDisplay(value);
   }
@@ -285,10 +298,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
 
     this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
+      page: 1,
+      offset: 1000,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -528,7 +541,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }`;
   }
 
-  onRowClick(row: any) {
+  onRowClick(row: any, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest('button, a, mat-checkbox, [mat-menu-item], .mat-mdc-menu-trigger')) {
+      return;
+    }
+
     this.expandedElement = this.expandedElement === row ? null : row;
     this.selection.toggle(row);
     this.onRowSelectionChange();
@@ -740,10 +758,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
-      page: this.currentPage,
-      offset: this.pageSize,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
+      page: 1,
+      offset: 1000,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
