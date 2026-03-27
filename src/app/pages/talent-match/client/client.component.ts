@@ -1,14 +1,12 @@
-import { Component, OnInit, ViewChild, AfterViewInit, Optional, Inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild, Inject, TemplateRef } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NgModel } from '@angular/forms';
@@ -19,16 +17,11 @@ import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { AIService } from 'src/app/services/ai.service';
+import { CandidateEvaluationResponse, CandidateEvaluationFilters } from 'src/app/models/ai.model';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
-import { MatTabHeader, MatTabBody } from '@angular/material/tabs';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ApplicationMatchScoresService, PositionCategory } from 'src/app/services/application-match-scores.service';
-import { MatSliderModule } from '@angular/material/slider';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatChipsModule } from '@angular/material/chips';
-import { NgxSliderModule } from '@angular-slider/ngx-slider';
-import { Options } from '@angular-slider/ngx-slider';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
@@ -42,25 +35,15 @@ import { NotificationsService } from 'src/app/services/notifications.service';
   selector: 'app-talent-match-client',
   imports: [
     MatCardModule,
-    MatTableModule,
     CommonModule,
     MatCheckboxModule,
     MatDividerModule,
-    Highlight,
-    HighlightAuto,
-    HighlightLineNumbers,
     MaterialModule,
     TablerIconsModule,
     FormsModule,
     MatchComponent,
     MarkdownPipe,
     LinebreakPipe,
-    MatTabHeader,
-    MatTabBody,
-    MatSliderModule,
-    MatSlideToggleModule,
-    MatChipsModule,
-    NgxSliderModule,
     FormatNamePipe,
     TourMatMenuModule,
   ],
@@ -81,16 +64,17 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   searchText: string = '';
   rows: any[] = [];
   dataSource = new MatTableDataSource<any>([]);
+  paginatedRows: any[] = [];
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   assetsPath: string = 'assets/images/default-user-profile-pic.png';
   aiLoading = false;
+  tableLoading = false;
   aiAnswer: string = '';
   hasSearchResults = false;
   allCandidates: any[] = [];
   useManualSearch = false;
   expandedElement: any | null = null;
-  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
   matchStats: { [applicationId: number]: { icon: string; value: number; label: string }[] } = {};
   positionCategories: PositionCategory[] = [];
   expandedWorkExp: { [key: number]: boolean } = {};
@@ -178,7 +162,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private aiService: AIService,
     private router: Router,
     private matchScoresService: ApplicationMatchScoresService,
-    private discProfilesService: DiscProfilesService
+    private discProfilesService: DiscProfilesService,
+    private cdr: ChangeDetectorRef,
+    private notificationsService: NotificationsService,
+    public snackBar: MatSnackBar
   ) {}
   
   ngOnInit(): void {
@@ -193,7 +180,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   searchCandidatesWithAI(question: string) {
-    const searchQuery = question || this.buildFullSearchQuery();
+    const searchQuery = String(question || this.query || '').trim();
     if (this.useManualSearch) {
       this.onManualSearch(question);
       return;
@@ -203,119 +190,53 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortBy = 'match_percentage';
     this.sortOrder = 'asc';
     this.aiLoading = true;
+    this.tableLoading = false;
     this.aiAnswer = '';
     this.hasSearchResults = false;
 
-    const candidates = [...this.allCandidates];
-
-    const simplifiedCandidates = candidates.map(c => ({
-      id: c.id,
-      name: c.name,
-      skills: c.skills,
-      work_experience: c.work_experience,
-      position: this.getPositionTitle(c.position_id) ?? '',
-      location: c.location,
-    }));
-
-    this.aiService.evaluateCandidates(simplifiedCandidates, searchQuery).subscribe({
-      next: (res) => {
-        const enhancedResults = res.enhanced_results || [];
-
-        const enhancedMap = new Map();
-        enhancedResults.forEach(enhanced => {
-          enhancedMap.set(enhanced.name, enhanced);
-        });
-
-        const orderedCandidates = enhancedResults
-          .map(enhanced => {
-            const originalCandidate = candidates.find(c => 
-              c.name.toLowerCase() === enhanced.name.toLowerCase()
-            );
-            if (originalCandidate) {
-              return { 
-                ...originalCandidate,
-                match_percentage: enhanced.match_percentage,
-                overall_match_percentage: enhanced.overall_match_percentage || enhanced.match_percentage,
-                position_category: enhanced.position_category,
-                best_position_category_id: enhanced.best_position_category_id
-              };
-            }
-            return null;
-          })
-          .filter((c): c is any => c != null);
-
-        this.dataSource.data = orderedCandidates;
-
-        this.hasSearchResults = true;
+    this.aiService.evaluateCandidates({
+      question: searchQuery,
+      filters: this.buildAISearchFilters(),
+    }).subscribe({
+      next: (response: CandidateEvaluationResponse) => {
+        this.applyApplicationListResponse(response);
+        this.activeAISearchSessionId = response.sessionId || '';
+        this.hasSearchResults = response.meta.total > 0;
         this.aiLoading = false;
-        if (orderedCandidates.length > 0) {
-          this.aiAnswer = '';
-        } else {
-          this.aiAnswer = 'No matches.';
-        }
+        this.tableLoading = false;
+        this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
 
-        const orderedIds = orderedCandidates.map(c => c.id);
-        this.saveAISearchState(searchQuery, orderedIds, {
-          selectedRole: this.selectedRole,
-          selectedPracticeArea: this.selectedPracticeArea,
-          budgetRange: this.budgetRange,
-          isMonthlyRate: this.isMonthlyRate,
-          roleDescription: this.roleDescription,
-          query: this.query
-        });
+        this.saveAISearchState(this.activeAISearchSessionId, this.buildAISearchFilters());
       },
       error: (err) => {
         if (err.status === 429) {
           this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
           this.useManualSearch = true;
           this.aiLoading = false;
+          this.tableLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
           console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
+        this.tableLoading = false;
       }
     });
   }
 
-  buildFullSearchQuery(): string {
-    const stage1: string[] = [];
-    const stage2: string[] = [];
-    if (this.selectedRole) {
-      stage1.push(`Primary role: ${this.selectedRole}`);
-    }
-    if (this.selectedPracticeArea) {
-      stage1.push(`Practice area: ${this.selectedPracticeArea}`);
-    }
-    if (this.roleDescription) {
-      stage1.push(`Role description: ${this.roleDescription}`);
-    }
-    if (this.budgetRange.min !== this.budgetMin || this.budgetRange.max !== this.budgetMax) {
-      stage2.push(
-        this.isMonthlyRate
-          ? `Budget range: $${this.budgetRange.min}–$${this.budgetRange.max} monthly`
-          : `Budget range: $${this.budgetRange.min}/hr – $${this.budgetRange.max}/hr`
-      );
-    }
-    let finalQuery = `FIRST filter candidates ONLY by the following primary criteria: 
-  ${stage1.join('; ') || 'None provided'}
-  THEN refine the remaining candidates using these optional preferences (only if available):
-  ${stage2.join('; ') || 'No additional refinements'}`;
-    return finalQuery;
-  }
-
   onManualSearch(query?: string) {
     this.clearAISearchState();
+    this.resetActiveAISearch();
 
     const searchQuery = query || this.query;
     this.query = searchQuery;
     const lower = searchQuery.toLowerCase();
-    this.dataSource.data = this.allCandidates.filter(c =>
+    this.setDisplayedCandidates(this.allCandidates.filter(c =>
       c.name?.toLowerCase().includes(lower) ||
       this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
       c.skills?.toLowerCase().includes(lower) ||
       c.location?.toLowerCase().includes(lower)
-    );
+    ));
     this.hasSearchResults = this.dataSource.data.length > 0;
   }
 
@@ -333,6 +254,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       if (option) {
         this.applicationsService.delete(applicationId).subscribe({
           next: (response: any) => {
+            if (this.isAISearchActive()) {
+              this.fetchAICandidates();
+              return;
+            }
             this.getApplications();
           },
           error: (err: any) => {
@@ -380,6 +305,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
+        this.tableLoading = false;
       },
     });
   }
@@ -417,7 +343,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   executeFilterSearch(): void {
     if (this.selectedPositionFilters.length === 0) {
-      this.dataSource.data = [...this.allCandidates];
+      this.setDisplayedCandidates([...this.allCandidates]);
       this.hasSearchResults = false;
       return;
     }
@@ -452,7 +378,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   applyPositionFilter(): void {
     if (this.selectedPositionFilters.length === 0) {
-      this.dataSource.data = [...this.allCandidates];
+      this.setDisplayedCandidates([...this.allCandidates]);
       this.hasSearchResults = false;
       return;
     }
@@ -576,21 +502,23 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   isAllSelected(): boolean {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.rows.length) {
       return false;
     }
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
+    return this.rows.every((row) => this.selection.isSelected(row));
   }
 
   masterToggle(): void {
-    if (!this.dataSource || !this.dataSource.data) {
+    if (!this.rows.length) {
       return;
     }
-    this.isAllSelected()
-      ? this.selection.clear()
-      : this.dataSource.data.forEach((row) => this.selection.select(row));
+
+    if (this.isAllSelected()) {
+      this.rows.forEach((row) => this.selection.deselect(row));
+      return;
+    }
+
+    this.rows.forEach((row) => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {
@@ -677,30 +605,36 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     imgElement.onerror = null;
   }
 
-  private saveAISearchState(searchQuery: string, orderedIds: number[], filters: any) {
-    localStorage.setItem('aiSearchQuery', searchQuery);
-    localStorage.setItem('aiOrderedIds', JSON.stringify(orderedIds));
+  private saveAISearchState(
+    sessionId: string,
+    filters: CandidateEvaluationFilters,
+  ) {
     localStorage.setItem('aiFilters', JSON.stringify(filters));
+    if (sessionId) {
+      localStorage.setItem('aiSearchSessionId', sessionId);
+    } else {
+      localStorage.removeItem('aiSearchSessionId');
+    }
   }
 
-  private loadAISearchState(): { query: string; ids: number[]; filters: any } | null {
-    const query = localStorage.getItem('aiSearchQuery');
-    const idsStr = localStorage.getItem('aiOrderedIds');
+  private loadAISearchState(): {
+    filters: CandidateEvaluationFilters;
+    sessionId: string | null;
+  } | null {
     const filtersStr = localStorage.getItem('aiFilters');
-    if (!query || !idsStr || !filtersStr) return null;
+    const sessionId = localStorage.getItem('aiSearchSessionId');
+    if (!filtersStr) return null;
     try {
-      const ids = JSON.parse(idsStr);
       const filters = JSON.parse(filtersStr);
-      return { query, ids, filters };
+      return { filters, sessionId };
     } catch {
       return null;
     }
   }
 
   private clearAISearchState() {
-    localStorage.removeItem('aiSearchQuery');
-    localStorage.removeItem('aiOrderedIds');
     localStorage.removeItem('aiFilters');
+    localStorage.removeItem('aiSearchSessionId');
   }
 
   getSeparatedDescription(description: string): { baseText: string, role: string } {

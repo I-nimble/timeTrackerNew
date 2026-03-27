@@ -16,12 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { PermissionService } from 'src/app/services/permission.service';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 import { Router } from '@angular/router';
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { DepartmentsService } from 'src/app/services/departments.service';
-import { EmployeesService } from 'src/app/services/employees.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
@@ -50,14 +45,9 @@ export interface PeriodicElement {
   styleUrls: ['./talent-match-admin.component.scss'],
   imports: [
     MatCardModule,
-    MatTableModule,
     CommonModule,
     MatCheckboxModule,
     MatDividerModule,
-    Highlight,
-    HighlightAuto,
-    HighlightLineNumbers,
-    AppCodeViewComponent,
     MaterialModule,
     TablerIconsModule,
     FormsModule,

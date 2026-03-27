@@ -1,17 +1,22 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpEventType, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable, forkJoin, of, Subject, tap } from 'rxjs';
+import { Observable, forkJoin, of, Subject } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
+import {
+  Application,
+  ApplicationListParams,
+  ApplicationListResponse,
+} from '../models/application.model';
 
 @Injectable({
   providedIn: 'root',
-})
+}) 
 export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
-  selectedCards: any[] = [];
-  selectedApplicants: any[] = [];
+  selectedCards: Application[] = [];
+  selectedApplicants: Application[] = [];
   resumeUrl: any = null;
   photoUrl: any = null;
   private applicationsSeenSource = new Subject<void>();
@@ -20,12 +25,14 @@ export class ApplicationsService {
   private applicationsUpdatedSource = new Subject<any>();
   applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
 
-  getUserApplication(id: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URI}/applications/user/${id}`);
+  private readonly defaultListOffset = 10;
+
+  getUserApplication(id: number): Observable<Application> {
+    return this.http.get<Application>(`${this.API_URI}/applications/user/${id}`);
   }
   
-  getApplication(id: number): Observable<any> {
-    return this.http.get<any>(`${this.API_URI}/applications/${id}`);
+  getApplication(id: number): Observable<Application> {
+    return this.http.get<Application>(`${this.API_URI}/applications/${id}`);
   }
 
   reject(id: number, reason: string | null): Observable<any> {
@@ -51,12 +58,12 @@ export class ApplicationsService {
     return this.http.get(`${this.API_URI}/applications/check-profile/${id}`, {});
   }
 
-  addSelectedCard(card: any): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/select/${card.id}`, card)
+  addSelectedCard(card: Application): Observable<Application[]> {
+    return this.http.put<Application[]>(`${this.API_URI}/applications/select/${card.id}`, card)
   }
 
-  removeSelectedCard(id: number): Observable<any[]> {
-    return this.http.put<any[]>(`${this.API_URI}/applications/deselect/${id}`, {});
+  removeSelectedCard(id: number): Observable<Application[]> {
+    return this.http.put<Application[]>(`${this.API_URI}/applications/deselect/${id}`, {});
   }
 
   getSelectedCards() {
@@ -67,7 +74,7 @@ export class ApplicationsService {
     this.selectedCards = [];
   }
 
-  setSelectedApplicants(applicants: any[]) {
+  setSelectedApplicants(applicants: Application[]) {
     this.selectedApplicants = applicants;
   }
 
@@ -87,16 +94,34 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
   }
 
-  public get(onlyTalentPool: boolean = false): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`);
+  public get(
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse | any> {
+    const httpParams = this.buildApplicationListParams(params || {});
+
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications`, {
+        params: httpParams,
+      })
   }
 
-  public getSelectedApplications(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/selected`);
+  public getSelectedApplications(
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse> {
+    const httpParams = this.buildApplicationListParams(params || {});
+
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications/selected`, { params: httpParams })
   }
 
-  public getApplicationsByPosition(position_id: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URI}/applications/position/${position_id}`);
+  public getApplicationsByPosition(
+    position_id: number,
+    params?: ApplicationListParams,
+  ): Observable<ApplicationListResponse> {
+    const httpParams = this.buildApplicationListParams(params || {});
+
+    return this.http
+      .get<ApplicationListResponse>(`${this.API_URI}/applications/position/${position_id}`, { params: httpParams })
   }
 
   public delete(id: number, action: 'delete' | 'review' = 'review'): Observable<any> {
@@ -207,8 +232,8 @@ export class ApplicationsService {
           work_experience_summary: data.work_experience_summary || null
         };
 
-        if (id) return this.http.put(`${this.API_URI}/applications/${id}`, body);
-        return this.http.post(`${this.API_URI}/applications`, body);
+        if (id) return this.http.put<any>(`${this.API_URI}/applications/${id}`, body);
+        return this.http.post<any>(`${this.API_URI}/applications`, body);
       })
     );
   }
@@ -219,6 +244,7 @@ export class ApplicationsService {
       payload
     );
   }
+
   // Notify other components that an application was updated
   notifyApplicationUpdated(application: any) {
     this.applicationsUpdatedSource.next(application);
@@ -235,8 +261,10 @@ export class ApplicationsService {
   uploadIntroductionVideo(videoFile: File, userId: number): Observable<any> {
     return this.getVideoUploadUrl(videoFile, userId).pipe(
       switchMap((uploadData: any) => {
+        const fileName = uploadData.fileName || uploadData.key.split('/').pop();
         const headers = new HttpHeaders({
           'Content-Type': videoFile.type,
+          'X-Filename': fileName
         });
 
         return this.http.put(uploadData.url, videoFile, { 
@@ -250,7 +278,7 @@ export class ApplicationsService {
             return {
               message: "Video uploaded successfully",
               videoUrl: `https://inimble-app.s3.us-east-1.amazonaws.com/${uploadData.key}`,
-              fileName: uploadData.fileName
+              fileName: fileName
             };
           })
         );
@@ -287,20 +315,41 @@ export class ApplicationsService {
     }
   }
 
+  async getApplicationAssetUrl(
+    bucket: 'resumes' | 'applications',
+    filename: string | null | undefined,
+  ): Promise<string> {
+    if (!filename) return '';
+
+    if (filename.startsWith('http')) {
+      const urlExists = await this.checkUrlExists(filename);
+      if (urlExists) return filename;
+      filename = filename.split('/').pop() || filename;
+    }
+
+    const localBaseUrl = `${environment.socket}/uploads/${bucket}`;
+    const s3BaseUrl = `https://inimble-app.s3.us-east-1.amazonaws.com/${bucket}`;
+
+    if (environment.production) {
+      return `${s3BaseUrl}/${filename}`;
+    }
+
+    if (!environment.production) {
+      const localUrl = `${localBaseUrl}/${filename}`;
+      const localExists = await this.checkUrlExists(localUrl);
+      if (localExists) return localUrl;
+    }
+
+    const s3Url = `${s3BaseUrl}/${filename}`;
+    const s3Exists = await this.checkUrlExists(s3Url);
+    return s3Exists ? s3Url : '';
+  }
+
   async getResumeUrl(
     filename: string | null | undefined,
     applicationId?: number,
   ): Promise<string> {
     if (!filename && !applicationId) return '';
-
-    if (filename?.startsWith('http')) {
-      const urlExists = await this.checkUrlExists(filename);
-      if (urlExists) return filename;
-      filename = filename.split('/').pop();
-    }
-
-    const localBaseUrl = `${environment.socket}/uploads/resumes`;
-    const s3BaseUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
 
     const candidates: string[] = [];
     if (filename) candidates.push(filename);
@@ -311,17 +360,32 @@ export class ApplicationsService {
     }
 
     for (const candidate of candidates) {
-      if (!environment.production) {
-        const localUrl = `${localBaseUrl}/${candidate}`;
-        const localExists = await this.checkUrlExists(localUrl);
-        if (localExists) return localUrl;
-      }
-
-      const s3Url = `${s3BaseUrl}/${candidate}`;
-      const s3Exists = await this.checkUrlExists(s3Url);
-      if (s3Exists) return s3Url;
+      const resolvedUrl = await this.getApplicationAssetUrl('resumes', candidate);
+      if (resolvedUrl) return resolvedUrl;
     }
 
     return '';
+  }
+
+  private buildApplicationListParams(
+    params: ApplicationListParams & { onlyTalentPool?: boolean },
+  ): HttpParams {
+    let httpParams = new HttpParams();
+
+    const normalizedParams = {
+      ...params,
+      offset: params.offset ?? params.limit,
+    };
+
+    for (const [key, value] of Object.entries(normalizedParams)) {
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
+      if (key === 'limit') {
+        continue;
+      }
+      httpParams = httpParams.set(key, String(value));
+    }
+    return httpParams;
   }
 }

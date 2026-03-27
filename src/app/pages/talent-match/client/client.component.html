@@ -133,7 +133,7 @@
               maxlength="200"
             ></textarea>
             <mat-hint align="end"
-              >{{ roleDescription?.length || 0 }}/200</mat-hint
+              >{{ roleDescription.length || 0 }}/200</mat-hint
             >
             <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
               Maximum 200 characters allowed.
