@@ -192,7 +192,254 @@
 .score-header {
   display: flex;
   justify-content: space-between;
+  .table-responsive td, .table-responsive th, .table-responsive mat-cell {
+    white-space: normal !important;
+    padding: 8px 16px;
+    border: none;
+  }
+  
+  .logo-inimble {
+    width: 180px!important;
+    margin-bottom: 20px;
+    padding-left: 30px;
+  }
+
+  .profile-info {
+    padding-left: 30px;
+
+    .position-title {
+      border: 1px solid #92b46c;
+      padding: 4px 20px;
+      width: fit-content;
+      border-radius: 16px;
+    }
+  }
+
+  mat-divider {
+    border-top-color: #92b46cb9!important;
+  }
+
+  .mat-mdc-card {
+    margin-bottom: 15px!important;
+  }
+
+  .table-responsive table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+  }
+
+  .table-responsive table tr {
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    margin: 0;
+  }
+
+  .mat-row, .mat-header-row {
+    height: auto !important;
+  }
+
+  .status-cell {
+    text-align: center !important;
+    align-items: center !important;
+  }
+}
+
+.example-detail-row .expanded-detail-wrapper {
+  padding: 0;
+}
+
+.expanded-detail-row {
+  display: none;
+}
+.expanded-detail-row.expanded-visible {
+  display: table-row;
+}
+.expanded-detail-row.expanded-visible td {
+  padding: 0 !important;
+}
+
+.expanded-detail-wrapper {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  margin-bottom: 24px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+  tabler-icon {
+    margin-bottom: 4px;
+  }
+  h6 {
+    margin-bottom: 2px;
+  }
+  p {
+    margin: 0;
+  }
+}
+
+.position-btn {
+  font-size: .8rem;
+}
+
+.disabled {
+    color: #4e4e4e!important;
+}
+
+.hobbies, .cta-container {
+  border-left: 1px solid #92b46c;
+  padding-left: 16px;
+}
+
+.progress-container {
+  width: 100%;
+  max-width: 300px;
+}
+
+.progress-bar-background {
+  width: 100%;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: "↓";
+  color: #4e4e4e;
+  position: absolute;
+  top: -25px;
+  right: calc(100% - var(--match-percentage, 0%) + 5px);
+  width: 0;
+  height: 0;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 15px;
+  transition: width 0.3s ease;
+  background-color: #92b46c;
+}
+
+.basic-level {
+  width: 33%;
+  background-color: #ffffff;
+  border: 2px solid #e0e0e0;
+}
+
+.intermediate-level {
+  width: 66%;
+  background-color: #92b46c;
+}
+
+.advanced-level {
+  width: 100%;
+  background-color: #92b46c;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.scores-container {
+  width: 100%;
+}
+
+.score-item {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.score-name {
+  flex: 1;
+  padding-right: 12px;
+}
+
+.match-score-item {
+  padding-bottom: 8px;
+  
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+
+.progress-container {
+  width: 100%;
+}
+
+.progress-labels {
+  width: 100%;
+}
+
+.score-status {
+  font-weight: 500;
+}
+
+.application-ranking {
+  .ranking-bar-wrapper {
+    position: relative;
+    padding-top: 14px;
+    max-width: 350px;
+  }
+
+  .ranking-arrow {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    color: #30b34b;
+    font-size: 18px;
+    line-height: 1;
+    z-index: 1;
+  }
+
+  .ranking-segments {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    height: 14px;
+  }
+
+  .ranking-segment {
+    background-color: #30b34b;
+    border-radius: 2px;
+    opacity: 0.2;
+  }
+
+  .segment-1 {
+    opacity: 0.25;
+  }
+
+  .segment-2 {
+    opacity: 0.45;
+  }
+
+  .segment-3 {
+    opacity: 0.65;
+  }
+
+  .segment-4 {
+    opacity: 1;
+  }
+}
+
   margin-bottom: 8px;
 }
 

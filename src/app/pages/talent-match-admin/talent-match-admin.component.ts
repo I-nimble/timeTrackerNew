@@ -148,7 +148,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   
   ngOnInit(): void {
     this.getPositions();
-    this.getInterviews();
+    this.getPositionCategories();
 
     const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
@@ -167,6 +167,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit(): void {
+    this.initializeColumns();
+    this.cdr.detectChanges();
+  }
+
   getPositions() {
     this.positionsService.get().subscribe({
       next: (positions: any) => {
@@ -178,7 +183,23 @@ export class AppTalentMatchAdminComponent implements OnInit {
     });
   }
 
+  getPositionCategories() {
+    this.matchScoresService.getPositionCategories().subscribe({
+      next: (categories) => {
+        this.positionCategories = categories;
+      },
+      error: (err) => {
+        console.error('Error loading position categories:', err);
+      }
+    });
+  }
+
   getApplications() {
+    if (this.activeAISearchSessionId) {
+      this.fetchAICandidates(true);
+      return;
+    }
+
     this.tableLoading = true;
 
     if (!this.hasRestoredStoredSearch) {
@@ -212,6 +233,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
         this.hasSearchResults = false;
         this.aiAnswer = '';
         this.tableLoading = false;
+        this.selection.clear();
+        this.expandedElement = null;
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -292,7 +315,13 @@ export class AppTalentMatchAdminComponent implements OnInit {
     if (interview) {
       return interview.date_time;
     }
-    return null;
+  }
+
+  checkboxLabel(row?: any): string {
+    if (!row) {
+      return `${this.isAllSelected() ? 'select' : 'deselect'} all`;
+    }
+    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
   }
 
   getPositionTitle(positionId: any) {
@@ -330,12 +359,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   deleteCandidate(id: number) {
     const dialogRef = this.dialog.open(ModalComponent, {
       width: '400px',
-      data: {
-        action: 'Delete',
-        subject: 'candidate',
-      },
+      data: { action: 'Delete', subject: 'candidate' }
     });
-
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.applicationsService.delete(id).subscribe({
@@ -360,11 +385,95 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   openSnackBar(message: string, action: string) {
-    this.snackBar.open(message, action, {
-      duration: 3000,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
+    this.snackBar.open(message, action, { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+  }
+
+  goToCustomSearch() {
+    this.router.navigate(['apps/talent-match/custom-search']);
+  }
+
+  get canSearchAI(): boolean {
+    const hasRequiredFilters = !!this.selectedRole && !!this.selectedPracticeArea;
+    if (!!this.query) return true;
+    return hasRequiredFilters;
+  }
+
+  private buildAISearchFilters(): CandidateEvaluationFilters {
+    return {
+      selectedRole: this.selectedRole,
+      selectedPracticeArea: this.selectedPracticeArea,
+      roleDescription: this.roleDescription,
+      query: this.query,
+    };
+  }
+
+  private applyApplicationListResponse(response: ApplicationListResponse): void {
+    this.rows = response.items;
+    this.totalPages = response.meta.totalPages;
+    this.currentPage = response.meta.currentPage;
+    this.pageSize = response.meta.limit;
+    this.sortBy = response.meta.sortBy;
+    this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
+    this.backendMessage = response.message || '';
+    this.expandedElement = null;
+    this.selection.clear();
+  }
+
+  private fetchAICandidates(restoreFallback = false): void {
+    if (!this.activeAISearchSessionId) {
+      this.getApplications();
+      return;
+    }
+
+    this.tableLoading = true;
+    this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
+      page: this.currentPage,
+      offset: this.pageSize,
+      sortBy: this.sortBy,
+      sortOrder: this.sortOrder,
+    }).subscribe({
+      next: (response: CandidateEvaluationResponse) => {
+        this.applyApplicationListResponse(response);
+        this.activeAISearchSessionId = response.sessionId || this.activeAISearchSessionId;
+        this.hasSearchResults = response.meta.total > 0;
+        this.tableLoading = false;
+        this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
+      },
+      error: (err) => {
+        console.error('AI evaluation error:', err);
+        this.tableLoading = false;
+        if (restoreFallback && err.status === 404) {
+          localStorage.removeItem('aiSearchSessionId');
+          this.resetActiveAISearch();
+          this.getApplications();
+        }
+      },
     });
+  }
+
+  private resetActiveAISearch(): void {
+    this.activeAISearchSessionId = '';
+  }
+
+  private setDisplayedCandidates(candidates: any[]): void {
+    this.rows = candidates;
+    this.currentPage = 1;
+    this.expandedElement = null;
+    this.selection.clear();
+  }
+
+  private saveAISearchState(sessionId: string, filters: CandidateEvaluationFilters) {
+    localStorage.setItem('aiFilters', JSON.stringify(filters));
+    if (sessionId) {
+      localStorage.setItem('aiSearchSessionId', sessionId);
+    } else {
+      localStorage.removeItem('aiSearchSessionId');
+    }
+  }
+
+  private clearAISearchState() {
+    localStorage.removeItem('aiFilters');
+    localStorage.removeItem('aiSearchSessionId');
   }
 
   onRowClick(row: any, event?: MouseEvent) {
