@@ -163,6 +163,30 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     'General Practice'
   ];
 
+  @ViewChild('selectHeaderTemplate')
+  selectHeaderTemplate!: TemplateRef<any>;
+  @ViewChild('selectCellTemplate')
+  selectCellTemplate!: TemplateRef<any>;
+  @ViewChild('expandCellTemplate')
+  expandCellTemplate!: TemplateRef<any>;
+  @ViewChild('actionsCellTemplate')
+  actionsCellTemplate!: TemplateRef<any>;
+  @ViewChild('expandedDetailTemplate')
+  expandedDetailTemplate!: TemplateRef<any>;
+
+  displayedColumns: string[] = [
+    'select',
+    'name',
+    'personality profile',
+    'position',
+    'experience',    
+    'trainings',
+    'actions',
+  ];
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  activeSortBy: string = '';
+  activeSortOrder: 'asc' | 'desc' = 'asc';
+
   formatEnglishLevelDisplay(value: number): string {
     return formatEnglishLevelDisplay(value);
   }
@@ -340,40 +364,40 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getApplications() {
-    this.applicationsService.get().subscribe({
-      next: (applications: any[]) => {
-        const sortedApplications = applications
-          .map((a: any) => ({ ...a }))
-          .sort((a, b) => {
-            const aMatch = a.overall_match_percentage || a.match_percentage || 0;
-            const bMatch = b.overall_match_percentage || b.match_percentage || 0;
-            return bMatch - aMatch;
-          });
+    this.tableLoading = true;
 
-        this.allCandidates = sortedApplications;
-        this.dataSource = new MatTableDataSource(this.allCandidates);
-        // this.getAllMatchScores(); TODO: UNCOMMENT THIS LATER
+    if (!this.hasRestoredStoredSearch) {
+      const stored = this.loadAISearchState();
+      if (stored?.filters) {
+        if (stored.filters.selectedRole !== undefined) this.selectedRole = stored.filters.selectedRole;
+        if (stored.filters.selectedPracticeArea !== undefined) this.selectedPracticeArea = stored.filters.selectedPracticeArea;
+        if (stored.filters.roleDescription !== undefined) this.roleDescription = stored.filters.roleDescription;
+        if (stored.filters.query !== undefined) this.query = stored.filters.query;
+      }
+      if (stored?.sessionId) this.activeAISearchSessionId = stored.sessionId;
+      this.hasRestoredStoredSearch = true;
+    }
 
-        const stored = this.loadAISearchState();
+    if (this.activeAISearchSessionId) {
+      this.fetchAICandidates(true);
+      return;
+    }
 
-        if (stored && stored.ids.length > 0 && this.allCandidates.length > 0) {
-          if (stored.filters.selectedRole !== undefined) this.selectedRole = stored.filters.selectedRole;
-          if (stored.filters.selectedPracticeArea !== undefined) this.selectedPracticeArea = stored.filters.selectedPracticeArea;
-          if (stored.filters.budgetRange) this.budgetRange = stored.filters.budgetRange;
-          if (stored.filters.isMonthlyRate !== undefined) this.isMonthlyRate = stored.filters.isMonthlyRate;
-          if (stored.filters.roleDescription !== undefined) this.roleDescription = stored.filters.roleDescription;
-          if (stored.filters.query !== undefined) this.query = stored.filters.query;
-
-          const orderedCandidates = stored.ids
-            .map((id: string | number) => this.allCandidates.find(c => c.id === id))
-            .filter(Boolean);
-
-          if (orderedCandidates.length > 0) {
-            this.dataSource.data = orderedCandidates;
-            this.hasSearchResults = true;
-            this.aiAnswer = '';
-          }
-        }
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
+      search: '',
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.resetActiveAISearch();
+        this.allCandidates = response.items;
+        this.applyApplicationListResponse(response);
+        this.hasSearchResults = false;
+        this.aiAnswer = '';
+        this.tableLoading = false;
+        this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -610,6 +634,76 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.onRowSelectionChange();
   }
 
+  onExpandToggle(row: any, event: MouseEvent): void {
+    event.stopPropagation();
+    this.expandedElement = this.expandedElement === row ? null : row;
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.expandedElement = null;
+    if (this.isAISearchActive()) {
+      this.fetchAICandidates();
+      return;
+    }
+    this.getApplications();
+  }
+
+  handleSortChange(event: DynamicTableSortChange): void {
+    this.sortBy = event.sortBy;
+    this.sortOrder = event.sortOrder;
+    this.currentPage = event.page;
+    this.pageSize = event.pageSize;
+    this.expandedElement = null;
+    if (this.isAISearchActive()) {
+      this.fetchAICandidates();
+      return;
+    }
+    this.getApplications();
+  }
+
+  handleTableRowAction(event: DynamicTableRowActionEvent<any>): void {
+    switch (event.action.id) {
+      case 'download-resume':
+        this.downloadFile(event.row.resume_url, event.row.name, event.row.id);
+        break;
+      case 'not-interested':
+        this.deleteApplication(event.row.id);
+        break;
+      case 'interested':
+        this.markInterested(event.row);
+        break;
+      default:
+        break;
+    }
+  }
+
+  markInterested(candidate: any): void {
+    if (!(this.selectedRole && this.selectedPracticeArea)) {
+      this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
+      return;
+    }
+
+    const userId = Number(localStorage.getItem('id')) || 0;
+    const candidateId = candidate.id;
+    const candidatePosition = this.selectedRole;
+    const candidateArea = this.selectedPracticeArea;
+
+    this.notificationsService.markInterested(userId, candidateId, candidatePosition, candidateArea)
+      .subscribe({
+        next: (data: any) => {
+          if (data.success) {
+            this.snackBar.open('Your interest has been recorded, and the HR team has been alerted.', 'Close', { duration: 2000 });
+          } else {
+            this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+        }
+      });
+  }
+
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate([`apps/talent-match/${id}`]);
@@ -619,62 +713,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.router.navigate([`apps/talent-match/custom-search`]);
   }
 
-  convertToMonthly(value: number): number {
-    return value * 160;
-  }
-
-  convertToHourly(value: number): number {
-    return value / 160;
-  }
-
-  toggleRateType() {
-    this.isMonthlyRate = !this.isMonthlyRate;
-    if (this.isMonthlyRate) {
-      const min = this.originalBudgetRange.min * 160;
-      const max = this.originalBudgetRange.max * 160;
-      this.budgetOptions = {
-        ...this.budgetOptions,
-        floor: this.budgetMin * 160,
-        ceil: this.budgetMax * 160,
-        translate: (value: number): string => `$${value}`
-      };
-      this.budgetRange = { min, max };
-    } else {
-      const min = this.originalBudgetRange.min;
-      const max = this.originalBudgetRange.max;
-      this.budgetOptions = {
-        ...this.budgetOptions,
-        floor: this.budgetMin,
-        ceil: this.budgetMax,
-        translate: (value: number): string => `$${value}/hr`
-      };
-      this.budgetRange = { min, max };
-    }
-  }
-
-  onPresetClick(preset: any) {
-    if (this.isMonthlyRate) {
-      this.budgetRange.min = preset.min * 160;
-      this.budgetRange.max = preset.max * 160;
-    } else {
-      this.budgetRange.min = preset.min;
-      this.budgetRange.max = preset.max;
-    }
-    this.originalBudgetRange = { min: preset.min, max: preset.max };
-  }
-
-  onBudgetChange(event: any) {
-    this.budgetRange = event;
-    if (!this.isMonthlyRate) {
-      this.originalBudgetRange = { ...this.budgetRange };
-    } else {
-      this.originalBudgetRange = {
-        min: this.budgetRange.min / 160,
-        max: this.budgetRange.max / 160
-      };
-    }
-  }
-  
   get canSearchAI(): boolean {
     const hasRequiredFilters =
       !!this.selectedRole &&
@@ -751,5 +789,204 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   hasDescription(element: any): boolean {
     return !!element?.description && element.description.trim() !== '';
+  }
+
+  private buildApplicationsSearchTerm(): string {
+    const terms = [
+      this.query,
+      this.selectedRole,
+      this.selectedPracticeArea,
+      this.roleDescription,
+    ]
+      .map((value) => String(value || '').trim())
+      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
+
+    return terms.join(' ');
+  }
+
+  private buildAISearchFilters(): CandidateEvaluationFilters {
+    return {
+      selectedRole: this.selectedRole,
+      selectedPracticeArea: this.selectedPracticeArea,
+      roleDescription: this.roleDescription,
+      query: this.query,
+    };
+  }
+
+  private applyApplicationListResponse(response: ApplicationListResponse): void {
+    this.dataSource.data = response.items;
+    this.rows = response.items;
+    this.totalPages = response.meta.totalPages;
+    this.currentPage = response.meta.currentPage;
+    this.pageSize = response.meta.limit;
+    this.sortBy = response.meta.sortBy;
+    this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
+    this.backendMessage = response.message || '';
+    this.expandedElement = null;
+    this.refreshTableColumns();
+  }
+
+  private fetchAICandidates(restoreFallback = false): void {
+    if (!this.activeAISearchSessionId) {
+      this.getApplications();
+      return;
+    }
+
+    this.tableLoading = true;
+    this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
+      page: 1,
+      offset: 1000,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
+    }).subscribe({
+      next: (response: CandidateEvaluationResponse) => {
+        this.applyApplicationListResponse(response);
+        this.activeAISearchSessionId = response.sessionId || this.activeAISearchSessionId;
+        this.hasSearchResults = response.meta.total > 0;
+        this.tableLoading = false;
+        this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
+      },
+      error: (err) => {
+        console.error('AI evaluation error:', err);
+        this.tableLoading = false;
+        if (restoreFallback && err.status === 404) {
+          localStorage.removeItem('aiSearchSessionId');
+          this.resetActiveAISearch();
+          this.getApplications();
+        }
+      },
+    });
+  }
+
+  private resetActiveAISearch(): void {
+    this.activeAISearchSessionId = '';
+  }
+
+  private isAISearchActive(): boolean {
+    return this.activeAISearchSessionId.length > 0;
+  }
+
+  private setDisplayedCandidates(candidates: any[]): void {
+    this.dataSource.data = candidates;
+    this.rows = candidates;
+    this.currentPage = 1;
+    this.expandedElement = null;
+    this.updateVisibleRows();
+  }
+
+  private updateVisibleRows(): void {
+    const totalRows = this.dataSource.data.length;
+    this.totalPages = Math.max(1, Math.ceil(totalRows / this.pageSize));
+    this.currentPage = Math.min(this.currentPage, this.totalPages);
+
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedRows = [...this.dataSource.data.slice(startIndex, endIndex)];
+    this.rows = [...this.paginatedRows];
+  }
+
+  private refreshTableColumns(): void {
+    if (
+      !this.selectHeaderTemplate ||
+      !this.selectCellTemplate ||
+      !this.actionsCellTemplate ||
+      !this.expandCellTemplate ||
+      !this.expandedDetailTemplate
+    ) {
+      return;
+    }
+
+    this.initializeColumns();
+  }
+
+  private initializeColumns(): void {
+    this.tableColumns = [
+      {
+        id: 'select',
+        header: '',
+        headerTemplate: this.selectHeaderTemplate,
+        cellTemplate: this.selectCellTemplate,
+      },
+      {
+        id: 'name',
+        header: 'Name',
+        sortable: true,
+        sortKey: 'name',
+        accessor: 'name',
+        renderer: {
+          type: 'avatar-name',
+          imageAccessor: (row) => row.profile_pic_url || this.assetsPath,
+          imageFallback: this.assetsPath,
+          titleAccessor: 'name',
+          titleTransform: (value) => new FormatNamePipe().transform(value),
+          subtitleAccessor: 'current_position',
+          badges: {
+            accessor: (row) => row.disc_profiles || [],
+            labelAccessor: (profile) => profile?.name || '',
+            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
+          },
+        },
+      },
+      {
+        id: 'personalityProfile',
+        header: 'Personality profile',
+        sortable: true,
+        sortKey: 'match_percentage',
+        accessor: 'match_percentage',
+        renderer: {
+          type: 'metric',
+          primaryAccessor: (row) => row.match_percentage || '0',
+          primarySuffix: '%',
+          secondaryAccessor: 'position_category',
+        },
+      },
+      {
+        id: 'position',
+        header: 'Position',
+        sortable: true,
+        sortKey: 'position',
+        accessor: (row) => this.getPositionTitle(row.position_id),
+        renderer: {
+          type: 'text-badges',
+          textAccessor: (row) => this.getPositionTitle(row.position_id),
+          badges: {
+            accessor: (row) => this.getPositionById(row.position_id)?.disc_profiles || [],
+            labelAccessor: (profile) => profile?.name || '',
+            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
+          },
+        },
+      },
+      {
+        id: 'experience',
+        header: 'Experience',
+        sortable: true,
+        sortKey: 'experience',
+        accessor: (row) => row.work_experience_summary || row.work_experience,
+        renderer: {
+          type: 'truncated-text',
+          textAccessor: 'work_experience_summary',
+          fallbackAccessor: 'work_experience',
+          maxLength: 50,
+        },
+      },
+      {
+        id: 'trainings',
+        header: 'Trainings',
+        sortable: true,
+        sortKey: 'trainings',
+        accessor: (row) => this.getTrainingNames(row.certifications),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        headerClass: 'f-w-600 f-s-14',
+        cellTemplate: this.actionsCellTemplate,
+      },
+      {
+        id: 'expand',
+        header: '',
+        cellTemplate: this.expandCellTemplate,
+      },
+    ];
   }
 }
