@@ -291,8 +291,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.applicationsService.get({
       page: 1,
       offset: 1000,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -745,8 +745,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
       page: 1,
       offset: 1000,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
+      sortBy: this.activeSortBy || this.sortBy,
+      sortOrder: this.activeSortOrder || this.sortOrder,
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
