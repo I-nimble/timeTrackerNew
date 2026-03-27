@@ -3,30 +3,152 @@
     <mat-card
       class="mat-card-top cardWithShadow position-relative overflow-hidden p-16"
     >
-      <!-- output view -->
-      <h4 Ctitle>
-        Talent match
-        <span class="f-s-14 f-w-400 d-block"
-          >select one or more candidate to schedule an interview</span
-        >
-      </h4>
+      <div class="d-flex row justify-content-between p-16">
+        <div>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="goToCustomSearch()"
+          >
+            Custom Search
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-center align-items-center m-t-8">
+        <img
+          src="assets/images/talent-match.png"
+          alt="Talent Match Logo"
+          height="60"
+        />
+      </div>
+
+      <div class="p-16">
+        <h4 class="f-w-700 m-b-16">Main Filters</h4>
+        <div class="row m-t-10">
+          <div class="col-lg-6">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role *</mat-label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select
+                [(ngModel)]="selectedRole"
+                name="selectedRole"
+                #roleModel="ngModel"
+                required
+              >
+                <mat-option
+                  *ngFor="let position of positions"
+                  [value]="position.title"
+                >
+                  <span class="d-flex align-items-center">
+                    <span>{{ position.title }}</span>
+                    <span
+                      class="disc-badges m-l-8"
+                      *ngIf="position.disc_profiles?.length"
+                    >
+                      (
+                      <span
+                        *ngFor="let profile of position.disc_profiles"
+                        class="disc-badge-small"
+                        [style.background-color]="
+                          getDiscProfileColor(profile.name)
+                        "
+                        [title]="profile.name"
+                      >
+                        {{ profile.name.charAt(0) }}
+                      </span>
+                      )
+                    </span>
+                  </span>
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="roleModel.invalid && roleModel.touched">
+                Role is required.
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="col-lg-6">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
+              >Practice Area *</mat-label
+            >
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select
+                [(ngModel)]="selectedPracticeArea"
+                name="selectedPracticeArea"
+                #practiceAreaModel="ngModel"
+                required
+              >
+                <mat-option *ngFor="let area of practiceAreas" [value]="area">
+                  {{ area }}
+                </mat-option>
+              </mat-select>
+              <mat-error
+                *ngIf="practiceAreaModel.invalid && practiceAreaModel.touched"
+              >
+                Practice Area is required.
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+        <div>
+          <h4 class="f-w-700 m-b-16 m-t-16">
+            Use AI to better describe the position
+          </h4>
+          <mat-form-field appearance="outline" class="w-100">
+            <textarea
+              matInput
+              rows="4"
+              placeholder="Tell us more about what you need for this role."
+              [(ngModel)]="roleDescription"
+              name="roleDescription"
+              #roleDescModel="ngModel"
+              maxlength="200"
+            ></textarea>
+            <mat-hint align="end"
+              >{{ roleDescription.length || 0 }}/200</mat-hint
+            >
+            <mat-error *ngIf="roleDescModel.errors?.['maxlength']">
+              Maximum 200 characters allowed.
+            </mat-error>
+          </mat-form-field>
+          <div
+            class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16"
+          >
+            <app-match
+              appearance="outline"
+              class="flex-grow-1 hide-hint m-b-0"
+              style="max-width: max-content"
+              [loading]="aiLoading"
+              [aiEnabled]="!useManualSearch"
+              [canSearch]="canSearchAI"
+              [showCustomSearch]="!showCustomFilterInput"
+              (askAI)="searchCandidatesWithAI($event)"
+              (searchChange)="useManualSearch ? onManualSearch($event) : null"
+              (searchRequest)="useManualSearch ? onManualSearch($event) : null"
+            >
+            </app-match>
+          </div>
+        </div>
+      </div>
 
       <div output>
-        <div class="d-flex align-items-center gap-2 m-b-16 m-t-16">
-          <mat-form-field
-            appearance="outline"
-            class="flex-grow-1 hide-hint m-b-0"
-          >
-            <input
-              matInput
-              type="text"
-              placeholder="Search Candidate"
-              (keyup)="applyFilter($event)"
-            />
-            <mat-icon matSuffix>
-              <i-tabler name="search" class="icon-20 d-flex m-t-2"></i-tabler>
-            </mat-icon>
-          </mat-form-field>
+        <div *ngIf="aiLoading || aiAnswer" class="mt-16">
+          <mat-card color="accent" class="p-16">
+            <div>
+              <ng-container *ngIf="aiLoading; else showTalentAnswer">
+                <div class="d-flex align-items-center gap-8">
+                  <img
+                    src="assets/icons/ai-loader.gif"
+                    alt="AI loading"
+                    style="width: 80px; height: 80px"
+                  />
+                  <span>Matching with the ideal candidate...</span>
+                </div>
+              </ng-container>
+              <ng-template #showTalentAnswer>
+                <div [innerHTML]="aiAnswer || '' | markdown | linebreak"></div>
+              </ng-template>
+            </div>
+          </mat-card>
         </div>
         <div class="table-responsive">
           <table mat-table [dataSource]="dataSource" class="w-100">
