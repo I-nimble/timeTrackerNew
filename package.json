@@ -40,6 +40,7 @@
     "@kolkov/angular-editor": "^2.1.0",
     "@ng-matero/extensions": "^17.0.0",
     "@ngrx/signals": "^17.2.0",
+    "@ngrx/store": "^19.0.0",
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
     "@stripe/stripe-js": "^7.5.0",
