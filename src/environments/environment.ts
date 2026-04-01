@@ -1,5 +1,15 @@
 export const environment = {
   production: false,
+  featureFlags: {
+    notificationsRefactor: false,
+    intakeRefactor: false,
+    dashboardRefactor: false,
+    billingRefactor: false,
+    workforceRefactor: false,
+    timeTrackingRefactor: false,
+    talentMatchRefactor: false,
+    authenticationRefactor: false,
+  },
   apiUrl: 'http://localhost:3000/api',
   socket: 'http://localhost:3000',
   url: 'https://localhost:4200/',

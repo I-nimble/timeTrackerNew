@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { NotificationsService } from '../../../services/notifications.service';
 import { Router, RouterModule } from '@angular/router';
@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { WebSocketService } from '../../../services/socket/web-socket.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { EventsService } from 'src/app/services/events.service';
+import { EventsService } from '@app/services/events.service';
 import { trigger, style, animate, transition } from '@angular/animations';
 import { ModalComponent } from '../../confirmation-modal/modal.component';
 import { MatSnackBar } from '@angular/material/snack-bar';

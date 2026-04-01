@@ -1,5 +1,15 @@
 export const environment = {
   production: true,
+  featureFlags: {
+    notificationsRefactor: false,
+    intakeRefactor: false,
+    dashboardRefactor: false,
+    billingRefactor: false,
+    workforceRefactor: false,
+    timeTrackingRefactor: false,
+    talentMatchRefactor: false,
+    authenticationRefactor: false,
+  },
   apiUrl: 'https://inimbleapp.com/api',
   socket: 'https://inimbleapp.com',
   url: 'https://inimbleapp.com/',

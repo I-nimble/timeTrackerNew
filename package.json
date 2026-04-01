@@ -9,7 +9,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "refactor:check-legacy": "powershell -ExecutionPolicy Bypass -File ./tools/refactor/check-legacy-imports.ps1"
   },
   "private": true,
   "dependencies": {

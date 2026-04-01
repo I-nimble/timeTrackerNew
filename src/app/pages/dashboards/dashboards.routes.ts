@@ -5,8 +5,8 @@ import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';
-import { NotificationsComponent } from './notifications/notifications.component';
 import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
+import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
 
 import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
@@ -67,7 +67,7 @@ export const DashboardsRoutes: Routes = [
       },
       {
         path: 'notifications',
-        component: NotificationsComponent,
+        component: NotificationsPageComponent,
         data: {
           title: 'Notifications',
           allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE]

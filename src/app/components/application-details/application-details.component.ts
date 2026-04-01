@@ -1,4 +1,4 @@
-import { Component, Inject, inject, SecurityContext } from '@angular/core';
+﻿import { Component, Inject, inject, SecurityContext } from '@angular/core';
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { NotificationsService } from 'src/app/services/notifications.service';
 import {
@@ -50,3 +50,4 @@ export class ApplicationDetails {
     });
   }
 }
+
