@@ -120,6 +120,9 @@ export class AppEditInvoiceComponent {
       entry_hours: 0,
       task: { description: '' },
       employee_id: item.employee_id,
+      user_id: item.user_id || item.entries?.[0]?.user_id || null,
+      company_id: this.editModel()?.user?.company?.id || null,
+      status: 1,
     };
     item.entries.push(newEntry);
     this.markEntryAsChanged(newEntry);
@@ -147,6 +150,8 @@ export class AppEditInvoiceComponent {
     this.invoiceService.getInvoiceDetail(this.id()).subscribe({
       next: (data) => {
         this.originalData = data;
+
+        this.ensureInvoiceItemOwnership(data.invoiceItems || []);
 
         this.editModel.set({
           id: data.id,
@@ -227,6 +232,7 @@ export class AppEditInvoiceComponent {
       .subscribe({
         next: (data) => {
           this.originalData = data;
+          this.ensureInvoiceItemOwnership(data.invoiceItems || []);
           this.editModel.set(data);
           this.changedEntries.clear();
           this.changedFlatFees.clear();
@@ -249,7 +255,45 @@ export class AppEditInvoiceComponent {
   }
 
   private markEntryAsChanged(entry: any): void {
+    if (!entry.user_id && entry.employee_id) {
+      const parent = this.editModel()?.invoiceItems?.find((item: any) =>
+        item.employee_id === entry.employee_id
+      );
+      if (parent?.user_id) {
+        entry.user_id = parent.user_id;
+      }
+    }
+    if (!entry.company_id) {
+      entry.company_id = this.editModel()?.user?.company?.id || null;
+    }
+    if (!entry.status) {
+      entry.status = 1;
+    }
     this.changedEntries.add(entry);
+  }
+
+  private ensureInvoiceItemOwnership(items: any[]): void {
+    items.forEach((item: any) => {
+      const fallbackUserId = item.user_id || item.entries?.[0]?.user_id || null;
+      if (!item.user_id) {
+        item.user_id = fallbackUserId;
+      }
+
+      (item.entries || []).forEach((entry: any) => {
+        if (!entry.employee_id && item.employee_id) {
+          entry.employee_id = item.employee_id;
+        }
+        if (!entry.user_id && fallbackUserId) {
+          entry.user_id = fallbackUserId;
+        }
+        if (!entry.company_id) {
+          entry.company_id = this.editModel()?.user?.company?.id || null;
+        }
+        if (!entry.status) {
+          entry.status = 1;
+        }
+      });
+    });
   }
 
   private markHourlyRateAsChanged(item: any): void {
