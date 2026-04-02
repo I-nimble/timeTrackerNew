@@ -99,7 +99,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
 
   private initInvoiceColumns(): void {
-    if (this.role === '3') {
+    if (this.role === '3' && !this.allowedPaymentsManage) {
       this.displayedColumns = [
         'paymentDate',
         'amount',
