@@ -11,6 +11,16 @@ export class InvoiceService {
   private apiUrl = environment.apiUrl;
   constructor(private http: HttpClient) { }
 
+  private toIsoDateOnly(value: string | Date): string | null {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) return null;
+    const year = parsed.getFullYear();
+    const month = (parsed.getMonth() + 1).toString().padStart(2, '0');
+    const day = parsed.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   getInvoiceFile(id: number, format: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`, {
       useTimezone: true,
@@ -34,10 +44,12 @@ export class InvoiceService {
   getInvoiceDetail(id: number, start?: string | Date, end?: string | Date): Observable<any> {
     let params: any = {};
     if (start) {
-      params.start = new Date(start).toISOString();
+      const startDate = this.toIsoDateOnly(start);
+      if (startDate) params.start = startDate;
     }
     if (end) {
-      params.end = new Date(end).toISOString();
+      const endDate = this.toIsoDateOnly(end);
+      if (endDate) params.end = endDate;
     }
     return this.http.get(`${this.apiUrl}/stripe/invoice/${id}`, { params });
   }

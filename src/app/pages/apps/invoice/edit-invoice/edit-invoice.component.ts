@@ -65,6 +65,22 @@ export class AppEditInvoiceComponent {
     return item.id;
   }
 
+  private normalizeDateForPicker(value: string | Date | null | undefined): Date | null {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) return null;
+
+    return new Date(
+      parsed.getUTCFullYear(),
+      parsed.getUTCMonth(),
+      parsed.getUTCDate(),
+      12,
+      0,
+      0,
+      0
+    );
+  }
+
   constructor(
     private activatedRouter: ActivatedRoute,
     private invoiceService: InvoiceService,
@@ -151,6 +167,9 @@ export class AppEditInvoiceComponent {
       next: (data) => {
         this.originalData = data;
 
+        const normalizedBillingStart = this.normalizeDateForPicker(data.billing_period_start);
+        const normalizedBillingEnd = this.normalizeDateForPicker(data.billing_period_end);
+
         this.ensureInvoiceItemOwnership(data.invoiceItems || []);
 
         this.editModel.set({
@@ -163,8 +182,8 @@ export class AppEditInvoiceComponent {
           invoice_number: data.invoice_number,
           terms: data.terms,
           created_at: data.created_at,
-          billing_period_start: data.billing_period_start,
-          billing_period_end: data.billing_period_end,
+          billing_period_start: normalizedBillingStart,
+          billing_period_end: normalizedBillingEnd,
           inimble_supervisor: data.inimble_supervisor || this.inimbleSupervisor(),
           direct_supervisor: data.direct_supervisor || data?.user?.name + " " + data?.user?.last_name,
           invoiceItems: data.invoiceItems,
@@ -183,8 +202,8 @@ export class AppEditInvoiceComponent {
           project_title: data.project_title,
           invoice_number: data.invoice_number,
           terms: data.terms,
-          billing_period_start: data.billing_period_start,
-          billing_period_end: data.billing_period_end,
+          billing_period_start: normalizedBillingStart,
+          billing_period_end: normalizedBillingEnd,
         });
 
         const itemsArray = this.invoiceForm.get('invoiceItems') as FormArray;
@@ -233,7 +252,11 @@ export class AppEditInvoiceComponent {
         next: (data) => {
           this.originalData = data;
           this.ensureInvoiceItemOwnership(data.invoiceItems || []);
-          this.editModel.set(data);
+          this.editModel.set({
+            ...data,
+            billing_period_start: this.normalizeDateForPicker(data.billing_period_start),
+            billing_period_end: this.normalizeDateForPicker(data.billing_period_end),
+          });
           this.changedEntries.clear();
           this.changedFlatFees.clear();
           this.changedHourlyRates.clear();
