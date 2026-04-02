@@ -15,9 +15,9 @@ export class InvoiceService {
     if (!value) return null;
     const parsed = new Date(value);
     if (isNaN(parsed.getTime())) return null;
-    const year = parsed.getUTCFullYear();
-    const month = (parsed.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = parsed.getUTCDate().toString().padStart(2, '0');
+    const year = parsed.getFullYear();
+    const month = (parsed.getMonth() + 1).toString().padStart(2, '0');
+    const day = parsed.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
