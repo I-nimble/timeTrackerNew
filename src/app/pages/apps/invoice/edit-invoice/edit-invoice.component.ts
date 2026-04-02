@@ -70,7 +70,6 @@ export class AppEditInvoiceComponent {
     const parsed = new Date(value);
     if (isNaN(parsed.getTime())) return null;
 
-    // Keep the UTC calendar day stable when rendering in local timezone/date pickers.
     return new Date(
       parsed.getUTCFullYear(),
       parsed.getUTCMonth(),
