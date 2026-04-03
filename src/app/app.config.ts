@@ -23,14 +23,11 @@ import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
 import { JwtInterceptor } from './services/jwt.interceptor';
 
-import { ToastrModule } from 'ngx-toastr';
 import { provideToastr } from 'ngx-toastr';
 
 // icons
 import { TablerIconsModule } from 'angular-tabler-icons';
 import * as TablerIcons from 'angular-tabler-icons/icons';
-import { FeatherModule } from 'angular-feather';
-import { allIcons } from 'angular-feather/icons';
 
 // perfect scrollbar
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -50,6 +47,7 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { environment } from '../environments/environment';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { provideStore } from '@ngrx/store';
 
 export function HttpLoaderFactory(http: HttpClient): any {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -89,23 +87,21 @@ export const appConfig: ApplicationConfig = {
       }),
       withComponentInputBinding()
     ),
+    provideStore(),
     provideHttpClient(
       withInterceptors([JwtInterceptor])
     ),
     ...dialogProviders,
     provideClientHydration(),
-    provideAnimationsAsync(),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     importProvidersFrom(
       FormsModule,
-      ToastrModule.forRoot(),
       ReactiveFormsModule,
       MaterialModule,
       TourMatMenuModule,
       NgxPermissionsModule.forRoot(),
       TablerIconsModule.pick(TablerIcons),
-      FeatherModule.pick(allIcons),
       NgScrollbarModule,
       CalendarModule.forRoot({
         provide: DateAdapter,
