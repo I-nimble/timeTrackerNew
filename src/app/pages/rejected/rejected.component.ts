@@ -178,8 +178,15 @@ export class RejectedComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((applications: any[]) => {
-      this.rejectedCandidates = applications.filter(a => a.status === 'rejected' || a.status === 6);
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      status: 'rejected',
+    }).subscribe((response: ApplicationListResponse) => {
+      const applications: Application[] = response.items || [];
+      this.rejectedCandidates = applications.filter(
+        (a) => a.status === 'rejected' || a.status_id === 6
+      );
       this.applyFilters();
     });
   }

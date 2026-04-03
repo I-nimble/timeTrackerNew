@@ -48,7 +48,7 @@ export class AppTalentMatchComponent {
   }
 
   private loadApplication(userId: number): void {
-    this.applicationsService.getUserApplication(userId).subscribe({
+    this.applicationsService.getUserApplication(userId, { status: 'active' }).subscribe({
       next: (application) => {
         this.hasAvailableApplication = !!application?.inmediate_availability;
       },

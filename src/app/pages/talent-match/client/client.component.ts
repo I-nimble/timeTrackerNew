@@ -293,6 +293,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       offset: 1000,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
+      status: 'active',
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
