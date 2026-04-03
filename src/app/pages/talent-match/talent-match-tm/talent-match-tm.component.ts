@@ -99,7 +99,7 @@ export class AppTalentMatchTmComponent implements OnInit {
 
 	filterPositionsByCurrentPosition(): void {
 		const userId = Number(localStorage.getItem('id'));
-		this.applicationsService.getUserApplication(userId).subscribe({
+		this.applicationsService.getUserApplication(userId, { status: 'active' }).subscribe({
 			next: (application: any) => {
 				if (!application) {
 					console.warn('No application found for user');

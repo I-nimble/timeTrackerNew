@@ -252,18 +252,37 @@ export class CandidatesComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((response: ApplicationListResponse) => {
-      const applications = response.items || [];
-      const visibleApplications = applications.filter(
-        (application: any) => application.status !== 'rejected'
-      );
-      this.pendingCandidates.set(visibleApplications.filter((a: any) => a.status === 'pending'));
-      this.reviewingCandidates.set(visibleApplications.filter((a: any) => a.status === 'reviewing'));
-      this.talentMatchCandidates.set(visibleApplications.filter((a: any) => a.status === 'talent match'));
+    const baseQuery = {
+      page: 1,
+      offset: 1000,
+    } as const;
 
-      this.candidatesList = new MatTableDataSource(visibleApplications);
+    forkJoin({
+      pending: this.applicationsService.get({ ...baseQuery, status: 1 }),
+      reviewing: this.applicationsService.get({ ...baseQuery, status: 2 }),
+      talentMatch: this.applicationsService.get({ ...baseQuery, status: 3 }),
+    }).subscribe(({ pending, reviewing, talentMatch }) => {
+      const pendingItems = pending.items || [];
+      const reviewingItems = reviewing.items || [];
+      const talentMatchItems = talentMatch.items || [];
+
+      this.pendingCandidates.set(pendingItems);
+      this.reviewingCandidates.set(reviewingItems);
+      this.talentMatchCandidates.set(talentMatchItems);
+
+      const mergedCandidates = [
+        ...pendingItems,
+        ...reviewingItems,
+        ...talentMatchItems,
+      ];
+      const uniqueCandidates = Array.from(
+        new Map(mergedCandidates.map((candidate: any) => [candidate.id, candidate])).values(),
+      );
+
+      this.candidatesList.data = uniqueCandidates;
       this.candidatesList.paginator = this.paginator;
       this.candidatesList.sort = this.sort;
+      this.filterCandidates();
     });
   }
 

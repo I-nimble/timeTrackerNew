@@ -3,6 +3,19 @@ import { DiscProfile } from './disc-profile.model';
 
 export type ApplicationPendingUpdateStatus = 'pending' | 'approved' | 'rejected';
 export type ApplicationSortOrder = 'asc' | 'desc' | 'ASC' | 'DESC';
+export interface ApplicationStatusFilter {
+	id: number;
+	status: string;
+}
+
+export type ApplicationStatusId = number;
+export type ApplicationStatusName = string;
+export type ApplicationStatusFilterValue =
+	| ApplicationStatusId
+	| `${ApplicationStatusId}`
+	| ApplicationStatusName
+	| 'active'
+	| 'all';
 
 export interface ApplicationListParams {
 	page?: number;
@@ -10,6 +23,7 @@ export interface ApplicationListParams {
 	offset?: number;
 	sortBy?: string;
 	sortOrder?: ApplicationSortOrder;
+	status?: ApplicationStatusFilterValue;
 	search?: string;
 	onlyTalentPool?: boolean;
 }
