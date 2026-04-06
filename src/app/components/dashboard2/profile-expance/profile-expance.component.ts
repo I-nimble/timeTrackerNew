@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+﻿import { Component, ViewChild, OnInit } from '@angular/core';
 import {
   ApexChart,
   ChartComponent,
@@ -17,12 +17,12 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { UsersService } from 'src/app/services/users.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { UsersService } from '@app/services/users.service';
+import { EmployeesService } from '@app/services/employees.service';
+import { RatingsService } from '@app/services/ratings.service';
+import { RatingsEntriesService } from '@app/services/ratings_entries.service';
 import { forkJoin } from 'rxjs';
-import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { BoardsService } from '@app/services/apps/kanban/boards.service';
 import { RouterModule } from '@angular/router';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
@@ -226,7 +226,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
           (total, idx) => total - completedData[idx]
         );
 
-        // Actualizar la gráfica
+        // Actualizar la grÃ¡fica
         this.notCompletedCount = this.totalCount - this.completedCount;
         this.revenuetwoChart.series = [
           {
@@ -358,3 +358,4 @@ export class AppProfileExpanceCpmponent implements OnInit {
     };
   }
 }
+

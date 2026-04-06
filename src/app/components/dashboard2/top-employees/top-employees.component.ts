@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -7,8 +7,8 @@ import { RatingsEntriesService } from '../../../services/ratings_entries.service
 import { UsersService } from '../../../services/users.service';
 import { forkJoin, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
-import { CompaniesService } from 'src/app/services/companies.service';
+import { WebSocketService } from '@app/services/socket/web-socket.service';
+import { CompaniesService } from '@app/services/companies.service';
 import { AppEmployeeTableComponent } from '../../../pages/apps/employee/employee-table/employee-table.component';
 import moment from 'moment';
 

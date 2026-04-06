@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Inject, Output } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule, NgIf } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,10 +16,10 @@ import {
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { CompaniesService } from 'src/app/services/companies.service';
+import { CompaniesService } from '@app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { ReportsService } from 'src/app/services/reports.service';
-import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
+import { ReportsService } from '@app/services/reports.service';
+import { AppEmployeeTableComponent } from '@app/pages/apps/employee/employee-table/employee-table.component';
 
 @Component({
   selector: 'app-productivity-reports',
@@ -186,3 +186,4 @@ export class AppProductivityReportsComponent {
     this.dataSourceChange.emit(this.filteredDataSource);
   }
 }
+

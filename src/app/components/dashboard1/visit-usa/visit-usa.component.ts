@@ -1,6 +1,6 @@
-import { Component, Inject, NgZone, OnInit, PLATFORM_ID, type AfterViewInit, type OnDestroy } from "@angular/core"
+﻿import { Component, Inject, NgZone, OnInit, PLATFORM_ID, type AfterViewInit, type OnDestroy } from "@angular/core"
 import { TablerIconsModule } from "angular-tabler-icons"
-import { MaterialModule } from "src/app/material.module"
+import { MaterialModule } from "@app/material.module"
 import { isPlatformBrowser, NgFor, NgIf } from "@angular/common"
 import moment from 'moment-timezone';
 
@@ -9,8 +9,8 @@ import * as am5 from "@amcharts/amcharts5"
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated"
 import * as am5map from "@amcharts/amcharts5/map"
 import am5geodata_worldLow from "@amcharts/amcharts5-geodata/worldLow"
-import { EmployeesService } from "src/app/services/employees.service"
-import { LocationService } from "src/app/services/location.service"
+import { EmployeesService } from "@app/services/employees.service"
+import { LocationService } from "@app/services/location.service"
 import { TourMatMenuModule } from "ngx-ui-tour-md-menu"
 
 @Component({

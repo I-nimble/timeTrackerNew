@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit } from '@angular/core';
+﻿import { Component, ViewChild, OnInit } from '@angular/core';
 import {
   ApexChart,
   ChartComponent,
@@ -12,13 +12,13 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
-import { EntriesService } from 'src/app/services/entries.service';
+import { CompaniesService } from '@app/services/companies.service';
+import { EmployeesService } from '@app/services/employees.service';
+import { UsersService } from '@app/services/users.service';
+import { EntriesService } from '@app/services/entries.service';
 import { forkJoin, Observable } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
-import { SchedulesService } from 'src/app/services/schedules.service';
+import { SchedulesService } from '@app/services/schedules.service';
 import { DecimalPipe } from '@angular/common';
 
 export interface trafficChart {
@@ -198,3 +198,4 @@ export class AppDailyProductivityComponent implements OnInit {
     };
   }
 }
+

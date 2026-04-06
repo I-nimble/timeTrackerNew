@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { RatingsEntriesService } from '@app/services/ratings_entries.service';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -83,3 +83,4 @@ export class AppTopCardsComponent implements OnInit {
         : 0;
   }
 }
+

@@ -7,7 +7,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { environment } from 'src/environments/environment';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
-import { NotificationsService } from 'src/app/services/notifications.service';
+import { NotificationsService } from '@features/notifications/services/notifications.service';
 import { EntriesService } from 'src/app/services/entries.service';
 
 export interface DashboardItems {

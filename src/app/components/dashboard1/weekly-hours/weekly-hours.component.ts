@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import {
   ApexChart,
   ChartComponent,
@@ -13,12 +13,12 @@ import {
 } from 'ng-apexcharts';
 import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { UsersService } from 'src/app/services/users.service';
-import { EmployeesService } from 'src/app/services/employees.service';
+import { UsersService } from '@app/services/users.service';
+import { EmployeesService } from '@app/services/employees.service';
 import { forkJoin } from 'rxjs';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { ReportsService } from 'src/app/services/reports.service';
-import { EntriesService } from 'src/app/services/entries.service';
+import { SchedulesService } from '@app/services/schedules.service';
+import { ReportsService } from '@app/services/reports.service';
+import { EntriesService } from '@app/services/entries.service';
 import moment from 'moment-timezone';
 
 export interface paymentsChart {
@@ -438,3 +438,4 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     }
   }
 }
+
