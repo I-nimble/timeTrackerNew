@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -41,6 +41,9 @@ export class RejectedComponent {
   role: any = localStorage.getItem('role');
   candidatesList = new MatTableDataSource<any>([]);
 	rejectedCandidates: any[] = [];
+  totalRecords = 0;
+  pageSize = 10;
+  currentPage = 1;
   displayedColumns: string[] = [];
   startDate: Date | null = null;
   endDate: Date | null = null;
@@ -116,7 +119,6 @@ export class RejectedComponent {
   }
 
   ngAfterViewInit(): void {
-    this.candidatesList.paginator = this.paginator;
     this.candidatesList.sort = this.sort;
   }
 	
@@ -179,16 +181,25 @@ export class RejectedComponent {
 
   private loadCandidates(): void {
     this.applicationsService.get({
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       status: 'rejected',
     }).subscribe((response: ApplicationListResponse) => {
       const applications: Application[] = response.items || [];
       this.rejectedCandidates = applications.filter(
         (a) => a.status === 'rejected' || a.status_id === 6
       );
+      this.totalRecords = response.meta.total;
+      this.currentPage = response.meta.currentPage;
+      this.pageSize = response.meta.limit;
       this.applyFilters();
     });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.loadCandidates();
   }
 
 	openRejectDialog(candidate: any): void {

@@ -29,6 +29,7 @@ import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { PageEvent } from '@angular/material/paginator';
 
 @Component({
   standalone: true,
@@ -89,6 +90,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
+  totalRecords = 0;
   backendMessage = '';
   searchTerm = '';
   sortBy = 'match_percentage';
@@ -289,11 +291,11 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }
 
     this.applicationsService.get({
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
-      status: 'active',
+      status: 3,
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -547,8 +549,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.expandedElement = this.expandedElement === row ? null : row;
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
     this.expandedElement = null;
     if (this.isAISearchActive()) {
       this.fetchAICandidates();
@@ -727,6 +730,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private applyApplicationListResponse(response: ApplicationListResponse): void {
     this.dataSource.data = response.items;
     this.rows = response.items;
+    this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
     this.pageSize = response.meta.limit;
@@ -744,8 +748,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
     }).subscribe({

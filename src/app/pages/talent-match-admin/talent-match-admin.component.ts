@@ -28,6 +28,7 @@ import { LinebreakPipe, MarkdownPipe } from 'src/app/pipe/markdown.pipe';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { FormsModule } from '@angular/forms';
+import { PageEvent } from '@angular/material/paginator';
 
 export interface PeriodicElement {
   id: number;
@@ -82,6 +83,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
+  totalRecords = 0;
   backendMessage = '';
   tableLoading = false;
   searchTerm = '';
@@ -199,11 +201,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
     }
 
     this.applicationsService.get({
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
-      status: 'active',
+      status: 3,
       search: '',
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -229,8 +231,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
     this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
     }).subscribe({
@@ -264,6 +266,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   private applyApplicationListResponse(response: ApplicationListResponse): void {
     this.dataSource.data = response.items;
     this.rows = response.items;
+    this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
     this.pageSize = response.meta.limit;
@@ -543,6 +546,17 @@ export class AppTalentMatchAdminComponent implements OnInit {
     const endIndex = startIndex + this.pageSize;
     this.paginatedRows = [...this.dataSource.data.slice(startIndex, endIndex)];
     this.rows = [...this.paginatedRows];
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.expandedElement = null;
+    if (this.isAISearchActive()) {
+      this.fetchAICandidates();
+      return;
+    }
+    this.getApplications();
   }
 
   goToCustomSearch() {
