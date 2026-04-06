@@ -14,7 +14,7 @@
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Pending</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ pendingCandidates().length }} candidates
+            {{ pendingCount }} candidates
           </h5>
         </div>
       </mat-card-content>
@@ -36,7 +36,7 @@
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Reviewing</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ reviewingCandidates().length }} candidates
+            {{ reviewingCount }} candidates
           </h5>
         </div>
       </mat-card-content>
@@ -58,7 +58,7 @@
         <div class="info">
           <h5 class="f-w-400 lh-sm f-s-14">Talent Match</h5>
           <h5 class="f-w-500 lh-sm f-s-14">
-            {{ talentMatchCandidates().length }} candidates
+            {{ talentMatchCount }} candidates
           </h5>
         </div>
       </mat-card-content>
@@ -349,7 +349,11 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
       <mat-paginator
+        [length]="totalRecords"
+        [pageIndex]="currentPage - 1"
+        [pageSize]="pageSize"
         [pageSizeOptions]="[5, 10, 20]"
+        (page)="onPageChange($event)"
         showFirstLastButtons
       ></mat-paginator>
     </div>
