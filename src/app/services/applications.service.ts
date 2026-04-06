@@ -7,6 +7,7 @@ import {
   Application,
   ApplicationListParams,
   ApplicationListResponse,
+  ApplicationStatusFilter,
 } from '../models/application.model';
 
 @Injectable({
@@ -27,8 +28,23 @@ export class ApplicationsService {
 
   private readonly defaultListOffset = 10;
 
-  getUserApplication(id: number): Observable<Application> {
-    return this.http.get<Application>(`${this.API_URI}/applications/user/${id}`);
+  getUserApplication(
+    id: number,
+    params?: { status?: ApplicationListParams['status']; statusId?: number | string },
+  ): Observable<Application> {
+    let httpParams = new HttpParams();
+
+    if (params?.status !== undefined && params.status !== null && params.status !== '') {
+      httpParams = httpParams.set('status', String(params.status));
+    }
+
+    if (params?.statusId !== undefined && params.statusId !== null && params.statusId !== '') {
+      httpParams = httpParams.set('statusId', String(params.statusId));
+    }
+
+    return this.http.get<Application>(`${this.API_URI}/applications/user/${id}`, {
+      params: httpParams,
+    });
   }
   
   getApplication(id: number): Observable<Application> {
@@ -92,6 +108,10 @@ export class ApplicationsService {
 
   public getRankings(): Observable<any[]> {
     return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
+  }
+
+  public getStatuses(): Observable<ApplicationStatusFilter[]> {
+    return this.http.get<ApplicationStatusFilter[]>(`${this.API_URI}/applications/statuses`);
   }
 
   public get(
