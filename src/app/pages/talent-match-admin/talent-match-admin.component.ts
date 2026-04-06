@@ -29,6 +29,8 @@ import { MatchComponent } from 'src/app/components/match-search/match.component'
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { FormsModule } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 export interface PeriodicElement {
   id: number;
@@ -149,6 +151,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   
   
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.getPositions();
     this.getInterviews();
 
@@ -200,14 +203,27 @@ export class AppTalentMatchAdminComponent implements OnInit {
       return;
     }
 
-    this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
-      status: 3,
-      search: '',
-    }).subscribe({
+    this.applicationsService.getStatusIdsByNames(['talent match']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          sortBy: this.sortBy,
+          sortOrder: this.sortOrder,
+          statusIds,
+          search: '',
+        });
+      }),
+    ).subscribe({
       next: (response: ApplicationListResponse) => {
         this.resetActiveAISearch();
         this.allCandidates = response.items;

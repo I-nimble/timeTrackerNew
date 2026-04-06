@@ -30,6 +30,8 @@ import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   standalone: true,
@@ -171,6 +173,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   ) {}
   
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.getApplications();
     this.getPositions();
     this.getCompany();
@@ -290,14 +293,27 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
-      status: 3,
-      search: '',
-    }).subscribe({
+    this.applicationsService.getStatusIdsByNames(['talent match']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          sortBy: this.sortBy,
+          sortOrder: this.sortOrder,
+          statusIds,
+          search: '',
+        });
+      }),
+    ).subscribe({
       next: (response: ApplicationListResponse) => {
         this.resetActiveAISearch();
         this.allCandidates = response.items;

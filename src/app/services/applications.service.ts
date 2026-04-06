@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpEventType, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, forkJoin, of, Subject } from 'rxjs';
-import { switchMap, map, filter } from 'rxjs/operators';
+import { switchMap, map, filter, tap, shareReplay, finalize } from 'rxjs/operators';
 import {
   Application,
   ApplicationListParams,
   ApplicationListResponse,
+  ApplicationSortOrder,
   ApplicationStatusFilter,
 } from '../models/application.model';
 
@@ -16,6 +17,7 @@ import {
 export class ApplicationsService {
   constructor(private http: HttpClient) {}
   API_URI = environment.apiUrl;
+  applicationStatuses: ApplicationStatusFilter[] = [];
   selectedCards: Application[] = [];
   selectedApplicants: Application[] = [];
   resumeUrl: any = null;
@@ -25,12 +27,13 @@ export class ApplicationsService {
 
   private applicationsUpdatedSource = new Subject<any>();
   applicationsUpdated$ = this.applicationsUpdatedSource.asObservable();
+  private applicationStatusesRequest$: Observable<ApplicationStatusFilter[]> | null = null;
 
   private readonly defaultListOffset = 10;
 
   getUserApplication(
     id: number,
-    params?: { status?: ApplicationListParams['status']; statusId?: number | string },
+    params?: { status?: number | string; statusId?: number | string },
   ): Observable<Application> {
     let httpParams = new HttpParams();
 
@@ -112,6 +115,77 @@ export class ApplicationsService {
 
   public getStatuses(): Observable<ApplicationStatusFilter[]> {
     return this.http.get<ApplicationStatusFilter[]>(`${this.API_URI}/applications/statuses`);
+  }
+
+  public loadApplicationStatuses(): Observable<ApplicationStatusFilter[]> {
+    if (this.applicationStatuses.length > 0) {
+      return of(this.applicationStatuses);
+    }
+
+    if (this.applicationStatusesRequest$) {
+      return this.applicationStatusesRequest$;
+    }
+
+    this.applicationStatusesRequest$ = this.getStatuses().pipe(
+      map((statuses) => statuses || []),
+      tap((statuses) => {
+        this.applicationStatuses = statuses;
+      }),
+      shareReplay(1),
+      finalize(() => {
+        this.applicationStatusesRequest$ = null;
+      }),
+    );
+
+    return this.applicationStatusesRequest$;
+  }
+
+  public getStatusIdByName(statusName: string): number | null {
+    const normalizedStatusName = String(statusName || '').trim().toLowerCase();
+    if (!normalizedStatusName) {
+      return null;
+    }
+
+    const foundStatus = this.applicationStatuses.find(
+      (status) => String(status.status || '').trim().toLowerCase() === normalizedStatusName,
+    );
+
+    return foundStatus?.id ?? null;
+  }
+
+  public getStatusIdsByNames(statusNames: string[]): Observable<number[]> {
+    return this.loadApplicationStatuses().pipe(
+      map(() => {
+        const ids: number[] = [];
+        statusNames.forEach((statusName) => {
+          const statusId = this.getStatusIdByName(statusName);
+          if (statusId && !ids.includes(statusId)) {
+            ids.push(statusId);
+          }
+        });
+        return ids;
+      }),
+    );
+  }
+
+  public buildEmptyListResponse(params: {
+    page?: number;
+    offset?: number;
+    sortBy?: string;
+    sortOrder?: ApplicationSortOrder;
+  } = {}): ApplicationListResponse {
+    return {
+      items: [],
+      message: 'No applications found',
+      meta: {
+        total: 0,
+        totalPages: 1,
+        currentPage: Math.max(params.page || 1, 1),
+        limit: params.offset || this.defaultListOffset,
+        sortBy: params.sortBy || 'match_percentage',
+        sortOrder: params.sortOrder || 'asc',
+      },
+    };
   }
 
   public get(
