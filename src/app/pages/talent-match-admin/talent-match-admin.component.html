@@ -706,6 +706,14 @@
               </td>
             </tr>
           </table>
+          <mat-paginator
+            [length]="totalRecords"
+            [pageIndex]="currentPage - 1"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 20]"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+          ></mat-paginator>
         </div>
       </div>
     </mat-card>
