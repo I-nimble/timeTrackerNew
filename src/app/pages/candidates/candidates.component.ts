@@ -24,6 +24,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { ApplicationMatchScoresService } from 'src/app/services/application-match-scores.service';
 import { forkJoin, of, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
@@ -80,6 +81,7 @@ export class CandidatesComponent {
   ) { }
 
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.loadCandidates();
     this.loadStatusCounts();
     this.loadPositions();
@@ -241,13 +243,22 @@ export class CandidatesComponent {
   }
 
   private loadCandidates(): void {
-    const status = this.getStatusFilterByTab(this.activeTab());
+    this.getStatusIdsByTab(this.activeTab()).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+          }));
+        }
 
-    this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      status,
-    }).subscribe((response: ApplicationListResponse) => {
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          statusIds,
+        });
+      }),
+    ).subscribe((response: ApplicationListResponse) => {
       const applications = response.items || [];
 
       this.pageCandidates = applications;
@@ -266,14 +277,14 @@ export class CandidatesComponent {
 
   private loadStatusCounts(): void {
     forkJoin([
-      this.applicationsService.get({ page: 1, offset: 1, status: 'pending' }),
-      this.applicationsService.get({ page: 1, offset: 1, status: 'reviewing' }),
-      this.applicationsService.get({ page: 1, offset: 1, status: 'talent match' }),
+      this.getStatusCountByName('pending'),
+      this.getStatusCountByName('reviewing'),
+      this.getStatusCountByName('talent match'),
     ]).subscribe({
-      next: ([pendingResponse, reviewingResponse, talentMatchResponse]) => {
-        this.pendingCount = pendingResponse.meta.total;
-        this.reviewingCount = reviewingResponse.meta.total;
-        this.talentMatchCount = talentMatchResponse.meta.total;
+      next: ([pendingCount, reviewingCount, talentMatchCount]) => {
+        this.pendingCount = pendingCount;
+        this.reviewingCount = reviewingCount;
+        this.talentMatchCount = talentMatchCount;
       },
       error: (err) => {
         console.error('Error loading candidates status counts', err);
@@ -281,11 +292,40 @@ export class CandidatesComponent {
     });
   }
 
-  private getStatusFilterByTab(tab: string): string {
-    if (tab === 'pending') return 'pending';
-    if (tab === 'reviewing') return 'reviewing';
-    if (tab === 'talent match') return 'talent match';
-    return 'all';
+  private getStatusIdsByTab(tab: string): Observable<number[]> {
+    if (tab === 'pending') {
+      return this.applicationsService.getStatusIdsByNames(['pending']);
+    }
+    if (tab === 'reviewing') {
+      return this.applicationsService.getStatusIdsByNames(['reviewing']);
+    }
+    if (tab === 'talent match') {
+      return this.applicationsService.getStatusIdsByNames(['talent match']);
+    }
+    return this.applicationsService.getStatusIdsByNames([
+      'pending',
+      'reviewing',
+      'talent match',
+      'hired',
+      'scheduled interview',
+    ]);
+  }
+
+  private getStatusCountByName(statusName: string): Observable<number> {
+    return this.applicationsService.getStatusIdsByNames([statusName]).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({ page: 1, offset: 1 }));
+        }
+
+        return this.applicationsService.get({
+          page: 1,
+          offset: 1,
+          statusIds,
+        });
+      }),
+      map((response) => response.meta.total),
+    );
   }
 
   countInvoicesByStatus(status: string): number {

@@ -22,6 +22,8 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.component';
 import { Application, ApplicationListResponse } from 'src/app/models/application.model';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-rejected',
@@ -68,6 +70,7 @@ export class RejectedComponent {
   ) { }
 
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.loadCandidates();
     this.loadPositions();
 
@@ -179,15 +182,24 @@ export class RejectedComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      status: 'rejected',
-    }).subscribe((response: ApplicationListResponse) => {
+    this.applicationsService.getStatusIdsByNames(['rejected']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          statusIds,
+        });
+      }),
+    ).subscribe((response: ApplicationListResponse) => {
       const applications: Application[] = response.items || [];
-      this.rejectedCandidates = applications.filter(
-        (a) => a.status === 'rejected' || a.status_id === 6
-      );
+      this.rejectedCandidates = applications;
       this.totalRecords = response.meta.total;
       this.currentPage = response.meta.currentPage;
       this.pageSize = response.meta.limit;

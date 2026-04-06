@@ -8,22 +8,13 @@ export interface ApplicationStatusFilter {
 	status: string;
 }
 
-export type ApplicationStatusId = number;
-export type ApplicationStatusName = string;
-export type ApplicationStatusFilterValue =
-	| ApplicationStatusId
-	| `${ApplicationStatusId}`
-	| ApplicationStatusName
-	| 'active'
-	| 'all';
-
 export interface ApplicationListParams {
 	page?: number;
 	limit?: number;
 	offset?: number;
 	sortBy?: string;
 	sortOrder?: ApplicationSortOrder;
-	status?: ApplicationStatusFilterValue;
+	statusIds?: number[];
 	search?: string;
 	onlyTalentPool?: boolean;
 }
