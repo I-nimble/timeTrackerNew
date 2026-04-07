@@ -60,6 +60,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
   ];
   clientForm!: FormGroup;
   loading: boolean = false;
+  errorMessage = '';
   page = 1;
   pageSize = 5;
   totalRecords = 0;
@@ -122,13 +123,21 @@ export class AppPublicTalentMatchComponent implements OnInit {
         });
         this.loading = false;
         this.aiLoading = false;
+        this.errorMessage = '';
         this.dataSource.data = mapped;
         this.totalRecords = res.meta.total;
       },
       error: err => {
         this.loading = false;
         this.aiLoading = false;
-        console.error(err);
+        if (err.status === 429) {
+          this.errorMessage = 'The AI search limit has been reached. Please try again later.';
+          this.dataSource.data = [];
+          this.totalRecords = 0;
+        } else {
+          this.errorMessage = 'An error occurred while searching. Please try again.';
+          console.error(err);
+        }
       }
     });
   }
