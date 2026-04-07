@@ -91,13 +91,13 @@
         </div>
         <div>
           <h4 class="f-w-700 m-b-16 m-t-16">
-            Use AI to better describe the position
+            Search for a candidate
           </h4>
           <mat-form-field appearance="outline" class="w-100">
             <textarea
               matInput
               rows="4"
-              placeholder="Tell us more about what you need for this role."
+              placeholder="Add more details to refine the search."
               [(ngModel)]="roleDescription"
               name="roleDescription"
               #roleDescModel="ngModel"
@@ -117,12 +117,12 @@
               appearance="outline"
               class="flex-grow-1 hide-hint m-b-0"
               style="max-width: max-content"
-              [loading]="aiLoading"
-              [aiEnabled]="!useManualSearch"
+              [loading]="tableLoading"
+              [aiEnabled]="false"
               [canSearch]="canSearchAI"
               [showCustomSearch]="!showCustomFilterInput"
-              (askAI)="searchCandidatesWithAI($event)"
-              (searchRequest)="useManualSearch ? onManualSearch($event) : null"
+              [skipCooldown]="true"
+              (searchRequest)="onManualSearch($event)"
             >
             </app-match>
           </div>

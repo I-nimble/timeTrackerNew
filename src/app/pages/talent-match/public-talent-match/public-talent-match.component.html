@@ -23,12 +23,14 @@
             [aiEnabled]="false"
             [canSearch]="true"
             [searchDisabled]="!filters.position_id"
-            [skipCooldown]="true"
             [showCustomSearch]="false"
             [query]="query"
             placeholder="Search candidates..."
             (searchRequest)="onManualSearch($event)">
           </app-match>
+        </div>
+        <div *ngIf="errorMessage" class="m-t-16 text-center text-danger">
+          {{ errorMessage }}
         </div>
         <div class="m-t-16">
           <app-talent-match-table
