@@ -29,6 +29,9 @@ import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { PageEvent } from '@angular/material/paginator';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   standalone: true,
@@ -89,6 +92,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
+  totalRecords = 0;
   backendMessage = '';
   searchTerm = '';
   sortBy = 'match_percentage';
@@ -169,6 +173,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   ) {}
   
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.getApplications();
     this.getPositions();
     this.getCompany();
@@ -288,13 +293,27 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.applicationsService.get({
-      page: 1,
-      offset: 1000,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
-      search: '',
-    }).subscribe({
+    this.applicationsService.getStatusIdsByNames(['talent match']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          sortBy: this.sortBy,
+          sortOrder: this.sortOrder,
+          statusIds,
+          search: '',
+        });
+      }),
+    ).subscribe({
       next: (response: ApplicationListResponse) => {
         this.resetActiveAISearch();
         this.allCandidates = response.items;
@@ -546,8 +565,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.expandedElement = this.expandedElement === row ? null : row;
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
     this.expandedElement = null;
     if (this.isAISearchActive()) {
       this.fetchAICandidates();
@@ -700,6 +720,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private applyApplicationListResponse(response: ApplicationListResponse): void {
     this.dataSource.data = response.items;
     this.rows = response.items;
+    this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
     this.pageSize = response.meta.limit;
@@ -717,8 +738,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.tableLoading = true;
     this.aiService.getCandidateEvaluationResults(this.activeAISearchSessionId, {
-      page: 1,
-      offset: 1000,
+      page: this.currentPage,
+      offset: this.pageSize,
       sortBy: this.sortBy,
       sortOrder: this.sortOrder,
     }).subscribe({
