@@ -602,32 +602,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       });
   }
 
-  markInterested(candidate: any): void {
-    if (!(this.selectedRole && this.selectedPracticeArea)) {
-      this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
-      return;
-    }
-
-    const userId = Number(localStorage.getItem('id')) || 0;
-    const candidateId = candidate.id;
-    const candidatePosition = this.selectedRole;
-    const candidateArea = this.selectedPracticeArea;
-
-    this.notificationsService.markInterested(userId, candidateId, candidatePosition, candidateArea)
-      .subscribe({
-        next: (data: any) => {
-          if (data.success) {
-            this.snackBar.open('Interest registered and HR notified.', 'Close', { duration: 2000 });
-          } else {
-            this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
-          }
-        },
-        error: () => {
-          this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
-        }
-      });
-  }
-
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate([`apps/talent-match/${id}`]);

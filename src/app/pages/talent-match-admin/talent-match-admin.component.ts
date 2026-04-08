@@ -488,6 +488,51 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.rows.forEach((row) => this.selection.select(row));
   }
 
+  searchCandidatesWithAI(question: string) {
+    const searchQuery = String(question || this.query || '').trim();
+    if (this.useManualSearch) {
+      this.onManualSearch(question);
+      return;
+    }
+
+    this.currentPage = 1;
+    this.sortBy = 'match_percentage';
+    this.sortOrder = 'asc';
+    this.aiLoading = true;
+    this.tableLoading = false;
+    this.aiAnswer = '';
+    this.hasSearchResults = false;
+
+    this.aiService.evaluateCandidates({
+      question: searchQuery,
+      filters: this.buildAISearchFilters(),
+    }).subscribe({
+      next: (response: CandidateEvaluationResponse) => {
+        this.applyApplicationListResponse(response);
+        this.activeAISearchSessionId = response.sessionId || '';
+        this.hasSearchResults = response.meta.total > 0;
+        this.aiLoading = false;
+        this.tableLoading = false;
+        this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
+
+        this.saveAISearchState(this.activeAISearchSessionId, this.buildAISearchFilters());
+      },
+      error: (err) => {
+        if (err.status === 429) {
+          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
+          this.useManualSearch = true;
+          this.aiLoading = false;
+          this.tableLoading = false;
+        } else {
+          this.aiAnswer = 'Error getting answer from AI, try again later.';
+          console.error('AI evaluation error:', err);
+        }
+        this.aiLoading = false;
+        this.tableLoading = false;
+      }
+    });
+  }
+
   onManualSearch(query?: string) {
     this.clearAISearchState();
     this.resetActiveAISearch();

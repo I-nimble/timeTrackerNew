@@ -151,7 +151,7 @@
               [canSearch]="canSearchAI"
               [showCustomSearch]="!showCustomFilterInput"
               (askAI)="searchCandidatesWithAI($event)"
-              (searchRequest)="useManualSearch ? onManualSearch($event) : null"
+              (searchChange)="useManualSearch ? onManualSearch($event) : null"
             >
             </app-match>
           </div>
