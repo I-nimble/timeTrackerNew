@@ -23,8 +23,8 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.component';
 import { Application, ApplicationListResponse } from 'src/app/models/application.model';
-import { of } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
+import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-rejected',
@@ -50,6 +50,8 @@ export class RejectedComponent {
   displayedColumns: string[] = [];
   startDate: Date | null = null;
   endDate: Date | null = null;
+  searchKeyword: string = '';
+  private searchSubject = new Subject<string>();
   positions = signal<any[]>([]);
   companiesData: any[] = [];
   canView: boolean = false;
@@ -74,6 +76,14 @@ export class RejectedComponent {
   ngOnInit(): void {
     this.applicationsService.loadApplicationStatuses().subscribe();
     this.loadCandidates();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadCandidates();
+    });
     this.loadPositions();
 
     this.companiesService.getCompanies().subscribe({
@@ -128,6 +138,10 @@ export class RejectedComponent {
 	
   onDateRangeChange(): void {
     this.applyFilters();
+  }
+
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchKeyword);
   }
 
   private applyFilters(): void {
@@ -197,6 +211,8 @@ export class RejectedComponent {
           page: this.currentPage,
           offset: this.pageSize,
           statusIds,
+          search: this.searchKeyword || undefined,
+          sortOrder: 'desc',
         });
       }),
     ).subscribe((response: ApplicationListResponse) => {
