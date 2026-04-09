@@ -15,7 +15,7 @@
   <div class="d-flex justify-content-center gap-2">
     <button *ngIf="canSearch"
             mat-raised-button color="primary"
-            (click)="onAskAI()" [disabled]="loading || searchDisabled || cooldownActive">
+            (click)="onAskAI()" [disabled]="loading || searchDisabled || (cooldownActive && !skipCooldown)">
       <ng-container *ngIf="!loading; else loadingTpl">Search</ng-container>
       <ng-template #loadingTpl>
         <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>

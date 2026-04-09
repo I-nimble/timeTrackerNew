@@ -150,6 +150,7 @@
               [aiEnabled]="!useManualSearch"
               [canSearch]="canSearchAI"
               [showCustomSearch]="!showCustomFilterInput"
+              [skipCooldown]="useManualSearch"
               (askAI)="searchCandidatesWithAI($event)"
               (searchRequest)="useManualSearch ? onManualSearch($event) : null"
             >

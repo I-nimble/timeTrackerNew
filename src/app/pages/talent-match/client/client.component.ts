@@ -99,18 +99,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
-  positionsOptions: string[] = [
-    'Legal Assistant',
-    'Paralegal',
-    'Case Manager',
-    'Intake Specialist',
-    'Demand Writer',
-    'Medical Records Specialist',
-    'Litigation Support Assistant',
-    'Executive Assistant',
-    'Administrative Assistant',
-    'Virtual Assistant (General)'
-  ];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -215,8 +203,17 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
-          this.useManualSearch = true;
+          if (err.error?.type === 'AI_QUOTA_EXCEEDED'){
+            this.useManualSearch = true;
+            this.aiAnswer = 'Error getting answer from AI, try again later.';
+            this.onManualSearch(question);
+          } else {
+            this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
+            this.useManualSearch = true;
+            this.onManualSearch(this.query);
+            this.clearAISearchState();
+            this.resetActiveAISearch();
+          }
           this.aiLoading = false;
           this.tableLoading = false;
         } else {
@@ -232,17 +229,30 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   onManualSearch(query?: string) {
     this.clearAISearchState();
     this.resetActiveAISearch();
-
-    const searchQuery = query || this.query;
+    const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const lower = searchQuery.toLowerCase();
-    this.setDisplayedCandidates(this.allCandidates.filter(c =>
-      c.name?.toLowerCase().includes(lower) ||
-      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
-      c.skills?.toLowerCase().includes(lower) ||
-      c.location?.toLowerCase().includes(lower)
-    ));
-    this.hasSearchResults = this.dataSource.data.length > 0;
+    const additionalSearchText = this.buildApplicationsSearchTerm();
+    this.tableLoading = true;
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      sortBy: this.sortBy || 'submission_date',
+      sortOrder: this.sortOrder || 'desc',
+      selectedRole: this.selectedRole || undefined,
+      selectedPracticeArea: this.selectedPracticeArea || undefined,
+      search: additionalSearchText,
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.allCandidates = response.items;
+        this.applyApplicationListResponse(response);
+        this.hasSearchResults = response.items.length > 0;
+        this.tableLoading = false;
+      },
+      error: (err) => {
+        console.error('Manual search error:', err);
+        this.tableLoading = false;
+      }
+    });
   }
 
   getCompany() {
@@ -288,7 +298,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       this.hasRestoredStoredSearch = true;
     }
 
-    if (this.activeAISearchSessionId) {
+    if (this.isAISearchActive()) {
       this.fetchAICandidates(true);
       return;
     }
@@ -361,13 +371,14 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   executeFilterSearch(): void {
-    if (this.selectedPositionFilters.length === 0) {
+    if (!this.query.trim()) {
       this.setDisplayedCandidates([...this.allCandidates]);
       this.hasSearchResults = false;
       return;
     }
-
-    if (this.query.trim()) {
+    if (this.useManualSearch) {
+      this.onManualSearch(this.query);
+    } else {
       this.searchCandidatesWithAI(this.query);
     }
   }
@@ -698,8 +709,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private buildApplicationsSearchTerm(): string {
     const terms = [
       this.query,
-      this.selectedRole,
-      this.selectedPracticeArea,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
@@ -767,7 +776,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private isAISearchActive(): boolean {
-    return this.activeAISearchSessionId.length > 0;
+    return !this.useManualSearch && this.activeAISearchSessionId.length > 0;
   }
 
   private setDisplayedCandidates(candidates: any[]): void {
