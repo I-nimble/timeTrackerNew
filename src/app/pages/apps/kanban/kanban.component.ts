@@ -210,7 +210,10 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
       this.selectedBoardColumns.sort((a, b) => a.position - b.position);
-      const tasks = boardData.tasks || [];
+      const tasks = (boardData.tasks || []).sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       this.hasTasks = tasks.length > 0;
       this.roleTourService.setKanbanHasTasks(tasks.length > 0);
       this.selectedBoardColumns.forEach((column) => {
