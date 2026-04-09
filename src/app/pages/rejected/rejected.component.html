@@ -1,7 +1,17 @@
 <mat-card class="cardWithShadow" *ngIf="role == '1' || canView">
   <mat-card-content>
-    <div class="row">
-      <mat-form-field appearance="outline">
+    <div class="row d-flex justify-content-end w-100">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="col-12 col-lg-4">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchKeyword"
+          (ngModelChange)="onSearchChange()"
+        />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="col-12 col-lg-4">
         <mat-label>Date Range</mat-label>
         <mat-date-range-input [rangePicker]="picker">
           <input
@@ -19,16 +29,6 @@
         </mat-date-range-input>
         <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-date-range-picker #picker></mat-date-range-picker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Search</mat-label>
-        <input
-          matInput
-          [(ngModel)]="searchKeyword"
-          (ngModelChange)="onSearchChange()"
-        />
-        <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
     </div>
   </mat-card-content>
