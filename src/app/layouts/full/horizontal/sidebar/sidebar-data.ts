@@ -1,374 +1,97 @@
-import { NavItem } from '../../vertical/sidebar/nav-item/nav-item';
+import { NavItem } from './nav-item/nav-item';
+import { environment } from 'src/environments/environment';
 
-function getNavItems(): NavItem[] {
+export function getNavItems(role: number): NavItem[] {
   const isOrphan = localStorage.getItem('isOrphan') == 'true';
+  const email = localStorage.getItem('email');
+  const allowedReportEmails = environment.allowedReportEmails;
   return [
     {
       navCap: 'Home',
     },
     {
-      displayName: 'Dashboards',
-      iconName: 'home',
-      route: 'dashboards',
+      displayName: 'Dashboard',
+      iconName: 'layout-dashboard',
       bgcolor: 'primary',
-      children: [
-        {
-          displayName: 'Dashboard 1',
-          iconName: 'point',
-          route: 'dashboards/dashboard1',
-        },
-        {
-          displayName: 'Dashboard 2',
-          iconName: 'point',
-          route: 'dashboards/dashboard2',
-        },
-      ],
+      route:
+        Number(role) === 1
+          ? '/dashboards/admin'
+          : Number(role) === 2
+            ? '/dashboards/tm'
+            : '/dashboards/dashboard2'
     },
-    ...(!isOrphan ? [
+    // ...((Number(role) === 2 && allowedReportEmails.includes(email || ''))
+    //   ? [{
+    //       displayName: 'Reports',
+    //       iconName: 'chart-bar',
+    //       bgcolor: 'primary',
+    //       route: '/dashboards/reports',
+    //     }]
+    //   : (Number(role) !== 2
+    //     ? [{
+    //         displayName: 'Reports',
+    //         iconName: 'chart-bar',
+    //         bgcolor: 'primary',
+    //         route: '/dashboards/reports',
+    //       }]
+    //     : [])),
+        ...(Number(role) !== 2 && Number(role) !== 4 ? [
+        {
+          displayName: 'Productivity',
+          iconName: 'chart-bar',
+          bgcolor: 'primary',
+          route: '/dashboards/productivity',
+        }] : []),
+    ...(!isOrphan || isOrphan ? [
       {
-        displayName: 'Apps',
-        iconName: 'apps',
-        route: 'apps',
-        bgcolor: 'secondary',
-        ddType: '',
-        children: [
-          {
-            displayName: 'Chat',
-            iconName: 'point',
-            route: 'apps/chat',
-          },
-          {
-            displayName: 'Calendar',
-            iconName: 'point',
-            route: 'apps/calendar',
-          },
-          {
-            displayName: 'Email',
-            iconName: 'point',
-            route: 'apps/email/inbox',
-          },
-          {
-            displayName: 'Contacts',
-            iconName: 'point',
-            route: 'apps/contacts',
-          },
-          {
-            displayName: 'Courses',
-            iconName: 'point',
-            route: 'apps/courses',
-          },
-          {
-            displayName: 'Time tracker',
-            iconName: 'point',
-            route: 'apps/time-tracker',
-          },
-          {
-            displayName: 'Notes',
-            iconName: 'point',
-            route: 'apps/notes',
-          },
-          {
-            displayName: 'Tickets',
-            iconName: 'point',
-            route: 'apps/tickets',
-          },
-          {
-            displayName: 'Invoice',
-            iconName: 'point',
-            route: 'apps/invoice',
-          },
-          {
-            displayName: 'To Do',
-            iconName: 'point',
-            route: 'apps/todo',
-          },
-          {
-            displayName: 'Storage',
-            iconName: 'packages',
-            route: 'apps/storage',
-          },
-          {
-            displayName: 'Kanban',
-            iconName: 'point',
-            route: 'apps/taskboard',
-          },
-          {
-            displayName: 'Blog',
-            iconName: 'point',
-            route: 'apps/blog',
-            children: [
-              {
-                displayName: 'Post',
-                iconName: 'point',
-                route: 'apps/blog/post',
-              },
-              {
-                displayName: 'Detail',
-                iconName: 'point',
-                route: 'apps/blog/detail/Early Black Friday Amazon deals: cheap TVs, headphones, laptops',
-              },
-            ],
-          },
-        ],
+        navCap: 'Apps',
+      },
+      ...(!isOrphan ? [
+      // {
+      //   displayName: 'Chat',
+      //   iconName: 'message-2',
+      //   bgcolor: 'primary',
+      //   route: '/apps/chat',
+      // },
+      {
+        displayName: 'Kanban',
+        iconName: 'checklist',
+        bgcolor: 'primary',
+        route: '/apps/kanban',
       },
       {
-        displayName: 'Ui',
-        iconName: 'components',
-        route: 'ui-components',
-        bgcolor: 'warning',
-        ddType: '',
-        children: [
-          {
-            displayName: 'Badge',
-            iconName: 'point',
-            route: 'ui-components/badge',
-          },
-          {
-            displayName: 'Expansion Panel',
-            iconName: 'point',
-            route: 'ui-components/expansion',
-          },
-          {
-            displayName: 'Chips',
-            iconName: 'point',
-            route: 'ui-components/chips',
-          },
-          {
-            displayName: 'Dialog',
-            iconName: 'point',
-            route: 'ui-components/dialog',
-          },
-          {
-            displayName: 'Lists',
-            iconName: 'point',
-            route: 'ui-components/lists',
-          },
-          {
-            displayName: 'Divider',
-            iconName: 'point',
-            route: 'ui-components/divider',
-          },
-          {
-            displayName: 'Menu',
-            iconName: 'point',
-            route: 'ui-components/menu',
-          },
-          {
-            displayName: 'Paginator',
-            iconName: 'point',
-            route: 'ui-components/paginator',
-          },
-          {
-            displayName: 'Progress Bar',
-            iconName: 'point',
-            route: 'ui-components/progress',
-          },
-          {
-            displayName: 'Progress Spinner',
-            iconName: 'point',
-            route: 'ui-components/progress-spinner',
-          },
-          {
-            displayName: 'Ripples',
-            iconName: 'point',
-            route: 'ui-components/ripples',
-          },
-          {
-            displayName: 'Slide Toggle',
-            iconName: 'point',
-            route: 'ui-components/slide-toggle',
-          },
-          {
-            displayName: 'Slider',
-            iconName: 'point',
-            route: 'ui-components/slider',
-          },
-          {
-            displayName: 'Snackbar',
-            iconName: 'point',
-            route: 'ui-components/snackbar',
-          },
-          {
-            displayName: 'Tabs',
-            iconName: 'point',
-            route: 'ui-components/tabs',
-          },
-          {
-            displayName: 'Toolbar',
-            iconName: 'point',
-            route: 'ui-components/toolbar',
-          },
-          {
-            displayName: 'Tooltips',
-            iconName: 'point',
-            route: 'ui-components/tooltips',
-          },
-        ],
+        displayName: 'Time tracker',
+        iconName: 'brand-ctemplar',
+        bgcolor: 'primary',
+        route: 'apps/time-tracker',
       },
+      // {
+      //   displayName: 'Notes',
+      //   iconName: 'note',
+      //   bgcolor: 'primary',
+      //   route: '/apps/notes',
+      // },
+      // {
+      //   displayName: 'To Do',
+      //   iconName: 'edit',
+      //   bgcolor: 'primary',
+      //   route: '/apps/todo',
+      // },
+      // ...(Number(role) == 3 ? [{
+      //   displayName: 'History',
+      //   iconName: 'packages',
+      //   bgcolor: 'primary',
+      //   route: 'apps/history',
+      // }] : []),
+    ] : []),
       {
-        displayName: 'Pages',
-        iconName: 'clipboard',
-        bgcolor: 'error',
-        route: '',
-        children: [
-          {
-            displayName: 'Treeview',
-            iconName: 'point',
-            route: 'theme-pages/treeview',
-          },
-          {
-            displayName: 'Pricing',
-            iconName: 'point',
-            route: 'theme-pages/pricing',
-          },
-          {
-            displayName: 'Account Setting',
-            iconName: 'point',
-            route: 'theme-pages/account-setting',
-          },
-          {
-            displayName: 'FAQ',
-            iconName: 'point',
-            route: 'theme-pages/faq',
-          },
-          {
-            displayName: 'Landingpage',
-            iconName: 'point',
-            route: 'landingpage',
-          },
-          {
-            displayName: 'Widgets',
-            iconName: 'point',
-            route: 'widgets',
-            children: [
-              {
-                displayName: 'Cards',
-                iconName: 'point',
-                route: 'widgets/cards',
-              },
-              {
-                displayName: 'Banners',
-                iconName: 'point',
-                route: 'widgets/banners',
-              },
-              {
-                displayName: 'Charts',
-                iconName: 'point',
-                route: 'widgets/charts',
-              },
-            ],
-          },
-          {
-            displayName: 'Charts',
-            iconName: 'point',
-            route: 'charts',
-            children: [
-              {
-                displayName: 'Line',
-                iconName: 'point',
-                route: '/charts/line',
-              },
-              {
-                displayName: 'Gredient',
-                iconName: 'point',
-                route: '/charts/gredient',
-              },
-              {
-                displayName: 'Area',
-                iconName: 'point',
-                route: '/charts/area',
-              },
-              {
-                displayName: 'Candlestick',
-                iconName: 'point',
-                route: '/charts/candlestick',
-              },
-              {
-                displayName: 'Column',
-                iconName: 'point',
-                route: '/charts/column',
-              },
-              {
-                displayName: 'Doughnut & Pie',
-                iconName: 'point',
-                route: '/charts/doughnut-pie',
-              },
-              {
-                displayName: 'Radialbar & Radar',
-                iconName: 'point',
-                route: '/charts/radial-radar',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        displayName: 'Forms',
-        iconName: 'file-description',
-        route: 'forms',
-        bgcolor: 'success',
-        children: [
-          {
-            displayName: 'Form elements',
-            iconName: 'point',
-            route: 'forms/forms-elements',
-            children: [
-              {
-                displayName: 'Autocomplete',
-                iconName: 'point',
-                route: 'forms/forms-elements/autocomplete',
-              },
-              {
-                displayName: 'Button',
-                iconName: 'point',
-                route: 'forms/forms-elements/button',
-              },
-              {
-                displayName: 'Checkbox',
-                iconName: 'point',
-                route: 'forms/forms-elements/checkbox',
-              },
-              {
-                displayName: 'Radio',
-                iconName: 'point',
-                route: 'forms/forms-elements/radio',
-              },
-              {
-                displayName: 'Datepicker',
-                iconName: 'point',
-                route: 'forms/forms-elements/datepicker',
-              },
-            ],
-          },
-          {
-            displayName: 'Form Layouts',
-            iconName: 'point',
-            route: '/forms/form-layouts',
-          },
-          {
-            displayName: 'Form Horizontal',
-            iconName: 'point',
-            route: '/forms/form-horizontal',
-          },
-          {
-            displayName: 'Form Vertical',
-            iconName: 'point',
-            route: '/forms/form-vertical',
-          },
-          {
-            displayName: 'Form Wizard',
-            iconName: 'point',
-            route: '/forms/form-wizard',
-          },
-          {
-            displayName: 'Toastr',
-            iconName: 'point',
-            route: '/forms/form-toastr',
-          },
-        ],
-      },
+        displayName: 'Calendar',
+        iconName: 'calendar-event',
+        bgcolor: 'primary',
+        route: '/apps/calendar',
+      }
     ] : []),
   ];
 }
 
-export const navItems: NavItem[] = getNavItems();
+export const navItems: NavItem[] = getNavItems(Number(localStorage.getItem('role')));
