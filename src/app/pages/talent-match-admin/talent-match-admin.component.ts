@@ -538,14 +538,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    const additionalSearchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: fullSearchTerm,
+      selectedRole: this.selectedRole || undefined,
+      selectedPracticeArea: this.selectedPracticeArea || undefined,
+      search: additionalSearchText,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -563,8 +565,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
   private buildApplicationsSearchTerm(): string {
     const terms = [
       this.query,
-      this.selectedRole,
-      this.selectedPracticeArea,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())

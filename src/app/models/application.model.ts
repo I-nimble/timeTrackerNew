@@ -16,6 +16,8 @@ export interface ApplicationListParams {
 	sortOrder?: ApplicationSortOrder;
 	statusIds?: number[];
 	search?: string;
+	selectedRole?: string;
+	selectedPracticeArea?: string;
 	onlyTalentPool?: boolean;
 }
 

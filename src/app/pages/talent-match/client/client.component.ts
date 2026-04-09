@@ -99,18 +99,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
-  positionsOptions: string[] = [
-    'Legal Assistant',
-    'Paralegal',
-    'Case Manager',
-    'Intake Specialist',
-    'Demand Writer',
-    'Medical Records Specialist',
-    'Litigation Support Assistant',
-    'Executive Assistant',
-    'Administrative Assistant',
-    'Virtual Assistant (General)'
-  ];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -243,14 +231,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    const additionalSearchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: fullSearchTerm,
+      selectedRole: this.selectedRole || undefined,
+      selectedPracticeArea: this.selectedPracticeArea || undefined,
+      search: additionalSearchText,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -719,8 +709,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private buildApplicationsSearchTerm(): string {
     const terms = [
       this.query,
-      this.selectedRole,
-      this.selectedPracticeArea,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
