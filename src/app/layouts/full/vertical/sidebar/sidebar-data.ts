@@ -20,21 +20,21 @@ export function getNavItems(role: number): NavItem[] {
             ? '/dashboards/tm'
             : '/dashboards/dashboard2'
     },
-    ...((Number(role) === 2 && allowedReportEmails.includes(email || ''))
-      ? [{
-          displayName: 'Reports',
-          iconName: 'chart-bar',
-          bgcolor: 'primary',
-          route: '/dashboards/reports',
-        }]
-      : (Number(role) !== 2
-        ? [{
-            displayName: 'Reports',
-            iconName: 'chart-bar',
-            bgcolor: 'primary',
-            route: '/dashboards/reports',
-          }]
-        : [])),
+    // ...((Number(role) === 2 && allowedReportEmails.includes(email || ''))
+    //   ? [{
+    //       displayName: 'Reports',
+    //       iconName: 'chart-bar',
+    //       bgcolor: 'primary',
+    //       route: '/dashboards/reports',
+    //     }]
+    //   : (Number(role) !== 2
+    //     ? [{
+    //         displayName: 'Reports',
+    //         iconName: 'chart-bar',
+    //         bgcolor: 'primary',
+    //         route: '/dashboards/reports',
+    //       }]
+    //     : [])),
         ...(Number(role) !== 2 && Number(role) !== 4 ? [
         {
           displayName: 'Productivity',
@@ -47,12 +47,12 @@ export function getNavItems(role: number): NavItem[] {
         navCap: 'Apps',
       },
       ...(!isOrphan ? [
-      {
-        displayName: 'Chat',
-        iconName: 'message-2',
-        bgcolor: 'primary',
-        route: '/apps/chat',
-      },
+      // {
+      //   displayName: 'Chat',
+      //   iconName: 'message-2',
+      //   bgcolor: 'primary',
+      //   route: '/apps/chat',
+      // },
       {
         displayName: 'Kanban',
         iconName: 'checklist',
@@ -65,24 +65,24 @@ export function getNavItems(role: number): NavItem[] {
         bgcolor: 'primary',
         route: 'apps/time-tracker',
       },
-      {
-        displayName: 'Notes',
-        iconName: 'note',
-        bgcolor: 'primary',
-        route: '/apps/notes',
-      },
-      {
-        displayName: 'To Do',
-        iconName: 'edit',
-        bgcolor: 'primary',
-        route: '/apps/todo',
-      },
-      ...(Number(role) == 3 ? [{
-        displayName: 'History',
-        iconName: 'packages',
-        bgcolor: 'primary',
-        route: 'apps/history',
-      }] : []),
+      // {
+      //   displayName: 'Notes',
+      //   iconName: 'note',
+      //   bgcolor: 'primary',
+      //   route: '/apps/notes',
+      // },
+      // {
+      //   displayName: 'To Do',
+      //   iconName: 'edit',
+      //   bgcolor: 'primary',
+      //   route: '/apps/todo',
+      // },
+      // ...(Number(role) == 3 ? [{
+      //   displayName: 'History',
+      //   iconName: 'packages',
+      //   bgcolor: 'primary',
+      //   route: 'apps/history',
+      // }] : []),
     ] : []),
       {
         displayName: 'Calendar',

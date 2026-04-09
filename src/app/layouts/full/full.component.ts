@@ -136,24 +136,24 @@ export class FullComponent implements OnInit {
       subtitle: 'Find top talent',
       link: '/apps/talent-match',
     },
-    ...(this.role == '3'
-    ? [{
-        id: 14,
-        img: '/assets/images/svgs/icon-account.svg',
-        title: 'Expert Match',
-        subtitle: 'Connect with experts',
-        link: '/apps/expert',
-      }]
-    : []),
-    ...(environment.allowedContentCreatorEmails.includes(localStorage.getItem('email') || '')
-    ? [{
-        id: 15,
-        img: '/assets/images/svgs/icon-connect.svg',
-        title: 'My Sentinel',
-        subtitle: 'Create and manage content',
-        link: '/apps/scrapper',
-      }]
-    : []),
+    // ...(this.role == '3'
+    // ? [{
+    //     id: 14,
+    //     img: '/assets/images/svgs/icon-account.svg',
+    //     title: 'Expert Match',
+    //     subtitle: 'Connect with experts',
+    //     link: '/apps/expert',
+    //   }]
+    // : []),
+    // ...(environment.allowedContentCreatorEmails.includes(localStorage.getItem('email') || '')
+    // ? [{
+    //     id: 15,
+    //     img: '/assets/images/svgs/icon-connect.svg',
+    //     title: 'My Sentinel',
+    //     subtitle: 'Create and manage content',
+    //     link: '/apps/scrapper',
+    //   }]
+    // : []),
     ...(this.role == '1'
     ? [{
         id: 16,
@@ -172,13 +172,13 @@ export class FullComponent implements OnInit {
         link: '/apps/events',
       }]
     : []),
-    {
-      id: 1,
-      img: '/assets/images/svgs/icon-dd-chat.svg',
-      title: 'Chat',
-      subtitle: 'Internal communication',
-      link: '/apps/chat',
-    },
+    // {
+    //   id: 1,
+    //   img: '/assets/images/svgs/icon-dd-chat.svg',
+    //   title: 'Chat',
+    //   subtitle: 'Internal communication',
+    //   link: '/apps/chat',
+    // },
     {
       id: 4,
       img: '/assets/images/svgs/icon-dd-date.svg',
@@ -200,29 +200,29 @@ export class FullComponent implements OnInit {
       subtitle: 'Track your team time',
       link: 'apps/time-tracker',
     },
-    {
-      id: 8,
-      img: '/assets/images/svgs/icon-dd-invoice.svg',
-      title: 'Notes',
-      subtitle: 'Keep personal notes',
-      link: '/apps/notes',
-    },
-    {
-      id: 10,
-      img: '/assets/images/svgs/icon-tasks.svg',
-      title: 'To Do',
-      subtitle: 'Manage your daily to-dos',
-      link: '/apps/todo',
-    },
-    ...(localStorage.getItem('role') == '3'
-    ? [{
-        id: 11,
-        img: '/assets/images/svgs/icon-inbox.svg',
-        title: 'History',
-        subtitle: 'Monitor your team’s actions',
-        link: '/apps/history',
-      }]
-    : [])
+    // {
+    //   id: 8,
+    //   img: '/assets/images/svgs/icon-dd-invoice.svg',
+    //   title: 'Notes',
+    //   subtitle: 'Keep personal notes',
+    //   link: '/apps/notes',
+    // },
+    // {
+    //   id: 10,
+    //   img: '/assets/images/svgs/icon-tasks.svg',
+    //   title: 'To Do',
+    //   subtitle: 'Manage your daily to-dos',
+    //   link: '/apps/todo',
+    // },
+    // ...(localStorage.getItem('role') == '3'
+    // ? [{
+    //     id: 11,
+    //     img: '/assets/images/svgs/icon-inbox.svg',
+    //     title: 'History',
+    //     subtitle: 'Monitor your team’s actions',
+    //     link: '/apps/history',
+    //   }]
+    // : [])
   ];
 
   constructor(
