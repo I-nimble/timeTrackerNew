@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { SharedModule } from '../shared.module';
 import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
 import { Entries } from 'src/app/models/Entries';
@@ -133,3 +133,5 @@ export class EntryComponent implements OnInit {
     }
   }
 }
+
+

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   EventEmitter,
   Input,
@@ -237,3 +237,5 @@ export class EntriesComponent implements OnInit {
     return newUTCMoment.format("YYYY-MM-DDTHH:mm:ss.000Z");
   }
 }
+
+

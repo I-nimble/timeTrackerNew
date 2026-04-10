@@ -5,7 +5,6 @@ import { AppEmailComponent } from './email/email.component';
 import { DetailComponent } from './email/detail/detail.component';
 import { AppCoursesComponent } from './courses/courses.component';
 import { AppCourseDetailComponent } from './courses/course-detail/course-detail.component';
-import { AppEmployeeComponent } from './employee/employee.component';
 import { AppBlogsComponent } from './blogs/blogs.component';
 import { AppBlogDetailsComponent } from './blogs/details/details.component';
 import { AppContactComponent } from './contact/contact.component';
@@ -19,26 +18,30 @@ import { AppInvoiceListComponent } from './invoice/invoice-list/invoice-list.com
 import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.component';
 import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
 import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
-import { AppContactListComponent } from './contact-list/contact-list.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
+import { AppContactListComponent } from './contact-list/contact-list.component';
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 import { AppStorageComponent } from './storage/storage.component';
-import { AppTalentMatchComponent } from '../talent-match/talent-match.component';
 import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
-import { NotificationsComponent } from '../dashboards/notifications/notifications.component';
+import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
-import { TeamComponent } from './team/team.component';
-import { AppHistoryComponent } from './history/history.component';
+import { WorkforceEmployeeDetailsPageComponent } from '@features/workforce/pages/employee-details-page.component';
+import { TimeTrackingTodoPageComponent } from '@features/time-tracking/pages/todo-page.component';
 import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
 import { AppExpertComponent } from './expert/expert.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
+import { BillingInvoiceListPageComponent } from '@features/billing/pages/invoice-list-page.component';
+import { BillingPaymentsReportsPageComponent } from '@features/billing/pages/payments-reports-page.component';
+import { BillingAddInvoicePageComponent } from '@features/billing/pages/add-invoice-page.component';
+import { BillingInvoiceViewPageComponent } from '@features/billing/pages/invoice-view-page.component';
+import { BillingEditInvoicePageComponent } from '@features/billing/pages/edit-invoice-page.component';
+import { BillingPricingPageComponent } from '@features/billing/pages/pricing-page.component';
 import { ScrapperComponent } from './scrapper/scrapper.component';
 import { CandidatesComponent } from '../candidates/candidates.component';
 import { RejectedComponent } from '../rejected/rejected.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
-import { CustomSearchComponent } from '../custom-search/custom-search.component';
 import { R3Component } from './r3/r3.component';
 import { R3ActionComponent } from './r3/action/r3.action.component';
 import { R3TractionComponent } from './r3/traction/r3.traction.component';
@@ -51,14 +54,10 @@ export const AppsRoutes: Routes = [
     children: [
       {
         path: 'team',
-        component: TeamComponent,
-        data: {
-          title: 'Team',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Team' },
-          ],
-        },
+        loadChildren: () =>
+          import('@features/workforce/team.routes').then(
+            (m) => m.WorkforceTeamRoutes
+          ),
       },
       {
         path: 'chat',
@@ -84,7 +83,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'notifications',
-        component: NotificationsComponent,
+        component: NotificationsPageComponent,
         data: {
           title: 'Notifications',
           urls: [
@@ -153,7 +152,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'todo',
-        component: AppTodoComponent,
+        component: TimeTrackingTodoPageComponent,
         data: {
           title: 'Todo App',
           urls: [
@@ -175,14 +174,10 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'history',
-        component: AppHistoryComponent,
-        data: {
-          title: 'History',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard1' },
-            { title: 'History' },
-          ],
-        },
+        loadChildren: () =>
+          import('@features/time-tracking/history.routes').then(
+            (m) => m.TimeTrackingHistoryRoutes
+          ),
       },
       {
         path: 'candidates',
@@ -244,44 +239,10 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'talent-match',
-        children: [
-          {
-            path: '',
-            component: AppTalentMatchComponent,
-            data: {
-              title: 'Talent match',
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Talent match' },
-              ],
-            },
-          },
-          {
-            path: 'custom-search',
-            component: CustomSearchComponent,
-            data: {
-              title: 'Custom Search',
-              showGoBack: true,
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Talent match', url: '/talent-match' },
-              ],
-            },
-          },
-          {
-            path: ':id',
-            component: CandidateDetailsComponent,
-            data: {
-              title: 'Candidate Details',
-              showGoBack: true,
-              urls: [
-                { title: 'Dashboard', url: '/dashboards/dashboard1' },
-                { title: 'Talent match', url: '/talent-match' },
-                { title: 'Details' },
-              ],
-            },
-          },
-        ],
+        loadChildren: () =>
+          import('@features/talent-match/talent-match.routes').then(
+            (m) => m.TalentMatchRoutes
+          ),
       },
       {
         path: 'expert',
@@ -420,18 +381,14 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'time-tracker',
-        component: AppEmployeeComponent,
-        data: {
-          title: 'Time tracker',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Employee' },
-          ],
-        },
+        loadChildren: () =>
+          import('@features/workforce/time-tracker.routes').then(
+            (m) => m.WorkforceTimeTrackerRoutes
+          ),
       },
       {
         path: 'employee',
-        component: EmployeeDetailsComponent,
+        component: WorkforceEmployeeDetailsPageComponent,
         data: { 
           title: 'Employee Details',
           showGoBack: true,
@@ -454,7 +411,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'invoice',
-        component: AppInvoiceListComponent,
+        component: BillingInvoiceListPageComponent,
         data: {
           title: 'Invoice',
           urls: [
@@ -465,7 +422,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'payments-reports',
-        component: PaymentsReportsComponent,
+        component: BillingPaymentsReportsPageComponent,
         data: {
           title: 'Reports',
           showGoBack: true,
@@ -477,7 +434,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'addInvoice',
-        component: AppAddInvoiceComponent,
+        component: BillingAddInvoicePageComponent,
         data: {
           title: 'Add Invoice',
           showGoBack: true,
@@ -489,7 +446,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'viewInvoice/:id',
-        component: AppInvoiceViewComponent,
+        component: BillingInvoiceViewPageComponent,
         data: {
           title: 'View Invoice',
           showGoBack: true,
@@ -501,7 +458,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'editinvoice/:id',
-        component: AppEditInvoiceComponent,
+        component: BillingEditInvoicePageComponent,
         data: {
           title: 'Edit Invoice',
           showGoBack: true,
@@ -535,7 +492,7 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'pricing',
-        component: AppPricingStripeComponent,
+        component: BillingPricingPageComponent,
         data: {
           title: 'Pricing',
           showGoBack: true,

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   EventEmitter,
   Input,
@@ -475,3 +475,4 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     });
   }
 }
+

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from '../../../material.module';
 import { CommonModule, NgIf } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -16,14 +16,14 @@ import {
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { CompaniesService } from 'src/app/services/companies.service';
+import { CompaniesService } from '@app/services/companies.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { ReportsService } from 'src/app/services/reports.service';
+import { ReportsService } from '@app/services/reports.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
+import { AppEmployeeTableComponent } from '@app/pages/apps/employee/employee-table/employee-table.component';
 import { environment } from 'src/environments/environment';
 import { RouterLink } from '@angular/router';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { WebSocketService } from '@app/services/socket/web-socket.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
@@ -387,3 +387,4 @@ export class AppEmployeesReportsComponent implements OnInit, OnDestroy {
     });
   }
 }
+

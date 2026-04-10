@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SharedModule } from '../shared.module';
 import { TimerComponent } from '../timer/timer.component';
 import { UserOptionsComponent } from '../user-options/user-options.component';
@@ -36,3 +36,5 @@ export class CompanyListComponent {
     this.onSelectedCompany.emit(company);
   }
 }
+
+
