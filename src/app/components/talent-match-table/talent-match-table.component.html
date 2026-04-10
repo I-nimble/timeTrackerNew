@@ -2,7 +2,7 @@
   <div *ngIf="loading" class="d-flex justify-content-center align-items-center p-24">
     <mat-spinner diameter="50"></mat-spinner>
   </div>
-  <div *ngIf="!loading && (!dataSource?.data || dataSource.data.length === 0)" class="text-center p-24">
+  <div *ngIf="!loading && !hideEmpty && (!dataSource?.data || dataSource.data.length === 0)" class="text-center p-24">
     No candidates available.
   </div>
   <table *ngIf="!loading && dataSource?.data?.length > 0" 

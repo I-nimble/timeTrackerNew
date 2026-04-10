@@ -1,6 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
 import { Positions } from 'src/app/models/Position.model';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
@@ -8,7 +11,6 @@ import { TalentMatchTableComponent } from 'src/app/components/talent-match-table
 import { TalentMatchFiltersComponent } from 'src/app/components/talent-match-filters/talent-match-filters.component';
 import { PositionsService } from 'src/app/services/positions.service';
 import { PublicService } from 'src/app/services/public.service';
-import { AIService } from 'src/app/services/ai.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -17,7 +19,10 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./public-talent-match.component.scss'],
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
     TalentMatchTableComponent,
     TalentMatchFiltersComponent,
     MatchComponent,
@@ -56,6 +61,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
     'experience',
     'trainings'
   ];
+  clientForm: FormGroup;
   loading: boolean = false;
   errorMessage = '';
   page = 1;
@@ -65,7 +71,18 @@ export class AppPublicTalentMatchComponent implements OnInit {
   sortBy: string | null = null;
   sortOrder: 'asc' | 'desc' | null = null;
 
-  constructor(private publicService: PublicService, private positionsService: PositionsService, private aiService: AIService) {}
+  constructor(
+    private publicService: PublicService,
+    private positionsService: PositionsService,
+    private fb: FormBuilder
+  ) {
+    this.clientForm = this.fb.group({
+      name: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern(/^\d{7,15}$/)]],
+      company: ['', [Validators.required]]
+    });
+  }
 
   ngOnInit() {
     this.loadRecords();
@@ -82,10 +99,13 @@ export class AppPublicTalentMatchComponent implements OnInit {
       sortOrder: this.sortOrder || undefined,
       question: this.query || '',
       filters: {
-        selectedRole: this.filters.position_id ? String(this.filters.position_id) : undefined,
+        selectedRole: this.filters.position_id
+          ? (this.positions.find(p => String(p.id) === String(this.filters.position_id))?.title ?? String(this.filters.position_id))
+          : undefined,
         selectedPracticeArea: this.filters.practiceArea || undefined,
         query: this.query || undefined
-      }
+      },
+      clientInfo: this.clientForm.value
     };
     this.publicService.getRecords(payload).subscribe({
       next: (res: any) => {

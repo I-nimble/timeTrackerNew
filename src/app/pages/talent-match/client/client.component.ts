@@ -217,7 +217,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           this.aiLoading = false;
           this.tableLoading = false;
         } else {
-          this.aiAnswer = 'Error getting answer from AI, try again later.';
+          this.aiAnswer = 'Error getting answer from AI, try again later. You are getting manual search results this time.';
           console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
@@ -238,8 +238,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      selectedRole: this.selectedRole || undefined,
-      selectedPracticeArea: this.selectedPracticeArea || undefined,
       search: additionalSearchText,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -708,6 +706,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   private buildApplicationsSearchTerm(): string {
     const terms = [
+      this.selectedRole,
+      this.selectedPracticeArea,
       this.query,
       this.roleDescription,
     ]

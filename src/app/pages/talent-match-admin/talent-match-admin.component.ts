@@ -545,8 +545,6 @@ export class AppTalentMatchAdminComponent implements OnInit {
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      selectedRole: this.selectedRole || undefined,
-      selectedPracticeArea: this.selectedPracticeArea || undefined,
       search: additionalSearchText,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
@@ -564,6 +562,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   private buildApplicationsSearchTerm(): string {
     const terms = [
+      this.selectedRole,
+      this.selectedPracticeArea,
       this.query,
       this.roleDescription,
     ]
