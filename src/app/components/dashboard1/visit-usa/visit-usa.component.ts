@@ -25,6 +25,10 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   locations: any[] = [];
   clientLocation: any = null;
   locationError: string = '';
+  fixedTimezones = [
+    { label: 'USA Pacific', timezone: 'America/Los_Angeles', abbreviation: '', time: '' },
+    { label: 'USA Eastern', timezone: 'America/New_York', abbreviation: '', time: '' },
+  ];
   private clientPointAdded: boolean = false;
   private readonly EMPLOYEE_POINT_COLOR = 0x1b84ff;
   private readonly CLIENT_POINT_COLOR = 0xff6b6b;
@@ -46,8 +50,17 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.fetchLocations();
+    this.updateFixedTimezones();
     this.timer = setInterval(() => this.updateDisplayedTime(), 60000);
     this.getClientLocation();
+  }
+
+  updateFixedTimezones() {
+    this.fixedTimezones = this.fixedTimezones.map(tz => ({
+      ...tz,
+      time: moment().tz(tz.timezone).format('hh:mm A'),
+      abbreviation: moment().tz(tz.timezone).format('z'),
+    }));
   }
 
   async getClientLocation() {
@@ -164,6 +177,7 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
       timeMoment.add(1, 'minute');
       this.clientLocation.time = timeMoment.format('hh:mm A');
     }
+    this.updateFixedTimezones();
   }
 
   ngAfterViewInit() {
