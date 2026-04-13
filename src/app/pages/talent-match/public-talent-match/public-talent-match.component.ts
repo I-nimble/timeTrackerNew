@@ -84,7 +84,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
       ...mergedFilters
     }).subscribe({
       next: (res: any) => {
-        const mapped = res.data.map((c: any) => ({
+        const mapped = res.items.map((c: any) => ({
           ...c,
           name: c.full_name,
           profile_pic_url: c.picture ? `${environment.upload}/profile-pictures/${c.picture}` : null
