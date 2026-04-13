@@ -1,14 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
 import { Positions } from 'src/app/models/Position.model';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { TalentMatchTableComponent } from 'src/app/components/talent-match-table/talent-match-table.component';
 import { TalentMatchFiltersComponent } from 'src/app/components/talent-match-filters/talent-match-filters.component';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { PositionsService } from 'src/app/services/positions.service';
 import { PublicService } from 'src/app/services/public.service';
 import { environment } from 'src/environments/environment';
@@ -19,12 +18,10 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./public-talent-match.component.scss'],
   imports: [
     CommonModule,
-    ReactiveFormsModule,
     MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
     TalentMatchTableComponent,
     TalentMatchFiltersComponent,
+    TalentMatchIntakeComponent,
     MatchComponent,
   ]
 })
@@ -61,7 +58,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
     'experience',
     'trainings'
   ];
-  clientForm: FormGroup;
+  clientForm!: FormGroup;
   loading: boolean = false;
   errorMessage = '';
   page = 1;
@@ -74,18 +71,14 @@ export class AppPublicTalentMatchComponent implements OnInit {
   constructor(
     private publicService: PublicService,
     private positionsService: PositionsService,
-    private fb: FormBuilder
-  ) {
-    this.clientForm = this.fb.group({
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^\d{7,15}$/)]],
-      company: ['', [Validators.required]]
-    });
+  ) {}
+
+  onIntakeFormReady(form: FormGroup) {
+    this.clientForm = form;
+    this.loadRecords();
   }
 
   ngOnInit() {
-    this.loadRecords();
     this.loadPositions();
   }
 
@@ -105,7 +98,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
         selectedPracticeArea: this.filters.practiceArea || undefined,
         query: this.query || undefined
       },
-      clientInfo: this.clientForm.value
+      clientInfo: this.clientForm?.value ?? {}
     };
     this.publicService.getRecords(payload).subscribe({
       next: (res: any) => {

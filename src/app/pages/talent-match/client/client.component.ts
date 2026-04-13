@@ -32,6 +32,8 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -49,6 +51,7 @@ import { switchMap } from 'rxjs/operators';
     LinebreakPipe,
     FormatNamePipe,
     TourMatMenuModule,
+    TalentMatchIntakeComponent,
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -146,6 +149,17 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return getEnglishLevelPercent(value);
   }
 
+  intakeForm?: FormGroup;
+
+  get showIntake(): boolean {
+    const email = localStorage.getItem('email') || '';
+    return environment.talentMatchIntakeEmails.includes(email);
+  }
+
+  onIntakeFormReady(form: FormGroup) {
+    this.intakeForm = form;
+  }
+
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
@@ -159,7 +173,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private notificationsService: NotificationsService,
     public snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
     this.applicationsService.loadApplicationStatuses().subscribe();
     this.getApplications();
@@ -190,6 +204,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.evaluateCandidates({
       question: searchQuery,
       filters: this.buildAISearchFilters(),
+      ...(this.showIntake && this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);

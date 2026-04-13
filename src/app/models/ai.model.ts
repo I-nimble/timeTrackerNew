@@ -7,9 +7,17 @@ export interface CandidateEvaluationFilters {
   query?: string;
 }
 
+export interface CandidateEvaluationIntakeInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+}
+
 export interface CandidateEvaluationRequest {
   question: string;
   filters?: CandidateEvaluationFilters;
+  intakeInfo?: CandidateEvaluationIntakeInfo;
 }
 
 export interface CandidateEvaluationResultsParams {
