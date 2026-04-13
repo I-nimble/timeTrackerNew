@@ -1,14 +1,15 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource } from '@angular/material/table';
 import { Positions } from 'src/app/models/Position.model';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { TalentMatchTableComponent } from 'src/app/components/talent-match-table/talent-match-table.component';
 import { TalentMatchFiltersComponent } from 'src/app/components/talent-match-filters/talent-match-filters.component';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { PositionsService } from 'src/app/services/positions.service';
 import { PublicService } from 'src/app/services/public.service';
-import { AIService } from 'src/app/services/ai.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -20,6 +21,7 @@ import { environment } from 'src/environments/environment';
     MatCardModule,
     TalentMatchTableComponent,
     TalentMatchFiltersComponent,
+    TalentMatchIntakeComponent,
     MatchComponent,
   ]
 })
@@ -56,6 +58,7 @@ export class AppPublicTalentMatchComponent implements OnInit {
     'experience',
     'trainings'
   ];
+  clientForm!: FormGroup;
   loading: boolean = false;
   errorMessage = '';
   page = 1;
@@ -65,10 +68,17 @@ export class AppPublicTalentMatchComponent implements OnInit {
   sortBy: string | null = null;
   sortOrder: 'asc' | 'desc' | null = null;
 
-  constructor(private publicService: PublicService, private positionsService: PositionsService, private aiService: AIService) {}
+  constructor(
+    private publicService: PublicService,
+    private positionsService: PositionsService,
+  ) {}
+
+  onIntakeFormReady(form: FormGroup) {
+    this.clientForm = form;
+    this.loadRecords();
+  }
 
   ngOnInit() {
-    this.loadRecords();
     this.loadPositions();
   }
 
@@ -82,10 +92,13 @@ export class AppPublicTalentMatchComponent implements OnInit {
       sortOrder: this.sortOrder || undefined,
       question: this.query || '',
       filters: {
-        selectedRole: this.filters.position_id ? String(this.filters.position_id) : undefined,
+        selectedRole: this.filters.position_id
+          ? (this.positions.find(p => String(p.id) === String(this.filters.position_id))?.title ?? String(this.filters.position_id))
+          : undefined,
         selectedPracticeArea: this.filters.practiceArea || undefined,
         query: this.query || undefined
-      }
+      },
+      clientInfo: this.clientForm?.value ?? {}
     };
     this.publicService.getRecords(payload).subscribe({
       next: (res: any) => {
