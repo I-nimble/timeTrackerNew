@@ -118,6 +118,9 @@
             ></ngx-slider>
           </div> -->
         </div>
+        <div *ngIf="showIntake" class="m-t-16">
+          <app-talent-match-intake [required]="false" (formReady)="onIntakeFormReady($event)"></app-talent-match-intake>
+        </div>
         <div tourAnchor="tm-ai-box">
           <h4 class="f-w-700 m-b-16 m-t-16">
             Use AI to better describe the position
