@@ -32,6 +32,8 @@ import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -49,6 +51,7 @@ import { switchMap } from 'rxjs/operators';
     LinebreakPipe,
     FormatNamePipe,
     TourMatMenuModule,
+    TalentMatchIntakeComponent,
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -158,6 +161,17 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return getEnglishLevelPercent(value);
   }
 
+  intakeForm?: FormGroup;
+
+  get showIntake(): boolean {
+    const email = localStorage.getItem('email') || '';
+    return environment.talentMatchIntakeEmails.includes(email);
+  }
+
+  onIntakeFormReady(form: FormGroup) {
+    this.intakeForm = form;
+  }
+
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
@@ -171,7 +185,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private notificationsService: NotificationsService,
     public snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
     this.applicationsService.loadApplicationStatuses().subscribe();
     this.getApplications();
@@ -202,6 +216,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.evaluateCandidates({
       question: searchQuery,
       filters: this.buildAISearchFilters(),
+      ...(this.showIntake && this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
@@ -215,12 +230,21 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
-          this.useManualSearch = true;
+          if (err.error?.type === 'AI_QUOTA_EXCEEDED'){
+            this.useManualSearch = true;
+            this.aiAnswer = 'Error getting answer from AI, try again later.';
+            this.onManualSearch(question);
+          } else {
+            this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
+            this.useManualSearch = true;
+            this.onManualSearch(this.query);
+            this.clearAISearchState();
+            this.resetActiveAISearch();
+          }
           this.aiLoading = false;
           this.tableLoading = false;
         } else {
-          this.aiAnswer = 'Error getting answer from AI, try again later.';
+          this.aiAnswer = 'Error getting answer from AI, try again later. You are getting manual search results this time.';
           console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
@@ -232,17 +256,28 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   onManualSearch(query?: string) {
     this.clearAISearchState();
     this.resetActiveAISearch();
-
-    const searchQuery = query || this.query;
+    const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const lower = searchQuery.toLowerCase();
-    this.setDisplayedCandidates(this.allCandidates.filter(c =>
-      c.name?.toLowerCase().includes(lower) ||
-      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
-      c.skills?.toLowerCase().includes(lower) ||
-      c.location?.toLowerCase().includes(lower)
-    ));
-    this.hasSearchResults = this.dataSource.data.length > 0;
+    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    this.tableLoading = true;
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      sortBy: this.sortBy || 'submission_date',
+      sortOrder: this.sortOrder || 'desc',
+      search: fullSearchTerm,
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.allCandidates = response.items;
+        this.applyApplicationListResponse(response);
+        this.hasSearchResults = response.items.length > 0;
+        this.tableLoading = false;
+      },
+      error: (err) => {
+        console.error('Manual search error:', err);
+        this.tableLoading = false;
+      }
+    });
   }
 
   getCompany() {
@@ -288,7 +323,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       this.hasRestoredStoredSearch = true;
     }
 
-    if (this.activeAISearchSessionId) {
+    if (this.isAISearchActive()) {
       this.fetchAICandidates(true);
       return;
     }
@@ -361,13 +396,14 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   executeFilterSearch(): void {
-    if (this.selectedPositionFilters.length === 0) {
+    if (!this.query.trim()) {
       this.setDisplayedCandidates([...this.allCandidates]);
       this.hasSearchResults = false;
       return;
     }
-
-    if (this.query.trim()) {
+    if (this.useManualSearch) {
+      this.onManualSearch(this.query);
+    } else {
       this.searchCandidatesWithAI(this.query);
     }
   }
@@ -697,6 +733,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   private buildApplicationsSearchTerm(): string {
     const terms = [
+      this.selectedRole,
+      this.selectedPracticeArea,
       this.query,
       this.selectedRole,
       this.selectedPracticeArea,
@@ -767,7 +805,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private isAISearchActive(): boolean {
-    return this.activeAISearchSessionId.length > 0;
+    return !this.useManualSearch && this.activeAISearchSessionId.length > 0;
   }
 
   private setDisplayedCandidates(candidates: any[]): void {

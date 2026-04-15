@@ -3,6 +3,7 @@ import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
 import { AppIntakeFormComponent } from './pages/intake/intake-form.component';
+import { AppPublicTalentMatchComponent } from './pages/talent-match/public-talent-match/public-talent-match.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { UserTypeGuardService } from './services/guards/user-type-guard.service';
@@ -144,6 +145,18 @@ export const routes: Routes = [
             { title: 'Intake form' }
           ]
         }
+      },
+      {
+        path: 'talent-match',
+        component: AppPublicTalentMatchComponent,
+        data: {
+          title: 'Talent Match',
+          urls: [
+            { title: 'Talent Match', url: '/dashboards/dashboard2' },
+            { title: 'Talen Match' }
+          ]
+        },
+        canActivate: [notAuthGuard],
       }
     ],
   },

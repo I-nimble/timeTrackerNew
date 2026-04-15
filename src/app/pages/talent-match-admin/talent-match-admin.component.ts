@@ -96,7 +96,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
   aiAnswer: string = '';
   hasSearchResults = false;
   allCandidates: any[] = [];
-  useManualSearch = false;
+  useManualSearch = true;
   expandedElement: any | null = null;
   aiLoading = false;
   showCustomFilterInput: boolean = false;
@@ -198,7 +198,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
       this.hasRestoredStoredSearch = true;
     }
 
-    if (this.activeAISearchSessionId) {
+    if (!this.useManualSearch && this.activeAISearchSessionId) {
       this.fetchAICandidates(true);
       return;
     }
@@ -536,17 +536,40 @@ export class AppTalentMatchAdminComponent implements OnInit {
   onManualSearch(query?: string) {
     this.clearAISearchState();
     this.resetActiveAISearch();
-
-    const searchQuery = query || this.query;
+    const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const lower = searchQuery.toLowerCase();
-    this.setDisplayedCandidates(this.allCandidates.filter(c =>
-      c.name?.toLowerCase().includes(lower) ||
-      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
-      c.skills?.toLowerCase().includes(lower) ||
-      c.location?.toLowerCase().includes(lower)
-    ));
-    this.hasSearchResults = this.dataSource.data.length > 0;
+    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    this.tableLoading = true;
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      sortBy: this.sortBy || 'submission_date',
+      sortOrder: this.sortOrder || 'desc',
+      search: fullSearchTerm,
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.allCandidates = response.items;
+        this.applyApplicationListResponse(response);
+        this.hasSearchResults = response.items.length > 0;
+        this.tableLoading = false;
+      },
+      error: (err) => {
+        console.error('Manual search error:', err);
+        this.tableLoading = false;
+      }
+    });
+  }
+
+  private buildApplicationsSearchTerm(): string {
+    const terms = [
+      this.query,
+      this.selectedRole,
+      this.selectedPracticeArea,
+      this.roleDescription,
+    ]
+      .map((value) => String(value || '').trim())
+      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
+    return terms.join(' ');
   }
 
   private buildAISearchFilters(): CandidateEvaluationFilters {

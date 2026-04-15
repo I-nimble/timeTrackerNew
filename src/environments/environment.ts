@@ -9,7 +9,7 @@ export const environment = {
   assets:'https://inimble-app.s3.us-east-1.amazonaws.com/assets/images',
   mp3: "https://inimble-app.s3.us-east-1.amazonaws.com/assets/sounds",
   videos: 'https://inimble-app.s3.us-east-1.amazonaws.com/assets/videos',
-  upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
+  upload: 'http://localhost:3000/uploads',
   stripePublicKey:'pk_test_51RoRhYA7lAmLJd56IjAbCmMWMtjh7iLIVxMLav5vCeBjGaTBlRFyAErXSeGtRLFNx49mmwWSOc9cnJHnXUsRT9VV00joP4DxQo',
   firebaseConfig: {
     apiKey: "AIzaSyDi2g2jOi9coqrHgjF8Ojg_5mPKC1FNs1k",
@@ -30,5 +30,6 @@ export const environment = {
   rocketChatWebSocketUrl: 'wss://chat.inimbleapp.com/websocket',
   rocketChatS3Bucket: 'https://inimble-chat.s3.us-east-1.amazonaws.com/f87be79d-b1cc-41f7-922b-cf132b4199fb',
   jitsiMeetUrl: 'https://meet.inimbleapp.com',
-  keywords: ['Ideas', 'Startup', 'Growth', 'Marketing', 'Sales', 'Operations', 'Finance', 'Leadership', 'Branding', 'Mindset', 'Exit', 'Remote', 'Tools', 'Coaching']
+  keywords: ['Ideas', 'Startup', 'Growth', 'Marketing', 'Sales', 'Operations', 'Finance', 'Leadership', 'Branding', 'Mindset', 'Exit', 'Remote', 'Tools', 'Coaching'],
+  talentMatchIntakeEmails: ['apalma@i-nimble.com', 'savila@i-nimble.com']
 };
