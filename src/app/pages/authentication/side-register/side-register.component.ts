@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, HostBinding, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -32,6 +32,11 @@ import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { StripeFactoryService } from 'src/app/components/stripe/stripe-factory.service';
+import { StripeService } from 'src/app/services/stripe.service';
+import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+import { firstValueFrom } from 'rxjs';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 
 @Component({
   selector: 'app-side-register',
@@ -52,7 +57,7 @@ import { RocketChatService } from 'src/app/services/rocket-chat.service';
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
 })
-export class AppSideRegisterComponent {
+export class AppSideRegisterComponent implements OnDestroy {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
@@ -108,6 +113,17 @@ export class AppSideRegisterComponent {
   otherDepartment: string = '';
   signedWithGoogleClicked: boolean = false;
 
+  readonly PAYMENT_STEP_INDEX = 6;
+  private registrationStripe: Stripe | null = null;
+  private registrationElements: StripeElements | null = null;
+  private registrationPaymentElement: StripePaymentElement | null = null;
+  registrationSetupClientSecret: string | null = null;
+  registrationCustomerId: string | null = null;
+  registrationPaymentMethodId: string | null = null;
+  isPaymentStepLoading = false;
+  isPaymentProcessing = false;
+  paymentStepError: string | null = null;
+
   constructor(
     private settings: CoreService,
     private router: Router,
@@ -126,6 +142,8 @@ export class AppSideRegisterComponent {
     private departmentsService: DepartmentsService,
     private cdr: ChangeDetectorRef,
     private rocketChatService: RocketChatService,
+    private stripeFactory: StripeFactoryService,
+    private stripeService: StripeService,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -306,13 +324,37 @@ export class AppSideRegisterComponent {
   //   });
   // }
 
-  submit() {
+  async submit() {
     if (this.userRole === '3') {
       if (!this.registerClientForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
       }
-
+      if (this.registrationElements && this.registrationStripe) {
+        this.isPaymentProcessing = true;
+        this.paymentStepError = null;
+        try {
+          const { error, setupIntent } = await this.registrationStripe.confirmSetup({
+            elements: this.registrationElements,
+            confirmParams: {
+              return_url: `${window.location.origin}/authentication/register`,
+            },
+            redirect: 'if_required',
+          });
+          if (error) {
+            this.isPaymentProcessing = false;
+            this.paymentStepError = error.message ?? 'Payment setup failed.';
+            this.openSnackBar(this.paymentStepError ?? 'Payment setup failed.', 'error');
+            return;
+          }
+          this.registrationPaymentMethodId = (setupIntent?.payment_method as string) ?? null;
+        } catch (err: any) {
+          this.isPaymentProcessing = false;
+          this.paymentStepError = err.message ?? 'Payment setup failed.';
+          this.openSnackBar(this.paymentStepError ?? 'Payment setup failed.', 'error');
+          return;
+        }
+      }
       const clientData = {
         firstName: this.registerClientForm.value.name,
         lastName: this.registerClientForm.value.last_name,
@@ -323,6 +365,8 @@ export class AppSideRegisterComponent {
         phone: this.registerClientForm.value.phone,
         password: this.registerClientForm.value.password,
         google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
+        payment_method_id: this.registrationPaymentMethodId,
+        stripe_customer_id: this.registrationCustomerId,
       };
       const fullName = this.registerClientForm.value.name + ' ' + this.registerClientForm.value.last_name;
 
@@ -365,6 +409,7 @@ export class AppSideRegisterComponent {
             });
         },
         error: (e) => {
+          this.isPaymentProcessing = false;
           console.error(e);
           this.openSnackBar(e.error.message, 'error'); // Email already exists
           return;
@@ -515,6 +560,59 @@ export class AppSideRegisterComponent {
       }
       return null;
     };
+  }
+
+  ngOnDestroy() {
+    if (this.registrationPaymentElement) {
+      this.registrationPaymentElement.destroy();
+    }
+  }
+
+  async onClientStepChange(event: StepperSelectionEvent) {
+    if (event.selectedIndex === this.PAYMENT_STEP_INDEX) {
+      await this.initPaymentStep();
+    }
+  }
+
+  async initPaymentStep() {
+    if (this.registrationSetupClientSecret) return;
+    this.isPaymentStepLoading = true;
+    this.paymentStepError = null;
+    try {
+      const email = this.registerClientForm.value.email ?? '';
+      const name = `${this.registerClientForm.value.name ?? ''} ${this.registerClientForm.value.last_name ?? ''}`.trim();
+      const response = await firstValueFrom(
+        this.stripeService.createRegistrationSetupIntent({ email, name }),
+      );
+      this.registrationSetupClientSecret = response.clientSecret;
+      this.registrationCustomerId = response.customerId;
+      if (!this.registrationStripe) {
+        this.registrationStripe = await this.stripeFactory.getStripe();
+      }
+      if (!this.registrationStripe) {
+        this.paymentStepError = 'Failed to load payment processor. Please try again.';
+        this.isPaymentStepLoading = false;
+        return;
+      }
+      this.registrationElements = this.registrationStripe.elements({
+        clientSecret: this.registrationSetupClientSecret,
+        appearance: { theme: 'stripe' as const },
+      });
+      this.registrationPaymentElement = (this.registrationElements as any).create('payment', {
+        layout: { type: 'accordion', defaultCollapsed: false },
+      });
+      setTimeout(() => {
+        const container = document.getElementById('registration-payment-element');
+        if (container) {
+          this.registrationPaymentElement?.mount(container);
+        }
+        this.isPaymentStepLoading = false;
+      }, 100);
+    } catch (error: any) {
+      console.error('Error initializing payment step:', error);
+      this.paymentStepError = 'Failed to initialize payment. Please check your information.';
+      this.isPaymentStepLoading = false;
+    }
   }
 
   restrictPhoneInput(event: KeyboardEvent) {

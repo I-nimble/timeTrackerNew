@@ -127,6 +127,7 @@
                         #stepper
                         id="register-form"
                         *ngIf="userRole === '3'"
+                        (selectionChange)="onClientStepChange($event)"
                       >
                         <mat-step [stepControl]="registerClientForm">
                           <div
@@ -491,12 +492,67 @@
                               <button
                                 class="w-100"
                                 mat-flat-button
-                                (click)="submit()"
-                                [disabled]="!registerClientForm.valid"
+                                matStepperNext
+                                [disabled]="
+                                  !registerClientForm.get('password')?.valid
+                                "
                               >
-                                Finish
+                                Next
                               </button>
                             </form>
+                          </div>
+                        </mat-step>
+                        <!-- Payment step -->
+                        <mat-step>
+                          <div
+                            class="d-flex justify-content-center align-items-start form-container m-t-24"
+                          >
+                            <div class="m-t-24 col-12">
+                              <h2 class="text-center m-b-16 label-title">
+                                Start your free trial
+                              </h2>
+                              <p class="text-center m-b-24 f-s-14 mat-body-1">
+                                Start your 30-day free trial today. Add your credit card and
+                                pay nothing for the first 30 days. Then just $17.99/month.
+                              </p>
+                              <div
+                                *ngIf="isPaymentStepLoading"
+                                class="text-center p-y-24"
+                              >
+                                <mat-spinner diameter="36" class="m-x-auto"></mat-spinner>
+                                <p class="m-t-12 mat-body-1">
+                                  Loading payment form...
+                                </p>
+                              </div>
+                              <div
+                                *ngIf="paymentStepError && !isPaymentStepLoading"
+                                class="text-danger f-s-13 m-b-16 text-center"
+                              >
+                                {{ paymentStepError }}
+                              </div>
+                              <div
+                                id="registration-payment-element"
+                                [class.d-none]="isPaymentStepLoading"
+                                class="m-b-24"
+                              ></div>
+                              <button
+                                class="w-100"
+                                mat-flat-button
+                                (click)="submit()"
+                                [disabled]="
+                                  isPaymentStepLoading ||
+                                  isPaymentProcessing ||
+                                  !!paymentStepError
+                                "
+                              >
+                                <span *ngIf="!isPaymentProcessing">
+                                  Start Free Trial
+                                </span>
+                                <span *ngIf="isPaymentProcessing">
+                                  Processing...
+                                </span>
+                              </button>
+                            </div>
                           </div>
                         </mat-step>
                       </mat-stepper>
