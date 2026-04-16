@@ -46,6 +46,7 @@ export interface ApplicationRanking {
 }
 
 export interface ApplicationMatchScoreSummary {
+	position_category_id?: number | null;
 	match_percentage: number;
 	category_name: string | null;
 }

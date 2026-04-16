@@ -11,8 +11,9 @@ import { ApplicationMatchScoresService, PositionCategory, MatchScore } from 'src
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSelectModule } from '@angular/material/select';
-import { DiscProfilesService, DiscProfile } from 'src/app/services/disc-profiles.service';
-import { forkJoin } from 'rxjs';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
+import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 
 export interface MatchPercentagesModalData {
   candidate: {
@@ -89,26 +90,10 @@ export class MatchPercentagesModalComponent implements OnInit {
     this.loading = true;
     this.matchScoresService.getPositionCategories().subscribe({
       next: (categories) => {
-        this.positionCategories = categories.sort((a, b) => {
-          const order = [
-            'Lien Negotiator - Office Manager/Administrative Coordinator',
-            'Intake Specialist',
-            'Medical Records Clerk - Case Manager - Receptionist',
-            'Paralegal Personal Injury - Litigation Assistant'
-          ];
-          
-          const indexA = order.indexOf(a.category_name);
-          const indexB = order.indexOf(b.category_name);
-          
-          if (indexA !== -1 && indexB !== -1) {
-            return indexA - indexB;
-          }
-          
-          if (indexA !== -1) return -1;
-          if (indexB !== -1) return 1;
-          
-          return 0;
-        });
+        this.positionCategories = sortByNegotiatorProfileOrder(
+          categories,
+          category => category.id,
+        );
         
         this.initializeMatchScores();
         this.loading = false;
@@ -163,9 +148,9 @@ export class MatchPercentagesModalComponent implements OnInit {
   }
 
   onSubmit(): void {
-    const matchScoresData = Object.entries(this.matchScores).map(([categoryId, percentage]) => ({
-      position_category_id: parseInt(categoryId),
-      match_percentage: percentage
+    const matchScoresData = this.positionCategories.map(category => ({
+      position_category_id: category.id,
+      match_percentage: this.matchScores[category.id] ?? 0,
     }));
     const selectedProfiles = this.discProfiles.filter(p => 
       this.selectedDiscProfileIds.includes(p.id)

@@ -31,6 +31,8 @@ import { FormsModule } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
+import { ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 
 export interface PeriodicElement {
   id: number;
@@ -280,8 +282,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   private applyApplicationListResponse(response: ApplicationListResponse): void {
-    this.dataSource.data = response.items;
-    this.rows = response.items;
+    const orderedItems = this.normalizeAllMatchScores(response.items || []);
+    this.dataSource.data = orderedItems;
+    this.rows = orderedItems;
     this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
@@ -290,6 +293,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
+  }
+
+  private normalizeAllMatchScores(candidates: any[]): any[] {
+    return candidates.map(candidate => ({
+      ...candidate,
+      all_match_scores: sortByNegotiatorProfileOrder<ApplicationMatchScoreSummary>(
+        candidate.all_match_scores || [],
+        score => score.position_category_id,
+      ),
+    }));
   }
   
   applyFilter(event: Event): void {
