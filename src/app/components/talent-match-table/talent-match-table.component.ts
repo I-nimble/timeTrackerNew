@@ -33,6 +33,7 @@ export class TalentMatchTableComponent {
   @Input() pageSize = 10;
   @Input() pageSizeOptions = [5, 10, 25];
   @Input() loading: boolean = false;
+  @Input() hideEmpty: boolean = false;
   @Input() sortBy: string | null = null;
   @Input() sortOrder: 'asc' | 'desc' | null = null;
   @Output() pageChange = new EventEmitter<any>();

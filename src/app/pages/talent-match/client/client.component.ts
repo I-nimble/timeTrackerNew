@@ -28,13 +28,12 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse } from 'src/app/models/application.model';
-import { DynamicTableComponent } from 'src/app/shared/components/dynamic-table/dynamic-table.component';
-import {
-  DynamicTableColumn,
-  DynamicTableRowActionEvent,
-  DynamicTableSortChange,
-} from 'src/app/shared/models/dynamic-table.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { PageEvent } from '@angular/material/paginator';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { environment } from 'src/environments/environment';
 
 @Component({
   standalone: true,
@@ -52,7 +51,7 @@ import { NotificationsService } from 'src/app/services/notifications.service';
     LinebreakPipe,
     FormatNamePipe,
     TourMatMenuModule,
-    DynamicTableComponent,
+    TalentMatchIntakeComponent,
   ],
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss'],
@@ -70,7 +69,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   positions: any[] = [];
   searchText: string = '';
   rows: any[] = [];
-  tableColumns: DynamicTableColumn<any>[] = [];
   dataSource = new MatTableDataSource<any>([]);
   paginatedRows: any[] = [];
   selection = new SelectionModel<any>(true, []);
@@ -97,24 +95,13 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
+  totalRecords = 0;
   backendMessage = '';
   searchTerm = '';
-  sortBy = 'submission_date';
-  sortOrder: 'asc' | 'desc' = 'asc';
+  sortBy = 'match_percentage';
+  sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
-  positionsOptions: string[] = [
-    'Legal Assistant',
-    'Paralegal',
-    'Case Manager',
-    'Intake Specialist',
-    'Demand Writer',
-    'Medical Records Specialist',
-    'Litigation Support Assistant',
-    'Executive Assistant',
-    'Administrative Assistant',
-    'Virtual Assistant (General)'
-  ];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -141,12 +128,36 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   @ViewChild('expandedDetailTemplate')
   expandedDetailTemplate!: TemplateRef<any>;
 
+  displayedColumns: string[] = [
+    'select',
+    'name',
+    'personality profile',
+    'position',
+    'experience',    
+    'trainings',
+    'actions',
+  ];
+  columnsToDisplayWithExpand = [...this.displayedColumns, 'expand'];
+  activeSortBy: string = '';
+  activeSortOrder: 'asc' | 'desc' = 'asc';
+
   formatEnglishLevelDisplay(value: number): string {
     return formatEnglishLevelDisplay(value);
   }
 
   getEnglishLevelPercent(value: number): number {
     return getEnglishLevelPercent(value);
+  }
+
+  intakeForm?: FormGroup;
+
+  get showIntake(): boolean {
+    const email = localStorage.getItem('email') || '';
+    return environment.talentMatchIntakeEmails.includes(email);
+  }
+
+  onIntakeFormReady(form: FormGroup) {
+    this.intakeForm = form;
   }
 
   constructor(
@@ -162,8 +173,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private notificationsService: NotificationsService,
     public snackBar: MatSnackBar
   ) {}
-  
+
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.getApplications();
     this.getPositions();
     this.getCompany();
@@ -171,7 +183,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.refreshTableColumns();
     this.cdr.detectChanges();
   }
 
@@ -184,7 +195,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
     this.currentPage = 1;
     this.sortBy = 'match_percentage';
-    this.sortOrder = 'desc';
+    this.sortOrder = 'asc';
     this.aiLoading = true;
     this.tableLoading = false;
     this.aiAnswer = '';
@@ -193,6 +204,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.evaluateCandidates({
       question: searchQuery,
       filters: this.buildAISearchFilters(),
+      ...(this.showIntake && this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
@@ -206,12 +218,21 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
-          this.useManualSearch = true;
+          if (err.error?.type === 'AI_QUOTA_EXCEEDED'){
+            this.useManualSearch = true;
+            this.aiAnswer = 'Error getting answer from AI, try again later.';
+            this.onManualSearch(question);
+          } else {
+            this.aiAnswer = 'You have reached the limit of 50 AI requests per day. Manual search has been enabled until your limit resets tomorrow. Upgrade your plan to continue using AI-powered search without interruptions.';
+            this.useManualSearch = true;
+            this.onManualSearch(this.query);
+            this.clearAISearchState();
+            this.resetActiveAISearch();
+          }
           this.aiLoading = false;
           this.tableLoading = false;
         } else {
-          this.aiAnswer = 'Error getting answer from AI, try again later.';
+          this.aiAnswer = 'Error getting answer from AI, try again later. You are getting manual search results this time.';
           console.error('AI evaluation error:', err);
         }
         this.aiLoading = false;
@@ -223,17 +244,28 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   onManualSearch(query?: string) {
     this.clearAISearchState();
     this.resetActiveAISearch();
-
-    const searchQuery = query || this.query;
+    const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const lower = searchQuery.toLowerCase();
-    this.setDisplayedCandidates(this.allCandidates.filter(c =>
-      c.name?.toLowerCase().includes(lower) ||
-      this.getPositionTitle(c.position_id)?.toLowerCase().includes(lower) ||
-      c.skills?.toLowerCase().includes(lower) ||
-      c.location?.toLowerCase().includes(lower)
-    ));
-    this.hasSearchResults = this.dataSource.data.length > 0;
+    const additionalSearchText = this.buildApplicationsSearchTerm();
+    this.tableLoading = true;
+    this.applicationsService.get({
+      page: 1,
+      offset: 1000,
+      sortBy: this.sortBy || 'submission_date',
+      sortOrder: this.sortOrder || 'desc',
+      search: additionalSearchText,
+    }).subscribe({
+      next: (response: ApplicationListResponse) => {
+        this.allCandidates = response.items;
+        this.applyApplicationListResponse(response);
+        this.hasSearchResults = response.items.length > 0;
+        this.tableLoading = false;
+      },
+      error: (err) => {
+        console.error('Manual search error:', err);
+        this.tableLoading = false;
+      }
+    });
   }
 
   getCompany() {
@@ -279,18 +311,32 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       this.hasRestoredStoredSearch = true;
     }
 
-    if (this.activeAISearchSessionId) {
+    if (this.isAISearchActive()) {
       this.fetchAICandidates(true);
       return;
     }
 
-    this.applicationsService.get({
-      page: this.currentPage,
-      offset: this.pageSize,
-      sortBy: this.sortBy,
-      sortOrder: this.sortOrder,
-      search: '',
-    }).subscribe({
+    this.applicationsService.getStatusIdsByNames(['talent match']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+            sortBy: this.sortBy,
+            sortOrder: this.sortOrder,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          sortBy: this.sortBy,
+          sortOrder: this.sortOrder,
+          statusIds,
+          search: '',
+        });
+      }),
+    ).subscribe({
       next: (response: ApplicationListResponse) => {
         this.resetActiveAISearch();
         this.allCandidates = response.items;
@@ -298,7 +344,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.hasSearchResults = false;
         this.aiAnswer = '';
         this.tableLoading = false;
-        this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching applications:', err);
@@ -339,13 +384,14 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   executeFilterSearch(): void {
-    if (this.selectedPositionFilters.length === 0) {
+    if (!this.query.trim()) {
       this.setDisplayedCandidates([...this.allCandidates]);
       this.hasSearchResults = false;
       return;
     }
-
-    if (this.query.trim()) {
+    if (this.useManualSearch) {
+      this.onManualSearch(this.query);
+    } else {
       this.searchCandidatesWithAI(this.query);
     }
   }
@@ -395,7 +441,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       next: (positions: any) => {
         this.positions = positions;
         this.filterPositions = [...new Set(positions.map((p: any) => p.title))];
-        this.refreshTableColumns();
       },
       error: (err: any) => {
         console.error('Error fetching positions:', err);
@@ -528,7 +573,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     }`;
   }
 
-  onRowClick(row: any) {
+  onRowClick(row: any, event?: MouseEvent) {
+    const target = event?.target as HTMLElement | null;
+    if (target?.closest('button, a, mat-checkbox, [mat-menu-item], .mat-mdc-menu-trigger')) {
+      return;
+    }
+
     this.expandedElement = this.expandedElement === row ? null : row;
     this.selection.toggle(row);
     this.onRowSelectionChange();
@@ -539,20 +589,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.expandedElement = this.expandedElement === row ? null : row;
   }
 
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    this.expandedElement = null;
-    if (this.isAISearchActive()) {
-      this.fetchAICandidates();
-      return;
-    }
-    this.getApplications();
-  }
-
-  handleSortChange(event: DynamicTableSortChange): void {
-    this.sortBy = event.sortBy;
-    this.sortOrder = event.sortOrder;
-    this.currentPage = event.page;
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
     this.expandedElement = null;
     if (this.isAISearchActive()) {
@@ -560,22 +598,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       return;
     }
     this.getApplications();
-  }
-
-  handleTableRowAction(event: DynamicTableRowActionEvent<any>): void {
-    switch (event.action.id) {
-      case 'download-resume':
-        this.downloadFile(event.row.resume_url, event.row.name, event.row.id);
-        break;
-      case 'not-interested':
-        this.deleteApplication(event.row.id);
-        break;
-      case 'interested':
-        this.markInterested(event.row);
-        break;
-      default:
-        break;
-    }
   }
 
   markInterested(candidate: any): void {
@@ -699,9 +721,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   private buildApplicationsSearchTerm(): string {
     const terms = [
-      this.query,
       this.selectedRole,
       this.selectedPracticeArea,
+      this.query,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
@@ -722,6 +744,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private applyApplicationListResponse(response: ApplicationListResponse): void {
     this.dataSource.data = response.items;
     this.rows = response.items;
+    this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
     this.pageSize = response.meta.limit;
@@ -729,7 +752,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
-    this.refreshTableColumns();
   }
 
   private fetchAICandidates(restoreFallback = false): void {
@@ -769,7 +791,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private isAISearchActive(): boolean {
-    return this.activeAISearchSessionId.length > 0;
+    return !this.useManualSearch && this.activeAISearchSessionId.length > 0;
   }
 
   private setDisplayedCandidates(candidates: any[]): void {
@@ -789,110 +811,5 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     const endIndex = startIndex + this.pageSize;
     this.paginatedRows = [...this.dataSource.data.slice(startIndex, endIndex)];
     this.rows = [...this.paginatedRows];
-  }
-
-  private refreshTableColumns(): void {
-    if (
-      !this.selectHeaderTemplate ||
-      !this.selectCellTemplate ||
-      !this.actionsCellTemplate ||
-      !this.expandCellTemplate ||
-      !this.expandedDetailTemplate
-    ) {
-      return;
-    }
-
-    this.initializeColumns();
-  }
-
-  private initializeColumns(): void {
-    this.tableColumns = [
-      {
-        id: 'select',
-        header: '',
-        headerTemplate: this.selectHeaderTemplate,
-        cellTemplate: this.selectCellTemplate,
-      },
-      {
-        id: 'name',
-        header: 'Name',
-        sortable: true,
-        sortKey: 'name',
-        accessor: 'name',
-        renderer: {
-          type: 'avatar-name',
-          imageAccessor: (row) => row.profile_pic_url || this.assetsPath,
-          imageFallback: this.assetsPath,
-          titleAccessor: 'name',
-          titleTransform: (value) => new FormatNamePipe().transform(value),
-          subtitleAccessor: 'current_position',
-          badges: {
-            accessor: (row) => row.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
-          },
-        },
-      },
-      {
-        id: 'personalityProfile',
-        header: 'Personality profile',
-        sortable: true,
-        sortKey: 'match_percentage',
-        accessor: 'match_percentage',
-        renderer: {
-          type: 'metric',
-          primaryAccessor: (row) => row.match_percentage || '0',
-          primarySuffix: '%',
-          secondaryAccessor: 'position_category',
-        },
-      },
-      {
-        id: 'position',
-        header: 'Position',
-        sortable: true,
-        sortKey: 'position',
-        accessor: (row) => this.getPositionTitle(row.position_id),
-        renderer: {
-          type: 'text-badges',
-          textAccessor: (row) => this.getPositionTitle(row.position_id),
-          badges: {
-            accessor: (row) => this.getPositionById(row.position_id)?.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) => this.getDiscProfileColor(profile?.name || ''),
-          },
-        },
-      },
-      {
-        id: 'experience',
-        header: 'Experience',
-        sortable: true,
-        sortKey: 'experience',
-        accessor: (row) => row.work_experience_summary || row.work_experience,
-        renderer: {
-          type: 'truncated-text',
-          textAccessor: 'work_experience_summary',
-          fallbackAccessor: 'work_experience',
-          maxLength: 50,
-        },
-      },
-      {
-        id: 'trainings',
-        header: 'Trainings',
-        sortable: true,
-        sortKey: 'trainings',
-        accessor: (row) => this.getTrainingNames(row.certifications),
-      },
-      {
-        id: 'actions',
-        header: 'Actions',
-        headerClass: 'f-w-600 f-s-14',
-        cellTemplate: this.actionsCellTemplate,
-      },
-      {
-        id: 'expand',
-        header: '',
-        cellTemplate: this.expandCellTemplate,
-      },
-    ];
   }
 }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { Note } from '../pages/apps/notes/note';
+import { Note } from 'src/app/models/Note.model';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +16,7 @@ export class NotesService {
   }
 
   createNote(note: { user_id: number; date_time: string; content: string; color: string }) {
-    return this.http.post(this.API_URI, note);
+    return this.http.post<Note>(this.API_URI, note);
   }
 
   updateNote(id: number, note: { date_time: string; content: string; color: string }) {

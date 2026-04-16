@@ -1,7 +1,17 @@
 <mat-card class="cardWithShadow" *ngIf="role == '1' || canView">
   <mat-card-content>
-    <div class="row">
-      <mat-form-field appearance="outline">
+    <div class="row d-flex justify-content-end w-100">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="col-12 col-lg-4">
+        <mat-label>Search</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchKeyword"
+          (ngModelChange)="onSearchChange()"
+        />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="col-12 col-lg-4">
         <mat-label>Date Range</mat-label>
         <mat-date-range-input [rangePicker]="picker">
           <input
@@ -200,7 +210,11 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
       <mat-paginator
+        [length]="totalRecords"
+        [pageIndex]="currentPage - 1"
+        [pageSize]="pageSize"
         [pageSizeOptions]="[5, 10, 20]"
+        (page)="onPageChange($event)"
         showFirstLastButtons
       ></mat-paginator>
     </div>

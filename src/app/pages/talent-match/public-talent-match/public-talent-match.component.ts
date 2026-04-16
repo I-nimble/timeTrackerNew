@@ -1,14 +1,15 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableDataSource } from '@angular/material/table';
 import { Positions } from 'src/app/models/Position.model';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { TalentMatchTableComponent } from 'src/app/components/talent-match-table/talent-match-table.component';
 import { TalentMatchFiltersComponent } from 'src/app/components/talent-match-filters/talent-match-filters.component';
+import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { PositionsService } from 'src/app/services/positions.service';
 import { PublicService } from 'src/app/services/public.service';
-import { AIService } from 'src/app/services/ai.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -20,6 +21,7 @@ import { environment } from 'src/environments/environment';
     MatCardModule,
     TalentMatchTableComponent,
     TalentMatchFiltersComponent,
+    TalentMatchIntakeComponent,
     MatchComponent,
   ]
 })
@@ -50,13 +52,15 @@ export class AppPublicTalentMatchComponent implements OnInit {
   ];
   displayedColumns = [
     'name',
-    'skills',
+    'personality_profile',
     'position',
+    'skills',
     'experience',
-    'profile_summary',
-    'age'
+    'trainings'
   ];
+  clientForm!: FormGroup;
   loading: boolean = false;
+  errorMessage = '';
   page = 1;
   pageSize = 5;
   totalRecords = 0;
@@ -64,41 +68,76 @@ export class AppPublicTalentMatchComponent implements OnInit {
   sortBy: string | null = null;
   sortOrder: 'asc' | 'desc' | null = null;
 
-  constructor(private publicService: PublicService, private positionsService: PositionsService, private aiService: AIService) {}
+  constructor(
+    private publicService: PublicService,
+    private positionsService: PositionsService,
+  ) {}
+
+  onIntakeFormReady(form: FormGroup) {
+    this.clientForm = form;
+    this.loadRecords();
+  }
 
   ngOnInit() {
-    this.loadRecords();
     this.loadPositions();
   }
 
-  loadRecords(extraFilters: any = {}) {
+  loadRecords() {
     this.loading = true;
     this.aiLoading = true;
-    const mergedFilters = { ...(this.filters || {}), ...(extraFilters || {}) };
-    this.publicService.getRecords({
+    const payload = {
       page: this.page,
-      pageSize: this.pageSize,
-      keyword: this.query || undefined,
+      offset: this.pageSize,
       sortBy: this.sortBy || undefined,
       sortOrder: this.sortOrder || undefined,
-      ...mergedFilters
-    }).subscribe({
+      question: this.query || '',
+      filters: {
+        selectedRole: this.filters.position_id
+          ? (this.positions.find(p => String(p.id) === String(this.filters.position_id))?.title ?? String(this.filters.position_id))
+          : undefined,
+        selectedPracticeArea: this.filters.practiceArea || undefined,
+        query: this.query || undefined
+      },
+      clientInfo: this.clientForm?.value ?? {}
+    };
+    this.publicService.getRecords(payload).subscribe({
       next: (res: any) => {
-        const mapped = res.items.map((c: any) => ({
-          ...c,
-          name: c.full_name,
-          profile_pic_url: c.picture ? `${environment.upload}/profile-pictures/${c.picture}` : null
-        }));
+        const mapped = res.items.map((c: any) => {
+          const bestMatch = c.all_match_scores?.reduce(
+            (max: any, curr: any) =>
+              curr.match_percentage > (max?.match_percentage || 0) ? curr : max,
+            null
+          );
+          const trainings = c.certifications?.length
+            ? c.certifications.map((cert: any) => cert.name).join(', ')
+            : 'No trainings';
+          return {
+            ...c,
+            position: c.position_category,
+            experience: c.work_experience_summary || c.work_experience,
+            personality_profile: bestMatch
+              ? `${bestMatch.match_percentage}% ${bestMatch.category_name}`
+              : 'N/A',
+            trainings
+          };
+        });
         this.loading = false;
         this.aiLoading = false;
-        this.allCandidates = mapped;
+        this.errorMessage = '';
         this.dataSource.data = mapped;
         this.totalRecords = res.meta.total;
       },
       error: err => {
         this.loading = false;
         this.aiLoading = false;
-        console.error(err);
+        if (err.status === 429) {
+          this.errorMessage = 'The AI search limit has been reached. Please try again later.';
+          this.dataSource.data = [];
+          this.totalRecords = 0;
+        } else {
+          this.errorMessage = 'An error occurred while searching. Please try again.';
+          console.error(err);
+        }
       }
     });
   }
@@ -113,12 +152,13 @@ export class AppPublicTalentMatchComponent implements OnInit {
   }
 
   searchCandidates(keyword?: string) {
+    if (!this.filters.position_id) return;
     if (keyword !== undefined) {
       this.query = keyword;
     }
     this.page = 1;
     this.aiLoading = true;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }
 
   onManualSearch(text: string) {
@@ -127,8 +167,10 @@ export class AppPublicTalentMatchComponent implements OnInit {
 
   onFiltersChange(filters: any) {
     this.page = 1;
-    this.filters.position_id = filters.position_id ?? undefined;
-    this.filters.practiceArea = filters.practiceArea ?? undefined;
+    this.filters = {
+      position_id: filters.position_id ?? undefined,
+      practiceArea: filters.practiceArea ?? undefined
+    };
   }
 
   onSortChange(event: any) {
@@ -140,12 +182,12 @@ export class AppPublicTalentMatchComponent implements OnInit {
       this.sortOrder = event.direction;
     }
     this.page = 1;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }  
 
   onPageChange(event: any) {
     this.page = event.pageIndex + 1;
     this.pageSize = event.pageSize;
-    this.loadRecords(this.filters);
+    this.loadRecords();
   }
 }

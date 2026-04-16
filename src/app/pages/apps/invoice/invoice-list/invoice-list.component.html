@@ -51,7 +51,7 @@
   </div>
 </div>
 
-<mat-card class="cardWithShadow" *ngIf="role != '3' && allowedPaymentsView">
+<mat-card class="cardWithShadow" *ngIf="role != '3' && allowedPaymentsView || allowedPaymentsManage">
   <mat-card-content>
     <div class="row justify-content-between align-items-center">
       <div class="row m-b-16 col-lg-4">
@@ -105,7 +105,7 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="client" *ngIf="role != '3'">
+        <ng-container matColumnDef="client">
           <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-15">
             Client
           </th>

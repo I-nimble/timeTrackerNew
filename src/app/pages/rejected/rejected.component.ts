@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -22,6 +22,8 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.component';
 import { Application, ApplicationListResponse } from 'src/app/models/application.model';
+import { of, Subject } from 'rxjs';
+import { switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-rejected',
@@ -40,9 +42,14 @@ export class RejectedComponent {
   role: any = localStorage.getItem('role');
   candidatesList = new MatTableDataSource<any>([]);
 	rejectedCandidates: any[] = [];
+  totalRecords = 0;
+  pageSize = 10;
+  currentPage = 1;
   displayedColumns: string[] = [];
   startDate: Date | null = null;
   endDate: Date | null = null;
+  searchKeyword: string = '';
+  private searchSubject = new Subject<string>();
   positions = signal<any[]>([]);
   companiesData: any[] = [];
   canView: boolean = false;
@@ -65,7 +72,16 @@ export class RejectedComponent {
   ) { }
 
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.loadCandidates();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadCandidates();
+    });
     this.loadPositions();
 
     this.companiesService.getCompanies().subscribe({
@@ -115,12 +131,15 @@ export class RejectedComponent {
   }
 
   ngAfterViewInit(): void {
-    this.candidatesList.paginator = this.paginator;
     this.candidatesList.sort = this.sort;
   }
 	
   onDateRangeChange(): void {
     this.applyFilters();
+  }
+
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchKeyword);
   }
 
   private applyFilters(): void {
@@ -177,13 +196,37 @@ export class RejectedComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((response: ApplicationListResponse) => {
+    this.applicationsService.getStatusIdsByNames(['rejected']).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+          }));
+        }
+
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          statusIds,
+          search: this.searchKeyword || undefined,
+          sortOrder: 'desc',
+        });
+      }),
+    ).subscribe((response: ApplicationListResponse) => {
       const applications: Application[] = response.items || [];
-      this.rejectedCandidates = applications.filter(
-        (a) => a.status === 'rejected' || a.status_id === 6
-      );
+      this.rejectedCandidates = applications;
+      this.totalRecords = response.meta.total;
+      this.currentPage = response.meta.currentPage;
+      this.pageSize = response.meta.limit;
       this.applyFilters();
     });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.loadCandidates();
   }
 
 	openRejectDialog(candidate: any): void {

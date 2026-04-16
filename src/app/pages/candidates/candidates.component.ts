@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +14,6 @@ import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
 import { PositionsService } from 'src/app/services/positions.service';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
@@ -25,6 +24,7 @@ import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { ApplicationMatchScoresService } from 'src/app/services/application-match-scores.service';
 import { forkJoin, of, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
 import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
@@ -48,9 +48,13 @@ export class CandidatesComponent {
   candidatesList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('all');
   displayedColumns: string[] = [];
-  pendingCandidates = signal<any[]>([]);
-  reviewingCandidates = signal<any[]>([]);
-  talentMatchCandidates = signal<any[]>([]);
+  totalRecords = 0;
+  pageSize = 10;
+  currentPage = 1;
+  pendingCount = 0;
+  reviewingCount = 0;
+  talentMatchCount = 0;
+  private pageCandidates: any[] = [];
   allowedTM: boolean = false;
   startDate: Date | null = null;
   endDate: Date | null = null;
@@ -77,7 +81,9 @@ export class CandidatesComponent {
   ) { }
 
   ngOnInit(): void {
+    this.applicationsService.loadApplicationStatuses().subscribe();
     this.loadCandidates();
+    this.loadStatusCounts();
     this.loadPositions();
 
     this.companiesService.getCompanies().subscribe({
@@ -129,7 +135,6 @@ export class CandidatesComponent {
   }
 
   ngAfterViewInit(): void {
-    this.candidatesList.paginator = this.paginator;
     this.candidatesList.sort = this.sort;
   }
 
@@ -193,6 +198,7 @@ export class CandidatesComponent {
     dialogRef.afterClosed().subscribe(result => {
       if (result === 'success') {
         this.loadPositions();
+        this.loadStatusCounts();
       }
     });
   }
@@ -218,27 +224,12 @@ export class CandidatesComponent {
 
   handleTabClick(tab: string): void {
     this.activeTab.set(tab);
-    this.filterCandidates();
+    this.currentPage = 1;
+    this.loadCandidates();
   }
 
   filterCandidates(): void {
-    const currentTab = this.activeTab();
-    let filteredCandidates: any[] = [];
-
-    if (currentTab === 'all') {
-      filteredCandidates = [
-        ...this.pendingCandidates(),
-        ...this.reviewingCandidates(),
-        ...this.talentMatchCandidates()
-      ];
-    } else if (currentTab === 'pending') {
-      filteredCandidates = [...this.pendingCandidates()];
-    } else if (currentTab === 'reviewing') {
-      filteredCandidates = [...this.reviewingCandidates()];
-    }
-    else if (currentTab === 'talent match') {
-      filteredCandidates = [...this.talentMatchCandidates()];
-    }
+    let filteredCandidates: any[] = [...this.pageCandidates];
 
     if (this.startDate && this.endDate) {
       const [start, end] = [this.startDate, this.endDate].map(d => new Date(d).setHours(0, 0, 0, 0));
@@ -252,19 +243,89 @@ export class CandidatesComponent {
   }
 
   private loadCandidates(): void {
-    this.applicationsService.get().subscribe((response: ApplicationListResponse) => {
-      const applications = response.items || [];
-      const visibleApplications = applications.filter(
-        (application: any) => application.status !== 'rejected'
-      );
-      this.pendingCandidates.set(visibleApplications.filter((a: any) => a.status === 'pending'));
-      this.reviewingCandidates.set(visibleApplications.filter((a: any) => a.status === 'reviewing'));
-      this.talentMatchCandidates.set(visibleApplications.filter((a: any) => a.status === 'talent match'));
+    this.getStatusIdsByTab(this.activeTab()).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({
+            page: this.currentPage,
+            offset: this.pageSize,
+          }));
+        }
 
-      this.candidatesList = new MatTableDataSource(visibleApplications);
-      this.candidatesList.paginator = this.paginator;
-      this.candidatesList.sort = this.sort;
+        return this.applicationsService.get({
+          page: this.currentPage,
+          offset: this.pageSize,
+          statusIds,
+        });
+      }),
+    ).subscribe((response: ApplicationListResponse) => {
+      const applications = response.items || [];
+
+      this.pageCandidates = applications;
+      this.totalRecords = response.meta.total;
+      this.currentPage = response.meta.currentPage;
+      this.pageSize = response.meta.limit;
+      this.filterCandidates();
     });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.loadCandidates();
+  }
+
+  private loadStatusCounts(): void {
+    forkJoin([
+      this.getStatusCountByName('pending'),
+      this.getStatusCountByName('reviewing'),
+      this.getStatusCountByName('talent match'),
+    ]).subscribe({
+      next: ([pendingCount, reviewingCount, talentMatchCount]) => {
+        this.pendingCount = pendingCount;
+        this.reviewingCount = reviewingCount;
+        this.talentMatchCount = talentMatchCount;
+      },
+      error: (err) => {
+        console.error('Error loading candidates status counts', err);
+      },
+    });
+  }
+
+  private getStatusIdsByTab(tab: string): Observable<number[]> {
+    if (tab === 'pending') {
+      return this.applicationsService.getStatusIdsByNames(['pending']);
+    }
+    if (tab === 'reviewing') {
+      return this.applicationsService.getStatusIdsByNames(['reviewing']);
+    }
+    if (tab === 'talent match') {
+      return this.applicationsService.getStatusIdsByNames(['talent match']);
+    }
+    return this.applicationsService.getStatusIdsByNames([
+      'pending',
+      'reviewing',
+      'talent match',
+      'hired',
+      'scheduled interview',
+    ]);
+  }
+
+  private getStatusCountByName(statusName: string): Observable<number> {
+    return this.applicationsService.getStatusIdsByNames([statusName]).pipe(
+      switchMap((statusIds) => {
+        if (statusIds.length === 0) {
+          return of(this.applicationsService.buildEmptyListResponse({ page: 1, offset: 1 }));
+        }
+
+        return this.applicationsService.get({
+          page: 1,
+          offset: 1,
+          statusIds,
+        });
+      }),
+      map((response) => response.meta.total),
+    );
   }
 
   countInvoicesByStatus(status: string): number {
@@ -303,6 +364,7 @@ export class CandidatesComponent {
           next: () => {
             this.loadCandidates();
             this.filterCandidates();
+            this.loadStatusCounts();
             this.showSnackbar('Application deleted successfully!');
           },
           error: () => {
@@ -355,6 +417,7 @@ export class CandidatesComponent {
                 this.showSnackbar('Candidate sent to talent match successfully!');
                 this.loadCandidates();
                 this.filterCandidates();
+                this.loadStatusCounts();
               },
               error: () => {
                 this.showSnackbar('Error sending candidate to talent match.');
@@ -434,6 +497,7 @@ export class CandidatesComponent {
       this.showSnackbar('Candidate marked as available');
       this.loadCandidates();
       this.filterCandidates();
+      this.loadStatusCounts();
     });
   }
 
@@ -442,6 +506,7 @@ export class CandidatesComponent {
       this.showSnackbar('Candidate marked as unavailable');
       this.loadCandidates();
       this.filterCandidates();
+      this.loadStatusCounts();
     });
   }
 
@@ -459,6 +524,7 @@ export class CandidatesComponent {
         this.showSnackbar('Candidate rejected successfully');
         this.loadCandidates();
         this.filterCandidates();
+        this.loadStatusCounts();
       }
     });
   }

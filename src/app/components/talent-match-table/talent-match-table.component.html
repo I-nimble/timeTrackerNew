@@ -2,7 +2,7 @@
   <div *ngIf="loading" class="d-flex justify-content-center align-items-center p-24">
     <mat-spinner diameter="50"></mat-spinner>
   </div>
-  <div *ngIf="!loading && (!dataSource?.data || dataSource.data.length === 0)" class="text-center p-24">
+  <div *ngIf="!loading && !hideEmpty && (!dataSource?.data || dataSource.data.length === 0)" class="text-center p-24">
     No candidates available.
   </div>
   <table *ngIf="!loading && dataSource?.data?.length > 0" 
@@ -15,7 +15,7 @@
     multiTemplateDataRows 
     class="w-100">
     <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 col-2" mat-sort-header="full_name">Name</th>
+      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14" mat-sort-header="name">Name</th>
       <td mat-cell *matCellDef="let element">
         <div class="d-flex align-items-center">
           <img
@@ -28,7 +28,7 @@
             (error)="handleImageError($event)"
           />
           <div class="m-l-16">
-            <h6 class="f-s-14 f-w-600">{{ element.full_name | formatName }}</h6>
+            <h6 class="f-s-14 f-w-600">{{ element.name | formatName }}</h6>
             <span class="f-s-12 f-w-400 d-block" *ngIf="element.current_position">
               {{ element.current_position }}
             </span>
@@ -37,13 +37,26 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="personality_profile">
+      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+        Personality Profile
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.personality_profile }}
+        </div>
+      </td>
+    </ng-container>
+
     <ng-container matColumnDef="position">
       <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Position</th>
-      <td mat-cell *matCellDef="let element">{{ element.position?.title || 'N/A' }}</td>
+      <td mat-cell *matCellDef="let element">
+        <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.position || 'N/A' }}
+        </div>
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="skills">
-      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 col-4">Skills</th>
+      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Skills</th>
       <td mat-cell *matCellDef="let element">
         <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.skills || 'No skills' }}
         </div>
@@ -51,23 +64,21 @@
     </ng-container>
 
     <ng-container matColumnDef="experience">
-      <th mat-header-cell *matHeaderCellDef class="f-w-600">Experience</th>
+      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">Experience</th>
       <td mat-cell *matCellDef="let element">
-        {{ element.work_experience_summary || 'No experience summary' }}
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="profile_summary">
-      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14 col-4">Profile Summary</th>
-      <td mat-cell *matCellDef="let element">
-        <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.talent_match_profile_summary || 'No summary available' }}
+        <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.experience || 'No experience summary' }}
         </div>
       </td>
     </ng-container>
 
-    <ng-container matColumnDef="age">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header="age">Age</th>
-      <td mat-cell *matCellDef="let element" class="f-w-600 f-s-14" >{{ element.age || '-' }}</td>
+    <ng-container matColumnDef="trainings">
+      <th mat-header-cell *matHeaderCellDef class="f-w-600 f-s-14">
+        Trainings
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <div style="white-space: pre-wrap; word-wrap: break-word;">{{ element.trainings }}
+        </div>
+      </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
