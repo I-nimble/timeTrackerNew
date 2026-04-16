@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { load } from '@fingerprintjs/fingerprintjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,7 @@ export class FingerprintService {
     if (stored) {
       return stored;
     }
-    const fp = await FingerprintJS.load();
+    const fp = await load();
     const result = await fp.get();
     localStorage.setItem('fp', result.visitorId);
     return result.visitorId;
