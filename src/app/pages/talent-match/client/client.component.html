@@ -143,7 +143,7 @@
             </mat-error>
           </mat-form-field>
           <div
-            class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16"
+            class="d-flex align-items-center justify-content-center gap-2 m-b-8 m-t-16"
           >
             <app-match
               appearance="outline"
@@ -158,7 +158,19 @@
               (searchRequest)="useManualSearch ? onManualSearch($event) : null"
             >
             </app-match>
+            <button
+              mat-raised-button
+              color="accent"
+              [disabled]="sessionInterestedCandidates.length === 0 || isSubmittingTalentMatch"
+              (click)="submitTalentMatch()"
+            >
+              <span *ngIf="!isSubmittingTalentMatch">Submit</span>
+              <span *ngIf="isSubmittingTalentMatch">Submitting...</span>
+            </button>
           </div>
+          <p class="text-center f-s-13 text-muted m-b-16">
+            Select your preferred candidates and click <strong>Submit</strong>
+          </p>
         </div>
       </div>
       <div output>
@@ -407,8 +419,10 @@
                     mat-menu-item
                     (click)="markInterested(element)"
                   >
-                    <mat-icon>favorite_border</mat-icon>
-                    <span>Interested</span>
+                    <mat-icon [style.color]="isSessionInterested(element) ? '#e53935' : null">
+                      {{ isSessionInterested(element) ? 'favorite' : 'favorite_border' }}
+                    </mat-icon>
+                    <span>{{ isSessionInterested(element) ? 'Remove Interest' : 'Interested' }}</span>
                   </button>
                   <button mat-menu-item (click)="deleteApplication(element.id)">
                     <mat-icon>delete</mat-icon>
