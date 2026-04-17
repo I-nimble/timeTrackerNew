@@ -443,7 +443,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   getRankingArrowPosition(rankingId: number | string | null | undefined): number {
     const level = this.getRankingVisualLevel(rankingId);
-    return ((level - 0.5) / 4) * 100;
+    return ((level + 0.5) / 5) * 100;
   }
 
   private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
