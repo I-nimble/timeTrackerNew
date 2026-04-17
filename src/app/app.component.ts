@@ -15,6 +15,7 @@ import { RoleTourService } from './services/role-tour.service';
 import { RoleTourStep } from './services/role-tour-steps';
 import { TourStepComponent } from './components/tour-step/tour-step.component';
 import { ThemeService } from './services/theme.service';
+import { FingerprintService } from './services/fingerprint.service';
 
 @Component({
   selector: 'app-root',
@@ -67,10 +68,16 @@ export class AppComponent implements OnInit, OnDestroy {
     public tourService: TourService<RoleTourStep>,
     private router: Router,
     private ngZone: NgZone,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private fingerprintService: FingerprintService,
   ) { }
 
   async ngOnInit() {
+    try {
+      await this.fingerprintService.getFingerprint();
+    } catch (e) {
+      console.warn('Fingerprint generation failed', e);
+    }
     this.themeService.syncThemeWithRoute(this.router.url);
     this.themeService.hydrateFromServerIfAuthenticated();
     this.rocketChatService.loadCredentials();

@@ -28,12 +28,14 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
-import { ApplicationListResponse } from 'src/app/models/application.model';
+import { ApplicationListResponse, ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
 import { of, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { environment } from 'src/environments/environment';
+import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 
 @Component({
   standalone: true,
@@ -752,8 +754,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private applyApplicationListResponse(response: ApplicationListResponse): void {
-    this.dataSource.data = response.items;
-    this.rows = response.items;
+    const orderedItems = this.normalizeAllMatchScores(response.items || []);
+    this.dataSource.data = orderedItems;
+    this.rows = orderedItems;
     this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
@@ -762,6 +765,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
+  }
+
+  private normalizeAllMatchScores(candidates: any[]): any[] {
+    return candidates.map(candidate => ({
+      ...candidate,
+      all_match_scores: sortByNegotiatorProfileOrder<ApplicationMatchScoreSummary>(
+        candidate.all_match_scores || [],
+        score => score.position_category_id,
+      ),
+    }));
   }
 
   private fetchAICandidates(restoreFallback = false): void {
