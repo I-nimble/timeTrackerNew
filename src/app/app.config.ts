@@ -21,7 +21,8 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
-import { JwtInterceptor } from './services/jwt.interceptor';
+import { JwtInterceptor } from './interceptors/jwt.interceptor';
+import { FingerprintInterceptor } from './interceptors/fingerprint.interceptor';
 
 import { ToastrModule } from 'ngx-toastr';
 import { provideToastr } from 'ngx-toastr';
@@ -90,7 +91,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding()
     ),
     provideHttpClient(
-      withInterceptors([JwtInterceptor])
+      withInterceptors([FingerprintInterceptor, JwtInterceptor])
     ),
     ...dialogProviders,
     provideClientHydration(),
