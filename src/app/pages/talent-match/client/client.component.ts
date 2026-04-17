@@ -620,17 +620,33 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
       return;
     }
+
     if (this.isSessionInterested(candidate)) {
       this.sessionInterestedCandidates = this.sessionInterestedCandidates.filter(c => c.id !== candidate.id);
       this.snackBar.open('Candidate removed from your selection.', 'Close', { duration: 2000 });
-    } else {
-      this.sessionInterestedCandidates.push({
-        id: candidate.id,
-        name: candidate.name,
-        position: this.getPositionTitle(candidate.position_id) || this.selectedRole || '',
-      });
-      this.snackBar.open('Candidate added to your selection.', 'Close', { duration: 2000 });
+      return;
     }
+
+    this.sessionInterestedCandidates.push({
+      id: candidate.id,
+      name: candidate.name,
+      position: this.getPositionTitle(candidate.position_id) || this.selectedRole || '',
+    });
+
+    const userId = Number(localStorage.getItem('id')) || 0;
+    this.notificationsService.markInterested(userId, candidate.id, this.selectedRole!, this.selectedPracticeArea!)
+      .subscribe({
+        next: (data: any) => {
+          if (data.success) {
+            this.snackBar.open('Your interest has been recorded, and the HR team has been alerted.', 'Close', { duration: 2000 });
+          } else {
+            this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+          }
+        },
+        error: () => {
+          this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
+        }
+      });
   }
 
   submitTalentMatch(): void {
