@@ -13,6 +13,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, N
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { UsersService } from 'src/app/services/users.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
@@ -30,9 +31,9 @@ import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse, ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { environment } from 'src/environments/environment';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 
@@ -151,11 +152,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   intakeForm?: FormGroup;
-
-  get showIntake(): boolean {
-    const email = localStorage.getItem('email') || '';
-    return environment.talentMatchIntakeEmails.includes(email);
-  }
+  intakeInitialValues: IntakeInitialValues = {};
+  intakeValuesReady = false;
 
   onIntakeFormReady(form: FormGroup) {
     this.intakeForm = form;
@@ -166,6 +164,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
+    private usersService: UsersService,
     private aiService: AIService,
     private router: Router,
     private matchScoresService: ApplicationMatchScoresService,
@@ -205,7 +204,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.evaluateCandidates({
       question: searchQuery,
       filters: this.buildAISearchFilters(),
-      ...(this.showIntake && this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
+      ...(this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
@@ -270,8 +269,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getCompany() {
-    this.companiesService.getByOwner().subscribe((company: any) => {
+    forkJoin({
+      company: this.companiesService.getByOwner(),
+      users: this.usersService.getUsers({ searchField: '', filter: { currentUser: true } }),
+    }).subscribe(({ company, users }: any) => {
       this.companyId = company.company.id;
+      const currentUser = users?.[0];
+      this.intakeInitialValues = {
+        name: currentUser ? `${currentUser.name} ${currentUser.last_name}`.trim() : '',
+        email: currentUser?.email ?? '',
+        phone: currentUser?.phone ?? '',
+        company: company.company.name ?? '',
+      };
+      this.intakeValuesReady = true;
     });
   }
 
@@ -639,8 +649,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   get canSearchAI(): boolean {
     const hasRequiredFilters =
       !!this.selectedRole &&
-      !!this.selectedPracticeArea;
-    if (!!this.query) return true;
+      !!this.selectedPracticeArea &&
+      (this.intakeForm?.valid ?? false);
+    if (!!this.query && (this.intakeForm?.valid ?? false)) return true;
     return hasRequiredFilters;
   }
 
