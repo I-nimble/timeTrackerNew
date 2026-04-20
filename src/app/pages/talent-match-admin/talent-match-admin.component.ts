@@ -347,6 +347,10 @@ export class AppTalentMatchAdminComponent implements OnInit {
     return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
+  getDiscProfileForCategory(categoryName: string | null | undefined): string {
+    return this.discProfilesService.getDiscProfileForCategory(categoryName);
+  }
+
   async openCandidateResume(resumeUrl: string, applicationId?: number) {
     if(!resumeUrl) {
       this.openSnackBar('No resume found for this candidate', 'Close');
