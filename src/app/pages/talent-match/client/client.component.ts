@@ -498,7 +498,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   getRankingArrowPosition(rankingId: number | string | null | undefined): number {
     const level = this.getRankingVisualLevel(rankingId);
-    return ((level + 0.5) / 5) * 100;
+    if (level <= 0) {
+      return 0;
+    }
+    return ((level - 0.5) / 5) * 100;
   }
 
   private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
@@ -506,7 +509,20 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     if (!id || Number.isNaN(id)) {
       return 0;
     }
-    return Math.min(4, Math.max(1, 5 - id));
+
+    if (id === 1) {
+      return 5;
+    }
+
+    if (id === 2 || id === 3) {
+      return 4;
+    }
+
+    if (id === 4) {
+      return 3;
+    }
+
+    return Math.min(5, Math.max(1, 6 - id));
   }
 
   getIconForCategory(categoryName: string): string {
