@@ -43,4 +43,15 @@ export class DiscProfilesService {
   getDiscProfileInitial(profileName: string): string {
     return profileName ? profileName.charAt(0).toUpperCase() : '';
   }
+
+  getDiscProfileForCategory(categoryName: string | null | undefined): string {
+    if (!categoryName) return '';
+    const mapping: { [key: string]: string } = {
+      'Lien Negotiator - Office Manager / Administrative Coordinator': 'Dominance',
+      'Intake Specialist': 'Influence',
+      'Medical Records Clerk - Case Manager - Receptionist': 'Steadiness',
+      'Paralegal Personal Injury - Litigation Assistant': 'Conscientiousness',
+    };
+    return mapping[categoryName.trim()] || '';
+  }
 }
