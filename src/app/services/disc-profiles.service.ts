@@ -47,7 +47,7 @@ export class DiscProfilesService {
   getDiscProfileForCategory(categoryName: string | null | undefined): string {
     if (!categoryName) return '';
     const mapping: { [key: string]: string } = {
-      'Lien Negotiator - Office Manager / Administrative Coordinator': 'Dominance',
+      'Lien Negotiator - Office Manager/Administrative Coordinator': 'Dominance',
       'Intake Specialist': 'Influence',
       'Medical Records Clerk - Case Manager - Receptionist': 'Steadiness',
       'Paralegal Personal Injury - Litigation Assistant': 'Conscientiousness',
