@@ -5,6 +5,7 @@ import {
   moveItemInArray,
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
+import { CdkScrollableModule } from '@angular/cdk/scrolling';
 import { MatDialog } from '@angular/material/dialog';
 import { AppKanbanDialogComponent } from './kanban-dialog.component';
 import { AppOkDialogComponent } from './ok-dialog/ok-dialog.component';
@@ -38,6 +39,7 @@ import { RoleTourStep } from 'src/app/services/role-tour-steps';
     CommonModule,
     TablerIconsModule,
     DragDropModule,
+    CdkScrollableModule,
     NgScrollbarModule,
     FormsModule,
     TourMatMenuModule
@@ -210,7 +212,10 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     this.kanbanService.getBoardWithTasks(boardId).subscribe((boardData) => {
       this.selectedBoardColumns = boardData.columns || [];
       this.selectedBoardColumns.sort((a, b) => a.position - b.position);
-      const tasks = boardData.tasks || [];
+      const tasks = (boardData.tasks || []).sort(
+        (a: any, b: any) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
       this.hasTasks = tasks.length > 0;
       this.roleTourService.setKanbanHasTasks(tasks.length > 0);
       this.selectedBoardColumns.forEach((column) => {
@@ -264,7 +269,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
         event.previousContainer.data,
         event.container.data,
         event.previousIndex,
-        event.currentIndex
+        0
       );
 
       if (!this.isSearching) {
