@@ -231,4 +231,12 @@ export class NotificationsService {
       { userId, candidateId, candidatePosition, candidateArea },
     );
   }
+
+  submitTalentMatch(payload: {
+    searchParams: any;
+    intakeInfo: any;
+    interestedCandidates: { id: number; name: string; position: string }[];
+  }) {
+    return this.http.post(`${this.API_URI}/talent-match-submit`, payload);
+  }
 }

@@ -154,6 +154,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   intakeForm?: FormGroup;
   intakeInitialValues: IntakeInitialValues = {};
   intakeValuesReady = false;
+  sessionInterestedCandidates: any[] = [];
+  isSubmittingTalentMatch = false;
+  searchPerformed = false;
 
   onIntakeFormReady(form: FormGroup) {
     this.intakeForm = form;
@@ -213,6 +216,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.aiLoading = false;
         this.tableLoading = false;
         this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
+        this.searchPerformed = true;
 
         this.saveAISearchState(this.activeAISearchSessionId, this.buildAISearchFilters());
       },
@@ -235,6 +239,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           this.aiAnswer = 'Error getting answer from AI, try again later. You are getting manual search results this time.';
           console.error('AI evaluation error:', err);
         }
+        this.searchPerformed = true;
         this.aiLoading = false;
         this.tableLoading = false;
       }
@@ -259,10 +264,12 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.allCandidates = response.items;
         this.applyApplicationListResponse(response);
         this.hasSearchResults = response.items.length > 0;
+        this.searchPerformed = true;
         this.tableLoading = false;
       },
       error: (err) => {
         console.error('Manual search error:', err);
+        this.searchPerformed = true;
         this.tableLoading = false;
       }
     });
@@ -627,18 +634,30 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getApplications();
   }
 
+  isSessionInterested(candidate: any): boolean {
+    return this.sessionInterestedCandidates.some(c => c.id === candidate.id);
+  }
+
   markInterested(candidate: any): void {
     if (!(this.selectedRole && this.selectedPracticeArea)) {
       this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
       return;
     }
 
-    const userId = Number(localStorage.getItem('id')) || 0;
-    const candidateId = candidate.id;
-    const candidatePosition = this.selectedRole;
-    const candidateArea = this.selectedPracticeArea;
+    if (this.isSessionInterested(candidate)) {
+      this.sessionInterestedCandidates = this.sessionInterestedCandidates.filter(c => c.id !== candidate.id);
+      this.snackBar.open('Candidate removed from your selection.', 'Close', { duration: 2000 });
+      return;
+    }
 
-    this.notificationsService.markInterested(userId, candidateId, candidatePosition, candidateArea)
+    this.sessionInterestedCandidates.push({
+      id: candidate.id,
+      name: candidate.name,
+      position: this.getPositionTitle(candidate.position_id) || this.selectedRole || '',
+    });
+
+    const userId = Number(localStorage.getItem('id')) || 0;
+    this.notificationsService.markInterested(userId, candidate.id, this.selectedRole!, this.selectedPracticeArea!)
       .subscribe({
         next: (data: any) => {
           if (data.success) {
@@ -653,6 +672,36 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       });
   }
 
+  submitTalentMatch(): void {
+    if (this.sessionInterestedCandidates.length === 0) {
+      this.snackBar.open('Please mark at least one candidate as interested before submitting.', 'Close', { duration: 3000 });
+      return;
+    }
+    if (!this.intakeForm?.valid) {
+      this.snackBar.open('Please complete all intake fields before submitting.', 'Close', { duration: 3000 });
+      return;
+    }
+    this.isSubmittingTalentMatch = true;
+    this.notificationsService.submitTalentMatch({
+      searchParams: {
+        filters: this.buildAISearchFilters(),
+        question: this.query,
+      },
+      intakeInfo: this.intakeForm.value,
+      interestedCandidates: this.sessionInterestedCandidates,
+    }).subscribe({
+      next: () => {
+        this.snackBar.open('Your selection has been submitted. Our team will follow up shortly.', 'Close', { duration: 4000 });
+        this.sessionInterestedCandidates = [];
+        this.isSubmittingTalentMatch = false;
+      },
+      error: () => {
+        this.snackBar.open('Error submitting your selection. Please try again.', 'Close', { duration: 3000 });
+        this.isSubmittingTalentMatch = false;
+      }
+    });
+  }
+
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate([`apps/talent-match/${id}`]);
@@ -663,12 +712,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   get canSearchAI(): boolean {
-    const hasRequiredFilters =
-      !!this.selectedRole &&
-      !!this.selectedPracticeArea &&
-      (this.intakeForm?.valid ?? false);
-    if (!!this.query && (this.intakeForm?.valid ?? false)) return true;
-    return hasRequiredFilters;
+    if (!!this.query) return true;
+    return !!this.selectedRole && !!this.selectedPracticeArea;
   }
 
   handleImageError(event: Event) {
