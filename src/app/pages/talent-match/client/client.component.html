@@ -159,16 +159,17 @@
             >
             </app-match>
             <button
+              *ngIf="searchPerformed"
               mat-raised-button
               color="accent"
-              [disabled]="sessionInterestedCandidates.length === 0 || isSubmittingTalentMatch"
+              [disabled]="sessionInterestedCandidates.length === 0 || isSubmittingTalentMatch || !intakeForm?.valid"
               (click)="submitTalentMatch()"
             >
               <span *ngIf="!isSubmittingTalentMatch">Submit</span>
               <span *ngIf="isSubmittingTalentMatch">Submitting...</span>
             </button>
           </div>
-          <p class="text-center f-s-13 text-muted m-b-16">
+          <p *ngIf="searchPerformed" class="text-center f-s-13 text-muted m-b-16">
             Select your preferred candidates and click <strong>Submit</strong>
           </p>
         </div>
@@ -419,7 +420,7 @@
                     mat-menu-item
                     (click)="markInterested(element)"
                   >
-                    <mat-icon [style.color]="isSessionInterested(element) ? '#e53935' : null">
+                    <mat-icon>
                       {{ isSessionInterested(element) ? 'favorite' : 'favorite_border' }}
                     </mat-icon>
                     <span>{{ isSessionInterested(element) ? 'Remove Interest' : 'Interested' }}</span>
