@@ -554,8 +554,16 @@
                             class="match-score-item m-b-20"
                           >
                             <div
-                              class="d-flex justify-content-start align-items-start m-b-4"
+                              class="d-flex justify-content-start align-items-center m-b-4"
                             >
+                              <span
+                                *ngIf="getDiscProfileForCategory(score.category_name) as discName"
+                                class="disc-badge-small m-r-8"
+                                [style.background-color]="getDiscProfileColor(discName)"
+                                [title]="discName"
+                              >
+                                {{ discName.charAt(0) }}
+                              </span>
                               <span class="f-s-16 f-w-500 m-r-16">{{
                                 score.category_name
                               }}</span>

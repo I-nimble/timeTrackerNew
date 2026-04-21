@@ -478,6 +478,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
+  getDiscProfileForCategory(categoryName: string | null | undefined): string {
+    return this.discProfilesService.getDiscProfileForCategory(categoryName);
+  }
+
   getAllMatchScores() {
     this.allCandidates.forEach(candidate => {
       this.getMatchScores(candidate.id);
