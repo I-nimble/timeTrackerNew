@@ -10,10 +10,15 @@
   margin-top: 5px;
 }
 .tasks-list {
-  overflow-y: scroll;     
+  overflow-y: scroll;
   flex: 1;
   scrollbar-width: none;
   border-radius: 16px;
+}
+
+.column-drag-handle {
+  cursor: grab;
+  touch-action: none;
 }
 .task-list-section {
   display: flex;
