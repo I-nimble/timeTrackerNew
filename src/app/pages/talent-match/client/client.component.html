@@ -118,8 +118,8 @@
             ></ngx-slider>
           </div> -->
         </div>
-        <div *ngIf="showIntake" class="m-t-16">
-          <app-talent-match-intake [required]="false" (formReady)="onIntakeFormReady($event)"></app-talent-match-intake>
+        <div class="m-t-16" *ngIf="intakeValuesReady">
+          <app-talent-match-intake [required]="true" [initialValues]="intakeInitialValues" (formReady)="onIntakeFormReady($event)"></app-talent-match-intake>
         </div>
         <div tourAnchor="tm-ai-box">
           <h4 class="f-w-700 m-b-16 m-t-16">
@@ -526,7 +526,7 @@
                               <div class="ranking-segments">
                                 <span
                                   [class]="'ranking-segment segment-' + (index + 1)"
-                                  *ngFor="let segment of [1, 2, 3, 4]; let index = index"
+                                  *ngFor="let segment of [1, 2, 3, 4, 5]; let index = index"
                                 ></span>
                               </div>
                             </div>

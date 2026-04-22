@@ -28,6 +28,7 @@ import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { environment } from 'src/environments/environment';
 import { UsersService } from 'src/app/services/users.service';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { ThemeService } from 'src/app/services/theme.service';
 
 export function jwtOptionsFactory() {
   return {
@@ -104,7 +105,6 @@ export class FullComponent implements OnInit {
   public isMobileScreen = false;
   private isContentWidthFixed = true;
   private isCollapsedWidthFixed = false;
-  private htmlElement!: HTMLHtmlElement;
   @ViewChild('filterNavRight', { static: false }) filterNavRight: MatSidenav;
   activeJitsi: any = null;
   jitsiSub: Subscription | null = null;
@@ -232,8 +232,8 @@ export class FullComponent implements OnInit {
     private authService: AuthService,
     private usersService: UsersService,
     private chatService: RocketChatService,
+    private themeService: ThemeService,
   ) {
-    this.htmlElement = document.querySelector('html')!;
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
       .subscribe((state) => {
@@ -305,30 +305,16 @@ export class FullComponent implements OnInit {
   }
 
   receiveOptions(options: AppSettings): void {
-    this.toggleDarkTheme(options);
-    this.toggleColorsTheme(options);
+    this.themeService.applyThemeFromOptions(options);
+    this.themeService.applyColorTheme(options.activeTheme);
   }
 
   toggleDarkTheme(options: AppSettings) {
-    if (options.theme === 'dark') {
-      this.htmlElement.classList.add('dark-theme');
-      this.htmlElement.classList.remove('light-theme');
-    } else {
-      this.htmlElement.classList.remove('dark-theme');
-      this.htmlElement.classList.add('light-theme');
-    }
+    this.themeService.applyThemeFromOptions(options);
   }
 
   toggleColorsTheme(options: AppSettings) {
-    // Remove any existing theme class dynamically
-    this.htmlElement.classList.forEach((className) => {
-      if (className.endsWith('_theme')) {
-        this.htmlElement.classList.remove(className);
-      }
-    });
-
-    // Add the selected theme class
-    this.htmlElement.classList.add(options.activeTheme);
+    this.themeService.applyColorTheme(options.activeTheme);
   }
 
   logOut(){

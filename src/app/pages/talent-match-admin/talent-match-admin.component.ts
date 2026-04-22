@@ -31,6 +31,8 @@ import { FormsModule } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
+import { ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 
 export interface PeriodicElement {
   id: number;
@@ -280,8 +282,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   private applyApplicationListResponse(response: ApplicationListResponse): void {
-    this.dataSource.data = response.items;
-    this.rows = response.items;
+    const orderedItems = this.normalizeAllMatchScores(response.items || []);
+    this.dataSource.data = orderedItems;
+    this.rows = orderedItems;
     this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
@@ -290,6 +293,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
+  }
+
+  private normalizeAllMatchScores(candidates: any[]): any[] {
+    return candidates.map(candidate => ({
+      ...candidate,
+      all_match_scores: sortByNegotiatorProfileOrder<ApplicationMatchScoreSummary>(
+        candidate.all_match_scores || [],
+        score => score.position_category_id,
+      ),
+    }));
   }
   
   applyFilter(event: Event): void {
@@ -443,7 +456,10 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   getRankingArrowPosition(rankingId: number | string | null | undefined): number {
     const level = this.getRankingVisualLevel(rankingId);
-    return ((level - 0.5) / 4) * 100;
+    if (level <= 0) {
+      return 0;
+    }
+    return ((level - 0.5) / 5) * 100;
   }
 
   private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
@@ -451,7 +467,20 @@ export class AppTalentMatchAdminComponent implements OnInit {
     if (!id || Number.isNaN(id)) {
       return 0;
     }
-    return Math.min(4, Math.max(1, 5 - id));
+
+    if (id === 1) {
+      return 5;
+    }
+
+    if (id === 2 || id === 3) {
+      return 4;
+    }
+
+    if (id === 4) {
+      return 3;
+    }
+
+    return Math.min(5, Math.max(1, 6 - id));
   }
 
   checkboxLabel(row?: any): string {

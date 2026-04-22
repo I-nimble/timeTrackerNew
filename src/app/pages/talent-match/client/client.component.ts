@@ -13,6 +13,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, N
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { UsersService } from 'src/app/services/users.service';
 import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
@@ -27,13 +28,13 @@ import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { formatEnglishLevelDisplay, getEnglishLevelPercent } from 'src/app/utils/english-level';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
-import { ApplicationListResponse } from 'src/app/models/application.model';
+import { ApplicationListResponse, ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { TalentMatchIntakeComponent } from 'src/app/components/talent-match-intake/talent-match-intake.component';
-import { environment } from 'src/environments/environment';
+import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
+import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 
 @Component({
   standalone: true,
@@ -162,11 +163,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   intakeForm?: FormGroup;
-
-  get showIntake(): boolean {
-    const email = localStorage.getItem('email') || '';
-    return environment.talentMatchIntakeEmails.includes(email);
-  }
+  intakeInitialValues: IntakeInitialValues = {};
+  intakeValuesReady = false;
 
   onIntakeFormReady(form: FormGroup) {
     this.intakeForm = form;
@@ -177,6 +175,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private positionsService: PositionsService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
+    private usersService: UsersService,
     private aiService: AIService,
     private router: Router,
     private matchScoresService: ApplicationMatchScoresService,
@@ -216,7 +215,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.aiService.evaluateCandidates({
       question: searchQuery,
       filters: this.buildAISearchFilters(),
-      ...(this.showIntake && this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
+      ...(this.intakeForm?.valid ? { intakeInfo: this.intakeForm.value } : {}),
     }).subscribe({
       next: (response: CandidateEvaluationResponse) => {
         this.applyApplicationListResponse(response);
@@ -281,8 +280,19 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   getCompany() {
-    this.companiesService.getByOwner().subscribe((company: any) => {
+    forkJoin({
+      company: this.companiesService.getByOwner(),
+      users: this.usersService.getUsers({ searchField: '', filter: { currentUser: true } }),
+    }).subscribe(({ company, users }: any) => {
       this.companyId = company.company.id;
+      const currentUser = users?.[0];
+      this.intakeInitialValues = {
+        name: currentUser ? `${currentUser.name} ${currentUser.last_name}`.trim() : '',
+        email: currentUser?.email ?? '',
+        phone: currentUser?.phone ?? '',
+        company: company.company.name ?? '',
+      };
+      this.intakeValuesReady = true;
     });
   }
 
@@ -510,7 +520,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   getRankingArrowPosition(rankingId: number | string | null | undefined): number {
     const level = this.getRankingVisualLevel(rankingId);
-    return ((level - 0.5) / 4) * 100;
+    if (level <= 0) {
+      return 0;
+    }
+    return ((level - 0.5) / 5) * 100;
   }
 
   private getRankingVisualLevel(rankingId: number | string | null | undefined): number {
@@ -518,7 +531,20 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     if (!id || Number.isNaN(id)) {
       return 0;
     }
-    return Math.min(4, Math.max(1, 5 - id));
+
+    if (id === 1) {
+      return 5;
+    }
+
+    if (id === 2 || id === 3) {
+      return 4;
+    }
+
+    if (id === 4) {
+      return 3;
+    }
+
+    return Math.min(5, Math.max(1, 6 - id));
   }
 
   getIconForCategory(categoryName: string): string {
@@ -650,8 +676,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   get canSearchAI(): boolean {
     const hasRequiredFilters =
       !!this.selectedRole &&
-      !!this.selectedPracticeArea;
-    if (!!this.query) return true;
+      !!this.selectedPracticeArea &&
+      (this.intakeForm?.valid ?? false);
+    if (!!this.query && (this.intakeForm?.valid ?? false)) return true;
     return hasRequiredFilters;
   }
 
@@ -756,8 +783,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private applyApplicationListResponse(response: ApplicationListResponse): void {
-    this.dataSource.data = response.items;
-    this.rows = response.items;
+    const orderedItems = this.normalizeAllMatchScores(response.items || []);
+    this.dataSource.data = orderedItems;
+    this.rows = orderedItems;
     this.totalRecords = response.meta.total;
     this.totalPages = response.meta.totalPages;
     this.currentPage = response.meta.currentPage;
@@ -766,6 +794,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.sortOrder = response.meta.sortOrder.toLowerCase() as 'asc' | 'desc';
     this.backendMessage = response.message || '';
     this.expandedElement = null;
+  }
+
+  private normalizeAllMatchScores(candidates: any[]): any[] {
+    return candidates.map(candidate => ({
+      ...candidate,
+      all_match_scores: sortByNegotiatorProfileOrder<ApplicationMatchScoreSummary>(
+        candidate.all_match_scores || [],
+        score => score.position_category_id,
+      ),
+    }));
   }
 
   private fetchAICandidates(restoreFallback = false): void {

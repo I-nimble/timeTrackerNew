@@ -157,7 +157,7 @@
           <tr *ngIf="!isCreateMode">
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
-              <div *ngFor="let score of matchScores">
+              <div *ngFor="let score of orderedMatchScores">
                 {{ getCategoryName(score) }}:
                 {{ score.match_percentage | number: "1.2-2" }}%
               </div>
@@ -184,7 +184,7 @@
               <div class="current-scores mt-3" *ngIf="matchScores.length > 0">
                 <h6 class="mb-2">Current Scores:</h6>
                 <div
-                  *ngFor="let score of matchScores"
+                  *ngFor="let score of orderedMatchScores"
                   class="d-flex align-items-center gap-2 mb-1"
                 >
                   <span class="text-dark">{{ getCategoryName(score) }}</span>
@@ -194,7 +194,7 @@
                 </div>
               </div>
               <div class="d-none">
-                <div *ngFor="let score of matchScores">
+                <div *ngFor="let score of orderedMatchScores">
                   <ng-container *ngIf="f['matchScores_' + score.id]">
                     <input
                       type="number"
