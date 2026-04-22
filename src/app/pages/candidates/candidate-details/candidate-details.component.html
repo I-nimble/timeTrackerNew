@@ -167,9 +167,22 @@
           <tr *ngIf="!isCreateMode">
             <td><b>Negotiator Profile</b></td>
             <td *ngIf="!editMode" colspan="2">
-              <div *ngFor="let score of orderedMatchScores">
-                {{ getCategoryName(score) }}:
-                {{ score.match_percentage | number: "1.2-2" }}%
+              <div
+                *ngFor="let score of orderedMatchScores"
+                class="d-flex align-items-center m-b-4"
+              >
+                <span
+                  *ngIf="getDiscProfileForCategory(getCategoryName(score)) as discName"
+                  class="disc-badge-small m-r-8"
+                  [style.background-color]="getDiscProfileColor(discName)"
+                  [title]="discName"
+                >
+                  {{ discName.charAt(0) }}
+                </span>
+                <span>
+                  {{ getCategoryName(score) }}:
+                  {{ score.match_percentage | number: "1.2-2" }}%
+                </span>
               </div>
               <div *ngIf="matchScores.length === 0" class="text-muted">
                 No match percentages set
@@ -197,6 +210,14 @@
                   *ngFor="let score of orderedMatchScores"
                   class="d-flex align-items-center gap-2 mb-1"
                 >
+                  <span
+                    *ngIf="getDiscProfileForCategory(getCategoryName(score)) as discName"
+                    class="disc-badge-small"
+                    [style.background-color]="getDiscProfileColor(discName)"
+                    [title]="discName"
+                  >
+                    {{ discName.charAt(0) }}
+                  </span>
                   <span class="text-dark">{{ getCategoryName(score) }}</span>
                   <span class="fw-bold"
                     >{{ score.match_percentage | number: "1.2-2" }}%</span
