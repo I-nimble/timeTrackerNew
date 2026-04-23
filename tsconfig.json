@@ -22,21 +22,11 @@
     "strictPropertyInitialization": false,
     "lib": ["ES2022", "dom"],
     "paths": {
-      "@app/*": [
-        "src/app/*"
-      ],
-      "@core/*": [
-        "src/app/core/*"
-      ],
-      "@shared/*": [
-        "src/app/shared/*"
-      ],
-      "@features/*": [
-        "src/app/features/*"
-      ],
-      "@legacy/*": [
-        "src/app/legacy/*"
-      ],
+      "@app/*": ["src/app/*"],
+      "@core/*": ["src/app/core/*"],
+      "@shared/*": ["src/app/shared/*"],
+      "@features/*": ["src/app/features/*"],
+      "@legacy/*": ["src/app/legacy/*"],
       "@cometchat/chat-sdk-javascript-new": [
         "node_modules/@cometchat/chat-sdk-javascript"
       ],
@@ -49,6 +39,6 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true,
+    "strictTemplates": true
   }
 }

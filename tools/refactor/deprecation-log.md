@@ -1,65 +1,67 @@
 ﻿# Legacy Deprecation Log
 
 Track removed legacy paths only after:
+
 - No references remain
 - Route parity is verified
 - Tests pass
 - QA signoff is complete
 
 ## Entries
+
 - 2026-04-01: Notifications route cutover completed.
-	- /dashboards/notifications now points to feature page component.
-	- /apps/notifications now points to feature page component.
-	- No legacy deletion performed yet.
+  - /dashboards/notifications now points to feature page component.
+  - /apps/notifications now points to feature page component.
+  - No legacy deletion performed yet.
 - 2026-04-01: Intake and Dashboard feature preview pages activated.
-	- /refactor/intake renders feature intake page wrapper.
-	- /refactor/dashboard renders feature dashboard page wrapper.
-	- No legacy deletion performed yet.
+  - /refactor/intake renders feature intake page wrapper.
+  - /refactor/dashboard renders feature dashboard page wrapper.
+  - No legacy deletion performed yet.
 - 2026-04-01: Notifications service compatibility stabilized.
-	- src/app/services/notifications.service.ts remains the implementation used by most injected consumers.
-	- src/app/features/notifications/services/notifications.service.ts now re-exports from the legacy service path.
-	- Service ownership move to feature remains pending due Angular DI/static analysis constraints.
+  - src/app/services/notifications.service.ts remains the implementation used by most injected consumers.
+  - src/app/features/notifications/services/notifications.service.ts now re-exports from the legacy service path.
+  - Service ownership move to feature remains pending due Angular DI/static analysis constraints.
 - 2026-04-01: Production lazy route cutovers completed.
-	- /dashboards now loads @features/dashboard/dashboard.routes (proxy to legacy dashboards route tree).
-	- /intake and /intake/:uuid now load @features/intake/intake.routes.
-	- Existing route behavior and data metadata preserved.
+  - /dashboards now loads @features/dashboard/dashboard.routes (proxy to legacy dashboards route tree).
+  - /intake and /intake/:uuid now load @features/intake/intake.routes.
+  - Existing route behavior and data metadata preserved.
 - 2026-04-01: Authentication lazy route cutover completed.
-	- /authentication now loads @features/authentication/authentication.routes.
-	- Feature route file proxies existing authentication route tree.
-	- notAuthGuard behavior preserved.
+  - /authentication now loads @features/authentication/authentication.routes.
+  - Feature route file proxies existing authentication route tree.
+  - notAuthGuard behavior preserved.
 - 2026-04-01: Notifications DI compatibility fix applied.
-	- src/app/services/notifications.service.ts now exposes an injectable compatibility subclass.
-	- Feature implementation remains canonical at src/app/features/notifications/services/notifications.service.ts.
+  - src/app/services/notifications.service.ts now exposes an injectable compatibility subclass.
+  - Feature implementation remains canonical at src/app/features/notifications/services/notifications.service.ts.
 - 2026-04-01: Workforce feature routes activated for migration testing.
-	- src/app/features/workforce/workforce.routes.ts now serves team, time-tracker, and employee details paths.
-	- Added shortcut redirects: /refactor/team, /refactor/time-tracker, /refactor/employee.
-	- Existing /apps routes remain unchanged for no-break coexistence.
+  - src/app/features/workforce/workforce.routes.ts now serves team, time-tracker, and employee details paths.
+  - Added shortcut redirects: /refactor/team, /refactor/time-tracker, /refactor/employee.
+  - Existing /apps routes remain unchanged for no-break coexistence.
 - 2026-04-01: Billing feature routes activated for migration testing.
-	- src/app/features/billing/billing.routes.ts now serves invoice, payments-reports, add/view/edit invoice, and pricing paths.
-	- Added shortcut redirects: /refactor/invoice and /refactor/payments-reports.
-	- Existing /apps routes remain unchanged for no-break coexistence.
+  - src/app/features/billing/billing.routes.ts now serves invoice, payments-reports, add/view/edit invoice, and pricing paths.
+  - Added shortcut redirects: /refactor/invoice and /refactor/payments-reports.
+  - Existing /apps routes remain unchanged for no-break coexistence.
 - 2026-04-01: Time-tracking feature routes activated for migration testing.
-	- src/app/features/time-tracking/time-tracking.routes.ts now serves history and todo paths.
-	- Added shortcut redirects: /refactor/history and /refactor/todo.
-	- Existing /apps routes remain unchanged for no-break coexistence.
+  - src/app/features/time-tracking/time-tracking.routes.ts now serves history and todo paths.
+  - Added shortcut redirects: /refactor/history and /refactor/todo.
+  - Existing /apps routes remain unchanged for no-break coexistence.
 - 2026-04-01: Billing apps production paths cut over to feature-owned wrappers.
-	- /apps/invoice, /apps/payments-reports, /apps/addInvoice, /apps/viewInvoice/:id, /apps/editinvoice/:id, /apps/pricing now bind feature page wrappers.
-	- URLs and route metadata unchanged.
-	- No route deletion performed yet.
+  - /apps/invoice, /apps/payments-reports, /apps/addInvoice, /apps/viewInvoice/:id, /apps/editinvoice/:id, /apps/pricing now bind feature page wrappers.
+  - URLs and route metadata unchanged.
+  - No route deletion performed yet.
 - 2026-04-01: Talent-match production route ownership moved to feature routes.
-	- /apps/talent-match now lazy-loads @features/talent-match/talent-match.routes.
-	- Child paths (root, custom-search, :id) are defined in feature route file.
-	- URLs and route metadata unchanged.
+  - /apps/talent-match now lazy-loads @features/talent-match/talent-match.routes.
+  - Child paths (root, custom-search, :id) are defined in feature route file.
+  - URLs and route metadata unchanged.
 - 2026-04-01: Dashboard import cluster migrated to alias-based paths.
-	- Updated dashboard1/dashboard2 components to use @app/* imports instead of src/app/* string paths.
-	- Purpose: reduce legacy-gate violations without behavior changes.
-	- Result: dashboard-related violations dropped from refactor:check-legacy output.
+  - Updated dashboard1/dashboard2 components to use @app/_ imports instead of src/app/_ string paths.
+  - Purpose: reduce legacy-gate violations without behavior changes.
+  - Result: dashboard-related violations dropped from refactor:check-legacy output.
 - 2026-04-01: Import-cluster migration constraint recorded (employees/entries/company).
-	- Attempted alias conversion to @app/* in application-details, company-*, employees*, entries*, entry components.
-	- Several files produced DI/static-analysis regressions, so service-path alias changes were rolled back for stability.
-	- Going forward: prioritize route ownership migration and non-DI alias conversions first.
+  - Attempted alias conversion to @app/_ in application-details, company-_, employees*, entries*, entry components.
+  - Several files produced DI/static-analysis regressions, so service-path alias changes were rolled back for stability.
+  - Going forward: prioritize route ownership migration and non-DI alias conversions first.
 - 2026-04-01: Workforce/time-tracking legacy route entries moved to feature-owned lazy routes.
-	- /apps/team now lazy-loads @features/workforce/team.routes.
-	- /apps/time-tracker now lazy-loads @features/workforce/time-tracker.routes.
-	- /apps/history now lazy-loads @features/time-tracking/history.routes.
-	- This avoided standalone wrapper constraints while preserving URL and route metadata behavior.
+  - /apps/team now lazy-loads @features/workforce/team.routes.
+  - /apps/time-tracker now lazy-loads @features/workforce/time-tracker.routes.
+  - /apps/history now lazy-loads @features/time-tracking/history.routes.
+  - This avoided standalone wrapper constraints while preserving URL and route metadata behavior.
