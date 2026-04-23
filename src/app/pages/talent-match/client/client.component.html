@@ -162,7 +162,7 @@
               *ngIf="searchPerformed"
               mat-raised-button
               color="accent"
-              [disabled]="sessionInterestedCandidates.length === 0 || isSubmittingTalentMatch || !intakeForm?.valid"
+              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid"
               (click)="submitTalentMatch()"
             >
               <span *ngIf="!isSubmittingTalentMatch">Submit</span>
