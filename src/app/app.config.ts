@@ -1,55 +1,50 @@
 import {
-  ApplicationConfig,
-  provideZoneChangeDetection,
-  importProvidersFrom,
-} from '@angular/core';
-import {
   HttpClient,
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
-import { routes } from './app.routes';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideZoneChangeDetection,
+} from '@angular/core';
+import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getAuth, provideAuth } from '@angular/fire/auth';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideClientHydration } from '@angular/platform-browser';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
   withComponentInputBinding,
   withInMemoryScrolling,
 } from '@angular/router';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideClientHydration } from '@angular/platform-browser';
+
+import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
+import { AuthInterceptor, ErrorInterceptor } from '@core/http/interceptors';
+import { provideStore } from '@ngrx/store';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
-import { ReportsService } from './services/reports.service';
-import { WebSocketService } from './services/socket/web-socket.service';
-import { JwtInterceptor } from '@core/authentication/interceptors/jwt.interceptor';
-
-import { provideToastr } from 'ngx-toastr';
-
-// icons
-import { TablerIconsModule } from 'angular-tabler-icons';
-import * as TablerIcons from 'angular-tabler-icons/icons';
-
-// perfect scrollbar
-import { NgScrollbarModule } from 'ngx-scrollbar';
-import { NgxPermissionsModule } from 'ngx-permissions';
-//Import all material modules
-import { MaterialModule } from './material.module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
-import { dialogProviders } from './dialog.config';
-import { provideNativeDateAdapter } from '@angular/material/core';
-
-// code view
+import { TablerIconsModule } from 'angular-tabler-icons';
+import * as TablerIcons from 'angular-tabler-icons/icons';
 import { provideHighlightOptions } from 'ngx-highlightjs';
-import 'highlight.js/styles/atom-one-dark.min.css';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getAuth, provideAuth } from '@angular/fire/auth';
-import { environment } from '../environments/environment';
+import { NgxPermissionsModule } from 'ngx-permissions';
+import { NgScrollbarModule } from 'ngx-scrollbar';
+import { provideToastr } from 'ngx-toastr';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
-import { provideStore } from '@ngrx/store';
 
-export function HttpLoaderFactory(http: HttpClient): any {
+import { routes } from './app.routes';
+import { dialogProviders } from './dialog.config';
+import { MaterialModule } from './material.module';
+import { ReportsService } from './services/reports.service';
+import { environment } from '../environments/environment';
+import { WebSocketService } from './services/socket/web-socket.service';
+
+import 'highlight.js/styles/atom-one-dark.min.css';
+
+export function HttpLoaderFactory(http: HttpClient): TranslateLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
@@ -57,7 +52,6 @@ export function jwtOptionsFactory() {
   return {
     tokenGetter: () => localStorage.getItem('jwt'),
     allowedDomains: ['localhost:3000', 'home.inimbleapp.com'],
-    disallowedRoutes: ['/auth/signin', '/auth/signup'],
   };
 }
 
@@ -85,12 +79,10 @@ export const appConfig: ApplicationConfig = {
         scrollPositionRestoration: 'enabled',
         anchorScrolling: 'enabled',
       }),
-      withComponentInputBinding()
+      withComponentInputBinding(),
     ),
     provideStore(),
-    provideHttpClient(
-      withInterceptors([JwtInterceptor])
-    ),
+    provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
     ...dialogProviders,
     provideClientHydration(),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
@@ -107,7 +99,7 @@ export const appConfig: ApplicationConfig = {
         provide: DateAdapter,
         useFactory: adapterFactory,
       }),
-      
+
       TranslateModule.forRoot({
         loader: {
           provide: TranslateLoader,
@@ -120,7 +112,7 @@ export const appConfig: ApplicationConfig = {
           provide: JWT_OPTIONS,
           useFactory: jwtOptionsFactory,
         },
-      })
+      }),
     ),
   ],
 };
