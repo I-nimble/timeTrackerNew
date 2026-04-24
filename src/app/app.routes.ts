@@ -1,11 +1,13 @@
 import { Routes } from '@angular/router';
+
+import { environment } from 'src/environments/environment';
+
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
+import { featureFlagGuard } from './services/guards/feature-flag.guard';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
-import { UserTypeGuardService } from './services/guards/user-type-guard.service';
-import { environment } from 'src/environments/environment';
 
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
@@ -20,7 +22,7 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: '/landingpage',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'starter',
@@ -31,10 +33,17 @@ export const routes: Routes = [
         path: 'dashboards',
         loadChildren: () =>
           import('@features/dashboard/dashboard.routes').then(
-            (m) => m.DashboardRoutes
+            (m) => m.DashboardRoutes,
           ),
         canActivate: [AuthGuard],
-        data: { allowedUserTypes: [USER_TYPE_ROLE, CLIENT_TYPE_ROLE, ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
+        data: {
+          allowedUserTypes: [
+            USER_TYPE_ROLE,
+            CLIENT_TYPE_ROLE,
+            ADMIN_TYPE_ROLE,
+            SUPPORT_TYPE_ROLE,
+          ],
+        },
       },
       {
         path: 'forms',
@@ -63,14 +72,16 @@ export const routes: Routes = [
       {
         path: 'tables',
         loadChildren: () =>
-          import('./pages/apps/storage/tables.routes').then((m) => m.DatatablesRoutes),
+          import('./pages/apps/storage/tables.routes').then(
+            (m) => m.DatatablesRoutes,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'datatable',
         loadChildren: () =>
           import('./pages/apps/storage/tables.routes').then(
-            (m) => m.DatatablesRoutes
+            (m) => m.DatatablesRoutes,
           ),
         canActivate: [AuthGuard],
       },
@@ -78,7 +89,7 @@ export const routes: Routes = [
         path: 'theme-pages',
         loadChildren: () =>
           import('./pages/theme-pages/theme-pages.routes').then(
-            (m) => m.ThemePagesRoutes
+            (m) => m.ThemePagesRoutes,
           ),
         canActivate: [AuthGuard],
       },
@@ -86,7 +97,7 @@ export const routes: Routes = [
         path: 'ui-components',
         loadChildren: () =>
           import('./pages/ui-components/ui-components.routes').then(
-            (m) => m.UiComponentsRoutes
+            (m) => m.UiComponentsRoutes,
           ),
         canActivate: [AuthGuard],
       },
@@ -94,37 +105,47 @@ export const routes: Routes = [
         path: 'refactor/notifications',
         loadChildren: () =>
           import('@features/notifications/notifications.routes').then(
-            (m) => m.NotificationsRoutes
+            (m) => m.NotificationsRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'notificationsRefactor', enabled: environment.featureFlags.notificationsRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'notificationsRefactor',
+          enabled: environment.featureFlags.notificationsRefactor,
+        },
       },
       {
         path: 'refactor/intake',
         loadChildren: () =>
-          import('@features/intake/intake.routes').then(
-            (m) => m.IntakeRoutes
-          ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'intakeRefactor', enabled: environment.featureFlags.intakeRefactor },
+          import('@features/intake/intake.routes').then((m) => m.IntakeRoutes),
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'intakeRefactor',
+          enabled: environment.featureFlags.intakeRefactor,
+        },
       },
       {
         path: 'refactor/dashboard',
         loadChildren: () =>
           import('@features/dashboard/dashboard.routes').then(
-            (m) => m.DashboardRoutes
+            (m) => m.DashboardRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'dashboardRefactor', enabled: environment.featureFlags.dashboardRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'dashboardRefactor',
+          enabled: environment.featureFlags.dashboardRefactor,
+        },
       },
       {
         path: 'refactor/billing',
         loadChildren: () =>
           import('@features/billing/billing.routes').then(
-            (m) => m.BillingRoutes
+            (m) => m.BillingRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'billingRefactor', enabled: environment.featureFlags.billingRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'billingRefactor',
+          enabled: environment.featureFlags.billingRefactor,
+        },
       },
       {
         path: 'refactor/invoice',
@@ -140,10 +161,13 @@ export const routes: Routes = [
         path: 'refactor/workforce',
         loadChildren: () =>
           import('@features/workforce/workforce.routes').then(
-            (m) => m.WorkforceRoutes
+            (m) => m.WorkforceRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'workforceRefactor', enabled: environment.featureFlags.workforceRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'workforceRefactor',
+          enabled: environment.featureFlags.workforceRefactor,
+        },
       },
       {
         path: 'refactor/team',
@@ -164,10 +188,13 @@ export const routes: Routes = [
         path: 'refactor/time-tracking',
         loadChildren: () =>
           import('@features/time-tracking/time-tracking.routes').then(
-            (m) => m.TimeTrackingRoutes
+            (m) => m.TimeTrackingRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'timeTrackingRefactor', enabled: environment.featureFlags.timeTrackingRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'timeTrackingRefactor',
+          enabled: environment.featureFlags.timeTrackingRefactor,
+        },
       },
       {
         path: 'refactor/history',
@@ -183,19 +210,25 @@ export const routes: Routes = [
         path: 'refactor/talent-match',
         loadChildren: () =>
           import('@features/talent-match/talent-match.routes').then(
-            (m) => m.TalentMatchRoutes
+            (m) => m.TalentMatchRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'talentMatchRefactor', enabled: environment.featureFlags.talentMatchRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'talentMatchRefactor',
+          enabled: environment.featureFlags.talentMatchRefactor,
+        },
       },
       {
         path: 'refactor/authentication',
         loadChildren: () =>
           import('@features/authentication/authentication.routes').then(
-            (m) => m.AuthenticationRoutes
+            (m) => m.AuthenticationRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: { featureFlag: 'authenticationRefactor', enabled: environment.featureFlags.authenticationRefactor },
+        canActivate: [AuthGuard, featureFlagGuard],
+        data: {
+          featureFlag: 'authenticationRefactor',
+          enabled: environment.featureFlags.authenticationRefactor,
+        },
       },
     ],
   },
@@ -207,7 +240,7 @@ export const routes: Routes = [
         path: 'authentication',
         loadChildren: () =>
           import('@features/authentication/authentication.routes').then(
-            (m) => m.AuthenticationRoutes
+            (m) => m.AuthenticationRoutes,
           ),
         canActivate: [notAuthGuard],
       },
@@ -217,13 +250,13 @@ export const routes: Routes = [
       //     import('./pages/theme-pages/landingpage/landingpage.routes').then(
       //       (m) => m.LandingPageRoutes
       //     ),
-      //   canActivate: [notAuthGuard], 
+      //   canActivate: [notAuthGuard],
       // },
       {
         path: 'landingpage',
         loadChildren: () =>
           import('./pages/theme-pages/front.routes').then(
-            (m) => m.HomePageRoutes
+            (m) => m.HomePageRoutes,
           ),
         canActivate: [notAuthGuard],
       },
@@ -244,7 +277,7 @@ export const routes: Routes = [
         path: 'intake',
         loadChildren: () =>
           import('@features/intake/intake.routes').then((m) => m.IntakeRoutes),
-      }
+      },
     ],
   },
   {
