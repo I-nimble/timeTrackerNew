@@ -1,12 +1,12 @@
 @import "../../../styles.scss";
 
 .navbar-nav a.nav-icons > span > .pending-notification {
-  font-size: 8px; 
+  font-size: 8px;
   color: red;
   position: absolute;
   top: 30px;
   right: 3px;
-  transform: translate(50%, -50%); 
+  transform: translate(50%, -50%);
   z-index: 10;
 }
 #homepage-icon {
@@ -20,11 +20,11 @@ nav.navbar {
   height: 70px;
 }
 .nav-link:hover {
-  color: $primary-color;
+  color: #92b46c;
 }
 #talent-pool {
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: 700;
   color: #92b46c;
   background-color: white;
@@ -33,11 +33,13 @@ nav.navbar {
   transition: all 0.3s ease;
 }
 #talent-pool:hover {
-  color: #FFFFFF;
+  color: #ffffff;
   background-color: #92b46c;
 }
 .shadow {
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 
 #company-logo {
@@ -54,7 +56,7 @@ nav.navbar {
 @media screen and (min-width: 991px) {
   .nav-link:hover::after {
     height: 3px;
-    background-color: $primary-color;
+    background-color: #92b46c;
     position: absolute;
     bottom: -12px;
     left: 9px;
@@ -66,7 +68,7 @@ nav.navbar {
   .nav-link:after {
     width: 30%;
     height: 3px;
-    background-color: $primary-color;
+    background-color: #92b46c;
     position: absolute;
     bottom: -15px;
     left: 30%;
@@ -90,33 +92,36 @@ nav.navbar {
     left: -230px !important;
   }
   .navbar-expand-lg .navbar-nav .nav-link {
-    padding-right: 0!important;
+    padding-right: 0 !important;
   }
 }
 
-.nav-link.dropdown-toggle, .nav-link-dropdown {
+.nav-link.dropdown-toggle,
+.nav-link-dropdown {
   background-color: transparent;
   border: none;
   text-transform: capitalize;
   line-height: 1;
 }
 
-.nav-link.dropdown-toggle:hover::after, .nav-link-dropdown:hover::after {
-  opacity: 0!important;
+.nav-link.dropdown-toggle:hover::after,
+.nav-link-dropdown:hover::after {
+  opacity: 0 !important;
 }
 
 @media (max-width: 991px) {
   .navbar-expand-lg .navbar-nav .dropdown-menu {
-      border: none;
-      text-align: center!important;
-      width: 100%;
-      box-shadow: none;
-      background: transparent !important;
-      padding: 0px!important;
-      margin: 0px!important;
+    border: none;
+    text-align: center !important;
+    width: 100%;
+    box-shadow: none;
+    background: transparent !important;
+    padding: 0px !important;
+    margin: 0px !important;
   }
-  .nav-link.dropdown-toggle, .nav-link-dropdown {
-    text-align: center!important;
+  .nav-link.dropdown-toggle,
+  .nav-link-dropdown {
+    text-align: center !important;
   }
   .dropdown-divider {
     display: none;
@@ -126,14 +131,18 @@ nav.navbar {
     color: #929292;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    background: linear-gradient(to left, rgba(206, 206, 206, 0.5), rgba(231, 231, 231, 0.7))!important;
+    background: linear-gradient(
+      to left,
+      rgba(206, 206, 206, 0.5),
+      rgba(231, 231, 231, 0.7)
+    ) !important;
     box-shadow: 5px 10px 20px rgb(153 153 153 / 50%);
     border: none;
     transition: all 0.3sease;
   }
 
-  li.nav-item.dropdown, 
-  #navbarDropdown > i, 
+  li.nav-item.dropdown,
+  #navbarDropdown > i,
   #homepage-icon {
     margin-right: 0;
     width: 100%;
@@ -141,7 +150,7 @@ nav.navbar {
   .dropdown-toggle::after {
     display: none;
   }
-  
+
   li#optionsDropdown {
     width: 100%;
   }
@@ -155,7 +164,11 @@ nav.navbar {
   color: #929292;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  background: linear-gradient(to left, rgba(206, 206, 206, 0.5), rgba(231, 231, 231, 0.7))!important;
+  background: linear-gradient(
+    to left,
+    rgba(206, 206, 206, 0.5),
+    rgba(231, 231, 231, 0.7)
+  ) !important;
   box-shadow: 5px 10px 20px rgb(153 153 153 / 50%);
   border: none;
   transition: all 0.3sease;
@@ -163,16 +176,16 @@ nav.navbar {
 
 .dropdown-menu {
   overflow: hidden;
-  left: auto; 
-  right: 0; 
+  left: auto;
+  right: 0;
   transform: translateX(-5%);
-  position: absolute; 
+  position: absolute;
   z-index: 1050;
 }
 .dropdown-menu > li > h2 {
   font-size: 1.5rem;
   font-weight: bolder;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   text-transform: capitalize;
   color: #585858;
   margin: 0;
@@ -196,12 +209,12 @@ nav.navbar {
   text-transform: capitalize;
 }
 .dropdown-menu.notifications {
-  width: 250px; 
-  left: auto; 
-  right: 0; 
+  width: 250px;
+  left: auto;
+  right: 0;
   transform: translateX(-30%);
-  position: absolute; 
-  z-index: 1050; 
+  position: absolute;
+  z-index: 1050;
 }
 .dropdown-menu.main-menu {
   min-width: 300px;
@@ -227,13 +240,13 @@ nav.navbar {
   transition: all 0.3s ease;
 }
 .dropdown-item:hover {
-  background-color: #d4d4d4!important;
+  background-color: #d4d4d4 !important;
 }
 .dropdown-menu > li:not(:last-child) {
   border-bottom: 1px solid #92b46c;
 }
 .dropdown-menu.no-border > li {
-  border: none!important;
+  border: none !important;
 }
 
 .dropdown-item:active {
@@ -255,7 +268,7 @@ nav.navbar {
 }
 
 .badge-success {
-  background-color: $primary-color;
+  background-color: #92b46c;
 }
 
 .nav-item.dropdown img {
@@ -263,15 +276,15 @@ nav.navbar {
   object-fit: cover;
 }
 
-.nav-icons i{
-  color:$primary-color;
+.nav-icons i {
+  color: #92b46c;
   font-size: 1.5rem;
   margin-right: 15px;
 }
 
 #talent-pool {
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-weight: bolder;
   color: #92b46c;
   background-color: white;
@@ -280,16 +293,18 @@ nav.navbar {
   transition: all 0.3s ease;
 }
 #talent-pool:hover {
-  color: #FFFFFF;
+  color: #ffffff;
   background-color: #92b46c;
 }
 .shadow {
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 
 .mobile-logout {
-  margin-top: .5rem!important;
-  margin-bottom: .5rem!important;
-  width: max-content!important;
-  padding: .75rem 4rem!important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  width: max-content !important;
+  padding: 0.75rem 4rem !important;
 }

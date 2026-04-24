@@ -12,7 +12,6 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
   provideRouter,
@@ -38,13 +37,13 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { routes } from './app.routes';
 import { dialogProviders } from './dialog.config';
 import { MaterialModule } from './material.module';
-import { ReportsService } from './services/reports.service';
 import { environment } from '../environments/environment';
+import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
 
 import 'highlight.js/styles/atom-one-dark.min.css';
 
-export function HttpLoaderFactory(http: HttpClient): TranslateLoader {
+export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
@@ -84,7 +83,6 @@ export const appConfig: ApplicationConfig = {
     provideStore(),
     provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
     ...dialogProviders,
-    provideClientHydration(),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
     importProvidersFrom(
