@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
 import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
+import { LandingPageRedirectComponent } from './pages/theme-pages/landingpage/landingpage-redirect.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 
@@ -33,84 +34,6 @@ export const routes: Routes = [
         path: '',
         redirectTo: '/landingpage',
         pathMatch: 'full',
-      },
-
-      /**
-       * LEGACY UTILITY ROUTES
-       * Not yet migrated to feature modules (remaining under src/app/pages/)
-       * Status: Legacy (per feature-route-ownership-matrix)
-       * Deprecation status: Preserved for backward compatibility; no deletion scheduled yet
-       */
-
-      {
-        path: 'starter',
-        loadChildren: () =>
-          import('./pages/pages.routes').then((m) => m.PagesRoutes),
-        canActivate: [AuthGuard],
-      },
-
-      // Form components & patterns
-      {
-        path: 'forms',
-        loadChildren: () =>
-          import('./pages/forms/forms.routes').then((m) => m.FormsRoutes),
-        canActivate: [AuthGuard],
-      },
-
-      // Chart library examples
-      {
-        path: 'charts',
-        loadChildren: () =>
-          import('./pages/charts/charts.routes').then((m) => m.ChartsRoutes),
-        canActivate: [AuthGuard],
-      },
-
-      // Widget library examples
-      {
-        path: 'widgets',
-        loadChildren: () =>
-          import('./pages/widgets/widgets.routes').then((m) => m.WidgetsRoutes),
-        canActivate: [AuthGuard],
-      },
-
-      // Data table examples & storage management
-      {
-        path: 'tables',
-        loadChildren: () =>
-          import('./pages/apps/storage/tables.routes').then(
-            (m) => m.DatatablesRoutes,
-          ),
-        canActivate: [AuthGuard],
-      },
-
-      // Alias for tables (legacy naming)
-      {
-        path: 'datatable',
-        loadChildren: () =>
-          import('./pages/apps/storage/tables.routes').then(
-            (m) => m.DatatablesRoutes,
-          ),
-        canActivate: [AuthGuard],
-      },
-
-      // Theme & UI pattern pages
-      {
-        path: 'theme-pages',
-        loadChildren: () =>
-          import('./pages/theme-pages/theme-pages.routes').then(
-            (m) => m.ThemePagesRoutes,
-          ),
-        canActivate: [AuthGuard],
-      },
-
-      // Reusable UI component showcase
-      {
-        path: 'ui-components',
-        loadChildren: () =>
-          import('./pages/ui-components/ui-components.routes').then(
-            (m) => m.UiComponentsRoutes,
-          ),
-        canActivate: [AuthGuard],
       },
 
       /**
@@ -431,17 +354,14 @@ export const routes: Routes = [
       /**
        * LANDING PAGE / HOME
        * Full path: /landingpage
-       * Ownership: src/app/pages/theme-pages/front.routes (not yet migrated to feature)
+       * Ownership: src/app/pages/theme-pages/front.routes (legacy page bundle)
+       * Behavior: redirects to external website https://i-nimble.com/
        * Guard: notAuthGuard (blocks if already authenticated)
        * Status: Legacy (not in feature-route-ownership-matrix)
-       * Migration path: Consider moving to @features/home or @features/landing in future wave
        */
       {
         path: 'landingpage',
-        loadChildren: () =>
-          import('./pages/theme-pages/front.routes').then(
-            (m) => m.HomePageRoutes,
-          ),
+        component: LandingPageRedirectComponent,
         canActivate: [notAuthGuard],
       },
 
