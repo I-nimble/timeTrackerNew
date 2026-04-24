@@ -95,6 +95,28 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "analysis-prod": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "sourceMap": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "12mb",
+                  "maximumError": "12mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "12mb",
+                  "maximumError": "12mb"
+                }
+              ],
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
