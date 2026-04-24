@@ -11,6 +11,7 @@ import { FullComponent } from './layouts/full/full.component';
 import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
 import { LandingPageRedirectComponent } from './pages/theme-pages/landingpage/landingpage-redirect.component';
 import { AuthGuard } from './services/guards/auth-guard.service';
+import { featureFlagGuard } from './services/guards/feature-flag.guard';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 
 // User role type constants
@@ -110,7 +111,7 @@ export const routes: Routes = [
           import('@features/notifications/notifications.routes').then(
             (m) => m.NotificationsRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'notificationsRefactor',
           enabled: environment.featureFlags?.notificationsRefactor,
@@ -129,7 +130,7 @@ export const routes: Routes = [
         path: 'refactor/intake',
         loadChildren: () =>
           import('@features/intake/intake.routes').then((m) => m.IntakeRoutes),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'intakeRefactor',
           enabled: environment.featureFlags?.intakeRefactor,
@@ -150,7 +151,7 @@ export const routes: Routes = [
           import('@features/dashboard/dashboard.routes').then(
             (m) => m.DashboardRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'dashboardRefactor',
           enabled: environment.featureFlags?.dashboardRefactor,
@@ -172,7 +173,7 @@ export const routes: Routes = [
           import('@features/billing/billing.routes').then(
             (m) => m.BillingRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'billingRefactor',
           enabled: environment.featureFlags?.billingRefactor,
@@ -205,7 +206,7 @@ export const routes: Routes = [
           import('@features/workforce/workforce.routes').then(
             (m) => m.WorkforceRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'workforceRefactor',
           enabled: environment.featureFlags?.workforceRefactor,
@@ -244,7 +245,7 @@ export const routes: Routes = [
           import('@features/time-tracking/time-tracking.routes').then(
             (m) => m.TimeTrackingRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'timeTrackingRefactor',
           enabled: environment.featureFlags?.timeTrackingRefactor,
@@ -278,7 +279,7 @@ export const routes: Routes = [
           import('@features/talent-match/talent-match.routes').then(
             (m) => m.TalentMatchRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'talentMatchRefactor',
           enabled: environment.featureFlags?.talentMatchRefactor,
@@ -300,7 +301,7 @@ export const routes: Routes = [
           import('@features/authentication/authentication.routes').then(
             (m) => m.AuthenticationRoutes,
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, featureFlagGuard],
         data: {
           featureFlag: 'authenticationRefactor',
           enabled: environment.featureFlags?.authenticationRefactor,
