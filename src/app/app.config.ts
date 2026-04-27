@@ -21,9 +21,11 @@ import {
 
 import { JwtHelperService, JWT_OPTIONS, JwtModule } from '@auth0/angular-jwt';
 import { JwtInterceptor } from '@core/authentication/interceptors/jwt.interceptor';
+import { ErrorInterceptor } from '@core/http/interceptors';
 import { provideStore } from '@ngrx/store';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { provideGlobalErrorHandler } from '@shared/services';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -80,7 +82,8 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
     ),
     provideStore(),
-    provideHttpClient(withInterceptors([JwtInterceptor])),
+    provideHttpClient(withInterceptors([JwtInterceptor, ErrorInterceptor])),
+    provideGlobalErrorHandler(),
     ...dialogProviders,
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),
