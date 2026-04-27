@@ -41,8 +41,6 @@ import { environment } from '../environments/environment';
 import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
 
-import 'highlight.js/styles/atom-one-dark.min.css';
-
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }

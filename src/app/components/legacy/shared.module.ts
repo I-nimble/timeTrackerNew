@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -44,21 +44,18 @@ import { ToDoFormComponent } from '../to-do-form/to-do-form.component';
     MatFormFieldModule,
     MatAutocompleteModule,
     NgxMaterialTimepickerModule,
-    ToDoFormComponent,
-    NavigationComponent,
-    ClientSidebarComponent,
-    LoaderComponent,
-  ],
-  declarations: [
     CalendarComponent,
     CustomDatePipe,
-    // EntriesPanelComponent,
     BillsComponent,
     StripeComponent,
     EmployeesComponent,
     PaymentHistoryComponent,
     BalanceComponent,
     GoBackComponent,
+    ToDoFormComponent,
+    NavigationComponent,
+    ClientSidebarComponent,
+    LoaderComponent,
   ],
   exports: [
     CalendarComponent,
@@ -89,6 +86,6 @@ import { ToDoFormComponent } from '../to-do-form/to-do-form.component';
     ClientSidebarComponent,
     LoaderComponent,
   ],
-  providers: [CustomDatePipe, CalendarComponent, CompaniesService],
+  providers: [CompaniesService],
 })
 export class SharedModule {}
