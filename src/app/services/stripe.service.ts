@@ -35,6 +35,15 @@ export class StripeService {
     return this.http.get<{ receiptUrl: string }>(`${environment.apiUrl}/stripe/${paymentId}/receipt-url`);
   }
 
+  createRegistrationSetupIntent(data: { email: string; name: string }): Observable<{ clientSecret: string; customerId: string }> {
+    const headers = new HttpHeaders({ 'content-type': 'application/json' });
+    return this.http.post<{ clientSecret: string; customerId: string }>(
+      `${environment.apiUrl}/stripe/setup-intent/register`,
+      data,
+      { headers },
+    );
+  }
+
   // charge(body: any){
   //   const headers = new HttpHeaders({'content_type':'application/json'})
   //   return this.http.post<any>(environment.apiUrl+'/stripe/checkout', body, {headers})
