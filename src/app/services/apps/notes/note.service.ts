@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import { Note } from 'src/app/pages/apps/notes/note';
 import { notes } from 'src/app/pages/apps/notes/notesData';
 
@@ -21,11 +22,10 @@ export class NoteService {
   }
 
   public updateNote(updatedNote: Note): void {
-    this.notes.update(
-      (currentNotes) =>
-        currentNotes.map((n) =>
-          n.content === updatedNote.content ? updatedNote : n
-        )
+    this.notes.update((currentNotes) =>
+      currentNotes.map((n) =>
+        n.content === updatedNote.content ? updatedNote : n,
+      ),
     );
   }
 }

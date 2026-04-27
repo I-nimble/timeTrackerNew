@@ -1,25 +1,27 @@
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
+import { ChangeDetectorRef, OnInit } from '@angular/core';
 import {
   UntypedFormGroup,
   UntypedFormBuilder,
   Validators,
   FormsModule,
   ReactiveFormsModule,
-  FormArray
+  FormArray,
 } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule, DatePipe } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { Loader } from 'src/app/app.models';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { UsersService } from 'src/app/services/users.service';
-import { ChangeDetectorRef } from '@angular/core';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
-import { Loader } from 'src/app/app.models';
+
 import { AppDeleteDialogComponent } from '../../contact-list/delete-dialog/delete-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-edit-invoice',
@@ -32,19 +34,46 @@ import { MatDialog } from '@angular/material/dialog';
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
-    LoaderComponent
+    LoaderComponent,
   ],
-  providers: [DatePipe] 
+  providers: [DatePipe],
 })
-export class AppEditInvoiceComponent {
+export class AppEditInvoiceComponent implements OnInit {
   id = signal<number>(0);
-  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
-  itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
-  itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments', 'actions'];
-  footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column', 'empty-column'];
+  itemsDisplayedColumns: string[] = [
+    'description',
+    'hours',
+    'hourly-rate',
+    'flat-fee',
+    'cost',
+  ];
+  itemsFooterDisplayedColumns = [
+    'footer-sub-total',
+    'footer-amount',
+    'empty-column',
+  ];
+  itemsSecondFooterDisplayedColumns = [
+    'footer-total',
+    'footer-amount',
+    'empty-column',
+  ];
+  ratingsDisplayedColumns: string[] = [
+    'day',
+    'date',
+    'clock-in',
+    'clock-out',
+    'total-hours',
+    'comments',
+    'actions',
+  ];
+  footerDisplayedColumns = [
+    'footer-total',
+    'footer-amount',
+    'empty-column',
+    'empty-column',
+  ];
   footerAddEntryColumns = ['add-entry'];
-  tax: number = 0;
+  tax = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
 
   companies: any[] = [];
@@ -52,7 +81,10 @@ export class AppEditInvoiceComponent {
   invoiceForm: UntypedFormGroup;
   editModel = signal<any>({});
   originalData: any = null;
-  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
+  locationLinksMap: Record<
+    number,
+    { label: string; url: string; title: string }[]
+  > = {};
   changedEntries = new Set<any>();
   changedHourlyRates = new Set<any>();
   loader = new Loader(false, false, false);
@@ -75,7 +107,7 @@ export class AppEditInvoiceComponent {
     private usersService: UsersService,
     private datePipe: DatePipe,
     private cdr: ChangeDetectorRef,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {
     this.invoiceForm = this.fb.group({
       user_id: [null, Validators.required],
@@ -88,17 +120,18 @@ export class AppEditInvoiceComponent {
       billing_period_start: [null, Validators.required],
       billing_period_end: [null, Validators.required],
       inimble_supervisor: [''],
-      invoiceItems: this.fb.array([])
+      invoiceItems: this.fb.array([]),
     });
   }
 
   ngOnInit(): void {
     this.loader.started = true;
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
-    if(!this.id()) {
+    if (!this.id()) {
       this.loader.complete = true;
       this.loader.error = true;
-      this.message = 'The invoice you are trying to view does not exist or has been deleted.';
+      this.message =
+        'The invoice you are trying to view does not exist or has been deleted.';
       return;
     }
     this.loadCompanies();
@@ -130,8 +163,10 @@ export class AppEditInvoiceComponent {
   }
 
   private loadCients(): void {
-    this.usersService.getUsers({}).subscribe(users => {
-      this.clients = users.filter((user: any) => user.role == 3 && user.active == 1);
+    this.usersService.getUsers({}).subscribe((users) => {
+      this.clients = users.filter(
+        (user: any) => user.role == 3 && user.active == 1,
+      );
     });
   }
 
@@ -139,7 +174,7 @@ export class AppEditInvoiceComponent {
     this.companiesService.getCompanies().subscribe({
       next: (companies) => {
         this.companies = companies;
-      }
+      },
     });
   }
 
@@ -160,10 +195,13 @@ export class AppEditInvoiceComponent {
           created_at: data.created_at,
           billing_period_start: data.billing_period_start,
           billing_period_end: data.billing_period_end,
-          inimble_supervisor: data.inimble_supervisor || this.inimbleSupervisor(),
-          direct_supervisor: data.direct_supervisor || data?.user?.name + " " + data?.user?.last_name,
+          inimble_supervisor:
+            data.inimble_supervisor || this.inimbleSupervisor(),
+          direct_supervisor:
+            data.direct_supervisor ||
+            data?.user?.name + ' ' + data?.user?.last_name,
           invoiceItems: data.invoiceItems,
-          user: data.user
+          user: data.user,
         });
 
         this.recalculateCosts();
@@ -185,21 +223,25 @@ export class AppEditInvoiceComponent {
         const itemsArray = this.invoiceForm.get('invoiceItems') as FormArray;
         itemsArray.clear();
         data.invoiceItems.forEach((item: any) => {
-          itemsArray.push(this.fb.group({
-            id: [item.id],
-            full_time: [item.full_time],
-            hourly_rate: [item.hourly_rate],
-            flat_fee: [item.flat_fee || 0.00],
-            entries: this.fb.array(item.entries.map((entry: any) =>
-              this.fb.group({
-                id: [entry.id],
-                date: [entry.date, Validators.required],
-                start_time: [entry.start_time, Validators.required],
-                end_time: [entry.end_time, Validators.required],
-                comments: [entry.task?.description || '']
-              })
-            ))
-          }));
+          itemsArray.push(
+            this.fb.group({
+              id: [item.id],
+              full_time: [item.full_time],
+              hourly_rate: [item.hourly_rate],
+              flat_fee: [item.flat_fee || 0.0],
+              entries: this.fb.array(
+                item.entries.map((entry: any) =>
+                  this.fb.group({
+                    id: [entry.id],
+                    date: [entry.date, Validators.required],
+                    start_time: [entry.start_time, Validators.required],
+                    end_time: [entry.end_time, Validators.required],
+                    comments: [entry.task?.description || ''],
+                  }),
+                ),
+              ),
+            }),
+          );
         });
         this.loader.complete = true;
         try {
@@ -212,8 +254,10 @@ export class AppEditInvoiceComponent {
         this.loader.complete = true;
         this.loader.error = true;
         this.message = 'There was an error loading the invoice.';
-        this.snackBar.open('Error loading invoice details', 'Close', { duration: 3000 });
-      }
+        this.snackBar.open('Error loading invoice details', 'Close', {
+          duration: 3000,
+        });
+      },
     });
   }
 
@@ -222,30 +266,26 @@ export class AppEditInvoiceComponent {
     const end = this.editModel().billing_period_end;
     if (!start || !end) return;
     this.loader.started = true;
-    this.invoiceService
-      .getInvoiceDetail(this.id(), start, end)
-      .subscribe({
-        next: (data) => {
-          this.originalData = data;
-          this.editModel.set(data);
-          this.changedEntries.clear();
-          this.changedFlatFees.clear();
-          this.changedHourlyRates.clear();
-          this.deletedEntries.clear();
-          this.updateFormArrayWithChanges();
-          this.recalculateCosts();
-          this.loader.complete = true;
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.loader.complete = true;
-          this.snackBar.open(
-            'Error recalculating invoice',
-            'Close',
-            { duration: 3000 }
-          );
-        }
-      });
+    this.invoiceService.getInvoiceDetail(this.id(), start, end).subscribe({
+      next: (data) => {
+        this.originalData = data;
+        this.editModel.set(data);
+        this.changedEntries.clear();
+        this.changedFlatFees.clear();
+        this.changedHourlyRates.clear();
+        this.deletedEntries.clear();
+        this.updateFormArrayWithChanges();
+        this.recalculateCosts();
+        this.loader.complete = true;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loader.complete = true;
+        this.snackBar.open('Error recalculating invoice', 'Close', {
+          duration: 3000,
+        });
+      },
+    });
   }
 
   private markEntryAsChanged(entry: any): void {
@@ -264,12 +304,12 @@ export class AppEditInvoiceComponent {
 
     const hours = Math.floor(decimal);
     const minutes = Math.floor((decimal - hours) * 60);
-    const seconds = Math.floor((((decimal - hours) * 60) - minutes) * 60);
+    const seconds = Math.floor(((decimal - hours) * 60 - minutes) * 60);
 
     return [
       hours.toString().padStart(2, '0'),
       minutes.toString().padStart(2, '0'),
-      seconds.toString().padStart(2, '0')
+      seconds.toString().padStart(2, '0'),
     ].join(':');
   }
 
@@ -291,14 +331,30 @@ export class AppEditInvoiceComponent {
         d.setHours(parts[0], parts[1], parts[2] || 0, 0);
         return d;
       }
-      return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
+      return new Date(
+        baseDate.getFullYear(),
+        baseDate.getMonth(),
+        baseDate.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
     };
 
-    let start = parseToDate(entry.start_time, referenceDate);
-    let end = parseToDate(entry.end_time, referenceDate);
+    const start = parseToDate(entry.start_time, referenceDate);
+    const end = parseToDate(entry.end_time, referenceDate);
 
-    start.setFullYear(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
-    end.setFullYear(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+    start.setFullYear(
+      referenceDate.getFullYear(),
+      referenceDate.getMonth(),
+      referenceDate.getDate(),
+    );
+    end.setFullYear(
+      referenceDate.getFullYear(),
+      referenceDate.getMonth(),
+      referenceDate.getDate(),
+    );
 
     if (end.getTime() < start.getTime()) {
       end.setDate(end.getDate() + 1);
@@ -308,7 +364,6 @@ export class AppEditInvoiceComponent {
     const rounded = Math.round(diffHours * 100) / 100;
     return rounded >= 0 ? rounded : 0;
   }
-
 
   combineDateAndTime(dateStr: string | Date, timeStr: string): string {
     if (!dateStr || !timeStr) {
@@ -393,15 +448,19 @@ export class AppEditInvoiceComponent {
     return `${hours}:${minutes}`;
   }
 
-  getLocationLinks(entryId: number): Array<{ label: string; url: string; title: string }> {
+  getLocationLinks(
+    entryId: number,
+  ): { label: string; url: string; title: string }[] {
     const data = this.originalData;
     if (!data || !data.invoice_locations) return [];
-    const matches = (data.invoice_locations || []).filter((l: any) => l.entry_id === entryId);
+    const matches = (data.invoice_locations || []).filter(
+      (l: any) => l.entry_id === entryId,
+    );
     if (!matches || matches.length === 0) return [];
     const points = matches.flatMap((m: any) => m.locations || []);
     if (!points || points.length === 0) return [];
     const seen = new Set<string>();
-    const out: Array<{ label: string; url: string; title: string }> = [];
+    const out: { label: string; url: string; title: string }[] = [];
     points.forEach((p: any) => {
       const lat = parseFloat(p.latitude as any);
       const lon = parseFloat(p.longitude as any);
@@ -442,7 +501,11 @@ export class AppEditInvoiceComponent {
           const links = this.getLocationLinks(entry.id) || [];
           this.locationLinksMap[entry.id] = links;
         } catch (err) {
-          console.warn('buildLocationLinksMap (edit): failed for entry', entry.id, err);
+          console.warn(
+            'buildLocationLinksMap (edit): failed for entry',
+            entry.id,
+            err,
+          );
           this.locationLinksMap[entry.id] = [];
         }
       });
@@ -460,8 +523,8 @@ export class AppEditInvoiceComponent {
   calculateItemCost(item: any): number {
     const totalHours = this.getTotalHoursForItem(item);
     const hourlyRate = item.hourly_rate || 0;
-    const flatFee = parseFloat(item.flat_fee) || 0.00;
-    return (totalHours * hourlyRate) + flatFee;
+    const flatFee = parseFloat(item.flat_fee) || 0.0;
+    return totalHours * hourlyRate + flatFee;
   }
 
   calculateTotalAmount(): number {
@@ -473,20 +536,23 @@ export class AppEditInvoiceComponent {
   }
 
   onStartTimeChange(entry: any, newStartTime: string): void {
-
     const entryId = entry.id;
 
     for (const invoiceItem of this.editModel().invoiceItems) {
-      const targetEntry = invoiceItem.entries.find((e: any) => e.id === entryId);
+      const targetEntry = invoiceItem.entries.find(
+        (e: any) => e.id === entryId,
+      );
 
       if (targetEntry) {
-
         let dateToUse = targetEntry.date;
         if (dateToUse && !dateToUse.includes('T')) {
           dateToUse = new Date(dateToUse + 'T00:00:00.000Z').toISOString();
         }
 
-        const newStartTimeISO = this.combineDateAndTime(dateToUse, newStartTime);
+        const newStartTimeISO = this.combineDateAndTime(
+          dateToUse,
+          newStartTime,
+        );
         targetEntry.start_time = newStartTimeISO;
         targetEntry.entry_hours = this.getTotalEntryHours(targetEntry);
 
@@ -504,14 +570,14 @@ export class AppEditInvoiceComponent {
   }
 
   onEndTimeChange(entry: any, newEndTime: string): void {
-
     const entryId = entry.id;
 
     for (const invoiceItem of this.editModel().invoiceItems) {
-      const targetEntry = invoiceItem.entries.find((e: any) => e.id === entryId);
+      const targetEntry = invoiceItem.entries.find(
+        (e: any) => e.id === entryId,
+      );
 
       if (targetEntry) {
-
         let dateToUse = targetEntry.date;
         if (dateToUse && !dateToUse.includes('T')) {
           dateToUse = new Date(dateToUse + 'T00:00:00.000Z').toISOString();
@@ -535,28 +601,36 @@ export class AppEditInvoiceComponent {
   }
 
   onEntryDateChange(entry: any, newDate: string): void {
-
     const entryId = entry.id;
 
     for (const invoiceItem of this.editModel().invoiceItems) {
-      const targetEntry = invoiceItem.entries.find((e: any) => e.id === entryId);
+      const targetEntry = invoiceItem.entries.find(
+        (e: any) => e.id === entryId,
+      );
 
       if (targetEntry) {
-
         const newDateObj = new Date(newDate);
         if (isNaN(newDateObj.getTime())) {
           console.warn('Invalid new date:', newDate);
           return;
         }
 
-        const originalStartTime = targetEntry.start_time ?
-          this.toTimeInputValue(targetEntry.start_time) : '00:00';
-        const originalEndTime = targetEntry.end_time ?
-          this.toTimeInputValue(targetEntry.end_time) : '00:00';
+        const originalStartTime = targetEntry.start_time
+          ? this.toTimeInputValue(targetEntry.start_time)
+          : '00:00';
+        const originalEndTime = targetEntry.end_time
+          ? this.toTimeInputValue(targetEntry.end_time)
+          : '00:00';
 
         targetEntry.date = newDateObj.toISOString();
-        targetEntry.start_time = this.combineDateAndTime(newDate, originalStartTime);
-        targetEntry.end_time = this.combineDateAndTime(newDate, originalEndTime);
+        targetEntry.start_time = this.combineDateAndTime(
+          newDate,
+          originalStartTime,
+        );
+        targetEntry.end_time = this.combineDateAndTime(
+          newDate,
+          originalEndTime,
+        );
         targetEntry.entry_hours = this.getTotalEntryHours(targetEntry);
 
         this.markEntryAsChanged(targetEntry);
@@ -573,7 +647,9 @@ export class AppEditInvoiceComponent {
   }
 
   onHourlyRateChange(item: any, event: Event): void {
-    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    const invoiceItem = this.editModel().invoiceItems.find(
+      (i: any) => i.employee_id === item.employee_id,
+    );
     const newHourlyRate = (event.target as HTMLInputElement).value;
     if (invoiceItem) {
       invoiceItem.hourly_rate = newHourlyRate;
@@ -589,7 +665,9 @@ export class AppEditInvoiceComponent {
     const entryId = entry.id;
 
     for (const invoiceItem of this.editModel().invoiceItems) {
-      const targetEntry = invoiceItem.entries.find((e: any) => e.id === entryId);
+      const targetEntry = invoiceItem.entries.find(
+        (e: any) => e.id === entryId,
+      );
 
       if (targetEntry) {
         targetEntry.task.description = newComment;
@@ -602,10 +680,12 @@ export class AppEditInvoiceComponent {
   }
 
   onFlatFeeChange(item: any, event: Event): void {
-    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
+    const invoiceItem = this.editModel().invoiceItems.find(
+      (i: any) => i.employee_id === item.employee_id,
+    );
     const inputValue = (event.target as HTMLInputElement).value;
     const newFlatFee = parseFloat(inputValue) || 0;
-    
+
     if (invoiceItem) {
       invoiceItem.flat_fee = newFlatFee;
       this.markFlatFeeAsChanged(invoiceItem);
@@ -634,7 +714,7 @@ export class AppEditInvoiceComponent {
     this.editModel().amount = this.calculateTotalAmount();
 
     this.invoiceForm.patchValue({
-      amount: this.editModel().amount
+      amount: this.editModel().amount,
     });
   }
 
@@ -648,15 +728,17 @@ export class AppEditInvoiceComponent {
         id: [item.id],
         full_time: [item.full_time],
         hourly_rate: [item.hourly_rate],
-        entries: this.fb.array(item.entries.map((entry: any) =>
-          this.fb.group({
-            id: [entry.id],
-            date: [entry.date, Validators.required],
-            start_time: [entry.start_time, Validators.required],
-            end_time: [entry.end_time, Validators.required],
-            comments: [entry.comments || '']
-          })
-        ))
+        entries: this.fb.array(
+          item.entries.map((entry: any) =>
+            this.fb.group({
+              id: [entry.id],
+              date: [entry.date, Validators.required],
+              start_time: [entry.start_time, Validators.required],
+              end_time: [entry.end_time, Validators.required],
+              comments: [entry.comments || ''],
+            }),
+          ),
+        ),
       });
       itemsArray.push(itemGroup);
     });
@@ -665,7 +747,9 @@ export class AppEditInvoiceComponent {
   }
 
   removeEntry(item: any, entry: any): void {
-    const entryDate = entry.date ? this.toDateInputValue(entry.date) : 'this entry';
+    const entryDate = entry.date
+      ? this.toDateInputValue(entry.date)
+      : 'this entry';
     const dialogRef = this.dialog.open(AppDeleteDialogComponent, {
       width: '300px',
       data: {
@@ -681,26 +765,32 @@ export class AppEditInvoiceComponent {
   }
 
   private entryDeletion(item: any, entry: any): void {
-    const invoiceItem = this.editModel().invoiceItems.find((i: any) => i.employee_id === item.employee_id);
-    
+    const invoiceItem = this.editModel().invoiceItems.find(
+      (i: any) => i.employee_id === item.employee_id,
+    );
+
     if (invoiceItem && invoiceItem.entries) {
-      const entryIndex = invoiceItem.entries.findIndex((e: any) => e.id === entry.id);
-      
+      const entryIndex = invoiceItem.entries.findIndex(
+        (e: any) => e.id === entry.id,
+      );
+
       if (entryIndex !== -1) {
         if (entry.id && entry.id > 0) {
           this.deletedEntries.add(entry.id);
         }
-        
+
         invoiceItem.entries.splice(entryIndex, 1);
-        
+
         this.recalculateCosts();
-        
+
         this.updateFormArrayWithChanges();
-        
+
         invoiceItem.entries = [...invoiceItem.entries];
         this.cdr.detectChanges();
-        
-        this.snackBar.open('Entry deleted successfully!', 'Close', { duration: 3000 });
+
+        this.snackBar.open('Entry deleted successfully!', 'Close', {
+          duration: 3000,
+        });
       }
     }
   }
@@ -712,10 +802,10 @@ export class AppEditInvoiceComponent {
 
     this.recalculateCosts();
 
-    if (
-      !this.editModel().due_date
-    ) {
-      this.snackBar.open('Please fill all required fields.', 'Close', { duration: 3000 });
+    if (!this.editModel().due_date) {
+      this.snackBar.open('Please fill all required fields.', 'Close', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -740,13 +830,17 @@ export class AppEditInvoiceComponent {
 
     this.invoiceService.updateInvoice(this.id(), data).subscribe({
       next: () => {
-        this.snackBar.open('Invoice updated successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open('Invoice updated successfully!', 'Close', {
+          duration: 3000,
+        });
         this.router.navigate(['/apps/invoice']);
       },
       error: (err) => {
-        this.snackBar.open('Error updating invoice', 'Close', { duration: 3000 });
+        this.snackBar.open('Error updating invoice', 'Close', {
+          duration: 3000,
+        });
         console.error(err);
-      }
+      },
     });
   }
 }

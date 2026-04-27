@@ -1,8 +1,15 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
 @Component({
   selector: 'app-scrapper-table',
@@ -12,7 +19,14 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ScrapperTableComponent implements OnChanges, AfterViewInit {
   @Input() items: any[] = [];
-  displayedColumns: string[] = ['title', 'url', 'keyword', 'author', 'created_utc', 'suggestion'];
+  displayedColumns: string[] = [
+    'title',
+    'url',
+    'keyword',
+    'author',
+    'created_utc',
+    'suggestion',
+  ];
   dataSourceTable = new MatTableDataSource<any>([]);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;

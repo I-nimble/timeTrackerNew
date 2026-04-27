@@ -1,10 +1,7 @@
 import { CalendarEventAction, CalendarEvent } from 'angular-calendar';
-import {
-  startOfDay,
-} from 'date-fns';
+import { startOfDay } from 'date-fns';
 
 export class EgretCalendarEvent implements CalendarEvent {
-  // tslint:disable-next-line - Disables all
   _id?: string;
   start: Date;
   end: Date;

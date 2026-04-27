@@ -1,10 +1,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable, Subject } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PermissionService {
   private apiUrl = `${environment.apiUrl}/permissions`;
@@ -15,7 +16,7 @@ export class PermissionService {
   notifyPermissionsUpdated() {
     this.permissionsUpdatedSource.next();
   }
-    
+
   getAllPermissions(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}`);
   }
@@ -23,11 +24,11 @@ export class PermissionService {
   getAllUsersPermissions(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
-  
+
   getUserPermissions(userId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/user/${userId}`);
   }
-  
+
   getSections(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/section/`);
   }
@@ -36,19 +37,35 @@ export class PermissionService {
     return this.http.get<any>(`${this.apiUrl}/section/${sectionKey}`);
   }
 
-  setUserOverride(userId: number, permissionId: number, allow: boolean): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/user/${userId}/overrides`, { permissionId, allow });
+  setUserOverride(
+    userId: number,
+    permissionId: number,
+    allow: boolean,
+  ): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/user/${userId}/overrides`, {
+      permissionId,
+      allow,
+    });
   }
 
   removeUserOverride(userId: number, permissionId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/user/${userId}/overrides/${permissionId}`);
+    return this.http.delete<any>(
+      `${this.apiUrl}/user/${userId}/overrides/${permissionId}`,
+    );
   }
 
-  assignRolePermissions(roleId: number, permissionIds: number[]): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/role/${roleId}/permissions`, { permissionIds });
+  assignRolePermissions(
+    roleId: number,
+    permissionIds: number[],
+  ): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/role/${roleId}/permissions`, {
+      permissionIds,
+    });
   }
 
   removeRolePermission(roleId: number, permissionId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/role/${roleId}/permissions/${permissionId}`);
+    return this.http.delete<any>(
+      `${this.apiUrl}/role/${roleId}/permissions/${permissionId}`,
+    );
   }
 }

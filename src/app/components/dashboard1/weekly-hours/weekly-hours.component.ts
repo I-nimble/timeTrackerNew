@@ -1,4 +1,12 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+
+import { EmployeesService } from '@app/services/employees.service';
+import { EntriesService } from '@app/services/entries.service';
+import { ReportsService } from '@app/services/reports.service';
+import { SchedulesService } from '@app/services/schedules.service';
+import { UsersService } from '@app/services/users.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import moment from 'moment-timezone';
 import {
   ApexChart,
   ChartComponent,
@@ -11,15 +19,9 @@ import {
   ApexResponsive,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { UsersService } from '@app/services/users.service';
-import { EmployeesService } from '@app/services/employees.service';
 import { forkJoin } from 'rxjs';
-import { SchedulesService } from '@app/services/schedules.service';
-import { ReportsService } from '@app/services/reports.service';
-import { EntriesService } from '@app/services/entries.service';
-import moment from 'moment-timezone';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface paymentsChart {
   series: ApexAxisChartSeries;
@@ -40,38 +42,38 @@ export interface paymentsChart {
 export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public paymentsChart!: Partial<paymentsChart> | any;
-  companyTimezone: string = 'UTC';
-  workedPercent: number = 0;
-  notWorkedPercent: number = 0;
+  companyTimezone = 'UTC';
+  workedPercent = 0;
+  notWorkedPercent = 0;
   refreshInterval: any;
   filters: any = { user: { id: null }, company: 'all', project: 'all' };
   schedules: any = [];
   datesRange: any = {};
   entries: any = [];
-  totalUsers: number = 0;
-  processedUsers: number = 0;
-  totalWorkedHoursAll: { [day: string]: number } = {
+  totalUsers = 0;
+  processedUsers = 0;
+  totalWorkedHoursAll: Record<string, number> = {
     Mon: 0,
     Tue: 0,
     Wed: 0,
     Thu: 0,
     Fri: 0,
   };
-  totalScheduledHoursAll: { [day: string]: number } = {
+  totalScheduledHoursAll: Record<string, number> = {
     Mon: 0,
     Tue: 0,
     Wed: 0,
     Thu: 0,
     Fri: 0,
   };
-  private employeeIds: number[] = []; 
+  private employeeIds: number[] = [];
 
   constructor(
     private usersService: UsersService,
     private schedulesService: SchedulesService,
     private reportsService: ReportsService,
     private employeeService: EmployeesService,
-    private entriesService: EntriesService
+    private entriesService: EntriesService,
   ) {
     this.paymentsChart = {
       series: [
@@ -144,10 +146,10 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
             fontSize: '11px',
             fontFamily: 'inherit',
           },
-          formatter: function(value: number) {
+          formatter: function (value: number) {
             return value.toFixed(0) + 'h';
-          }
-        }
+          },
+        },
       },
       tooltip: {
         enabled: false,
@@ -167,13 +169,13 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error loading initial data:', err);
         this.setupDataRefresh();
-      }
+      },
     });
   }
 
   private processInitialEmployeeData(employees: any) {
     const filteredEmployees = employees.filter(
-      (user: any) => user.user.active == 1 && user.user.role == 2
+      (user: any) => user.user.active == 1 && user.user.role == 2,
     );
     this.employeeIds = filteredEmployees.map((emp: any) => emp.user.id);
     this.totalUsers = this.employeeIds.length;
@@ -186,25 +188,25 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     const today = new Date();
     this.datesRange = {
       firstSelect: moment(today).isoWeekday(1).format('YYYY-MM-DD'),
-      lastSelect: moment(today).isoWeekday(7).format('YYYY-MM-DD')
+      lastSelect: moment(today).isoWeekday(7).format('YYYY-MM-DD'),
     };
 
     forkJoin(
-      this.employeeIds.map(userId => 
+      this.employeeIds.map((userId) =>
         forkJoin([
           this.schedulesService.getById(userId),
           this.reportsService.getRange(
-            this.datesRange, 
-            { id: userId }, 
-            { ...this.filters, user: { id: userId } }
-          )
-        ])
-      )
+            this.datesRange,
+            { id: userId },
+            { ...this.filters, user: { id: userId } },
+          ),
+        ]),
+      ),
     ).subscribe({
       next: (results: any[]) => {
         this.schedules = [];
         this.entries = [];
-        
+
         results.forEach(([schedules, entries]) => {
           this.schedules = [...this.schedules, ...(schedules.schedules || [])];
           this.entries = [...this.entries, ...(entries || [])];
@@ -216,7 +218,7 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error loading initial detailed data:', err);
         this.setupDataRefresh();
-      }
+      },
     });
   }
 
@@ -224,7 +226,7 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     if (this.refreshInterval) {
       clearInterval(this.refreshInterval);
     }
-    
+
     this.refreshInterval = setInterval(() => {
       this.refreshEntriesOnly();
     }, 60000);
@@ -234,24 +236,24 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     if (this.employeeIds.length === 0) return;
 
     forkJoin(
-      this.employeeIds.map(userId => 
+      this.employeeIds.map((userId) =>
         this.reportsService.getRange(
           this.datesRange,
           { id: userId },
-          { ...this.filters, user: { id: userId } }
-        )
-      )
+          { ...this.filters, user: { id: userId } },
+        ),
+      ),
     ).subscribe({
       next: (entriesResults: any[]) => {
         this.entries = [];
-        entriesResults.forEach(entries => {
+        entriesResults.forEach((entries) => {
           this.entries = [...this.entries, ...(entries || [])];
         });
         this.processEntries(this.entries);
       },
       error: (err) => {
         console.error('Error refreshing entries:', err);
-      }
+      },
     });
   }
 
@@ -270,13 +272,13 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       const date = moment(entry.start_time)
         .tz(this.companyTimezone)
         .format('ddd');
-      
+
       let duration = 0;
-      
+
       if (entry.end_time === null || entry.end_time === undefined) {
         const startTime = moment(entry.start_time);
         const currentTime = moment();
-        
+
         if (startTime.isSame(currentTime, 'day')) {
           duration = currentTime.diff(startTime, 'hours', true);
         }
@@ -286,34 +288,39 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
             new Date(entry.start_time).getTime()) /
           (1000 * 60 * 60);
       }
-      
+
       acc[date] = (acc[date] || 0) + duration;
       return acc;
     }, {});
 
     const currentDay = moment().format('ddd');
     const activeEntry = this.entries.find(
-      (entry: any) => 
-        moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') && 
-        entry.status === 0
+      (entry: any) =>
+        moment(entry.start_time).isSame(moment().format('YYYY-MM-DD'), 'day') &&
+        entry.status === 0,
     );
-    
-    if (activeEntry && (activeEntry.end_time === null || activeEntry.end_time === undefined)) {
+
+    if (
+      activeEntry &&
+      (activeEntry.end_time === null || activeEntry.end_time === undefined)
+    ) {
       const startTime = moment(activeEntry.start_time);
       const currentTime = moment();
-      
+
       const entryId = activeEntry.id || activeEntry.start_time;
-      const alreadyProcessed = entries.some(e => 
-        (e.id === entryId) || 
-        (moment(e.start_time).isSame(startTime) && e.status === 0)
+      const alreadyProcessed = entries.some(
+        (e) =>
+          e.id === entryId ||
+          (moment(e.start_time).isSame(startTime) && e.status === 0),
       );
-      
+
       if (!alreadyProcessed) {
-        workedHoursPerDay[currentDay] = (workedHoursPerDay[currentDay] || 0) + 
+        workedHoursPerDay[currentDay] =
+          (workedHoursPerDay[currentDay] || 0) +
           currentTime.diff(startTime, 'hours', true);
       }
     }
-    
+
     // Calculate total scheduled hours per day for each day in each schedule
     const seenDaySchedule = new Set<string>();
     const totalHoursPerDay = this.schedules.reduce(
@@ -323,12 +330,12 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
         const start = moment.tz(
           `${today} ${schedule.start_time}`,
           'YYYY-MM-DD HH:mm:ss',
-          this.companyTimezone
+          this.companyTimezone,
         );
         const end = moment.tz(
           `${today} ${schedule.end_time}`,
           'YYYY-MM-DD HH:mm:ss',
-          this.companyTimezone
+          this.companyTimezone,
         );
         if (end.isBefore(start)) end.add(1, 'day');
         const duration = end.diff(start, 'hours', true);
@@ -345,28 +352,30 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
         }
         return acc;
       },
-      {}
+      {},
     );
 
     const schedulesCount = this.schedules.length || 1;
     days.forEach((day) => {
       const scheduledHours = (totalHoursPerDay[day] || 0) / schedulesCount;
       const workedHours = (workedHoursPerDay[day] || 0) / schedulesCount;
-      
+
       this.totalScheduledHoursAll[day] = scheduledHours;
       this.totalWorkedHoursAll[day] = Math.min(workedHours, scheduledHours);
     });
 
     workedData = days.map((day) =>
-      Number(this.totalWorkedHoursAll[day].toFixed(2))
+      Number(this.totalWorkedHoursAll[day].toFixed(2)),
     );
     notWorkedData = days.map((day) => {
-      let total = this.totalScheduledHoursAll[day] || 0;
-      let worked = this.totalWorkedHoursAll[day] || 0;
+      const total = this.totalScheduledHoursAll[day] || 0;
+      const worked = this.totalWorkedHoursAll[day] || 0;
       return Number(Math.max(total - worked, 0).toFixed(2));
     });
 
-    const maxScheduledHours = Math.max(...Object.values(this.totalScheduledHoursAll));
+    const maxScheduledHours = Math.max(
+      ...Object.values(this.totalScheduledHoursAll),
+    );
     const yAxisMax = Math.ceil(maxScheduledHours);
 
     this.paymentsChart.yaxis = {
@@ -375,22 +384,22 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
       max: yAxisMax,
       tickAmount: Math.ceil(yAxisMax / 2),
       labels: {
-          show: true,
-          style: {
-              colors: '#adb0bb',
-              fontSize: '11px',
-              fontFamily: 'inherit',
-          },
-          formatter: function(value: number) {
-              return value.toFixed(0) + 'h';
-          }
-      }
+        show: true,
+        style: {
+          colors: '#adb0bb',
+          fontSize: '11px',
+          fontFamily: 'inherit',
+        },
+        formatter: function (value: number) {
+          return value.toFixed(0) + 'h';
+        },
+      },
     };
 
-    let totalWorked = workedData.reduce((acc, val) => acc + Number(val), 0);
-    let totalScheduled = days.reduce(
+    const totalWorked = workedData.reduce((acc, val) => acc + Number(val), 0);
+    const totalScheduled = days.reduce(
       (acc, day) => acc + (this.totalScheduledHoursAll[day] || 0),
-      0
+      0,
     );
 
     if (totalScheduled > 0) {
@@ -420,15 +429,19 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     const gray = '#e7ecf0';
     const darkGray = '#b6b6b6';
     const green = 'var(--mat-sys-primary)';
-    const lightGreen = '#bdd99b'; 
-    const workedColors = days.map(day => (day === currentDay ? green : darkGray));
-    const notWorkedColors = days.map(day => (day === currentDay ? lightGreen : gray));
+    const lightGreen = '#bdd99b';
+    const workedColors = days.map((day) =>
+      day === currentDay ? green : darkGray,
+    );
+    const notWorkedColors = days.map((day) =>
+      day === currentDay ? lightGreen : gray,
+    );
 
     this.paymentsChart.colors = [
       ({ dataPointIndex, seriesIndex }: any) => {
         if (seriesIndex === 0) return workedColors[dataPointIndex] || gray;
         return notWorkedColors[dataPointIndex] || gray;
-      }
+      },
     ];
   }
 
@@ -438,4 +451,3 @@ export class AppWeeklyHoursComponent implements OnInit, OnDestroy {
     }
   }
 }
-

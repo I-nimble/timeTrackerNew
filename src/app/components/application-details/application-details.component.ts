@@ -1,14 +1,21 @@
-﻿import { Component, Inject, inject, SecurityContext } from '@angular/core';
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { NotificationsService } from 'src/app/services/notifications.service';
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  Inject,
+  inject,
+  SecurityContext,
+  OnInit,
+} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
   MatDialogModule,
 } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { SafeResourceUrl } from '@angular/platform-browser';
+
+import { NotificationsService } from 'src/app/services/notifications.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-application-details',
@@ -17,16 +24,16 @@ import { CommonModule } from '@angular/common';
   templateUrl: './application-details.component.html',
   styleUrl: './application-details.component.scss',
 })
-export class ApplicationDetails {
+export class ApplicationDetails implements OnInit {
   store = inject(NotificationStore);
   sanitizedFileUrl: SafeResourceUrl | null = null;
   fileExtension: string | null = null;
-  loaded: boolean = false;
-  
+  loaded = false;
+
   constructor(
-    @Inject(MAT_DIALOG_DATA) 
-    public data: any, 
-    private notificationService: NotificationsService, 
+    @Inject(MAT_DIALOG_DATA)
+    public data: any,
+    private notificationService: NotificationsService,
   ) {}
 
   ngOnInit(): void {
@@ -43,11 +50,10 @@ export class ApplicationDetails {
         }
       },
       error: (err) => {
-        console.error(err)
+        console.error(err);
         this.store.addNotifications('Error getting resume', 'error');
         this.loaded = true;
-      }
+      },
     });
   }
 }
-

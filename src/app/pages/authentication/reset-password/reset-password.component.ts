@@ -7,10 +7,12 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { MaterialModule } from '../../../material.module';
-import { AuthService } from 'src/app/services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+
+import { AuthService } from 'src/app/services/auth.service';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-reset-password',
@@ -20,14 +22,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './reset-password.component.html',
 })
 export class AppResetPasswordComponent implements OnInit {
   form: FormGroup;
-  token: string = '';
-  email: string = '';
+  token = '';
+  email = '';
   hideConfirm = true;
   invalidLink = false;
   showImage = false;
@@ -36,19 +38,25 @@ export class AppResetPasswordComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     this.form = new FormGroup({
-      password: new FormControl('', [Validators.required, Validators.minLength(8)]),
-      confirmPassword: new FormControl('', [Validators.required, Validators.minLength(8)]),
+      password: new FormControl('', [
+        Validators.required,
+        Validators.minLength(8),
+      ]),
+      confirmPassword: new FormControl('', [
+        Validators.required,
+        Validators.minLength(8),
+      ]),
     });
   }
 
-  ngOnInit() {  
+  ngOnInit() {
     this.checkWindowSize();
     this.authService.logout(false);
-    
-    this.route.queryParams.subscribe(params => {
+
+    this.route.queryParams.subscribe((params) => {
       this.token = params['token'] || '';
       this.email = params['email'] || '';
       if (!this.token || !this.email) {
@@ -65,7 +73,7 @@ export class AppResetPasswordComponent implements OnInit {
   onResize() {
     this.checkWindowSize();
   }
-  
+
   checkWindowSize() {
     this.showImage = window.innerWidth >= 1280;
   }
@@ -83,16 +91,21 @@ export class AppResetPasswordComponent implements OnInit {
       this.openSnackBar('Passwords do not match.', 'Close');
       return;
     }
-    this.authService.resetPassword(this.token, this.email, this.form.value.password).subscribe({
-      next: () => {
-        this.openSnackBar('Password reset successfully.', 'Close');
-        this.router.navigate(['/authentication/login']);
-      },
-      error: (error: any) => {
-        console.error(error)
-        this.openSnackBar(error?.error?.message || 'Error resetting password.', 'Close');
-      }
-    });
+    this.authService
+      .resetPassword(this.token, this.email, this.form.value.password)
+      .subscribe({
+        next: () => {
+          this.openSnackBar('Password reset successfully.', 'Close');
+          this.router.navigate(['/authentication/login']);
+        },
+        error: (error: any) => {
+          console.error(error);
+          this.openSnackBar(
+            error?.error?.message || 'Error resetting password.',
+            'Close',
+          );
+        },
+      });
   }
 
   openSnackBar(message: string, action: string): void {

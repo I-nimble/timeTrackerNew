@@ -3,25 +3,35 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
-import { MENU_BASIC_HTML_SNIPPET, MENU_ICONS_HTML_SNIPPET, MENU_NESTED_HTML_SNIPPET, MENU_POSITIONS_HTML_SNIPPET } from './code/menu-html-snippet';
+import {
+  MENU_BASIC_HTML_SNIPPET,
+  MENU_ICONS_HTML_SNIPPET,
+  MENU_NESTED_HTML_SNIPPET,
+  MENU_POSITIONS_HTML_SNIPPET,
+} from './code/menu-html-snippet';
 import { MENU_BASIC_TS_SNIPPET } from './code/menu-ts-snippet';
 
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 @Component({
-    selector: 'app-menu',
-    imports: [MatCardModule, MatMenuModule, MatIconModule, TablerIconsModule, MatButtonModule,
-      Highlight,
-          HighlightAuto,
-          HighlightLineNumbers,
-          AppCodeViewComponent,
-    ],
-    templateUrl: './menu.component.html'
+  selector: 'app-menu',
+  imports: [
+    MatCardModule,
+    MatMenuModule,
+    MatIconModule,
+    TablerIconsModule,
+    MatButtonModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './menu.component.html',
 })
 export class AppMenuComponent {
   constructor() {}

@@ -133,7 +133,6 @@ export const DIALOG_SCROLLABLE_HTML_SNIPPET = `  <button mat-flat-button color="
 
 `;
 
-
 export const DIALOG_INJECTING_HTML_SNIPPET = `  <button mat-flat-button color="accent" (click)="openInjectDialog()" class="w-100">
                 Open dialog
               </button>

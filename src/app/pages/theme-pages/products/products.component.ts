@@ -1,3 +1,5 @@
+import { trigger, transition, style, animate } from '@angular/animations';
+import { ViewportScroller, CommonModule } from '@angular/common';
 import {
   Component,
   Output,
@@ -6,20 +8,20 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller, CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
-import { AppHeaderComponent } from '../header/header.component';
-import { trigger, transition, style, animate } from '@angular/animations';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
-import { MatDialog } from '@angular/material/dialog';
-import { ButtonComponent } from 'src/app/components/button/button.component';
+import { AppFooterComponent } from '../footer/footer.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -71,19 +73,17 @@ interface features {
     AppDiscoveryFormComponent,
     AppHeaderComponent,
     CommonModule,
-    ButtonComponent
+    ButtonComponent,
   ],
   templateUrl: './products.component.html',
   animations: [
     trigger('fadeAnimation', [
       transition(':enter', [
         style({ opacity: 0, position: 'absolute', top: 0, left: 0, right: 0 }),
-        animate('300ms ease-in', style({ opacity: 1 }))
+        animate('300ms ease-in', style({ opacity: 1 })),
       ]),
-      transition(':leave', [
-        animate('300ms ease-out', style({ opacity: 0 }))
-      ])
-    ])
+      transition(':leave', [animate('300ms ease-out', style({ opacity: 0 }))]),
+    ]),
   ],
 })
 export class AppProductsComponent {
@@ -94,87 +94,86 @@ export class AppProductsComponent {
 
   currentSlide = 0;
   testimonials = [
-  
-  {
-    id: 1,
-    stars: 5,
-    text: "Wow! Our numbers have gone up recently. When we look at what's different, it's all the remote talent you've provided! They've made our law firm stand out these last couple of months. The office hasn't been this efficient in a while!",
-    name: "John Smith",
-    role: "Law Firm Owner",
-    image: "assets/images/landingpage/logos/smith.png"
-  },
-  {
-    id: 2,
-    stars: 5,
-    text: "Great team to work with! Even if you know nothing about remote work, they make it simple and easy to follow. Incredible how much they've helped my business grow. Thank you!",
-    name: "Jessica Sandoval",
-    role: "Business Owner",
-    image: "assets/images/landingpage/logos/sandoval.png"
-  },
-  {
-    id: 3,
-    stars: 5,
-    text: "Amazing virtual assistants! It's shocking how much impact a couple of talented people can have on your business. Rome Law Firm is more efficient than ever.",
-    name: "Hope Rothe",
-    role: "Law Firm Manager",
-    image: "assets/images/landingpage/logos/rothe.png"
-  },
-  {
-    id: 4,
-    stars: 5,
-    text: "We are so happy with our remote assistants! They are a tremendous asset for our firm. Their dedication and expertise have transformed our operations.",
-    name: "Robert White",
-    role: "CEO",
-    image: "assets/images/landingpage/logos/white.png"
-  },
-  {
-    id: 5,
-    stars: 5,
-    text: "Thank you Inimble! We're so happy since we started working with you. Our business has grown tremendously since we brought your team in. We can't believe how well everything worked out!",
-    name: "Sarah Thompson",
-    role: "Business Owner",
-    image: "assets/images/landingpage/logos/thompson.png"
-  },
-  {
-    id: 6,
-    stars: 5,
-    text: "Andrea's performance has been great. We are very happy with her. She follows direction and is organized. Her attention to detail and commitment are clearly reflected in her work. Andrea consistently demonstrates a deep understanding of her role.",
-    name: "Tania Valencia",
-    role: "Client",
-    image: "assets/images/landingpage/logos/5.jpeg"
-  },
-  {
-    id: 7,
-    stars: 5,
-    text: "Wasn't super into the whole 'remote work' trend before but thanks Inimble for proving me wrong! Can't believe how much we've grown in the last year, and it's all thanks to you, so congrats and thank you!",
-    name: "Albert Love",
-    role: "Client",
-    image: "assets/images/landingpage/logos/love.png"
-  },
-  {
-    id: 8,
-    stars: 5,
-    text: "Daniela has been the best assistant I've had. She is smart, kind, hardworking, and helpful. She takes initiative and is always on top of everything. We make a great team!",
-    name: "Selena",
-    role: "Client",
-    image: "assets/images/landingpage/logos/alexandroff.png"
-  },
-  {
-    id: 9,
-    stars: 5,
-    text: "Henry has truly exceeded our expectations. He has an amazing work ethic and discipline. We love his practicality and eagerness to learn. He has become part of our Venezuelan family.",
-    name: "Imelda Rodriguez",
-    role: "Client",
-    image: "assets/images/landingpage/logos/14.jpeg"
-  }
-];
+    {
+      id: 1,
+      stars: 5,
+      text: "Wow! Our numbers have gone up recently. When we look at what's different, it's all the remote talent you've provided! They've made our law firm stand out these last couple of months. The office hasn't been this efficient in a while!",
+      name: 'John Smith',
+      role: 'Law Firm Owner',
+      image: 'assets/images/landingpage/logos/smith.png',
+    },
+    {
+      id: 2,
+      stars: 5,
+      text: "Great team to work with! Even if you know nothing about remote work, they make it simple and easy to follow. Incredible how much they've helped my business grow. Thank you!",
+      name: 'Jessica Sandoval',
+      role: 'Business Owner',
+      image: 'assets/images/landingpage/logos/sandoval.png',
+    },
+    {
+      id: 3,
+      stars: 5,
+      text: "Amazing virtual assistants! It's shocking how much impact a couple of talented people can have on your business. Rome Law Firm is more efficient than ever.",
+      name: 'Hope Rothe',
+      role: 'Law Firm Manager',
+      image: 'assets/images/landingpage/logos/rothe.png',
+    },
+    {
+      id: 4,
+      stars: 5,
+      text: 'We are so happy with our remote assistants! They are a tremendous asset for our firm. Their dedication and expertise have transformed our operations.',
+      name: 'Robert White',
+      role: 'CEO',
+      image: 'assets/images/landingpage/logos/white.png',
+    },
+    {
+      id: 5,
+      stars: 5,
+      text: "Thank you Inimble! We're so happy since we started working with you. Our business has grown tremendously since we brought your team in. We can't believe how well everything worked out!",
+      name: 'Sarah Thompson',
+      role: 'Business Owner',
+      image: 'assets/images/landingpage/logos/thompson.png',
+    },
+    {
+      id: 6,
+      stars: 5,
+      text: "Andrea's performance has been great. We are very happy with her. She follows direction and is organized. Her attention to detail and commitment are clearly reflected in her work. Andrea consistently demonstrates a deep understanding of her role.",
+      name: 'Tania Valencia',
+      role: 'Client',
+      image: 'assets/images/landingpage/logos/5.jpeg',
+    },
+    {
+      id: 7,
+      stars: 5,
+      text: "Wasn't super into the whole 'remote work' trend before but thanks Inimble for proving me wrong! Can't believe how much we've grown in the last year, and it's all thanks to you, so congrats and thank you!",
+      name: 'Albert Love',
+      role: 'Client',
+      image: 'assets/images/landingpage/logos/love.png',
+    },
+    {
+      id: 8,
+      stars: 5,
+      text: "Daniela has been the best assistant I've had. She is smart, kind, hardworking, and helpful. She takes initiative and is always on top of everything. We make a great team!",
+      name: 'Selena',
+      role: 'Client',
+      image: 'assets/images/landingpage/logos/alexandroff.png',
+    },
+    {
+      id: 9,
+      stars: 5,
+      text: 'Henry has truly exceeded our expectations. He has an amazing work ethic and discipline. We love his practicality and eagerness to learn. He has become part of our Venezuelan family.',
+      name: 'Imelda Rodriguez',
+      role: 'Client',
+      image: 'assets/images/landingpage/logos/14.jpeg',
+    },
+  ];
 
   options = this.settings.getOptions();
 
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   // scroll to demos
@@ -184,8 +183,8 @@ export class AppProductsComponent {
 
   openQuickContact() {
     this.dialog.open(QuickContactModalComponent, {
-      width: '520px', 
-      maxHeight: '90vh', 
+      width: '520px',
+      maxHeight: '90vh',
       disableClose: false,
       autoFocus: false,
       restoreFocus: false,

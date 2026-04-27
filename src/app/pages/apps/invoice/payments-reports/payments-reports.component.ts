@@ -1,46 +1,44 @@
-import { Component, AfterViewInit, ViewChild } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
+import { Component, AfterViewInit, ViewChild, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { AppConfirmDeleteDialogComponent } from '../invoice-list/confirm-delete-dialog.component';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons'; 
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
 import { environment } from 'src/environments/environment';
+
+import { AppConfirmDeleteDialogComponent } from '../invoice-list/confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-payments-reports',
   templateUrl: './payments-reports.component.html',
-  imports: [
-    CommonModule,
-    RouterModule,
-    MaterialModule,
-    TablerIconsModule,
-  ],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule],
 })
-export class PaymentsReportsComponent implements AfterViewInit {
+export class PaymentsReportsComponent implements AfterViewInit, OnInit {
   reportsList = new MatTableDataSource<any>([]);
   displayedColumns: string[] = ['id', 'created_at', 'status', 'action'];
-  reportsUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/reports';
+  reportsUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/reports';
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  allowedPaymentsManager: boolean = false;
+  allowedPaymentsManager = false;
 
   constructor(
     private invoiceService: InvoiceService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
     const email = localStorage.getItem('email') || '';
-    this.allowedPaymentsManager = environment.allowedPaymentsEmails.includes(email);
+    this.allowedPaymentsManager =
+      environment.allowedPaymentsEmails.includes(email);
     this.loadReports();
   }
 
@@ -83,16 +81,16 @@ export class PaymentsReportsComponent implements AfterViewInit {
     if (this.allowedPaymentsManager) return;
     const file: File = event.target.files[0];
     if (file) {
-        const reportData = { file };
-        this.invoiceService.submitReport({ file }).subscribe({
+      const reportData = { file };
+      this.invoiceService.submitReport({ file }).subscribe({
         next: () => {
-            this.showSnackbar('Report uploaded successfully!');
-            this.loadReports();
+          this.showSnackbar('Report uploaded successfully!');
+          this.loadReports();
         },
         error: () => {
-            this.showSnackbar('Error uploading report.');
+          this.showSnackbar('Error uploading report.');
         },
-        });
+      });
     }
   }
 
@@ -113,8 +111,8 @@ export class PaymentsReportsComponent implements AfterViewInit {
     if (this.allowedPaymentsManager) {
       this.invoiceService.markReportAsSeen(reportId).subscribe({
         next: () => {
-          const updated = this.reportsList.data.map(r =>
-            r.id === reportId ? { ...r, status: true } : r
+          const updated = this.reportsList.data.map((r) =>
+            r.id === reportId ? { ...r, status: true } : r,
           );
           this.reportsList.data = updated;
         },
@@ -125,7 +123,6 @@ export class PaymentsReportsComponent implements AfterViewInit {
     }
   }
 
-  
   showSnackbar(message: string): void {
     this.snackBar.open(message, 'Close', {
       duration: 3000,

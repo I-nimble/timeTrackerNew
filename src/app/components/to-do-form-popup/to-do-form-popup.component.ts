@@ -1,22 +1,37 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject, inject, OnInit } from '@angular/core';
-import { CommonModule, } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule,MatDialogRef } from '@angular/material/dialog';
-import { Router, NavigationEnd, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { NotificationStore } from 'src/app/stores/notification.store';
+import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
+
+import { Subscription } from 'rxjs';
 import { RatingsService } from 'src/app/services/ratings.service';
-import {MatCheckboxModule} from '@angular/material/checkbox';
+import { NotificationStore } from 'src/app/stores/notification.store';
 
 @Component({
   selector: 'app-to-do-popup',
   standalone: true,
-  imports: [MatCheckboxModule, MatDialogModule, CommonModule, RouterModule, MatFormFieldModule, MatInputModule, MatSelectModule, ReactiveFormsModule],
+  imports: [
+    MatCheckboxModule,
+    MatDialogModule,
+    CommonModule,
+    RouterModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+  ],
   templateUrl: './to-do-form-popup.component.html',
-  styleUrl: './to-do-form-popup.component.scss'
+  styleUrl: './to-do-form-popup.component.scss',
 })
 export class ToDoFormPopupComponent implements OnInit {
   store = inject(NotificationStore);
@@ -24,33 +39,50 @@ export class ToDoFormPopupComponent implements OnInit {
   private routerSubscription?: Subscription;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any, 
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private dialog: MatDialog,
     private router: Router,
     private dialogRef: MatDialogRef<ToDoFormPopupComponent>,
-    private ratingsService: RatingsService
+    private ratingsService: RatingsService,
   ) {}
 
   ngOnInit(): void {
-    const formGroup = this.data.managementForm.get(this.data.options[0].formGroup) as FormGroup;
+    const formGroup = this.data.managementForm.get(
+      this.data.options[0].formGroup,
+    ) as FormGroup;
 
     if (!formGroup.contains('goal')) {
-      formGroup.addControl('goal', this.data.managementForm.get('ratings.goal'));
+      formGroup.addControl(
+        'goal',
+        this.data.managementForm.get('ratings.goal'),
+      );
     }
     if (!formGroup.contains('recommendations')) {
-      formGroup.addControl('recommendations', this.data.managementForm.get('ratings.recommendations'));
+      formGroup.addControl(
+        'recommendations',
+        this.data.managementForm.get('ratings.recommendations'),
+      );
     }
     if (!formGroup.contains('due_date')) {
-      formGroup.addControl('due_date', this.data.managementForm.get('ratings.due_date'));
+      formGroup.addControl(
+        'due_date',
+        this.data.managementForm.get('ratings.due_date'),
+      );
     }
     if (!formGroup.contains('priority')) {
-      formGroup.addControl('priority', this.data.managementForm.get('ratings.priority'));
+      formGroup.addControl(
+        'priority',
+        this.data.managementForm.get('ratings.priority'),
+      );
     }
     if (!formGroup.contains('recurrent')) {
-      formGroup.addControl('recurrent', this.data.managementForm.get('ratings.recurrent'));
+      formGroup.addControl(
+        'recurrent',
+        this.data.managementForm.get('ratings.recurrent'),
+      );
     }
     // set recurrent to false if creating a new item
-    if(this.data.selectedForm == null) {
+    if (this.data.selectedForm == null) {
       formGroup.get('recurrent')?.setValue(false);
     }
 
@@ -67,11 +99,11 @@ export class ToDoFormPopupComponent implements OnInit {
 
     this.fetchPriorities();
 
-    this.routerSubscription = this.router.events.subscribe(event => {
+    this.routerSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.closePopup();
       }
-    });  
+    });
   }
 
   fetchPriorities(): void {
@@ -92,11 +124,13 @@ export class ToDoFormPopupComponent implements OnInit {
   }
 
   submitForm(option: any) {
-    const formGroup = this.data.managementForm.get(option.formGroup) as FormGroup;
-    const goal = formGroup.get('goal')?.value; 
-    const recommendations = formGroup.get('recommendations')?.value; 
-    let due_date = formGroup.get('due_date')?.value; 
-    const priority = formGroup.get('priority')?.value; 
+    const formGroup = this.data.managementForm.get(
+      option.formGroup,
+    ) as FormGroup;
+    const goal = formGroup.get('goal')?.value;
+    const recommendations = formGroup.get('recommendations')?.value;
+    const due_date = formGroup.get('due_date')?.value;
+    const priority = formGroup.get('priority')?.value;
     const recurrent = formGroup.get('recurrent')?.value;
 
     this.dialogRef.close({
@@ -107,8 +141,8 @@ export class ToDoFormPopupComponent implements OnInit {
         recommendations,
         due_date,
         priority,
-        recurrent
-      }
+        recurrent,
+      },
     });
   }
 

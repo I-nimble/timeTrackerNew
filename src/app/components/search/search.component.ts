@@ -1,10 +1,19 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  inject,
+} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { SharedModule } from '../shared.module';
+
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { UsersService } from 'src/app/services/users.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
+
+import { SharedModule } from '../legacy/shared.module';
 
 export interface SearchForm {
   searchField: string;
@@ -27,24 +36,24 @@ export class SearchComponent implements OnInit {
   @Input() searchForm: FormGroup = new FormGroup({
     searchField: new FormControl(''),
   });
-  @Input() searchElement?: any = 'user'
+  @Input() searchElement?: any = 'user';
   store = inject(NotificationStore);
   public companyName?: string;
-  public userType?: any
-  public userName: string = '';
+  public userType?: any;
+  public userName = '';
 
   constructor(
     private companiesService: CompaniesService,
-    private usersService: UsersService
+    private usersService: UsersService,
   ) {}
 
   ngOnInit(): void {
-    this.userType = localStorage.getItem('role')
+    this.userType = localStorage.getItem('role');
     this.getUsername();
     this.searchForEntries();
 
-    const userType = localStorage.getItem('role')
-    if(userType == '3') {
+    const userType = localStorage.getItem('role');
+    if (userType == '3') {
       this.getCompanyName();
     }
   }
@@ -52,17 +61,17 @@ export class SearchComponent implements OnInit {
   public getUsername() {
     this.usersService.getUsername().subscribe({
       next: (username) => {
-        if(username) {
+        if (username) {
           this.userName = username;
         }
       },
       error: () => {
         this.store.addNotifications('Error getting user name', 'error');
-      }
-    })
+      },
+    });
   }
 
-  getCompanyName(retryCount : number = 3) {
+  getCompanyName(retryCount = 3) {
     this.companiesService.getByOwner().subscribe({
       next: (company) => {
         this.companyName = company?.company?.name;
@@ -74,10 +83,13 @@ export class SearchComponent implements OnInit {
             this.getCompanyName(retryCount - 1);
           }, 2000);
         } else {
-          this.store.addNotifications('Max retries reached. Please try again later.', 'error');
+          this.store.addNotifications(
+            'Max retries reached. Please try again later.',
+            'error',
+          );
         }
-      }
-    })
+      },
+    });
   }
 
   searchForEntries() {

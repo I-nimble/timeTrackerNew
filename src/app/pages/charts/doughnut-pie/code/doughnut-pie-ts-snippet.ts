@@ -16,7 +16,7 @@ export const DOUGHNUT_CHART_TS_SNIPPET = `  import { Component, ViewChild } from
       ApexFill,
       NgApexchartsModule,
     } from 'ng-apexcharts';
-    import { MaterialModule } from '../../../material.module';
+    import { MaterialModule } from '../../../legacy/material.module';
     
     export type ChartOptions = {
       series: ApexAxisChartSeries;
@@ -83,7 +83,6 @@ export const DOUGHNUT_CHART_TS_SNIPPET = `  import { Component, ViewChild } from
         }
 `;
 
-
 export const PIE_CHART_TS_SNIPPET = `  import { Component, ViewChild } from '@angular/core';
     import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
@@ -102,7 +101,7 @@ export const PIE_CHART_TS_SNIPPET = `  import { Component, ViewChild } from '@an
       ApexFill,
       NgApexchartsModule,
     } from 'ng-apexcharts';
-    import { MaterialModule } from '../../../material.module';
+    import { MaterialModule } from '../../../legacy/material.module';
     
     export type ChartOptions = {
       series: ApexAxisChartSeries;

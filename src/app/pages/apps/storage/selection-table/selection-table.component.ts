@@ -1,19 +1,19 @@
-import { Component, OnInit } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
-
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
 // snippets
-import { SELECTION_TABLE_HTML_SNIPPET } from './code/selection-table-html-snippet';
-import { SELECTION_TABLE_TS_SNIPPET } from './code/selection-table-ts-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+import { SELECTION_TABLE_HTML_SNIPPET } from './code/selection-table-html-snippet';
+import { SELECTION_TABLE_TS_SNIPPET } from './code/selection-table-ts-snippet';
 
 export interface PeriodicElement {
   id: number;
@@ -98,7 +98,6 @@ const ELEMENT_DATA: PeriodicElement[] = [
   templateUrl: './selection-table.component.html',
 })
 export class AppSelectionTableComponent implements OnInit {
-
   // 1 [Selection with Table]
   codeForSelectionTable = SELECTION_TABLE_HTML_SNIPPET;
   codeForSelectionTableTs = SELECTION_TABLE_TS_SNIPPET;

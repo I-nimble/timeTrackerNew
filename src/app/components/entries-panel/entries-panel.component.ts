@@ -1,4 +1,5 @@
-﻿import {
+import { CommonModule } from '@angular/common';
+import {
   Component,
   EventEmitter,
   Input,
@@ -9,28 +10,28 @@
   SimpleChanges,
   inject,
   ChangeDetectorRef,
-  NgZone
+  NgZone,
 } from '@angular/core';
-import { Entries } from '../../models/Entries';
-import { CustomDatePipe } from '../../services/custom-date.pipe';
-import { ProjectsService } from 'src/app/services/projects.service';
-import { SchedulesService } from 'src/app/services/schedules.service';
+import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+
+import Cookies from 'js-cookie';
+import moment from 'moment-timezone';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { Project } from 'src/app/models/Project.model';
 import { EntriesService } from 'src/app/services/entries.service';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { MatDialog } from '@angular/material/dialog';
 import { NotificationsService } from 'src/app/services/notifications.service';
+import { ProjectsService } from 'src/app/services/projects.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { SchedulesService } from 'src/app/services/schedules.service';
 import { UsersService } from 'src/app/services/users.service';
-import moment from 'moment-timezone';
-import { Router } from '@angular/router';
-import Cookies from 'js-cookie';
 import { environment } from 'src/environments/environment';
-import { ToDoPopupComponent } from '../to-do-popup/to-do-popup.component';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { Entries } from '../../models/Entries';
+import { CustomDatePipe } from '../../services/custom-date.pipe';
+import { ToDoPopupComponent } from '../to-do-popup/to-do-popup.component';
 
 @Component({
   selector: 'app-entries-panel',
@@ -45,8 +46,8 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   @Output() cancel_entry: EventEmitter<any> = new EventEmitter<any>();
   @Input() currentEntryId: any;
   @Input() start_time!: Date | null;
-  @Input() entryCheck: boolean = false;
-  @Input() timeZone: string = 'America/Caracas';
+  @Input() entryCheck = false;
+  @Input() timeZone = 'America/Caracas';
   @Input() entry: Entries = {
     status: 0,
     description: '',
@@ -56,24 +57,24 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     project_id: '',
     project: '',
   };
-  showProjects: boolean = false;
-  showMoreOption: boolean = false;
+  showProjects = false;
+  showMoreOption = false;
   currentTime: any;
-  timer: string = '00:00:00';
-  loading: boolean = true;
+  timer = '00:00:00';
+  loading = true;
   validStartTime: any = null;
-  UTCValidStartTime: any = null
-  endOfShift: any = null
+  UTCValidStartTime: any = null;
+  endOfShift: any = null;
   startTime: any = null;
   UTCStartTime: any = null;
-  currentDateTime: any = null
+  currentDateTime: any = null;
   justInTime?: boolean;
   profilePic?: any;
   projects: any = [];
-  intervalId?:any = null
-  showStartingMessage: boolean = false
-  canStart: boolean = true
-  userName: string = '';
+  intervalId?: any = null;
+  showStartingMessage = false;
+  canStart = true;
+  userName = '';
   assetsPath: string = environment.assets + '/default-profile-pic.png';
 
   constructor(
@@ -85,10 +86,10 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone,
     private ratingsService: RatingsService,
-    private dialog: MatDialog, 
+    private dialog: MatDialog,
     private notificationsService: NotificationsService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit() {
@@ -111,33 +112,35 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
   async ngOnChanges(changes: SimpleChanges): Promise<void> {
     if (changes['entryCheck']) {
-      this.validateStartTime()
-      this.getStartTime()
+      this.validateStartTime();
+      this.getStartTime();
 
       if (this.entryCheck) {
-        if(this.currentTime == null){
+        if (this.currentTime == null) {
           if (this.justInTime) {
-            this.validateStartTime()
-          } 
-          else {
-            this.getStartTime()
+            this.validateStartTime();
+          } else {
+            this.getStartTime();
           }
         }
       }
       if (!this.entryCheck) this.stopTimer();
     }
-    if (changes['timeZone'] && changes['timeZone'].currentValue != changes['timeZone'].previousValue) {
+    if (
+      changes['timeZone'] &&
+      changes['timeZone'].currentValue != changes['timeZone'].previousValue
+    ) {
       this.validateStartTime();
-      this.getStartTime()
+      this.getStartTime();
     }
   }
 
   isWaitingToStart() {
     if (this.UTCStartTime >= this.currentDateTime) {
-      this.showStartingMessage = true; 
-      return true
+      this.showStartingMessage = true;
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 
@@ -147,28 +150,36 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
         if (image) {
           this.profilePic = image;
         }
-      }
+      },
     });
   }
 
   getStartTime() {
     const now = new Date();
-    const convertedLocaltime = moment.tz(now, this.timeZone).format('MM-DD-YYYY HH:mm:ss');
+    const convertedLocaltime = moment
+      .tz(now, this.timeZone)
+      .format('MM-DD-YYYY HH:mm:ss');
     this.startTime = this.strToDate(convertedLocaltime);
 
     this.entriesService.getAllEntries({}).subscribe((entries) => {
-      const active = entries.entries.filter((entry:any) => entry.status == 0)[0];
+      const active = entries.entries.filter(
+        (entry: any) => entry.status == 0,
+      )[0];
 
       if (active && active.start_time) {
-        this.UTCStartTime = this.strToDate(moment.utc(active.start_time).format('MM-DD-YYYY HH:mm:ss'));
+        this.UTCStartTime = this.strToDate(
+          moment.utc(active.start_time).format('MM-DD-YYYY HH:mm:ss'),
+        );
         const utcStartTime = moment.utc(active.start_time, true);
         if (utcStartTime.isValid()) {
           const convertedStartTime = utcStartTime.tz(this.timeZone || 'UTC');
           if (convertedStartTime && convertedStartTime.isValid()) {
-            this.startTime = this.strToDate(convertedStartTime.format('MM-DD-YYYY HH:mm:ss'));
+            this.startTime = this.strToDate(
+              convertedStartTime.format('MM-DD-YYYY HH:mm:ss'),
+            );
           }
         }
-        if(this.entryCheck) {
+        if (this.entryCheck) {
           this.stopTimer();
           this.startTimer(this.UTCStartTime);
         }
@@ -177,24 +188,28 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   startedEarly() {
-    if (this.entryCheck && this.validStartTime != null && this.startTime != null) {
-      const startTime = this.startTime.getTime()
-      const validStartTime = this.validStartTime.getTime()
+    if (
+      this.entryCheck &&
+      this.validStartTime != null &&
+      this.startTime != null
+    ) {
+      const startTime = this.startTime.getTime();
+      const validStartTime = this.validStartTime.getTime();
       if (startTime && validStartTime) {
-        return startTime <= validStartTime
+        return startTime <= validStartTime;
       }
     }
-    return false
+    return false;
   }
 
-  convertToCompanyStr(timeString:string) {
+  convertToCompanyStr(timeString: string) {
     const UTCTime = moment.utc(timeString, 'HH:mm:ss', true);
     const momentTime = UTCTime.tz(this.timeZone);
     if (momentTime?.isValid()) {
-    const companyTimeString = momentTime.format('HH:mm:ss');
-    return companyTimeString;
+      const companyTimeString = momentTime.format('HH:mm:ss');
+      return companyTimeString;
     }
-    return ;
+    return;
   }
 
   validateStartTime() {
@@ -209,20 +224,22 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
           return;
         } else {
           let dayOfWeek: any = null;
-          if (this.entry.date) dayOfWeek = new Date(`${this.entry.date}T00:00:00`).getUTCDay();
+          if (this.entry.date)
+            dayOfWeek = new Date(`${this.entry.date}T00:00:00`).getUTCDay();
           else dayOfWeek = new Date().getUTCDay();
           if (dayOfWeek == 0) dayOfWeek = 7;
 
           schedules.forEach((schedule: any) => {
             const scheduleDays = schedule.days;
-            const matchingDay = scheduleDays.find((day:any) => dayOfWeek == day.id);
+            const matchingDay = scheduleDays.find(
+              (day: any) => dayOfWeek == day.id,
+            );
             if (matchingDay) {
-              this.validStartTime = this.parseStartTime(schedule.start_time)
-              this.endOfShift = this.parseEndOfShift(schedule.end_time)
-            }
-            else {
-              this.canStart = false
-              this.loading = false
+              this.validStartTime = this.parseStartTime(schedule.start_time);
+              this.endOfShift = this.parseEndOfShift(schedule.end_time);
+            } else {
+              this.canStart = false;
+              this.loading = false;
             }
           });
           this.ngZone.runOutsideAngular(() => {
@@ -235,28 +252,44 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
                 const UTCTime = moment.utc().format('MM-DD-YYYY HH:mm:ss');
                 this.currentDateTime = this.strToDate(UTCTime);
                 if (this.validStartTime !== null) {
-                  if (this.currentDateTime.getTime() <= (this.UTCValidStartTime.getTime() + fiveMinutes)
-                      && this.currentDateTime.getTime() >= this.UTCValidStartTime.getTime()) {
+                  if (
+                    this.currentDateTime.getTime() <=
+                      this.UTCValidStartTime.getTime() + fiveMinutes &&
+                    this.currentDateTime.getTime() >=
+                      this.UTCValidStartTime.getTime()
+                  ) {
                     this.justInTime = true;
                   } else {
                     this.justInTime = false;
                   }
                 }
-                if (this.endOfShift !== null && (!this.notificationsService.ToDoNotificationSent ||
-                    (localStorage.getItem('toDoNotificationSent') && localStorage.getItem('toDoNotificationSent') == 'false'))) {
-                  if (this.currentDateTime.getTime() >= (this.endOfShift.getTime() - fiveMinutes)
-                      && this.currentDateTime.getTime() <= this.endOfShift.getTime()) {
-
+                if (
+                  this.endOfShift !== null &&
+                  (!this.notificationsService.ToDoNotificationSent ||
+                    (localStorage.getItem('toDoNotificationSent') &&
+                      localStorage.getItem('toDoNotificationSent') == 'false'))
+                ) {
+                  if (
+                    this.currentDateTime.getTime() >=
+                      this.endOfShift.getTime() - fiveMinutes &&
+                    this.currentDateTime.getTime() <= this.endOfShift.getTime()
+                  ) {
                     this.notificationsService.ToDoNotificationSent = true;
                     Cookies.set('toDoNotificationSent', 'true', { expires: 1 });
                     this.notificationsService.rememberToDo({}).subscribe({
                       error: (res: any) => {
-                        this.showSnackbar("Remember to log your achieved goals.");
-                      }
+                        this.showSnackbar(
+                          'Remember to log your achieved goals.',
+                        );
+                      },
                     });
                   }
                 }
-                if (this.currentDateTime && this.validStartTime && this.loading) {
+                if (
+                  this.currentDateTime &&
+                  this.validStartTime &&
+                  this.loading
+                ) {
                   this.loading = false;
                   this.cdr.detectChanges();
                   if (this.intervalId) {
@@ -270,40 +303,53 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        this.showSnackbar("Error loading schedule");
+        this.showSnackbar('Error loading schedule');
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
-  parseStartTime(startTime:any) {
+  parseStartTime(startTime: any) {
     const startTimeParts = startTime?.split(':');
     if (startTimeParts && startTimeParts.length === 3) {
-      const companyStartTime = this.convertToCompanyStr(startTime)
+      const companyStartTime = this.convertToCompanyStr(startTime);
 
       const utcValidStartTimeMoment = moment.utc(startTime, 'HH:mm:ss', true);
-      this.UTCValidStartTime = this.strToDate(utcValidStartTimeMoment.format('MM-DD-YYYY HH:mm:ss'));
-      
-      const companyValidStartTimeMoment = moment(companyStartTime, 'HH:mm:ss', true)
-      this.validStartTime = this.strToDate(companyValidStartTimeMoment.format('MM-DD-YYYY HH:mm:ss'));
+      this.UTCValidStartTime = this.strToDate(
+        utcValidStartTimeMoment.format('MM-DD-YYYY HH:mm:ss'),
+      );
 
-      if(this.entryCheck && this.currentTime == null && this.justInTime && this.UTCValidStartTime) {
-        this.startTimer(this.UTCValidStartTime)
+      const companyValidStartTimeMoment = moment(
+        companyStartTime,
+        'HH:mm:ss',
+        true,
+      );
+      this.validStartTime = this.strToDate(
+        companyValidStartTimeMoment.format('MM-DD-YYYY HH:mm:ss'),
+      );
+
+      if (
+        this.entryCheck &&
+        this.currentTime == null &&
+        this.justInTime &&
+        this.UTCValidStartTime
+      ) {
+        this.startTimer(this.UTCValidStartTime);
       }
       if (this.validStartTime && this.UTCValidStartTime && this.loading) {
-      setTimeout(() => {
+        setTimeout(() => {
           this.loading = false;
           this.cdr.detectChanges();
         }, 100);
       }
-      return this.validStartTime
+      return this.validStartTime;
     } else {
       return null;
     }
   }
 
-  parseEndOfShift(endTime:any) {
+  parseEndOfShift(endTime: any) {
     const endTimeParts = endTime?.split(':');
     if (endTimeParts && endTimeParts.length === 3) {
       const endTimeHour = parseInt(endTimeParts[0], 10);
@@ -312,17 +358,22 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
       const caracasTime = moment.tz(
         `${endTimeHour}:${endTimeMinute}:${endTimeSecond}`,
         'HH:mm:ss',
-        'America/Caracas'
+        'America/Caracas',
       );
       if (caracasTime.isValid()) {
         let convertedEndOfShiftMoment = caracasTime;
         if (this.timeZone && this.timeZone !== 'America/Caracas') {
           convertedEndOfShiftMoment = caracasTime.clone().tz(this.timeZone);
         }
-        const convertedEndOfShift = convertedEndOfShiftMoment.format('MM-DD-YYYY HH:mm:ss'); 
+        const convertedEndOfShift = convertedEndOfShiftMoment.format(
+          'MM-DD-YYYY HH:mm:ss',
+        );
         const endOfShiftDate = this.strToDate(convertedEndOfShift);
         const UTCEndOfShift = this.strToDate(
-          moment(endOfShiftDate).tz(this.timeZone, true)?.utc().format('MM-DD-YYYY HH:mm:ss')
+          moment(endOfShiftDate)
+            .tz(this.timeZone, true)
+            ?.utc()
+            .format('MM-DD-YYYY HH:mm:ss'),
         );
         return UTCEndOfShift;
       }
@@ -332,7 +383,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
-  strToDate(date:string) {
+  strToDate(date: string) {
     const parts = date?.split(' ');
     const dateParts = parts[0]?.split('-');
     const timeParts = parts[1]?.split(':');
@@ -346,7 +397,7 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
     const dateObject = new Date(year, month - 1, day, hour, minute, second);
 
-    return dateObject
+    return dateObject;
   }
 
   getProjects() {
@@ -358,15 +409,15 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   }
   addEntry() {
     this.loading = true;
-    this.showStartingMessage = false; 
+    this.showStartingMessage = false;
     setTimeout(() => {
       this.showStartingMessage = true;
     }, 1000);
-    let start_time
-    // if (this.justInTime) { 
+    let start_time;
+    // if (this.justInTime) {
     //   start_time = moment.utc(this.UTCValidStartTime + 'Z').format('YYYY-MM-DDTHH:mm:ss.000Z');
     // } else {
-      start_time = moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
+    start_time = moment.utc().format('YYYY-MM-DDTHH:mm:ss.000Z');
     // }
 
     const data = {
@@ -384,8 +435,8 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     this.timer = '00:00:00';
     this.entry.description = '';
     this.entry.project_id = '';
-    this.startTime = null
-    this.UTCStartTime = null
+    this.startTime = null;
+    this.UTCStartTime = null;
   }
   cancelCurrentEntry() {
     this.cancel_entry.emit(this.entry);
@@ -393,16 +444,16 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   public getUsername() {
     this.usersService.getUsername().subscribe({
       next: (username) => {
-        if(username) {
+        if (username) {
           this.userName = username;
         }
       },
       error: () => {
         this.showSnackbar('Error getting user name');
-      }
-    })
+      },
+    });
   }
-  
+
   public toggleMenu(event: any) {
     if (!(event.target as HTMLElement).closest('.options-btn')) {
       this.showMoreOption = false;
@@ -420,13 +471,16 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
 
   public startTimer(start_time: any) {
     this.currentTime = setInterval(() => {
-      this.timer = this.customDate.getTotalHours(start_time, this.currentDateTime);
+      this.timer = this.customDate.getTotalHours(
+        start_time,
+        this.currentDateTime,
+      );
     }, 1000);
   }
   public stopTimer() {
     this.timer = '00:00:00';
     clearInterval(this.currentTime);
-    this.currentTime = null
+    this.currentTime = null;
   }
   public setProject(project: Project) {
     this.entry.project_id = project.id;
@@ -434,29 +488,29 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   public checkToDoLogged() {
-    this.endCurrentEntry()
+    this.endCurrentEntry();
     this.ratingsService.checkToDoLogged(new Date()).subscribe({
       next: (res) => {
         if (res.result == 'pending') {
-          let dialogRef = this.dialog.open(ToDoPopupComponent, {
+          const dialogRef = this.dialog.open(ToDoPopupComponent, {
             height: 'max-content',
             width: '500px',
             hasBackdrop: true,
-            backdropClass: 'blur'
-          }); 
-          dialogRef.afterClosed().subscribe(result => {
+            backdropClass: 'blur',
+          });
+          dialogRef.afterClosed().subscribe((result) => {
             if (result == 'now') {
               this.router.navigate(['apps/todo']);
             }
           });
-          this.entry.description = ''; 
+          this.entry.description = '';
         }
       },
       error: (err) => {
         this.showSnackbar('Error checking today goals');
-        console.error(err)
-      }
-    })
+        console.error(err);
+      },
+    });
   }
 
   todayStr() {
@@ -475,4 +529,3 @@ export class EntriesPanelComponent implements OnChanges, OnInit, OnDestroy {
     });
   }
 }
-

@@ -1,5 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnChanges,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -7,16 +13,16 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './position-selector.component.html',
-  styleUrl: './position-selector.component.scss'
+  styleUrl: './position-selector.component.scss',
 })
-export class PositionSelectorComponent {
+export class PositionSelectorComponent implements OnChanges {
   @Input() positions: any[] = [];
   @Output() selectPosition = new EventEmitter<any>();
-  showOptions: boolean = false;
+  showOptions = false;
   selectedPosition: any = null;
-  searchTerm: string = '';
+  searchTerm = '';
   filteredPositions: any[] = [];
-  showOtherOption: boolean = false;
+  showOtherOption = false;
 
   ngOnChanges() {
     this.filteredPositions = [...this.positions];
@@ -38,8 +44,8 @@ export class PositionSelectorComponent {
     }
 
     const searchLower = this.searchTerm.toLowerCase();
-    this.filteredPositions = this.positions.filter(position => 
-      position.title.toLowerCase().includes(searchLower)
+    this.filteredPositions = this.positions.filter((position) =>
+      position.title.toLowerCase().includes(searchLower),
     );
 
     // Mostrar opción "Other" si no hay coincidencias
@@ -57,7 +63,7 @@ export class PositionSelectorComponent {
       const newPosition = {
         id: undefined,
         title: event.target.value,
-      }
+      };
       this.selectPosition.emit(newPosition);
       this.selectedPosition = event.target.value;
       this.showOptions = false;

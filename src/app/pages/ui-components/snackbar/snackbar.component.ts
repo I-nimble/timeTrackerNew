@@ -1,50 +1,63 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import {
   MatSnackBar,
   MatSnackBarHorizontalPosition,
   MatSnackBarVerticalPosition,
 } from '@angular/material/snack-bar';
-import {MatButtonModule} from '@angular/material/button';
-import {MatInputModule} from '@angular/material/input';
-import {FormsModule} from '@angular/forms';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { BASIC_SNACKBAR_HTML_SNIPPET, CONFIGURABLE_SNACKBAR_HTML_SNIPPET, CUSTOM_COMPONENT_SNACKBAR_HTML_SNIPPET } from './code/snackbar-html-snippet';
-import { BASIC_SNACKBAR_TS_SNIPPET, CONFIGURABLE_SNACKBAR_TS_SNIPPET, CUSTOM_COMPONENT_SNACKBAR_TS_SNIPPET } from './code/snackbar-ts-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+// snippets
+import {
+  BASIC_SNACKBAR_HTML_SNIPPET,
+  CONFIGURABLE_SNACKBAR_HTML_SNIPPET,
+  CUSTOM_COMPONENT_SNACKBAR_HTML_SNIPPET,
+} from './code/snackbar-html-snippet';
+import {
+  BASIC_SNACKBAR_TS_SNIPPET,
+  CONFIGURABLE_SNACKBAR_TS_SNIPPET,
+  CUSTOM_COMPONENT_SNACKBAR_TS_SNIPPET,
+} from './code/snackbar-ts-snippet';
 
 @Component({
-    selector: 'app-custom-snackbar',
-    templateUrl: 'snackbar-custom.component.html',
-    styles: [
-        `
+  selector: 'app-custom-snackbar',
+  templateUrl: 'snackbar-custom.component.html',
+  styles: [
+    `
       .example-pizza-party {
         color: hotpink;
       }
     `,
-    ],
-    standalone: false
+  ],
+  standalone: false,
 })
 export class PizzaPartyComponent {}
 
 @Component({
-    selector: 'app-snackbar',
-    imports: [MatFormFieldModule, FormsModule, MatInputModule, MatButtonModule, MatSelectModule, MatCardModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './snackbar.component.html'
+  selector: 'app-snackbar',
+  imports: [
+    MatFormFieldModule,
+    FormsModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatCardModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './snackbar.component.html',
 })
 export class AppSnackbarComponent {
-
   // 1 [basic with snackbar]
   codeForSnackbarBasic = BASIC_SNACKBAR_HTML_SNIPPET;
   codeForSnackbarBasicTs = BASIC_SNACKBAR_TS_SNIPPET;

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { TeamComponent } from '../../pages/apps/team/team.component';
 
 export const WorkforceTeamRoutes: Routes = [

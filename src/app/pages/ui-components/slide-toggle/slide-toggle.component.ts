@@ -1,36 +1,55 @@
 import { Component, OnInit, inject } from '@angular/core';
-import {FormBuilder, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 import {
   MatSlideToggleModule,
   _MatSlideToggleRequiredValidatorModule,
-} from '@angular/material/slide-toggle'; 
-import {MatCheckboxModule} from '@angular/material/checkbox';
-import {FormsModule} from '@angular/forms';
-import {MatRadioModule} from '@angular/material/radio';
-import {MatCardModule} from '@angular/material/card';
-import {MatButtonModule} from '@angular/material/button';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { BASIC_SLIDE_TOGGLE_HTML_SNIPPET, CONFIGURATION_SLIDE_TOGGLE_HTML_SNIPPET, FORM_SLIDE_TOGGLE_HTML_SNIPPET } from './code/slide-toggle-html-snippet';
-import { BASIC_SLIDE_TOGGLE_TS_SNIPPET, CONFIGURATION_SLIDE_TOGGLE_TS_SNIPPET, FORM_SLIDE_TOGGLE_TS_SNIPPET } from './code/slide-toggle-ts-snippet';
+} from '@angular/material/slide-toggle';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+// snippets
+import {
+  BASIC_SLIDE_TOGGLE_HTML_SNIPPET,
+  CONFIGURATION_SLIDE_TOGGLE_HTML_SNIPPET,
+  FORM_SLIDE_TOGGLE_HTML_SNIPPET,
+} from './code/slide-toggle-html-snippet';
+import {
+  BASIC_SLIDE_TOGGLE_TS_SNIPPET,
+  CONFIGURATION_SLIDE_TOGGLE_TS_SNIPPET,
+  FORM_SLIDE_TOGGLE_TS_SNIPPET,
+} from './code/slide-toggle-ts-snippet';
 
 @Component({
-    selector: 'app-slide-toggle',
-    imports: [MatCardModule, MatRadioModule, FormsModule, MatCheckboxModule, MatSlideToggleModule, ReactiveFormsModule, MatButtonModule,
-      _MatSlideToggleRequiredValidatorModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './slide-toggle.component.html'
+  selector: 'app-slide-toggle',
+  imports: [
+    MatCardModule,
+    MatRadioModule,
+    FormsModule,
+    MatCheckboxModule,
+    MatSlideToggleModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    _MatSlideToggleRequiredValidatorModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './slide-toggle.component.html',
 })
 export class AppSlideToggleComponent implements OnInit {
-
   // 1 [Basic with Slide Toggle]
   codeForSlideToggleBasic = BASIC_SLIDE_TOGGLE_HTML_SNIPPET;
   codeForSlideToggleBasicTs = BASIC_SLIDE_TOGGLE_TS_SNIPPET;
@@ -51,12 +70,12 @@ export class AppSlideToggleComponent implements OnInit {
 
   isChecked = true;
   formGroup = this._formBuilder.group({
-      enableWifi: '',
-      acceptTerms: ['', Validators.requiredTrue],
+    enableWifi: '',
+    acceptTerms: ['', Validators.requiredTrue],
   });
 
   alertFormValues(formGroup: FormGroup) {
-      alert(JSON.stringify(formGroup.value, null, 2));
+    alert(JSON.stringify(formGroup.value, null, 2));
   }
 
   ngOnInit(): void {}

@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
+
 import { environment } from '../../environments/environment';
 
 export interface PositionCategory {
@@ -26,26 +28,35 @@ export interface CreateMatchScoresRequest {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApplicationMatchScoresService {
   private apiUrl = environment.apiUrl + '/match-scores';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getByApplicationId(applicationId: number): Observable<MatchScore[]> {
-    return this.http.get<MatchScore[]>(`${this.apiUrl}/application/${applicationId}`);
+    return this.http.get<MatchScore[]>(
+      `${this.apiUrl}/application/${applicationId}`,
+    );
   }
 
   createMatchScores(data: CreateMatchScoresRequest): Observable<any> {
     return this.http.post(`${this.apiUrl}`, data);
   }
 
-  updateMatchScore(id: number, matchPercentage: number): Observable<MatchScore> {
-    return this.http.patch<MatchScore>(`${this.apiUrl}/${id}`, { match_percentage: matchPercentage });
+  updateMatchScore(
+    id: number,
+    matchPercentage: number,
+  ): Observable<MatchScore> {
+    return this.http.patch<MatchScore>(`${this.apiUrl}/${id}`, {
+      match_percentage: matchPercentage,
+    });
   }
 
   getPositionCategories(): Observable<PositionCategory[]> {
-    return this.http.get<PositionCategory[]>(`${this.apiUrl}/position-categories/all`);
+    return this.http.get<PositionCategory[]>(
+      `${this.apiUrl}/position-categories/all`,
+    );
   }
 }

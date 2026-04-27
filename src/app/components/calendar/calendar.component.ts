@@ -5,7 +5,9 @@ import {
   Output,
   Input,
   SimpleChanges,
+  OnChanges,
 } from '@angular/core';
+
 import moment from 'moment';
 import { ReportsService } from 'src/app/services/reports.service';
 
@@ -14,7 +16,7 @@ import { ReportsService } from 'src/app/services/reports.service';
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnChanges, OnInit {
   @Output() rangeSelection: EventEmitter<any> = new EventEmitter<any>();
   @Output() getEntries: EventEmitter<any> = new EventEmitter<any>();
   @Input() datesRange = { firstSelect: '', lastSelect: '' };
@@ -30,17 +32,17 @@ export class CalendarComponent {
   @Input() calendar!: string;
   monthSelect: any = [];
   dateSelect: any;
-  firstSelect: boolean = false;
+  firstSelect = false;
 
   constructor(private reportsService: ReportsService) {}
 
   ngOnInit() {
     this.getDaysfromDate(
       parseInt(moment().format('MM')),
-      new Date().getFullYear()
+      new Date().getFullYear(),
     );
   }
-  
+
   ngOnChanges(change: SimpleChanges) {}
 
   changeMonth(n: number) {
@@ -70,18 +72,18 @@ export class CalendarComponent {
     const remainingDaysBefore = startDay.isoWeekday() - 1;
     const remainingDaysAfter = 7 - endDay.isoWeekday();
 
-    const previousMonthYear = month != 1 ? year : year-1
-    const nextMonthYear = month != 12 ? year : year+1
+    const previousMonthYear = month != 1 ? year : year - 1;
+    const nextMonthYear = month != 12 ? year : year + 1;
 
     const previousMonthDates = this.getLastDaysOfPreviousMonth(
       remainingDaysBefore,
       previousMonthYear,
-      endDay
+      endDay,
     );
     const afterMonthDates = this.getFirstDaysOfNextMonth(
       remainingDaysAfter,
       nextMonthYear,
-      startDay
+      startDay,
     );
     this.monthSelect = [
       ...previousMonthDates,
@@ -97,7 +99,7 @@ export class CalendarComponent {
   private getFirstDaysOfNextMonth(
     firstDays: number,
     year: number,
-    dayReference: moment.Moment
+    dayReference: moment.Moment,
   ) {
     const nextMonth = this.getMonthReference(1, dayReference);
     const remainDays = Object.keys([...Array(firstDays)]).map((a: any) => {
@@ -111,7 +113,7 @@ export class CalendarComponent {
   private getLastDaysOfPreviousMonth(
     lastDays: number,
     year: number,
-    dayReference: moment.Moment
+    dayReference: moment.Moment,
   ) {
     const previousMonth = this.getMonthReference(-1, dayReference);
     const dayIndex =
@@ -120,14 +122,14 @@ export class CalendarComponent {
           .clone()
           .subtract(1, 'month')
           .endOf('month')
-          .format('DD')
+          .format('DD'),
       ) - lastDays;
 
     const remainDays = Object.keys([...Array(lastDays)]).map((a: any) => {
       a++;
       const dayObject = moment(
         `${year}/${previousMonth}/${dayIndex + parseInt(a)}`,
-        'YYYY/MM/DD'
+        'YYYY/MM/DD',
       );
       return this.formatDateResponse(dayObject);
     });
@@ -161,13 +163,13 @@ export class CalendarComponent {
         return;
       }
     }
-    let selection = {
+    const selection = {
       firstSelect: new Date(this.datesRange.firstSelect).toUTCString(),
       lastSelect: this.datesRange.lastSelect,
     };
     this.reportsService.setDateRange(
-      (this.datesRange.firstSelect.replaceAll('/', '-')), 
-      this.datesRange.lastSelect.replaceAll('/', '-')
+      this.datesRange.firstSelect.replaceAll('/', '-'),
+      this.datesRange.lastSelect.replaceAll('/', '-'),
     );
     this.rangeSelection.emit(selection);
 

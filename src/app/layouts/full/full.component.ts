@@ -1,33 +1,41 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
-import { CoreService } from 'src/app/services/core.service';
-import { AppSettings } from 'src/app/config';
-import { filter } from 'rxjs/operators';
-import { NavigationEnd, Router } from '@angular/router';
-import { getNavItems } from './vertical/sidebar/sidebar-data';
-import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
-import { RouterModule } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
-import { SidebarComponent } from './vertical/sidebar/sidebar.component';
-import { NgScrollbarModule } from 'ngx-scrollbar';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+  OnDestroy,
+} from '@angular/core';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
+import { NavigationEnd, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
+
+import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { HeaderComponent } from './vertical/header/header.component';
+import { NgScrollbarModule } from 'ngx-scrollbar';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { JitsiMeetComponent } from 'src/app/components/jitsi-meet/jitsi-meet.component';
+import { AppSettings } from 'src/app/config';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { AuthService } from 'src/app/services/auth.service';
+import { CoreService } from 'src/app/services/core.service';
+import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
 import { AppHorizontalHeaderComponent } from './horizontal/header/header.component';
 import { AppHorizontalSidebarComponent } from './horizontal/sidebar/sidebar.component';
 import { AppBreadcrumbComponent } from './shared/breadcrumb/breadcrumb.component';
 import { CustomizerComponent } from './shared/customizer/customizer.component';
+import { HeaderComponent } from './vertical/header/header.component';
 import { BrandingComponent } from './vertical/sidebar/branding.component';
-import { JitsiMeetComponent } from 'src/app/components/jitsi-meet/jitsi-meet.component';
-import { AuthService } from 'src/app/services/auth.service';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
-import { RocketChatService } from 'src/app/services/rocket-chat.service';
-import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
-import { environment } from 'src/environments/environment';
-import { UsersService } from 'src/app/services/users.service';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
+import { getNavItems } from './vertical/sidebar/sidebar-data';
+import { SidebarComponent } from './vertical/sidebar/sidebar.component';
 
 export function jwtOptionsFactory() {
   return {
@@ -54,7 +62,7 @@ interface apps {
 interface quicklinks {
   id: number;
   title: string;
-  link: string; 
+  link: string;
 }
 
 @Component({
@@ -73,25 +81,27 @@ interface quicklinks {
     AppHorizontalSidebarComponent,
     AppBreadcrumbComponent,
     CustomizerComponent,
-    BrandingComponent
+    BrandingComponent,
   ],
-  providers: [AuthService,WebSocketService,
-        JwtHelperService,
-      { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
-    provideNativeDateAdapter()  
+  providers: [
+    AuthService,
+    WebSocketService,
+    JwtHelperService,
+    { provide: JWT_OPTIONS, useFactory: jwtOptionsFactory },
+    provideNativeDateAdapter(),
   ],
   standalone: true,
   templateUrl: './full.component.html',
   styleUrl: 'full.component.scss',
   encapsulation: ViewEncapsulation.None,
 })
-export class FullComponent implements OnInit {
+export class FullComponent implements OnInit, OnDestroy {
   role: any = localStorage.getItem('role');
   navItems = getNavItems(this.role);
   company: any;
-  userName:any;
-  userId:any;
-  profilePicture:any = 'assets/images/default-user-profile-pic.png';
+  userName: any;
+  userId: any;
+  profilePicture: any = 'assets/images/default-user-profile-pic.png';
   assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
@@ -120,7 +130,7 @@ export class FullComponent implements OnInit {
 
   // for mobile app sidebar
   apps: apps[] = [
-    // ...(this.role != '1' && this.role != '4' 
+    // ...(this.role != '1' && this.role != '4'
     // ? [{
     //     id: 12,
     //     img: '/assets/images/svgs/icon-speech-bubble.svg',
@@ -137,41 +147,51 @@ export class FullComponent implements OnInit {
       link: '/apps/talent-match',
     },
     ...(this.role == '3'
-    ? [{
-        id: 14,
-        img: '/assets/images/svgs/icon-account.svg',
-        title: 'Expert Match',
-        subtitle: 'Connect with experts',
-        link: '/apps/expert',
-      }]
-    : []),
-    ...(environment.allowedContentCreatorEmails.includes(localStorage.getItem('email') || '')
-    ? [{
-        id: 15,
-        img: '/assets/images/svgs/icon-connect.svg',
-        title: 'My Sentinel',
-        subtitle: 'Create and manage content',
-        link: '/apps/scrapper',
-      }]
-    : []),
+      ? [
+          {
+            id: 14,
+            img: '/assets/images/svgs/icon-account.svg',
+            title: 'Expert Match',
+            subtitle: 'Connect with experts',
+            link: '/apps/expert',
+          },
+        ]
+      : []),
+    ...(environment.allowedContentCreatorEmails.includes(
+      localStorage.getItem('email') || '',
+    )
+      ? [
+          {
+            id: 15,
+            img: '/assets/images/svgs/icon-connect.svg',
+            title: 'My Sentinel',
+            subtitle: 'Create and manage content',
+            link: '/apps/scrapper',
+          },
+        ]
+      : []),
     ...(this.role == '1'
-    ? [{
-        id: 16,
-        img: '/assets/images/svgs/icon-connect.svg',
-        title: 'Permissions',
-        subtitle: 'Give permissions to your users',
-        link: '/apps/permission',
-      }]
-    : []),
+      ? [
+          {
+            id: 16,
+            img: '/assets/images/svgs/icon-connect.svg',
+            title: 'Permissions',
+            subtitle: 'Give permissions to your users',
+            link: '/apps/permission',
+          },
+        ]
+      : []),
     ...(this.role == '1'
-    ? [{
-        id: 17,
-        img: '/assets/images/svgs/icon-speech-bubble.svg',
-        title: 'Events',
-        subtitle: 'Create upcoming events',
-        link: '/apps/events',
-      }]
-    : []),
+      ? [
+          {
+            id: 17,
+            img: '/assets/images/svgs/icon-speech-bubble.svg',
+            title: 'Events',
+            subtitle: 'Create upcoming events',
+            link: '/apps/events',
+          },
+        ]
+      : []),
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -215,14 +235,16 @@ export class FullComponent implements OnInit {
       link: '/apps/todo',
     },
     ...(localStorage.getItem('role') == '3'
-    ? [{
-        id: 11,
-        img: '/assets/images/svgs/icon-inbox.svg',
-        title: 'History',
-        subtitle: 'Monitor your team’s actions',
-        link: '/apps/history',
-      }]
-    : [])
+      ? [
+          {
+            id: 11,
+            img: '/assets/images/svgs/icon-inbox.svg',
+            title: 'History',
+            subtitle: 'Monitor your team’s actions',
+            link: '/apps/history',
+          },
+        ]
+      : []),
   ];
 
   constructor(
@@ -239,13 +261,16 @@ export class FullComponent implements OnInit {
       .subscribe((state) => {
         this.isMobileScreen = state.breakpoints[BELOWMONITOR];
         this.resView = state.breakpoints[BELOWMONITOR];
-        if (!this.resView && this.filterNavRight && this.filterNavRight.opened) {
+        if (
+          !this.resView &&
+          this.filterNavRight &&
+          this.filterNavRight.opened
+        ) {
           this.filterNavRight.close();
         }
 
         this.options.sidenavOpened = !this.resView;
       });
-
 
     // Initialize project theme with options
     this.receiveOptions(this.options);
@@ -262,7 +287,7 @@ export class FullComponent implements OnInit {
     this.usersService.profilePicUpdated$.subscribe(() => {
       this.loadProfilePicture();
     });
-    this.usersService.username$.subscribe(name => {
+    this.usersService.username$.subscribe((name) => {
       this.userName = name;
     });
     this.userData();
@@ -277,11 +302,15 @@ export class FullComponent implements OnInit {
 
   ngOnDestroy() {
     this.layoutChangesSubscription.unsubscribe();
-    try { this.jitsiSub?.unsubscribe(); } catch (e) {}
+    try {
+      this.jitsiSub?.unsubscribe();
+    } catch (e) {}
   }
 
   onJitsiClosed() {
-    try { this.chatService.closeJitsiMeeting(); } catch (e) {}
+    try {
+      this.chatService.closeJitsiMeeting();
+    } catch (e) {}
   }
 
   toggleCollapsed() {
@@ -331,11 +360,11 @@ export class FullComponent implements OnInit {
     this.htmlElement.classList.add(options.activeTheme);
   }
 
-  logOut(){
+  logOut() {
     this.authService.logout();
   }
 
-  userData(){
+  userData() {
     this.userName = localStorage.getItem('username');
     this.userId = localStorage.getItem('id');
     this.loadProfilePicture();

@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import { AppListingComponent } from 'src/app/pages/apps/contact-list/listing/listing.component';
-import { MaterialModule } from 'src/app/material.module';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { AppListingComponent } from 'src/app/pages/apps/contact-list/listing/listing.component';
 
 @Component({
   selector: 'app-contact-list',

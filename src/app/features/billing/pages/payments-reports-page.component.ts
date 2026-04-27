@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+
 import { PaymentsReportsComponent } from 'src/app/pages/apps/invoice/payments-reports/payments-reports.component';
 
 @Component({

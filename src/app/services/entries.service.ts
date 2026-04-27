@@ -1,11 +1,13 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Entries } from '../models/Entries';
-import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { UsersService } from 'src/app/services/users.service';
+import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+
+import { Observable } from 'rxjs';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
 import { NotificationsPopupComponent } from '../components/notifications-popup/notifications-popup.component';
+import { Entries } from '../models/Entries';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +17,10 @@ export class EntriesService {
   API_URI = environment.apiUrl;
   reviewEntries: any = [];
 
-  constructor(private http: HttpClient, private dialog:MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+  ) {}
   getEntries() {
     return this.http.get<any>(`${this.API_URI}/entries`);
   }
@@ -45,22 +50,25 @@ export class EntriesService {
     return this.http.delete(`${this.API_URI}/entries/cancel/${id}`);
   }
   closeCurrentEntry(entry: any) {
-    return this.http.put(`${this.API_URI}/entries/closeEntry/${entry.id}`, entry);
+    return this.http.put(
+      `${this.API_URI}/entries/closeEntry/${entry.id}`,
+      entry,
+    );
   }
   updateEntry(id: number, updatedEntry: any): Observable<Entries> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.put<Entries>(
       `${this.API_URI}/entries/${id}`,
       updatedEntry,
-      { headers }
+      { headers },
     );
   }
 
-  loadEntries(showPopup:boolean = true) {
-    let body = {};
-    const userType = localStorage.getItem('role')
-    if(userType) {
-      if(userType !== '1'){
+  loadEntries(showPopup = true) {
+    const body = {};
+    const userType = localStorage.getItem('role');
+    if (userType) {
+      if (userType !== '1') {
         this.reviewEntries = [];
       } else {
         this.userService.getUsers(body).subscribe({
@@ -70,10 +78,10 @@ export class EntriesService {
               return {
                 message: `Entries For Review: ${user.name} ${user.last_name}`,
                 id: user.id,
-                name: user.name
+                name: user.name,
               };
-            });   
-          }
+            });
+          },
         });
       }
     }

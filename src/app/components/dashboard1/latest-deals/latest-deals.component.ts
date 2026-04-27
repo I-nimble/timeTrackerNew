@@ -1,6 +1,8 @@
 import { Component, ViewChild } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-latest-deals',

@@ -1,23 +1,37 @@
-import { Component, Output, EventEmitter, Input, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller, CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { RouterLink } from '@angular/router';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
-import { AppHeaderComponent } from '../header/header.component';
 import { trigger, transition, style, animate } from '@angular/animations';
+import {
+  BreakpointObserver,
+  Breakpoints,
+  BreakpointState,
+} from '@angular/cdk/layout';
+import { ViewportScroller, CommonModule } from '@angular/common';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  Input,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
-import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
-import { ButtonComponent } from 'src/app/components/button/button.component';
-import { BreakpointObserver, Breakpoints, BreakpointState } from '@angular/cdk/layout';
+import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { Observable } from 'rxjs';
 import { map, shareReplay } from 'rxjs/operators';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
 import { environment } from 'src/environments/environment';
+
+import { HeroButtonComponent } from '../../../components/hero-button/hero-button.component';
+import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
+import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
+import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
+import { AppFooterComponent } from '../footer/footer.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -70,9 +84,9 @@ interface features {
     AppHeaderComponent,
     CommonModule,
     HeroButtonComponent,
-    ButtonComponent
+    ButtonComponent,
   ],
-  templateUrl: './landingpage.component.html'
+  templateUrl: './landingpage.component.html',
 })
 export class AppLandingpageComponent implements AfterViewInit {
   @Input() showToggle = true;
@@ -97,7 +111,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       id: 2,
       img: 'assets/images/comparison-table-2.png',
       title: 'Inimble vs local staff',
-    }
+    },
   ];
   currentSlide = 0;
   testimonials = [
@@ -175,7 +189,8 @@ export class AppLandingpageComponent implements AfterViewInit {
     },
   ];
   isMobileScreen = false;
-  inimbleVideoUrl = "https://inimble-app.s3.us-east-1.amazonaws.com/Inimble+Platform.mp4";
+  inimbleVideoUrl =
+    'https://inimble-app.s3.us-east-1.amazonaws.com/Inimble+Platform.mp4';
 
   options = this.settings.getOptions();
 
@@ -183,20 +198,20 @@ export class AppLandingpageComponent implements AfterViewInit {
     private settings: CoreService,
     private scroller: ViewportScroller,
     private dialog: MatDialog,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver,
   ) {
-    this.breakpointObserver.observe([
-      '(max-width: 767px)'
-    ]).subscribe(result => {
-      this.isMobileScreen = result.matches;
-    });
+    this.breakpointObserver
+      .observe(['(max-width: 767px)'])
+      .subscribe((result) => {
+        this.isMobileScreen = result.matches;
+      });
   }
 
   ngAfterViewInit() {
     if (this.inimbleVideoRef) {
       const observer = new IntersectionObserver(
         (entries) => {
-          entries.forEach(entry => {
+          entries.forEach((entry) => {
             if (entry.isIntersecting) {
               this.inimbleVideoRef.nativeElement.play();
             } else {
@@ -204,7 +219,7 @@ export class AppLandingpageComponent implements AfterViewInit {
             }
           });
         },
-        { threshold: 0.5 }
+        { threshold: 0.5 },
       );
       observer.observe(this.inimbleVideoRef.nativeElement);
     }
@@ -212,7 +227,7 @@ export class AppLandingpageComponent implements AfterViewInit {
 
   getVisibleTestimonials() {
     const length = this.testimonials.length;
-    
+
     if (this.isMobileScreen) {
       return [this.testimonials[this.currentSlide % length]];
     } else {
@@ -220,7 +235,7 @@ export class AppLandingpageComponent implements AfterViewInit {
       return [
         this.testimonials[(this.currentSlide - 1 + length) % length],
         this.testimonials[this.currentSlide % length],
-        this.testimonials[(this.currentSlide + 1) % length]
+        this.testimonials[(this.currentSlide + 1) % length],
       ];
     }
   }
@@ -233,25 +248,24 @@ export class AppLandingpageComponent implements AfterViewInit {
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
   }
-  
+
   openQuickContact() {
-  this.dialog.open(QuickContactModalComponent, {
-    width: '520px', 
-    maxHeight: '90vh', 
-    disableClose: false,
-    autoFocus: false,
-    restoreFocus: false,
-  });
-}
+    this.dialog.open(QuickContactModalComponent, {
+      width: '520px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      restoreFocus: false,
+    });
+  }
 
   prevSlide(slider: string): void {
-    if(slider === 'testimonials') {
+    if (slider === 'testimonials') {
       this.currentSlide =
         this.currentSlide === 0
           ? this.testimonials.length - 1
           : this.currentSlide - 1;
-    }
-    else if (slider === 'comparison table') {
+    } else if (slider === 'comparison table') {
       this.currentComparisonTableSlide =
         this.currentComparisonTableSlide === 0
           ? this.comparisonTables.length - 1
@@ -260,13 +274,12 @@ export class AppLandingpageComponent implements AfterViewInit {
   }
 
   nextSlide(slider: string): void {
-    if(slider === 'testimonials') {
+    if (slider === 'testimonials') {
       this.currentSlide =
         this.currentSlide === this.testimonials.length - 1
           ? 0
           : this.currentSlide + 1;
-    }
-    else if (slider === 'comparison table') {
+    } else if (slider === 'comparison table') {
       this.currentComparisonTableSlide =
         this.currentComparisonTableSlide === this.comparisonTables.length - 1
           ? 0

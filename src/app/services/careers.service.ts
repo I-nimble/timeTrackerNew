@@ -1,17 +1,18 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+
 import {
   ApplicationDetails,
   FormQuestion,
-  SubmitApplicationPayload
+  SubmitApplicationPayload,
 } from '../models/Careers';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CareersService {
   constructor(private http: HttpClient) {}
@@ -25,7 +26,7 @@ export class CareersService {
   getFilteredApplicationOptions(
     location_id?: number,
     role_type?: 'position' | 'department',
-    role_id?: number
+    role_id?: number,
   ): Observable<any> {
     let params = new HttpParams();
 
@@ -43,7 +44,11 @@ export class CareersService {
   }
 
   // GET /questions?locationId=1&positionId=16 or &departmentId=3
-  getFormQuestions(locationId: number, positionId?: number, departmentId?: number): Observable<FormQuestion[]> {
+  getFormQuestions(
+    locationId: number,
+    positionId?: number,
+    departmentId?: number,
+  ): Observable<FormQuestion[]> {
     let params = new HttpParams().set('locationId', locationId.toString());
 
     if (positionId) {
@@ -53,20 +58,23 @@ export class CareersService {
     }
 
     return this.http
-      .get<{ questions: FormQuestion[] }>(`${this.API_URI}/questions`, { params })
-      .pipe(map(res => res.questions)); 
+      .get<{
+        questions: FormQuestion[];
+      }>(`${this.API_URI}/questions`, { params })
+      .pipe(map((res) => res.questions));
   }
 
-/*  submitApplication(data: SubmitApplicationPayload): Observable<any> {
+  /*  submitApplication(data: SubmitApplicationPayload): Observable<any> {
     return this.http.post(`${this.API_URI}/application`, data);
   } */
 
   getApplicationById(id: number): Observable<ApplicationDetails> {
-    return this.http.get<ApplicationDetails>(`${this.API_URI}/application/${id}`);
+    return this.http.get<ApplicationDetails>(
+      `${this.API_URI}/application/${id}`,
+    );
   }
 
   submitApplicationFormData(formData: FormData): Observable<any> {
     return this.http.post(`${this.API_URI}/application`, formData);
   }
-
 }

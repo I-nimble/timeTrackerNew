@@ -1,21 +1,19 @@
-import { Component, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { MIX_TABLE_HTML_SNIPPET } from './code/mix-table-html-snippet';
 import { MIX_TABLE_TS_SNIPPET } from './code/mix-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 /** Constants used to fill up our data base. */
 const STATUS = [
@@ -59,16 +57,21 @@ const NAMES = [
 ];
 
 @Component({
-    selector: 'app-mix-table',
-    imports: [MatTableModule, MatCardModule, MatPaginatorModule, MatFormFieldModule, MatInputModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './mix-table.component.html'
+  selector: 'app-mix-table',
+  imports: [
+    MatTableModule,
+    MatCardModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './mix-table.component.html',
 })
-export class AppMixTableComponent {
+export class AppMixTableComponent implements AfterViewInit {
   // 1 [mix with Table]
   codeForMixTable = MIX_TABLE_HTML_SNIPPET;
   codeForMixTableTs = MIX_TABLE_TS_SNIPPET;
@@ -119,7 +122,7 @@ function createNewUser(id: number): UserData {
     ' ' +
     NAMES[Math.round(Math.random() * (NAMES.length - 1))].charAt(0) +
     '.';
-  // tslint:disable-next-line - Disables all
+
   return {
     id: id.toString(),
     name: name,

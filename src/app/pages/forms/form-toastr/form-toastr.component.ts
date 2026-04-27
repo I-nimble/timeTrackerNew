@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject  } from '@angular/core';
-import { ToastrService, ToastrModule } from 'ngx-toastr';
-import { MaterialModule } from '../../../material.module';
+import { Component, Inject } from '@angular/core';
 
+import { ToastrService, ToastrModule } from 'ngx-toastr';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
-    selector: 'app-form-toastr',
-    templateUrl: './form-toastr.component.html',
-    imports: [MaterialModule, CommonModule, ToastrModule],
-    providers: [ToastrService]
+  selector: 'app-form-toastr',
+  templateUrl: './form-toastr.component.html',
+  imports: [MaterialModule, CommonModule, ToastrModule],
+  providers: [ToastrService],
 })
 export class AppFormToastrComponent {
   constructor(private toastr: ToastrService) {}

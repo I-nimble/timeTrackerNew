@@ -1,16 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'src/environments/environment';
+
 import { Observable } from 'rxjs';
 import { NotificationStore } from 'src/app/stores/notification.store';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LeaveRequestsService {
   store = inject(NotificationStore);
 
-  constructor(private http: HttpClient,) { }
+  constructor(private http: HttpClient) {}
   private API_URI = environment.apiUrl + '/leave_requests';
 
   public get(body: any): Observable<any[]> {
@@ -27,6 +28,6 @@ export class LeaveRequestsService {
   }
 
   public delete(id: number) {
-    return this.http.delete(`${this.API_URI}/${id}`)
+    return this.http.delete(`${this.API_URI}/${id}`);
   }
 }

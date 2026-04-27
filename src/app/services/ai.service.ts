@@ -1,60 +1,66 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
+
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AIService {
   private API_URI = environment.apiUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  evaluateExperts(experts: any[], question: string): Observable<{ answer: { parts: { text: string }[] } }> {
+  evaluateExperts(
+    experts: any[],
+    question: string,
+  ): Observable<{ answer: { parts: { text: string }[] } }> {
     return this.http.post<{ answer: { parts: { text: string }[] } }>(
       `${this.API_URI}/ai/expert-evaluation`,
-      { experts, question }
+      { experts, question },
     );
   }
 
-  evaluateCandidates(candidates: any[], question: string): Observable<{ 
-    answer: { parts: { text: string }[] }; 
-    enhanced_results: Array<{
+  evaluateCandidates(
+    candidates: any[],
+    question: string,
+  ): Observable<{
+    answer: { parts: { text: string }[] };
+    enhanced_results: {
       name: string;
       match_percentage: number;
       overall_match_percentage?: number;
       position_category: string;
       category_description?: string;
       best_position_category_id?: number;
-    }>;
+    }[];
     best_position_category?: {
       id: number;
       name: string;
     };
   }> {
-    return this.http.post<{ 
-      answer: { parts: { text: string }[] }; 
-      enhanced_results: Array<{
+    return this.http.post<{
+      answer: { parts: { text: string }[] };
+      enhanced_results: {
         name: string;
         match_percentage: number;
         overall_match_percentage?: number;
         position_category: string;
         category_description?: string;
         best_position_category_id?: number;
-      }>;
+      }[];
       best_position_category?: {
         id: number;
         name: string;
       };
-    }>(
-      `${this.API_URI}/ai/candidate-evaluation`,
-      { candidates, question }
-    );
+    }>(`${this.API_URI}/ai/candidate-evaluation`, { candidates, question });
   }
 
-  evaluatePosts(question: string): Observable<{ posts: { id: string, title: string, selftext: string, keyword: string }[] }> {
-    return this.http.post<{ posts: { id: string, title: string, selftext: string, keyword: string }[] }>(
-      `${this.API_URI}/ai/post-evaluation`,
-      { question }
-    );
+  evaluatePosts(question: string): Observable<{
+    posts: { id: string; title: string; selftext: string; keyword: string }[];
+  }> {
+    return this.http.post<{
+      posts: { id: string; title: string; selftext: string; keyword: string }[];
+    }>(`${this.API_URI}/ai/post-evaluation`, { question });
   }
 }

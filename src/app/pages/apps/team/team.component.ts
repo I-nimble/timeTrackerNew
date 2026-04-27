@@ -1,3 +1,5 @@
+import { SelectionModel } from '@angular/cdk/collections';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -5,39 +7,43 @@ import {
   Optional,
   Output,
   ViewChild,
+  OnInit,
 } from '@angular/core';
-import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import {
+  FormArray,
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { AppAddEmployeeComponent } from '../employee/add/add.component';
-import { FormArray, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { Employee } from 'src/app/pages/apps/employee/employee';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { CommonModule } from '@angular/common';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { UsersService } from 'src/app/services/users.service';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ReportFilter } from 'src/app/components/reports-filter/reports-filter.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { Employee } from 'src/app/pages/apps/employee/employee';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { PositionsService } from 'src/app/services/positions.service';
-import { environment } from 'src/environments/environment';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { ReportsService } from 'src/app/services/reports.service';
-import { ProjectsService } from 'src/app/services/projects.service';
-import {
-  ReportFilter,
-} from 'src/app/components/reports-filter/reports-filter.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
-import { SelectionModel } from '@angular/cdk/collections';
-import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
-import { AppEmployeeDialogContentComponent } from '../employee/employee-dialog-content';
+import { EmployeesService } from 'src/app/services/employees.service';
 import { PermissionService } from 'src/app/services/permission.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import { ProjectsService } from 'src/app/services/projects.service';
+import { ReportsService } from 'src/app/services/reports.service';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
+import { AppAddEmployeeComponent } from '../employee/add/add.component';
+import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
+import { AppEmployeeDialogContentComponent } from '../employee/employee-dialog-content';
+import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
 
 @Component({
   templateUrl: './team.component.html',
@@ -49,19 +55,19 @@ import { PermissionService } from 'src/app/services/permission.service';
     CommonModule,
     RouterModule,
     EmployeeDetailsComponent,
-    AppEmployeeTableComponent
+    AppEmployeeTableComponent,
   ],
   standalone: true,
 })
-export class TeamComponent {
+export class TeamComponent implements OnInit {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
   employees: any[] = [];
-  loaded: boolean = false;
+  loaded = false;
   company: any;
-  timeZone: string = 'America/Caracas';
+  timeZone = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
     user: 'all',
@@ -80,16 +86,11 @@ export class TeamComponent {
     canView: false,
     canEdit: false,
     canManage: false,
-    canDelete: false
+    canDelete: false,
   };
   permissionsLoaded = false;
-  displayedColumns: string[] = [
-    'nameUser',
-    'role',
-    'email',
-    'action',
-  ];
-  customColumns: string[] = ['nameUser', 'role', 'email', 'action',];
+  displayedColumns: string[] = ['nameUser', 'role', 'email', 'action'];
+  customColumns: string[] = ['nameUser', 'role', 'email', 'action'];
   dataSource: any[] = [];
   selection = new SelectionModel<any>(true, []);
 
@@ -108,16 +109,18 @@ export class TeamComponent {
     if (this.userRole === '3') {
       this.loadCompany();
     }
-    this.permissionService.getUserPermissions(Number(this.userId)).subscribe(res => {
-      const effective = res.effectivePermissions || [];
-      this.permissions = {
-        canView: effective.includes('users.view'),
-        canEdit: effective.includes('users.edit'),
-        canManage: effective.includes('users.manage'),
-        canDelete: effective.includes('users.delete')
-      };
-      this.permissionsLoaded = true;
-    });
+    this.permissionService
+      .getUserPermissions(Number(this.userId))
+      .subscribe((res) => {
+        const effective = res.effectivePermissions || [];
+        this.permissions = {
+          canView: effective.includes('users.view'),
+          canEdit: effective.includes('users.edit'),
+          canManage: effective.includes('users.manage'),
+          canDelete: effective.includes('users.delete'),
+        };
+        this.permissionsLoaded = true;
+      });
     this.getEmployees();
     this.getCompanies();
   }
@@ -132,7 +135,9 @@ export class TeamComponent {
 
   handleCompanySelection(event: any) {
     this.companyId = event.value;
-    this.dataSource = this.users.filter((user: any) => user.profile.company_id === this.companyId);
+    this.dataSource = this.users.filter(
+      (user: any) => user.profile.company_id === this.companyId,
+    );
   }
 
   loadCompany(): void {
@@ -144,12 +149,17 @@ export class TeamComponent {
   applyCombinedFilters(): void {
     const value = this.searchText?.trim().toLowerCase();
     this.dataSource = this.users.filter((user: any) => {
-      const matchesCompany = this.companyId ? user.profile.company_id === this.companyId : true;
+      const matchesCompany = this.companyId
+        ? user.profile.company_id === this.companyId
+        : true;
       if (!value) return matchesCompany;
-      const matchesSearch = 
-        (user.profile.name && user.profile.name.toLowerCase().includes(value)) ||
-        (user.profile.last_name && user.profile.last_name.toLowerCase().includes(value)) ||
-        (user.profile.email && user.profile.email.toLowerCase().includes(value));
+      const matchesSearch =
+        (user.profile.name &&
+          user.profile.name.toLowerCase().includes(value)) ||
+        (user.profile.last_name &&
+          user.profile.last_name.toLowerCase().includes(value)) ||
+        (user.profile.email &&
+          user.profile.email.toLowerCase().includes(value));
       return matchesSearch && matchesCompany;
     });
   }
@@ -169,11 +179,12 @@ export class TeamComponent {
     this.employeesService.get().subscribe({
       next: (employees: any) => {
         this.employees = employees;
-        this.users = employees
-        .filter((user: any) => user.user.active == 1 && user.user.role == 2);
+        this.users = employees.filter(
+          (user: any) => user.user.active == 1 && user.user.role == 2,
+        );
         this.users = this.users.map((user: any) => {
-          return ({
-              profile: {
+          return {
+            profile: {
               id: user.user.id,
               company_id: user.company_id,
               name: user.user.name,
@@ -181,11 +192,13 @@ export class TeamComponent {
               email: user.user.email,
               position: user.position_id || user.position?.id || '',
               hourly_rate: user.hourly_rate,
-              projects: user.projects ? user.projects.map((project: any) => project.id) : [],
+              projects: user.projects
+                ? user.projects.map((project: any) => project.id)
+                : [],
               imagePath: '/assets/images/default-user-profile-pic.png',
             },
             role: user.position?.title || 'Other',
-          });
+          };
         });
         this.getProfilePics();
       },
@@ -199,7 +212,7 @@ export class TeamComponent {
     this.users.map((user: any) => {
       this.userService.getProfilePic(user.profile.id).subscribe({
         next: (response: any) => {
-          if(!response) return;
+          if (!response) return;
           user.profile.imagePath = response;
         },
         error: (err) => {
@@ -213,7 +226,7 @@ export class TeamComponent {
 
   setUser(user: any): void {
     this.employees.map((employee: any) => {
-      user.id == employee.user.id ? user = employee.user : null;
+      user.id == employee.user.id ? (user = employee.user) : null;
     });
 
     this.userService.setUserInformation(user);

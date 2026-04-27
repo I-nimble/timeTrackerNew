@@ -1,22 +1,27 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from "src/environments/environment";
+
 import { Observable, forkJoin, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InvoiceService {
   private apiUrl = environment.apiUrl;
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getInvoiceFile(id: number, format: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`, {
-      useTimezone: true,
-    }, {
-      responseType: 'blob'
-    });
+    return this.http.post(
+      `${this.apiUrl}/stripe/invoice/${id}/file/${format || 'excel'}`,
+      {
+        useTimezone: true,
+      },
+      {
+        responseType: 'blob',
+      },
+    );
   }
 
   public getInvoiceList(): Observable<any> {
@@ -31,8 +36,12 @@ export class InvoiceService {
     return this.http.put(`${this.apiUrl}/stripe/invoice/${id}`, invoiceData);
   }
 
-  getInvoiceDetail(id: number, start?: string | Date, end?: string | Date): Observable<any> {
-    let params: any = {};
+  getInvoiceDetail(
+    id: number,
+    start?: string | Date,
+    end?: string | Date,
+  ): Observable<any> {
+    const params: any = {};
     if (start) {
       params.start = new Date(start).toISOString();
     }
@@ -43,7 +52,9 @@ export class InvoiceService {
   }
 
   approveInvoice(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/stripe/invoice/${id}/approve`, {id});
+    return this.http.post(`${this.apiUrl}/stripe/invoice/${id}/approve`, {
+      id,
+    });
   }
 
   deleteInvoice(id: number): Observable<any> {
@@ -56,14 +67,16 @@ export class InvoiceService {
   }
 
   getReportById(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/payments-reports/${id}`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/payments-reports/${id}`, {
+      responseType: 'blob',
+    });
   }
 
   getUploadUrl(type: string, file?: File) {
     const escapedType = type.replace(/\//g, '%2F');
     return this.http.post<any>(
       `${environment.apiUrl}/generate_upload_url/${escapedType}`,
-      { contentType: file?.type || 'application/octet-stream' }
+      { contentType: file?.type || 'application/octet-stream' },
     );
   }
 
@@ -84,9 +97,9 @@ export class InvoiceService {
             map(() => {
               const urlParts = uploadUrl.split('?')[0].split('/');
               return urlParts[urlParts.length - 1];
-            })
+            }),
           );
-        })
+        }),
       );
     } else if (data.file_path) {
       fileUpload$ = of(data.file_path);
@@ -100,7 +113,7 @@ export class InvoiceService {
         };
 
         return this.http.post(`${this.apiUrl}/payments-reports`, body);
-      })
+      }),
     );
   }
 
@@ -109,6 +122,9 @@ export class InvoiceService {
   }
 
   markReportAsSeen(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/payments-reports/${id}/mark-as-seen`, {});
+    return this.http.post(
+      `${this.apiUrl}/payments-reports/${id}/mark-as-seen`,
+      {},
+    );
   }
 }

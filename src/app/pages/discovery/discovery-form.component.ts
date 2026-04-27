@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -5,14 +6,15 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../material.module';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { allSkills } from './skills';
-import { CommonModule } from '@angular/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { IntakeService } from 'src/app/services/intake.service';
 import { environment } from 'src/environments/environment';
+
+import { allSkills } from './skills';
+import { MaterialModule } from '../../legacy/material.module';
 
 @Component({
   standalone: true,
@@ -24,7 +26,7 @@ import { environment } from 'src/environments/environment';
     HighlightLineNumbers,
     Highlight,
     HighlightAuto,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './discovery-form.component.html',
   styleUrl: './discovery-form.component.scss',
@@ -35,8 +37,7 @@ export class AppDiscoveryFormComponent implements OnInit {
     name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     countryCode: ['+1', Validators.required],
-    phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]
-    ],
+    phone: ['', [Validators.required, Validators.pattern(/^\d{7,11}$/)]],
   });
   roleInfo = this.fb.group({
     jobNameAndDescription: ['', Validators.required],
@@ -68,26 +69,26 @@ export class AppDiscoveryFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.roleInfo.get('requiredSkillsCategory')?.valueChanges.subscribe((value) => {
-      this.roleInfo.get('requiredSkills')?.enable();
-      this.roleInfo.get('requiredSkills')?.reset();
-      if(value === 'other') {
-        this.otherSkillset = true;
-        this.filterSkillsByCategory()
-      }
-      else {
-        this.otherSkillset = false;
-        this.roleInfo.get('otherSkillsCategory')?.reset();
-        this.filterSkillsByCategory(value as string)
-      }
-    });
+    this.roleInfo
+      .get('requiredSkillsCategory')
+      ?.valueChanges.subscribe((value) => {
+        this.roleInfo.get('requiredSkills')?.enable();
+        this.roleInfo.get('requiredSkills')?.reset();
+        if (value === 'other') {
+          this.otherSkillset = true;
+          this.filterSkillsByCategory();
+        } else {
+          this.otherSkillset = false;
+          this.roleInfo.get('otherSkillsCategory')?.reset();
+          this.filterSkillsByCategory(value as string);
+        }
+      });
   }
 
   filterSkillsByCategory(category?: string) {
-    if(category) {
+    if (category) {
       this.skills = allSkills.filter((skill) => skill.category === category);
-    }
-    else {
+    } else {
       this.skills = allSkills;
     }
   }
@@ -109,7 +110,10 @@ export class AppDiscoveryFormComponent implements OnInit {
       this.openSnackBar('Fill all the required fields', 'Close');
       return;
     }
-    if (!this.personalInfo.get('acceptOtherCommunications')?.valid || !this.personalInfo.get('acceptPersonalData')?.valid) {
+    if (
+      !this.personalInfo.get('acceptOtherCommunications')?.valid ||
+      !this.personalInfo.get('acceptPersonalData')?.valid
+    ) {
       this.openSnackBar('Please accept the terms and conditions', 'Close');
       return;
     }

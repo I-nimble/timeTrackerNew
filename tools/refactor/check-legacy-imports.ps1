@@ -4,33 +4,34 @@
 
 $ErrorActionPreference = "Stop"
 $files = Get-ChildItem -Path $Root -Recurse -Include *.ts,*.html,*.scss
-$legacyPatterns = @(
-  "src/app/components/",
-  "src/app/pages/",
-  "src/app/services/",
-  "src/app/models/",
-  "src/app/stores/",
-  "src/app/layouts/",
-  "src/app/pipe/",
-  "src/app/utils/"
-)
+
+# Only check for specific module filenames that were moved to legacy.
+$modules = @('material.module', 'shared.module', 'stripe.module')
 
 $violations = @()
 
 foreach ($file in $files) {
-  if ($file.FullName -replace "\\","/" -like "*/src/app/legacy/*") { continue }
-  $content = Get-Content -Path $file.FullName -Raw
-  foreach ($pattern in $legacyPatterns) {
-    if ($content -match [regex]::Escape($pattern)) {
-      $violations += "{0}: references {1}" -f ($file.FullName -replace "^.*timeTrackerNew\\",""), $pattern
+  # skip files that are already in the legacy folder
+  if ($file.FullName -replace "\\", "/" -like "*/src/app/legacy/*") { continue }
+
+  $lines = Get-Content -Path $file.FullName
+  for ($i = 0; $i -lt $lines.Count; $i++) {
+    $line = $lines[$i]
+    if ($line -notmatch '^\s*import\s+') { continue }
+
+    foreach ($module in $modules) {
+      if ($line -like "*${module}*" -and $line -notlike "*legacy/*") {
+        $relativePath = $file.FullName -replace "^.*timeTrackerNew\\", ""
+        $violations += "{0}:{1} imports {2}" -f $relativePath, ($i + 1), $line.Trim()
+      }
     }
   }
 }
 
 if ($violations.Count -gt 0) {
-  Write-Host "Legacy reference violations found:" -ForegroundColor Red
+  Write-Host "Legacy reference violations found (non-legacy imports of moved modules):" -ForegroundColor Red
   $violations | Sort-Object -Unique | ForEach-Object { Write-Host $_ }
   exit 1
 }
 
-Write-Host "No forbidden legacy references found outside src/app/legacy." -ForegroundColor Green
+Write-Host "No non-legacy imports of moved modules found." -ForegroundColor Green

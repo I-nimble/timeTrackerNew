@@ -1,22 +1,16 @@
 import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 
-import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 // snippets
-import {
-  BASIC_LAYOUT_TS_SNIPPET,
-  BASIC_WITH_ICONS_TS_SNIPPET,
-  FORM_SEPARATOR_TS_SNIPPET,
-  FORM_LABEL_ALIGN_TS_SNIPPET,
-  COLLAPSE_FORM_TS_SNIPPET,
-} from './code/form-vertical-ts-snippet';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+
 import {
   BASIC_LAYOUT_HTML_SNIPPET,
   BASIC_WITH_ICONS_HTML_SNIPPET,
@@ -25,9 +19,15 @@ import {
   COLLAPSE_FORM_HTML_SNIPPET,
   FORM_WITH_TABS_HTML_SNIPPET,
 } from './code/form-vertical-html-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import {
+  BASIC_LAYOUT_TS_SNIPPET,
+  BASIC_WITH_ICONS_TS_SNIPPET,
+  FORM_SEPARATOR_TS_SNIPPET,
+  FORM_LABEL_ALIGN_TS_SNIPPET,
+  COLLAPSE_FORM_TS_SNIPPET,
+} from './code/form-vertical-ts-snippet';
+import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-form-vertical',

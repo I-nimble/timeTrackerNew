@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+
 import { NotificationListComponent } from 'src/app/components/notification-list/notification-list.component';
 
 @Component({

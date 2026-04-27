@@ -1,17 +1,22 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
-
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { STICKY_FOOTER_TABLE_HTML_SNIPPET, STICKY_HEADER_TABLE_HTML_SNIPPET } from './code/sticky-header-footer-table-html-snippet';
-import { STICKY_FOOTER_TABLE_TS_SNIPPET, STICKY_HEADER_TABLE_TS_SNIPPET } from './code/sticky-header-footer-table-ts-snippet';
+import { MatTableModule } from '@angular/material/table';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+// snippets
+import {
+  STICKY_FOOTER_TABLE_HTML_SNIPPET,
+  STICKY_HEADER_TABLE_HTML_SNIPPET,
+} from './code/sticky-header-footer-table-html-snippet';
+import {
+  STICKY_FOOTER_TABLE_TS_SNIPPET,
+  STICKY_HEADER_TABLE_TS_SNIPPET,
+} from './code/sticky-header-footer-table-ts-snippet';
 
 export interface Transaction {
   item: string;
@@ -87,7 +92,11 @@ const ELEMENT_DATA: PeriodicElement[] = [
 ];
 @Component({
   selector: 'app-sticky-header-footer-table',
-  imports: [MatCardModule, MatTableModule, CommonModule, MatDividerModule,
+  imports: [
+    MatCardModule,
+    MatTableModule,
+    CommonModule,
+    MatDividerModule,
     Highlight,
     HighlightAuto,
     HighlightLineNumbers,

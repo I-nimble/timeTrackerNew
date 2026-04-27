@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
-import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Component, Input } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
+import { CoreService } from 'src/app/services/core.service';
 
 @Component({
   standalone: true,
@@ -13,7 +14,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
         [class]="
-          (this.collapsed && !(this.opened && this.isMobileScreen))
+          this.collapsed && !(this.opened && this.isMobileScreen)
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
@@ -24,7 +25,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         [class]="
-          (this.collapsed && !(this.opened && this.isMobileScreen))
+          this.collapsed && !(this.opened && this.isMobileScreen)
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "
@@ -37,7 +38,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble-iso.png"
         [class]="
-          (this.collapsed && !(this.opened && this.isMobileScreen))
+          this.collapsed && !(this.opened && this.isMobileScreen)
             ? 'logo-img align-middle m-2 iso-logo visible'
             : 'logo-img align-middle m-2 iso-logo hidden'
         "
@@ -48,7 +49,7 @@ import { CommonModule } from '@angular/common';
       <img
         src="https://inimble-app.s3.us-east-1.amazonaws.com/assets/images/inimble.png"
         [class]="
-          (this.collapsed && !(this.opened && this.isMobileScreen))
+          this.collapsed && !(this.opened && this.isMobileScreen)
             ? 'logo-img align-middle m-2 full-logo hidden'
             : 'logo-img align-middle m-2 full-logo visible'
         "

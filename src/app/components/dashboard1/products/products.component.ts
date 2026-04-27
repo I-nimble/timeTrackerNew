@@ -1,4 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -10,8 +12,8 @@ import {
   ApexPlotOptions,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface productsChart {
   series: ApexAxisChartSeries;

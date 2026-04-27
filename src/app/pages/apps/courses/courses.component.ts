@@ -1,33 +1,35 @@
 import { Component, signal } from '@angular/core';
-import { CourseService } from 'src/app/services/apps/course/course.service';
-import { course } from './course';
-import { MatCardModule } from '@angular/material/card';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { RouterModule } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { CourseService } from 'src/app/services/apps/course/course.service';
+
+import { course } from './course';
 
 @Component({
-    selector: 'app-courses',
-    templateUrl: './courses.component.html',
-    imports: [
-        MatCardModule,
-        TablerIconsModule,
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatDividerModule,
-        RouterModule,
-        MatIconModule,
-        MatInputModule,
-        MatButtonModule,
-    ]
+  selector: 'app-courses',
+  templateUrl: './courses.component.html',
+  imports: [
+    MatCardModule,
+    TablerIconsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatDividerModule,
+    RouterModule,
+    MatIconModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
 })
 export class AppCoursesComponent {
   courseList = signal<course[]>([]);
@@ -46,7 +48,7 @@ export class AppCoursesComponent {
     return this.courseService
       .getCourse()
       .filter(
-        (x) => x.courseName.toLowerCase().indexOf(v.toLowerCase()) !== -1
+        (x) => x.courseName.toLowerCase().indexOf(v.toLowerCase()) !== -1,
       );
   }
 
@@ -58,8 +60,8 @@ export class AppCoursesComponent {
       this.courseList.set(
         this.courseService
           .getCourse()
-          // tslint:disable-next-line: no-shadowed-variable
-          .filter((course) => course.courseFramework === filterValue)
+
+          .filter((course) => course.courseFramework === filterValue),
       );
     }
   }

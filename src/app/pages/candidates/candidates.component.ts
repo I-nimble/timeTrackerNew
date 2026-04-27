@@ -1,34 +1,38 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   ViewChild,
   signal,
+  OnInit,
+  AfterViewInit,
 } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
-import { environment } from 'src/environments/environment';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
-import { PositionsService } from 'src/app/services/positions.service';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component'; 
-import { CompaniesService } from 'src/app/services/companies.service';
-import { PermissionService } from 'src/app/services/permission.service';
-import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
-import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
-import { ApplicationMatchScoresService } from 'src/app/services/application-match-scores.service';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { forkJoin, of, Observable } from 'rxjs';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
 import { PositionDiscModalComponent } from 'src/app/components/position-disc-modal/position-disc-modal.component';
-import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { ApplicationMatchScoresService } from 'src/app/services/application-match-scores.service';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { PositionsService } from 'src/app/services/positions.service';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { environment } from 'src/environments/environment';
+
+import { RejectionDialogComponent } from '../rejected/rejection-dialog/rejection-dialog.component';
+import { AddCandidateDialogComponent } from '../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 
 @Component({
   selector: 'app-candidates',
@@ -42,9 +46,9 @@ import { getTrainingNames } from 'src/app/utils/candidate.utils';
     StripeComponent,
   ],
   templateUrl: './candidates.component.html',
-  styleUrl: './candidates.component.scss'
+  styleUrl: './candidates.component.scss',
 })
-export class CandidatesComponent {
+export class CandidatesComponent implements OnInit, AfterViewInit {
   role: any = localStorage.getItem('role');
   candidatesList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('all');
@@ -52,15 +56,15 @@ export class CandidatesComponent {
   pendingCandidates = signal<any[]>([]);
   reviewingCandidates = signal<any[]>([]);
   talentMatchCandidates = signal<any[]>([]);
-  allowedTM: boolean = false;
+  allowedTM = false;
   startDate: Date | null = null;
   endDate: Date | null = null;
   positions = signal<any[]>([]);
   companiesData: any[] = [];
-  canView: boolean = false;
-  canManage: boolean = false;
-  canEdit: boolean = false;
-  canDelete: boolean = false;
+  canView = false;
+  canManage = false;
+  canEdit = false;
+  canDelete = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -74,15 +78,15 @@ export class CandidatesComponent {
     private companiesService: CompaniesService,
     private permissionService: PermissionService,
     private discProfilesService: DiscProfilesService,
-    private applicationMatchScoresService: ApplicationMatchScoresService
-  ) { }
+    private applicationMatchScoresService: ApplicationMatchScoresService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCandidates();
     this.loadPositions();
 
     this.companiesService.getCompanies().subscribe({
-      next: companies => {
+      next: (companies) => {
         this.companiesData = companies;
       },
     });
@@ -140,7 +144,8 @@ export class CandidatesComponent {
     }
 
     if (this.canEdit && !this.canManage) {
-      const isEditableStatus = element.status === 'pending' || element.status === 'reviewing';
+      const isEditableStatus =
+        element.status === 'pending' || element.status === 'reviewing';
       return !isEditableStatus;
     }
 
@@ -161,12 +166,14 @@ export class CandidatesComponent {
     this.positionsService.get().subscribe({
       next: (positions: any[]) => {
         this.positions.set(positions);
-      }
+      },
     });
   }
 
   getPositionName(positionId: number): string {
-    const position = this.positions().find((position: any) => position.id === positionId);
+    const position = this.positions().find(
+      (position: any) => position.id === positionId,
+    );
     return position ? position.title : '';
   }
 
@@ -187,11 +194,11 @@ export class CandidatesComponent {
       width: '650px',
       maxHeight: '80vh',
       data: {
-        positions: this.positions()
-      }
+        positions: this.positions(),
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result === 'success') {
         this.loadPositions();
       }
@@ -230,21 +237,27 @@ export class CandidatesComponent {
       filteredCandidates = [
         ...this.pendingCandidates(),
         ...this.reviewingCandidates(),
-        ...this.talentMatchCandidates()
+        ...this.talentMatchCandidates(),
       ];
     } else if (currentTab === 'pending') {
       filteredCandidates = [...this.pendingCandidates()];
     } else if (currentTab === 'reviewing') {
       filteredCandidates = [...this.reviewingCandidates()];
-    }
-    else if (currentTab === 'talent match') {
+    } else if (currentTab === 'talent match') {
       filteredCandidates = [...this.talentMatchCandidates()];
     }
 
     if (this.startDate && this.endDate) {
-      const [start, end] = [this.startDate, this.endDate].map(d => new Date(d).setHours(0, 0, 0, 0));
+      const [start, end] = [this.startDate, this.endDate].map((d) =>
+        new Date(d).setHours(0, 0, 0, 0),
+      );
       filteredCandidates = filteredCandidates.filter((candidate: any) => {
-        const submission = new Date(candidate.submission_date).setHours(0, 0, 0, 0);
+        const submission = new Date(candidate.submission_date).setHours(
+          0,
+          0,
+          0,
+          0,
+        );
         return submission >= start && submission <= end;
       });
     }
@@ -255,11 +268,17 @@ export class CandidatesComponent {
   private loadCandidates(): void {
     this.applicationsService.get().subscribe((applications: any[]) => {
       const visibleApplications = applications.filter(
-        (application: any) => application.status !== 'rejected'
+        (application: any) => application.status !== 'rejected',
       );
-      this.pendingCandidates.set(visibleApplications.filter((a: any) => a.status === 'pending'));
-      this.reviewingCandidates.set(visibleApplications.filter((a: any) => a.status === 'reviewing'));
-      this.talentMatchCandidates.set(visibleApplications.filter((a: any) => a.status === 'talent match'));
+      this.pendingCandidates.set(
+        visibleApplications.filter((a: any) => a.status === 'pending'),
+      );
+      this.reviewingCandidates.set(
+        visibleApplications.filter((a: any) => a.status === 'reviewing'),
+      );
+      this.talentMatchCandidates.set(
+        visibleApplications.filter((a: any) => a.status === 'talent match'),
+      );
 
       this.candidatesList = new MatTableDataSource(visibleApplications);
       this.candidatesList.paginator = this.paginator;
@@ -268,20 +287,21 @@ export class CandidatesComponent {
   }
 
   countInvoicesByStatus(status: string): number {
-    return this.candidatesList.data.filter((application) => application.status === status)
-      .length;
+    return this.candidatesList.data.filter(
+      (application) => application.status === status,
+    ).length;
   }
 
   openEditCandidateDialog(candidate: any): void {
     const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
       width: '600px',
-      data: { 
-        companies: this.companiesData, 
-        action: 'edit', 
-        candidate: candidate 
-      }
+      data: {
+        companies: this.companiesData,
+        action: 'edit',
+        candidate: candidate,
+      },
     });
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result === 'success') {
         this.loadCandidates();
       }
@@ -293,7 +313,7 @@ export class CandidatesComponent {
       data: {
         action: 'delete',
         subject: 'application',
-      }
+      },
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
@@ -307,7 +327,7 @@ export class CandidatesComponent {
           },
           error: () => {
             this.showSnackbar('Error deleting application.');
-          }
+          },
         });
       }
     });
@@ -322,8 +342,8 @@ export class CandidatesComponent {
           id: candidate.id,
           name: candidate.name,
           email: candidate.email,
-          position_id: candidate.position_id
-        }
+          position_id: candidate.position_id,
+        },
       },
       disableClose: false,
       hasBackdrop: true,
@@ -331,39 +351,52 @@ export class CandidatesComponent {
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result?.success) {
-        const discProfileIds = (result.discProfiles || []).map((p: any) => p.id);
+        const discProfileIds = (result.discProfiles || []).map(
+          (p: any) => p.id,
+        );
         const matchScores = result.matchScores || [];
         const discReq = discProfileIds.length
-          ? this.discProfilesService.assignToApplication(candidate.id, discProfileIds)
+          ? this.discProfilesService.assignToApplication(
+              candidate.id,
+              discProfileIds,
+            )
           : null;
         const matchReq = matchScores.length
-          ? this.applicationMatchScoresService.createMatchScores({ application_id: candidate.id, match_scores: matchScores })
+          ? this.applicationMatchScoresService.createMatchScores({
+              application_id: candidate.id,
+              match_scores: matchScores,
+            })
           : null;
         const requests: Observable<any>[] = [];
         if (discReq) requests.push(discReq);
         if (matchReq) requests.push(matchReq);
-        const executePersist: Observable<any> = requests.length ? forkJoin(requests) : of(null);
+        const executePersist: Observable<any> = requests.length
+          ? forkJoin(requests)
+          : of(null);
         executePersist.subscribe({
           next: () => {
             this.applicationsService.sendToTalentMatch(candidate.id).subscribe({
               next: () => {
-                if (result.discProfiles) candidate.disc_profiles = result.discProfiles;
+                if (result.discProfiles)
+                  candidate.disc_profiles = result.discProfiles;
                 if (result.matchScores) {
                   candidate.match_scores = result.matchScores;
                   candidate.all_match_scores = result.matchScores;
                 }
-                this.showSnackbar('Candidate sent to talent match successfully!');
+                this.showSnackbar(
+                  'Candidate sent to talent match successfully!',
+                );
                 this.loadCandidates();
                 this.filterCandidates();
               },
               error: () => {
                 this.showSnackbar('Error sending candidate to talent match.');
-              }
+              },
             });
           },
           error: () => {
             this.showSnackbar('Error saving DISC profiles or match scores.');
-          }
+          },
         });
       }
     });
@@ -395,34 +428,38 @@ export class CandidatesComponent {
     const MAX_FILE_SIZE = 1024 * 1024;
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    input.accept =
+      'application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     input.onchange = (e: any) => {
       file = e.target.files[0];
       if (!file) return;
 
       const validTypes = [
         'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ];
       const extension = file.name.split('.').pop()?.toLowerCase();
       const validExts = ['pdf', 'doc', 'docx'];
 
-      if (!validTypes.includes(file.type) && !(extension && validExts.includes(extension))) {
+      if (
+        !validTypes.includes(file.type) &&
+        !(extension && validExts.includes(extension))
+      ) {
         this.showSnackbar('Invalid file format. Please upload a PDF or Word.');
         return;
       }
 
-      if(file.size > MAX_FILE_SIZE) {
+      if (file.size > MAX_FILE_SIZE) {
         this.showSnackbar('File size must be less than 1MB.');
         return;
       }
 
       this.applicationsService.uploadCV(file, candidateId).subscribe({
         next: () => {
-          this.showSnackbar("CV uploaded successfully");
+          this.showSnackbar('CV uploaded successfully');
         },
         error: () => {
-          this.showSnackbar("Error uploading CV");
+          this.showSnackbar('Error uploading CV');
         },
       });
     };
@@ -430,19 +467,23 @@ export class CandidatesComponent {
   }
 
   markAsAvailable(candidate: any) {
-    this.applicationsService.updateAvailability({application_id: candidate.id, availability: true}).subscribe(() => {
-      this.showSnackbar('Candidate marked as available');
-      this.loadCandidates();
-      this.filterCandidates();
-    });
+    this.applicationsService
+      .updateAvailability({ application_id: candidate.id, availability: true })
+      .subscribe(() => {
+        this.showSnackbar('Candidate marked as available');
+        this.loadCandidates();
+        this.filterCandidates();
+      });
   }
 
   markAsUnavailable(candidate: any) {
-    this.applicationsService.updateAvailability({application_id: candidate.id, availability: false}).subscribe(() => {
-      this.showSnackbar('Candidate marked as unavailable');
-      this.loadCandidates();
-      this.filterCandidates();
-    });
+    this.applicationsService
+      .updateAvailability({ application_id: candidate.id, availability: false })
+      .subscribe(() => {
+        this.showSnackbar('Candidate marked as unavailable');
+        this.loadCandidates();
+        this.filterCandidates();
+      });
   }
 
   openRejectDialog(candidate: any): void {
@@ -450,11 +491,11 @@ export class CandidatesComponent {
       width: '500px',
       data: {
         mode: 'reject',
-        candidate: candidate
-      }
+        candidate: candidate,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result?.success) {
         this.showSnackbar('Candidate rejected successfully');
         this.loadCandidates();

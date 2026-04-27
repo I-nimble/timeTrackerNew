@@ -14,10 +14,9 @@ export const LIST_BASIC_TS_SNIPPET = `  import {Component} from '@angular/core';
     }
 `;
 
-
 export const LIST_SELECTION_TS_SNIPPET = `  import {Component} from '@angular/core';
     import { MatListModule } from '@angular/material/list';
-    import { MaterialModule } from 'src/app/material.module';
+    import { MaterialModule } from 'src/app/legacy/material.module';
     import {DatePipe} from '@angular/common';
 
     /**
@@ -33,10 +32,9 @@ export const LIST_SELECTION_TS_SNIPPET = `  import {Component} from '@angular/co
     }
 `;
 
-
 export const LIST_SECTIONS_TS_SNIPPET = `  import {Component} from '@angular/core';
     import { MatListModule } from '@angular/material/list';
-    import { MaterialModule } from 'src/app/material.module';
+    import { MaterialModule } from 'src/app/legacy/material.module';
     import {DatePipe} from '@angular/common';
 
     export interface Section {

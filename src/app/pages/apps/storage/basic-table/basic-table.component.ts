@@ -1,19 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
 // snippets
-import { BEST_PRODUCT_TABLE_HTML_SNIPPET, EMPLOYEE_THE_YEAR_TABLE_HTML_SNIPPET, PAYMENT_GATEWAYS_TABLE_HTML_SNIPPET, TOP_PROJECT_TABLE_HTML_SNIPPET } from './code/basic-table-html-snippet';
-import { BEST_PRODUCT_TABLE_TS_SNIPPET, EMPLOYEE_THE_YEAR_TABLE_TS_SNIPPET, PAYMENT_GATEWAYS_TABLE_TS_SNIPPET, TOP_PROJECT_TABLE_TS_SNIPPET } from './code/basic-table-ts-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
+import {
+  BEST_PRODUCT_TABLE_HTML_SNIPPET,
+  EMPLOYEE_THE_YEAR_TABLE_HTML_SNIPPET,
+  PAYMENT_GATEWAYS_TABLE_HTML_SNIPPET,
+  TOP_PROJECT_TABLE_HTML_SNIPPET,
+} from './code/basic-table-html-snippet';
+import {
+  BEST_PRODUCT_TABLE_TS_SNIPPET,
+  EMPLOYEE_THE_YEAR_TABLE_TS_SNIPPET,
+  PAYMENT_GATEWAYS_TABLE_TS_SNIPPET,
+  TOP_PROJECT_TABLE_TS_SNIPPET,
+} from './code/basic-table-ts-snippet';
 
 // table 1
 export interface productsData {
@@ -34,7 +43,7 @@ const PRODUCT_DATA: productsData[] = [
     position: 'Web Designer',
     productName: 'Elite Admin',
     budget: 3.9,
-    priority: 'low'
+    priority: 'low',
   },
   {
     id: 2,
@@ -43,7 +52,7 @@ const PRODUCT_DATA: productsData[] = [
     position: 'Project Manager',
     productName: 'Real Homes Theme',
     budget: 24.5,
-    priority: 'medium'
+    priority: 'medium',
   },
   {
     id: 3,
@@ -52,7 +61,7 @@ const PRODUCT_DATA: productsData[] = [
     position: 'Project Manager',
     productName: 'MedicalPro Theme',
     budget: 12.8,
-    priority: 'high'
+    priority: 'high',
   },
   {
     id: 4,
@@ -61,7 +70,7 @@ const PRODUCT_DATA: productsData[] = [
     position: 'Frontend Engineer',
     productName: 'Hosting Press HTML',
     budget: 2.4,
-    priority: 'critical'
+    priority: 'critical',
   },
 ];
 
@@ -173,57 +182,59 @@ export interface Element {
 }
 
 const BASIC_DATA: Element[] = [
-  { 
+  {
     imgSrc: 'assets/images/profile/user-1.jpg',
     name: 'Micheal Doe',
     post: 'Web Designer',
     pname: 'Elite Admin',
     status: 'Active',
     color: 'success',
-    budget: '3.9'
-   },
-   { 
+    budget: '3.9',
+  },
+  {
     imgSrc: 'assets/images/profile/user-2.jpg',
     name: 'Andrew McDownland',
     post: 'Project Manager',
     pname: 'Real Homes WP Theme',
     status: 'Pending',
     color: 'warning',
-    budget: '3.9'
-   },
-   { 
+    budget: '3.9',
+  },
+  {
     imgSrc: 'assets/images/profile/user-3.jpg',
     name: 'Christopher Jamil',
     post: 'Frontend Engineer',
     pname: 'MedicalPro WP Theme',
     status: 'Cancel',
     color: 'error',
-    budget: '3.9'
-   },
-   { 
+    budget: '3.9',
+  },
+  {
     imgSrc: 'assets/images/profile/user-4.jpg',
     name: 'Mathew Anderson',
     post: 'Content Writer',
     pname: 'Hosting Press HTML',
     status: 'Completed',
     color: 'primary',
-    budget: '3.9'
-   },
+    budget: '3.9',
+  },
 ];
 
-
 @Component({
-    selector: 'app-basic-table',
-    imports: [MatTableModule, CommonModule, MatCardModule, MatDividerModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './basic-table.component.html'
+  selector: 'app-basic-table',
+  imports: [
+    MatTableModule,
+    CommonModule,
+    MatCardModule,
+    MatDividerModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './basic-table.component.html',
 })
 export class AppBasicTableComponent implements OnInit {
-
   // 1 [Top Projects with Table]
   codeForTopProjects = TOP_PROJECT_TABLE_HTML_SNIPPET;
   codeForTopProjectsTs = TOP_PROJECT_TABLE_TS_SNIPPET;
@@ -241,7 +252,7 @@ export class AppBasicTableComponent implements OnInit {
   codeForEmployeeTheYearTs = EMPLOYEE_THE_YEAR_TABLE_TS_SNIPPET;
 
   // table 4
-  
+
   displayedColumns4 = ['name', 'pname', 'status', 'budget'];
   dataSource4 = new MatTableDataSource<Element>(BASIC_DATA);
 
@@ -267,5 +278,3 @@ export class AppBasicTableComponent implements OnInit {
 
   ngOnInit(): void {}
 }
-
-

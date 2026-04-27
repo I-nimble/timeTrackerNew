@@ -1,1 +1,1 @@
-﻿export { JwtInterceptor } from '@core/authentication/interceptors/jwt.interceptor';
+export { JwtInterceptor } from '@core/authentication/interceptors/jwt.interceptor';

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -8,13 +9,12 @@ import { environment } from 'src/environments/environment';
 })
 export class OrgchartsService {
   constructor(private http: HttpClient) {}
-  API_URI: string = `${environment.apiUrl}/orgcharts`;
+  API_URI = `${environment.apiUrl}/orgcharts`;
 
   public get(companyId?: number): Observable<any> {
-    if(companyId) {
+    if (companyId) {
       return this.http.get<any>(`${this.API_URI}/${companyId}`);
-    }
-    else {
+    } else {
       return this.http.get<any>(`${this.API_URI}`);
     }
   }

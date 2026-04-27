@@ -1,32 +1,59 @@
+import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { ThemePalette } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
-import {MatTabsModule} from '@angular/material/tabs';
+import { MatTabsModule } from '@angular/material/tabs';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
-import {DatePipe} from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
-import { BACKGROUND_TABS_HTML_SNIPPET, BASIC_TABS_HTML_SNIPPET, CENTER_ALIGN_TABS_HTML_SNIPPET, CONTENT_LOADED_LAZILY_TABS_HTML_SNIPPET, CUSTOM_LABEL_TABS_HTML_SNIPPET, FIT_TO_BAR_CONTENT_TABS_HTML_SNIPPET, GROUP_TABS_HTML_SNIPPET, ICON_TABS_HTML_SNIPPET, NAVBAR_BACKGROUND_TABS_HTML_SNIPPET, NO_ANIMATION_TABS_HTML_SNIPPET, PAGINATED_TABS_HTML_SNIPPET, POSITION_TABS_HTML_SNIPPET, POSITION_WITH_ICON_TABS_HTML_SNIPPET, RIGHT_ALIGN_TABS_HTML_SNIPPET, SLOW_ANIMATION_TABS_HTML_SNIPPET } from './code/tabs-html-snippet';
-import { BACKGROUND_TABS_TS_SNIPPET, BASIC_TABS_TS_SNIPPET, CONTENT_LOADED_LAZILY_TABS_TS_SNIPPET, NAVBAR_BACKGROUND_TABS_TS_SNIPPET, PAGINATED_TABS_TS_SNIPPET } from './code/tabs-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import {
+  BACKGROUND_TABS_HTML_SNIPPET,
+  BASIC_TABS_HTML_SNIPPET,
+  CENTER_ALIGN_TABS_HTML_SNIPPET,
+  CONTENT_LOADED_LAZILY_TABS_HTML_SNIPPET,
+  CUSTOM_LABEL_TABS_HTML_SNIPPET,
+  FIT_TO_BAR_CONTENT_TABS_HTML_SNIPPET,
+  GROUP_TABS_HTML_SNIPPET,
+  ICON_TABS_HTML_SNIPPET,
+  NAVBAR_BACKGROUND_TABS_HTML_SNIPPET,
+  NO_ANIMATION_TABS_HTML_SNIPPET,
+  PAGINATED_TABS_HTML_SNIPPET,
+  POSITION_TABS_HTML_SNIPPET,
+  POSITION_WITH_ICON_TABS_HTML_SNIPPET,
+  RIGHT_ALIGN_TABS_HTML_SNIPPET,
+  SLOW_ANIMATION_TABS_HTML_SNIPPET,
+} from './code/tabs-html-snippet';
+import {
+  BACKGROUND_TABS_TS_SNIPPET,
+  BASIC_TABS_TS_SNIPPET,
+  CONTENT_LOADED_LAZILY_TABS_TS_SNIPPET,
+  NAVBAR_BACKGROUND_TABS_TS_SNIPPET,
+  PAGINATED_TABS_TS_SNIPPET,
+} from './code/tabs-ts-snippet';
 
 @Component({
-    selector: 'app-tabs',
-    imports: [MatTabsModule, MatCardModule, MatIconModule, TablerIconsModule, DatePipe, MatButtonModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './tabs.component.html'
+  selector: 'app-tabs',
+  imports: [
+    MatTabsModule,
+    MatCardModule,
+    MatIconModule,
+    TablerIconsModule,
+    DatePipe,
+    MatButtonModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './tabs.component.html',
 })
 export class AppTabsComponent {
-
   // 1 [Basic with tabs]
   codeForTabsBasic = BASIC_TABS_HTML_SNIPPET;
   codeForTabsBasicTs = BASIC_TABS_TS_SNIPPET;

@@ -1,10 +1,12 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { SharedModule } from '../shared.module';
-import { UsersService } from 'src/app/services/users.service';
-import { CompaniesService } from 'src/app/services/companies.service';
+
 import { Company } from 'src/app/models/Company.model';
-import { ProjectsService } from 'src/app/services/projects.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { ProjectsService } from 'src/app/services/projects.service';
+import { UsersService } from 'src/app/services/users.service';
+
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'app-user-options',
@@ -20,13 +22,13 @@ export class UserOptionsComponent implements OnInit {
   users: any;
   companies: Company[] = [];
   usersList: any;
-  select: string = '';
+  select = '';
   projectsList: any;
-  selectProject: string = '-1';
-  type: string = 'user';
-  byClient: boolean = false;
+  selectProject = '-1';
+  type = 'user';
+  byClient = false;
   role = localStorage.getItem('role');
-  selected: boolean = true;
+  selected = true;
   constructor(
     private userService: UsersService,
     private companiesService: CompaniesService,
@@ -51,14 +53,14 @@ export class UserOptionsComponent implements OnInit {
       return user.name + ' ' + user.last_name;
     }
   }
-  
+
   getUsers() {
-    let body = {};
+    const body = {};
     this.userService.getUsers(body).subscribe({
       next: (users) => {
         this.usersList = users.filter((user: any) => user.active == 1);
         this.users = this.usersList.filter(
-          (user: any) => user.role === 2 && user.active == 1
+          (user: any) => user.role === 2 && user.active == 1,
         );
       },
       error: (err) => {},
@@ -74,12 +76,12 @@ export class UserOptionsComponent implements OnInit {
     });
   }
 
-  getProjects(userId: string = '0') {
+  getProjects(userId = '0') {
     this.handleType();
     this.projectService.get(userId, this.type).subscribe({
       next: (projects: any) => {
         this.projectsList = projects.filter(
-          (project: any) => project.active == 1
+          (project: any) => project.active == 1,
         );
       },
     });

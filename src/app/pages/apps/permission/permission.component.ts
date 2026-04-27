@@ -1,36 +1,39 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   Inject,
   Optional,
   ViewChild,
   AfterViewInit,
+  OnInit,
 } from '@angular/core';
-import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { CommonModule } from '@angular/common';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { UsersService } from 'src/app/services/users.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { environment } from 'src/environments/environment';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
+import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
 import {
   ReportFilter,
   ReportsFilterComponent,
 } from 'src/app/components/reports-filter/reports-filter.component';
 import { TimerComponent } from 'src/app/components/timer-component/timer.component';
-import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
-import { AppEmployeesReportsComponent } from 'src/app/components/dashboard2/app-employees-reports/app-employees-reports.component';
-import { TeamProductivityComponent } from 'src/app/components/dashboard2/team-productivity/team-productivity.component';
-import { AppPermissionTableComponent } from './permission-table/permission-table.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CompaniesService } from 'src/app/services/companies.service';
 import { PermissionService } from 'src/app/services/permission.service';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
+import { AppPermissionTableComponent } from './permission-table/permission-table.component';
+import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
 
 @Component({
   selector: 'app-permission',
@@ -47,20 +50,19 @@ import { PermissionService } from 'src/app/services/permission.service';
     TeamProductivityComponent,
     AppEmployeesReportsComponent,
     EmployeeDetailsComponent,
-  AppPermissionTableComponent
-],
+    AppPermissionTableComponent,
+  ],
   standalone: true,
 })
-
-export class AppPermissionComponent {
+export class AppPermissionComponent implements OnInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
     Object.create(null);
   users: any[] = [];
   employees: any[] = [];
-  loaded: boolean = false;
+  loaded = false;
   company: any;
-  companyTimezone: string = 'America/Los_Angeles';
-  timeZone: string = 'America/Caracas';
+  companyTimezone = 'America/Los_Angeles';
+  timeZone = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
     user: 'all',
@@ -74,7 +76,7 @@ export class AppPermissionComponent {
   companies: any[] = [];
   companyId: number | string | null = 'all';
   rolesMap: Record<number, string> = {};
-  searchText: string = '';
+  searchText = '';
   dataSource: any[] = [];
   activeStatus: number | string = 1;
   availableSections: { key: string; label: string }[] = [];
@@ -88,7 +90,7 @@ export class AppPermissionComponent {
   ) {}
 
   ngOnInit(): void {
-    this.loadRoles();    
+    this.loadRoles();
     this.getUsers();
     this.getCompanies();
     this.loadSections();
@@ -129,17 +131,24 @@ export class AppPermissionComponent {
         return matchesSearch && matchesActive;
       }
 
-      const selectedCompany = this.companies.find(c => c.id == this.companyId);
+      const selectedCompany = this.companies.find(
+        (c) => c.id == this.companyId,
+      );
       const isAdmin = user.role == 1;
       const isOwner = selectedCompany && user.id == selectedCompany.owner_id;
-      const isEmployee = user.employee && user.employee.company_id == this.companyId;
+      const isEmployee =
+        user.employee && user.employee.company_id == this.companyId;
       const isEmployer =
         (Array.isArray(user.companies_users) &&
-          user.companies_users.some((cu: any) => cu.company_id == this.companyId)) ||
+          user.companies_users.some(
+            (cu: any) => cu.company_id == this.companyId,
+          )) ||
         (user.company && user.company.id == this.companyId);
       const isRelatedCompany =
         Array.isArray(user.companies) &&
-        user.companies.some((c: any) => c.id == this.companyId || c == this.companyId);
+        user.companies.some(
+          (c: any) => c.id == this.companyId || c == this.companyId,
+        );
 
       const included =
         matchesSearch &&
@@ -160,10 +169,11 @@ export class AppPermissionComponent {
             name: user.name,
             last_name: user.last_name,
             email: user.email,
-            imagePath: user.imagePath || this.assetsPath + '/default-profile-pic.png',
+            imagePath:
+              user.imagePath || this.assetsPath + '/default-profile-pic.png',
           },
           role: this.rolesMap[user.role] || 'Other',
-          userRoleId: user.role
+          userRoleId: user.role,
         }));
         this.dataSource = this.users;
         this.getUsersPictures();
@@ -172,9 +182,8 @@ export class AppPermissionComponent {
     });
   }
 
-  onSectionChange(): void {
-  }
-  
+  onSectionChange(): void {}
+
   getUsersPictures() {
     let count = 0;
     if (!this.users.length) {
@@ -185,7 +194,7 @@ export class AppPermissionComponent {
     this.users.forEach((user: any) => {
       this.userService.getProfilePic(user.profile.id).subscribe({
         next: (image: any) => {
-          if(image) {
+          if (image) {
             user.profile.imagePath = image;
           }
         },
@@ -195,7 +204,7 @@ export class AppPermissionComponent {
             this.dataSource = this.users;
             this.loaded = true;
           }
-        }
+        },
       });
     });
   }
@@ -207,10 +216,12 @@ export class AppPermissionComponent {
   loadRoles() {
     this.userService.getRoles().subscribe(
       (roles: any) => {
-        (roles as any[]).forEach(role => this.rolesMap[role.id] = role.name);
+        (roles as any[]).forEach(
+          (role) => (this.rolesMap[role.id] = role.name),
+        );
         this.getUsers();
       },
-      (err: any) => console.error('Error fetching roles:', err)
+      (err: any) => console.error('Error fetching roles:', err),
     );
   }
 }

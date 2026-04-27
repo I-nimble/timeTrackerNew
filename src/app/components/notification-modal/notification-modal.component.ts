@@ -6,6 +6,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
 } from '@angular/core';
+
 import { getState } from '@ngrx/signals';
 import { NotificationStore } from 'src/app/stores/notification.store';
 
@@ -28,11 +29,11 @@ export class NotificationModalComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  deleteNotification(id:any) {
-    this.notificationStore.removeNotification(id)
+  deleteNotification(id: any) {
+    this.notificationStore.removeNotification(id);
   }
 
   deleteAll() {
-    this.notificationStore.removeAll()
+    this.notificationStore.removeAll();
   }
 }

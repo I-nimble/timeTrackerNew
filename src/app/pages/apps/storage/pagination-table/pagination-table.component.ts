@@ -1,20 +1,18 @@
-import { Component, ViewChild } from '@angular/core';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { CommonModule } from '@angular/common';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { PAGINATION_TABLE_HTML_SNIPPET } from './code/pagination-table-html-snippet';
 import { PAGINATION_TABLE_TS_SNIPPET } from './code/pagination-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 const PRODUCT_DATA: Element[] = [
   {
@@ -214,7 +212,7 @@ const PRODUCT_DATA: Element[] = [
   ],
   templateUrl: './pagination-table.component.html',
 })
-export class AppPaginationTableComponent {
+export class AppPaginationTableComponent implements AfterViewInit {
   // 1 [Pagination with Table]
   codeForPaginationTable = PAGINATION_TABLE_HTML_SNIPPET;
   codeForPaginationTableTs = PAGINATION_TABLE_TS_SNIPPET;

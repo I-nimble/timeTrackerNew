@@ -1,16 +1,30 @@
-import { Component, OnInit, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormArray, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
+import {
+  ReactiveFormsModule,
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCard } from '@angular/material/card';
-import { NgxDropzoneModule } from 'ngx-dropzone';
-import { R3Service } from 'src/app/services/r3.service';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { NgxDropzoneModule } from 'ngx-dropzone';
 import { switchMap, tap } from 'rxjs';
+import { R3Service } from 'src/app/services/r3.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -31,26 +45,38 @@ import { environment } from 'src/environments/environment';
     NgxDropzoneModule,
   ],
 })
-
-export class R3VisionComponent implements OnInit {
+export class R3VisionComponent implements OnInit, AfterViewInit {
   form: FormGroup;
   selectedImage: string | null = null;
   deletedVisionItemIds: number[] = [];
   currentVisionId: number | null = null;
   uploadingMap: Record<number, boolean> = {};
   assetsBase = environment.assets;
-  
-  constructor(private fb: FormBuilder, private r3Service: R3Service, public snackBar: MatSnackBar) {}
-  @ViewChild('dropzone', { static: false }) dropzoneRef!: ElementRef<HTMLDivElement>;
 
-  get coreValues() { return this.form.get('coreValues') as FormArray; }
-  get coreFocus() { return this.form.get('coreFocus') as FormArray; }
-  get marketingStrategy() { return this.form.get('marketingStrategy') as FormArray; }
+  constructor(
+    private fb: FormBuilder,
+    private r3Service: R3Service,
+    public snackBar: MatSnackBar,
+  ) {}
+  @ViewChild('dropzone', { static: false })
+  dropzoneRef!: ElementRef<HTMLDivElement>;
+
+  get coreValues() {
+    return this.form.get('coreValues') as FormArray;
+  }
+  get coreFocus() {
+    return this.form.get('coreFocus') as FormArray;
+  }
+  get marketingStrategy() {
+    return this.form.get('marketingStrategy') as FormArray;
+  }
 
   ngAfterViewInit(): void {
     const dropzone = this.dropzoneRef.nativeElement;
-    const input = dropzone.querySelector<HTMLInputElement>('.file-input-hidden');
-    const placeholder = dropzone.querySelector<HTMLDivElement>('.dropzone-content');
+    const input =
+      dropzone.querySelector<HTMLInputElement>('.file-input-hidden');
+    const placeholder =
+      dropzone.querySelector<HTMLDivElement>('.dropzone-content');
 
     input?.addEventListener('change', (event: Event) => {
       const target = event.target as HTMLInputElement;
@@ -60,7 +86,8 @@ export class R3VisionComponent implements OnInit {
         reader.onload = (e) => {
           const src = e.target?.result as string;
           if (placeholder) placeholder.style.opacity = '0';
-          let img = dropzone.querySelector<HTMLImageElement>('.uploaded-preview');
+          let img =
+            dropzone.querySelector<HTMLImageElement>('.uploaded-preview');
           if (!img) {
             img = document.createElement('img');
             img.classList.add('uploaded-preview');
@@ -101,7 +128,7 @@ export class R3VisionComponent implements OnInit {
           item.three_year_picture,
           item.description,
           item.id,
-          item.three_year_picture
+          item.three_year_picture,
         );
         switch (item.type) {
           case 'core_value':
@@ -137,7 +164,7 @@ export class R3VisionComponent implements OnInit {
       error: (err) => {
         console.error('Upload failed', err);
         this.uploadingMap[itemIndex] = false;
-      }
+      },
     });
   }
 
@@ -147,12 +174,17 @@ export class R3VisionComponent implements OnInit {
     window.open(url, '_blank');
   }
 
-  createItem(title: string = '', value: string = '', id: number | null = null, picture: string | null = null) {
+  createItem(
+    title = '',
+    value = '',
+    id: number | null = null,
+    picture: string | null = null,
+  ) {
     return this.fb.group({
       id: [id],
       title: [title],
       value: [value],
-      picture: [picture]
+      picture: [picture],
     });
   }
 
@@ -175,36 +207,37 @@ export class R3VisionComponent implements OnInit {
     const visionItems = [
       ...this.coreValues.value.map((v: any) => ({
         id: v.id || null,
-        type: "core_value",
+        type: 'core_value',
         description: v.value,
-        three_year_picture: v.picture || null
+        three_year_picture: v.picture || null,
       })),
       ...this.coreFocus.value.map((v: any) => ({
         id: v.id || null,
-        type: "core_focus",
+        type: 'core_focus',
         description: v.value,
-        three_year_picture: v.picture || null
+        three_year_picture: v.picture || null,
       })),
       ...this.marketingStrategy.value.map((v: any) => ({
         id: v.id || null,
-        type: "marketing_strategy",
+        type: 'marketing_strategy',
         description: v.value,
-        three_year_picture: v.picture || null
-      }))
+        three_year_picture: v.picture || null,
+      })),
     ];
 
     const payload = {
       visions: [
         {
           id: this.currentVisionId,
-          vision_items: visionItems
-        }
+          vision_items: visionItems,
+        },
       ],
       deleted_vision_item_ids: this.deletedVisionItemIds,
-      deleted_vision_ids: []
+      deleted_vision_ids: [],
     };
-    this.r3Service.saveVision(payload.visions, [], this.deletedVisionItemIds)
-      .subscribe(res => {
+    this.r3Service
+      .saveVision(payload.visions, [], this.deletedVisionItemIds)
+      .subscribe((res) => {
         this.openSnackBar('Vision saved!', 'close');
       });
   }
@@ -215,5 +248,5 @@ export class R3VisionComponent implements OnInit {
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
-  } 
+  }
 }

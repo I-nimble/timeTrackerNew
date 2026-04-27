@@ -1,18 +1,20 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppFaqComponent } from '../faq/faq.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
-import { AppHeaderComponent } from '../header/header.component';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
-import { MatDialog } from '@angular/material/dialog';
-import { ButtonComponent } from 'src/app/components/button/button.component';
+import { AppFaqComponent } from '../faq/faq.component';
+import { AppFooterComponent } from '../footer/footer.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -65,7 +67,7 @@ interface features {
     AppFaqComponent,
     AppDiscoveryFormComponent,
     AppHeaderComponent,
-    ButtonComponent
+    ButtonComponent,
   ],
   templateUrl: './industry-personal-injury.component.html',
 })
@@ -81,7 +83,7 @@ export class AppIndustryPersonalInjuryComponent {
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   // scroll to demos

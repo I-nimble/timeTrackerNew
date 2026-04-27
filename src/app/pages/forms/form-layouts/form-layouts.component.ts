@@ -1,10 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
 import {
   FormControl,
   FormsModule,
@@ -12,20 +7,20 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
-import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 // snippets
-import {
-  ORDINARY_FORM_TS_SNIPPET,
-  INPUT_VARIANTS_TS_SNIPPET,
-  DEFAULT_FORM_TS_SNIPPET,
-  BASIC_HEADER_TS_SNIPPET,
-  DISABLED_FORM_TS_SNIPPET,
-  LEFT_ICON_TS_SNIPPET,
-  RIGHT_ICON_TS_SNIPPET,
-} from './code/form-layout-ts-snippet';
+
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { merge } from 'rxjs';
+
 import {
   ORDINARY_FORM_HTML_SNIPPET,
   INPUT_VARIANTS_HTML_SNIPPET,
@@ -35,11 +30,17 @@ import {
   LEFT_ICON_HTML_SNIPPET,
   RIGHT_ICON_HTML_SNIPPET,
 } from './code/form-layout-html-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
-import { merge } from 'rxjs';
+import {
+  ORDINARY_FORM_TS_SNIPPET,
+  INPUT_VARIANTS_TS_SNIPPET,
+  DEFAULT_FORM_TS_SNIPPET,
+  BASIC_HEADER_TS_SNIPPET,
+  DISABLED_FORM_TS_SNIPPET,
+  LEFT_ICON_TS_SNIPPET,
+  RIGHT_ICON_TS_SNIPPET,
+} from './code/form-layout-ts-snippet';
+import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 interface Food {
   value: string;

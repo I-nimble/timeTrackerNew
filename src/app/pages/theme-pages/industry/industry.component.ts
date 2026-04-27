@@ -1,18 +1,20 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppFaqComponent } from '../faq/faq.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
-import { AppHeaderComponent } from '../header/header.component';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
-import { MatDialog } from '@angular/material/dialog';
-import { ButtonComponent } from 'src/app/components/button/button.component';
+import { AppFaqComponent } from '../faq/faq.component';
+import { AppFooterComponent } from '../footer/footer.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -54,7 +56,19 @@ interface features {
 @Component({
   selector: 'app-industry',
   standalone: true,
-  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
+  imports: [
+    MaterialModule,
+    ButtonComponent,
+    TablerIconsModule,
+    RouterLink,
+    BrandingComponent,
+    AppBlogsComponent,
+    AppFooterComponent,
+    CommonModule,
+    AppFaqComponent,
+    AppDiscoveryFormComponent,
+    AppHeaderComponent,
+  ],
   templateUrl: './industry.component.html',
 })
 export class AppIndustryComponent {
@@ -69,7 +83,7 @@ export class AppIndustryComponent {
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   // scroll to demos
@@ -78,14 +92,14 @@ export class AppIndustryComponent {
   }
 
   openQuickContact() {
-      this.dialog.open(QuickContactModalComponent, {
-        width: '520px', 
-        maxHeight: '90vh', 
-        disableClose: false,
-        autoFocus: false,
-        restoreFocus: false,
-      });
-    }
+    this.dialog.open(QuickContactModalComponent, {
+      width: '520px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      restoreFocus: false,
+    });
+  }
 
   cards = [
     {
@@ -121,63 +135,67 @@ export class AppIndustryComponent {
   ];
 
   apps: apps[] = [
-      {
-        id: 1,
-        img: '/assets/images/svgs/Bookkeeper.svg',
-        title: 'Others',
-        subtitle: 'Tech Startups, Marketing Services, General Business Support',
-        link: '/landingpage/industry/other',
-      },
-      {
-        id: 2,
-        img: '/assets/images/svgs/Case-Manager.svg',
-        title: 'Other legal services',
-        subtitle: 'Specialized legal services for companies and individuals. Access case management, consulting, and legal documentation.',
-        link: '/landingpage/industry/legal-services',
-      },
-      {
-        id: 3,
-        img: '/assets/images/svgs/injury.svg',
-        title: 'Personal Injury',
-        subtitle: 'Manage personal injury cases, track files, and communicate with affected clients.',
-        link: '/landingpage/industry/personal-injury',
-      },
-      {
-        id: 4,
-        img: '/assets/images/svgs/real-state.svg',
-        title: 'Real estate',
-        subtitle: 'Tools for real estate agents: property management, contracts, and client tracking.',
-        link: '/landingpage/industry/real-state',
-      },
-      {
-        id: 5,
-        img: '/assets/images/svgs/workers-compensation.svg',
-        title: 'Workers compensation',
-        subtitle: 'Solutions for managing workers compensation cases, file handling, and employee communication.',
-        link: '/landingpage/industry/workers-compensation',
-      },
-      // {
-      //   id: 6,
-      //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
-      //   title: 'Tickets App',
-      //   subtitle: 'Create new ticket',
-      //   link: '/apps/tickets',
-      // },
-      // {
-      //   id: 7,
-      //   img: '/assets/images/svgs/icon-dd-message-box.svg',
-      //   title: 'Email App',
-      //   subtitle: 'Get new emails',
-      //   link: '/apps/email/inbox',
-      // },
-      // {
-      //   id: 8,
-      //   img: '/assets/images/svgs/icon-dd-application.svg',
-      //   title: 'Courses',
-      //   subtitle: 'Create new course',
-      //   link: '/apps/courses',
-      // },
-    ];
+    {
+      id: 1,
+      img: '/assets/images/svgs/Bookkeeper.svg',
+      title: 'Others',
+      subtitle: 'Tech Startups, Marketing Services, General Business Support',
+      link: '/landingpage/industry/other',
+    },
+    {
+      id: 2,
+      img: '/assets/images/svgs/Case-Manager.svg',
+      title: 'Other legal services',
+      subtitle:
+        'Specialized legal services for companies and individuals. Access case management, consulting, and legal documentation.',
+      link: '/landingpage/industry/legal-services',
+    },
+    {
+      id: 3,
+      img: '/assets/images/svgs/injury.svg',
+      title: 'Personal Injury',
+      subtitle:
+        'Manage personal injury cases, track files, and communicate with affected clients.',
+      link: '/landingpage/industry/personal-injury',
+    },
+    {
+      id: 4,
+      img: '/assets/images/svgs/real-state.svg',
+      title: 'Real estate',
+      subtitle:
+        'Tools for real estate agents: property management, contracts, and client tracking.',
+      link: '/landingpage/industry/real-state',
+    },
+    {
+      id: 5,
+      img: '/assets/images/svgs/workers-compensation.svg',
+      title: 'Workers compensation',
+      subtitle:
+        'Solutions for managing workers compensation cases, file handling, and employee communication.',
+      link: '/landingpage/industry/workers-compensation',
+    },
+    // {
+    //   id: 6,
+    //   img: '/assets/images/svgs/icon-dd-lifebuoy.svg',
+    //   title: 'Tickets App',
+    //   subtitle: 'Create new ticket',
+    //   link: '/apps/tickets',
+    // },
+    // {
+    //   id: 7,
+    //   img: '/assets/images/svgs/icon-dd-message-box.svg',
+    //   title: 'Email App',
+    //   subtitle: 'Get new emails',
+    //   link: '/apps/email/inbox',
+    // },
+    // {
+    //   id: 8,
+    //   img: '/assets/images/svgs/icon-dd-application.svg',
+    //   title: 'Courses',
+    //   subtitle: 'Create new course',
+    //   link: '/apps/courses',
+    // },
+  ];
 
   demos: demos[] = [];
 
@@ -226,14 +244,16 @@ export class AppIndustryComponent {
       icon: 'archive',
       title: 'Dedicated performance and IT support',
       color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
+      subtext:
+        'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
     },
     {
       id: 4,
       icon: 'chart-pie',
       title: 'Integrate tools for remote work',
       color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
+      subtext:
+        'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
     // {
     //   id: 5,

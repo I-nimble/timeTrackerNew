@@ -86,7 +86,6 @@ export const MENU_NESTED_HTML_SNIPPET = `  <button mat-flat-button color="primar
               </mat-menu>
 `;
 
-
 export const MENU_POSITIONS_HTML_SNIPPET = `  <div class="row">
                 <div class="col-sm-3">
                   <button mat-flat-button color="primary" class="w-100" [matMenuTriggerFor]="aboveMenu">

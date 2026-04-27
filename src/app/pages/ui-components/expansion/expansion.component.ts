@@ -8,37 +8,44 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
-import { ACCORDIAN_EXPANSION_TS_SNIPPET, BASIC_EXPANSION_TS_SNIPPET, EXPAND_EXPANSION_TS_SNIPPET } from './code/expansion-ts-snippet';
-import { ACCORDIAN_EXPANSION_HTML_SNIPPET, BASIC_EXPANSION_HTML_SNIPPET, EXPAND_EXPANSION_HTML_SNIPPET } from './code/expansion-html-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
+import {
+  ACCORDIAN_EXPANSION_HTML_SNIPPET,
+  BASIC_EXPANSION_HTML_SNIPPET,
+  EXPAND_EXPANSION_HTML_SNIPPET,
+} from './code/expansion-html-snippet';
+import {
+  ACCORDIAN_EXPANSION_TS_SNIPPET,
+  BASIC_EXPANSION_TS_SNIPPET,
+  EXPAND_EXPANSION_TS_SNIPPET,
+} from './code/expansion-ts-snippet';
 
 @Component({
-    selector: 'app-expansion',
-    providers: [provideNativeDateAdapter()],
-    imports: [
-        MatButtonModule,
-        MatExpansionModule,
-        MatIconModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatDatepickerModule,
-        TablerIconsModule,
-        MatCardModule,
-        MatTabsModule,
-        Highlight,
-        HighlightAuto,
-        HighlightLineNumbers,
-        AppCodeViewComponent
-    ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    templateUrl: './expansion.component.html'
+  selector: 'app-expansion',
+  providers: [provideNativeDateAdapter()],
+  imports: [
+    MatButtonModule,
+    MatExpansionModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    TablerIconsModule,
+    MatCardModule,
+    MatTabsModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './expansion.component.html',
 })
 export class AppExpansionComponent {
   // 2 expand all
@@ -74,5 +81,4 @@ export class AppExpansionComponent {
   // 3 [Expand with expansion]
   codeForAccordianExpansion = ACCORDIAN_EXPANSION_HTML_SNIPPET;
   codeForAccordianExpansionTs = ACCORDIAN_EXPANSION_TS_SNIPPET;
-
 }

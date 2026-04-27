@@ -1,8 +1,15 @@
 import { Injectable } from '@angular/core';
+
 import { Subject } from 'rxjs';
 import { Socket, io } from 'socket.io-client';
 import { environment } from 'src/environments/environment';
-import { GeolocationData, GeolocationUpdate, GeolocationRequest, GeolocationDenied } from '../../models/geolocation.model';
+
+import {
+  GeolocationData,
+  GeolocationUpdate,
+  GeolocationRequest,
+  GeolocationDenied,
+} from '../../models/geolocation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,16 +17,20 @@ import { GeolocationData, GeolocationUpdate, GeolocationRequest, GeolocationDeni
 export class WebSocketService {
   socket: Socket;
   private notificationsSubject = new Subject<any>();
-  private typingSubject = new Subject<{ roomId: string; username: string; isTyping: boolean }>();
-  
+  private typingSubject = new Subject<{
+    roomId: string;
+    username: string;
+    isTyping: boolean;
+  }>();
+
   private geolocationRequestSubject = new Subject<GeolocationRequest>();
   private geolocationUpdateSubject = new Subject<GeolocationUpdate>();
   private geolocationDeniedSubject = new Subject<GeolocationDenied>();
   private closedEntrySubject = new Subject<any>();
   private startedEntrySubject = new Subject<any>();
-  
+
   API_URI = environment.socket;
-  private sendQueue: Array<{ event: string; data: any }> = [];
+  private sendQueue: { event: string; data: any }[] = [];
   private reconnectionAttempts = 0;
   private readonly maxReconnectionAttempts = 10;
 
@@ -28,7 +39,6 @@ export class WebSocketService {
   }
 
   private initializeSocket() {
-
     this.socket = io(this.API_URI, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
@@ -39,11 +49,11 @@ export class WebSocketService {
       randomizationFactor: 0.5,
       auth: {
         jwt: localStorage.getItem('jwt'),
-        userId: localStorage.getItem('email')
+        userId: localStorage.getItem('email'),
       },
       extraHeaders: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+        'X-Requested-With': 'XMLHttpRequest',
+      },
     });
 
     this.setupEventListeners();
@@ -76,8 +86,17 @@ export class WebSocketService {
 
     this.socket.on('server:typing', (data: any) => {
       try {
-        if (data && data.roomId && data.username != null && typeof data.isTyping !== 'undefined') {
-          this.typingSubject.next({ roomId: data.roomId, username: data.username, isTyping: !!data.isTyping });
+        if (
+          data &&
+          data.roomId &&
+          data.username != null &&
+          typeof data.isTyping !== 'undefined'
+        ) {
+          this.typingSubject.next({
+            roomId: data.roomId,
+            username: data.username,
+            isTyping: !!data.isTyping,
+          });
         }
       } catch (err) {
         console.error('Error processing server:typing event', err, data);
@@ -96,7 +115,11 @@ export class WebSocketService {
           this.geolocationRequestSubject.next(data);
         }
       } catch (err) {
-        console.error('Error processing server:requestGeolocation event', err, data);
+        console.error(
+          'Error processing server:requestGeolocation event',
+          err,
+          data,
+        );
       }
     });
 
@@ -106,7 +129,11 @@ export class WebSocketService {
           this.geolocationUpdateSubject.next(data);
         }
       } catch (err) {
-        console.error('Error processing server:geolocationUpdate event', err, data);
+        console.error(
+          'Error processing server:geolocationUpdate event',
+          err,
+          data,
+        );
       }
     });
 
@@ -116,7 +143,11 @@ export class WebSocketService {
           this.geolocationDeniedSubject.next(data);
         }
       } catch (err) {
-        console.error('Error processing server:geolocationDenied event', err, data);
+        console.error(
+          'Error processing server:geolocationDenied event',
+          err,
+          data,
+        );
       }
     });
     this.socket.on('disconnect', (reason) => {
@@ -184,7 +215,7 @@ export class WebSocketService {
         accuracy: data.accuracy,
         timestamp: data.timestamp || new Date().toISOString(),
         deviceId: data.deviceId,
-        userId: data.userId
+        userId: data.userId,
       });
     } catch (err) {
       console.error('Failed to send geolocation update', err);
@@ -258,7 +289,10 @@ export class WebSocketService {
     setTimeout(() => {
       try {
         if (this.socket && !this.socket.connected) {
-          console.log('Attempting WebSocket reconnect, attempt', this.reconnectionAttempts);
+          console.log(
+            'Attempting WebSocket reconnect, attempt',
+            this.reconnectionAttempts,
+          );
           this.socket.connect();
         }
       } catch (err) {

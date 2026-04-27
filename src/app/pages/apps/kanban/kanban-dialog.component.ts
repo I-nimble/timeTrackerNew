@@ -1,33 +1,43 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, Optional, OnInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import {
+  Component,
+  Inject,
+  Optional,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import {
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
-import { environment } from '../../../../environments/environment';
-import { DatePipe } from '@angular/common';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MatNativeDateModule,
-  provideNativeDateAdapter,
-} from '@angular/material/core';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer } from '@angular/platform-browser';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { lastValueFrom } from 'rxjs';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { UsersService } from 'src/app/services/users.service';
+
 import { SafeHtmlPipe } from './safe-html.pipe';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-kanban-dialog',
@@ -60,7 +70,7 @@ export class AppKanbanDialogComponent implements OnInit {
   mentionIndex = 0;
   filteredUsers: any[] = [];
   mentionStartPos = 0;
-  commentText: string = '';
+  commentText = '';
   comments: any[] = [];
   editingComment: any = null;
   selectedComment: any = null;
@@ -68,14 +78,15 @@ export class AppKanbanDialogComponent implements OnInit {
   companies: any[] = [];
   firstAttachmentImage: any = null;
   pastedAttachments: any[] = [];
-  @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('commentTextarea')
+  commentTextarea?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
-  formTouched: boolean = false;
-  isSaving: boolean = false;
-  isOrphan: boolean = false;
+  formTouched = false;
+  isSaving = false;
+  isOrphan = false;
   userId: number | null = null;
   selectedEmployeeId: number | null = null;
-  imageUrls: { [key: string]: string } = {};
+  imageUrls: Record<string, string> = {};
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -89,12 +100,14 @@ export class AppKanbanDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     private sanitizer: DomSanitizer,
     private kanbanService: BoardsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
-    this.isOrphan = localStorage.getItem('isOrphan') === 'true' || localStorage.getItem('role') === '4';
+    this.isOrphan =
+      localStorage.getItem('isOrphan') === 'true' ||
+      localStorage.getItem('role') === '4';
     if (this.isOrphan && (!this.data.type || this.data.type === 'task')) {
       const employeeId = this.local_data.employee_id;
       this.local_data.employee_id = employeeId;
@@ -141,18 +154,25 @@ export class AppKanbanDialogComponent implements OnInit {
     this.loadImageUrls();
     setTimeout(() => {
       if (this.descriptionEditor && this.local_data.recommendations) {
-        this.descriptionEditor.nativeElement.innerHTML = this.local_data.recommendations;
+        this.descriptionEditor.nativeElement.innerHTML =
+          this.local_data.recommendations;
       }
     });
   }
 
   loadImageUrls() {
-    this.attachments.forEach(att => {
-      if (!(att instanceof File) && att.file_name && !this.imageUrls[att.file_name]) {
-        this.kanbanService.getAttachmentUrl(att.file_name).subscribe(response => {
-          this.imageUrls[att.file_name] = response.url;
-          this.cdr.detectChanges();
-        });
+    this.attachments.forEach((att) => {
+      if (
+        !(att instanceof File) &&
+        att.file_name &&
+        !this.imageUrls[att.file_name]
+      ) {
+        this.kanbanService
+          .getAttachmentUrl(att.file_name)
+          .subscribe((response) => {
+            this.imageUrls[att.file_name] = response.url;
+            this.cdr.detectChanges();
+          });
       }
     });
   }
@@ -162,9 +182,18 @@ export class AppKanbanDialogComponent implements OnInit {
       return !!this.local_data.goal?.trim();
     }
     if (this.isOrphan) {
-      return !!this.local_data.goal?.trim() && !!this.local_data.priority && !!this.local_data.due_date;
+      return (
+        !!this.local_data.goal?.trim() &&
+        !!this.local_data.priority &&
+        !!this.local_data.due_date
+      );
     }
-    return !!this.local_data.goal?.trim() && !!this.local_data.employee_id && !!this.local_data.priority && !!this.local_data.due_date;
+    return (
+      !!this.local_data.goal?.trim() &&
+      !!this.local_data.employee_id &&
+      !!this.local_data.priority &&
+      !!this.local_data.due_date
+    );
   }
 
   showSnackbar(message: string): void {
@@ -182,12 +211,12 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   updateFirstAttachmentImage() {
-    this.firstAttachmentImage = this.attachments.find(att =>
-      att.file_type?.startsWith('image/') ||
-      (att instanceof File && att.type.startsWith('image/'))
+    this.firstAttachmentImage = this.attachments.find(
+      (att) =>
+        att.file_type?.startsWith('image/') ||
+        (att instanceof File && att.type.startsWith('image/')),
     );
   }
-
 
   getImageUrl(attachment: any): string {
     if (attachment instanceof File) {
@@ -231,18 +260,15 @@ export class AppKanbanDialogComponent implements OnInit {
       this.employeesService.getByEmployee().subscribe((employee: any) => {
         this.getUsers(employee.company_id);
       });
-    } else if (
-      localStorage.getItem('role') === '1'
-    ) {
+    } else if (localStorage.getItem('role') === '1') {
       this.companiesService.getCompanies().subscribe((companies: any) => {
         this.companies = companies;
         if (this.local_data.company_id) {
           const company = companies.find(
-            (c: any) => c.id === this.local_data.company_id
+            (c: any) => c.id === this.local_data.company_id,
           );
           this.getUsers(company.id);
-        }
-        else {
+        } else {
           this.getUsers();
         }
       });
@@ -251,19 +277,27 @@ export class AppKanbanDialogComponent implements OnInit {
 
   getUsers(companyId?: number) {
     if (companyId) {
-      this.companiesService.getEmployees(companyId).subscribe((employees: any) => {
-        this.users = employees.map((e: any) => e.user);
+      this.companiesService
+        .getEmployees(companyId)
+        .subscribe((employees: any) => {
+          this.users = employees.map((e: any) => e.user);
 
-        this.companiesService.getEmployer(companyId).subscribe((employer: any) => {
-          this.users.push(employer.user);
-          this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
-          this.setSelectedEmployee();
+          this.companiesService
+            .getEmployer(companyId)
+            .subscribe((employer: any) => {
+              this.users.push(employer.user);
+              this.users = this.users.sort((a: any, b: any) =>
+                a.name.localeCompare(b.name),
+              );
+              this.setSelectedEmployee();
+            });
         });
-      });
     } else {
       this.employeesService.getOrphanEmployees().subscribe((orphans: any[]) => {
         this.users = orphans.map((o: any) => o.user);
-        this.users = this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        this.users = this.users.sort((a: any, b: any) =>
+          a.name.localeCompare(b.name),
+        );
         this.setSelectedEmployee();
       });
     }
@@ -271,7 +305,9 @@ export class AppKanbanDialogComponent implements OnInit {
 
   setSelectedEmployee() {
     if (this.local_data.employee_id) {
-      const assignedUser = this.users.find(u => u.id === this.local_data.employee_id);
+      const assignedUser = this.users.find(
+        (u) => u.id === this.local_data.employee_id,
+      );
       if (assignedUser) {
         this.selectedEmployeeId = assignedUser.id;
       }
@@ -283,19 +319,23 @@ export class AppKanbanDialogComponent implements OnInit {
       next: (priorities: any[]) => {
         this.priorities = priorities || [];
         if (!this.priorities.length) {
-          this.showSnackbar("No priorities found.");
+          this.showSnackbar('No priorities found.');
         }
       },
       error: () => {
-        this.showSnackbar("Error getting priorities.")
+        this.showSnackbar('Error getting priorities.');
         this.priorities = [];
-      }
+      },
     });
   }
 
   loadComments() {
-    this.ratingsService.getComments(this.local_data.id).subscribe(res => {
-      this.comments = res.map(c => ({ ...c, isEditing: false, editText: c.comment }));
+    this.ratingsService.getComments(this.local_data.id).subscribe((res) => {
+      this.comments = res.map((c) => ({
+        ...c,
+        isEditing: false,
+        editText: c.comment,
+      }));
     });
   }
 
@@ -325,7 +365,8 @@ export class AppKanbanDialogComponent implements OnInit {
         data: {
           action: this.action,
           type: 'board visibility',
-          message: 'This will make the board public. Everyone will be able to see it.',
+          message:
+            'This will make the board public. Everyone will be able to see it.',
         },
       });
 
@@ -365,10 +406,10 @@ export class AppKanbanDialogComponent implements OnInit {
 
     if (atMatch) {
       this.mentionQuery = atMatch[1];
-      this.filteredUsers = this.users.filter(u =>
+      this.filteredUsers = this.users.filter((u) =>
         `${u.name} ${u.last_name}`
           .toLowerCase()
-          .includes(this.mentionQuery.toLowerCase())
+          .includes(this.mentionQuery.toLowerCase()),
       );
       this.showMentionList = this.filteredUsers.length > 0;
       this.mentionStartPos = pos - this.mentionQuery.length - 1;
@@ -436,9 +477,9 @@ export class AppKanbanDialogComponent implements OnInit {
     } else {
       const payload = {
         rating_id: this.local_data.id,
-        comment: this.commentText
+        comment: this.commentText,
       };
-      this.ratingsService.addComment(payload).subscribe(newComment => {
+      this.ratingsService.addComment(payload).subscribe((newComment) => {
         this.comments.push(newComment);
         this.commentText = '';
         this.showSnackbar('Comment added!');
@@ -456,15 +497,17 @@ export class AppKanbanDialogComponent implements OnInit {
 
   editComment(comment: any, newText: string) {
     if (!newText.trim()) return;
-    this.ratingsService.updateComment(comment.id, newText).subscribe(updated => {
-      comment.comment = updated.comment;
-      comment.isEditing = false;
-    });
+    this.ratingsService
+      .updateComment(comment.id, newText)
+      .subscribe((updated) => {
+        comment.comment = updated.comment;
+        comment.isEditing = false;
+      });
   }
 
   deleteComment(commentId: number) {
     this.ratingsService.deleteComment(commentId).subscribe(() => {
-      this.comments = this.comments.filter(c => c.id !== commentId);
+      this.comments = this.comments.filter((c) => c.id !== commentId);
       this.showSnackbar('Comment deleted!');
     });
   }
@@ -485,7 +528,13 @@ export class AppKanbanDialogComponent implements OnInit {
 
               if (uploadedFiles && uploadedFiles.length > 0) {
                 const uploadedFile = uploadedFiles[0];
-                if (!this.attachments.some(a => (a instanceof File ? false : a.file_name) === uploadedFile.file_name)) {
+                if (
+                  !this.attachments.some(
+                    (a) =>
+                      (a instanceof File ? false : a.file_name) ===
+                      uploadedFile.file_name,
+                  )
+                ) {
                   this.attachments.push(uploadedFile);
                 }
                 this.updateFirstAttachmentImage();
@@ -514,7 +563,7 @@ export class AppKanbanDialogComponent implements OnInit {
         event.preventDefault();
         const editor = this.descriptionEditor?.nativeElement;
         if (editor) {
-          images.forEach(imgEl => {
+          images.forEach((imgEl) => {
             const img = document.createElement('img');
             img.src = imgEl.src;
             img.style.maxWidth = '100%';
@@ -529,7 +578,7 @@ export class AppKanbanDialogComponent implements OnInit {
 
   async insertImageInEditor(file: any) {
     let imageUrl: string;
-    
+
     if (file instanceof File) {
       imageUrl = URL.createObjectURL(file);
       this.pastedAttachments.push({ file, url: imageUrl });
@@ -539,12 +588,14 @@ export class AppKanbanDialogComponent implements OnInit {
       }
     } else {
       if (!this.imageUrls[file.file_name]) {
-        const response = await lastValueFrom(this.kanbanService.getAttachmentUrl(file.file_name));
+        const response = await lastValueFrom(
+          this.kanbanService.getAttachmentUrl(file.file_name),
+        );
         this.imageUrls[file.file_name] = response.url;
       }
       imageUrl = this.imageUrls[file.file_name];
     }
-    
+
     const editor = this.descriptionEditor.nativeElement;
     const img = document.createElement('img');
     img.src = imageUrl;
@@ -557,7 +608,7 @@ export class AppKanbanDialogComponent implements OnInit {
       range.deleteContents();
       range.insertNode(img);
       range.collapse(false);
-      
+
       selection.removeAllRanges();
       selection.addRange(range);
     } else {
@@ -571,17 +622,21 @@ export class AppKanbanDialogComponent implements OnInit {
     const editor = this.descriptionEditor?.nativeElement;
     if (!editor) return;
 
-    const imgs = Array.from(editor.querySelectorAll('img')).map((img: any) => img.src);
+    const imgs = Array.from(editor.querySelectorAll('img')).map(
+      (img: any) => img.src,
+    );
     const imgSet = new Set(imgs);
 
     for (let i = this.attachments.length - 1; i >= 0; i--) {
       const att = this.attachments[i];
-      if (att instanceof File) continue; 
+      if (att instanceof File) continue;
 
       if (att && att.file_name) {
         if (!this.imageUrls[att.file_name]) {
           try {
-            const resp: any = await lastValueFrom(this.kanbanService.getAttachmentUrl(att.file_name));
+            const resp: any = await lastValueFrom(
+              this.kanbanService.getAttachmentUrl(att.file_name),
+            );
             this.imageUrls[att.file_name] = resp.url;
           } catch (e) {}
         }
@@ -589,7 +644,8 @@ export class AppKanbanDialogComponent implements OnInit {
         const url = this.imageUrls[att.file_name] || '';
         if (url && !imgSet.has(url)) {
           this.attachments.splice(i, 1);
-          if (this.firstAttachmentImage === att) this.updateFirstAttachmentImage();
+          if (this.firstAttachmentImage === att)
+            this.updateFirstAttachmentImage();
         }
       }
     }
@@ -598,26 +654,27 @@ export class AppKanbanDialogComponent implements OnInit {
       const att = this.attachments[i];
       if (!(att instanceof File)) continue;
 
-      const mapped = this.pastedAttachments.find(p => p.file === att);
+      const mapped = this.pastedAttachments.find((p) => p.file === att);
       const url = mapped ? mapped.url : '';
       if (url && !imgSet.has(url)) {
         this.attachments.splice(i, 1);
-        const mi = this.pastedAttachments.findIndex(p => p.file === att);
+        const mi = this.pastedAttachments.findIndex((p) => p.file === att);
         if (mi !== -1) this.pastedAttachments.splice(mi, 1);
-        if (this.firstAttachmentImage === att) this.updateFirstAttachmentImage();
+        if (this.firstAttachmentImage === att)
+          this.updateFirstAttachmentImage();
       }
     }
   }
 
   updateRecommendationsValue() {
-    this.local_data.recommendations = this.descriptionEditor.nativeElement.innerHTML;
+    this.local_data.recommendations =
+      this.descriptionEditor.nativeElement.innerHTML;
   }
 
   onEditorInput() {
     this.updateRecommendationsValue();
     void this.syncAttachmentsWithEditor();
   }
-
 
   insertImage() {
     const input = document.createElement('input');
@@ -632,7 +689,13 @@ export class AppKanbanDialogComponent implements OnInit {
 
           if (uploadedFiles.length > 0) {
             const uploadedFile = uploadedFiles[0];
-            if (!this.attachments.some(a => (a instanceof File ? false : a.file_name) === uploadedFile.file_name)) {
+            if (
+              !this.attachments.some(
+                (a) =>
+                  (a instanceof File ? false : a.file_name) ===
+                  uploadedFile.file_name,
+              )
+            ) {
               this.attachments.push(uploadedFile);
             }
             this.updateFirstAttachmentImage();

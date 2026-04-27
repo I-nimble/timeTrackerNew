@@ -1,5 +1,5 @@
+import { NgForOf, NgIf } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import {
   FormArray,
   FormBuilder,
@@ -9,18 +9,19 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { TimezoneService } from 'src/app/services/timezone.service';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { Timezone } from 'src/app/models/Timezone.model';
 import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatSelectModule } from '@angular/material/select';
-import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
-import { NgForOf, NgIf } from '@angular/common';
-import { MatInputModule } from '@angular/material/input';
-import { ModalComponent } from '../confirmation-modal/modal.component';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { TimezoneService } from 'src/app/services/timezone.service';
 
+import { ModalComponent } from '../confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-form-dialog',
@@ -42,7 +43,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 })
 export class FormDialogComponent implements OnInit {
   dialogForm: FormGroup;
-  endTimeError: string = '';
+  endTimeError = '';
   scheduleDisplayed: any = [];
 
   constructor(
@@ -51,7 +52,7 @@ export class FormDialogComponent implements OnInit {
     private customDate: CustomDatePipe,
     private dialog: MatDialog,
     private dialogRef: MatDialogRef<FormDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { type: string; fieldData: any }
+    @Inject(MAT_DIALOG_DATA) public data: { type: string; fieldData: any },
   ) {
     this.dialogForm = this.fb.group({
       company: this.fb.group({
@@ -69,8 +70,8 @@ export class FormDialogComponent implements OnInit {
   public formFields: any = [];
   timezones: any = [];
   timezoneList = [];
-  validForm: boolean = false;
-  daysOfWeekOptions: Array<any> = [
+  validForm = false;
+  daysOfWeekOptions: any[] = [
     { id: 1, name: 'Monday' },
     { id: 2, name: 'Tuesday' },
     { id: 3, name: 'Wednesday' },
@@ -89,7 +90,7 @@ export class FormDialogComponent implements OnInit {
         if (this.data.type == 'company') {
           const validTimezone = this.timezoneList.filter(
             (timezone: Timezone) =>
-              `${timezone.zoneName}:${timezone.countryCode}` == form.timezone
+              `${timezone.zoneName}:${timezone.countryCode}` == form.timezone,
           );
           if (this.dialogForm.valid && validTimezone.length > 0)
             this.validForm = this.dialogForm.valid;
@@ -172,13 +173,13 @@ export class FormDialogComponent implements OnInit {
 
   public openConfirmationDialog() {
     const dialog = this.dialog.open(ModalComponent, {
-      data: { 
-        message: this.endTimeError, 
-        action: 'modify', 
+      data: {
+        message: this.endTimeError,
+        action: 'modify',
         subject: 'schedule',
       },
       hasBackdrop: true,
-      backdropClass: 'blur'
+      backdropClass: 'blur',
     });
     dialog.afterClosed().subscribe((option: boolean) => {
       if (option) {
@@ -207,13 +208,13 @@ export class FormDialogComponent implements OnInit {
   public search(value: string) {
     const filter = value.toLowerCase();
     this.timezones = this.timezoneList.filter((timezone: any) =>
-      timezone.zoneName.toLowerCase().includes(filter)
+      timezone.zoneName.toLowerCase().includes(filter),
     );
   }
 
   public onDayChange(days: any, field: string): void {
     const values = this.daysOfWeekOptions.filter(
-      (dayOfWeek: any) => days.indexOf(dayOfWeek.id) > -1
+      (dayOfWeek: any) => days.indexOf(dayOfWeek.id) > -1,
     );
     const dayField = this.getField(field);
     dayField.setValue(values);
@@ -223,7 +224,7 @@ export class FormDialogComponent implements OnInit {
     return this.dialogForm.get(this.data.type)?.get(field) as FormControl;
   }
 
-  convertTimeValuesIntoDates(timeValue: string): Number {
+  convertTimeValuesIntoDates(timeValue: string): number {
     const [time, modifier] = timeValue.split(' ');
     let [hours, minutes] = time.split(':').map(Number);
     if (modifier.toLowerCase() == 'pm' && hours !== 12) {
@@ -240,13 +241,13 @@ export class FormDialogComponent implements OnInit {
 
     switch (this.data.type) {
       case 'schedule':
-        let formatData = {
+        const formatData = {
           days: this.data.fieldData.days,
           start_time: this.convertIntoReadableString(
-            this.data.fieldData.start_time
+            this.data.fieldData.start_time,
           ),
           end_time: this.convertIntoReadableString(
-            this.data.fieldData.end_time
+            this.data.fieldData.end_time,
           ),
         };
         this.scheduleDisplayed = this.data.fieldData.days
@@ -268,7 +269,7 @@ export class FormDialogComponent implements OnInit {
       hours = 12;
     }
     return `${this.customDate.padzero(hours)}:${this.customDate.padzero(
-      minutes
+      minutes,
     )} ${modifier}`;
   }
 }

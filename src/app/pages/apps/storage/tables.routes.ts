@@ -4,6 +4,7 @@ import { Routes } from '@angular/router';
 import { AppBasicTableComponent } from './basic-table/basic-table.component';
 import { AppDynamicTableComponent } from './dynamic-table/dynamic-table.component';
 import { AppExpandTableComponent } from './expand-table/expand-table.component';
+import { AppFilterableTableComponent } from './filterable-table/filterable-table.component';
 import { AppFooterRowTableComponent } from './footer-row-table/footer-row-table.component';
 import { AppHttpTableComponent } from './http-table/http-table.component';
 import { AppMixTableComponent } from './mix-table/mix-table.component';
@@ -14,7 +15,6 @@ import { AppSelectionTableComponent } from './selection-table/selection-table.co
 import { AppSortableTableComponent } from './sortable-table/sortable-table.component';
 import { AppStickyColumnTableComponent } from './sticky-column-table/sticky-column-table.component';
 import { AppStickyHeaderFooterTableComponent } from './sticky-header-footer-table/sticky-header-footer-table.component';
-import { AppFilterableTableComponent } from './filterable-table/filterable-table.component';
 
 export const DatatablesRoutes: Routes = [
   {

@@ -3,9 +3,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 @Component({
-    selector: 'app-faq',
-    imports: [MatCardModule, MatExpansionModule, MatButtonModule],
-    templateUrl: './faq.component.html'
+  selector: 'app-faq',
+  imports: [MatCardModule, MatExpansionModule, MatButtonModule],
+  templateUrl: './faq.component.html',
 })
 export class AppFaqComponent {
   constructor() {}

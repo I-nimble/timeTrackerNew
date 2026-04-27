@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexAxisChartSeries,
@@ -22,7 +23,7 @@ import {
   NgApexchartsModule,
 } from 'ng-apexcharts';
 
-export type ChartOptions = {
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -38,7 +39,7 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 
 interface month {
   value: string;
@@ -46,19 +47,19 @@ interface month {
 }
 
 @Component({
-    selector: 'app-charts',
-    imports: [
-        MatCardModule,
-        NgApexchartsModule,
-        TablerIconsModule,
-        FormsModule,
-        MatInputModule,
-        MatSelectModule,
-        MatFormFieldModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-    ],
-    templateUrl: './charts.component.html'
+  selector: 'app-charts',
+  imports: [
+    MatCardModule,
+    NgApexchartsModule,
+    TablerIconsModule,
+    FormsModule,
+    MatInputModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+  ],
+  templateUrl: './charts.component.html',
 })
 export class AppChartsComponent {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);

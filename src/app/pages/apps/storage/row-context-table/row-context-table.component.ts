@@ -3,18 +3,20 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { ROW_CONTEXT_TABLE_HTML_SNIPPET } from './code/row-context-table-html-snippet';
 import { ROW_CONTEXT_TABLE_TS_SNIPPET } from './code/row-context-table-ts-snippet';
 
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 @Component({
   selector: 'app-row-context-table',
-  imports: [MatCardModule, MatTableModule, MatDividerModule,
+  imports: [
+    MatCardModule,
+    MatTableModule,
+    MatDividerModule,
     Highlight,
     HighlightAuto,
     HighlightLineNumbers,

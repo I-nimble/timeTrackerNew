@@ -1,18 +1,20 @@
+import { ViewportScroller } from '@angular/common';
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { CoreService } from 'src/app/services/core.service';
-import { ViewportScroller } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
 import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
+import { AppFooterComponent } from '../footer/footer.component';
 import { AppHeaderComponent } from '../header/header.component';
-import { ButtonComponent } from 'src/app/components/button/button.component';
 
 // card 1
 interface rules {
@@ -26,7 +28,7 @@ interface pricecards {
   plan: string;
   btnText: string;
   free: boolean;
-  planPrice?: Number;
+  planPrice?: number;
   popular?: boolean;
   rules: rules[];
 }
@@ -69,15 +71,29 @@ interface features {
 }
 
 @Component({
-    selector: 'app-pricing',
-    imports: [MaterialModule, ButtonComponent, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, AppDiscoveryFormComponent, AppHeaderComponent, TablerIconsModule, MatCardModule, MatSlideToggleModule, MatButtonModule, MatSlideToggleModule],
-    templateUrl: './pricing.component.html',
+  selector: 'app-pricing',
+  imports: [
+    MaterialModule,
+    ButtonComponent,
+    RouterLink,
+    BrandingComponent,
+    AppBlogsComponent,
+    AppFooterComponent,
+    AppDiscoveryFormComponent,
+    AppHeaderComponent,
+    TablerIconsModule,
+    MatCardModule,
+    MatSlideToggleModule,
+    MatButtonModule,
+    MatSlideToggleModule,
+  ],
+  templateUrl: './pricing.component.html',
 })
 export class AppPricingComponent {
   @Input() showToggle = true;
-    @Output() toggleMobileNav = new EventEmitter<void>();
-    @Output() toggleMobileFilterNav = new EventEmitter<void>();
-    @Output() toggleCollapsed = new EventEmitter<void>();
+  @Output() toggleMobileNav = new EventEmitter<void>();
+  @Output() toggleMobileFilterNav = new EventEmitter<void>();
+  @Output() toggleCollapsed = new EventEmitter<void>();
   show = false;
   options = this.settings.getOptions();
 
@@ -273,9 +289,8 @@ export class AppPricingComponent {
 
   constructor(
     private settings: CoreService,
-    private scroller: ViewportScroller
-  ) {
-  }
+    private scroller: ViewportScroller,
+  ) {}
 
   gotoDemos() {
     this.scroller.scrollToAnchor('demos');
@@ -387,14 +402,16 @@ export class AppPricingComponent {
       icon: 'archive',
       title: 'Dedicated performance and IT support',
       color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
+      subtext:
+        'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
     },
     {
       id: 4,
       icon: 'chart-pie',
       title: 'Integrate tools for remote work',
       color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
+      subtext:
+        'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
     // {
     //   id: 5,

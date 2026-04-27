@@ -1,3 +1,5 @@
+import { MediaMatcher } from '@angular/cdk/layout';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -7,24 +9,22 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { Category, filter, label } from './categories';
-import { AppContactListDetailComponent } from '../detail/detail.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { ContactFormDialogComponent } from '../contact-form-dialog/contact-form-dialog.component';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { NgScrollbarModule } from 'ngx-scrollbar';
-import { MediaMatcher } from '@angular/cdk/layout';
-import { ContactService } from 'src/app/services/apps/contact-list/contact-list.service';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
-
-import { AppDeleteDialogComponent } from '../delete-dialog/delete-dialog.component';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSearchDialogComponent } from 'src/app/layouts/full/vertical/header/header.component';
-import { CommonModule } from '@angular/common';
-import { MatDividerModule } from '@angular/material/divider';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
+import { ContactService } from 'src/app/services/apps/contact-list/contact-list.service';
+
+import { Category, filter, label } from './categories';
+import { ContactFormDialogComponent } from '../contact-form-dialog/contact-form-dialog.component';
+import { AppDeleteDialogComponent } from '../delete-dialog/delete-dialog.component';
+import { AppContactListDetailComponent } from '../detail/detail.component';
 
 @Component({
   selector: 'app-listing',
@@ -49,7 +49,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
   constructor(
     public dialog: MatDialog,
     public contactService: ContactService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     const changeDetectorRef = inject(ChangeDetectorRef);
     const media = inject(MediaMatcher);
@@ -69,7 +69,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
   selectedFilter: Category | null = null;
   selectedCategory: Category | null = null;
   selectedContact = signal<ContactBox | null>(null);
-  isActiveContact: boolean = false;
+  isActiveContact = false;
 
   mailnav = true;
 
@@ -97,7 +97,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
     ) {
       filtered = filtered.filter(
         (contact) =>
-          contact.department === this.contactService.selectedCategory()?.name
+          contact.department === this.contactService.selectedCategory()?.name,
       );
     }
 
@@ -120,7 +120,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
     filtered = filtered.filter(
       (contact) =>
         contact.firstname.toLowerCase().includes(searchTermLower) ||
-        contact.lastname.toLowerCase().includes(searchTermLower)
+        contact.lastname.toLowerCase().includes(searchTermLower),
     );
     return filtered;
   });
@@ -150,7 +150,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
       this.contactService.filters.set(
         this.contactService
           .filters()
-          .map((f) => ({ ...f, active: f === firstFilter }))
+          .map((f) => ({ ...f, active: f === firstFilter })),
       );
     }
   }
@@ -205,7 +205,7 @@ export class AppListingComponent implements OnInit, OnDestroy {
             duration: 3000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
-          }
+          },
         );
       }
     });

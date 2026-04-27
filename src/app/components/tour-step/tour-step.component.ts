@@ -1,11 +1,21 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, Input, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  Input,
+  NgZone,
+  OnDestroy,
+} from '@angular/core';
+
 import { TourService } from 'ngx-ui-tour-md-menu';
-import { RoleTourStep } from 'src/app/services/role-tour-steps';
-import { RoleTourService } from 'src/app/services/role-tour.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { filter, take, timeout } from 'rxjs/operators';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { RoleTourStep } from 'src/app/services/role-tour-steps';
+import { RoleTourService } from 'src/app/services/role-tour.service';
 
 @Component({
   selector: 'app-tour-step',
@@ -17,9 +27,21 @@ import { filter, take, timeout } from 'rxjs/operators';
 })
 export class TourStepComponent implements AfterViewInit, OnDestroy {
   @Input({ required: true }) step!: RoleTourStep;
-  private readonly emptyKanbanAnchors = ['side-kanban', 'kanban-boards', 'kanban-new-board'];
-  private readonly noTaskKanbanHiddenAnchors = ['kanban-task-actions', 'kanban-add-column'];
-  private readonly timeTrackerEmptyAnchors = ['side-time-tracker', 'employee-search', 'employee-add', 'employee-table'];
+  private readonly emptyKanbanAnchors = [
+    'side-kanban',
+    'kanban-boards',
+    'kanban-new-board',
+  ];
+  private readonly noTaskKanbanHiddenAnchors = [
+    'kanban-task-actions',
+    'kanban-add-column',
+  ];
+  private readonly timeTrackerEmptyAnchors = [
+    'side-time-tracker',
+    'employee-search',
+    'employee-add',
+    'employee-table',
+  ];
   private kanbanObserver?: MutationObserver;
   private kanbanTasksSub?: Subscription;
   private timeTrackerMembersSub?: Subscription;
@@ -33,20 +55,29 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initKanbanTaskObserver();
-    this.kanbanTasksSub = this.roleTourService.kanbanTasksState$.subscribe(() => {
-      this.cdr.markForCheck();
-      this.cdr.detectChanges();
-    });
-    this.timeTrackerMembersSub = this.roleTourService.timeTrackerMembersState$.subscribe(() => {
-      this.cdr.markForCheck();
-      this.cdr.detectChanges();
-    });
+    this.kanbanTasksSub = this.roleTourService.kanbanTasksState$.subscribe(
+      () => {
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+    );
+    this.timeTrackerMembersSub =
+      this.roleTourService.timeTrackerMembersState$.subscribe(() => {
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      });
   }
 
   ngOnDestroy(): void {
-    try { this.kanbanObserver?.disconnect(); } catch (e) {}
-    try { this.kanbanTasksSub?.unsubscribe(); } catch (e) {}
-    try { this.timeTrackerMembersSub?.unsubscribe(); } catch (e) {}
+    try {
+      this.kanbanObserver?.disconnect();
+    } catch (e) {}
+    try {
+      this.kanbanTasksSub?.unsubscribe();
+    } catch (e) {}
+    try {
+      this.timeTrackerMembersSub?.unsubscribe();
+    } catch (e) {}
   }
 
   onTourSkip(): void {
@@ -92,10 +123,15 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       }
     }
     this.roleTourService.markResumeInProgress('kanban-add-column');
-    void this.roleTourService.resumeAtAnchor('kanban-add-column', { ignoreCompleted: true });
+    void this.roleTourService.resumeAtAnchor('kanban-add-column', {
+      ignoreCompleted: true,
+    });
   }
 
-  private async waitForAnchor(anchorId: string, timeoutMs: number): Promise<boolean> {
+  private async waitForAnchor(
+    anchorId: string,
+    timeoutMs: number,
+  ): Promise<boolean> {
     const svc: any = this.tourService as any;
     if (svc?.anchors?.[anchorId]) return true;
 
@@ -103,8 +139,8 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       svc.anchorRegister$?.pipe(
         filter((id: string) => id === anchorId),
         take(1),
-        timeout({ first: timeoutMs })
-      ) ?? new Promise(() => undefined)
+        timeout({ first: timeoutMs }),
+      ) ?? new Promise(() => undefined),
     ).catch(() => undefined);
 
     return !!svc?.anchors?.[anchorId];
@@ -133,13 +169,18 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
     if (this.isNoTaskKanbanTour()) {
       return this.tourService.steps
         .map((s) => s.anchorId)
-        .filter((anchorId) => !this.noTaskKanbanHiddenAnchors.includes(anchorId));
+        .filter(
+          (anchorId) => !this.noTaskKanbanHiddenAnchors.includes(anchorId),
+        );
     }
     return this.tourService.steps.map((s) => s.anchorId);
   }
 
   private isEmptyKanbanTour(): boolean {
-    return this.emptyKanbanAnchors.includes(this.step.anchorId) && localStorage.getItem('kanban.hasBoards') !== 'true';
+    return (
+      this.emptyKanbanAnchors.includes(this.step.anchorId) &&
+      localStorage.getItem('kanban.hasBoards') !== 'true'
+    );
   }
 
   private isNoTaskKanbanTour(): boolean {
@@ -147,14 +188,17 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
     if (!anchorId) {
       return false;
     }
-    const isKanbanStep = anchorId.startsWith('kanban-') || anchorId === 'side-kanban';
+    const isKanbanStep =
+      anchorId.startsWith('kanban-') || anchorId === 'side-kanban';
     if (!isKanbanStep) {
       return false;
     }
 
-    return isKanbanStep &&
+    return (
+      isKanbanStep &&
       localStorage.getItem('kanban.hasBoards') === 'true' &&
-      localStorage.getItem('kanban.hasTasks') !== 'true';
+      localStorage.getItem('kanban.hasTasks') !== 'true'
+    );
   }
 
   private isNoMemberTimeTrackerTour(): boolean {
@@ -172,16 +216,23 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
   }
 
   isNoMemberTimeTrackerEndStep(): boolean {
-    return this.isNoMemberTimeTrackerTour() && this.step?.anchorId === 'employee-table';
+    return (
+      this.isNoMemberTimeTrackerTour() &&
+      this.step?.anchorId === 'employee-table'
+    );
   }
 
   isNoTaskKanbanEndStep(): boolean {
-    return this.isNoTaskKanbanTour() && this.step?.anchorId === 'kanban-create-task';
+    return (
+      this.isNoTaskKanbanTour() && this.step?.anchorId === 'kanban-create-task'
+    );
   }
 
   private hasTaskAnchorsInDom(): boolean {
     if (typeof document === 'undefined') return false;
-    return !!document.querySelector('[tourAnchor="kanban-task-actions"], .kanban-task-card');
+    return !!document.querySelector(
+      '[tourAnchor="kanban-task-actions"], .kanban-task-card',
+    );
   }
 
   private initKanbanTaskObserver(): void {
@@ -193,7 +244,10 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       this.updateKanbanTaskState();
     });
 
-    this.kanbanObserver.observe(document.body, { childList: true, subtree: true });
+    this.kanbanObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   }
 
   private updateKanbanTaskState(): void {
@@ -214,7 +268,12 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
   onTourKeydown(event: KeyboardEvent): void {
     if (event.key !== 'ArrowRight') return;
     const target = event.target as HTMLElement | null;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable)
+    ) {
       return;
     }
 
@@ -243,7 +302,10 @@ export class TourStepComponent implements AfterViewInit, OnDestroy {
       this.onKanbanTaskActionsNext();
       return;
     }
-    if (current.anchorId === 'employee-table' && this.isNoMemberTimeTrackerEndStep()) {
+    if (
+      current.anchorId === 'employee-table' &&
+      this.isNoMemberTimeTrackerEndStep()
+    ) {
       event.preventDefault();
       event.stopPropagation();
       this.tourService.end();

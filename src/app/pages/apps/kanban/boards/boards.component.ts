@@ -1,21 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import {
+  MatCard,
+  MatCardContent,
+  MatCardTitle,
+  MatCardActions,
+} from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormField } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
-import { MatCard, MatCardContent, MatCardTitle, MatCardActions } from '@angular/material/card';
-import { FormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { AppKanbanDialogComponent } from '../kanban-dialog.component';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatMenu } from '@angular/material/menu';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { RoleTourService } from 'src/app/services/role-tour.service';
+
+import { AppKanbanDialogComponent } from '../kanban-dialog.component';
 
 @Component({
   selector: 'app-boards',
@@ -38,7 +45,7 @@ import { RoleTourService } from 'src/app/services/role-tour.service';
 })
 export class AppBoardsComponent implements OnInit {
   boards: any[] = [];
-  loading: boolean = true;
+  loading = true;
   role = localStorage.getItem('role');
   userId: string | null;
 
@@ -62,7 +69,10 @@ export class AppBoardsComponent implements OnInit {
       this.boardsService.getBoards().subscribe({
         next: (res) => {
           this.boards = res;
-          localStorage.setItem('kanban.hasBoards', this.boards.length > 0 ? 'true' : 'false');
+          localStorage.setItem(
+            'kanban.hasBoards',
+            this.boards.length > 0 ? 'true' : 'false',
+          );
           if (this.boards.length === 0) {
             this.roleTourService.setKanbanHasTasks(false);
           }
@@ -75,7 +85,7 @@ export class AppBoardsComponent implements OnInit {
           this.roleTourService.setKanbanHasTasks(false);
           this.loading = false;
           resolve();
-        }
+        },
       });
     });
   }
@@ -147,7 +157,9 @@ export class AppBoardsComponent implements OnInit {
         const pendingAnchor = this.roleTourService.consumePendingResumeAnchor();
         if (pendingAnchor === 'kanban-board-actions') {
           this.router.navigate(['/apps/kanban']).then(() => {
-            void this.roleTourService.resumeAtAnchor(pendingAnchor, { ignoreCompleted: true });
+            void this.roleTourService.resumeAtAnchor(pendingAnchor, {
+              ignoreCompleted: true,
+            });
           });
         }
       },

@@ -1,17 +1,17 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { MatTimepickerModule } from '@angular/material/timepicker';
 
 @Component({
@@ -45,7 +45,7 @@ export class AppEventsDialogComponent {
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AppEventsDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
+    @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.action = data?.action ?? 'add';
     const now = new Date();
@@ -58,9 +58,12 @@ export class AppEventsDialogComponent {
       type: [data?.event?.type || '', Validators.required],
       date: [
         initialDate && initialDate >= this.today ? initialDate : null,
-        [Validators.required, this.minDateValidator(this.today)]
+        [Validators.required, this.minDateValidator(this.today)],
       ],
-      time: [initialDate ? this.formatTime(initialDate) : '', Validators.required]
+      time: [
+        initialDate ? this.formatTime(initialDate) : '',
+        Validators.required,
+      ],
     });
     if (data?.event?.date) {
       const dateObj = new Date(data.event.date);
@@ -112,7 +115,14 @@ export class AppEventsDialogComponent {
     if (!date) return;
     const selDate = new Date(date);
     selDate.setHours(0, 0, 0, 0);
-    if (selDate < new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate())) {
+    if (
+      selDate <
+      new Date(
+        this.today.getFullYear(),
+        this.today.getMonth(),
+        this.today.getDate(),
+      )
+    ) {
       this.eventForm.get('date')?.setErrors({ minDate: true });
       this.eventForm.get('date')?.setValue(null);
     } else {

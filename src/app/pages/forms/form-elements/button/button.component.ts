@@ -1,26 +1,45 @@
 import { Component } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from '../../../../material.module';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
-import { BUTTONS_TS_SNIPPET, TOGGLE_BUTTONS_TS_SNIPPET } from './code/button-ts-snippet';
-import { BASIC_BUTTONS_HTML_SNIPPET, BASIC_TOGGLE_BUTTONS_HTML_SNIPPET, EXCLUSIVE_SELECTION_TOGGLE_BUTTONS_HTML_SNIPPET, EXTENDED_FAB_BUTTONS_HTML_SNIPPET, FAB_BUTTONS_HTML_SNIPPET, FLAT_BUTTONS_HTML_SNIPPET, ICON_BUTTONS_HTML_SNIPPET, MINI_FAB_BUTTONS_HTML_SNIPPET, MULTIPLE_SELECT_TOGGLE_BUTTONS_HTML_SNIPPET, OUTLINED_BUTTONS_HTML_SNIPPET, RAISED_BUTTONS_HTML_SNIPPET, REACTIVE_FORM_TOGGLE_BUTTONS_HTML_SNIPPET } from './code/button-html-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
+import {
+  BASIC_BUTTONS_HTML_SNIPPET,
+  BASIC_TOGGLE_BUTTONS_HTML_SNIPPET,
+  EXCLUSIVE_SELECTION_TOGGLE_BUTTONS_HTML_SNIPPET,
+  EXTENDED_FAB_BUTTONS_HTML_SNIPPET,
+  FAB_BUTTONS_HTML_SNIPPET,
+  FLAT_BUTTONS_HTML_SNIPPET,
+  ICON_BUTTONS_HTML_SNIPPET,
+  MINI_FAB_BUTTONS_HTML_SNIPPET,
+  MULTIPLE_SELECT_TOGGLE_BUTTONS_HTML_SNIPPET,
+  OUTLINED_BUTTONS_HTML_SNIPPET,
+  RAISED_BUTTONS_HTML_SNIPPET,
+  REACTIVE_FORM_TOGGLE_BUTTONS_HTML_SNIPPET,
+} from './code/button-html-snippet';
+import {
+  BUTTONS_TS_SNIPPET,
+  TOGGLE_BUTTONS_TS_SNIPPET,
+} from './code/button-ts-snippet';
+import { MaterialModule } from '../../../../legacy/material.module';
 
 @Component({
-    selector: 'app-button',
-    imports: [FormsModule, ReactiveFormsModule, MaterialModule, TablerIconsModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './button.component.html'
+  selector: 'app-button',
+  imports: [
+    FormsModule,
+    ReactiveFormsModule,
+    MaterialModule,
+    TablerIconsModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './button.component.html',
 })
 export class AppButtonComponent {
   constructor() {}
@@ -62,7 +81,8 @@ export class AppButtonComponent {
   codeForBasicToggleButtonsTs = TOGGLE_BUTTONS_TS_SNIPPET;
 
   // 10 [Multiple Select with Buttons]
-  codeForMultipleSelectToggleButtons = MULTIPLE_SELECT_TOGGLE_BUTTONS_HTML_SNIPPET;
+  codeForMultipleSelectToggleButtons =
+    MULTIPLE_SELECT_TOGGLE_BUTTONS_HTML_SNIPPET;
   codeForMultipleSelectToggleButtonsTs = TOGGLE_BUTTONS_TS_SNIPPET;
 
   // 11 [Reactive Form with Buttons]
@@ -70,7 +90,8 @@ export class AppButtonComponent {
   codeForReactiveFormToggleButtonsTs = TOGGLE_BUTTONS_TS_SNIPPET;
 
   // 12 [Exclusive selection with Buttons]
-  codeForExclusiveSelectionToggleButtons = EXCLUSIVE_SELECTION_TOGGLE_BUTTONS_HTML_SNIPPET;
+  codeForExclusiveSelectionToggleButtons =
+    EXCLUSIVE_SELECTION_TOGGLE_BUTTONS_HTML_SNIPPET;
   codeForExclusiveSelectionToggleButtonsTs = TOGGLE_BUTTONS_TS_SNIPPET;
 
   //   reactive form
