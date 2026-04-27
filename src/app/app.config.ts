@@ -31,12 +31,12 @@ import * as TablerIcons from 'angular-tabler-icons/icons';
 import { provideHighlightOptions } from 'ngx-highlightjs';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { provideToastr } from 'ngx-toastr';
+import { ToastrModule } from 'ngx-toastr';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 import { routes } from './app.routes';
 import { dialogProviders } from './dialog.config';
-import { MaterialModule } from './material.module';
+import { MaterialModule } from './legacy/material.module';
 import { environment } from '../environments/environment';
 import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
@@ -62,7 +62,7 @@ export const appConfig: ApplicationConfig = {
     WebSocketService,
     ReportsService,
     provideAnimationsAsync(), // required animations providers
-    provideToastr(), // Toastr providers
+    importProvidersFrom(ToastrModule.forRoot()), // Toastr providers
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideHighlightOptions({
       coreLibraryLoader: () => import('highlight.js/lib/core'),
