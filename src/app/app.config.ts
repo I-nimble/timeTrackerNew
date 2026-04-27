@@ -24,6 +24,7 @@ import { AuthInterceptor, ErrorInterceptor } from '@core/http/interceptors';
 import { provideStore } from '@ngrx/store';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { provideGlobalErrorHandler } from '@shared/services';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -31,7 +32,6 @@ import * as TablerIcons from 'angular-tabler-icons/icons';
 import { provideHighlightOptions } from 'ngx-highlightjs';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { provideToastr } from 'ngx-toastr';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 import { routes } from './app.routes';
@@ -61,7 +61,6 @@ export const appConfig: ApplicationConfig = {
     WebSocketService,
     ReportsService,
     provideAnimationsAsync(), // required animations providers
-    provideToastr(), // Toastr providers
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideHighlightOptions({
       coreLibraryLoader: () => import('highlight.js/lib/core'),
@@ -82,6 +81,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideStore(),
     provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
+    provideGlobalErrorHandler(),
     ...dialogProviders,
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideAuth(() => getAuth()),

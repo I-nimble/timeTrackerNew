@@ -7,10 +7,9 @@ import {
 } from '@angular/common/http';
 import { inject } from '@angular/core';
 
+import { ErrorHandlerService } from '@shared/services';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
-import { ErrorHandlerService } from '../services/error-handler.service';
 
 export const ErrorInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
