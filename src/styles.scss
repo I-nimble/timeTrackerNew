@@ -225,25 +225,25 @@ app-jitsi-meet iframe {
 }
 
 .mat-mdc-snack-bar-container.app-snackbar-success {
-  --mdc-snackbar-container-color: $success;
+  --mdc-snackbar-container-color: #{$success};
   --mdc-snackbar-supporting-text-color: #1f2a1a;
   --mat-snack-bar-button-color: #1f2a1a;
 }
 
 .mat-mdc-snack-bar-container.app-snackbar-error {
-  --mdc-snackbar-container-color: $error;
+  --mdc-snackbar-container-color: #{$error};
   --mdc-snackbar-supporting-text-color: #2d1515;
   --mat-snack-bar-button-color: #2d1515;
 }
 
 .mat-mdc-snack-bar-container.app-snackbar-warning {
-  --mdc-snackbar-container-color: $warning;
+  --mdc-snackbar-container-color: #{$warning};
   --mdc-snackbar-supporting-text-color: #2b2412;
   --mat-snack-bar-button-color: #2b2412;
 }
 
 .mat-mdc-snack-bar-container.app-snackbar-info {
-  --mdc-snackbar-container-color: $primary;
+  --mdc-snackbar-container-color: #{$primary};
   --mdc-snackbar-supporting-text-color: #2f2f2f;
   --mat-snack-bar-button-color: #2f2f2f;
 }

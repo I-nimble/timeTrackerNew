@@ -24,7 +24,7 @@ describe('NotificationService', () => {
   });
 
   it('success() should delegate to MatSnackBar.open', () => {
-    service.success('Saved', { title: 'OK' });
+    service.success('Saved');
     expect(snackBarSpy.open).toHaveBeenCalledWith(
       'Saved',
       'Close',
@@ -84,16 +84,16 @@ describe('NotificationService', () => {
     expect(snackBarSpy.dismiss).toHaveBeenCalled();
   });
 
-  it('should ignore title and preserve explicit config overrides', () => {
-    service.success('Done', { title: 'Saved', duration: 1000 });
+  it('should preserve explicit config overrides', () => {
+    service.success('Done', { duration: 1000, panelClass: 'custom' });
     const args = snackBarSpy.open.calls.mostRecent().args;
     expect(args[0]).toBe('Done');
     expect(args[1]).toBe('Close');
     expect(args[2]).toEqual(
       jasmine.objectContaining({
         duration: 1000,
+        panelClass: ['custom', 'app-snackbar-success'],
       }),
     );
-    expect(args[2]).not.toEqual(jasmine.objectContaining({ title: 'Saved' }));
   });
 });
