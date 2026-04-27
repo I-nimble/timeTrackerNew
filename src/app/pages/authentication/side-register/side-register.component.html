@@ -124,7 +124,7 @@
 
                       <!-- Client registration form -->
                       <mat-stepper
-                        #stepper
+                        #clientStepper
                         id="register-form"
                         *ngIf="userRole === '3'"
                         (selectionChange)="onClientStepChange($event)"
@@ -493,9 +493,7 @@
                                 class="w-100"
                                 mat-flat-button
                                 matStepperNext
-                                [disabled]="
-                                  !registerClientForm.get('password')?.valid
-                                "
+                                [disabled]="!registerClientForm.valid"
                               >
                                 Next
                               </button>
