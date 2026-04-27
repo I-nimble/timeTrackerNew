@@ -655,10 +655,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   submitTalentMatch(): void {
-    if (this.sessionInterestedCandidates.length === 0) {
-      this.snackBar.open('Please mark at least one candidate as interested before submitting.', 'Close', { duration: 3000 });
-      return;
-    }
     if (!this.intakeForm?.valid) {
       this.snackBar.open('Please complete all intake fields before submitting.', 'Close', { duration: 3000 });
       return;
