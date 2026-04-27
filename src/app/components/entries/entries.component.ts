@@ -1,4 +1,4 @@
-﻿import {
+import {
   Component,
   EventEmitter,
   Input,
@@ -6,16 +6,18 @@
   Output,
   inject,
 } from '@angular/core';
-import { CustomDatePipe } from '../../services/custom-date.pipe';
-import { EntriesService } from '../../services/entries.service';
+import { MatDialog } from '@angular/material/dialog';
+
+import * as moment from 'moment';
+import { NotificationStore } from 'src/app/stores/notification.store';
+
 import { Entries } from '../../models/Entries';
 import { PagesComponent } from '../../pages/pages.component';
+import { CustomDatePipe } from '../../services/custom-date.pipe';
+import { EntriesService } from '../../services/entries.service';
 import { ModalComponent } from '../confirmation-modal/modal.component';
-import { MatDialog } from '@angular/material/dialog';
 import { EntryComponent } from '../entry/entry.component';
-import { SharedModule } from '../shared.module';
-import { NotificationStore } from 'src/app/stores/notification.store';
-import * as moment from 'moment';
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'app-entries',
@@ -34,11 +36,11 @@ export class EntriesComponent implements OnInit {
   @Input() loaded?: boolean;
   @Input() admin?: boolean = true;
   updateDate: Date = new Date();
-  currentEntryId: number = 0;
+  currentEntryId = 0;
   timer: any = '00:00:00';
   currenttime: any;
   message: any;
-  offHours: boolean = false;
+  offHours = false;
   morebtn?: any;
   menuoff?: any;
   regex = /^\d+$/;
@@ -51,7 +53,7 @@ export class EntriesComponent implements OnInit {
   constructor(
     private entriesService: EntriesService,
     private customDate: CustomDatePipe,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -80,31 +82,35 @@ export class EntriesComponent implements OnInit {
     });
   }
   updateTask(entry: any) {
-    this.entriesService
-      .updateEntryTask(entry.task_id, entry)
-      .subscribe({
-        next: (res) => {
+    this.entriesService.updateEntryTask(entry.task_id, entry).subscribe({
+      next: (res) => {
         // this.message = res.message;
         // this.store.addNotifications(this.message);
         this.getEntries.emit();
-      }, error: (res) => {
+      },
+      error: (res) => {
         this.message = res.message;
         this.store.addNotifications(this.message);
         this.getEntries.emit();
-      }
-      });
+      },
+    });
   }
 
   updateStart_date(data: any) {
     const { entry, event } = data;
-    let input = (event.target as HTMLInputElement).value; 
+    const input = (event.target as HTMLInputElement).value;
     const newData = {
       start_time: this.getFormatByDate(entry.start_time, input),
       end_time: this.toUTCString(entry.end_time),
       date: entry.date.toString(),
     };
-    if(!newData.start_time || !newData.end_time || !newData.date || !entry.id) {
-      this.store.addNotifications("Invalid data");
+    if (
+      !newData.start_time ||
+      !newData.end_time ||
+      !newData.date ||
+      !entry.id
+    ) {
+      this.store.addNotifications('Invalid data');
     }
     this.entriesService.updateEntry(entry.id, newData).subscribe({
       next: () => {
@@ -121,14 +127,19 @@ export class EntriesComponent implements OnInit {
   }
   updateEnd_date(data: any) {
     const { entry, event } = data;
-    let input = (event.target as HTMLInputElement).value; 
+    const input = (event.target as HTMLInputElement).value;
     const newData = {
       start_time: this.toUTCString(entry.start_time),
       end_time: this.getFormatByDate(entry.end_time, input),
       date: entry.date.toString(),
     };
-    if(!newData.start_time || !newData.end_time || !newData.date || !entry.id) {
-      this.store.addNotifications("Invalid data");
+    if (
+      !newData.start_time ||
+      !newData.end_time ||
+      !newData.date ||
+      !entry.id
+    ) {
+      this.store.addNotifications('Invalid data');
     }
     this.entriesService.updateEntry(entry.id, newData).subscribe({
       next: () => {
@@ -155,8 +166,13 @@ export class EntriesComponent implements OnInit {
         end_time: this.toUTCString(entry.end_time),
         date: entry.date.toString(),
       };
-      if(!newData.start_time || !newData.end_time || !newData.date || !entry.id) {
-        this.store.addNotifications("Invalid data");
+      if (
+        !newData.start_time ||
+        !newData.end_time ||
+        !newData.date ||
+        !entry.id
+      ) {
+        this.store.addNotifications('Invalid data');
       }
       this.entriesService.updateEntry(entry.id, newData).subscribe({
         next: () => {
@@ -186,8 +202,13 @@ export class EntriesComponent implements OnInit {
         end_time: this.getFormatByTime(entry.end_time, input),
         date: entry.date.toString(),
       };
-      if(!newData.start_time || !newData.end_time || !newData.date || !entry.id) {
-        this.store.addNotifications("Invalid data");
+      if (
+        !newData.start_time ||
+        !newData.end_time ||
+        !newData.date ||
+        !entry.id
+      ) {
+        this.store.addNotifications('Invalid data');
       }
       this.entriesService.updateEntry(entry.id, newData).subscribe({
         next: (v) => {
@@ -212,30 +233,36 @@ export class EntriesComponent implements OnInit {
     const newMonth = new Date(date).getMonth();
     const newDay = new Date(date).getDate();
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const newMoment = moment(`${newYear}-${(newMonth + 1).toString().padStart(2, '0')}-${newDay.toString().padStart(2, '0')}T${hours}:${minutes}:${seconds}`).tz(localTimeZone, true)
-    const newUTCMoment = newMoment.clone().utc()
-    return newUTCMoment.format("YYYY-MM-DDTHH:mm:ss.000Z");
+    const newMoment = moment(
+      `${newYear}-${(newMonth + 1).toString().padStart(2, '0')}-${newDay.toString().padStart(2, '0')}T${hours}:${minutes}:${seconds}`,
+    ).tz(localTimeZone, true);
+    const newUTCMoment = newMoment.clone().utc();
+    return newUTCMoment.format('YYYY-MM-DDTHH:mm:ss.000Z');
   }
   getFormatByDate(date: Date, value: any) {
-    const dateString = date.toString()
-    let timeString = dateString.split('T')[1].split('.')[0];
+    const dateString = date.toString();
+    const timeString = dateString.split('T')[1].split('.')[0];
     const [hours, minutes, seconds] = timeString.split(':');
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const newMoment = moment(`${value}T${hours}:${minutes}:${seconds}`).tz(localTimeZone, true)
-    const newUTCMoment = newMoment.clone().utc()
-    return newUTCMoment.format("YYYY-MM-DDTHH:mm:ss.000Z");
+    const newMoment = moment(`${value}T${hours}:${minutes}:${seconds}`).tz(
+      localTimeZone,
+      true,
+    );
+    const newUTCMoment = newMoment.clone().utc();
+    return newUTCMoment.format('YYYY-MM-DDTHH:mm:ss.000Z');
   }
   toUTCString(date: Date) {
-    const dateTimeString = date.toString()
-    const dateParts = dateTimeString.split('T')
+    const dateTimeString = date.toString();
+    const dateParts = dateTimeString.split('T');
     const timeString = dateParts[1].split('.')[0];
-    const dateString = dateParts[0]
+    const dateString = dateParts[0];
     const [hours, minutes, seconds] = timeString.split(':');
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const newMoment = moment(`${dateString}T${hours}:${minutes}:${seconds}`).tz(localTimeZone, true)
-    const newUTCMoment = newMoment.clone().utc()
-    return newUTCMoment.format("YYYY-MM-DDTHH:mm:ss.000Z");
+    const newMoment = moment(`${dateString}T${hours}:${minutes}:${seconds}`).tz(
+      localTimeZone,
+      true,
+    );
+    const newUTCMoment = newMoment.clone().utc();
+    return newUTCMoment.format('YYYY-MM-DDTHH:mm:ss.000Z');
   }
 }
-
-

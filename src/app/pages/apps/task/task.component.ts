@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { TasksService } from './tasks-service.service';
-import { TaskSection } from './tasks';
-
 import { moveItemInArray } from '@angular/cdk/drag-drop';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+
+import { TaskSection } from './tasks';
+import { TasksService } from './tasks-service.service';
 
 @Component({
-    selector: 'app-task',
-    templateUrl: './task.component.html',
-    styleUrls: ['./task.component.scss'],
-    imports: [MaterialModule, CommonModule, TablerIconsModule]
+  selector: 'app-task',
+  templateUrl: './task.component.html',
+  styleUrls: ['./task.component.scss'],
+  imports: [MaterialModule, CommonModule, TablerIconsModule],
 })
 export class AppTaskComponent {
   sectionTask: TaskSection[] | null = null;
@@ -27,10 +28,10 @@ export class AppTaskComponent {
     this.sectionTask = ts.getSectionWiseTask();
     this.remainingTasks();
     this.totalcount = this.sectionTask?.filter(
-      (st) => st.sectionTaskType === 'task'
+      (st) => st.sectionTaskType === 'task',
     )?.length;
     this.completedcount = this.sectionTask?.filter(
-      (st) => st.sectionTaskType === 'task' && st.status
+      (st) => st.sectionTaskType === 'task' && st.status,
     )?.length;
   }
 
@@ -127,7 +128,7 @@ export class AppTaskComponent {
       moveItemInArray(
         this.sectionTask,
         event.previousIndex,
-        event.currentIndex
+        event.currentIndex,
       );
     }
   }

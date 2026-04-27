@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+
 import { CoreService } from 'src/app/services/core.service';
-import { MaterialModule } from '../../../material.module';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-boxed-two-steps',

@@ -1,18 +1,20 @@
 import { Component, Output, EventEmitter, Input, OnInit } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
-import { MatDialog } from '@angular/material/dialog';
-import { getNavItems } from '../../vertical/sidebar/sidebar-data';
-import { TranslateService } from '@ngx-translate/core';
-import { RouterModule } from '@angular/router';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
-import { BrandingComponent } from '../../vertical/sidebar/branding.component';
-import { AppSettings } from 'src/app/config';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { RouterModule } from '@angular/router';
+
+import { TranslateService } from '@ngx-translate/core';
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import {CompaniesService} from 'src/app/services/companies.service';
-import {environment} from 'src/environments/environment';
+import { AppSettings } from 'src/app/config';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { AuthService } from 'src/app/services/auth.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { CoreService } from 'src/app/services/core.service';
+import { environment } from 'src/environments/environment';
+
+import { BrandingComponent } from '../../vertical/sidebar/branding.component';
+import { getNavItems } from '../../vertical/sidebar/sidebar-data';
 
 interface notifications {
   id: number;
@@ -62,11 +64,11 @@ export class AppHorizontalHeaderComponent implements OnInit {
   @Output() toggleMobileFilterNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
 
-  isCollapse: boolean = false; // Initially hidden
-    company: any;
-    userName:any;
-    companyLogo:any = null;
-    assetsPath: string = environment.assets;
+  isCollapse = false; // Initially hidden
+  company: any;
+  userName: any;
+  companyLogo: any = null;
+  assetsPath: string = environment.assets;
 
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
@@ -121,23 +123,24 @@ export class AppHorizontalHeaderComponent implements OnInit {
   ngOnInit(): void {
     this.userData();
   }
-  userData(){
+  userData() {
     this.userName = localStorage.getItem('username');
     const role = localStorage.getItem('role');
-    if(role == '3'){
+    if (role == '3') {
       this.loadCompanyLogo();
       this.companieService.getByOwner().subscribe((company: any) => {
         this.company = company.company.name;
       });
     }
-    
   }
 
   loadCompanyLogo() {
     this.companieService.getByOwner().subscribe((company) => {
-      this.companieService.getCompanyLogo(company.company_id).subscribe((logo) => {
-        this.companyLogo = logo;
-      });
+      this.companieService
+        .getCompanyLogo(company.company_id)
+        .subscribe((logo) => {
+          this.companyLogo = logo;
+        });
     });
   }
 
@@ -338,11 +341,13 @@ export class AppHorizontalHeaderComponent implements OnInit {
   templateUrl: 'search-dialog.component.html',
 })
 export class AppHorizontalSearchDialogComponent {
-  searchText: string = '';
+  searchText = '';
   role: any = localStorage.getItem('role');
   navItems = getNavItems(this.role);
 
-  navItemsData = getNavItems(this.role).filter((navitem:any) => navitem.displayName);
+  navItemsData = getNavItems(this.role).filter(
+    (navitem: any) => navitem.displayName,
+  );
 
   // filtered = this.navItemsData.find((obj) => {
   //   return obj.displayName == this.searchinput;

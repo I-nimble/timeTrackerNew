@@ -1,18 +1,16 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { FOOTER_ROW_TABLE_HTML_SNIPPET } from './code/footer-row-table-html-snippet';
 import { FOOTER_ROW_TABLE_TS_SNIPPET } from './code/footer-row-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 export interface Transaction {
   item: string;
@@ -21,7 +19,11 @@ export interface Transaction {
 }
 @Component({
   selector: 'app-footer-row-table',
-  imports: [MatTableModule, MatCardModule, CommonModule, MatDividerModule,
+  imports: [
+    MatTableModule,
+    MatCardModule,
+    CommonModule,
+    MatDividerModule,
     Highlight,
     HighlightAuto,
     HighlightLineNumbers,
@@ -34,7 +36,6 @@ export class AppFooterRowTableComponent implements OnInit {
   // 1 [Footer Row with Table]
   codeForFooterRowTable = FOOTER_ROW_TABLE_HTML_SNIPPET;
   codeForFooterRowTableTs = FOOTER_ROW_TABLE_TS_SNIPPET;
-
 
   displayedColumns: string[] = ['item', 'cost'];
   transactions: Transaction[] = [

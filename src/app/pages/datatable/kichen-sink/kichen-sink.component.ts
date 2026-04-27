@@ -1,3 +1,4 @@
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   Component,
   Inject,
@@ -5,28 +6,29 @@ import {
   ViewChild,
   AfterViewInit,
 } from '@angular/core';
-import {
-  MatTableDataSource,
-  MatTable,
-  MatTableModule,
-} from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatNativeDateModule } from '@angular/material/core';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
   MatDialogModule,
 } from '@angular/material/dialog';
-import { CommonModule, DatePipe } from '@angular/common';
-import { AppAddKichenSinkComponent } from './add/add.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCardModule } from '@angular/material/card';
+import { MatPaginator } from '@angular/material/paginator';
+import {
+  MatTableDataSource,
+  MatTable,
+  MatTableModule,
+} from '@angular/material/table';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgxPaginationModule } from 'ngx-pagination';
-import { MatNativeDateModule } from '@angular/material/core';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { MaterialModule } from 'src/app/material.module';
+import { MaterialModule } from 'src/app/legacy/material.module';
+
+import { AppAddKichenSinkComponent } from './add/add.component';
 
 export interface Employee {
   id: number;
@@ -143,15 +145,15 @@ const employees = [
 ];
 
 @Component({
-    templateUrl: './kichen-sink.component.html',
-    imports: [
-        MaterialModule,
-        TablerIconsModule,
-        MatNativeDateModule,
-        NgScrollbarModule,
-        CommonModule,
-    ],
-    providers: [DatePipe]
+  templateUrl: './kichen-sink.component.html',
+  imports: [
+    MaterialModule,
+    TablerIconsModule,
+    MatNativeDateModule,
+    NgScrollbarModule,
+    CommonModule,
+  ],
+  providers: [DatePipe],
 })
 export class AppKichenSinkComponent implements AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any> =
@@ -171,7 +173,10 @@ export class AppKichenSinkComponent implements AfterViewInit {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator =
     Object.create(null);
 
-  constructor(public dialog: MatDialog, public datePipe: DatePipe) {}
+  constructor(
+    public dialog: MatDialog,
+    public datePipe: DatePipe,
+  ) {}
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
@@ -197,7 +202,6 @@ export class AppKichenSinkComponent implements AfterViewInit {
     });
   }
 
-  // tslint:disable-next-line - Disables all
   addRowData(row_obj: Employee): void {
     this.dataSource.data.unshift({
       id: employees.length + 1,
@@ -215,7 +219,6 @@ export class AppKichenSinkComponent implements AfterViewInit {
     this.table.renderRows();
   }
 
-  // tslint:disable-next-line - Disables all
   updateRowData(row_obj: Employee): boolean | any {
     this.dataSource.data = this.dataSource.data.filter((value: any) => {
       if (value.id === row_obj.id) {
@@ -232,7 +235,6 @@ export class AppKichenSinkComponent implements AfterViewInit {
     });
   }
 
-  // tslint:disable-next-line - Disables all
   deleteRowData(row_obj: Employee): boolean | any {
     this.dataSource.data = this.dataSource.data.filter((value: any) => {
       return value.id !== row_obj.id;
@@ -241,16 +243,14 @@ export class AppKichenSinkComponent implements AfterViewInit {
 }
 
 @Component({
-    // tslint:disable-next-line: component-selector
-    selector: 'app-dialog-content',
-    imports: [MatDialogModule, FormsModule, MaterialModule],
-    providers: [DatePipe],
-    templateUrl: 'kichen-sink-dialog-content.html'
+  selector: 'app-dialog-content',
+  imports: [MatDialogModule, FormsModule, MaterialModule],
+  providers: [DatePipe],
+  templateUrl: 'kichen-sink-dialog-content.html',
 })
-// tslint:disable-next-line: component-class-suffix
 export class AppKichenSinkDialogContentComponent {
   action: string;
-  // tslint:disable-next-line - Disables all
+
   local_data: any;
   selectedImage: any = '';
   joiningDate: any = '';
@@ -259,14 +259,14 @@ export class AppKichenSinkDialogContentComponent {
     public datePipe: DatePipe,
     public dialogRef: MatDialogRef<AppKichenSinkDialogContentComponent>,
     // @Optional() is used to prevent error if no data is passed
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: Employee
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: Employee,
   ) {
     this.local_data = { ...data };
     this.action = this.local_data.action;
     if (this.local_data.DateOfJoining !== undefined) {
       this.joiningDate = this.datePipe.transform(
         new Date(this.local_data.DateOfJoining),
-        'yyyy-MM-dd'
+        'yyyy-MM-dd',
       );
     }
     if (this.local_data.imagePath === undefined) {
@@ -291,12 +291,11 @@ export class AppKichenSinkDialogContentComponent {
       // this.msg = "Only images are supported";
       return;
     }
-    // tslint:disable-next-line - Disables all
+
     const reader = new FileReader();
     reader.readAsDataURL(event.target.files[0]);
-    // tslint:disable-next-line - Disables all
+
     reader.onload = (_event) => {
-      // tslint:disable-next-line - Disables all
       this.local_data.imagePath = reader.result;
     };
   }

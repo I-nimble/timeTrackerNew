@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+
 import { AppPricingStripeComponent } from 'src/app/pages/apps/invoice/pricing/pricing.component';
 
 @Component({

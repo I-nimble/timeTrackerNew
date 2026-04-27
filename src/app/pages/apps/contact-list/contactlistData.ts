@@ -1,5 +1,6 @@
-import { ContactBox } from './contact-list';
 import { Chance } from 'chance';
+
+import { ContactBox } from './contact-list';
 
 const chance = new Chance();
 
@@ -459,7 +460,6 @@ export const ContactList: ContactBox[] = [
 export default ContactList;
 
 export function getUser(id: string): ContactBox | null {
-  // tslint:disable-next-line: no-shadowed-variable
   const u = ContactList.find((u) => {
     return u.id === id;
   });

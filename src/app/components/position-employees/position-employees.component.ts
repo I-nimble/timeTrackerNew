@@ -1,8 +1,9 @@
-import { Component, Input, } from '@angular/core';
-import { SharedModule } from '../shared.module';
+import { Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { SharedModule } from '../legacy/shared.module';
 import { TimerComponent } from '../timer/timer.component';
 import { UserOptionsComponent } from '../user-options/user-options.component';
-import { RouterLink } from '@angular/router';
 
 export interface Link {
   url: string;

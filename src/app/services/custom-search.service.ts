@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -17,5 +19,4 @@ export class CustomSearchService {
   public saveSubmission(data: any): Observable<any> {
     return this.http.post<any>(`${this.API_URI}`, data);
   }
-
 }

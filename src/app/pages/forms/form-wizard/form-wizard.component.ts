@@ -5,17 +5,18 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../../material.module';
-import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 // snippets
-import { BASIC_FORM_WIZARD_TS_SNIPPET } from './code/form-wizard-ts-snippet';
 import {
   BASIC_FORM_WIZARD_HTML_SNIPPET,
   VERTICAL_FORM_WIZARD_HTML_SNIPPET,
 } from './code/form-wizard-html-snippet';
+import { BASIC_FORM_WIZARD_TS_SNIPPET } from './code/form-wizard-ts-snippet';
+import { AppCodeViewComponent } from '../../../components/code-view/code-view.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-form-wizard',

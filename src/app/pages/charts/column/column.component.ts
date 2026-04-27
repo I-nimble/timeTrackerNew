@@ -1,13 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { COLUMN_CHART_HTML_SNIPPET } from './code/column-html-snippet';
-import { COLUMN_CHART_TS_SNIPPET } from './code/column-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 import {
   ApexAxisChartSeries,
@@ -24,9 +15,16 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
-export type ChartOptions = {
+// snippets
+import { COLUMN_CHART_HTML_SNIPPET } from './code/column-html-snippet';
+import { COLUMN_CHART_TS_SNIPPET } from './code/column-ts-snippet';
+import { MaterialModule } from '../../../legacy/material.module';
+
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -42,25 +40,24 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 
 @Component({
-    selector: 'app-column',
-    imports: [NgApexchartsModule, MaterialModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './column.component.html'
+  selector: 'app-column',
+  imports: [
+    NgApexchartsModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './column.component.html',
 })
-
 export class AppColumnChartComponent {
-
   // 1 [column with Datepicker]
   codeForColumnChart = COLUMN_CHART_HTML_SNIPPET;
   codeForColumnChartTs = COLUMN_CHART_TS_SNIPPET;
-
 
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public columnChartOptions: Partial<ChartOptions> | any;

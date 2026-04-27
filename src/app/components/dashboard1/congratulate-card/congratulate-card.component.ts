@@ -1,4 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -15,8 +17,8 @@ import {
   ApexMarkers,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 interface month {
   value: string;
@@ -80,7 +82,7 @@ export class AppCongratulateCardComponent {
 
       chart: {
         type: 'line',
-        fontFamily: "inherit",
+        fontFamily: 'inherit',
         foreColor: '#adb0bb',
         toolbar: {
           show: false,
@@ -94,7 +96,7 @@ export class AppCongratulateCardComponent {
       },
       stroke: {
         width: 3,
-        curve: "smooth",
+        curve: 'smooth',
       },
       grid: {
         show: true,
@@ -112,19 +114,19 @@ export class AppCongratulateCardComponent {
         labels: {
           show: true,
         },
-        type: "category",
-        categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        type: 'category',
+        categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       },
       yaxis: {
         labels: {
           show: true,
           formatter: function (value: any) {
-            return value + "k";
+            return value + 'k';
           },
         },
       },
       tooltip: {
-        theme: "dark",
+        theme: 'dark',
         fillSeriesColor: false,
       },
     };

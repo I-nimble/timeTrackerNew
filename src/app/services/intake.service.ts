@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -34,7 +35,7 @@ export class IntakeService {
       schedule: data.scheduleStart + ' - ' + data.scheduleEnd,
       lunchtime: data.lunchTime,
       holidays_observed: data.holidaysObserved.join(', '),
-    }
+    };
 
     return this.http.post(`${this.API_URI}`, body);
   }
@@ -83,7 +84,9 @@ export class IntakeService {
       email: data.email,
       phone: data.countryCode + ' ' + data.phone,
       job_name_description: data.jobNameAndDescription,
-      required_skills_category: data.requiredSkillsCategory + (data.otherSkillsCategory ? ` (${data.otherSkillsCategory})` : ''),
+      required_skills_category:
+        data.requiredSkillsCategory +
+        (data.otherSkillsCategory ? ` (${data.otherSkillsCategory})` : ''),
       required_skills: data.requiredSkills.join(', '),
       routine_oriented: data.routineOriented,
       social_oriented: data.socialOriented,
@@ -92,8 +95,8 @@ export class IntakeService {
       management_style: data.managementStyle,
       feedback_style: data.feedbackStyle,
       communication_style: data.communicationStyle,
-      conflict_handling: data.conflictHandling
-    }
+      conflict_handling: data.conflictHandling,
+    };
 
     return this.http.post(`${this.API_URI}/discovery`, body);
   }

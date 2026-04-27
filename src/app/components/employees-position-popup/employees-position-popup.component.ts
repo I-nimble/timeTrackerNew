@@ -1,15 +1,21 @@
-﻿import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule, } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { SharedModule } from '../shared.module';
+import { CommonModule } from '@angular/common';
+import { Component, Inject, OnInit } from '@angular/core';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { AuthService } from 'src/app/services/auth.service';
-import { Plan } from 'src/app/models/Plan.model';
-import { PlansService } from 'src/app/services/plans.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { environment } from 'src/environments/environment';
 import { RouterLink } from '@angular/router';
+
+import { Subscription } from 'rxjs';
+import { Plan } from 'src/app/models/Plan.model';
+import { AuthService } from 'src/app/services/auth.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { environment } from 'src/environments/environment';
+
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'employees-position-popup',
@@ -24,7 +30,7 @@ export class employeesPositionPopup implements OnInit {
   userType: any;
   plan?: Plan;
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any, 
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private dialog: MatDialog,
     private router: Router,
     private authService: AuthService,
@@ -33,31 +39,30 @@ export class employeesPositionPopup implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.routerSubscription = this.router.events.subscribe(event => {
+    this.routerSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.closePopup();
       }
-    });  
+    });
 
     this.authService.getUserType().subscribe((role) => {
       this.userType = role;
-      if(this.userType == '3') {
+      if (this.userType == '3') {
         this.companiesService.getByOwner().subscribe((company: any) => {
           const companyId = company.company.id;
-          if(companyId) {
-            this.plansService.getCurrentPlan(companyId).subscribe((companyPlan: any) => {
-              this.plan = companyPlan.plan;
-            });
+          if (companyId) {
+            this.plansService
+              .getCurrentPlan(companyId)
+              .subscribe((companyPlan: any) => {
+                this.plan = companyPlan.plan;
+              });
           }
         });
       }
     });
-
   }
 
   closePopup(): void {
     this.dialog.closeAll();
   }
 }
-
-

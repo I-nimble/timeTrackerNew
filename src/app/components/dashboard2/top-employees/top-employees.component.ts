@@ -1,16 +1,25 @@
-﻿import { Component, EventEmitter, Inject, Output, OnInit, OnDestroy } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
 import { CommonModule } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
+import {
+  Component,
+  EventEmitter,
+  Inject,
+  Output,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { RatingsEntriesService } from '../../../services/ratings_entries.service';
-import { UsersService } from '../../../services/users.service';
+import { MatMenuModule } from '@angular/material/menu';
+
+import { CompaniesService } from '@app/services/companies.service';
+import { WebSocketService } from '@app/services/socket/web-socket.service';
+import moment from 'moment';
 import { forkJoin, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { WebSocketService } from '@app/services/socket/web-socket.service';
-import { CompaniesService } from '@app/services/companies.service';
+
+import { MaterialModule } from '../../../legacy/material.module';
 import { AppEmployeeTableComponent } from '../../../pages/apps/employee/employee-table/employee-table.component';
-import moment from 'moment';
+import { RatingsEntriesService } from '../../../services/ratings_entries.service';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-top-employees',
@@ -39,8 +48,8 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
     @Inject(RatingsEntriesService)
     private ratingsEntriesService: RatingsEntriesService,
     @Inject(UsersService) private usersService: UsersService,
-    private companieService: CompaniesService
-    , private webSocketService: WebSocketService
+    private companieService: CompaniesService,
+    private webSocketService: WebSocketService,
   ) {}
 
   ngOnInit(): void {
@@ -52,11 +61,15 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
     }, 300000);
 
     try {
-      const s1 = this.webSocketService.getClosedEntryStream().subscribe(() => this.getDataSource());
+      const s1 = this.webSocketService
+        .getClosedEntryStream()
+        .subscribe(() => this.getDataSource());
       this.socketSubs.push(s1);
     } catch (e) {}
     try {
-      const s2 = this.webSocketService.getStartedEntryStream().subscribe(() => this.getDataSource());
+      const s2 = this.webSocketService
+        .getStartedEntryStream()
+        .subscribe(() => this.getDataSource());
       this.socketSubs.push(s2);
     } catch (e) {}
   }
@@ -66,7 +79,7 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
       clearInterval(this.refreshInterval);
     }
     if (this.activeTimer) clearInterval(this.activeTimer);
-    this.socketSubs.forEach(s => s.unsubscribe?.());
+    this.socketSubs.forEach((s) => s.unsubscribe?.());
   }
 
   getCompany() {
@@ -102,20 +115,20 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
             progress: employee.status === 'Online' ? 'success' : 'error',
           }));
 
-          this.dataSource.forEach(emp => {
+          this.dataSource.forEach((emp) => {
             emp._baseWorkedDecimal = this.HHMMSSToDecimal(emp.workedHours);
           });
 
           this.setupActiveTimer();
 
           const profilePicRequests = this.dataSource.map((task) =>
-            this.usersService.getProfilePic(task.profile.id)
+            this.usersService.getProfilePic(task.profile.id),
           );
           this.dataSourceChange.emit(this.dataSource);
           return forkJoin({
             profilePics: forkJoin(profilePicRequests),
           });
-        })
+        }),
       )
       .subscribe(({ profilePics }) => {
         // Update the dataSource with profile pictures and status
@@ -125,48 +138,52 @@ export class AppTopEmployeesComponent implements OnInit, OnDestroy {
       });
   }
 
-    setupActiveTimer() {
-      if (this.activeTimer) clearInterval(this.activeTimer);
-      const hasActive = this.dataSource.some(d => d.activeEntry && d.activeEntry.start_time);
-      if (!hasActive) return;
-      this.activeTimer = setInterval(() => {
-        const now = Date.now();
-        this.dataSource.forEach(emp => {
-          if (emp.activeEntry && emp.activeEntry.start_time) {
-            const start = new Date(emp.activeEntry.start_time).getTime();
-            if (!isNaN(start)) {
-              const elapsedHours = (now - start) / 1000 / 3600;
-              emp.workedHours = this.formatHoursToHMS(emp._baseWorkedDecimal + elapsedHours);
-            }
-          } else {
-            emp.workedHours = this.formatHoursToHMS(emp._baseWorkedDecimal || 0);
+  setupActiveTimer() {
+    if (this.activeTimer) clearInterval(this.activeTimer);
+    const hasActive = this.dataSource.some(
+      (d) => d.activeEntry && d.activeEntry.start_time,
+    );
+    if (!hasActive) return;
+    this.activeTimer = setInterval(() => {
+      const now = Date.now();
+      this.dataSource.forEach((emp) => {
+        if (emp.activeEntry && emp.activeEntry.start_time) {
+          const start = new Date(emp.activeEntry.start_time).getTime();
+          if (!isNaN(start)) {
+            const elapsedHours = (now - start) / 1000 / 3600;
+            emp.workedHours = this.formatHoursToHMS(
+              emp._baseWorkedDecimal + elapsedHours,
+            );
           }
-        });
-        this.dataSourceChange.emit(this.dataSource);
-      }, 1000);
-    }
+        } else {
+          emp.workedHours = this.formatHoursToHMS(emp._baseWorkedDecimal || 0);
+        }
+      });
+      this.dataSourceChange.emit(this.dataSource);
+    }, 1000);
+  }
 
-    HHMMSSToDecimal(timeStr: string): number {
-      if (!timeStr || timeStr === '00:00:00') return 0;
-      const parts = timeStr.split(':');
-      if (parts.length !== 3) return 0;
-      const hours = parseInt(parts[0], 10) || 0;
-      const minutes = parseInt(parts[1], 10) || 0;
-      const seconds = parseInt(parts[2], 10) || 0;
-      return hours + (minutes / 60) + (seconds / 3600);
-    }
+  HHMMSSToDecimal(timeStr: string): number {
+    if (!timeStr || timeStr === '00:00:00') return 0;
+    const parts = timeStr.split(':');
+    if (parts.length !== 3) return 0;
+    const hours = parseInt(parts[0], 10) || 0;
+    const minutes = parseInt(parts[1], 10) || 0;
+    const seconds = parseInt(parts[2], 10) || 0;
+    return hours + minutes / 60 + seconds / 3600;
+  }
 
-    formatHoursToHMS(hoursDecimal: number): string {
-      if (isNaN(hoursDecimal)) return '00:00:00';
-      const totalSeconds = Math.round(hoursDecimal * 3600);
-      const hoursPart = Math.floor(totalSeconds / 3600);
-      const remainingSeconds = totalSeconds % 3600;
-      const minutesPart = Math.floor(remainingSeconds / 60);
-      const secondsPart = remainingSeconds % 60;
-      return [
-        String(hoursPart).padStart(2, '0'),
-        String(minutesPart).padStart(2, '0'),
-        String(secondsPart).padStart(2, '0')
-      ].join(':');
-    }
+  formatHoursToHMS(hoursDecimal: number): string {
+    if (isNaN(hoursDecimal)) return '00:00:00';
+    const totalSeconds = Math.round(hoursDecimal * 3600);
+    const hoursPart = Math.floor(totalSeconds / 3600);
+    const remainingSeconds = totalSeconds % 3600;
+    const minutesPart = Math.floor(remainingSeconds / 60);
+    const secondsPart = remainingSeconds % 60;
+    return [
+      String(hoursPart).padStart(2, '0'),
+      String(minutesPart).padStart(2, '0'),
+      String(secondsPart).padStart(2, '0'),
+    ].join(':');
+  }
 }

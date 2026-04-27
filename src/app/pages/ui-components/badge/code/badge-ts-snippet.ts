@@ -33,7 +33,6 @@ export const BUTTON_LEFT_WITH_BADGE_TS_SNIPPET = `  import {Component} from '@an
     }
 `;
 
-
 export const BUTTON_TOGGLES_WITH_BADGE_TS_SNIPPET = `  import {Component} from '@angular/core';
     import {MatBadgeModule} from '@angular/material/badge';
     import { MatButtonModule } from '@angular/material/button';

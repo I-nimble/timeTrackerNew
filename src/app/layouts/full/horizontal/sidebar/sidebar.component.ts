@@ -1,3 +1,5 @@
+import { MediaMatcher } from '@angular/cdk/layout';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -5,12 +7,11 @@ import {
   ChangeDetectorRef,
   OnChanges,
 } from '@angular/core';
-import { navItems } from './sidebar-data';
 import { Router } from '@angular/router';
-import { NavService } from '../../../../services/nav.service';
-import { MediaMatcher } from '@angular/cdk/layout';
+
 import { AppHorizontalNavItemComponent } from './nav-item/nav-item.component';
-import { CommonModule } from '@angular/common';
+import { navItems } from './sidebar-data';
+import { NavService } from '../../../../services/nav.service';
 
 @Component({
   selector: 'app-horizontal-sidebar',
@@ -28,13 +29,13 @@ export class AppHorizontalSidebarComponent implements OnInit {
     public navService: NavService,
     public router: Router,
     media: MediaMatcher,
-    changeDetectorRef: ChangeDetectorRef
+    changeDetectorRef: ChangeDetectorRef,
   ) {
     this.mobileQuery = media.matchMedia('(min-width: 1100px)');
     this._mobileQueryListener = () => changeDetectorRef.detectChanges();
     this.mobileQuery.addListener(this._mobileQueryListener);
     this.router.events.subscribe(
-      () => (this.parentActive = this.router.url.split('/')[1])
+      () => (this.parentActive = this.router.url.split('/')[1]),
     );
   }
 

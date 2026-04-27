@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-import { MaterialModule } from 'src/app/material.module';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 @Component({
   selector: 'app-contact-form-dialog',
@@ -34,7 +35,7 @@ export class ContactFormDialogComponent {
 
   constructor(
     public dialogRef: MatDialogRef<ContactFormDialogComponent>,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   saveContact(): void {
@@ -47,7 +48,7 @@ export class ContactFormDialogComponent {
         duration: 3000,
         horizontalPosition: 'center',
         verticalPosition: 'top',
-      }
+      },
     );
   }
 

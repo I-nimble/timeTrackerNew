@@ -1,10 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Router } from '@angular/router';
-import { NavService } from '../../../../../services/nav.service';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, Input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+
+import { NavService } from '../../../../../services/nav.service';
 
 @Component({
   selector: 'app-horizontal-nav-item',
@@ -15,7 +17,10 @@ export class AppHorizontalNavItemComponent implements OnInit {
   @Input() depth: any;
   @Input() item: any;
 
-  constructor(public navService: NavService, public router: Router) {
+  constructor(
+    public navService: NavService,
+    public router: Router,
+  ) {
     if (this.depth === undefined) {
       this.depth = 0;
     }
@@ -26,7 +31,9 @@ export class AppHorizontalNavItemComponent implements OnInit {
   getTourAnchor(item: any): string | null {
     if (!item || item.navCap || !item.route) return null;
     const rawRoute = String(item.route);
-    const normalizedRoute = rawRoute.startsWith('/') ? rawRoute : `/${rawRoute}`;
+    const normalizedRoute = rawRoute.startsWith('/')
+      ? rawRoute
+      : `/${rawRoute}`;
 
     switch (normalizedRoute) {
       case '/dashboards/reports':

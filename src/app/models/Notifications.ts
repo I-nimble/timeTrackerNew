@@ -18,6 +18,6 @@ export interface Notification {
 
 export interface usersNotification {
   user_id: number;
-  notification_id: number,
+  notification_id: number;
   status: number;
 }

@@ -1,19 +1,21 @@
-import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { UsersService } from 'src/app/services/users.service';
-import { AIService } from 'src/app/services/ai.service';
-import { ClientTableComponent } from './client-table/client-table.component';
-import { ClientDetailsComponent } from './client-detail/client-details.component';
-import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { PlansService } from 'src/app/services/plans.service';
-import { Plan } from 'src/app/models/Plan.model';
-import { DepartmentsService } from 'src/app/services/departments.service';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { Department } from 'src/app/models/Department.model';
+import { Plan } from 'src/app/models/Plan.model';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
+import { AIService } from 'src/app/services/ai.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { DepartmentsService } from 'src/app/services/departments.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { UsersService } from 'src/app/services/users.service';
+
+import { ClientDetailsComponent } from './client-detail/client-details.component';
+import { ClientTableComponent } from './client-table/client-table.component';
 
 @Component({
   selector: 'app-expert',
@@ -26,32 +28,38 @@ import { Department } from 'src/app/models/Department.model';
     MaterialModule,
     TablerIconsModule,
     ClientTableComponent,
-    ClientDetailsComponent, 
+    ClientDetailsComponent,
     MarkdownPipe,
     LinebreakPipe,
-    MatchComponent
-  ]
+    MatchComponent,
+  ],
 })
 export class AppExpertComponent implements OnInit {
   clients: any[] = [];
   filteredClients: any[] = [];
   selectedClient: any = null;
-  aiQuestion: string = '';
-  aiAnswer: string = '';
-  aiLoading: boolean = false;
-  useManualSearch: boolean = false;
+  aiQuestion = '';
+  aiAnswer = '';
+  aiLoading = false;
+  useManualSearch = false;
   plan?: Plan;
   currentSearchText = '';
   departments: Department[] = [];
   searchResults: any[] = [];
   selectedDepartmentId: number | null = null;
 
-  constructor(private usersService: UsersService, private aiService: AIService, private companiesService: CompaniesService, private plansService: PlansService, private departmentsService: DepartmentsService) {}
+  constructor(
+    private usersService: UsersService,
+    private aiService: AIService,
+    private companiesService: CompaniesService,
+    private plansService: PlansService,
+    private departmentsService: DepartmentsService,
+  ) {}
 
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
       this.clients = users.filter(
-        (u: any) => u.role == 3 && u.active == 1 && u.company?.show_info == 1
+        (u: any) => u.role == 3 && u.active == 1 && u.company?.show_info == 1,
       );
       this.filteredClients = this.clients;
     });
@@ -59,10 +67,12 @@ export class AppExpertComponent implements OnInit {
       this.departments = deps;
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
-        this.plan = companyPlan.plan;
-        this.plansService.setCurrentPlan(this.plan);
-      });
+      this.plansService
+        .getCurrentPlan(company.company.id)
+        .subscribe((companyPlan: any) => {
+          this.plan = companyPlan.plan;
+          this.plansService.setCurrentPlan(this.plan);
+        });
     });
   }
 
@@ -70,10 +80,10 @@ export class AppExpertComponent implements OnInit {
     if (!this.selectedDepartmentId) {
       return source;
     }
-    return source.filter(client =>
+    return source.filter((client) =>
       client.company?.departments?.some(
-        (d: any) => d.id === this.selectedDepartmentId
-      )
+        (d: any) => d.id === this.selectedDepartmentId,
+      ),
     );
   }
 
@@ -102,13 +112,14 @@ export class AppExpertComponent implements OnInit {
       next: (res) => {
         const rawText = res.answer?.parts?.[0]?.text ?? '';
         const selectedCompanies = this.extractCompaniesFromAiAnswer(rawText);
-        this.filteredClients = this.clients.filter(client => {
-          const matchesCompany =
-            selectedCompanies.includes(client.company?.name);
+        this.filteredClients = this.clients.filter((client) => {
+          const matchesCompany = selectedCompanies.includes(
+            client.company?.name,
+          );
           const matchesDepartment =
             !this.selectedDepartmentId ||
             client.company?.departments?.some(
-              (d: any) => d.id === this.selectedDepartmentId
+              (d: any) => d.id === this.selectedDepartmentId,
             );
           return matchesCompany && matchesDepartment;
         });
@@ -117,14 +128,15 @@ export class AppExpertComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 429) {
-          this.aiAnswer = 'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
+          this.aiAnswer =
+            'You have reached the limit of 50 AI requests per day. You can keep searching manually until tomorrow, or update your plan.';
           this.useManualSearch = true;
           this.aiLoading = false;
         } else {
           this.aiAnswer = 'Error getting answer from AI, try again later.';
         }
         this.aiLoading = false;
-      }
+      },
     });
   }
 
@@ -134,7 +146,7 @@ export class AppExpertComponent implements OnInit {
 
   onDepartmentChange(departmentId: number | null) {
     this.selectedDepartmentId = departmentId;
-    
+
     if (this.canSearch) {
       this.askGemini(this.currentSearchText);
     }
@@ -142,8 +154,7 @@ export class AppExpertComponent implements OnInit {
 
   get canSearch(): boolean {
     return (
-      !!this.currentSearchText?.trim() ||
-      this.selectedDepartmentId !== null
+      !!this.currentSearchText?.trim() || this.selectedDepartmentId !== null
     );
   }
 
@@ -164,12 +175,13 @@ export class AppExpertComponent implements OnInit {
     }
 
     const lower = query.toLowerCase();
-    this.filteredClients = this.clients.filter(client =>
-      client.name.toLowerCase().includes(lower) ||
-      client.company?.name?.toLowerCase().includes(lower) ||
-      client.company?.departments?.some((d: any) =>
-        d.name?.toLowerCase().includes(lower)
-      )
+    this.filteredClients = this.clients.filter(
+      (client) =>
+        client.name.toLowerCase().includes(lower) ||
+        client.company?.name?.toLowerCase().includes(lower) ||
+        client.company?.departments?.some((d: any) =>
+          d.name?.toLowerCase().includes(lower),
+        ),
     );
   }
 }

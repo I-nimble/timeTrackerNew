@@ -1,9 +1,11 @@
-﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { SharedModule } from '../shared.module';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterLink } from '@angular/router';
+
+import { CompaniesService } from 'src/app/services/companies.service';
+
+import { SharedModule } from '../legacy/shared.module';
 import { TimerComponent } from '../timer/timer.component';
 import { UserOptionsComponent } from '../user-options/user-options.component';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { RouterLink } from '@angular/router';
 
 export interface Link {
   url: string;
@@ -20,14 +22,12 @@ export class CompanyEmployeesListComponent {
   role = localStorage.getItem('role');
   @Input() employeesByPosition!: any;
   @Input() selectedCompany!: any;
-  @Input() timer: boolean = false;
+  @Input() timer = false;
   @Input() loaded!: boolean;
   @Input() links: Link[] = [];
   @Output() onSelectEmployee: EventEmitter<any> = new EventEmitter<any>();
 
-  constructor(
-    private companiesService: CompaniesService
-  ) {}
+  constructor(private companiesService: CompaniesService) {}
 
   setReportInfo(company: any) {
     this.companiesService.setCompanyInformation(company);
@@ -37,5 +37,3 @@ export class CompanyEmployeesListComponent {
     this.onSelectEmployee.emit(company);
   }
 }
-
-

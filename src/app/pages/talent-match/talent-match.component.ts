@@ -1,12 +1,14 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { environment } from 'src/environments/environment';
+
 import { AppTalentMatchClientComponent } from './client/client.component';
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { AppTalentMatchTmComponent } from './talent-match-tm/talent-match-tm.component';
 import { AppIntakeFormComponent } from '../intake/intake-form.component';
-import { environment } from 'src/environments/environment';
-import { PermissionService } from 'src/app/services/permission.service';
-import { ApplicationsService } from 'src/app/services/applications.service';
 
 @Component({
   standalone: true,
@@ -16,7 +18,7 @@ import { ApplicationsService } from 'src/app/services/applications.service';
     AppTalentMatchAdminComponent,
     AppTalentMatchTmComponent,
     AppIntakeFormComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './talent-match.component.html',
 })
@@ -29,7 +31,10 @@ export class AppTalentMatchComponent {
   hasAvailableApplication = false;
   hasApplication = false;
 
-  constructor(private permissionService: PermissionService, private applicationsService: ApplicationsService) {
+  constructor(
+    private permissionService: PermissionService,
+    private applicationsService: ApplicationsService,
+  ) {
     const allowedEmails = environment.allowedReportEmails;
     this.allowedTM =
       this.userRole === '2' && allowedEmails.includes(this.userEmail || '');
@@ -43,7 +48,7 @@ export class AppTalentMatchComponent {
         if (this.userRole !== '3') {
           this.loadApplication(userId);
         }
-      }
+      },
     });
   }
 
@@ -54,7 +59,7 @@ export class AppTalentMatchComponent {
       },
       error: () => {
         this.hasAvailableApplication = false;
-      }
+      },
     });
   }
 }

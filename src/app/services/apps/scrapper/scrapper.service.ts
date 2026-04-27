@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ScrapperService {
   private API_URI = environment.apiUrl + '/scrapper';
@@ -14,5 +15,4 @@ export class ScrapperService {
   getPosts(): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/posts`);
   }
-
 }

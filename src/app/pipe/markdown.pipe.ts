@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class MarkdownPipe implements PipeTransform {
   transform(value: string): string {
     if (!value) return '';
-    let html = value
+    const html = value
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<b><i>$1</i></b>')
       .replace(/\*\*([\s\S]*?)\*\*/g, '<b>$1</b>')

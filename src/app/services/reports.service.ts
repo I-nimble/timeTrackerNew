@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { User } from '../models/User.model';
+import { Injectable } from '@angular/core';
+
+import { BehaviorSubject } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
 import { UsersService } from './users.service';
 import { ReportFilter } from '../components/reports-filter/reports-filter.component';
-import { BehaviorSubject } from 'rxjs';
+import { User } from '../models/User.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,9 +15,12 @@ export class ReportsService {
   private dateRangeSource = new BehaviorSubject<any | null>(null);
   dateRange$ = this.dateRangeSource.asObservable();
 
-  constructor(private http: HttpClient, private userService: UsersService) {}
-  
-  private API_URI: string = `${environment.apiUrl}/reports`;
+  constructor(
+    private http: HttpClient,
+    private userService: UsersService,
+  ) {}
+
+  private API_URI = `${environment.apiUrl}/reports`;
 
   setDateRange(firstSelect: any, lastSelect: any) {
     this.dateRangeSource.next({ firstSelect, lastSelect });
@@ -33,11 +38,16 @@ export class ReportsService {
     return this.http.post(`${this.API_URI}/entries`, info, { headers });
   }
 
-  getReport(dates: any, user: any = null, filters: any, format: 'excel' | 'pptx' = 'excel') {
+  getReport(
+    dates: any,
+    user: any = null,
+    filters: any,
+    format: 'excel' | 'pptx' = 'excel',
+  ) {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     const info = {
       ...this.toBeSent(dates, user, filters),
-      format
+      format,
     };
 
     return this.http.post(`${this.API_URI}`, info, {
@@ -56,7 +66,7 @@ export class ReportsService {
   }
 
   toBeSent(dates: any, user: any, filters: ReportFilter) {
-    let info = {
+    const info = {
       firstSelect: dates.firstSelect,
       lastSelect: dates.lastSelect,
       timezone: new Intl.DateTimeFormat().resolvedOptions().timeZone,

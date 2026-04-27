@@ -1,25 +1,27 @@
-﻿import { Component, EventEmitter, Inject, Output } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
 import { CommonModule, NgIf } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { RatingsEntriesService } from '../../../services/ratings_entries.service';
-import { UsersService } from '../../../services/users.service';
-import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Component, EventEmitter, Inject, Output, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import {
   MatNativeDateModule,
   provideNativeDateAdapter,
 } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { CompaniesService } from '@app/services/companies.service';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { ReportsService } from '@app/services/reports.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMenuModule } from '@angular/material/menu';
+
 import { AppEmployeeTableComponent } from '@app/pages/apps/employee/employee-table/employee-table.component';
+import { CompaniesService } from '@app/services/companies.service';
+import { ReportsService } from '@app/services/reports.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import moment from 'moment';
+import { forkJoin, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+
+import { MaterialModule } from '../../../legacy/material.module';
+import { EntriesService } from '../../../services/entries.service';
+import { RatingsEntriesService } from '../../../services/ratings_entries.service';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-productivity-reports',
@@ -36,21 +38,25 @@ import { AppEmployeeTableComponent } from '@app/pages/apps/employee/employee-tab
     TablerIconsModule,
     AppEmployeeTableComponent,
   ],
-  providers: [
-    provideNativeDateAdapter(),
-  ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './productivity-reports.component.html',
 })
-export class AppProductivityReportsComponent {
+export class AppProductivityReportsComponent implements OnInit {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = [
     'profile',
     'completedTasks',
     'totalTasks',
-    'pendingTasks',    
+    'pendingTasks',
     'productivityPercentage',
   ];
-  customColumns: string[] = [ 'profile', 'completedTasks', 'totalTasks', 'pendingTasks', 'productivityPercentage'];
+  customColumns: string[] = [
+    'profile',
+    'completedTasks',
+    'totalTasks',
+    'pendingTasks',
+    'productivityPercentage',
+  ];
   dataSource: any[] = [];
   startDate: any = '';
   endDate: any = '';
@@ -69,7 +75,7 @@ export class AppProductivityReportsComponent {
     @Inject(UsersService) private usersService: UsersService,
     @Inject(EntriesService) private entriesService: EntriesService,
     public companiesService: CompaniesService,
-    public reportsService: ReportsService
+    public reportsService: ReportsService,
   ) {}
 
   ngOnInit(): void {
@@ -140,14 +146,14 @@ export class AppProductivityReportsComponent {
           });
 
           const profilePicRequests = this.dataSource.map((task) =>
-            this.usersService.getProfilePic(task.profile.id)
+            this.usersService.getProfilePic(task.profile.id),
           );
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
           return forkJoin({
             profilePics: forkJoin(profilePicRequests),
           });
-        })
+        }),
       )
       .subscribe(({ profilePics }) => {
         // Update the dataSource with profile pictures and status
@@ -173,7 +179,7 @@ export class AppProductivityReportsComponent {
   filterByUser() {
     if (this.selectedUserId) {
       this.filteredDataSource = this.dataSource.filter(
-        (u) => u.profile.id === this.selectedUserId
+        (u) => u.profile.id === this.selectedUserId,
       );
     } else {
       this.filteredDataSource = [...this.dataSource];
@@ -186,4 +192,3 @@ export class AppProductivityReportsComponent {
     this.dataSourceChange.emit(this.filteredDataSource);
   }
 }
-

@@ -1,14 +1,15 @@
 import { NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Plan } from 'src/app/models/Plan.model';
-import { PlansService } from 'src/app/services/plans.service';
-import { AuthService } from 'src/app/services/auth.service';
-import { environment } from 'src/environments/environment';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { NotificationStore } from 'src/app/stores/notification.store';
+
 import { NotificationsService } from '@features/notifications/services/notifications.service';
+import { Plan } from 'src/app/models/Plan.model';
+import { AuthService } from 'src/app/services/auth.service';
+import { CompaniesService } from 'src/app/services/companies.service';
 import { EntriesService } from 'src/app/services/entries.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { NotificationStore } from 'src/app/stores/notification.store';
+import { environment } from 'src/environments/environment';
 
 export interface DashboardItems {
   path?: string | null;
@@ -51,10 +52,10 @@ export interface addOnData {
   templateUrl: './dashboard-lib.component.html',
   styleUrl: './dashboard-lib.component.scss',
 })
-export class DashboardLibComponent {
-getSlicedNotifications(arg0: () => any[],arg1: number,arg2: number): any {
-throw new Error('Method not implemented.');
-}
+export class DashboardLibComponent implements OnInit {
+  getSlicedNotifications(arg0: () => any[], arg1: number, arg2: number): any {
+    throw new Error('Method not implemented.');
+  }
   @Input() components!: DashboardItems[];
   userType: any;
   plan?: Plan;
@@ -65,13 +66,15 @@ throw new Error('Method not implemented.');
 
   constructor(
     private authService: AuthService,
-    public entriesService: EntriesService
+    public entriesService: EntriesService,
   ) {}
   assetsPath: string = environment.assets + '/resources/';
 
   isDisabledOption(optionTitle: string): boolean {
-    return (optionTitle === 'Kanban board' || optionTitle === 'Matrix board') 
-           && this.plan?.name === 'Basic';
+    return (
+      (optionTitle === 'Kanban board' || optionTitle === 'Matrix board') &&
+      this.plan?.name === 'Basic'
+    );
   }
 
   handleOptionClick(event: Event, title: string) {
@@ -81,13 +84,18 @@ throw new Error('Method not implemented.');
     }
   }
 
-  upgradePlanMessage(){
-    this.store.addNotifications('Upgrade your plan to enjoy the full experience!');
+  upgradePlanMessage() {
+    this.store.addNotifications(
+      'Upgrade your plan to enjoy the full experience!',
+    );
   }
 
   combinedNotifications() {
     if (this.userType === '1') {
-      return [...this.notificationsService.recentNotifications, ...this.entriesService.reviewEntries];
+      return [
+        ...this.notificationsService.recentNotifications,
+        ...this.entriesService.reviewEntries,
+      ];
     }
     return this.notificationsService.recentNotifications;
   }
@@ -97,9 +105,11 @@ throw new Error('Method not implemented.');
       this.userType = role;
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
-        this.plan = companyPlan.plan;
-      });
+      this.plansService
+        .getCurrentPlan(company.company.id)
+        .subscribe((companyPlan: any) => {
+          this.plan = companyPlan.plan;
+        });
     });
     this.combinedNotifications();
   }

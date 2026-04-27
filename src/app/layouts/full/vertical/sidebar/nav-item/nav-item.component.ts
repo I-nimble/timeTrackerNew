@@ -1,4 +1,12 @@
 import {
+  animate,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
+import { CommonModule } from '@angular/common';
+import {
   Component,
   HostBinding,
   Input,
@@ -8,27 +16,28 @@ import {
   EventEmitter,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
-import { NavItem } from './nav-item';
 import { Router } from '@angular/router';
-import { NavService } from '../../../../../services/nav.service';
-import {
-  animate,
-  state,
-  style,
-  transition,
-  trigger,
-} from '@angular/animations';
+
 import { TranslateModule } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { UnreadCountComponent } from 'src/app/components/unread-count/unread-count.component';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { UnreadCountComponent } from 'src/app/components/unread-count/unread-count.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+
+import { NavItem } from './nav-item';
+import { NavService } from '../../../../../services/nav.service';
 
 @Component({
   selector: 'app-nav-item',
   standalone: true,
-  imports: [TranslateModule, TablerIconsModule, MaterialModule, CommonModule, UnreadCountComponent, TourMatMenuModule],
+  imports: [
+    TranslateModule,
+    TablerIconsModule,
+    MaterialModule,
+    CommonModule,
+    UnreadCountComponent,
+    TourMatMenuModule,
+  ],
   templateUrl: './nav-item.component.html',
   styleUrls: [],
   animations: [
@@ -37,11 +46,11 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
       state('expanded', style({ transform: 'rotate(180deg)' })),
       transition(
         'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4,0.0,0.2,1)')
+        animate('225ms cubic-bezier(0.4,0.0,0.2,1)'),
       ),
     ]),
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppNavItemComponent implements OnChanges {
   @Output() toggleMobileLink: any = new EventEmitter<void>();
@@ -52,11 +61,11 @@ export class AppNavItemComponent implements OnChanges {
   @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
   @Input() item: NavItem | any;
   @Input() depth: any;
-  unreadMessageCount: number = 0;
+  unreadMessageCount = 0;
 
   constructor(
-    public navService: NavService, 
-    public router: Router
+    public navService: NavService,
+    public router: Router,
   ) {
     if (this.depth === undefined) {
       this.depth = 0;
@@ -66,7 +75,9 @@ export class AppNavItemComponent implements OnChanges {
   getTourAnchor(item: NavItem | any): string | null {
     if (!item || item.navCap || !item.route) return null;
     const rawRoute = String(item.route);
-    const normalizedRoute = rawRoute.startsWith('/') ? rawRoute : `/${rawRoute}`;
+    const normalizedRoute = rawRoute.startsWith('/')
+      ? rawRoute
+      : `/${rawRoute}`;
 
     switch (normalizedRoute) {
       case '/dashboards/reports':

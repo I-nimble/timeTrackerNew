@@ -1,19 +1,28 @@
+import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
-import {MatIconModule} from '@angular/material/icon';
-import {DatePipe} from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-
-// snippets
-import { LIST_BASIC_HTML_SNIPPET, LIST_SECTIONS_HTML_SNIPPET, LIST_SELECTION_HTML_SNIPPET, LIST_SINGLE_SELECTION_HTML_SNIPPET, LIST_THREELINE_HTML_SNIPPET, LIST_THREELINE_TEXT_WRAPPING_HTML_SNIPPET, LIST_TWOLINE_HTML_SNIPPET } from './code/list-html-snippet';
-import { LIST_BASIC_TS_SNIPPET, LIST_SELECTION_TS_SNIPPET } from './code/list-ts-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
+// snippets
+import {
+  LIST_BASIC_HTML_SNIPPET,
+  LIST_SECTIONS_HTML_SNIPPET,
+  LIST_SELECTION_HTML_SNIPPET,
+  LIST_SINGLE_SELECTION_HTML_SNIPPET,
+  LIST_THREELINE_HTML_SNIPPET,
+  LIST_THREELINE_TEXT_WRAPPING_HTML_SNIPPET,
+  LIST_TWOLINE_HTML_SNIPPET,
+} from './code/list-html-snippet';
+import {
+  LIST_BASIC_TS_SNIPPET,
+  LIST_SELECTION_TS_SNIPPET,
+} from './code/list-ts-snippet';
 
 export interface Section {
   name: string;
@@ -21,12 +30,19 @@ export interface Section {
 }
 
 @Component({
-    selector: 'app-lists',
-    imports: [MatListModule, MatCardModule, DatePipe, MatIconModule, MaterialModule, Highlight,
-        HighlightAuto,
-        HighlightLineNumbers,
-        AppCodeViewComponent,],
-    templateUrl: './lists.component.html'
+  selector: 'app-lists',
+  imports: [
+    MatListModule,
+    MatCardModule,
+    DatePipe,
+    MatIconModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './lists.component.html',
 })
 export class AppListsComponent {
   constructor() {}
@@ -58,7 +74,6 @@ export class AppListsComponent {
   // 6 [sections with list]
   codeForSectionsList = LIST_SECTIONS_HTML_SNIPPET;
   codeForSectionsListTs = LIST_SELECTION_TS_SNIPPET;
-
 
   typesOfShoes: string[] = ['Loafers', 'Sneakers'];
 

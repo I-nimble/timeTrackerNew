@@ -25,6 +25,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 
 // snippets
+
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
 import {
   DIALOG_ANIMATION_HTML_SNIPPET,
   DIALOG_INJECTING_HTML_SNIPPET,
@@ -39,10 +44,6 @@ import {
   DIALOG_OVERVIEW_TS_SNIPPET,
   DIALOG_SCROLLABLE_TS_SNIPPET,
 } from './code/dialog-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 export interface DialogData {
   animal: 'panda' | 'unicorn' | 'lion';
@@ -83,11 +84,7 @@ export class AppDialogContentComponent {}
 // 3
 @Component({
   selector: 'dialog-data-example-dialog',
-  imports: [
-    MatDialogTitle,
-    MatDialogContent,
-    MatButtonModule,
-  ],
+  imports: [MatDialogTitle, MatDialogContent, MatButtonModule],
   templateUrl: 'dialog-data.component.html',
 })
 export class AppDialogDataComponent {
@@ -203,7 +200,7 @@ export class AppDialogComponent {
   // 1
   openDialog(
     enterAnimationDuration: string,
-    exitAnimationDuration: string
+    exitAnimationDuration: string,
   ): void {
     this.dialog.open(AppDialogOverviewComponent, {
       width: '290px',

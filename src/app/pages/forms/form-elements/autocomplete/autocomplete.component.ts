@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -5,18 +6,27 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { startWith, map } from 'rxjs/operators';
-import { MaterialModule } from '../../../../material.module';
-import { CommonModule } from '@angular/common';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { FILTER_TS_SNIPPET, FIRST_AUTOCOMPLETE_OPTION_TS_SNIPPET, OPTION_GROUP_TS_SNIPPET, OVERVIEW_TS_SNIPPET } from './code/autocomplete-ts-snippet';
-import { FILTER_HTML_SNIPPET, FIRST_AUTOCOMPLETE_OPTION_HTML_SNIPPET, OPTION_GROUP_HTML_SNIPPET, OVERVIEW_HTML_SNIPPET } from './code/autocomplete-html-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { Observable } from 'rxjs';
+import { startWith, map } from 'rxjs/operators';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+// snippets
+import {
+  FILTER_HTML_SNIPPET,
+  FIRST_AUTOCOMPLETE_OPTION_HTML_SNIPPET,
+  OPTION_GROUP_HTML_SNIPPET,
+  OVERVIEW_HTML_SNIPPET,
+} from './code/autocomplete-html-snippet';
+import {
+  FILTER_TS_SNIPPET,
+  FIRST_AUTOCOMPLETE_OPTION_TS_SNIPPET,
+  OPTION_GROUP_TS_SNIPPET,
+  OVERVIEW_TS_SNIPPET,
+} from './code/autocomplete-ts-snippet';
+import { MaterialModule } from '../../../../legacy/material.module';
 
 // option group
 export interface StateGroup {
@@ -44,17 +54,20 @@ export interface State {
 }
 
 @Component({
-    selector: 'app-autocomplete',
-    imports: [MaterialModule, FormsModule, ReactiveFormsModule, CommonModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './autocomplete.component.html'
+  selector: 'app-autocomplete',
+  imports: [
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './autocomplete.component.html',
 })
 export class AppAutocompleteComponent implements OnInit {
-
   // 1 [First with Autocomplete]
   codeForFirstAutocompleteOption = FIRST_AUTOCOMPLETE_OPTION_HTML_SNIPPET;
   codeForFirstAutocompleteOptionTs = FIRST_AUTOCOMPLETE_OPTION_TS_SNIPPET;
@@ -70,7 +83,6 @@ export class AppAutocompleteComponent implements OnInit {
   // 4 [overview with Autocomplete]
   codeForOverview = OVERVIEW_HTML_SNIPPET;
   codeForOverviewTs = OVERVIEW_TS_SNIPPET;
-
 
   // first option
   firstControl = new FormControl('');
@@ -220,7 +232,7 @@ export class AppAutocompleteComponent implements OnInit {
   constructor(private _formBuilder: FormBuilder) {
     this.filteredStates = this.stateCtrl.valueChanges.pipe(
       startWith(''),
-      map((state) => (state ? this._filterStates(state) : this.states.slice()))
+      map((state) => (state ? this._filterStates(state) : this.states.slice())),
     );
   }
 
@@ -228,7 +240,7 @@ export class AppAutocompleteComponent implements OnInit {
     const filterValue = value.toLowerCase();
 
     return this.states.filter((state) =>
-      state.name.toLowerCase().includes(filterValue)
+      state.name.toLowerCase().includes(filterValue),
     );
   }
 
@@ -236,7 +248,7 @@ export class AppAutocompleteComponent implements OnInit {
     // first option
     this.filteredOptions = this.firstControl.valueChanges.pipe(
       startWith(''),
-      map((value) => this._filter(value || ''))
+      map((value) => this._filter(value || '')),
     );
 
     // option group
@@ -244,13 +256,13 @@ export class AppAutocompleteComponent implements OnInit {
       .get('stateGroup')!
       .valueChanges.pipe(
         startWith(''),
-        map((value) => this._filterGroup(value || ''))
+        map((value) => this._filterGroup(value || '')),
       );
 
     // filter option
     this.searchfilteredOptions = this.filterControl.valueChanges.pipe(
       startWith(''),
-      map((value) => this._searchfilter(value || ''))
+      map((value) => this._searchfilter(value || '')),
     );
   }
 
@@ -259,7 +271,7 @@ export class AppAutocompleteComponent implements OnInit {
     const filterValue = value.toLowerCase();
 
     return this.firstoption.filter((option) =>
-      option.toLowerCase().includes(filterValue)
+      option.toLowerCase().includes(filterValue),
     );
   }
 
@@ -282,7 +294,7 @@ export class AppAutocompleteComponent implements OnInit {
     const searchfilterValue = value.toLowerCase();
 
     return this.searchoption.filter((searchoption) =>
-      searchoption.toLowerCase().includes(searchfilterValue)
+      searchoption.toLowerCase().includes(searchfilterValue),
     );
   }
 }

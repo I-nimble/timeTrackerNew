@@ -1,33 +1,40 @@
+import { NgIf } from '@angular/common';
 import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { forkJoin } from 'rxjs';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { SharedModule } from 'src/app/components/shared.module';
-import { NotificationStore } from 'src/app/stores/notification.store';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { Frequency } from 'src/app/models/Frequency.model';
-import { UsersService } from 'src/app/services/users.service';
-import { NgIf } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ToDoFormPopupComponent } from 'src/app/components/to-do-form-popup/to-do-form-popup.component';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import * as moment from 'moment';
+import { forkJoin } from 'rxjs';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { SharedModule } from 'src/app/components/legacy/shared.module';
+import { ToDoFormPopupComponent } from 'src/app/components/to-do-form-popup/to-do-form-popup.component';
+import { Frequency } from 'src/app/models/Frequency.model';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { UsersService } from 'src/app/services/users.service';
+import { NotificationStore } from 'src/app/stores/notification.store';
 
 @Component({
   selector: 'app-to-do',
   standalone: true,
-  imports: [SharedModule, NgIf, MatSelectModule, MatFormFieldModule, MatInputModule],
+  imports: [
+    SharedModule,
+    NgIf,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
   templateUrl: './to-do.component.html',
   styleUrl: './to-do.component.scss',
 })
 export class ToDoComponent implements OnInit {
   @Output() toDoListUpdated = new EventEmitter();
   store = inject(NotificationStore);
-  now = new Date()
+  now = new Date();
   userId?: any;
   email?: any;
   employerId?: any;
@@ -36,33 +43,34 @@ export class ToDoComponent implements OnInit {
   positionId?: any;
   role = localStorage.getItem('role');
   managementForm: FormGroup = this.fb.group({
-    rating: this.fb.group({
-      goal: ['', [Validators.required]],
-      frequency_id: [null],
-      recommendations: [''],
-      due_date: [null],
-      priority: [null],
-      recurrent: [false],
-      is_numeric: [false],
-      numeric_goal: [null],
-      company_id: [null, [Validators.required]], 
-      employee_id: [null, [Validators.required]],
-      updatedAt: [this.now, []],
-    }, 
-    { validators: this.recurrentDueDateValidator }
+    rating: this.fb.group(
+      {
+        goal: ['', [Validators.required]],
+        frequency_id: [null],
+        recommendations: [''],
+        due_date: [null],
+        priority: [null],
+        recurrent: [false],
+        is_numeric: [false],
+        numeric_goal: [null],
+        company_id: [null, [Validators.required]],
+        employee_id: [null, [Validators.required]],
+        updatedAt: [this.now, []],
+      },
+      { validators: this.recurrentDueDateValidator },
     ),
   });
-  show: boolean = false;
-  noUser: boolean = false;
+  show = false;
+  noUser = false;
   timezones: any = '';
   companies: any = [];
   formHeader: any = {
     mode: 'Create',
     title: 'To Do',
   };
-  firefox: boolean = false;
+  firefox = false;
   selectedForm: any;
-  isAllSelected: boolean = false;
+  isAllSelected = false;
   public newOptions: any = {
     positions: {
       title: 'Ratings',
@@ -76,9 +84,9 @@ export class ToDoComponent implements OnInit {
       active: true,
       formGroup: 'rating',
       form: [
-        { name: 'goal', type: 'text' }, 
-        { name: 'recommendations', type: 'textarea' }, 
-        { name: 'due_date', type: 'date' }, 
+        { name: 'goal', type: 'text' },
+        { name: 'recommendations', type: 'textarea' },
+        { name: 'due_date', type: 'date' },
         { name: 'priority', type: 'select' },
         { name: 'recurrent', type: 'checkbox' },
       ],
@@ -104,20 +112,22 @@ export class ToDoComponent implements OnInit {
       this.firefox = true;
     }
 
-    this.managementForm.get('rating.recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
-      const dueDateControl = this.managementForm.get('rating.due_date');
-      if (recurrent) {
-        dueDateControl?.setValue(null);
-        dueDateControl?.disable();
-      } else {
-        dueDateControl?.enable();
-      }
-    });
+    this.managementForm
+      .get('rating.recurrent')
+      ?.valueChanges.subscribe((recurrent: boolean) => {
+        const dueDateControl = this.managementForm.get('rating.due_date');
+        if (recurrent) {
+          dueDateControl?.setValue(null);
+          dueDateControl?.disable();
+        } else {
+          dueDateControl?.enable();
+        }
+      });
 
     this.options.forEach((option: any) => {
-      let formGroup = this.managementForm.get(option.formGroup) as FormGroup;
+      const formGroup = this.managementForm.get(option.formGroup) as FormGroup;
       option.form.forEach((form: any) => {
-        for (let control in formGroup.controls) {
+        for (const control in formGroup.controls) {
           if (form.name == control) {
             form.label =
               control.slice(0, 1).toUpperCase() +
@@ -128,7 +138,7 @@ export class ToDoComponent implements OnInit {
       });
     });
 
-    this.getTeamMembers(); 
+    this.getTeamMembers();
     this.initializeData();
   }
 
@@ -142,10 +152,10 @@ export class ToDoComponent implements OnInit {
   }
 
   getTeamMembers() {
-    if(this.role === '1') {
+    if (this.role === '1') {
       this.employeesService.get().subscribe((employees: any) => {
         this.usersList = employees;
-        if (this.usersList.length > 0) { 
+        if (this.usersList.length > 0) {
           this.getOptionsInfo();
         }
       });
@@ -153,8 +163,10 @@ export class ToDoComponent implements OnInit {
     if (this.role === '3') {
       this.employeesService.get().subscribe({
         next: (employees: any) => {
-          this.usersList = employees.filter((user: any) => user.user.active == 1 && user.user.role == 2);
-          if (this.usersList.length > 0) { 
+          this.usersList = employees.filter(
+            (user: any) => user.user.active == 1 && user.user.role == 2,
+          );
+          if (this.usersList.length > 0) {
             this.getOptionsInfo();
           }
         },
@@ -163,9 +175,9 @@ export class ToDoComponent implements OnInit {
     }
   }
 
-  selectedTeamMember(tm: any){
-    console.log('tm', tm)
-    tm.user_id == null ? this.noUser = true : this.noUser = false;
+  selectedTeamMember(tm: any) {
+    console.log('tm', tm);
+    tm.user_id == null ? (this.noUser = true) : (this.noUser = false);
     this.teamMember = tm.user_id || null;
     this.companyId = tm.company_id || null;
     this.userService.setTeamMember(tm.user_id);
@@ -182,37 +194,39 @@ export class ToDoComponent implements OnInit {
     this.getEmail();
 
     if (this.role === '1') {
-        this.userId = this.route.snapshot.paramMap.get('id');
-        this.getEmployee();
-        this.getOptionsInfo();
+      this.userId = this.route.snapshot.paramMap.get('id');
+      this.getEmployee();
+      this.getOptionsInfo();
     } else {
-        this.getUsers();
+      this.getUsers();
     }
   }
 
   getUsers() {
-      let body = {};
-      this.userService.getUsers(body).subscribe({
-        next: (users) => {
-        const user = users.filter((user: any) => user.active == 1 && user.email === this.email);
-        this.userId = user[0]?.id
-        this.companyId = user[0].company?.id
+    const body = {};
+    this.userService.getUsers(body).subscribe({
+      next: (users) => {
+        const user = users.filter(
+          (user: any) => user.active == 1 && user.email === this.email,
+        );
+        this.userId = user[0]?.id;
+        this.companyId = user[0].company?.id;
         this.getEmployee();
         this.getOptionsInfo();
-        },
-        error: () => {},
-      });
+      },
+      error: () => {},
+    });
   }
 
   getEmployee() {
-    if (this.role == '2' ) {
-      this.employeesService.getById(this.userId).subscribe((employee:any) => {
-        if(employee?.length > 0) {
-          this.companyId = employee[0].company_id
-          this.positionId = employee[0].position_id
+    if (this.role == '2') {
+      this.employeesService.getById(this.userId).subscribe((employee: any) => {
+        if (employee?.length > 0) {
+          this.companyId = employee[0].company_id;
+          this.positionId = employee[0].position_id;
           this.managementForm?.get('rating')?.patchValue({
             company_id: this.companyId,
-            employee_id: this.userId
+            employee_id: this.userId,
           });
         } else {
           this.store.addNotifications('Invalid employee ID', 'error');
@@ -224,16 +238,15 @@ export class ToDoComponent implements OnInit {
     } else {
       this.managementForm?.get('rating')?.patchValue({
         company_id: this.companyId,
-        employee_id: this.teamMember
+        employee_id: this.teamMember,
       });
     }
   }
 
-
   handleSelection(
     i: number,
     selectedOption: any = null,
-    selection: any = null
+    selection: any = null,
   ) {
     if (selection) {
       this.openFormModal(selection, 'Edit');
@@ -274,7 +287,7 @@ export class ToDoComponent implements OnInit {
     }
   }
 
-  resetForm(open: boolean = false) {
+  resetForm(open = false) {
     this.selectedForm = null;
     this.managementForm.reset();
     this.managementForm.get('recurrent')?.setValue(false);
@@ -282,7 +295,7 @@ export class ToDoComponent implements OnInit {
     const ratingData = {
       company_id: this.companyId,
       employee_id: this.role === '2' ? this.userId : this.teamMember,
-      recurrent: false
+      recurrent: false,
     };
     this.managementForm?.get('rating')?.patchValue(ratingData);
     this.managementForm?.get('rating.is_numeric')?.setValue(false);
@@ -292,9 +305,7 @@ export class ToDoComponent implements OnInit {
   }
   getOptionsInfo() {
     if (this.role == '2') {
-      forkJoin([
-        this.ratingsService.getByUser(this.userId)
-      ]).subscribe({
+      forkJoin([this.ratingsService.getByUser(this.userId)]).subscribe({
         next: (selectsInfo) => {
           this.options.forEach((option: any, i: number) => {
             option.elements = selectsInfo[i];
@@ -302,23 +313,21 @@ export class ToDoComponent implements OnInit {
         },
       });
     } else {
-      if(this.teamMember == null){
-        forkJoin([
-          this.ratingsService.getByNullUser(this.companyId)
-        ]).subscribe({
-          next: (selectsInfo) => {
-            this.options.forEach((option: any, i: number) => {
-              option.elements = selectsInfo[i];
-            });
+      if (this.teamMember == null) {
+        forkJoin([this.ratingsService.getByNullUser(this.companyId)]).subscribe(
+          {
+            next: (selectsInfo) => {
+              this.options.forEach((option: any, i: number) => {
+                option.elements = selectsInfo[i];
+              });
+            },
           },
-        });
+        );
       } else {
-        console.log('teamMember', this.teamMember)
-        forkJoin([
-          this.ratingsService.getByUser(this.teamMember)
-        ]).subscribe({
+        console.log('teamMember', this.teamMember);
+        forkJoin([this.ratingsService.getByUser(this.teamMember)]).subscribe({
           next: (selectsInfo) => {
-            console.log(selectsInfo)
+            console.log(selectsInfo);
             this.options.forEach((option: any, i: number) => {
               option.elements = selectsInfo[i];
             });
@@ -328,11 +337,11 @@ export class ToDoComponent implements OnInit {
     }
   }
 
-  openFormModal(selectedForm: any = null, mode: string = 'Create') {
+  openFormModal(selectedForm: any = null, mode = 'Create') {
     if (!selectedForm) {
       this.resetForm();
     }
-  
+
     const dialogRef = this.dialog.open(ToDoFormPopupComponent, {
       data: {
         formHeader: { mode, title: 'To Do' },
@@ -345,24 +354,25 @@ export class ToDoComponent implements OnInit {
       width: '600px',
       backdropClass: 'blur',
     });
-  
+
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.action === 'submit') {
-        this.selectedForm = selectedForm
+        this.selectedForm = selectedForm;
         this.sendForms(result.option);
       } else if (result?.action === 'delete') {
         this.deleteOption(selectedForm.id, result.option);
-      } 
+      }
     });
   }
-  
 
   sendForms(option: any, formValue?: any) {
     const formGroup = this.managementForm.get(option.formGroup) as FormGroup;
     if (formValue) {
       // Format due_date using moment.utc
       if (formValue?.due_date) {
-        formValue.due_date = moment.utc(formValue.due_date).format('YYYY-MM-DDTHH:mm:ss.000Z');
+        formValue.due_date = moment
+          .utc(formValue.due_date)
+          .format('YYYY-MM-DDTHH:mm:ss.000Z');
       }
       formGroup.patchValue(formValue); // Patch the form values into the managementForm
     }
@@ -370,14 +380,16 @@ export class ToDoComponent implements OnInit {
     // Ensure due_date in managementForm is formatted if formValue is not provided
     const dueDateControl = formGroup.get('due_date');
     if (dueDateControl?.value) {
-      dueDateControl.setValue(moment.utc(dueDateControl.value).format('YYYY-MM-DDTHH:mm:ss.000Z'));
+      dueDateControl.setValue(
+        moment.utc(dueDateControl.value).format('YYYY-MM-DDTHH:mm:ss.000Z'),
+      );
     }
-  
+
     if (this.managementForm.get(option.formGroup)?.valid) {
       this.ratingsService
         .submit(
           this.managementForm.get(option.formGroup)?.value,
-          this.selectedForm ? this.selectedForm.id : null
+          this.selectedForm ? this.selectedForm.id : null,
         )
         .subscribe({
           next: (response: any) => {
@@ -404,7 +416,7 @@ export class ToDoComponent implements OnInit {
       this.store.addNotifications('Fill the required fields');
     }
   }
-  
+
   deleteOption(id: number, option: any) {
     const dialog = this.dialog.open(ModalComponent, {
       data: { subject: option.formGroup },
@@ -415,7 +427,7 @@ export class ToDoComponent implements OnInit {
           next: () => {
             this.resetForm();
             option.elements = option.elements.filter(
-              (option: any) => option.id != id
+              (option: any) => option.id != id,
             );
             this.toDoListUpdated.emit();
             // this.store.addNotifications('Success Operation');

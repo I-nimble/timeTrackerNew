@@ -1,14 +1,23 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+} from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
-import { UsersService } from 'src/app/services/users.service';
-import { CompaniesService } from 'src/app/services/companies.service';
 import { SafeResourceUrl } from '@angular/platform-browser';
-import { MaterialModule } from 'src/app/material.module';
-import { PlansService } from 'src/app/services/plans.service';
+import { ActivatedRoute, Router } from '@angular/router';
+
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-client-details',
@@ -17,12 +26,12 @@ import { takeUntil } from 'rxjs/operators';
   imports: [CommonModule, MatCardModule, MaterialModule],
   templateUrl: './client-details.component.html',
 })
-export class ClientDetailsComponent implements OnInit, OnDestroy {
+export class ClientDetailsComponent implements OnInit, OnDestroy, OnChanges {
   @Output() back = new EventEmitter<void>();
   private _client: any;
-  departmentsList: string = '';
+  departmentsList = '';
   defaultLogo = 'assets/inimble.png';
-  plan: string = '';
+  plan = '';
   private loadingCompanyForUserId: number | null = null;
   private destroy$ = new Subject<void>();
 
@@ -30,13 +39,19 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
   set client(value: any) {
     this._client = value;
     if (value?.company?.departments?.length) {
-      this.departmentsList = value.company.departments.map((d: any) => d.name).join(', ');
+      this.departmentsList = value.company.departments
+        .map((d: any) => d.name)
+        .join(', ');
     } else {
       this.departmentsList = '';
     }
     if (value && value.id) {
-      const missingCompanyInfo = !value.company || !value.company.id || !value.company.departments;
-      if (missingCompanyInfo && this.loadingCompanyForUserId !== Number(value.id)) {
+      const missingCompanyInfo =
+        !value.company || !value.company.id || !value.company.departments;
+      if (
+        missingCompanyInfo &&
+        this.loadingCompanyForUserId !== Number(value.id)
+      ) {
         this.loadCompany(Number(value.id));
       }
     }
@@ -46,15 +61,15 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
     return this._client;
   }
 
-  get companySocials(): { name: string, url: string, iconClass: string }[] {
+  get companySocials(): { name: string; url: string; iconClass: string }[] {
     const sm = this.client?.company?.social_media;
     if (!sm) return [];
     return [
       { name: 'Instagram', url: sm.instagram, iconClass: 'bi bi-instagram' },
-      { name: 'Facebook',  url: sm.facebook,  iconClass: 'bi bi-facebook' },
-      { name: 'LinkedIn',  url: sm.linkedin,  iconClass: 'bi bi-linkedin' },
-      { name: 'Twitter',   url: sm.twitter,   iconClass: 'bi bi-twitter' },
-    ].filter(s => !!s.url);
+      { name: 'Facebook', url: sm.facebook, iconClass: 'bi bi-facebook' },
+      { name: 'LinkedIn', url: sm.linkedin, iconClass: 'bi bi-linkedin' },
+      { name: 'Twitter', url: sm.twitter, iconClass: 'bi bi-twitter' },
+    ].filter((s) => !!s.url);
   }
 
   constructor(
@@ -62,11 +77,11 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
     private router: Router,
     private usersService: UsersService,
     private companiesService: CompaniesService,
-    private plansService: PlansService
+    private plansService: PlansService,
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(paramMap => {
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((paramMap) => {
       const id = Number(paramMap.get('id'));
       if (!id) return;
 
@@ -78,25 +93,33 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
         this.client = preselected;
       }
 
-      this.usersService.getUsers({ filter: { id } }).pipe(takeUntil(this.destroy$)).subscribe(users => {
-        const found = Array.isArray(users) ? users.find((u: any) => Number(u.id) === id) : null;
-        if (found) {
-          this.client = found;
-          this.loadCompany(id);
-        } else {
-          if (this.client && this.client.id) {
-            this.loadCompany(id);
-          } else {
-            this.router.navigate(['/apps/expert']);
-          }
-        }
-      }, (err) => {
-        if (this.client && this.client.id) {
-          this.loadCompany(id);
-        } else {
-          this.router.navigate(['/apps/expert']);
-        }
-      });
+      this.usersService
+        .getUsers({ filter: { id } })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(
+          (users) => {
+            const found = Array.isArray(users)
+              ? users.find((u: any) => Number(u.id) === id)
+              : null;
+            if (found) {
+              this.client = found;
+              this.loadCompany(id);
+            } else {
+              if (this.client && this.client.id) {
+                this.loadCompany(id);
+              } else {
+                this.router.navigate(['/apps/expert']);
+              }
+            }
+          },
+          (err) => {
+            if (this.client && this.client.id) {
+              this.loadCompany(id);
+            } else {
+              this.router.navigate(['/apps/expert']);
+            }
+          },
+        );
     });
   }
 
@@ -108,27 +131,33 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
   private loadCompany(userId: number) {
     if (this.loadingCompanyForUserId === userId) return;
     this.loadingCompanyForUserId = userId;
-    this.companiesService.getByUserId(userId).subscribe((ownerResp: any) => {
-      const fullCompany = ownerResp?.company || this.client?.company;
-      if (fullCompany) {
-        this.client.company = { ...this.client.company, ...fullCompany };
-        if (this.client.company.id) {
-          this.companiesService.getCompanyLogo(this.client.company.id)
-            .subscribe((safeUrl: any) => {
-              try {
-                this.client.company.logoUrl = safeUrl?.changingThisBreaksApplicationSecurity || this.defaultLogo;
-              } catch {
-                this.client.company.logoUrl = this.defaultLogo;
-              }
-            });
-        } else {
-          this.client.company.logoUrl = this.defaultLogo;
+    this.companiesService.getByUserId(userId).subscribe(
+      (ownerResp: any) => {
+        const fullCompany = ownerResp?.company || this.client?.company;
+        if (fullCompany) {
+          this.client.company = { ...this.client.company, ...fullCompany };
+          if (this.client.company.id) {
+            this.companiesService
+              .getCompanyLogo(this.client.company.id)
+              .subscribe((safeUrl: any) => {
+                try {
+                  this.client.company.logoUrl =
+                    safeUrl?.changingThisBreaksApplicationSecurity ||
+                    this.defaultLogo;
+                } catch {
+                  this.client.company.logoUrl = this.defaultLogo;
+                }
+              });
+          } else {
+            this.client.company.logoUrl = this.defaultLogo;
+          }
         }
-      }
-      this.loadingCompanyForUserId = null;
-    }, () => {
-      this.loadingCompanyForUserId = null;
-    });
+        this.loadingCompanyForUserId = null;
+      },
+      () => {
+        this.loadingCompanyForUserId = null;
+      },
+    );
   }
 
   ngOnChanges(): void {

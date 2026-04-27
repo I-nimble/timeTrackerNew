@@ -1,15 +1,17 @@
-﻿import { Component, OnInit } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
-import { NotificationsService } from '../../../services/notifications.service';
-import { Router, RouterModule } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { CommonModule } from '@angular/common';
-import { WebSocketService } from '../../../services/socket/web-socket.service';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { EventsService } from '@app/services/events.service';
 import { trigger, style, animate, transition } from '@angular/animations';
-import { ModalComponent } from '../../confirmation-modal/modal.component';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterModule } from '@angular/router';
+
+import { EventsService } from '@app/services/events.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
+import { NotificationsService } from '../../../services/notifications.service';
+import { WebSocketService } from '../../../services/socket/web-socket.service';
+import { ModalComponent } from '../../confirmation-modal/modal.component';
 
 @Component({
   selector: 'app-welcome-card',
@@ -21,21 +23,21 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     trigger('fade', [
       transition(':increment', [
         style({ opacity: 0 }),
-        animate('200ms ease-in', style({ opacity: 1 }))
+        animate('200ms ease-in', style({ opacity: 1 })),
       ]),
       transition(':decrement', [
         style({ opacity: 0 }),
-        animate('200ms ease-in', style({ opacity: 1 }))
-      ])
-    ])
-  ]
+        animate('200ms ease-in', style({ opacity: 1 })),
+      ]),
+    ]),
+  ],
 })
 export class AppWelcomeCardComponent implements OnInit {
   allNotifications: any[] = [];
-  isLoading: boolean = true;
+  isLoading = true;
   eventData: any[] = [];
-  currentEventIndex: number = 0;
-  isEventLoading: boolean = true;
+  currentEventIndex = 0;
+  isEventLoading = true;
   currentUserId: number | null = null;
 
   constructor(
@@ -44,7 +46,7 @@ export class AppWelcomeCardComponent implements OnInit {
     private router: Router,
     private eventsService: EventsService,
     private dialog: MatDialog,
-    public snackBar: MatSnackBar
+    public snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +70,7 @@ export class AppWelcomeCardComponent implements OnInit {
       error: (error) => {
         console.error('Error fetching notifications:', error);
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -80,8 +82,9 @@ export class AppWelcomeCardComponent implements OnInit {
           const now = new Date();
           this.eventData = events
             .filter((event: any) => new Date(event.date) > now)
-            .sort((a: any, b: any) =>
-              new Date(a.date).getTime() - new Date(b.date).getTime()
+            .sort(
+              (a: any, b: any) =>
+                new Date(a.date).getTime() - new Date(b.date).getTime(),
             );
         }
         this.isEventLoading = false;
@@ -90,14 +93,15 @@ export class AppWelcomeCardComponent implements OnInit {
       error: (error) => {
         console.error('Error loading events:', error);
         this.isEventLoading = false;
-      }
+      },
     });
   }
 
   previousEvent(): void {
     if (this.eventData.length === 0) return;
     this.currentEventIndex =
-      (this.currentEventIndex - 1 + this.eventData.length) % this.eventData.length;
+      (this.currentEventIndex - 1 + this.eventData.length) %
+      this.eventData.length;
   }
 
   nextEvent(): void {
@@ -113,15 +117,18 @@ export class AppWelcomeCardComponent implements OnInit {
       width: '400px',
       data: {
         subject: 'event',
-        action: 'register'
-      }
+        action: 'register',
+      },
     });
 
-    dialogRef.afterClosed().subscribe(confirmed => {
+    dialogRef.afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
       this.eventsService.registerToEvent(currentEvent.id).subscribe({
         next: (res) => {
-          this.openSnackBar(res.message || `Successfully registered to ${currentEvent.event}`, 'Close');
+          this.openSnackBar(
+            res.message || `Successfully registered to ${currentEvent.event}`,
+            'Close',
+          );
           if (res.registered_user) {
             if (!currentEvent.attendees) {
               currentEvent.attendees = [];
@@ -133,7 +140,7 @@ export class AppWelcomeCardComponent implements OnInit {
           console.error('Error registering to event:', err);
           const msg = err.error?.message || 'Failed registering to event';
           this.openSnackBar(msg, 'Close');
-        }
+        },
       });
     });
   }
@@ -144,14 +151,16 @@ export class AppWelcomeCardComponent implements OnInit {
   }
 
   filterAndSortNotifications(notifications: any[]): any[] {
-    const filtered = notifications.filter(notification => {
+    const filtered = notifications.filter((notification) => {
       const message = notification.message || '';
       const status = notification.users_notifications?.status;
-      
-      return (message.includes('My Sentinel') || 
-              message.includes('Talent Match') || 
-              message.includes('Expert Match')) &&
-             status !== 2;
+
+      return (
+        (message.includes('My Sentinel') ||
+          message.includes('Talent Match') ||
+          message.includes('Expert Match')) &&
+        status !== 2
+      );
     });
 
     return filtered.sort((a, b) => {
@@ -163,21 +172,21 @@ export class AppWelcomeCardComponent implements OnInit {
 
   getNotificationColor(notification: any): string {
     const message = notification.message || '';
-    
+
     if (message.includes('My Sentinel')) {
       return '#2196F3';
     } else if (message.includes('Talent Match')) {
-      return '#4CAF50'; 
+      return '#4CAF50';
     } else if (message.includes('Expert Match')) {
-      return '#FF9800'; 
+      return '#FF9800';
     }
-    
+
     return '#757575';
   }
 
   getNotificationType(notification: any): string {
     const message = notification.message || '';
-    
+
     if (message.includes('My Sentinel')) {
       return 'sentinel';
     } else if (message.includes('Talent Match')) {
@@ -185,7 +194,7 @@ export class AppWelcomeCardComponent implements OnInit {
     } else if (message.includes('Expert Match')) {
       return 'expert';
     }
-    
+
     return 'other';
   }
 
@@ -195,24 +204,24 @@ export class AppWelcomeCardComponent implements OnInit {
 
   markAsRead(notification: any): void {
     if (notification.users_notifications?.status === 2) {
-      return; 
+      return;
     }
 
     this.notificationsService.update([notification], 2).subscribe({
       next: () => {
         this.allNotifications = this.allNotifications.filter(
-          n => n.id !== notification.id
+          (n) => n.id !== notification.id,
         );
       },
       error: (error) => {
         console.error('Error marking notification as read:', error);
-      }
+      },
     });
   }
 
   markAllAsReadBySection(sectionType: string): void {
-    const sectionNotifications = this.allNotifications.filter(notification => 
-      this.getNotificationType(notification) === sectionType
+    const sectionNotifications = this.allNotifications.filter(
+      (notification) => this.getNotificationType(notification) === sectionType,
     );
 
     if (sectionNotifications.length === 0) {
@@ -220,7 +229,7 @@ export class AppWelcomeCardComponent implements OnInit {
     }
 
     const notificationsToUpdate = sectionNotifications.filter(
-      notification => notification.users_notifications?.status !== 2
+      (notification) => notification.users_notifications?.status !== 2,
     );
 
     if (notificationsToUpdate.length === 0) {
@@ -229,13 +238,17 @@ export class AppWelcomeCardComponent implements OnInit {
 
     this.notificationsService.update(notificationsToUpdate, 2).subscribe({
       next: () => {
-        this.allNotifications = this.allNotifications.filter(notification => 
-          this.getNotificationType(notification) !== sectionType
+        this.allNotifications = this.allNotifications.filter(
+          (notification) =>
+            this.getNotificationType(notification) !== sectionType,
         );
       },
       error: (error) => {
-        console.error('Error marking all section notifications as read:', error);
-      }
+        console.error(
+          'Error marking all section notifications as read:',
+          error,
+        );
+      },
     });
   }
 
@@ -259,7 +272,7 @@ export class AppWelcomeCardComponent implements OnInit {
     }
 
     this.markAllAsReadBySection(sectionType);
-    
+
     this.router.navigate([route]);
   }
 

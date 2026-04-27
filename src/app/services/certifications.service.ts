@@ -1,13 +1,15 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { Injectable } from '@angular/core';
+
 import { Observable, of, switchMap, map } from 'rxjs';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CertificationsService {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getAll() {
     return this.http.get(`${environment.apiUrl}/certifications`);
@@ -32,25 +34,28 @@ export class CertificationsService {
   getUploadUrl(type: string, file: File) {
     return this.http.post<any>(
       `${environment.apiUrl}/generate_upload_url/${type}`,
-      { contentType: file.type, originalFileName: file.name }
+      { contentType: file.type, originalFileName: file.name },
     );
   }
 
   uploadAttachment(file: File): Observable<any> {
-     return this.getUploadUrl('certifications', file).pipe(
-        switchMap((uploadData: any) => {
-           const filename = uploadData.key.split('/')[1]; // Extract filename from key
-           const headers = new HttpHeaders({ 'Content-Type': file.type, 'X-Filename': filename });
-           return this.http.put(uploadData.url, file, { headers }).pipe(
-              map(() => {
-                 return {
-                    url: uploadData.url,
-                    key: uploadData.key
-                 };
-              })
-           );
-        })
-     );
+    return this.getUploadUrl('certifications', file).pipe(
+      switchMap((uploadData: any) => {
+        const filename = uploadData.key.split('/')[1]; // Extract filename from key
+        const headers = new HttpHeaders({
+          'Content-Type': file.type,
+          'X-Filename': filename,
+        });
+        return this.http.put(uploadData.url, file, { headers }).pipe(
+          map(() => {
+            return {
+              url: uploadData.url,
+              key: uploadData.key,
+            };
+          }),
+        );
+      }),
+    );
   }
 
   getAttachmentUrl(key: string): string {

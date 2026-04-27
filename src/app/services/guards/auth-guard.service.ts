@@ -1,20 +1,31 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot, UrlTree } from "@angular/router";
+import {
+  ActivatedRouteSnapshot,
+  CanActivateFn,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
+
 import { Observable, map } from 'rxjs';
-import { AuthService } from "../auth.service";
+
+import { AuthService } from '../auth.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class AuthGuard{
-  loggedIn!: boolean
-  isAdmin!: boolean
+export class AuthGuard {
+  loggedIn!: boolean;
+  isAdmin!: boolean;
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
+    state: RouterStateSnapshot,
   ): Observable<boolean | UrlTree> {
     return this.authService.isLoggedIn().pipe(
       map((isLogged: boolean) => {
@@ -23,8 +34,7 @@ export class AuthGuard{
         } else {
           return this.router.createUrlTree(['authentication/login']);
         }
-      })
+      }),
     );
   }
 }
-

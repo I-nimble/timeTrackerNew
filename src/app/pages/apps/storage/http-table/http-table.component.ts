@@ -1,24 +1,24 @@
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, Injectable, ViewChild } from '@angular/core';
+import { Component, Injectable, ViewChild, AfterViewInit } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { merge, Observable, of as observableOf } from 'rxjs';
 import { catchError, map, startWith, switchMap } from 'rxjs/operators';
-import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
 
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { HTTP_TABLE_HTML_SNIPPET } from './code/http-table-html-snippet';
 import { HTTP_TABLE_TS_SNIPPET } from './code/http-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 @Component({
   selector: 'app-http-table',
@@ -39,11 +39,10 @@ import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
   templateUrl: './http-table.component.html',
   styleUrls: ['./http-table.component.scss'],
 })
-
 @Injectable({
   providedIn: 'root',
 })
-export class AppHttpTableComponent {
+export class AppHttpTableComponent implements AfterViewInit {
   // 1 [Http Row with Table]
   codeForHttpRowTable = HTTP_TABLE_HTML_SNIPPET;
   codeForHttpRowTableTs = HTTP_TABLE_TS_SNIPPET;
@@ -58,7 +57,7 @@ export class AppHttpTableComponent {
 
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
-  // tslint:disable-next-line - Disables all
+
   constructor(private _httpClient: HttpClient) {}
 
   ngAfterViewInit(): void {
@@ -72,11 +71,11 @@ export class AppHttpTableComponent {
         startWith({}),
         switchMap(() => {
           this.isLoadingResults = true;
-          // tslint:disable-next-line - Disables all
+
           return this.exampleDatabase!.getRepoIssues(
             this.sort.active,
             this.sort.direction,
-            this.paginator.pageIndex
+            this.paginator.pageIndex,
           );
         }),
         map((data) => {
@@ -92,7 +91,7 @@ export class AppHttpTableComponent {
           // Catch if the GitHub API has reached its rate limit. Return empty data.
           this.isRateLimitReached = true;
           return observableOf([]);
-        })
+        }),
       )
       .subscribe((data) => (this.data = data));
   }
@@ -112,13 +111,12 @@ export interface GithubIssue {
 
 /** An example database that the data source uses to retrieve data for the table. */
 export class ExampleHttpDatabase {
-  // tslint:disable-next-line - Disables all
   constructor(private _httpClient: HttpClient) {}
 
   getRepoIssues(
     sort: string,
     order: string,
-    page: number
+    page: number,
   ): Observable<GithubApi> {
     const href = 'https://api.github.com/search/issues';
     const requestUrl = `${href}?q=repo:angular/components&sort=${sort}&order=${order}&page=${

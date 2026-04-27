@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -5,20 +6,20 @@ import {
   AfterViewInit,
   Inject,
 } from '@angular/core';
-import { MatTableDataSource, MatTable } from '@angular/material/table';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TicketService } from 'src/app/services/apps/ticket/ticket.service';
-import { TicketElement } from 'src/app/pages/apps/tickets/ticket';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource, MatTable } from '@angular/material/table';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { TicketElement } from 'src/app/pages/apps/tickets/ticket';
+import { TicketService } from 'src/app/services/apps/ticket/ticket.service';
 
 @Component({
   selector: 'app-ticket-list',
@@ -29,7 +30,7 @@ export class AppTicketlistComponent implements OnInit, AfterViewInit {
   @ViewChild(MatTable, { static: true }) table: MatTable<any>;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
 
-  searchText: string = '';
+  searchText = '';
   totalCount = 0;
   Closed = 0;
   Inprogress = 0;
@@ -46,7 +47,10 @@ export class AppTicketlistComponent implements OnInit, AfterViewInit {
 
   dataSource = new MatTableDataSource<TicketElement>([]);
 
-  constructor(private ticketService: TicketService, public dialog: MatDialog) {}
+  constructor(
+    private ticketService: TicketService,
+    public dialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
     this.loadTickets(); // Load the initial tickets
@@ -97,13 +101,12 @@ export class AppTicketlistComponent implements OnInit, AfterViewInit {
 
   countTicketsByStatus(status: string): number {
     return this.dataSource.data.filter(
-      (ticket) => ticket.status.toLowerCase() === status.toLowerCase()
+      (ticket) => ticket.status.toLowerCase() === status.toLowerCase(),
     ).length;
   }
 }
 
 @Component({
-  // tslint:disable-next-line - Disables all
   selector: 'app-dialog-content',
   templateUrl: 'ticket-dialog-content.html',
   imports: [
@@ -115,7 +118,7 @@ export class AppTicketlistComponent implements OnInit, AfterViewInit {
     TablerIconsModule,
   ],
 })
-export class TicketDialogComponent {
+export class TicketDialogComponent implements OnInit {
   action: string;
   local_data: TicketElement;
   users: any[] = [];
@@ -125,7 +128,7 @@ export class TicketDialogComponent {
     public dialogRef: MatDialogRef<TicketDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private ticketService: TicketService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     this.action = data.action;
     this.local_data = { ...data.ticket };
@@ -136,7 +139,7 @@ export class TicketDialogComponent {
 
     if (this.local_data.date) {
       this.dateControl.setValue(
-        new Date(this.local_data.date).toISOString().split('T')[0]
+        new Date(this.local_data.date).toISOString().split('T')[0],
       ); //  existing date
     } else {
       // Set to today's date if no existing date is available

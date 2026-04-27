@@ -7,14 +7,12 @@ describe('AppTaskComponent', () => {
   let component: AppTaskComponent;
   let fixture: ComponentFixture<AppTaskComponent>;
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        declarations: [AppTaskComponent],
-        imports: [FormsModule],
-      }).compileComponents();
-    }),
-  );
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      declarations: [AppTaskComponent],
+      imports: [FormsModule],
+    }).compileComponents();
+  }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AppTaskComponent);

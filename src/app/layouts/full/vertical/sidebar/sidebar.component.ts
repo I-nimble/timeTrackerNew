@@ -6,9 +6,11 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { BrandingComponent } from './branding.component';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
+import { MaterialModule } from 'src/app/legacy/material.module';
+
+import { BrandingComponent } from './branding.component';
 import { NavItem } from './nav-item/nav-item';
 import { getNavItems } from './sidebar-data';
 
@@ -16,10 +18,10 @@ import { getNavItems } from './sidebar-data';
   standalone: true,
   selector: 'app-sidebar',
   imports: [BrandingComponent, TablerIconsModule, MaterialModule],
-  templateUrl: './sidebar.component.html'
+  templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {
-  constructor() { }
+  constructor() {}
   @Input() showToggle = true;
   @Input() collapsed = false;
   @Input() opened = true;
@@ -27,7 +29,7 @@ export class SidebarComponent implements OnInit {
   @Output() toggleMobileNav = new EventEmitter<void>();
   @Output() toggleCollapsed = new EventEmitter<void>();
   navItems: NavItem[] = [];
-  
+
   ngOnInit(): void {
     const role = Number(localStorage.getItem('role'));
     this.navItems = getNavItems(role);

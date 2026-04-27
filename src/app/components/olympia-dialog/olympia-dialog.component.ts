@@ -1,24 +1,35 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { CommonModule, } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { Router, NavigationEnd, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { MaterialModule } from 'src/app/material.module';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { OlympiaService } from 'src/app/services/olympia.service';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+} from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
+
+import { Subscription } from 'rxjs';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { OlympiaService } from 'src/app/services/olympia.service';
 
 @Component({
   selector: 'app-olympia-dialog',
-  imports: [MatDialogModule, CommonModule, RouterModule, MaterialModule, ReactiveFormsModule ],
+  imports: [
+    MatDialogModule,
+    CommonModule,
+    RouterModule,
+    MaterialModule,
+    ReactiveFormsModule,
+  ],
   templateUrl: './olympia-dialog.component.html',
-  styleUrl: './olympia-dialog.component.scss'
+  styleUrl: './olympia-dialog.component.scss',
 })
-export class OlympiaDialogComponent {
+export class OlympiaDialogComponent implements OnInit {
   private routerSubscription?: Subscription;
-  submitted: boolean = false;
-  showForm: boolean = false;
-  isSubmitting: boolean = false;
+  submitted = false;
+  showForm = false;
+  isSubmitting = false;
   olympiaForm = this.fb.group({
     full_name: ['', Validators.required],
     birth_date: ['', Validators.required],
@@ -56,20 +67,20 @@ export class OlympiaDialogComponent {
   });
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any, 
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private dialog: MatDialog,
     private router: Router,
     private fb: FormBuilder,
     private olympiaService: OlympiaService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
-    this.routerSubscription = this.router.events.subscribe(event => {
+    this.routerSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.closePopup();
       }
-    });  
+    });
   }
 
   showOlympiaForm(): void {

@@ -1,5 +1,5 @@
 export const BASIC_LAYOUT_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -21,7 +21,7 @@ export class AppFormVerticalComponent {
 `;
 
 export const BASIC_WITH_ICONS_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -44,7 +44,7 @@ export class AppFormVerticalComponent {
 `;
 
 export const FORM_SEPARATOR_TS_SNIPPET = ` import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -71,7 +71,7 @@ export class AppFormVerticalComponent {
 `;
 
 export const FORM_LABEL_ALIGN_TS_SNIPPET = ` import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -98,7 +98,7 @@ export class AppFormVerticalComponent {
 `;
 
 export const COLLAPSE_FORM_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';

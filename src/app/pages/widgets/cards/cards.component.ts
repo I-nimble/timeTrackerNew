@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
 // card 1
 interface topcards {
@@ -103,9 +104,9 @@ interface activities {
 }
 
 @Component({
-    selector: 'app-cards',
-    imports: [MatCardModule, MatChipsModule, TablerIconsModule, MatButtonModule],
-    templateUrl: './cards.component.html',
+  selector: 'app-cards',
+  imports: [MatCardModule, MatChipsModule, TablerIconsModule, MatButtonModule],
+  templateUrl: './cards.component.html',
 })
 export class AppCardsComponent {
   constructor() {}

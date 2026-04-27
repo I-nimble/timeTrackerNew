@@ -12,6 +12,7 @@ import {
   MatTreeFlattener,
   MatTreeModule,
 } from '@angular/material/tree';
+
 import { BehaviorSubject } from 'rxjs';
 
 export class TodoItemNode {
@@ -69,7 +70,7 @@ export class ChecklistDatabase {
    * Build the file structure tree. The `value` is the Json object, or a sub-tree of a Json object.
    * The return value is the list of `TodoItemNode`.
    */
-  buildFileTree(obj: { [key: string]: any }, level: number): TodoItemNode[] {
+  buildFileTree(obj: Record<string, any>, level: number): TodoItemNode[] {
     return Object.keys(obj).reduce<TodoItemNode[]>((accumulator, key) => {
       const value = obj[key];
       const node = new TodoItemNode();
@@ -102,10 +103,19 @@ export class ChecklistDatabase {
 }
 
 @Component({
-    selector: 'app-treeview',
-    imports: [MatIconModule, MatCheckboxModule, MatFormFieldModule, MatTreeModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatInputModule],
-    templateUrl: './treeview.component.html',
-    providers: [ChecklistDatabase]
+  selector: 'app-treeview',
+  imports: [
+    MatIconModule,
+    MatCheckboxModule,
+    MatFormFieldModule,
+    MatTreeModule,
+    MatCardModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ],
+  templateUrl: './treeview.component.html',
+  providers: [ChecklistDatabase],
 })
 export class AppTreeviewComponent {
   /** Map from flat node to nested node. This helps us finding the nested node to be modified */
@@ -128,7 +138,7 @@ export class AppTreeviewComponent {
 
   /** The selection for checklist */
   checklistSelection = new SelectionModel<TodoItemFlatNode>(
-    true /* multiple */
+    true /* multiple */,
   );
 
   constructor(private _database: ChecklistDatabase) {
@@ -136,15 +146,15 @@ export class AppTreeviewComponent {
       this.transformer,
       this.getLevel,
       this.isExpandable,
-      this.getChildren
+      this.getChildren,
     );
     this.treeControl = new FlatTreeControl<TodoItemFlatNode>(
       this.getLevel,
-      this.isExpandable
+      this.isExpandable,
     );
     this.dataSource = new MatTreeFlatDataSource(
       this.treeControl,
-      this.treeFlattener
+      this.treeFlattener,
     );
 
     _database.dataChange.subscribe((data) => {
@@ -195,7 +205,7 @@ export class AppTreeviewComponent {
   descendantsPartiallySelected(node: TodoItemFlatNode): boolean {
     const descendants = this.treeControl.getDescendants(node);
     const result = descendants.some((child) =>
-      this.checklistSelection.isSelected(child)
+      this.checklistSelection.isSelected(child),
     );
     return result && !this.descendantsAllSelected(node);
   }

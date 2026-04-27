@@ -1,33 +1,31 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import jsPDF from 'jspdf';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PdfInvoiceService {
+  constructor() {}
 
-  constructor() { }
-
-  generatePDF(name: string, selectedPayment: any){
-
+  generatePDF(name: string, selectedPayment: any) {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format:'a4'
-    })
+      format: 'a4',
+    });
 
     const img = new Image();
     img.src = `${environment.assets}/inimble.png`;
 
-    const imageWidth = 55; 
-    const imageHeight = 15; 
-    const pageWidth = doc.internal.pageSize.width; 
+    const imageWidth = 55;
+    const imageHeight = 15;
+    const pageWidth = doc.internal.pageSize.width;
 
-    const ximage = (pageWidth - imageWidth) / 2; 
+    const ximage = (pageWidth - imageWidth) / 2;
     doc.addImage(img, 'PNG', ximage, 10, imageWidth, imageHeight);
-
 
     // Content
 
@@ -42,9 +40,11 @@ export class PdfInvoiceService {
     doc.setFont('Helvetica');
     doc.setFontSize(12);
     const date = 'Date:';
-    const datei = new Date(selectedPayment.updated_at).toLocaleDateString('es-ES');
+    const datei = new Date(selectedPayment.updated_at).toLocaleDateString(
+      'es-ES',
+    );
     doc.text(`${date} ${datei}`, 20, 50);
-    const xdatei = (doc.internal.pageSize.width - 20)
+    const xdatei = doc.internal.pageSize.width - 20;
 
     // Client
     doc.setFontSize(12);
@@ -70,6 +70,5 @@ export class PdfInvoiceService {
     downloadLink.href = URL.createObjectURL(pdfOutput);
     downloadLink.download = fileName;
     downloadLink.click();
-
   }
 }

@@ -1,26 +1,27 @@
-import { Component, OnInit, type AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { Entries } from 'src/app/models/Entries';
-import { EntriesService } from 'src/app/services/entries.service';
-import { EntriesPanelComponent } from 'src/app/components/entries-panel/entries-panel.component';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { RouterLink, Router } from '@angular/router';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { SafeResourceUrl } from '@angular/platform-browser';
-import { nextDay } from 'date-fns';
-import { MatDialog } from '@angular/material/dialog';
-import { OlympiaService } from 'src/app/services/olympia.service';
-import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
-import { MatStepperModule } from '@angular/material/stepper';
-import { ReactiveFormsModule } from '@angular/forms';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, type AfterViewInit } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatStepperModule } from '@angular/material/stepper';
+import { SafeResourceUrl } from '@angular/platform-browser';
+import { RouterLink, Router } from '@angular/router';
+
+import { nextDay } from 'date-fns';
+import { EntriesPanelComponent } from 'src/app/components/entries-panel/entries-panel.component';
+import { OlympiaDialogComponent } from 'src/app/components/olympia-dialog/olympia-dialog.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { Entries } from 'src/app/models/Entries';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { EntriesService } from 'src/app/services/entries.service';
+import { OlympiaService } from 'src/app/services/olympia.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-dashboard-tm',
@@ -68,19 +69,19 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
       bussiness_segment: '',
     },
   };
-  picture: string = 'assets/images/default-user-profile-pic.png';
+  picture = 'assets/images/default-user-profile-pic.png';
 
   // timer
-  entriesAlert: string = '';
+  entriesAlert = '';
   name: any;
   entries: any = [];
   loaded!: boolean;
-  entryCheck: boolean = false;
-  currentEntryId: number = 0;
+  entryCheck = false;
+  currentEntryId = 0;
   timer: any = '00:00:00';
   message: any;
   start_time: any;
-  timeZone: string = 'America/Caracas';
+  timeZone = 'America/Caracas';
   startedEntry: Entries = {
     status: 0,
     description: '',
@@ -91,15 +92,15 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   employer: any = {};
   companyLogo!: SafeResourceUrl;
   isOrphan: boolean;
-  userCompletedProfile: boolean = false;
-  olympiaSubmitted: boolean = false;
-  pictureUploaded: boolean = false;
-  applicationDetailsSubmitted: boolean = false;
-  profileCompleted: boolean = false;
-  videoUploaded: boolean = false;
-  matchRequested: boolean = false;
-  selectedStepperIndex: number = 0;
-  firstStepperLoad: boolean = true;
+  userCompletedProfile = false;
+  olympiaSubmitted = false;
+  pictureUploaded = false;
+  applicationDetailsSubmitted = false;
+  profileCompleted = false;
+  videoUploaded = false;
+  matchRequested = false;
+  selectedStepperIndex = 0;
+  firstStepperLoad = true;
 
   constructor(
     private usersService: UsersService,
@@ -113,7 +114,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
     private olympiaService: OlympiaService,
     public dialog: MatDialog,
     private router: Router,
-    private applicationsService: ApplicationsService
+    private applicationsService: ApplicationsService,
   ) {}
 
   ngOnInit(): void {
@@ -134,12 +135,12 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
 
     if (localStorage.getItem('role') === '2') {
       this.employeesService.getByEmployee().subscribe((employee: any) => {
-        if(!employee) return;
+        if (!employee) return;
 
         const company_id = employee.company_id;
         this.companiesService.getCompanies().subscribe((companies: any) => {
           const company = companies.filter(
-            (company: any) => company.id == company_id
+            (company: any) => company.id == company_id,
           )[0];
           const companyTimeZone = company?.timezone?.split(':')[0];
           this.timeZone = companyTimeZone;
@@ -149,52 +150,55 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
       this.timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     }
 
-    this.usersService.getUsers({ searchField: '', filter: { currentUser: true } })
-    .subscribe({
-      next: (users: any) => {
-        this.user = users[0];
+    this.usersService
+      .getUsers({ searchField: '', filter: { currentUser: true } })
+      .subscribe({
+        next: (users: any) => {
+          this.user = users[0];
 
-        this.usersService.getProfilePic(this.user.id).subscribe({
-          next: (url: any) => {
-            if (url) this.user.picture = url;
-            this.checkPictureUploaded();
-          },
-          error: () => {
-            this.checkPictureUploaded();
-          }
-        });
-
-        if(this.isOrphan) {
-          this.applicationsService.getUserApplication(this.user.id).subscribe({
-            next: (applicationDetails: any) => {
-              this.applicationDetailsSubmitted = !!(
-                applicationDetails.location_id &&
-                applicationDetails.current_position &&
-                applicationDetails.applied_where && 
-                applicationDetails.referred &&
-                applicationDetails.age &&
-                applicationDetails.phone &&
-                applicationDetails.current_residence &&
-                applicationDetails.address &&
-                applicationDetails.english_level &&
-                applicationDetails.competencies &&
-                applicationDetails.skills &&
-                applicationDetails.education_history &&
-                applicationDetails.work_experience &&
-                applicationDetails.work_references &&
-                applicationDetails.hobbies &&
-                applicationDetails.salary_range
-              );
-              this.setStepperToLastCompletedStep();
+          this.usersService.getProfilePic(this.user.id).subscribe({
+            next: (url: any) => {
+              if (url) this.user.picture = url;
+              this.checkPictureUploaded();
             },
             error: () => {
-              this.applicationDetailsSubmitted = false;
-              this.setStepperToLastCompletedStep();
-            }
+              this.checkPictureUploaded();
+            },
           });
-        }
-      }
-    });
+
+          if (this.isOrphan) {
+            this.applicationsService
+              .getUserApplication(this.user.id)
+              .subscribe({
+                next: (applicationDetails: any) => {
+                  this.applicationDetailsSubmitted = !!(
+                    applicationDetails.location_id &&
+                    applicationDetails.current_position &&
+                    applicationDetails.applied_where &&
+                    applicationDetails.referred &&
+                    applicationDetails.age &&
+                    applicationDetails.phone &&
+                    applicationDetails.current_residence &&
+                    applicationDetails.address &&
+                    applicationDetails.english_level &&
+                    applicationDetails.competencies &&
+                    applicationDetails.skills &&
+                    applicationDetails.education_history &&
+                    applicationDetails.work_experience &&
+                    applicationDetails.work_references &&
+                    applicationDetails.hobbies &&
+                    applicationDetails.salary_range
+                  );
+                  this.setStepperToLastCompletedStep();
+                },
+                error: () => {
+                  this.applicationDetailsSubmitted = false;
+                  this.setStepperToLastCompletedStep();
+                },
+              });
+          }
+        },
+      });
   }
 
   ngAfterViewInit() {
@@ -227,7 +231,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
           },
           error: () => {
             this.checkPictureUploaded();
-          }
+          },
         });
 
         this.getEmployees();
@@ -237,7 +241,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
   }
 
   getEmployees() {
-    if(!this.user?.employee?.id) return;
+    if (!this.user?.employee?.id) return;
 
     this.companiesService
       .getEmployees(this.user?.employee?.id)
@@ -246,7 +250,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
           (employee: any) =>
             employee.user.active === 1 &&
             employee.user.roles.some((role: any) => role.id === 2) &&
-            employee.user.id !== this.user.id
+            employee.user.id !== this.user.id,
         );
 
         this.companiesService
@@ -262,7 +266,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
               this.usersService.getProfilePic(this.employer.id).subscribe({
                 next: (image: any) => {
                   this.employer.picture = image;
-                }
+                },
               });
             }
           });
@@ -270,7 +274,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
         this.companiesService
           .getCompanyLogo(employees[0].company_id)
           .subscribe((logo) => {
-            if(logo) {
+            if (logo) {
               this.companyLogo = logo;
             }
           });
@@ -280,7 +284,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
           this.usersService.getProfilePic(employee.user.id).subscribe({
             next: (image: any) => {
               this.employees[i].user.picture = image;
-            }
+            },
           });
         }
       });
@@ -375,16 +379,17 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
         this.olympiaSubmitted = res;
         this.setStepperToLastCompletedStep();
       },
-      error: () => console.error('Error checking Olympia form status')
+      error: () => console.error('Error checking Olympia form status'),
     });
   }
 
   checkPictureUploaded() {
     const defaultImages = [
       'assets/images/default-user-profile-pic.png',
-      'assets/images/default-logo.jpg'
+      'assets/images/default-logo.jpg',
     ];
-    this.pictureUploaded = !!this.user.picture && !defaultImages.includes(this.user.picture);
+    this.pictureUploaded =
+      !!this.user.picture && !defaultImages.includes(this.user.picture);
     this.setStepperToLastCompletedStep();
   }
 
@@ -399,7 +404,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error('Error checking profile', err);
         this.setStepperToLastCompletedStep();
-      }
+      },
     });
   }
 
@@ -408,15 +413,26 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
       this.selectedStepperIndex = -1;
       return;
     }
-    const profileConfigured = this.pictureUploaded && this.videoUploaded && this.applicationDetailsSubmitted;
+    const profileConfigured =
+      this.pictureUploaded &&
+      this.videoUploaded &&
+      this.applicationDetailsSubmitted;
 
     if (!profileConfigured) {
       this.selectedStepperIndex = 0;
     } else if (profileConfigured && !this.olympiaSubmitted) {
       this.selectedStepperIndex = 1; // Assuming Olympia is step 2 (index 1)
-    } else if (profileConfigured && this.olympiaSubmitted && !this.matchRequested) {
+    } else if (
+      profileConfigured &&
+      this.olympiaSubmitted &&
+      !this.matchRequested
+    ) {
       this.selectedStepperIndex = 2; // Assuming Request Match is step 3 (index 2)
-    } else if (profileConfigured && this.olympiaSubmitted && this.matchRequested) {
+    } else if (
+      profileConfigured &&
+      this.olympiaSubmitted &&
+      this.matchRequested
+    ) {
       this.selectedStepperIndex = -1; // Completed
     } else {
       this.selectedStepperIndex = 0;
@@ -435,7 +451,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
         if (error.status !== 404) {
           this.showSnackbar('Error checking match status');
         }
-      }
+      },
     });
   }
 
@@ -451,11 +467,13 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
         if (error.status === 400) {
           this.matchRequested = true;
           this.selectedStepperIndex = -1;
-          this.showSnackbar('Match already requested. Please wait for our contact.');
+          this.showSnackbar(
+            'Match already requested. Please wait for our contact.',
+          );
         } else {
           this.showSnackbar('Error sending match request');
         }
-      }
+      },
     });
   }
 
@@ -478,7 +496,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
     this.selectedStepperIndex = tabIndex;
     setTimeout(() => {
       this.router.navigate(['/apps/account-settings'], {
-        queryParams: { tab: tabIndex }
+        queryParams: { tab: tabIndex },
       });
     });
   }

@@ -8,30 +8,32 @@ import {
   SimpleChanges,
   inject,
 } from '@angular/core';
-import { Roles } from 'src/app/models/Roles';
 import {
   FormGroup,
   FormControl,
   Validators,
   FormBuilder,
 } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { DomSanitizer } from '@angular/platform-browser';
+
+import * as moment from 'moment';
 import { Loader } from 'src/app/app.models';
+import { Positions } from 'src/app/models/Position.model';
+import { Roles } from 'src/app/models/Roles';
 import { User } from 'src/app/models/User.model';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { UsersService } from 'src/app/services/users.service';
-import { ModalComponent } from '../confirmation-modal/modal.component';
-import { MatDialog } from '@angular/material/dialog';
-import { PositionsService } from 'src/app/services/positions.service';
-import { Positions } from 'src/app/models/Position.model';
-import { TimezoneService } from 'src/app/services/timezone.service';
-import { FormDialogComponent } from '../form-dialog/form-dialog.component';
-import { SharedModule } from '../shared.module';
 import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
+import { PositionsService } from 'src/app/services/positions.service';
+import { TimezoneService } from 'src/app/services/timezone.service';
+import { UsersService } from 'src/app/services/users.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
-import { MoreVertComponent, options } from '../more-vert/more-vert.component';
-import { DomSanitizer } from '@angular/platform-browser';
-import * as moment from 'moment';
 import { environment } from 'src/environments/environment';
+
+import { ModalComponent } from '../confirmation-modal/modal.component';
+import { FormDialogComponent } from '../form-dialog/form-dialog.component';
+import { SharedModule } from '../legacy/shared.module';
+import { MoreVertComponent, options } from '../more-vert/more-vert.component';
 
 @Component({
   selector: 'app-user',
@@ -63,9 +65,9 @@ export class UserFormComponent implements OnInit, OnChanges {
   };
   loader: Loader = new Loader(false, false, false);
   roleList!: Roles[];
-  title: string = 'New User';
+  title = 'New User';
   userForm!: FormGroup;
-  message: string = '';
+  message = '';
   companies: any;
   positions: Positions[] = [];
   ADMIN_ROLE = '1';
@@ -73,10 +75,10 @@ export class UserFormComponent implements OnInit, OnChanges {
   EMPLOYER_ROLE = '3';
   timezones!: any;
   assetsPath: string = environment.assets + '/default-profile-pic.png';
-  maxFileSize: number =  1 * 1024 * 1024;
+  maxFileSize: number = 1 * 1024 * 1024;
 
   selectedDaysOfWeek: string[] = [];
-  public show: boolean = false;
+  public show = false;
 
   constructor(
     private userService: UsersService,
@@ -114,7 +116,7 @@ export class UserFormComponent implements OnInit, OnChanges {
         this.title = 'New User';
         return;
       }
-      this.getImage()
+      this.getImage();
       this.userForm.patchValue(this.selectedUser);
       if (this.selectedUser) {
         this.title = 'Edit User';
@@ -124,9 +126,9 @@ export class UserFormComponent implements OnInit, OnChanges {
         this.userForm.get('employee')?.get('id')?.setValue('');
       }
       this.userForm.get('password')?.updateValueAndValidity();
-      for (let propName in this.selectedUser) {
+      for (const propName in this.selectedUser) {
         if (propName == 'employee') {
-          for (let employeeKey in this.selectedUser[propName]) {
+          for (const employeeKey in this.selectedUser[propName]) {
             if (this.selectedUser[propName][employeeKey] == null) {
               this.userForm.get(propName)?.get(employeeKey)?.setValue('');
             }
@@ -198,28 +200,28 @@ export class UserFormComponent implements OnInit, OnChanges {
       companyGroup.reset();
       employeeGroup.reset();
       if (role == this.ADMIN_ROLE) {
-        for (let controlName in companyGroup.controls) {
+        for (const controlName in companyGroup.controls) {
           companyGroup.removeControl(controlName);
         }
-        for (let controlId in employeeGroup.controls) {
+        for (const controlId in employeeGroup.controls) {
           employeeGroup.removeControl(controlId);
         }
       }
       if (role == this.EMPLOYEE_ROLE) {
-        for (let controlName in companyGroup.controls) {
+        for (const controlName in companyGroup.controls) {
           companyGroup.removeControl(controlName);
         }
 
         if (!employeeGroup.get('position')) {
           employeeGroup.addControl(
             'position',
-            this.fb.control('', Validators.required)
+            this.fb.control('', Validators.required),
           );
         }
         if (!employeeGroup.get('hourly_rate')) {
           employeeGroup.addControl(
             'hourly_rate',
-            this.fb.control(null, Validators.required)
+            this.fb.control(null, Validators.required),
           );
         }
         employeeGroup.addControl('id', this.fb.control(''));
@@ -230,7 +232,7 @@ export class UserFormComponent implements OnInit, OnChanges {
           this.userForm.get('employee')?.get('position')?.setValue('');
         }
       } else if (role == this.EMPLOYER_ROLE) {
-        for (let controlId in employeeGroup.controls) {
+        for (const controlId in employeeGroup.controls) {
           employeeGroup.removeControl(controlId);
         }
         companyGroup.addControl('id', this.fb.control(''));
@@ -249,13 +251,13 @@ export class UserFormComponent implements OnInit, OnChanges {
     });
   }
   public getImage() {
-    if(this.selectedUser.id) {
+    if (this.selectedUser.id) {
       this.userService.getProfilePic(this.selectedUser.id).subscribe({
         next: (image: any) => {
-          if(image) {
+          if (image) {
             this.img = image;
           }
-        }
+        },
       });
     }
   }
@@ -277,7 +279,7 @@ export class UserFormComponent implements OnInit, OnChanges {
 
   setUserCompany(target: any) {
     const company = this.companies.find(
-      (company: any) => company.id == target.value
+      (company: any) => company.id == target.value,
     );
     this.userForm
       .get('company')
@@ -323,14 +325,14 @@ export class UserFormComponent implements OnInit, OnChanges {
           this.newUser.employee!.hourly_rate =
             this.userForm.value.employee.hourly_rate;
           if (this.userForm.value.employee.schedule) {
-            this.newUser.employee!.schedule = this.userForm.value.employee.schedule.map((
-              (schedule:any) => {
+            this.newUser.employee!.schedule =
+              this.userForm.value.employee.schedule.map((schedule: any) => {
                 return {
-                  ...schedule, 
+                  ...schedule,
                   start_time: this.convertIntoUTCStr(schedule.start_time),
                   end_time: this.convertIntoUTCStr(schedule.end_time),
-                }
-            }))
+                };
+              });
           }
         }
 
@@ -353,20 +355,20 @@ export class UserFormComponent implements OnInit, OnChanges {
         this.loader = new Loader(true, false, true);
         this.notificationStore.addNotifications(
           'Confirm password error',
-          'error'
+          'error',
         );
       }
     } else {
       this.loader = new Loader(true, false, true);
       this.notificationStore.addNotifications(
         'All fields must be filled',
-        'error'
+        'error',
       );
     }
   }
 
-  convertIntoUTCStr(timeString:string) {
-    let hours, minutes
+  convertIntoUTCStr(timeString: string) {
+    let hours, minutes;
     if (timeString.includes(' ')) {
       const [time, modifier] = timeString.split(' ');
       [hours, minutes] = time.split(':').map(Number);
@@ -379,10 +381,17 @@ export class UserFormComponent implements OnInit, OnChanges {
       [hours, minutes] = timeString.split(':').map(Number);
     }
     const today = new Date();
-    const dateWithTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes, 0);
+    const dateWithTime = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      hours,
+      minutes,
+      0,
+    );
     const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const momentTime = moment(dateWithTime).tz(localTimeZone, true)
-    const UTCTimeString = momentTime.utc().format('HH:mm:ss')
+    const momentTime = moment(dateWithTime).tz(localTimeZone, true);
+    const UTCTimeString = momentTime.utc().format('HH:mm:ss');
     return UTCTimeString;
   }
 
@@ -406,7 +415,7 @@ export class UserFormComponent implements OnInit, OnChanges {
   }
 
   openFormModal(type: string, fieldData?: any, index?: string) {
-    let data = {
+    const data = {
       type,
       fieldData,
     };
@@ -427,8 +436,7 @@ export class UserFormComponent implements OnInit, OnChanges {
           this.userForm.get('employee')?.get('schedule')?.value &&
           this.userForm.get('employee')?.get('schedule')?.value.length > 0
         ) {
-          const daysArray: Array<{ id: string; name: string }> =
-            result[type].days;
+          const daysArray: { id: string; name: string }[] = result[type].days;
 
           const scheduleDays = this.userForm
             .get('employee')
@@ -436,43 +444,43 @@ export class UserFormComponent implements OnInit, OnChanges {
             ?.value.map(
               (
                 schedule: {
-                  days: Array<{ id: string; name: string }>;
+                  days: { id: string; name: string }[];
                   start_time: string;
                   end_time: string;
                 },
-                i: number
+                i: number,
               ) => {
                 if (i.toString() != index) {
                   return schedule.days.map(
                     (day: { id: string; name: string }) => {
                       return day.name;
-                    }
+                    },
                   );
                 }
                 return [];
-              }
+              },
             )
             .flat();
 
           result[type].days = daysArray.filter(
             (day: { id: string; name: string }) =>
-              scheduleDays.indexOf(day.name) == -1
+              scheduleDays.indexOf(day.name) == -1,
           );
-          let checkDays = daysArray.find(
+          const checkDays = daysArray.find(
             (day: { id: string; name: string }) =>
-              scheduleDays.indexOf(day.name) != -1
+              scheduleDays.indexOf(day.name) != -1,
           );
 
           if (checkDays) {
             this.notificationStore.addNotifications(
-              "Cant't add days that have already been selected"
+              "Cant't add days that have already been selected",
             );
           }
         }
 
         if (result[type].days.length > 0) {
-          if(!this.scheduleField.value) this.scheduleField.setValue([]);
-          let scheduleArray =
+          if (!this.scheduleField.value) this.scheduleField.setValue([]);
+          const scheduleArray =
             this.scheduleField.value.map((schedule: any, i: number) => {
               if (index == i.toString()) {
                 return result[type];
@@ -504,7 +512,7 @@ export class UserFormComponent implements OnInit, OnChanges {
     return this.userForm.get('employee')?.get('schedule') as FormControl;
   }
 
-  displaySchedulesDays(days: any): String {
+  displaySchedulesDays(days: any): string {
     return days
       .map((day: any) => day.name || day.day)
       .toString()
@@ -529,21 +537,21 @@ export class UserFormComponent implements OnInit, OnChanges {
         modifier = 'AM';
       }
       return `${this.customDate.padzero(hours)}:${this.customDate.padzero(
-        minutes
+        minutes,
       )} ${modifier}`;
     }
   }
 
   removeDayFromSchedule(
     selectedDay: { id: string; name: string },
-    i: number
+    i: number,
   ): void {
     const daysArray = (
-      this.scheduleField.value[i].days as Array<{ id: string; name: string }>
+      this.scheduleField.value[i].days as { id: string; name: string }[]
     ).filter((day) => day.id != selectedDay.id);
     if (daysArray.length < 1) {
-      let schedule = this.scheduleField.value.filter(
-        (schedule: any, index: number) => index != i
+      const schedule = this.scheduleField.value.filter(
+        (schedule: any, index: number) => index != i,
       );
       this.scheduleField.setValue(schedule);
     } else {
@@ -557,13 +565,13 @@ export class UserFormComponent implements OnInit, OnChanges {
         this.openFormModal(
           'schedule',
           this.scheduleField.value[event.id],
-          event.id
+          event.id,
         );
         break;
       case 'delete':
       case 'remove':
-        let scheduleList = this.scheduleField.value.filter(
-          (day: any, i: string) => event.id != i
+        const scheduleList = this.scheduleField.value.filter(
+          (day: any, i: string) => event.id != i,
         );
         this.scheduleField.setValue(scheduleList);
         break;
@@ -573,12 +581,18 @@ export class UserFormComponent implements OnInit, OnChanges {
   onFileSelected(event: any) {
     const img = event.target.files[0];
     if (img) {
-      if(img.size > this.maxFileSize) {
-        this.notificationStore.addNotifications("Image size should be 1 MB or less", "error")
+      if (img.size > this.maxFileSize) {
+        this.notificationStore.addNotifications(
+          'Image size should be 1 MB or less',
+          'error',
+        );
         return;
       }
       if (!['image/jpeg', 'image/jpg', 'image/png'].includes(img.type)) {
-        this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
+        this.notificationStore.addNotifications(
+          'Only JPG or PNG files are allowed!',
+          'error',
+        );
         return;
       }
       this.previewImage(img);

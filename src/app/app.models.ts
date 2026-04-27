@@ -1,8 +1,8 @@
 export class Loader {
   constructor(
-    public started: boolean = false,
-    public complete: boolean = false,
-    public error: boolean = false
+    public started = false,
+    public complete = false,
+    public error = false,
   ) {}
 }
 export const userRoles = {

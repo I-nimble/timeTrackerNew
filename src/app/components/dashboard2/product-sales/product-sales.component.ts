@@ -1,4 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -15,8 +17,8 @@ import {
   ApexMarkers,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface productSalesChart {
   series: ApexAxisChartSeries;
@@ -55,7 +57,7 @@ export class AppProductSalesComponent {
 
       chart: {
         type: 'area',
-        fontFamily: "inherit",
+        fontFamily: 'inherit',
         foreColor: '#adb0bb',
         toolbar: {
           show: false,

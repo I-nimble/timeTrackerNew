@@ -1,15 +1,13 @@
-import { Injectable,signal,computed  } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
+
 import { Mailbox } from 'src/app/pages/apps/email/email';
 import { mailboxList } from 'src/app/pages/apps/email/email-data';
 import { User } from 'src/app/pages/apps/email/user-data';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class mailGlobalVariable {
-  
-
   public page = signal(1);
   public pageSize = signal(5);
   public collectionSize = signal(0);
@@ -20,7 +18,7 @@ export class mailGlobalVariable {
   public selectedUser = signal<User | any>(null);
 
   public users = signal<User[]>([]);
-  public inboxList = signal<Mailbox[]| any>([]);
+  public inboxList = signal<Mailbox[] | any>([]);
   public sentList = signal<Mailbox[]>([]);
   public draftList = signal<Mailbox[]>([]);
   public spamList = signal<Mailbox[]>([]);
@@ -31,8 +29,12 @@ export class mailGlobalVariable {
   public type = signal('');
   router: any;
 
-  public inboxCount = computed(() => 
-    this.inboxList().filter((inbox: { mailbox: string; seen: any; }) => inbox.mailbox === 'Inbox' && !inbox.seen).length
+  public inboxCount = computed(
+    () =>
+      this.inboxList().filter(
+        (inbox: { mailbox: string; seen: any }) =>
+          inbox.mailbox === 'Inbox' && !inbox.seen,
+      ).length,
   );
   public spamCount = computed(() => this.spamList().length);
   public draftCount = computed(() => this.draftList().length);
@@ -40,22 +42,20 @@ export class mailGlobalVariable {
 
   public toggleStar(name: string): void {
     const mail = this.selectedMail();
-  
+
     if (mail) {
       if (!mail.filter.includes(name)) {
         mail.filter.push(name);
       } else {
-        mail.filter = mail.filter.filter(fil => fil !== name);
+        mail.filter = mail.filter.filter((fil) => fil !== name);
       }
     }
   }
- 
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class mailService {
   public getInbox(): Mailbox[] {
     return mailboxList.filter((mail) => mail.mailbox === 'Inbox');
@@ -72,7 +72,4 @@ export class mailService {
   public getTrash(): Mailbox[] {
     return mailboxList.filter((mail) => mail.mailbox === 'Trash');
   }
-
 }
-
-

@@ -1,18 +1,17 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { SORTABLE_TABLE_HTML_SNIPPET } from './code/sortable-table-html-snippet';
 import { SORTABLE_TABLE_TS_SNIPPET } from './code/sortable-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 const ELEMENT_DATA: Element[] = [
   {
@@ -73,7 +72,11 @@ const ELEMENT_DATA: Element[] = [
 
 @Component({
   selector: 'app-sortable-table',
-  imports: [MatCardModule, MatTableModule, CommonModule, MatDividerModule,
+  imports: [
+    MatCardModule,
+    MatTableModule,
+    CommonModule,
+    MatDividerModule,
     Highlight,
     HighlightAuto,
     HighlightLineNumbers,
@@ -81,7 +84,7 @@ const ELEMENT_DATA: Element[] = [
   ],
   templateUrl: './sortable-table.component.html',
 })
-export class AppSortableTableComponent implements OnInit {
+export class AppSortableTableComponent implements OnInit, AfterViewInit {
   // 1 [Sortable with Table]
   codeForSortableTable = SORTABLE_TABLE_HTML_SNIPPET;
   codeForSortableTableTs = SORTABLE_TABLE_TS_SNIPPET;

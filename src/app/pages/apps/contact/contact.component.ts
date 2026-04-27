@@ -1,16 +1,18 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, Inject, Optional, signal } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { Contact } from './contact';
-import { ContactService } from 'src/app/services/apps/contact/contact.service';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { ContactService } from 'src/app/services/apps/contact/contact.service';
+
+import { Contact } from './contact';
 
 export interface ContactData {
   contacts: Contact[];
@@ -49,7 +51,7 @@ export class AppContactComponent implements OnInit {
   constructor(
     public dialog: MatDialog,
     private contactService: ContactService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -60,7 +62,7 @@ export class AppContactComponent implements OnInit {
     obj.action = action;
     const dialogRef = this.dialog.open(AppContactDialogContentComponent, {
       data: obj,
-      autoFocus: false
+      autoFocus: false,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -119,7 +121,7 @@ export class AppContactDialogContentComponent {
   constructor(
     public dialogRef: MatDialogRef<AppContactDialogContentComponent>,
 
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: ContactData
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: ContactData,
   ) {
     this.local_data = { ...data };
     this.action = this.local_data.action;

@@ -33,7 +33,6 @@ export const LIST_THREELINE_HTML_SNIPPET = `  <mat-list>
               </mat-list>
 `;
 
-
 export const LIST_THREELINE_TEXT_WRAPPING_HTML_SNIPPET = `  <mat-list style="max-width: 500px">
               <mat-list-item lines="3">
                 <span matListItemTitle class="f-s-16 f-w-600">Title</span>

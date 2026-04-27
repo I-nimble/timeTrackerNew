@@ -1,8 +1,10 @@
-﻿import { Component, OnInit } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { RatingsEntriesService } from '@app/services/ratings_entries.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
+
+import { RatingsEntriesService } from '@app/services/ratings_entries.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-top-cards',
@@ -11,14 +13,14 @@ import { RouterModule } from '@angular/router';
   templateUrl: './top-cards.component.html',
   styleUrls: ['./top-cards.component.scss'],
 })
-export class AppTopCardsComponent implements OnInit {
-  totalTasksSum: number = 0;
+export class AppTopCardsComponent implements OnInit, OnDestroy {
+  totalTasksSum = 0;
   constructor(private ratingsEntriesService: RatingsEntriesService) {}
 
-  companyTimezone: string = 'UTC';
-  totalHours: number = 0;
-  performance: number = 0;
-  elapsedHours: number = 0;
+  companyTimezone = 'UTC';
+  totalHours = 0;
+  performance = 0;
+  elapsedHours = 0;
   intervalId: any;
 
   ngOnInit() {
@@ -46,7 +48,7 @@ export class AppTopCardsComponent implements OnInit {
         this.totalTasksSum = ratings.reduce(
           (acc: number, curr: { completed?: number }) =>
             acc + (curr.completed || 0),
-          0
+          0,
         );
         this.performance =
           this.elapsedHours > 0
@@ -68,7 +70,7 @@ export class AppTopCardsComponent implements OnInit {
       9,
       0,
       0,
-      0
+      0,
     );
     const diffMs = now.getTime() - today9am.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
@@ -83,4 +85,3 @@ export class AppTopCardsComponent implements OnInit {
         : 0;
   }
 }
-

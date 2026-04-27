@@ -1,17 +1,28 @@
 import { Injectable } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+
 import { TourService } from 'ngx-ui-tour-md-menu';
-import { BehaviorSubject, ReplaySubject, Subject, firstValueFrom, of } from 'rxjs';
+import {
+  BehaviorSubject,
+  ReplaySubject,
+  Subject,
+  firstValueFrom,
+  of,
+} from 'rxjs';
 import { catchError, filter, take, timeout } from 'rxjs/operators';
+
+import {
+  RoleTourStep,
+  SectionConfig,
+  buildClientSections,
+} from './role-tour-steps';
 import { TourApiService, TourProgress } from './tour-api.service';
-import { RoleTourStep, SectionConfig, buildClientSections } from './role-tour-steps';
 
 interface StartOptions {
   forceStart?: boolean;
   currentRoute?: string;
   onlyIfNoProgress?: boolean;
 }
-
 
 @Injectable({ providedIn: 'root' })
 export class RoleTourService {
@@ -25,7 +36,10 @@ export class RoleTourService {
   private isActiveSubject = new BehaviorSubject<boolean>(false);
   isActive$ = this.isActiveSubject.asObservable();
 
-  private startRequests = new ReplaySubject<{ steps: RoleTourStep[]; startIndex: number }>(1);
+  private startRequests = new ReplaySubject<{
+    steps: RoleTourStep[];
+    startIndex: number;
+  }>(1);
   startRequests$ = this.startRequests.asObservable();
 
   private kanbanOpenRequests = new Subject<void>();
@@ -35,7 +49,8 @@ export class RoleTourService {
   chatOpenRequests$ = this.chatOpenRequests.asObservable();
 
   private employeeDetailsOpenRequests = new Subject<void>();
-  employeeDetailsOpenRequests$ = this.employeeDetailsOpenRequests.asObservable();
+  employeeDetailsOpenRequests$ =
+    this.employeeDetailsOpenRequests.asObservable();
 
   private kanbanTasksState = new Subject<boolean>();
   kanbanTasksState$ = this.kanbanTasksState.asObservable();
@@ -49,12 +64,20 @@ export class RoleTourService {
     private router: Router,
   ) {}
 
-  async maybeStartForCurrentUser(forceStart = false, roleOverride?: string, currentRoute?: string) {
+  async maybeStartForCurrentUser(
+    forceStart = false,
+    roleOverride?: string,
+    currentRoute?: string,
+  ) {
     const jwt = localStorage.getItem('jwt');
     if (!jwt) return;
     const role = roleOverride ?? localStorage.getItem('role');
     if (!role) return;
-    await this.startForRole(role, { forceStart, currentRoute, onlyIfNoProgress: !forceStart });
+    await this.startForRole(role, {
+      forceStart,
+      currentRoute,
+      onlyIfNoProgress: !forceStart,
+    });
   }
 
   async maybeStartForCurrentRoute(forceStart = false, roleOverride?: string) {
@@ -63,14 +86,22 @@ export class RoleTourService {
     const role = roleOverride ?? localStorage.getItem('role');
     if (!role) return;
     const currentRoute = this.normalizeRoute(this.router.url);
-    await this.startForRole(role, { forceStart, currentRoute, onlyIfNoProgress: !forceStart });
+    await this.startForRole(role, {
+      forceStart,
+      currentRoute,
+      onlyIfNoProgress: !forceStart,
+    });
   }
 
   async restartFromStart(role?: string) {
     const currentRole = role || localStorage.getItem('role');
     if (!currentRole) return;
     const currentRoute = this.normalizeRoute(this.router.url);
-    await this.startForRole(currentRole, { forceStart: true, currentRoute, onlyIfNoProgress: false });
+    await this.startForRole(currentRole, {
+      forceStart: true,
+      currentRoute,
+      onlyIfNoProgress: false,
+    });
   }
 
   isTourActive(): boolean {
@@ -113,7 +144,10 @@ export class RoleTourService {
   }
 
   setTimeTrackerHasMembers(hasMembers: boolean) {
-    localStorage.setItem('timeTracker.hasMembers', hasMembers ? 'true' : 'false');
+    localStorage.setItem(
+      'timeTracker.hasMembers',
+      hasMembers ? 'true' : 'false',
+    );
     this.timeTrackerMembersState.next(hasMembers);
   }
 
@@ -141,15 +175,22 @@ export class RoleTourService {
     return anchorId;
   }
 
-  async resumeAtAnchor(anchorId: string, options?: { currentRoute?: string; ignoreCompleted?: boolean }) {
+  async resumeAtAnchor(
+    anchorId: string,
+    options?: { currentRoute?: string; ignoreCompleted?: boolean },
+  ) {
     const role = localStorage.getItem('role');
     if (!role) return;
 
-    const currentRoute = this.normalizeRoute(options?.currentRoute ?? this.router.url);
+    const currentRoute = this.normalizeRoute(
+      options?.currentRoute ?? this.router.url,
+    );
     const section = this.getSectionForRoute(role, currentRoute);
     if (!section) return;
 
-    const stepIndex = section.steps.findIndex((step) => step.anchorId === anchorId);
+    const stepIndex = section.steps.findIndex(
+      (step) => step.anchorId === anchorId,
+    );
     if (stepIndex < 0) return;
 
     const tourKey = this.getTourKeyForRoleSection(role, section.key);
@@ -163,9 +204,13 @@ export class RoleTourService {
     };
 
     if (!progress) {
-      await firstValueFrom(this.tourApi.start(progressPayload, tourKey)).catch(() => undefined);
+      await firstValueFrom(this.tourApi.start(progressPayload, tourKey)).catch(
+        () => undefined,
+      );
     } else {
-      await firstValueFrom(this.tourApi.updateProgress(progressPayload, tourKey)).catch(() => undefined);
+      await firstValueFrom(
+        this.tourApi.updateProgress(progressPayload, tourKey),
+      ).catch(() => undefined);
     }
 
     this.activeTourKey = tourKey;
@@ -213,7 +258,9 @@ export class RoleTourService {
   }
 
   private async startForRole(role: string, options: StartOptions) {
-    const currentRoute = this.normalizeRoute(options.currentRoute ?? this.router.url);
+    const currentRoute = this.normalizeRoute(
+      options.currentRoute ?? this.router.url,
+    );
     const section = this.getSectionForRoute(role, currentRoute);
     if (!section) return;
     const tourKey = this.getTourKeyForRoleSection(role, section.key);
@@ -223,10 +270,16 @@ export class RoleTourService {
       const status = svc.getStatus?.();
       const hasStep = !!svc.currentStep;
       if (status === 0 || !hasStep) {
-        try { this.tourService.end(); } catch (e) {}
+        try {
+          this.tourService.end();
+        } catch (e) {}
         this.resetState();
       } else if (options.forceStart) {
-        try { this.tourService.end(); } catch (e) { console.error('Error ending existing tour', e); }
+        try {
+          this.tourService.end();
+        } catch (e) {
+          console.error('Error ending existing tour', e);
+        }
       } else {
         return;
       }
@@ -244,10 +297,16 @@ export class RoleTourService {
       if (!progress) {
         try {
           await firstValueFrom(
-            this.tourApi.start({
-              current_step: 0,
-              progress: { anchorId: steps[0]?.anchorId, route: steps[0]?.route }
-            }, tourKey)
+            this.tourApi.start(
+              {
+                current_step: 0,
+                progress: {
+                  anchorId: steps[0]?.anchorId,
+                  route: steps[0]?.route,
+                },
+              },
+              tourKey,
+            ),
           );
         } catch (error) {
           console.error('Error starting tour progress', error);
@@ -259,8 +318,15 @@ export class RoleTourService {
 
       let startIndex = this.getStartIndex(progress, steps, options.forceStart);
       const intendedRoute = steps[startIndex]?.route;
-      if (!options.forceStart && currentRoute && intendedRoute && currentRoute !== intendedRoute) {
-        const matchIndex = steps.findIndex((step) => step.route === currentRoute);
+      if (
+        !options.forceStart &&
+        currentRoute &&
+        intendedRoute &&
+        currentRoute !== intendedRoute
+      ) {
+        const matchIndex = steps.findIndex(
+          (step) => step.route === currentRoute,
+        );
         if (matchIndex >= 0) {
           startIndex = matchIndex;
         }
@@ -284,7 +350,11 @@ export class RoleTourService {
     }
   }
 
-  private getStartIndex(progress: TourProgress | null, steps: RoleTourStep[], forceStart?: boolean) {
+  private getStartIndex(
+    progress: TourProgress | null,
+    steps: RoleTourStep[],
+    forceStart?: boolean,
+  ) {
     if (forceStart) return 0;
     const index = progress?.current_step ?? 0;
     return Math.min(Math.max(index, 0), steps.length - 1);
@@ -292,26 +362,31 @@ export class RoleTourService {
 
   private async persistProgress(step: RoleTourStep) {
     if (!this.activeTourKey || !this.activeSteps.length) return;
-    const stepIndex = this.activeSteps.findIndex((s) => s.anchorId === step.anchorId);
+    const stepIndex = this.activeSteps.findIndex(
+      (s) => s.anchorId === step.anchorId,
+    );
     if (stepIndex === -1) return;
 
     try {
       await firstValueFrom(
-        this.tourApi.updateProgress({
-          current_step: stepIndex,
-          progress: { anchorId: step.anchorId, route: step.route },
-        }, this.activeTourKey)
+        this.tourApi.updateProgress(
+          {
+            current_step: stepIndex,
+            progress: { anchorId: step.anchorId, route: step.route },
+          },
+          this.activeTourKey,
+        ),
       );
     } catch (error) {
       console.error('Error updating tour progress', error);
     }
   }
 
-  private async safeFetchProgress(tourKey: string): Promise<TourProgress | null> {
+  private async safeFetchProgress(
+    tourKey: string,
+  ): Promise<TourProgress | null> {
     return await firstValueFrom(
-      this.tourApi.getProgress(tourKey).pipe(
-        catchError(() => of(null))
-      )
+      this.tourApi.getProgress(tourKey).pipe(catchError(() => of(null))),
     );
   }
 
@@ -321,8 +396,8 @@ export class RoleTourService {
         this.router.events.pipe(
           filter((e) => e instanceof NavigationEnd),
           take(1),
-          timeout({ first: 2000 })
-        )
+          timeout({ first: 2000 }),
+        ),
       ).catch((e) => console.error('Error navigating to tour route', e));
     }
 
@@ -333,12 +408,14 @@ export class RoleTourService {
       await this.router.navigateByUrl(targetRoute);
       // Proceed even if NavigationEnd is missed (guards or same-route) to avoid hanging the tour.
       await firstValueFrom(
-        this.router.events.pipe(
-          filter((e) => e instanceof NavigationEnd),
-          take(1),
-          // Fallback: release after 1s even if NavigationEnd is not seen.
-          timeout({ first: 2000 })
-        ).pipe(catchError(() => of(null)))
+        this.router.events
+          .pipe(
+            filter((e) => e instanceof NavigationEnd),
+            take(1),
+            // Fallback: release after 1s even if NavigationEnd is not seen.
+            timeout({ first: 2000 }),
+          )
+          .pipe(catchError(() => of(null))),
       ).catch(() => undefined);
     } catch (error) {
       console.error('Error navigating to tour route', error);
@@ -359,12 +436,17 @@ export class RoleTourService {
     await this.handleEnd();
   }
 
-  private getSectionForRoute(role: string, route: string): SectionConfig | null {
+  private getSectionForRoute(
+    role: string,
+    route: string,
+  ): SectionConfig | null {
     if (role != '3') return null;
     const sections = this.getClientSections();
-    return sections.find((section) =>
-      section.routes.some((r) => route === r || route.startsWith(`${r}/`))
-    ) ?? null;
+    return (
+      sections.find((section) =>
+        section.routes.some((r) => route === r || route.startsWith(`${r}/`)),
+      ) ?? null
+    );
   }
 
   private getClientSections(): SectionConfig[] {

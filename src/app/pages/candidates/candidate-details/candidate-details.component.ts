@@ -1,30 +1,49 @@
-import { Component, signal, WritableSignal, OnInit } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { ApplicationMatchScoresService, MatchScore, PositionCategory } from 'src/app/services/application-match-scores.service';
-import { DiscProfile } from 'src/app/services/disc-profiles.service';
-import { Loader } from 'src/app/app.models';
-import { PositionsService } from 'src/app/services/positions.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule, DatePipe, UpperCasePipe } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { PermissionService } from 'src/app/services/permission.service';
-import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { MatchPercentagesModalComponent, MatchPercentagesModalData } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
-import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
-import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
-import { switchMap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
-import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
-import { CertificationsService } from 'src/app/services/certifications.service';
-import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
+import { Component, signal, WritableSignal, OnInit } from '@angular/core';
+import {
+  FormGroup,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
+  FormControl,
+  Validators,
+} from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+
+import { switchMap } from 'rxjs';
+import { Loader } from 'src/app/app.models';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import {
+  MatchPercentagesModalComponent,
+  MatchPercentagesModalData,
+} from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import {
+  ApplicationMatchScoresService,
+  MatchScore,
+  PositionCategory,
+} from 'src/app/services/application-match-scores.service';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { CertificationsService } from 'src/app/services/certifications.service';
+import { DiscProfile } from 'src/app/services/disc-profiles.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import {
+  formatEnglishLevelDisplay,
+  getEnglishLevelLabel,
+} from 'src/app/utils/english-level';
+
+import { AppCertificationModalComponent } from '../../apps/account-setting/certification-modal.component';
+import { AddCandidateDialogComponent } from '../../talent-match-admin/new-candidate-dialog/add-candidate-dialog.component';
 
 @Component({
   selector: 'app-candidate-details',
@@ -42,10 +61,9 @@ import { ModalComponent } from 'src/app/components/confirmation-modal/modal.comp
     UpperCasePipe,
     FormsModule,
     ReactiveFormsModule,
-    FormatNamePipe  
-  ]
+    FormatNamePipe,
+  ],
 })
-
 export class CandidateDetailsComponent implements OnInit {
   candidate = signal<any>(null);
   applications: any[] = [];
@@ -62,16 +80,16 @@ export class CandidateDetailsComponent implements OnInit {
   originalData: any;
   selectedProfilePicFile: File | null = null;
   selectedResumeFile: File | null = null;
-  resumeLink: string = '';
+  resumeLink = '';
   locations: any[] = [];
   userRole: string | null = null;
   userId: number;
-  canView: boolean = false;
-  canManage: boolean = false;
-  canEdit: boolean = false;
-  showFullWorkExperience: boolean = false;
+  canView = false;
+  canManage = false;
+  canEdit = false;
+  showFullWorkExperience = false;
   isCreateMode = false;
-  maxFileSize: number =  1 * 1024 * 1024;
+  maxFileSize: number = 1 * 1024 * 1024;
   rankingProfiles: any[] = [];
   pendingChanges: WritableSignal<{ field: string; value: any }[]> = signal([]);
   certifications: any[] = [];
@@ -80,9 +98,10 @@ export class CandidateDetailsComponent implements OnInit {
     'Lien Negotiator - Office Manager / Administrative Coordinator',
     'Intake Specialist',
     'Medical Records Clerk - Case Manager - Receptionist',
-    'Paralegal Personal Injury - Litigation Assistant'
+    'Paralegal Personal Injury - Litigation Assistant',
   ];
-  descriptionBaseText = 'Out of a base of 100, these are our best matches for legal roles:';
+  descriptionBaseText =
+    'Out of a base of 100, these are our best matches for legal roles:';
 
   formatEnglishLevelDisplay(value: number): string {
     return formatEnglishLevelDisplay(value);
@@ -104,8 +123,8 @@ export class CandidateDetailsComponent implements OnInit {
     private dialog: MatDialog,
     private discProfilesService: DiscProfilesService,
     private http: HttpClient,
-    private certificationsService: CertificationsService
-  ) { }
+    private certificationsService: CertificationsService,
+  ) {}
 
   ngOnInit(): void {
     this.loader.started = true;
@@ -129,14 +148,14 @@ export class CandidateDetailsComponent implements OnInit {
       education_history: [''],
       inimble_academy: [''],
       english_level: [null, [Validators.min(1), Validators.max(10)]],
-      suggested_salary: [null, [Validators.min(0)]]
+      suggested_salary: [null, [Validators.min(0)]],
     });
     this.applicationService.getRankings().subscribe({
       next: (rankings) => {
         this.rankingProfiles = rankings;
         this.setupFormValueListeners();
       },
-      error: (err) => console.error('Error loading rankings', err)
+      error: (err) => console.error('Error loading rankings', err),
     });
     this.loadPositions();
     this.userRole = localStorage.getItem('role');
@@ -155,8 +174,8 @@ export class CandidateDetailsComponent implements OnInit {
 
   private loadPositions() {
     this.positionsService.get().subscribe({
-      next: positions => this.positions = positions,
-      error: err => console.error('Error loading positions', err)
+      next: (positions) => (this.positions = positions),
+      error: (err) => console.error('Error loading positions', err),
     });
   }
 
@@ -167,29 +186,31 @@ export class CandidateDetailsComponent implements OnInit {
         this.canManage = effective.includes('candidates.manage');
         this.canEdit = effective.includes('candidates.edit');
         this.canView = effective.includes('candidates.view');
-      }
+      },
     });
   }
 
   private setupFormValueListeners() {
     this.form.get('ranking_id')?.valueChanges.subscribe((rankingId) => {
       if (!this.editMode) return;
-      const profile = this.rankingProfiles.find(r => r.id === +rankingId);
-      if (profile && this.form.value.profile_observation !== profile.profile_observation) {
+      const profile = this.rankingProfiles.find((r) => r.id === +rankingId);
+      if (
+        profile &&
+        this.form.value.profile_observation !== profile.profile_observation
+      ) {
         this.form.patchValue(
           { profile_observation: profile.profile_observation },
-          { emitEvent: false }
+          { emitEvent: false },
         );
       }
     });
     this.form.get('profile_observation')?.valueChanges.subscribe((desc) => {
       if (!this.editMode) return;
-      const profile = this.rankingProfiles.find(r => r.profile_observation === desc);
+      const profile = this.rankingProfiles.find(
+        (r) => r.profile_observation === desc,
+      );
       if (profile && this.form.value.ranking_id !== profile.id) {
-        this.form.patchValue(
-          { ranking_id: profile.id },
-          { emitEvent: false }
-        );
+        this.form.patchValue({ ranking_id: profile.id }, { emitEvent: false });
       }
     });
   }
@@ -207,9 +228,10 @@ export class CandidateDetailsComponent implements OnInit {
         const normalizedCandidate = {
           ...candidate,
           picture: candidate.picture || candidate.profile_pic_url || null,
-          profile_pic_url: candidate.profile_pic_url || candidate.picture || null,
+          profile_pic_url:
+            candidate.profile_pic_url || candidate.picture || null,
           pending_updates: candidate.pending_updates || null,
-          resume_url: candidate.resume_url || null
+          resume_url: candidate.resume_url || null,
         };
         this.candidate.set(normalizedCandidate);
         this.originalDiscProfiles = normalizedCandidate.disc_profiles || [];
@@ -219,22 +241,22 @@ export class CandidateDetailsComponent implements OnInit {
         this.initializeForm(normalizedCandidate);
         this.applicationMatchScoreService
           .getByApplicationId(candidate.id)
-          .subscribe(scores => {
+          .subscribe((scores) => {
             this.matchScores = scores;
             this.originalMatchScores = JSON.parse(JSON.stringify(scores || []));
-            scores.forEach(score => {
+            scores.forEach((score) => {
               const controlName = 'matchScores_' + score.id;
               if (!this.form.get(controlName)) {
                 this.form.addControl(
                   controlName,
-                  new FormControl(score.match_percentage)
+                  new FormControl(score.match_percentage),
                 );
               }
             });
           });
         this.applicationMatchScoreService
           .getPositionCategories()
-          .subscribe(categories => {
+          .subscribe((categories) => {
             this.positionCategories = categories;
           });
         this.loader.complete = true;
@@ -244,7 +266,7 @@ export class CandidateDetailsComponent implements OnInit {
         this.loader.complete = true;
         this.loader.error = true;
         this.message = 'Failed to load candidate.';
-      }
+      },
     });
   }
 
@@ -263,7 +285,7 @@ export class CandidateDetailsComponent implements OnInit {
   initializeForm(candidate: any) {
     let descriptionValue = '';
     let selectedOption = '';
-    
+
     if (candidate.description) {
       if (candidate.description.includes(this.descriptionBaseText)) {
         const parts = candidate.description.split(this.descriptionBaseText);
@@ -277,16 +299,22 @@ export class CandidateDetailsComponent implements OnInit {
       }
     }
 
-    const rankingObj = this.rankingProfiles.find(r => r.id === candidate.ranking_id);
+    const rankingObj = this.rankingProfiles.find(
+      (r) => r.id === candidate.ranking_id,
+    );
     this.certifications = candidate.certifications || [];
-    this.originalCertifications = JSON.parse(JSON.stringify(this.certifications || []));
+    this.originalCertifications = JSON.parse(
+      JSON.stringify(this.certifications || []),
+    );
     this.form.patchValue({
       name: candidate.name,
       description: descriptionValue,
       descriptionOption: selectedOption,
       talent_match_profile_summary: candidate.talent_match_profile_summary,
       ranking_id: candidate.ranking_id || (rankingObj ? rankingObj.id : null),
-      profile_observation: rankingObj ? rankingObj.profile_observation : candidate.profile_observation,
+      profile_observation: rankingObj
+        ? rankingObj.profile_observation
+        : candidate.profile_observation,
       position_id: candidate.position_id,
       profile_pic: this.selectedProfilePicFile,
       interview_link: candidate.interview_link,
@@ -297,7 +325,7 @@ export class CandidateDetailsComponent implements OnInit {
       education_history: candidate.education_history,
       inimble_academy: candidate.inimble_academy,
       english_level: candidate.english_level,
-      suggested_salary: candidate.suggested_salary
+      suggested_salary: candidate.suggested_salary,
     });
 
     this.originalData = JSON.parse(JSON.stringify(this.form.value));
@@ -305,7 +333,7 @@ export class CandidateDetailsComponent implements OnInit {
   }
 
   get f() {
-    return this.form.controls as { [key: string]: FormControl };
+    return this.form.controls as Record<string, FormControl>;
   }
 
   private getFieldLabel(key: string): string {
@@ -330,7 +358,7 @@ export class CandidateDetailsComponent implements OnInit {
       salary_range: 'Salary Range',
       resume: 'Resume',
       programming_languages: 'Programming Languages',
-      certifications: 'Certifications'
+      certifications: 'Certifications',
     };
     return labels[key] || key;
   }
@@ -338,28 +366,30 @@ export class CandidateDetailsComponent implements OnInit {
   private getFieldValue(key: string, value: any): any {
     if (key === 'certifications' && Array.isArray(value)) {
       const validCerts = value.filter(
-        cert => cert.application_id != null || cert.user_id != null
+        (cert) => cert.application_id != null || cert.user_id != null,
       );
 
       if (validCerts.length === 0) {
         return 'No certifications';
       }
 
-      return validCerts.map(cert => {
-        const parts = [];
-        if (cert.name) parts.push(cert.name);
-        if (cert.issuer) parts.push(`(${cert.issuer})`);
-        if (cert.credential_id) {
-          parts.push(`Credential: ${cert.credential_id}`);
-        } else if (cert.url) {
-          parts.push(`URL: ${cert.url}`);
-        }
-        return parts.join(' ');
-      }).join('; ');
+      return validCerts
+        .map((cert) => {
+          const parts = [];
+          if (cert.name) parts.push(cert.name);
+          if (cert.issuer) parts.push(`(${cert.issuer})`);
+          if (cert.credential_id) {
+            parts.push(`Credential: ${cert.credential_id}`);
+          } else if (cert.url) {
+            parts.push(`URL: ${cert.url}`);
+          }
+          return parts.join(' ');
+        })
+        .join('; ');
     }
 
     if (key === 'location_id') {
-      const loc = this.locations.find(l => l.id === Number(value));
+      const loc = this.locations.find((l) => l.id === Number(value));
       return loc ? `${loc.city}, ${loc.country}` : value;
     }
     if (key === 'schedule_availability') {
@@ -377,29 +407,35 @@ export class CandidateDetailsComponent implements OnInit {
       this.router.navigate(['apps/candidates']);
       return;
     }
-    
+
     this.form.patchValue(this.originalData);
-    
+
     if (this.originalData?.profile_pic) {
       const originalCandidate = {
         ...this.candidate(),
         picture: this.originalData.profile_pic,
-        profile_pic_url: this.originalData.profile_pic
+        profile_pic_url: this.originalData.profile_pic,
       };
       this.candidate.set(originalCandidate);
     }
-    
+
     this.selectedProfilePicFile = null;
     this.selectedResumeFile = null;
-    this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
+    this.certifications = JSON.parse(
+      JSON.stringify(this.originalCertifications || []),
+    );
     this.updateCandidateCertifications();
-    this.candidate.update(c => ({
+    this.candidate.update((c) => ({
       ...c!,
-      disc_profiles: JSON.parse(JSON.stringify(this.originalDiscProfiles || []))
+      disc_profiles: JSON.parse(
+        JSON.stringify(this.originalDiscProfiles || []),
+      ),
     }));
-    this.matchScores = JSON.parse(JSON.stringify(this.originalMatchScores || []));
+    this.matchScores = JSON.parse(
+      JSON.stringify(this.originalMatchScores || []),
+    );
     this.pendingMatchScores = [];
-    
+
     this.editMode = false;
     this.form.markAsPristine();
   }
@@ -409,26 +445,29 @@ export class CandidateDetailsComponent implements OnInit {
     if (!description.includes(this.descriptionBaseText)) {
       return description;
     }
-    
+
     const parts = description.split(this.descriptionBaseText);
     return parts[1] ? parts[1].trim() : '';
   }
-
 
   private createCandidate() {
     const payload = {
       ...this.form.value,
       status_id: 1,
-      certifications: this.certifications
+      certifications: this.certifications,
     };
     this.applicationService.submit(payload).subscribe({
       next: (candidate: any) => {
-        this.snackBar.open('Candidate created successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open('Candidate created successfully!', 'Close', {
+          duration: 3000,
+        });
         this.router.navigate(['apps/candidates']);
       },
       error: () => {
-        this.snackBar.open('Error creating candidate', 'Close', { duration: 3000 });
-      }
+        this.snackBar.open('Error creating candidate', 'Close', {
+          duration: 3000,
+        });
+      },
     });
   }
 
@@ -463,7 +502,7 @@ export class CandidateDetailsComponent implements OnInit {
       email: this.candidate()?.email,
       cv: this.selectedResumeFile,
       suggested_salary: formValues.suggested_salary,
-      certifications: this.certifications
+      certifications: this.certifications,
     };
     if (this.candidate()?.disc_profiles) {
       data.disc_profiles = this.candidate()?.disc_profiles;
@@ -480,28 +519,37 @@ export class CandidateDetailsComponent implements OnInit {
 
     this.applicationService.submit(data, id).subscribe({
       next: (response: any) => {
-        this.snackBar.open('Candidate updated successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open('Candidate updated successfully!', 'Close', {
+          duration: 3000,
+        });
         this.editMode = false;
-        
+
         let updatedCertifications = this.certifications;
         if (response.certifications) {
           updatedCertifications = response.certifications;
         }
-        
+
         const updatedCandidate = {
           ...this.candidate(),
           ...data,
           description: descriptionValue,
-          resume_url: response?.resume || response?.file_name || this.candidate()?.resume_url,
-          certifications: updatedCertifications
+          resume_url:
+            response?.resume ||
+            response?.file_name ||
+            this.candidate()?.resume_url,
+          certifications: updatedCertifications,
         };
         if (response?.disc_profiles) {
           updatedCandidate.disc_profiles = response.disc_profiles;
-          this.originalDiscProfiles = JSON.parse(JSON.stringify(response.disc_profiles || []));
+          this.originalDiscProfiles = JSON.parse(
+            JSON.stringify(response.disc_profiles || []),
+          );
         }
         if (response?.match_scores) {
           this.matchScores = response.match_scores;
-          this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
+          this.originalMatchScores = JSON.parse(
+            JSON.stringify(this.matchScores || []),
+          );
         }
         this.candidate.set(updatedCandidate);
         this.pendingMatchScores = [];
@@ -509,18 +557,26 @@ export class CandidateDetailsComponent implements OnInit {
         this.resolveResumeLink(updatedCandidate);
 
         this.originalData = JSON.parse(JSON.stringify(this.form.value));
-        this.originalCertifications = JSON.parse(JSON.stringify(updatedCertifications || []));
+        this.originalCertifications = JSON.parse(
+          JSON.stringify(updatedCertifications || []),
+        );
         const savedId = id;
-        this.applicationMatchScoreService.getByApplicationId(savedId).subscribe({
-          next: (scores) => {
-            this.matchScores = scores || [];
-            this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
-            this.candidate.update(c => (c ? { ...c, match_scores: this.matchScores } : c));
-          },
-          error: (err) => {
-            console.error('Failed to reload match scores after save', err);
-          }
-        });
+        this.applicationMatchScoreService
+          .getByApplicationId(savedId)
+          .subscribe({
+            next: (scores) => {
+              this.matchScores = scores || [];
+              this.originalMatchScores = JSON.parse(
+                JSON.stringify(this.matchScores || []),
+              );
+              this.candidate.update((c) =>
+                c ? { ...c, match_scores: this.matchScores } : c,
+              );
+            },
+            error: (err) => {
+              console.error('Failed to reload match scores after save', err);
+            },
+          });
         this.applicationService.getApplication(id).subscribe({
           next: (fresh) => {
             if (fresh) {
@@ -529,47 +585,62 @@ export class CandidateDetailsComponent implements OnInit {
                 picture: fresh.picture || fresh.profile_pic_url || null,
                 profile_pic_url: fresh.profile_pic_url || fresh.picture || null,
                 pending_updates: fresh.pending_updates || null,
-                resume_url: fresh.resume_url || null
+                resume_url: fresh.resume_url || null,
               };
               this.candidate.set(normalized);
               this.originalDiscProfiles = normalized.disc_profiles || [];
               this.certifications = normalized.certifications || [];
-              this.originalCertifications = JSON.parse(JSON.stringify(this.certifications || []));
+              this.originalCertifications = JSON.parse(
+                JSON.stringify(this.certifications || []),
+              );
               this.computePendingChanges();
-              this.applicationMatchScoreService.getByApplicationId(id).subscribe({
-                next: (scores) => {
-                  this.matchScores = scores || [];
-                  this.originalMatchScores = JSON.parse(JSON.stringify(this.matchScores || []));
-                  this.candidate.update(c => (c ? { ...c, match_scores: this.matchScores } : c));
-                },
-                error: (err) => console.error('Failed to reload match scores after refreshing candidate', err)
-              });
+              this.applicationMatchScoreService
+                .getByApplicationId(id)
+                .subscribe({
+                  next: (scores) => {
+                    this.matchScores = scores || [];
+                    this.originalMatchScores = JSON.parse(
+                      JSON.stringify(this.matchScores || []),
+                    );
+                    this.candidate.update((c) =>
+                      c ? { ...c, match_scores: this.matchScores } : c,
+                    );
+                  },
+                  error: (err) =>
+                    console.error(
+                      'Failed to reload match scores after refreshing candidate',
+                      err,
+                    ),
+                });
             }
           },
-          error: (err) => console.error('Error reloading candidate after save', err)
+          error: (err) =>
+            console.error('Error reloading candidate after save', err),
         });
-        
+
         if (response?.profile_pic_url) {
           const updatedCandidate = {
             ...this.candidate(),
             picture: response.profile_pic_url,
-            profile_pic_url: response.profile_pic_url
+            profile_pic_url: response.profile_pic_url,
           };
           this.candidate.set(updatedCandidate);
-          
+
           this.form.patchValue({
-            profile_pic: response.profile_pic_url
+            profile_pic: response.profile_pic_url,
           });
         }
-        
+
         this.selectedProfilePicFile = null;
         this.selectedResumeFile = null;
         this.form.markAsPristine();
       },
       error: (error) => {
         console.error('Error updating candidate:', error);
-        this.snackBar.open('Error updating candidate', 'Close', { duration: 3000 });
-      }
+        this.snackBar.open('Error updating candidate', 'Close', {
+          duration: 3000,
+        });
+      },
     });
   }
 
@@ -581,35 +652,36 @@ export class CandidateDetailsComponent implements OnInit {
     }
     let pending: any = {};
     try {
-      pending = typeof candidate.pending_updates === 'string'
-        ? JSON.parse(candidate.pending_updates)
-        : candidate.pending_updates;
+      pending =
+        typeof candidate.pending_updates === 'string'
+          ? JSON.parse(candidate.pending_updates)
+          : candidate.pending_updates;
     } catch (err) {
       console.error('Failed to parse pending updates', err);
       this.pendingChanges.set([]);
       return;
     }
     this.pendingChanges.set(
-      Object.keys(pending).map(key => ({
+      Object.keys(pending).map((key) => ({
         field: this.getFieldLabel(key),
-        value: this.getFieldValue(key, pending[key])
-      }))
+        value: this.getFieldValue(key, pending[key]),
+      })),
     );
   }
 
   save() {
-    if (this.form.invalid) return; 
+    if (this.form.invalid) return;
     const selectedOption = this.form.value.descriptionOption;
     let descriptionValue: string | null = null;
 
     if (selectedOption && selectedOption.trim()) {
       descriptionValue = `${this.descriptionBaseText} ${selectedOption.trim()}`;
     }
-    
+
     this.form.patchValue({
-      description: descriptionValue
+      description: descriptionValue,
     });
-    
+
     if (this.isCreateMode) {
       this.createCandidate();
     } else {
@@ -646,18 +718,24 @@ export class CandidateDetailsComponent implements OnInit {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        subject: 'certification'
-      }
+        subject: 'certification',
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) return;
       if (this.editMode) {
-      this.certifications = this.certifications.filter(item => item.id !== cert.id);
-      this.updateCandidateCertifications();
-      this.form.markAsDirty();
-    } else {
-      this.snackBar.open('Please enter edit mode to delete certifications', 'Close', { duration: 3000 });
+        this.certifications = this.certifications.filter(
+          (item) => item.id !== cert.id,
+        );
+        this.updateCandidateCertifications();
+        this.form.markAsDirty();
+      } else {
+        this.snackBar.open(
+          'Please enter edit mode to delete certifications',
+          'Close',
+          { duration: 3000 },
+        );
       }
     });
   }
@@ -670,7 +748,7 @@ export class CandidateDetailsComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(AppCertificationModalComponent, {
-      data
+      data,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -678,7 +756,11 @@ export class CandidateDetailsComponent implements OnInit {
         if (this.editMode) {
           this.handleCertificationActionInEditMode(result);
         } else {
-          this.snackBar.open('Please enter edit mode to modify certifications', 'Close', { duration: 3000 });
+          this.snackBar.open(
+            'Please enter edit mode to modify certifications',
+            'Close',
+            { duration: 3000 },
+          );
         }
       }
     });
@@ -690,28 +772,36 @@ export class CandidateDetailsComponent implements OnInit {
     if (event === 'Add') {
       const tempCert = {
         ...data,
-        id: data.id || (Date.now() + Math.random()),
-        isTemp: true
+        id: data.id || Date.now() + Math.random(),
+        isTemp: true,
       };
       this.certifications = [...this.certifications, tempCert];
-      this.snackBar.open('Certification added. Click Save to persist changes.', 'Close', { duration: 3000 });
-    } else if (event === 'Edit') {
-      this.certifications = this.certifications.map(item =>
-        item.id === data.id ? { ...item, ...data } : item
+      this.snackBar.open(
+        'Certification added. Click Save to persist changes.',
+        'Close',
+        { duration: 3000 },
       );
-      this.snackBar.open('Certification updated. Click Save to persist changes.', 'Close', { duration: 3000 });
+    } else if (event === 'Edit') {
+      this.certifications = this.certifications.map((item) =>
+        item.id === data.id ? { ...item, ...data } : item,
+      );
+      this.snackBar.open(
+        'Certification updated. Click Save to persist changes.',
+        'Close',
+        { duration: 3000 },
+      );
     }
-    
+
     this.updateCandidateCertifications();
     this.form.markAsDirty();
   }
 
   private updateCandidateCertifications() {
-    this.candidate.update(current => {
+    this.candidate.update((current) => {
       if (!current) return current;
       return {
         ...current,
-        certifications: this.certifications
+        certifications: this.certifications,
       };
     });
   }
@@ -726,38 +816,38 @@ export class CandidateDetailsComponent implements OnInit {
     return { user_id: null, application_id: candidate.id };
   }
 
-
-
   getLocations() {
     this.applicationService.getLocations().subscribe({
       next: (locs) => {
         this.locations = locs;
         this.computePendingChanges();
       },
-      error: (err) => console.error('Error loading locations', err)
+      error: (err) => console.error('Error loading locations', err),
     });
   }
 
   getPositionTitle(positionId: number) {
-    return this.positions.find(p => p.id === positionId)?.title || 'N/A';
+    return this.positions.find((p) => p.id === positionId)?.title || 'N/A';
   }
 
   getPositionById(positionId: any): any {
-    return this.positions.find(p => p.id == positionId);
+    return this.positions.find((p) => p.id == positionId);
   }
 
   getCategoryName(score: MatchScore): string {
-    const category = this.positionCategories.find(cat => cat.id === score.position_category_id);
+    const category = this.positionCategories.find(
+      (cat) => cat.id === score.position_category_id,
+    );
     return category ? category.category_name : 'Unknown';
   }
 
   getRankingName(rankingId: number | undefined): string {
-    const ranking = this.rankingProfiles.find(r => r.id === rankingId);
+    const ranking = this.rankingProfiles.find((r) => r.id === rankingId);
     return ranking ? ranking.ranking : '';
   }
 
   getProfileObservation(rankingId: number | undefined): string {
-    const ranking = this.rankingProfiles.find(r => r.id === rankingId);
+    const ranking = this.rankingProfiles.find((r) => r.id === rankingId);
     return ranking ? ranking.profile_observation : '';
   }
 
@@ -767,7 +857,7 @@ export class CandidateDetailsComponent implements OnInit {
 
   getDiscProfileNames(profiles: any[] | undefined): string {
     if (!profiles || profiles.length === 0) return '';
-    return profiles.map(p => p.name).join(', ');
+    return profiles.map((p) => p.name).join(', ');
   }
 
   breakLines(value: string | null): string[] {
@@ -782,23 +872,22 @@ export class CandidateDetailsComponent implements OnInit {
       return trimmed;
     }
     if (trimmed.startsWith('/')) return trimmed;
-    
+
     if (!trimmed.includes('/') && this.candidate()) {
-       const userId = this.candidate().user?.id || this.candidate().user_id;
-       if (userId) {
-          return `${this.applicationService.API_URI}/profile/${userId}`;
-       } else {
-          return `${this.applicationService.API_URI}/profile/app-${this.candidate().id}`;
-       }
+      const userId = this.candidate().user?.id || this.candidate().user_id;
+      if (userId) {
+        return `${this.applicationService.API_URI}/profile/${userId}`;
+      } else {
+        return `${this.applicationService.API_URI}/profile/app-${this.candidate().id}`;
+      }
     }
-    
+
     return `${this.applicationService.API_URI}/profile/${this.candidate().id}`;
   }
 
   getResumeUrl(filename: string | null | undefined): string {
     return this.resumeLink;
   }
-
 
   approveChanges() {
     const candidateId = this.candidate()?.id;
@@ -811,7 +900,7 @@ export class CandidateDetailsComponent implements OnInit {
       error: (err) => {
         console.error('Failed to approve changes', err);
         this.snackBar.open('Failed to approve changes', 'Close');
-      }
+      },
     });
   }
 
@@ -826,7 +915,7 @@ export class CandidateDetailsComponent implements OnInit {
       error: (err) => {
         console.error('Failed to reject changes', err);
         this.snackBar.open('Failed to reject changes', 'Close');
-      }
+      },
     });
   }
 
@@ -839,19 +928,21 @@ export class CandidateDetailsComponent implements OnInit {
       data: {
         mode: 'files',
         candidate: candidate,
-        action: 'edit'
-      }
+        action: 'edit',
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result?.success && result.profile_pic) {
         const updatedCandidate = {
           ...this.candidate(),
           picture: result.profile_pic,
-          profile_pic_url: result.profile_pic
+          profile_pic_url: result.profile_pic,
         };
         this.candidate.set(updatedCandidate);
-        this.snackBar.open('Candidate picture updated!', 'Close', { duration: 3000 });
+        this.snackBar.open('Candidate picture updated!', 'Close', {
+          duration: 3000,
+        });
       }
     });
   }
@@ -866,41 +957,47 @@ export class CandidateDetailsComponent implements OnInit {
         name: candidate.name,
         email: candidate.email || '',
         position_id: candidate.position_id,
-        disc_profiles: candidate.disc_profiles || []
-      }
+        disc_profiles: candidate.disc_profiles || [],
+      },
     };
 
     const dialogRef = this.dialog.open(MatchPercentagesModalComponent, {
       width: '600px',
       data: dialogData,
-      disableClose: true
+      disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result?.success) {
         this.pendingMatchScores = result.matchScores || [];
         if (this.pendingMatchScores.length > 0) {
-          this.matchScores = this.pendingMatchScores.map((m: any, i: number) => ({
-            id: m.id || undefined,
-            application_id: candidate.id,
-            position_category_id: m.position_category_id,
-            match_percentage: m.match_percentage
-          }));
+          this.matchScores = this.pendingMatchScores.map(
+            (m: any, i: number) => ({
+              id: m.id || undefined,
+              application_id: candidate.id,
+              position_category_id: m.position_category_id,
+              match_percentage: m.match_percentage,
+            }),
+          );
         }
         if (result.discProfiles) {
-          this.candidate.update(c => ({
+          this.candidate.update((c) => ({
             ...c!,
-            disc_profiles: result.discProfiles
+            disc_profiles: result.discProfiles,
           }));
         }
         const stagedCandidate = {
           ...candidate,
           disc_profiles: result.discProfiles || candidate.disc_profiles,
-          match_scores: this.matchScores
+          match_scores: this.matchScores,
         };
         this.applicationService.notifyApplicationUpdated(stagedCandidate);
         this.form.markAsDirty();
-        this.snackBar.open('Match percentages and DISC profile staged (save to persist).', 'Close', { duration: 3000 });
+        this.snackBar.open(
+          'Match percentages and DISC profile staged (save to persist).',
+          'Close',
+          { duration: 3000 },
+        );
       }
     });
   }
@@ -912,21 +1009,21 @@ export class CandidateDetailsComponent implements OnInit {
         this.snackBar.open(
           'Profile picture size should be 1 MB or less',
           'Close',
-          { duration: 3000 }
+          { duration: 3000 },
         );
         return;
       }
-      
+
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
         this.snackBar.open(
           'Only JPG and PNG files are allowed for profile picture',
           'Close',
-          { duration: 3000 }
+          { duration: 3000 },
         );
         return;
       }
-      
+
       this.selectedProfilePicFile = file;
     }
   }
@@ -935,33 +1032,31 @@ export class CandidateDetailsComponent implements OnInit {
     const file: File = event.target.files[0];
     if (file) {
       if (file.size > this.maxFileSize) {
-        this.snackBar.open(
-          'Resume size should be 1 MB or less',
-          'Close',
-          { duration: 3000 }
-        );
+        this.snackBar.open('Resume size should be 1 MB or less', 'Close', {
+          duration: 3000,
+        });
         return;
       }
-      
+
       const allowedTypes = [
-          'application/pdf', 
-          'application/msword', 
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ];
       const extension = file.name.split('.').pop()?.toLowerCase();
       const allowedExtensions = ['pdf', 'doc', 'docx'];
-      
-      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension || '')) {
-         this.snackBar.open(
-          'Should be a .doc, .docx or .pdf file',
-          'Close',
-          { duration: 3000 }
-        );
+
+      if (
+        !allowedTypes.includes(file.type) &&
+        !allowedExtensions.includes(extension || '')
+      ) {
+        this.snackBar.open('Should be a .doc, .docx or .pdf file', 'Close', {
+          duration: 3000,
+        });
         return;
       }
-      
+
       this.selectedResumeFile = file;
     }
   }
-
 }

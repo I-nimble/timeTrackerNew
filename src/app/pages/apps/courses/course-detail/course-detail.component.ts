@@ -1,27 +1,28 @@
 import { Component, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { CourseService } from 'src/app/services/apps/course/course.service';
-import { MatCardModule } from '@angular/material/card';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatStepperModule } from '@angular/material/stepper';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatInputModule } from '@angular/material/input';
+import { MatStepperModule } from '@angular/material/stepper';
+import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { CourseService } from 'src/app/services/apps/course/course.service';
+
 @Component({
-    selector: 'app-course-detail',
-    templateUrl: './course-detail.component.html',
-    imports: [
-        MatCardModule,
-        TablerIconsModule,
-        MatStepperModule,
-        MatInputModule,
-        MatButtonModule,
-    ],
+  selector: 'app-course-detail',
+  templateUrl: './course-detail.component.html',
+  imports: [
+    MatCardModule,
+    TablerIconsModule,
+    MatStepperModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
 })
 export class AppCourseDetailComponent {
   id = signal<any>(null);
   courseDetail = signal<any>(null);
-
 
   constructor(
     activatedRouter: ActivatedRoute,
@@ -35,7 +36,6 @@ export class AppCourseDetailComponent {
   }
 
   goBack(): void {
-    
     this.router.navigate(['/apps/courses']);
   }
 }

@@ -1,31 +1,33 @@
-import { Component, OnInit } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDividerModule } from '@angular/material/divider';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { InterviewsService } from 'src/app/services/interviews.service';
-import { environment } from 'src/environments/environment';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { PositionsService } from 'src/app/services/positions.service';
 import { MatDialog } from '@angular/material/dialog';
-import { AddCandidateDialogComponent } from './new-candidate-dialog/add-candidate-dialog.component'; 
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { PermissionService } from 'src/app/services/permission.service';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { DepartmentsService } from 'src/app/services/departments.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { DepartmentsService } from 'src/app/services/departments.service';
+import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { InterviewsService } from 'src/app/services/interviews.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { PositionsService } from 'src/app/services/positions.service';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
+import { environment } from 'src/environments/environment';
+
+import { AddCandidateDialogComponent } from './new-candidate-dialog/add-candidate-dialog.component';
 
 export interface PeriodicElement {
   id: number;
@@ -53,7 +55,7 @@ export interface PeriodicElement {
     AppCodeViewComponent,
     MaterialModule,
     TablerIconsModule,
-    FormatNamePipe
+    FormatNamePipe,
   ],
   templateUrl: './talent-match-admin.component.html',
 })
@@ -63,7 +65,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
     'name',
     'personality profile',
     'position',
-    'experience',    
+    'experience',
     'trainings',
     'status',
     'interviewing on',
@@ -73,16 +75,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
   selection = new SelectionModel<any>(true, []);
   applicationsData: any[] = [];
   interviews: any[] = [];
-  picturesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
-  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+  picturesUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/photos';
+  resumesUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   assetsPath: string = environment.assets + '/default-user-profile-pic.webp';
   companiesData: any[] = [];
   positions: any[] = [];
   userRole = localStorage.getItem('role');
-  canManage: boolean = false;
-  canEdit: boolean = false;
-  canDelete: boolean = false;
-  
+  canManage = false;
+  canEdit = false;
+  canDelete = false;
+
   constructor(
     private applicationService: ApplicationsService,
     private interviewsService: InterviewsService,
@@ -92,10 +94,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
     private snackBar: MatSnackBar,
     private permissionService: PermissionService,
     private router: Router,
-    private discProfilesService: DiscProfilesService
-  ) { }
-  
-  
+    private discProfilesService: DiscProfilesService,
+  ) {}
+
   ngOnInit(): void {
     this.getPositions();
     this.getInterviews();
@@ -134,12 +135,12 @@ export class AppTalentMatchAdminComponent implements OnInit {
       this.dataSource.data = applications;
     });
     this.companiesService.getCompanies().subscribe({
-      next: companies => {
+      next: (companies) => {
         this.companiesData = companies;
       },
     });
   }
-  
+
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
@@ -147,7 +148,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   getInterviews() {
     this.interviewsService.get().subscribe({
-      next: interviews => {
+      next: (interviews) => {
         this.interviews = interviews;
       },
     });
@@ -155,7 +156,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   getInterviewDateTime(applicationId: number) {
     const interview = this.interviews.find(
-      (interview) => interview.application_id === applicationId
+      (interview) => interview.application_id === applicationId,
     );
     if (interview) {
       return interview.date_time;
@@ -185,10 +186,10 @@ export class AppTalentMatchAdminComponent implements OnInit {
   openAddCandidateDialog(): void {
     const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
       width: '600px',
-      data: { companies: this.companiesData }
+      data: { companies: this.companiesData },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result === 'success') {
         this.getApplications();
       }
@@ -199,13 +200,13 @@ export class AppTalentMatchAdminComponent implements OnInit {
     const dialogRef = this.dialog.open(AddCandidateDialogComponent, {
       width: '600px',
       data: {
-        candidate, 
+        candidate,
         companies: this.companiesData,
-        action: 'edit'
-      }
+        action: 'edit',
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result === 'success') {
         this.getApplications();
       }
@@ -213,11 +214,14 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   async openCandidateResume(resumeUrl: string, applicationId?: number) {
-    if(!resumeUrl) {
+    if (!resumeUrl) {
       this.openSnackBar('No resume found for this candidate', 'Close');
       return;
     }
-    const url = await this.applicationService.getResumeUrl(resumeUrl, applicationId);
+    const url = await this.applicationService.getResumeUrl(
+      resumeUrl,
+      applicationId,
+    );
     if (!url) {
       this.openSnackBar('No resume found for this candidate', 'Close');
       return;
@@ -234,7 +238,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
       },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.applicationService.delete(id).subscribe({
           next: () => {

@@ -380,7 +380,6 @@ export const users: User[] = [
 ];
 
 export function getUser(uid: string): User | null {
-  // tslint:disable-next-line: no-shadowed-variable
   const u = users.find((u) => {
     return u.userId === uid;
   });

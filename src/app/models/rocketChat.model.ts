@@ -23,9 +23,7 @@ export interface RocketChatUserEmail {
   verified: boolean;
 }
 
-export interface RocketChatUserPreferences {
-  [key: string]: any;
-}
+export type RocketChatUserPreferences = Record<string, any>;
 
 export interface RocketChatUserSettings {
   preferences?: RocketChatUserPreferences;
@@ -64,9 +62,7 @@ export interface RocketChatReaction {
   usernames: string[];
 }
 
-export interface RocketChatMessageReactions {
-  [emoji: string]: RocketChatReaction;
-}
+export type RocketChatMessageReactions = Record<string, RocketChatReaction>;
 
 export interface RocketChatMention {
   _id?: string;
@@ -107,9 +103,7 @@ export interface RocketChatMessageFile {
   type: string;
 }
 
-export interface RocketChatUrlMeta {
-  [key: string]: any;
-}
+export type RocketChatUrlMeta = Record<string, any>;
 
 export interface RocketChatMessageUrl {
   url: string;
@@ -218,9 +212,7 @@ export interface RocketChatCreateChannelRequest {
   name: string;
   members?: string[];
   readOnly?: boolean;
-  extraData?: {
-    [key: string]: any;
-  };
+  extraData?: Record<string, any>;
 }
 
 export interface RocketChatCreateDirectMessageRequest {

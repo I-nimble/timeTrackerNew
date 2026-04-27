@@ -1,20 +1,21 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import {
   MatNativeDateModule,
   provideNativeDateAdapter,
 } from '@angular/material/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { NgApexchartsModule } from 'ng-apexcharts';
-import { UsersService } from 'src/app/services/users.service';
-import moment from 'moment';
-import { PerformanceService } from 'src/app/services/performance.service';
-import { CompaniesService } from 'src/app/services/companies.service';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import moment from 'moment';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PerformanceService } from 'src/app/services/performance.service';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -59,13 +60,13 @@ export class AppDashboardAdminComponent implements OnInit {
   ];
   employeeTableData: any = [];
   filteredEmployeeTableData: any = [];
-  avgTasksCompleted: number = 0;
-  avgPerformance: number = 0;
+  avgTasksCompleted = 0;
+  avgPerformance = 0;
 
   constructor(
     private usersService: UsersService,
     private performanceService: PerformanceService,
-    private companiesService: CompaniesService	
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit() {
@@ -120,16 +121,16 @@ export class AppDashboardAdminComponent implements OnInit {
             ? Math.round(
                 this.employeeTableData.reduce(
                   (sum: any, e: any) => sum + e.tasksCompleted,
-                  0
-                ) / this.employeeTableData.length
+                  0,
+                ) / this.employeeTableData.length,
               )
             : 0;
           this.avgPerformance = this.employeeTableData.length
             ? Math.round(
                 this.employeeTableData.reduce(
                   (sum: any, e: any) => sum + (e.performance ?? 0),
-                  0
-                ) / this.employeeTableData.length
+                  0,
+                ) / this.employeeTableData.length,
               )
             : 0;
 
@@ -161,7 +162,7 @@ export class AppDashboardAdminComponent implements OnInit {
       this.filteredEmployeeTableData = [...this.employeeTableData];
     } else {
       this.filteredEmployeeTableData = this.employeeTableData.filter(
-        (emp: any) => emp.name === employee.employeeName
+        (emp: any) => emp.name === employee.employeeName,
       );
     }
 
@@ -169,8 +170,8 @@ export class AppDashboardAdminComponent implements OnInit {
       ? Math.round(
           this.filteredEmployeeTableData.reduce(
             (sum: number, e: any) => sum + (e.tasksCompleted ?? 0),
-            0
-          ) / this.filteredEmployeeTableData.length
+            0,
+          ) / this.filteredEmployeeTableData.length,
         )
       : 0;
 
@@ -178,8 +179,8 @@ export class AppDashboardAdminComponent implements OnInit {
       ? Math.round(
           this.filteredEmployeeTableData.reduce(
             (sum: number, e: any) => sum + (e.performance ?? 0),
-            0
-          ) / this.filteredEmployeeTableData.length
+            0,
+          ) / this.filteredEmployeeTableData.length,
         )
       : 0;
 
@@ -213,7 +214,7 @@ export class AppDashboardAdminComponent implements OnInit {
   }
 
   loadPerformanceOverTime() {
-    let data = this.filteredEmployeeTableData;
+    const data = this.filteredEmployeeTableData;
 
     const allMonthsSet = new Set<string>();
     data.forEach((emp: any) => {
@@ -227,7 +228,7 @@ export class AppDashboardAdminComponent implements OnInit {
       const performances = data
         .map((emp: any) => {
           const found = (emp.performanceByMonth || []).find(
-            (item: any) => item.month === month
+            (item: any) => item.month === month,
           );
           return found ? found.performance : null;
         })
@@ -237,7 +238,7 @@ export class AppDashboardAdminComponent implements OnInit {
             (
               performances.reduce((a: any, b: any) => a + (b ?? 0), 0) /
               performances.length
-            ).toFixed(2)
+            ).toFixed(2),
           )
         : 0;
     });
@@ -252,7 +253,7 @@ export class AppDashboardAdminComponent implements OnInit {
       chart: { type: 'line', height: 300, toolbar: { show: false } },
       xaxis: {
         categories: allMonths.map((m) =>
-          moment(m, 'YYYY-MM').format('MMM YYYY')
+          moment(m, 'YYYY-MM').format('MMM YYYY'),
         ),
       },
       colors: ['#9CB764'],

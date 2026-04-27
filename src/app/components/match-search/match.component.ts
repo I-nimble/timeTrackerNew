@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 @Component({
   selector: 'app-match',
@@ -13,25 +14,25 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     FormsModule,
     MaterialModule,
     TablerIconsModule,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
-  templateUrl: './match.component.html'
+  templateUrl: './match.component.html',
 })
 export class MatchComponent {
-  @Input() aiEnabled: boolean = false;
-  @Input() canSearch: boolean = false;
-  @Input() placeholder: string = 'Search...';
+  @Input() aiEnabled = false;
+  @Input() canSearch = false;
+  @Input() placeholder = 'Search...';
   @Input() loading = false;
   @Input() showInterviewButton = false;
   @Input() interviewDisabled = false;
-  @Input() showCustomSearch: boolean = true;
-  @Input() hasKeywords: boolean = false;
+  @Input() showCustomSearch = true;
+  @Input() hasKeywords = false;
 
   @Output() askAI = new EventEmitter<string>();
   @Output() searchChange = new EventEmitter<string>();
   @Output() interview = new EventEmitter<void>();
 
-  @Input() query: string = '';
+  @Input() query = '';
   cooldownActive = false;
 
   onSearchChange() {
@@ -39,7 +40,11 @@ export class MatchComponent {
   }
 
   onAskAI() {
-  if ((!this.query && !this.canSearch && !this.hasKeywords) || this.cooldownActive) return;
+    if (
+      (!this.query && !this.canSearch && !this.hasKeywords) ||
+      this.cooldownActive
+    )
+      return;
     this.loading = true;
     this.askAI.emit(this.query);
     this.cooldownActive = true;

@@ -1,36 +1,54 @@
-import { Component, Input, OnChanges, SimpleChanges, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  OnInit,
+  Output,
+  EventEmitter,
+  OnDestroy,
+} from '@angular/core';
+import { ChangeDetectorRef } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 import * as moment from 'moment';
-import { SharedModule } from 'src/app/components/shared.module';
+import { Subscription } from 'rxjs';
+import { SharedModule } from 'src/app/components/legacy/shared.module';
+import { ToDoFormPopupComponent } from 'src/app/components/to-do-form-popup/to-do-form-popup.component';
+import { Entry } from 'src/app/models/Entries';
+import { RatingsService } from 'src/app/services/ratings.service';
 import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { UsersService } from 'src/app/services/users.service';
-import { Subscription } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-import { ToDoFormPopupComponent } from 'src/app/components/to-do-form-popup/to-do-form-popup.component';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { ChangeDetectorRef } from '@angular/core';
-import { Entry } from 'src/app/models/Entries';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-to-do-chart',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SharedModule,MatTooltipModule],
+  imports: [CommonModule, ReactiveFormsModule, SharedModule, MatTooltipModule],
   templateUrl: './to-do-chart.component.html',
-  styleUrls: ['./to-do-chart.component.scss']
+  styleUrls: ['./to-do-chart.component.scss'],
 })
 export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() ratingsData: any[] = []; 
-  @Input() selectedDate: string = ''; 
+  @Input() ratingsData: any[] = [];
+  @Input() selectedDate = '';
   @Output() dateChange = new EventEmitter<string>();
-  @Output() formSubmitted = new EventEmitter<{ option: any; formValue?: any }>();
+  @Output() formSubmitted = new EventEmitter<{
+    option: any;
+    formValue?: any;
+  }>();
   @Output() toDoListUpdated = new EventEmitter();
 
   public displayDate: Date = new Date();
-  btnDisabled: boolean = true;
+  btnDisabled = true;
   hours: string[] = [];
-  isCalendarOpen: boolean = true
+  isCalendarOpen = true;
   datesRange: any = {};
   calendarHead: any;
   datesSelection: any;
@@ -39,20 +57,22 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
   employeeRatings!: any[];
   private teamMemberSubscription!: Subscription;
   visibleHours: string[] = [];
-  hoursIndex: number = 0;
+  hoursIndex = 0;
 
   formHeader = { mode: 'Create', title: 'To Do' };
   managementForm: FormGroup = this.fb.group({
-    rating: this.fb.group({
-      goal: ['', [Validators.required]],
-      recommendations: [''],
-      is_numeric: [false],
-      numeric_goal: [null],
-      due_date: [null],
-      priority: [null],
-      recurrent: [false],
-    },
-    { validators: this.recurrentDueDateValidator }),
+    rating: this.fb.group(
+      {
+        goal: ['', [Validators.required]],
+        recommendations: [''],
+        is_numeric: [false],
+        numeric_goal: [null],
+        due_date: [null],
+        priority: [null],
+        recurrent: [false],
+      },
+      { validators: this.recurrentDueDateValidator },
+    ),
   });
   role: string = localStorage.getItem('role') || '';
   options = [
@@ -63,7 +83,11 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
       formGroup: 'rating',
       form: [
         { label: 'Goal', type: 'text', control: 'goal' },
-        { label: 'Recommendations', type: 'textarea', control: 'recommendations' },
+        {
+          label: 'Recommendations',
+          type: 'textarea',
+          control: 'recommendations',
+        },
         { label: 'Recurrent', type: 'checkbox', control: 'recurrent' },
         { label: 'Due date', type: 'date', control: 'due_date' },
         { label: 'Priority', type: 'select', control: 'priority' },
@@ -79,41 +103,45 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
     private usersService: UsersService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
-  ) {
-  }
-  
+  ) {}
+
   ngOnInit() {
     this.initializeCurrentWeek();
     this.populateHours();
     this.updateVisibleHours();
-    
+
     const role = localStorage.getItem('role');
-    if(role === '2') {
-      this.usersService.getUsers({ searchField: '', filter: { currentUser: true } }).subscribe((users) => {
-        this.selectedTeamMember = users[0].id;
-        this.getRatings();
-        this.getEntries();
-      });
-    }
-    else {
-      this.teamMemberSubscription = this.usersService.teamMember$.subscribe((teamMemberId) => {
-        if (teamMemberId !== null) {
-          this.selectedTeamMember = teamMemberId;
+    if (role === '2') {
+      this.usersService
+        .getUsers({ searchField: '', filter: { currentUser: true } })
+        .subscribe((users) => {
+          this.selectedTeamMember = users[0].id;
           this.getRatings();
           this.getEntries();
-        }
-      });
+        });
+    } else {
+      this.teamMemberSubscription = this.usersService.teamMember$.subscribe(
+        (teamMemberId) => {
+          if (teamMemberId !== null) {
+            this.selectedTeamMember = teamMemberId;
+            this.getRatings();
+            this.getEntries();
+          }
+        },
+      );
     }
 
-    this.managementForm.get('rating.recurrent')?.valueChanges.subscribe((recurrent: boolean) => {
-      const dueDateControl = this.managementForm.get('rating.due_date');
-      if (recurrent) {
-        dueDateControl?.setValue(null);
-        dueDateControl?.disable();
-      } else {
-        dueDateControl?.enable();
-      }
-    });
+    this.managementForm
+      .get('rating.recurrent')
+      ?.valueChanges.subscribe((recurrent: boolean) => {
+        const dueDateControl = this.managementForm.get('rating.due_date');
+        if (recurrent) {
+          dueDateControl?.setValue(null);
+          dueDateControl?.disable();
+        } else {
+          dueDateControl?.enable();
+        }
+      });
   }
 
   recurrentDueDateValidator(group: FormGroup) {
@@ -156,21 +184,21 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   setDatesGroup(dateRange: any) {
-      this.toggleCalendar();
-      const startDate = new Date(dateRange.firstSelect);
-      const endDate = new Date(dateRange.lastSelect);
-      // Set date range as YYYY-MM-dd
-      this.datesRange.firstSelect = startDate.toISOString().split('T')[0];
-      this.datesRange.lastSelect = endDate.toISOString().split('T')[0];
-      const dates = [];
-      for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
-        dates.push(new Date(day));
-      }
-      this.calendarHead =
-        moment(new Date(this.datesRange.firstSelect)).format('MMM, DD') +
-        ' - ' +
-        moment(new Date(this.datesRange.lastSelect)).format('MMM, DD');
-      this.datesSelection = dates;
+    this.toggleCalendar();
+    const startDate = new Date(dateRange.firstSelect);
+    const endDate = new Date(dateRange.lastSelect);
+    // Set date range as YYYY-MM-dd
+    this.datesRange.firstSelect = startDate.toISOString().split('T')[0];
+    this.datesRange.lastSelect = endDate.toISOString().split('T')[0];
+    const dates = [];
+    for (let day = startDate; day <= endDate; day.setDate(day.getDate() + 1)) {
+      dates.push(new Date(day));
+    }
+    this.calendarHead =
+      moment(new Date(this.datesRange.firstSelect)).format('MMM, DD') +
+      ' - ' +
+      moment(new Date(this.datesRange.lastSelect)).format('MMM, DD');
+    this.datesSelection = dates;
   }
 
   getEntries() {
@@ -190,32 +218,35 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   getTasksForDayAndHour(day: any, hour: any) {
-    if(this.tasksEntries) {
-      const entries = this.tasksEntries.filter(entry => {
+    if (this.tasksEntries) {
+      const entries = this.tasksEntries.filter((entry) => {
         const entryDate = new Date(entry.date);
         const entryTime = moment(entry.createdAt).format('hh:00 A');
-        return entryDate.toDateString() == day.toDateString() && (entryTime == hour)
+        return (
+          entryDate.toDateString() == day.toDateString() && entryTime == hour
+        );
       });
-      if (entries.length > 0) { // Completed tasks
-        const tasks = entries.map(entry => entry.rating.goal).join(', ');
-        const details = entries.map(entry => entry.details).join('\n');
-        return {completed: true, tasks, details};
-      }
-      else { // Pending tasks
-        const ratings = this.employeeRatings?.filter(rating => {
-          if(!rating.due_date) return false;
+      if (entries.length > 0) {
+        // Completed tasks
+        const tasks = entries.map((entry) => entry.rating.goal).join(', ');
+        const details = entries.map((entry) => entry.details).join('\n');
+        return { completed: true, tasks, details };
+      } else {
+        // Pending tasks
+        const ratings = this.employeeRatings?.filter((rating) => {
+          if (!rating.due_date) return false;
           const ratingDate = moment.utc(rating.due_date).format('YYYY-MM-DD');
           const ratingTime = moment.utc(rating.due_date).format('hh:00 A');
           const dayString = moment.utc(day).format('YYYY-MM-DD');
-          return ratingDate == dayString && (ratingTime == hour);
+          return ratingDate == dayString && ratingTime == hour;
         });
         if (ratings?.length > 0) {
-          const tasks = ratings.map(rating => rating.goal).join(', ');
-          return {completed: false, tasks};
+          const tasks = ratings.map((rating) => rating.goal).join(', ');
+          return { completed: false, tasks };
         }
       }
     }
-    return {completed: false, tasks: ''};
+    return { completed: false, tasks: '' };
   }
 
   openFormModal(day: any, hour: any) {
@@ -231,7 +262,7 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
         options: this.options,
       },
       width: '600px',
-      backdropClass: 'blur'
+      backdropClass: 'blur',
     });
 
     dialogRef.componentInstance.data.managementForm
@@ -240,7 +271,10 @@ export class ToDoChartComponent implements OnInit, OnChanges, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.action === 'submit') {
-        this.formSubmitted.emit({ option: result.option, formValue: result.formValue });
+        this.formSubmitted.emit({
+          option: result.option,
+          formValue: result.formValue,
+        });
         this.toDoListUpdated.emit();
         this.getRatings();
         this.getEntries();

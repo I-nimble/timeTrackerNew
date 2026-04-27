@@ -1,11 +1,8 @@
 import { Component, Inject } from '@angular/core';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-} from '@angular/material/dialog';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 @Component({
   selector: 'app-payment-modal',

@@ -1,20 +1,23 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
 import { WebSocketService } from './socket/web-socket.service';
 import { GeolocationData } from '../models/geolocation.model';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { environment } from 'src/environments/environment';
-import { HttpClient } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LocationService {
   private trackingSubject = new BehaviorSubject<boolean>(false);
   public tracking$ = this.trackingSubject.asObservable();
 
   private watchId: number | null = null;
-  private lastLocation: { lat: number; lng: number; timestamp: number } | null = null;
+  private lastLocation: { lat: number; lng: number; timestamp: number } | null =
+    null;
 
   private readonly MIN_DISTANCE_METERS = 50;
   private readonly MIN_TIME_MS = 30000;
@@ -23,9 +26,9 @@ export class LocationService {
   private pollTimer: any = null;
 
   constructor(
-    private webSocketService: WebSocketService, 
+    private webSocketService: WebSocketService,
     private snackBar: MatSnackBar,
-    private http: HttpClient
+    private http: HttpClient,
   ) {
     this.deviceId = this.getDeviceId();
     this.checkGeolocationAvailability();
@@ -44,12 +47,12 @@ export class LocationService {
             lat: latitude.toString(),
             lon: longitude.toString(),
             zoom: '10',
-            addressdetails: '1'
+            addressdetails: '1',
           },
           headers: {
-            'Accept': 'application/json'
-          }
-        })
+            Accept: 'application/json',
+          },
+        }),
       );
 
       if (!response || !response.address) {
@@ -73,7 +76,9 @@ export class LocationService {
         cityName = address.state;
       }
 
-      const timezoneAbbreviation = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0] || 'LOCAL';
+      const timezoneAbbreviation =
+        Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0] ||
+        'LOCAL';
 
       return {
         latitude: latitude.toString(),
@@ -83,13 +88,12 @@ export class LocationService {
         fullAddress: address,
         timezone: {
           abbreviation: timezoneAbbreviation,
-          name: Intl.DateTimeFormat().resolvedOptions().timeZone
-        }
+          name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
       };
-      
     } catch (error) {
       console.error('Reverse geocoding error:', error);
-      
+
       return {
         latitude: latitude.toString(),
         longitude: longitude.toString(),
@@ -97,8 +101,8 @@ export class LocationService {
         country: 'Your Location',
         timezone: {
           abbreviation: 'LOCAL',
-          name: 'Local Time'
-        }
+          name: 'Local Time',
+        },
       };
     }
   }
@@ -116,7 +120,7 @@ export class LocationService {
           try {
             const geocodedData = await this.reverseGeocode(
               position.coords.latitude,
-              position.coords.longitude
+              position.coords.longitude,
             );
             resolve(geocodedData);
           } catch (error) {
@@ -126,9 +130,10 @@ export class LocationService {
         },
         (error) => {
           let errorMessage = 'An unknown error occurred.';
-          switch(error.code) {
+          switch (error.code) {
             case error.PERMISSION_DENIED:
-              errorMessage = 'Location access was denied. Please enable location services.';
+              errorMessage =
+                'Location access was denied. Please enable location services.';
               break;
             case error.POSITION_UNAVAILABLE:
               errorMessage = 'Location information is unavailable.';
@@ -143,13 +148,13 @@ export class LocationService {
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 0
-        }
+          maximumAge: 0,
+        },
       );
     });
   }
 
-  private locationError: string = '';
+  private locationError = '';
 
   getLocationError(): string {
     return this.locationError;
@@ -162,22 +167,31 @@ export class LocationService {
   private checkGeolocationAvailability(): void {
     if (!navigator.geolocation) {
       console.error('Geolocation is not supported by this browser.');
-      this.openSnackBar('Geolocation is not supported. Please use a secure context (HTTPS) or a supported browser.', 'OK');
+      this.openSnackBar(
+        'Geolocation is not supported. Please use a secure context (HTTPS) or a supported browser.',
+        'OK',
+      );
       return;
     }
 
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({ name: 'geolocation' }).then((result) => {
         if (result.state === 'denied') {
-          this.openSnackBar('Location permissions are denied. Please enable them in your browser settings to use the tracker.', 'OK');
+          this.openSnackBar(
+            'Location permissions are denied. Please enable them in your browser settings to use the tracker.',
+            'OK',
+          );
         }
-        
+
         result.onchange = () => {
           if (result.state === 'denied') {
-            this.openSnackBar('Location permissions are denied. Please enable them in your browser settings.', 'OK');
+            this.openSnackBar(
+              'Location permissions are denied. Please enable them in your browser settings.',
+              'OK',
+            );
           } else if (result.state === 'granted') {
-             this.startTracking();
-             this.forceUpdate();
+            this.startTracking();
+            this.forceUpdate();
           }
         };
       });
@@ -191,7 +205,11 @@ export class LocationService {
         if (typeof crypto !== 'undefined' && (crypto as any).randomUUID) {
           deviceId = (crypto as any).randomUUID();
         } else {
-          deviceId = 'dev-' + Math.random().toString(36).substring(2, 15) + '-' + Date.now().toString(36);
+          deviceId =
+            'dev-' +
+            Math.random().toString(36).substring(2, 15) +
+            '-' +
+            Date.now().toString(36);
         }
       } catch (e) {
         deviceId = 'dev-' + Date.now().toString(36);
@@ -235,8 +253,8 @@ export class LocationService {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0
-      }
+        maximumAge: 0,
+      },
     );
   }
 
@@ -261,16 +279,18 @@ export class LocationService {
       try {
         this.userId = localStorage.getItem('id');
         if (!this.userId) return;
-        this.http.get<any>(`${environment.apiUrl}/geolocation/${this.userId}/age`).subscribe({
-          next: (resp) => {
-            if (resp && typeof resp.ageMs === 'number') {
-              if (resp.ageMs > this.STALE_AGE_MS) {
-                this.forceUpdate();
+        this.http
+          .get<any>(`${environment.apiUrl}/geolocation/${this.userId}/age`)
+          .subscribe({
+            next: (resp) => {
+              if (resp && typeof resp.ageMs === 'number') {
+                if (resp.ageMs > this.STALE_AGE_MS) {
+                  this.forceUpdate();
+                }
               }
-            }
-          },
-          error: (err) => {}
-        });
+            },
+            error: (err) => {},
+          });
       } catch (err) {}
     }, this.POLL_INTERVAL_MS);
   }
@@ -290,7 +310,7 @@ export class LocationService {
 
   private resetIdleTimer(): void {
     this.clearIdleTimer();
-    
+
     if (this.shouldBeTracking && this.watchId === null) {
       this.resumeTracking();
     }
@@ -323,21 +343,30 @@ export class LocationService {
       this.pauseTracking();
     });
 
-    const interactionEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
-    interactionEvents.forEach(event => {
-      window.addEventListener(event, () => this.resetIdleTimer(), { passive: true });
+    const interactionEvents = [
+      'mousemove',
+      'keydown',
+      'mousedown',
+      'touchstart',
+      'scroll',
+    ];
+    interactionEvents.forEach((event) => {
+      window.addEventListener(event, () => this.resetIdleTimer(), {
+        passive: true,
+      });
     });
   }
 
   private isUpdating = false;
 
-  forceUpdate(force: boolean = false): void {
+  forceUpdate(force = false): void {
     if (!navigator.geolocation || this.isUpdating) return;
 
     this.userId = localStorage.getItem('id');
     const now = Date.now();
-    
-    const isFreshEnough = this.lastLocation && (now - this.lastLocation.timestamp < 30000);
+
+    const isFreshEnough =
+      this.lastLocation && now - this.lastLocation.timestamp < 30000;
     if (!force && isFreshEnough) {
       this.processCachedUpdate();
       return;
@@ -348,33 +377,41 @@ export class LocationService {
       (position) => {
         this.isUpdating = false;
         this.processUpdate(position);
-        this.lastLocation = { 
-          lat: position.coords.latitude, 
-          lng: position.coords.longitude, 
-          timestamp: position.timestamp 
+        this.lastLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: position.timestamp,
         };
       },
       (error) => {
         this.isUpdating = false;
         if (error.code === 1) {
           if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-              if (result.state === 'denied') {
-                this.openSnackBar('Please allow location permissions to use this feature.', 'OK');
-              }
-            });
+            navigator.permissions
+              .query({ name: 'geolocation' })
+              .then((result) => {
+                if (result.state === 'denied') {
+                  this.openSnackBar(
+                    'Please allow location permissions to use this feature.',
+                    'OK',
+                  );
+                }
+              });
           } else {
-            this.openSnackBar('Please allow location permissions to use this feature.', 'OK');
+            this.openSnackBar(
+              'Please allow location permissions to use this feature.',
+              'OK',
+            );
           }
         } else if (error.code === 3) {
           if (this.watchId === null) {
-             console.warn('Geolocation timeout on forceUpdate.');
+            console.warn('Geolocation timeout on forceUpdate.');
           }
         } else {
           console.error('Error forcing location update:', error.message);
         }
       },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 },
     );
   }
 
@@ -385,9 +422,9 @@ export class LocationService {
       longitude: this.lastLocation.lng,
       timestamp: new Date(this.lastLocation.timestamp).toISOString(),
       deviceId: this.deviceId,
-      userId: this.userId
+      userId: this.userId,
     };
-    
+
     this.transmitUpdate(data);
   }
 
@@ -409,7 +446,7 @@ export class LocationService {
       accuracy: position.coords.accuracy,
       timestamp: new Date(position.timestamp).toISOString(),
       deviceId: this.deviceId,
-      userId: this.userId
+      userId: this.userId,
     };
 
     this.transmitUpdate(data);
@@ -425,7 +462,8 @@ export class LocationService {
 
   private sendLocationUpdateHttp(data: GeolocationData): void {
     this.http.post(`${environment.apiUrl}/geolocation`, data).subscribe({
-      error: (err) => console.error('Error sending geolocation fallback update:', err)
+      error: (err) =>
+        console.error('Error sending geolocation fallback update:', err),
     });
   }
 
@@ -433,10 +471,12 @@ export class LocationService {
     if (!this.lastLocation) return true;
     if (now - this.lastLocation.timestamp > this.STALE_AGE_MS) return true;
     const dist = this.getDistanceFromLatLonInMeters(
-      this.lastLocation.lat, this.lastLocation.lng,
-      lat, lng
+      this.lastLocation.lat,
+      this.lastLocation.lng,
+      lat,
+      lng,
     );
-    
+
     return dist > this.MIN_DISTANCE_METERS;
   }
 
@@ -448,15 +488,22 @@ export class LocationService {
     });
   }
 
-  private getDistanceFromLatLonInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    var R = 6371e3;
-    var dLat = this.deg2rad(lat2 - lat1);
-    var dLon = this.deg2rad(lon2 - lon1);
-    var a = 
+  private getDistanceFromLatLonInMeters(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371e3;
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lon2 - lon1);
+    const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 

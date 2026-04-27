@@ -1,14 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import { Ratings } from '../models/Ratings.model';
-import { forkJoin, Observable } from 'rxjs';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { CustomDatePipe } from './custom-date.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { forkJoin, Observable } from 'rxjs';
 import { of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import { environment } from 'src/environments/environment';
+
+import { CustomDatePipe } from './custom-date.pipe';
+import { Ratings } from '../models/Ratings.model';
 
 @Injectable({
   providedIn: 'root',
@@ -46,7 +48,7 @@ export class RatingsService {
   }
 
   public submit(data: any, id: any = null) {
-    if (id != null) return this.http.put(`${this.API_URI}/${id}`, data)
+    if (id != null) return this.http.put(`${this.API_URI}/${id}`, data);
     return this.http.post(`${this.API_URI}`, data);
   }
 
@@ -72,11 +74,14 @@ export class RatingsService {
       }),
       catchError((err) => {
         return of({ result: 'error', error: err });
-      })
+      }),
     );
   }
 
-  public getToDo(selectedDate: any, userId: number | null = null): Observable<any[]> {
+  public getToDo(
+    selectedDate: any,
+    userId: number | null = null,
+  ): Observable<any[]> {
     return forkJoin({
       schedules: this.schedulesService.get(),
       toDo: userId ? this.getByUser(userId) : this.get(),
@@ -90,26 +95,25 @@ export class RatingsService {
         ) {
           const schedulesArray = schedules.schedules;
           if (Array.isArray(schedulesArray) && schedulesArray.length <= 0) {
-            this.openSnackBar('You don\'t have a defined schedule.', 'Close');
+            this.openSnackBar("You don't have a defined schedule.", 'Close');
           } else if (Array.isArray(schedulesArray)) {
             toDoArray = toDo;
             const dayOfWeek = selectedDate.getDay();
             schedulesArray.forEach((schedule: any) => {
               const scheduleDays = schedule.days;
               const matchingDay = scheduleDays.find(
-                (day: any) => dayOfWeek == day.id
+                (day: any) => dayOfWeek == day.id,
               );
               if (matchingDay) {
                 toDoArray = toDo;
               } else {
                 toDoArray = [];
               }
-              
             });
           }
           return toDoArray;
         }
-      })
+      }),
     );
   }
 
@@ -128,12 +132,17 @@ export class RatingsService {
     return this.http.get<any[]>(`${this.API_URI}/${ratingId}/comments`);
   }
 
-  public addComment(payload: { rating_id: number; comment: string }): Observable<any> {
+  public addComment(payload: {
+    rating_id: number;
+    comment: string;
+  }): Observable<any> {
     return this.http.post<any>(`${this.API_URI}/comments`, payload);
   }
 
   public updateComment(commentId: number, comment: string): Observable<any> {
-    return this.http.put<any>(`${this.API_URI}/comments/${commentId}`, { comment });
+    return this.http.put<any>(`${this.API_URI}/comments/${commentId}`, {
+      comment,
+    });
   }
 
   public deleteComment(commentId: number): Observable<any> {

@@ -1,12 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { AREA_CHART_HTML_SNIPPET } from './code/area-html-snippet';
-import { AREA_CHART_TS_SNIPPET } from './code/area-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 import {
   ApexAxisChartSeries,
@@ -23,9 +15,16 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
-export type ChartOptions = {
+// snippets
+import { AREA_CHART_HTML_SNIPPET } from './code/area-html-snippet';
+import { AREA_CHART_TS_SNIPPET } from './code/area-ts-snippet';
+import { MaterialModule } from '../../../legacy/material.module';
+
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -41,17 +40,19 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 
 @Component({
-    selector: 'app-area',
-    imports: [NgApexchartsModule, MaterialModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './area.component.html'
+  selector: 'app-area',
+  imports: [
+    NgApexchartsModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './area.component.html',
 })
 export class AppAreaChartComponent {
   // 1 [Area with Datepicker]

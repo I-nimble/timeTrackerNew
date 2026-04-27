@@ -1,37 +1,49 @@
-import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { ThemePalette } from '@angular/material/core';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  signal,
-} from '@angular/core';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   CdkDrag,
   CdkDragDrop,
   CdkDropList,
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
+import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import {
   MatChipEditedEvent,
   MatChipInputEvent,
   MatChipsModule,
 } from '@angular/material/chips';
+import { ThemePalette } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
-import { MatButtonModule } from '@angular/material/button';
-
 
 // snippets
-import { BASIC_CHIPS_TS_SNIPPET, DRAG_DROP_CHIPS_TS_SNIPPET, FORM_CONTROL_CHIPS_TS_SNIPPET, INPUT_CHIPS_TS_SNIPPET, STACKED_CHIPS_TS_SNIPPET } from './code/chips-ts-snippet';
-import { BASIC_CHIPS_HTML_SNIPPET, AVATAR_CHIPS_HTML_SNIPPET, DRAG_DROP_CHIPS_HTML_SNIPPET, STACKED_CHIPS_HTML_SNIPPET, INPUT_CHIPS_HTML_SNIPPET, FORM_CONTROL_CHIPS_HTML_SNIPPET } from './code/chips-html-snippet';
-
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+import {
+  BASIC_CHIPS_HTML_SNIPPET,
+  AVATAR_CHIPS_HTML_SNIPPET,
+  DRAG_DROP_CHIPS_HTML_SNIPPET,
+  STACKED_CHIPS_HTML_SNIPPET,
+  INPUT_CHIPS_HTML_SNIPPET,
+  FORM_CONTROL_CHIPS_HTML_SNIPPET,
+} from './code/chips-html-snippet';
+import {
+  BASIC_CHIPS_TS_SNIPPET,
+  DRAG_DROP_CHIPS_TS_SNIPPET,
+  FORM_CONTROL_CHIPS_TS_SNIPPET,
+  INPUT_CHIPS_TS_SNIPPET,
+  STACKED_CHIPS_TS_SNIPPET,
+} from './code/chips-ts-snippet';
 
 export interface ChipColor {
   name: string;
@@ -63,12 +75,11 @@ export interface Vegetable {
     Highlight,
     HighlightAuto,
     HighlightLineNumbers,
-    AppCodeViewComponent
+    AppCodeViewComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppChipsComponent {
-
   // 1 [basic with chip]
   codeForBasicChips = BASIC_CHIPS_HTML_SNIPPET;
   codeForBasicChipsTs = BASIC_CHIPS_TS_SNIPPET;
@@ -113,7 +124,12 @@ export class AppChipsComponent {
   //
   // Stacked
   //
-  readonly bestBoys: string[] = ['Samoyed', 'Akita Inu', 'Alaskan Malamute', 'Siberian Husky'];
+  readonly bestBoys: string[] = [
+    'Samoyed',
+    'Akita Inu',
+    'Alaskan Malamute',
+    'Siberian Husky',
+  ];
 
   //
   //  chips with input
@@ -160,13 +176,18 @@ export class AppChipsComponent {
 
   // form control
 
-  readonly keywords = signal(['angular', 'how-to', 'tutorial', 'accessibility']);
+  readonly keywords = signal([
+    'angular',
+    'how-to',
+    'tutorial',
+    'accessibility',
+  ]);
   readonly formControl = new FormControl(['angular']);
 
   announcer = inject(LiveAnnouncer);
 
   removeKeyword(keyword: string) {
-    this.keywords.update(keywords => {
+    this.keywords.update((keywords) => {
       const index = keywords.indexOf(keyword);
       if (index < 0) {
         return keywords;
@@ -183,7 +204,7 @@ export class AppChipsComponent {
 
     // Add our keyword
     if (value) {
-      this.keywords.update(keywords => [...keywords, value]);
+      this.keywords.update((keywords) => [...keywords, value]);
     }
 
     // Clear the input value

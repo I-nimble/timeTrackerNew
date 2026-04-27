@@ -1,29 +1,31 @@
-import { Component, EventEmitter, Inject, Output } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
 import { CommonModule, NgIf } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatButtonModule } from '@angular/material/button';
-import { RatingsEntriesService } from '../../../services/ratings_entries.service';
-import { UsersService } from '../../../services/users.service';
-import { EntriesService } from '../../../services/entries.service';
-import { forkJoin, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Component, EventEmitter, Inject, Output } from '@angular/core';
+import { ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import {
   MatNativeDateModule,
   provideNativeDateAdapter,
 } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import moment from 'moment';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { ReportsService } from 'src/app/services/reports.service';
-import { NotificationsService } from 'src/app/services/notifications.service';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator } from '@angular/material/paginator';
-import { ViewChild } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import moment from 'moment';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { forkJoin, Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { NotificationsService } from 'src/app/services/notifications.service';
+import { ReportsService } from 'src/app/services/reports.service';
+
+import { MaterialModule } from '../../../legacy/material.module';
+import { EntriesService } from '../../../services/entries.service';
+import { RatingsEntriesService } from '../../../services/ratings_entries.service';
+import { UsersService } from '../../../services/users.service';
 
 @Component({
   selector: 'app-history',
@@ -38,14 +40,12 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     MatNativeDateModule,
     NgIf,
     TablerIconsModule,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
-  providers: [
-    provideNativeDateAdapter(),
-  ],
+  providers: [provideNativeDateAdapter()],
   templateUrl: './history.component.html',
 })
-export class AppHistoryComponent {
+export class AppHistoryComponent implements OnInit, AfterViewInit {
   @Output() dataSourceChange = new EventEmitter<any[]>();
   displayedColumns: string[] = [
     'profile',
@@ -73,7 +73,7 @@ export class AppHistoryComponent {
   allNotifications: any[] = [];
   selectedMemberName: string | null = null;
   notificationMembers: string[] = [];
-  
+
   notificationIcons = [
     {
       icon: 'fa-solid fa-circle-info',
@@ -109,8 +109,7 @@ export class AppHistoryComponent {
       icon: 'fa-solid fa-clock',
       color: '#92b46c',
       type: 'Time Entry',
-    }
-
+    },
   ];
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -125,7 +124,6 @@ export class AppHistoryComponent {
   ) {}
 
   ngOnInit(): void {
-
     const today = moment();
     this.startDate = today.clone().startOf('isoWeek').toDate();
     this.endDate = today.clone().endOf('isoWeek').toDate();
@@ -190,21 +188,21 @@ export class AppHistoryComponent {
           });
 
           const profilePicRequests = this.dataSource.map((task) =>
-            this.usersService.getProfilePic(task.profile.id)
+            this.usersService.getProfilePic(task.profile.id),
           );
           this.departmentsList = Array.from(
             new Set(
               this.dataSource
                 .map((u) => u.profile.department)
-                .filter((dep) => typeof dep === 'string' && dep.trim() !== '')
-            )
+                .filter((dep) => typeof dep === 'string' && dep.trim() !== ''),
+            ),
           );
           this.filterByUser();
           this.dataSourceChange.emit(this.filteredDataSource);
           return forkJoin({
             profilePics: forkJoin(profilePicRequests),
           });
-        })
+        }),
       )
       .subscribe(({ profilePics }) => {
         // Update the dataSource with profile pictures and status
@@ -231,14 +229,14 @@ export class AppHistoryComponent {
   filterByUser() {
     if (this.selectedUserId) {
       this.filteredDataSource = this.dataSource.filter(
-        (u) => u.profile.id === this.selectedUserId
+        (u) => u.profile.id === this.selectedUserId,
       );
     } else {
       this.filteredDataSource = [...this.dataSource];
     }
     if (this.selectedDepartment) {
       this.filteredDataSource = this.filteredDataSource.filter(
-        (u) => u.profile.department === this.selectedDepartment
+        (u) => u.profile.department === this.selectedDepartment,
       );
     }
   }
@@ -268,7 +266,9 @@ export class AppHistoryComponent {
       this.entriesService.getUsersEntries(userId).pipe(
         map((res) =>
           res.entries.flatMap((entry: any) => {
-            const user = this.dataSource.find(u => u.profile.id === entry.user_id);
+            const user = this.dataSource.find(
+              (u) => u.profile.id === entry.user_id,
+            );
             const name = user ? user.profile.name : 'Unknown';
 
             const clockIn = {
@@ -289,27 +289,29 @@ export class AppHistoryComponent {
                 : null;
 
             return clockOut ? [clockIn, clockOut] : [clockIn];
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     forkJoin({
       notifications: this.notificationsService.get(),
-      entries: forkJoin(entryRequests).pipe(map((entriesArray) => entriesArray.flat())),
+      entries: forkJoin(entryRequests).pipe(
+        map((entriesArray) => entriesArray.flat()),
+      ),
     }).subscribe(({ notifications, entries }) => {
       const allNotifications = [...notifications, ...entries];
       allNotifications.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
       this.allNotifications = allNotifications;
-      this.notificationMembers = this.extractMembersFromNotifications(notifications);
+      this.notificationMembers =
+        this.extractMembersFromNotifications(notifications);
       this.applyNotificationFilter();
       this.loaded = true;
     });
   }
-
 
   formatMessage(message: string): string {
     return message.replace(/\n/g, '<br>');
@@ -324,35 +326,38 @@ export class AppHistoryComponent {
   //     });
   // }
 
-
-applyNotificationFilter() {
-  let filtered = this.allNotifications;
-  if (this.selectedMemberName) {
-    filtered = filtered.filter(n =>
-      n.message && n.message.toLowerCase().includes(this.selectedMemberName!.toLowerCase())
-    );
-  }
-  this.notificationsDataSource = new MatTableDataSource<any>(filtered);
-  setTimeout(() => {
-    this.notificationsDataSource.paginator = this.paginator;
-  });
-}
-
-onMemberNameChange(name: string | null) {
-  this.selectedMemberName = name;
-  this.applyNotificationFilter();
-}
-
-extractMembersFromNotifications(notifications: any[]): string[] {
-  const names = new Set<string>();
-  notifications.forEach(n => {
-    if (n.message) {
-      const firstWord = n.message.split(' ')[0];
-      if (firstWord && firstWord.length > 2) { 
-        names.add(firstWord);
-      }
+  applyNotificationFilter() {
+    let filtered = this.allNotifications;
+    if (this.selectedMemberName) {
+      filtered = filtered.filter(
+        (n) =>
+          n.message &&
+          n.message
+            .toLowerCase()
+            .includes(this.selectedMemberName!.toLowerCase()),
+      );
     }
-  });
-  return Array.from(names);
-}
+    this.notificationsDataSource = new MatTableDataSource<any>(filtered);
+    setTimeout(() => {
+      this.notificationsDataSource.paginator = this.paginator;
+    });
+  }
+
+  onMemberNameChange(name: string | null) {
+    this.selectedMemberName = name;
+    this.applyNotificationFilter();
+  }
+
+  extractMembersFromNotifications(notifications: any[]): string[] {
+    const names = new Set<string>();
+    notifications.forEach((n) => {
+      if (n.message) {
+        const firstWord = n.message.split(' ')[0];
+        if (firstWord && firstWord.length > 2) {
+          names.add(firstWord);
+        }
+      }
+    });
+    return Array.from(names);
+  }
 }

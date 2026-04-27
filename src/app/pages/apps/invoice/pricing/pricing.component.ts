@@ -1,93 +1,108 @@
-import { ViewportScroller, CommonModule } from "@angular/common"
-import { Component, ViewChild, ElementRef } from "@angular/core"
-import { FormsModule } from "@angular/forms"
-import { MatButtonModule } from "@angular/material/button"
-import { MatCardModule } from "@angular/material/card"
-import { MatRadioModule } from "@angular/material/radio"
-import { TablerIconsModule } from "angular-tabler-icons"
-import { MaterialModule } from "src/app/material.module"
-import { CoreService } from "src/app/services/core.service"
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
-import { ActivatedRoute } from '@angular/router';
-import { BankTransferComponent } from "src/app/components/stripe/bank-transfer/bank-transfer.component"
-import { PaymentModalComponent } from "src/app/components/payment-modal/payment-modal.component"
+import { ViewportScroller, CommonModule } from '@angular/common';
+import { Component, ViewChild, ElementRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
-import { CheckComponent } from "src/app/components/stripe/check/check.component"
+import { MatRadioModule } from '@angular/material/radio';
+import { ActivatedRoute } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { PaymentModalComponent } from 'src/app/components/payment-modal/payment-modal.component';
+import { BankTransferComponent } from 'src/app/components/stripe/bank-transfer/bank-transfer.component';
+import { CheckComponent } from 'src/app/components/stripe/check/check.component';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
 
 interface pricecards {
-  id: number
-  plan: string
-  btnText: string
-  popular?: boolean
+  id: number;
+  plan: string;
+  btnText: string;
+  popular?: boolean;
 }
 
 @Component({
-  selector: "app-pricing-stripe",
-  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule, BankTransferComponent, CheckComponent],
-  templateUrl: "./pricing.component.html",
-  styleUrl: './pricing.component.scss'
+  selector: 'app-pricing-stripe',
+  imports: [
+    TablerIconsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatRadioModule,
+    MaterialModule,
+    FormsModule,
+    StripeComponent,
+    CommonModule,
+    BankTransferComponent,
+    CheckComponent,
+  ],
+  templateUrl: './pricing.component.html',
+  styleUrl: './pricing.component.scss',
 })
 export class AppPricingStripeComponent {
-  public selectedPaymentMethod = ""
+  public selectedPaymentMethod = '';
   selectedInvoiceId: string | null = null;
   @ViewChild('paymentForm') paymentForm!: ElementRef;
 
   onPaymentMethodChange(method: string) {
-    this.selectedPaymentMethod = method
+    this.selectedPaymentMethod = method;
 
-    if (this.selectedPaymentMethod == 'card'){
+    if (this.selectedPaymentMethod == 'card') {
       setTimeout(() => {
-      if (this.paymentForm) {
-        this.paymentForm.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 1000);
+        if (this.paymentForm) {
+          this.paymentForm.nativeElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+      }, 1000);
     } else {
-      console.log(this.selectedPaymentMethod)
+      console.log(this.selectedPaymentMethod);
       this.dialog.open(PaymentModalComponent, {
-      width: '350px'
-    });
+        width: '350px',
+      });
     }
   }
 
   getPaymentMethod(cardId: number): string {
     switch (cardId) {
       case 1:
-        return "card"
+        return 'card';
       case 2:
-        return "transfer"
+        return 'transfer';
       case 3:
-        return "check"
+        return 'check';
       default:
-        return "card"
+        return 'card';
     }
   }
 
   pricecards: pricecards[] = [
     {
       id: 1,
-      plan: "Card",
-      btnText: "Choose Card Payment",
+      plan: 'Card',
+      btnText: 'Choose Card Payment',
     },
     {
       id: 2,
-      plan: "Transfer",
-      btnText: "Choose Transfer Payment",
+      plan: 'Transfer',
+      btnText: 'Choose Transfer Payment',
       popular: true,
     },
     {
       id: 3,
-      plan: "Check",
-      btnText: "Choose Check Payment",
+      plan: 'Check',
+      btnText: 'Choose Check Payment',
     },
-  ]
+  ];
 
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
     private route: ActivatedRoute,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       if (params['invoiceId']) {
         this.selectedInvoiceId = params['invoiceId'];
       }
@@ -200,14 +215,16 @@ export class AppPricingStripeComponent {
       icon: 'archive',
       title: 'Dedicated performance and IT support',
       color: 'primary',
-      subtext: 'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
+      subtext:
+        'Our platform offers ongoing HR management and performance assistance, making sure your team stays productive and performs to the highest level.',
     },
     {
       id: 4,
       icon: 'chart-pie',
       title: 'Integrate tools for remote work',
       color: 'primary',
-      subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
+      subtext:
+        'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
     // {
     //   id: 5,

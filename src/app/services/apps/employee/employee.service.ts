@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import { Employee } from 'src/app/pages/apps/employee/employee';
 import { employees } from 'src/app/pages/apps/employee/employeeData';
 
@@ -29,7 +30,7 @@ export class EmployeeService {
 
   deleteEmployee(employeeId: number): void {
     this.employees.update((employees) =>
-      employees.filter((e) => e.id !== employeeId)
+      employees.filter((e) => e.id !== employeeId),
     );
   }
 }

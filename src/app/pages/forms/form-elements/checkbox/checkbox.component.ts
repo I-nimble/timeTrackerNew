@@ -1,16 +1,25 @@
-import { Component, computed, signal } from '@angular/core';
-import { ThemePalette } from '@angular/material/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from '../../../../material.module';
 import { CommonModule } from '@angular/common';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+import { Component, computed, signal } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ThemePalette } from '@angular/material/core';
 
 // snippets
-import { BASIC_CHECKBOX_TS_SNIPPET, CONFIGURABLE_CHECKBOX_TS_SNIPPET, REACTIVE_FORM_CHECKBOX_TS_SNIPPET } from './code/checkbox-ts-snippet';
-import { BASIC_CHECKBOX_HTML_SNIPPET, CONFIGURABLE_CHECKBOX_HTML_SNIPPET, REACTIVE_FORM_CHECKBOX_HTML_SNIPPET } from './code/checkbox-html-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+import {
+  BASIC_CHECKBOX_HTML_SNIPPET,
+  CONFIGURABLE_CHECKBOX_HTML_SNIPPET,
+  REACTIVE_FORM_CHECKBOX_HTML_SNIPPET,
+} from './code/checkbox-html-snippet';
+import {
+  BASIC_CHECKBOX_TS_SNIPPET,
+  CONFIGURABLE_CHECKBOX_TS_SNIPPET,
+  REACTIVE_FORM_CHECKBOX_TS_SNIPPET,
+} from './code/checkbox-ts-snippet';
+import { MaterialModule } from '../../../../legacy/material.module';
 
 export interface Task {
   name: string;
@@ -19,17 +28,20 @@ export interface Task {
 }
 
 @Component({
-    selector: 'app-checkbox',
-    imports: [MaterialModule, FormsModule, ReactiveFormsModule, CommonModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './checkbox.component.html'
+  selector: 'app-checkbox',
+  imports: [
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './checkbox.component.html',
 })
 export class AppCheckboxComponent {
-
   // 1 [Basic with Checkbox]
   codeForBasicCheckbox = BASIC_CHECKBOX_HTML_SNIPPET;
   codeForBasicCheckboxTs = BASIC_CHECKBOX_TS_SNIPPET;
@@ -62,9 +74,9 @@ export class AppCheckboxComponent {
     name: 'Parent task',
     completed: false,
     subtasks: [
-      {name: 'Child task 1', completed: false},
-      {name: 'Child task 2', completed: false},
-      {name: 'Child task 3', completed: false},
+      { name: 'Child task 1', completed: false },
+      { name: 'Child task 2', completed: false },
+      { name: 'Child task 3', completed: false },
     ],
   });
 
@@ -73,19 +85,22 @@ export class AppCheckboxComponent {
     if (!task.subtasks) {
       return false;
     }
-    return task.subtasks.some(t => t.completed) && !task.subtasks.every(t => t.completed);
+    return (
+      task.subtasks.some((t) => t.completed) &&
+      !task.subtasks.every((t) => t.completed)
+    );
   });
 
   update(completed: boolean, index?: number) {
-    this.task.update(task => {
+    this.task.update((task) => {
       if (index === undefined) {
         task.completed = completed;
-        task.subtasks?.forEach(t => (t.completed = completed));
+        task.subtasks?.forEach((t) => (t.completed = completed));
       } else {
         task.subtasks![index].completed = completed;
-        task.completed = task.subtasks?.every(t => t.completed) ?? true;
+        task.completed = task.subtasks?.every((t) => t.completed) ?? true;
       }
-      return {...task};
+      return { ...task };
     });
   }
 }

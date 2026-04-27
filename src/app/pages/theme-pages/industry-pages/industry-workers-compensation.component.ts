@@ -1,18 +1,20 @@
-import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller, CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
 import { AppBlogsComponent } from '../../apps/blogs/blogs.component';
-import { AppFooterComponent } from '../footer/footer.component';
-import { AppFaqComponent } from '../faq/faq.component';
 import { AppDiscoveryFormComponent } from '../../discovery/discovery-form.component';
-import { AppHeaderComponent } from '../header/header.component';
 import { QuickContactModalComponent } from '../../quick-contact-form/quick-contact-form.component';
-import { MatDialog } from '@angular/material/dialog';
-import { ButtonComponent } from 'src/app/components/button/button.component';
+import { AppFaqComponent } from '../faq/faq.component';
+import { AppFooterComponent } from '../footer/footer.component';
+import { AppHeaderComponent } from '../header/header.component';
 
 interface apps {
   id: number;
@@ -54,7 +56,19 @@ interface features {
 @Component({
   selector: 'app-workers-compensation',
   standalone: true,
-  imports: [MaterialModule, ButtonComponent, TablerIconsModule, RouterLink, BrandingComponent, AppBlogsComponent, AppFooterComponent, CommonModule, AppFaqComponent, AppDiscoveryFormComponent, AppHeaderComponent],
+  imports: [
+    MaterialModule,
+    ButtonComponent,
+    TablerIconsModule,
+    RouterLink,
+    BrandingComponent,
+    AppBlogsComponent,
+    AppFooterComponent,
+    CommonModule,
+    AppFaqComponent,
+    AppDiscoveryFormComponent,
+    AppHeaderComponent,
+  ],
   templateUrl: './industry-workers-compensation.component.html',
 })
 export class AppIndustryWorkersCompensationComponent {
@@ -69,7 +83,7 @@ export class AppIndustryWorkersCompensationComponent {
   constructor(
     private settings: CoreService,
     private scroller: ViewportScroller,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {}
 
   // scroll to demos
@@ -78,14 +92,14 @@ export class AppIndustryWorkersCompensationComponent {
   }
 
   openQuickContact() {
-      this.dialog.open(QuickContactModalComponent, {
-        width: '520px',
-        maxHeight: '90vh',
-        disableClose: false,
-        autoFocus: false,
-        restoreFocus: false,
-      });
-    }
+    this.dialog.open(QuickContactModalComponent, {
+      width: '520px',
+      maxHeight: '90vh',
+      disableClose: false,
+      autoFocus: false,
+      restoreFocus: false,
+    });
+  }
 
   cards = [
     {
@@ -205,35 +219,39 @@ export class AppIndustryWorkersCompensationComponent {
   ];
 
   features: features[] = [
-  {
-    id: 1,
-    icon: 'user-plus',
-    title: 'Dedicated remote assistants',
-    color: 'primary',
-    subtext: 'Get bilingual professionals trained specifically for your industry needs. Available full-time or part-time.'
-  },
-  {
-    id: 2,
-    icon: 'school',
-    title: 'Custom training & onboarding',
-    color: 'primary',
-    subtext: 'Personalized training programs to ensure seamless integration with your workflows and tools.'
-  },
-  {
-    id: 3,
-    icon: 'file-invoice',  
-    title: 'Legal-compliant payroll & contracts',
-    color: 'primary',
-    subtext: 'Full compliance with international labor laws and secure contract management.'
-  },
-  {
-    id: 4,
-    icon: 'brand-teams', 
-    title: 'Built-in task management & communication tools',
-    color: 'primary',
-    subtext: 'All-in-one platform for task assignment, progress tracking and team collaboration.'
-  },
-];
+    {
+      id: 1,
+      icon: 'user-plus',
+      title: 'Dedicated remote assistants',
+      color: 'primary',
+      subtext:
+        'Get bilingual professionals trained specifically for your industry needs. Available full-time or part-time.',
+    },
+    {
+      id: 2,
+      icon: 'school',
+      title: 'Custom training & onboarding',
+      color: 'primary',
+      subtext:
+        'Personalized training programs to ensure seamless integration with your workflows and tools.',
+    },
+    {
+      id: 3,
+      icon: 'file-invoice',
+      title: 'Legal-compliant payroll & contracts',
+      color: 'primary',
+      subtext:
+        'Full compliance with international labor laws and secure contract management.',
+    },
+    {
+      id: 4,
+      icon: 'brand-teams',
+      title: 'Built-in task management & communication tools',
+      color: 'primary',
+      subtext:
+        'All-in-one platform for task assignment, progress tracking and team collaboration.',
+    },
+  ];
 
   quicklinks: quicklinks[] = [
     {

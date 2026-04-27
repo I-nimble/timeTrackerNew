@@ -1,13 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { DOUGHNUT_CHART_HTML_SNIPPET, PIE_CHART_HTML_SNIPPET } from './code/doughnut-pie-html-snippet';
-import { DOUGHNUT_CHART_TS_SNIPPET, PIE_CHART_TS_SNIPPET } from './code/doughnut-pie-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 import {
   ApexAxisChartSeries,
@@ -24,9 +15,22 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
-export type ChartOptions = {
+// snippets
+import {
+  DOUGHNUT_CHART_HTML_SNIPPET,
+  PIE_CHART_HTML_SNIPPET,
+} from './code/doughnut-pie-html-snippet';
+import {
+  DOUGHNUT_CHART_TS_SNIPPET,
+  PIE_CHART_TS_SNIPPET,
+} from './code/doughnut-pie-ts-snippet';
+import { MaterialModule } from '../../../legacy/material.module';
+
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -42,20 +46,21 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 
 @Component({
-    selector: 'app-doughnut-pie',
-    imports: [NgApexchartsModule, MaterialModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './doughnut-pie.component.html'
+  selector: 'app-doughnut-pie',
+  imports: [
+    NgApexchartsModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './doughnut-pie.component.html',
 })
 export class AppDoughnutpieChartComponent {
-
   // 1 [Doughnut with Datepicker]
   codeForDoughnutChart = DOUGHNUT_CHART_HTML_SNIPPET;
   codeForDoughnutChartTs = DOUGHNUT_CHART_TS_SNIPPET;
@@ -101,7 +106,7 @@ export class AppDoughnutpieChartComponent {
       },
     };
 
-     //pie chart.
+    //pie chart.
     this.pieChartOptions = {
       series: [45, 15, 27, 18, 35],
       chart: {

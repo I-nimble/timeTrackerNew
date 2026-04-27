@@ -1,9 +1,11 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
+import { Observable, forkJoin, map, of } from 'rxjs';
+
 import { EntriesService } from './entries.service';
 import { NotificationsService } from './notifications.service';
-import { Observable, forkJoin, map, of } from 'rxjs';
 import { HistoryItem } from '../models/History';
-import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +14,7 @@ export class HistoryService {
   constructor(
     private entriesService: EntriesService,
     private notificationsService: NotificationsService,
-    private http: HttpClient
+    private http: HttpClient,
   ) {}
 
   getTeamMembers() {
@@ -80,11 +82,11 @@ export class HistoryService {
         });
 
         history.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
 
         return history;
-      })
+      }),
     );
   }
 }

@@ -1,5 +1,12 @@
-import { Component, HostBinding, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
+import { NgIf, CommonModule } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  Component,
+  HostBinding,
+  OnInit,
+  inject,
+  ChangeDetectorRef,
+} from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -8,31 +15,37 @@ import {
   FormGroup,
   AbstractControl,
   ValidatorFn,
-  ValidationErrors
+  ValidationErrors,
 } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute, RouterLink } from '@angular/router';
-import { MaterialModule } from '../../../material.module';
-import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { environment } from 'src/environments/environment';
-import { AuthService } from '../../../services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  Router,
+  RouterModule,
+  ActivatedRoute,
+  RouterLink,
+} from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { Loader } from 'src/app/app.models';
 import { Login, SignUp } from 'src/app/models/Auth';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
-import { NotificationStore } from 'src/app/stores/notification.store';
+import { SignupDataService } from 'src/app/models/SignupData.model';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { CoreService } from 'src/app/services/core.service';
+import { DepartmentsService } from 'src/app/services/departments.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { EntriesService } from 'src/app/services/entries.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PositionsService } from 'src/app/services/positions.service';
-import { EntriesService } from 'src/app/services/entries.service';
-import { NgIf, CommonModule } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { SignupDataService } from 'src/app/models/SignupData.model';
-import { UsersService } from 'src/app/services/users.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { Loader } from 'src/app/app.models';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { DepartmentsService } from 'src/app/services/departments.service';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { UsersService } from 'src/app/services/users.service';
+import { NotificationStore } from 'src/app/stores/notification.store';
+import { environment } from 'src/environments/environment';
+
+import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { MaterialModule } from '../../../legacy/material.module';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-side-register',
@@ -46,35 +59,58 @@ import { RocketChatService } from 'src/app/services/rocket-chat.service';
     BrandingComponent,
     NgIf,
     RouterLink,
-    TablerIconsModule
+    TablerIconsModule,
   ],
-  providers: [
-    AuthService,
-    WebSocketService
-  ],
+  providers: [AuthService, WebSocketService],
   templateUrl: './side-register.component.html',
-  styleUrls: ['./side-register.component.scss']
+  styleUrls: ['./side-register.component.scss'],
 })
 export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
-  registerClientForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
-    name: ['', [Validators.required]],
-    last_name: ['', [Validators.required]],
-    company_name: ['', [Validators.required], [this.companyExistsValidator()]],
-    departments: [[''], [Validators.required]],
-    otherDepartment: [''],
-    phone: ['', [
-      Validators.pattern(/^[0-9]+$/),
-      Validators.minLength(10),
-      Validators.maxLength(15)
-    ]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    google_user_id: [''],
-  }, { validators: this.crossFieldValidator() });
+  registerClientForm = this.fb.group(
+    {
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+          Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
+        ],
+        [this.emailTakenValidator()],
+      ],
+      name: ['', [Validators.required]],
+      last_name: ['', [Validators.required]],
+      company_name: [
+        '',
+        [Validators.required],
+        [this.companyExistsValidator()],
+      ],
+      departments: [[''], [Validators.required]],
+      otherDepartment: [''],
+      phone: [
+        '',
+        [
+          Validators.pattern(/^[0-9]+$/),
+          Validators.minLength(10),
+          Validators.maxLength(15),
+        ],
+      ],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      google_user_id: [''],
+    },
+    { validators: this.crossFieldValidator() },
+  );
   registerInvitedTeamMemberForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
+      ],
+      [this.emailTakenValidator()],
+    ],
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
     company: ['', [Validators.required]],
@@ -86,30 +122,40 @@ export class AppSideRegisterComponent {
   registerTeamMemberForm: FormGroup = this.fb.group({
     name: ['', [Validators.required]],
     last_name: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email, Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)], [this.emailTakenValidator()]],
+    email: [
+      '',
+      [
+        Validators.required,
+        Validators.email,
+        Validators.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
+      ],
+      [this.emailTakenValidator()],
+    ],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
-  userRole: string = '3';
-  companyId: string = '';
+  userRole = '3';
+  companyId = '';
   companies: any[] = [];
   positions: any[] = [];
   locations: any[] = [];
-  careerRoles: any[] = [{
-    title: "Virtual Assistant",
-    position_id: 16
-  }, 
-  {
-    title: "IT and Technology",
-    position_id: 41
-  }];
+  careerRoles: any[] = [
+    {
+      title: 'Virtual Assistant',
+      position_id: 16,
+    },
+    {
+      title: 'IT and Technology',
+      position_id: 41,
+    },
+  ];
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
-  isRegisterFormVisible: boolean = false;
-  isImportantInformationVisible: boolean = false;
-  hasInvitation: boolean = false;
+  isRegisterFormVisible = false;
+  isImportantInformationVisible = false;
+  hasInvitation = false;
   departmentsOptions: any = [];
   selectedDepartments: any[] = [];
-  otherDepartment: string = '';
-  signedWithGoogleClicked: boolean = false;
+  otherDepartment = '';
+  signedWithGoogleClicked = false;
 
   constructor(
     private settings: CoreService,
@@ -154,9 +200,11 @@ export class AppSideRegisterComponent {
       this.registerClientForm.updateValueAndValidity();
     });
 
-    this.registerClientForm.get('otherDepartment')?.valueChanges.subscribe(() => {
-      this.registerClientForm.updateValueAndValidity();
-    });
+    this.registerClientForm
+      .get('otherDepartment')
+      ?.valueChanges.subscribe(() => {
+        this.registerClientForm.updateValueAndValidity();
+      });
 
     this.setupNameTrimming(this.registerClientForm, 'name');
     this.setupNameTrimming(this.registerClientForm, 'last_name');
@@ -173,12 +221,12 @@ export class AppSideRegisterComponent {
       if (!control.value) {
         return Promise.resolve(null);
       }
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         this.authService.checkEmailExists(control.value).subscribe(
           (exists: boolean) => {
             resolve(exists ? { emailTaken: true } : null);
           },
-          () => resolve(null)
+          () => resolve(null),
         );
       });
     };
@@ -189,7 +237,11 @@ export class AppSideRegisterComponent {
       const departments = formGroup.get('departments')?.value;
       const otherDepartment = formGroup.get('otherDepartment')?.value;
 
-      if (departments && Array.isArray(departments) && departments.includes('Other')) {
+      if (
+        departments &&
+        Array.isArray(departments) &&
+        departments.includes('Other')
+      ) {
         if (!otherDepartment || otherDepartment.trim() === '') {
           formGroup.get('otherDepartment')?.setErrors({ required: true });
           return { otherDepartmentRequired: true };
@@ -209,12 +261,12 @@ export class AppSideRegisterComponent {
       if (!control.value) {
         return Promise.resolve(null);
       }
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         this.companiesService.checkCompanyExists(control.value).subscribe(
           ({ exists }: { exists: boolean }) => {
             resolve(exists ? { companyExists: true } : null);
           },
-          () => resolve(null)
+          () => resolve(null),
         );
       });
     };
@@ -252,7 +304,7 @@ export class AppSideRegisterComponent {
 
   get getCompanyName() {
     if (!this.companyId) return '';
-    return this.companies.find((c: any) => c.id = this.companyId).name;
+    return this.companies.find((c: any) => (c.id = this.companyId)).name;
   }
 
   get f() {
@@ -262,12 +314,15 @@ export class AppSideRegisterComponent {
   getDepartments() {
     this.departmentsService.get().subscribe((departments: any) => {
       const activeDepartments = departments.filter((d: any) => d.active === 1);
-      this.departmentsOptions = [...activeDepartments, { id: -1, name: 'Other' }];
-    })
+      this.departmentsOptions = [
+        ...activeDepartments,
+        { id: -1, name: 'Other' },
+      ];
+    });
   }
 
   hasOtherDepartment(): boolean {
-    return this.selectedDepartments.some(dept => dept.name === 'Other');
+    return this.selectedDepartments.some((dept) => dept.name === 'Other');
   }
 
   openSnackBar(message: string, action: string): void {
@@ -325,13 +380,22 @@ export class AppSideRegisterComponent {
         email: this.registerClientForm.value.email,
         phone: this.registerClientForm.value.phone,
         password: this.registerClientForm.value.password,
-        google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
+        google_user_id:
+          this.registerClientForm.value.google_user_id === ''
+            ? null
+            : this.registerClientForm.value.google_user_id,
       };
-      const fullName = this.registerClientForm.value.name + ' ' + this.registerClientForm.value.last_name;
+      const fullName =
+        this.registerClientForm.value.name +
+        ' ' +
+        this.registerClientForm.value.last_name;
 
       this.companiesService.createPossible(clientData).subscribe({
         next: () => {
-          this.openSnackBar('Your information was sent successfully', 'success');
+          this.openSnackBar(
+            'Your information was sent successfully',
+            'success',
+          );
 
           this.authService
             .login(clientData.email as string, clientData.password as string)
@@ -372,9 +436,8 @@ export class AppSideRegisterComponent {
           this.openSnackBar(e.error.message, 'error'); // Email already exists
           return;
         },
-      })
-    }
-    else if (this.userRole === '2' && this.hasInvitation) {
+      });
+    } else if (this.userRole === '2' && this.hasInvitation) {
       if (!this.registerInvitedTeamMemberForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
@@ -387,7 +450,10 @@ export class AppSideRegisterComponent {
         password: this.registerInvitedTeamMemberForm.value.password,
         company_id: this.companyId,
         position_id: this.registerInvitedTeamMemberForm.value.position,
-        google_user_id: this.registerInvitedTeamMemberForm.value.google_user_id === '' ? null : this.registerInvitedTeamMemberForm.value.google_user_id,
+        google_user_id:
+          this.registerInvitedTeamMemberForm.value.google_user_id === ''
+            ? null
+            : this.registerInvitedTeamMemberForm.value.google_user_id,
         hourly_rate: this.registerInvitedTeamMemberForm.value.hourly_rate,
       };
 
@@ -396,7 +462,10 @@ export class AppSideRegisterComponent {
           this.openSnackBar('Your registration was successful', 'success');
 
           this.authService
-            .login(teamMemberData.email as string, teamMemberData.password as string)
+            .login(
+              teamMemberData.email as string,
+              teamMemberData.password as string,
+            )
             .subscribe({
               next: (loginResponse: any) => {
                 const jwt = loginResponse.token;
@@ -435,9 +504,7 @@ export class AppSideRegisterComponent {
           return;
         },
       });
-    }
-    else if (this.userRole === '2' && !this.hasInvitation) {
-
+    } else if (this.userRole === '2' && !this.hasInvitation) {
       if (!this.registerTeamMemberForm.valid) {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
@@ -455,7 +522,10 @@ export class AppSideRegisterComponent {
           this.openSnackBar('Your registration was successful', 'success');
 
           this.authService
-            .login(teamMemberData.email as string, teamMemberData.password as string)
+            .login(
+              teamMemberData.email as string,
+              teamMemberData.password as string,
+            )
             .subscribe({
               next: (loginResponse: any) => {
                 const jwt = loginResponse.token;
@@ -498,7 +568,7 @@ export class AppSideRegisterComponent {
   }
 
   toggleDepartment(dept: any) {
-    const idx = this.selectedDepartments.findIndex(d => d.id === dept.id);
+    const idx = this.selectedDepartments.findIndex((d) => d.id === dept.id);
     if (idx > -1) {
       this.selectedDepartments.splice(idx, 1);
       if (dept.name === 'Other') this.otherDepartment = '';
@@ -507,8 +577,8 @@ export class AppSideRegisterComponent {
     }
 
     this.registerClientForm.patchValue({
-      departments: this.selectedDepartments.map(d => d.name) || [''],
-      otherDepartment: this.otherDepartment
+      departments: this.selectedDepartments.map((d) => d.name) || [''],
+      otherDepartment: this.otherDepartment,
     });
   }
   mustBeYesValidator(): ValidatorFn {
@@ -521,14 +591,25 @@ export class AppSideRegisterComponent {
   }
 
   restrictPhoneInput(event: KeyboardEvent) {
-    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const allowedKeys = [
+      '+',
+      ' ',
+      '(',
+      ')',
+      '-',
+      'Backspace',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+      'Delete',
+    ];
     const key = event.key;
-    
+
     // Allow control keys
     if (allowedKeys.includes(key)) {
       return;
     }
-    
+
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();
@@ -538,7 +619,7 @@ export class AppSideRegisterComponent {
   setupNameTrimming(form: FormGroup, controlName: string) {
     const control = form.get(controlName);
     if (control) {
-      control.valueChanges.subscribe(value => {
+      control.valueChanges.subscribe((value) => {
         if (value && typeof value === 'string' && value !== value.trim()) {
           control.setValue(value.trim(), { emitEvent: false });
         }

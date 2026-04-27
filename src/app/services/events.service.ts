@@ -1,9 +1,10 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
-import { UsersService } from 'src/app/services/users.service';
+import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+
+import { Observable } from 'rxjs';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,10 @@ export class EventsService {
   userService = inject(UsersService);
   API_URI = environment.apiUrl;
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+  ) {}
 
   getEvents(): Observable<any> {
     return this.http.get<any>(`${this.API_URI}/events`);
@@ -35,6 +39,9 @@ export class EventsService {
   }
 
   registerToEvent(eventId: number): Observable<any> {
-    return this.http.post<any>(`${this.API_URI}/events/${eventId}/register`, {});
+    return this.http.post<any>(
+      `${this.API_URI}/events/${eventId}/register`,
+      {},
+    );
   }
 }

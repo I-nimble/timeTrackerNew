@@ -16,7 +16,7 @@ export const GREDIENT_CHART_TS_SNIPPET = `  import { Component, ViewChild } from
       ApexFill,
       NgApexchartsModule,
     } from 'ng-apexcharts';
-    import { MaterialModule } from '../../../material.module';
+    import { MaterialModule } from '../../../legacy/material.module';
     
     export type ChartOptions = {
       series: ApexAxisChartSeries;

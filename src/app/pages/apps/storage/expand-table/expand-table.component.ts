@@ -1,4 +1,3 @@
-import { Component, OnInit } from '@angular/core';
 import {
   animate,
   state,
@@ -7,20 +6,20 @@ import {
   trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { EXPAND_TABLE_HTML_SNIPPET } from './code/expand-table-html-snippet';
 import { EXPAND_TABLE_TS_SNIPPET } from './code/expand-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 const ELEMENT_DATA: PeriodicElement[] = [
   {
@@ -145,17 +144,15 @@ const ELEMENT_DATA: PeriodicElement[] = [
       state('expanded', style({ height: '*' })),
       transition(
         'expanded <=> collapsed',
-        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)'),
       ),
     ]),
   ],
 })
 export class AppExpandTableComponent implements OnInit {
-
   // 1 [expand with Table]
   codeForExpandTable = EXPAND_TABLE_HTML_SNIPPET;
   codeForExpandTableTs = EXPAND_TABLE_TS_SNIPPET;
-
 
   dataSource = ELEMENT_DATA;
   columnsToDisplay = ['id', 'name', 'project', 'symbol', 'position'];

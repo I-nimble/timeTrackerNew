@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatTableModule } from '@angular/material/table';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 const ELEMENT_DATA: any[] = [
   { download: '', name: 'file.txt', size: '1kb', preview: '' },
@@ -21,16 +22,16 @@ const ELEMENT_DATA: any[] = [
 
 @Component({
   standalone: true,
-    selector: 'app-dynamic-table',
-    imports: [
-      MatTableModule, 
-      MatCardModule, 
-      CommonModule, 
-      MatButtonModule,
-      TablerIconsModule,
-      MaterialModule
-    ],
-    templateUrl: './storage.component.html'
+  selector: 'app-dynamic-table',
+  imports: [
+    MatTableModule,
+    MatCardModule,
+    CommonModule,
+    MatButtonModule,
+    TablerIconsModule,
+    MaterialModule,
+  ],
+  templateUrl: './storage.component.html',
 })
 export class AppStorageComponent implements OnInit {
   displayedColumns: string[] = ['name', 'size', 'preview', 'download'];

@@ -14,5 +14,5 @@ export interface PossibleMember {
   email: string;
   phone: string;
   englishLevel: string;
-  resume: File
+  resume: File;
 }

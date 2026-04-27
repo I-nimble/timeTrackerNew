@@ -1,21 +1,26 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { PositionsService } from 'src/app/services/positions.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import {
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialog,
+} from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
-import { formatEnglishLevelDisplay } from 'src/app/utils/english-level';
 import { MatSliderModule } from '@angular/material/slider';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { MatchPercentagesModalComponent } from 'src/app/components/match-percentages-modal/match-percentages-modal.component';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import { formatEnglishLevelDisplay } from 'src/app/utils/english-level';
 
 @Component({
   selector: 'app-add-candidate-dialog',
@@ -33,7 +38,7 @@ import { MatSliderModule } from '@angular/material/slider';
     MatButtonModule,
     MatIconModule,
     MatCheckboxModule,
-    MatSliderModule
+    MatSliderModule,
   ],
 })
 export class AddCandidateDialogComponent implements OnInit {
@@ -41,12 +46,12 @@ export class AddCandidateDialogComponent implements OnInit {
   positions: any[] = [];
   selectedCVFile: File | null = null;
   selectedProfilePicFile: File | null = null;
-  isCreationAllowed: boolean = true;
-  restrictionMessage: string = '';
+  isCreationAllowed = true;
+  restrictionMessage = '';
   locations: any[] = [];
   action: string = this.data.action || 'add';
   mode: 'full' | 'minimal' = 'full';
-  maxFileSize: number =  1 * 1024 * 1024;
+  maxFileSize: number = 1 * 1024 * 1024;
 
   constructor(
     private fb: FormBuilder,
@@ -55,14 +60,17 @@ export class AddCandidateDialogComponent implements OnInit {
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddCandidateDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialog: MatDialog
+    private dialog: MatDialog,
   ) {
     this.mode = data?.mode || 'full';
     this.candidateForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       skills: ['', Validators.required],
-      english_level: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
+      english_level: [
+        '',
+        [Validators.required, Validators.min(1), Validators.max(10)],
+      ],
       position_id: ['', Validators.required],
       current_position: [''],
       company_id: [''],
@@ -76,7 +84,7 @@ export class AddCandidateDialogComponent implements OnInit {
       ranking: [''],
       profile_observation: [''],
       interview_link: [''],
-      inimble_academy: ['']
+      inimble_academy: [''],
     });
   }
 
@@ -89,7 +97,7 @@ export class AddCandidateDialogComponent implements OnInit {
       this.positions = positions;
       this.applicationsService.getLocations().subscribe((locations) => {
         this.locations = locations;
-      
+
         if (this.data.candidate) {
           this.candidateForm.patchValue({
             name: this.data.candidate.name,
@@ -102,17 +110,20 @@ export class AddCandidateDialogComponent implements OnInit {
                 ? this.data.candidate.company_id
                 : '',
             availability: this.data.candidate.availability,
-            location_id: this.locations.find((l: any) => l.city == this.data.candidate.location).id,
+            location_id: this.locations.find(
+              (l: any) => l.city == this.data.candidate.location,
+            ).id,
             current_position: this.data.candidate.current_position,
             description: this.data.candidate.description,
-            talent_match_profile_summary: this.data.candidate.talent_match_profile_summary,
+            talent_match_profile_summary:
+              this.data.candidate.talent_match_profile_summary,
             hobbies: this.data.candidate.hobbies,
             work_experience: this.data.candidate.work_experience,
             education_history: this.data.candidate.education_history,
             ranking: this.data.candidate.ranking,
             profile_observation: this.data.candidate.profile_observation,
             interview_link: this.data.candidate.interview_link,
-            inimble_academy: this.data.candidate.inimble_academy
+            inimble_academy: this.data.candidate.inimble_academy,
           });
         }
       });
@@ -145,7 +156,7 @@ export class AddCandidateDialogComponent implements OnInit {
         this.snackBar.open(
           'Profile picture size should be 1 MB or less',
           'Close',
-          { duration: 3000 }
+          { duration: 3000 },
         );
         return;
       }
@@ -153,7 +164,7 @@ export class AddCandidateDialogComponent implements OnInit {
         this.snackBar.open(
           'Only JPG files are allowed for profile picture',
           'Close',
-          { duration: 3000 }
+          { duration: 3000 },
         );
         return;
       }
@@ -205,7 +216,7 @@ export class AddCandidateDialogComponent implements OnInit {
       ...(this.selectedProfilePicFile && {
         profile_pic: this.selectedProfilePicFile,
       }),
-      status_id: 3
+      status_id: 3,
     };
 
     const id =
@@ -215,19 +226,25 @@ export class AddCandidateDialogComponent implements OnInit {
 
     this.applicationsService.submit(data, id).subscribe({
       next: (response) => {
-        this.snackBar.open(`Candidate ${this.action == 'edit' ? 'edited' : 'added'} successfully`, 'Close', {
-          duration: 3000,
-        });
+        this.snackBar.open(
+          `Candidate ${this.action == 'edit' ? 'edited' : 'added'} successfully`,
+          'Close',
+          {
+            duration: 3000,
+          },
+        );
         this.dialogRef.close({
           success: true,
-          profile_pic: this.selectedProfilePicFile ? this.selectedProfilePicFile.name : null
+          profile_pic: this.selectedProfilePicFile
+            ? this.selectedProfilePicFile.name
+            : null,
         });
       },
       error: (error) => {
         this.snackBar.open(
           `Error ${this.action == 'edit' ? 'editing' : 'adding'} candidate: ${error.message}`,
           'Close',
-          { duration: 3000 }
+          { duration: 3000 },
         );
       },
     });
@@ -246,16 +263,18 @@ export class AddCandidateDialogComponent implements OnInit {
           id: this.data.candidate.id,
           name: this.data.candidate.name,
           email: this.data.candidate.email,
-          position_id: this.data.candidate.position_id
-        }
+          position_id: this.data.candidate.position_id,
+        },
       },
       disableClose: false,
-      hasBackdrop: false
+      hasBackdrop: false,
     });
 
     dialogRef.afterClosed().subscribe((result: string) => {
       if (result === 'success') {
-        this.snackBar.open('Match scores updated successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open('Match scores updated successfully!', 'Close', {
+          duration: 3000,
+        });
       }
     });
   }

@@ -52,7 +52,6 @@ import { MatButtonModule } from '@angular/material/button';
     }
 `;
 
-
 export const DIALOG_SCROLLABLE_TS_SNIPPET = `  import {Component} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
     import {
@@ -103,7 +102,6 @@ import { MatButtonModule } from '@angular/material/button';
           }
     }
 `;
-
 
 export const DIALOG_INJECTING_TS_SNIPPET = `  import {Component} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -160,7 +158,6 @@ import { MatButtonModule } from '@angular/material/button';
     }
 `;
 
-
 export const DIALOG_MENU_TS_SNIPPET = `  import {Component} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
     import {
@@ -215,7 +212,6 @@ import { MatButtonModule } from '@angular/material/button';
         }
     }
 `;
-
 
 export const DIALOG_OVERVIEW_TS_SNIPPET = `  import {Component} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
