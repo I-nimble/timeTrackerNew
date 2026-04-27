@@ -1,4 +1,14 @@
-import { Component, ViewChild, OnInit, Input, OnChanges, OnDestroy } from '@angular/core';
+import { DecimalPipe, NgIf } from '@angular/common';
+import {
+  Component,
+  ViewChild,
+  OnInit,
+  Input,
+  OnChanges,
+  OnDestroy,
+} from '@angular/core';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -10,9 +20,8 @@ import {
   ApexStroke,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { DecimalPipe, NgIf } from '@angular/common';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface trafficChart {
   series: ApexAxisChartSeries;
@@ -26,22 +35,30 @@ export interface trafficChart {
 @Component({
   selector: 'app-activity-reports',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe, NgIf],
+  imports: [
+    MaterialModule,
+    NgApexchartsModule,
+    TablerIconsModule,
+    DecimalPipe,
+    NgIf,
+  ],
   templateUrl: './activity-reports.component.html',
   styleUrls: ['./activity-reports.component.scss'],
 })
-export class AppActivityReportsComponent implements OnInit, OnChanges {
+export class AppActivityReportsComponent
+  implements OnInit, OnChanges, OnDestroy
+{
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   @Input() dataSource: any[] = [];
   public trafficChart!: Partial<trafficChart> | any;
   userRole: string | null = localStorage.getItem('role');
   employees: any[] = [];
-  totalHours: number = 0;
-  hoursWorked: number = 0;
-  hoursLeft: number = 0;
-  formattedHoursWorked: string = '00:00:00';
-  formattedHoursLeft: string = '00:00:00';
-  isChartLoaded: boolean = false;
+  totalHours = 0;
+  hoursWorked = 0;
+  hoursLeft = 0;
+  formattedHoursWorked = '00:00:00';
+  formattedHoursLeft = '00:00:00';
+  isChartLoaded = false;
   private activeTimer: any;
   private socketSub: any;
 
@@ -58,10 +75,7 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
         },
         height: 250,
       },
-      labels: [
-        'Worked hours',
-        'Hours left'
-      ],
+      labels: ['Worked hours', 'Hours left'],
       colors: ['#92b46c', '#adb0bb'],
       plotOptions: {
         pie: {
@@ -71,14 +85,14 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
             labels: {
               show: true,
               name: {
-                show: false, 
+                show: false,
               },
               value: {
-                show: false, 
+                show: false,
               },
               total: {
-                show: false 
-              }
+                show: false,
+              },
             },
           },
         },
@@ -92,15 +106,15 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
       legend: {
         show: false,
       },
-       tooltip: {
+      tooltip: {
         theme: 'dark',
         fillSeriesColor: false,
         y: {
           formatter: (val: number) => {
             const formatted = this.formatHoursToHMS(val);
             return formatted;
-          }
-        }
+          },
+        },
       },
     };
   }
@@ -132,7 +146,10 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
   updateWorkedAndLeftFromRatings(ratings: any[]) {
     const now = Date.now();
     this.hoursWorked = ratings.reduce((sum, emp) => {
-      const base = typeof emp._baseWorkedDecimal === 'number' ? emp._baseWorkedDecimal : this.HHMMSSToDecimal(emp.workedHours);
+      const base =
+        typeof emp._baseWorkedDecimal === 'number'
+          ? emp._baseWorkedDecimal
+          : this.HHMMSSToDecimal(emp.workedHours);
       let elapsed = 0;
       try {
         if (emp.activeEntry && emp.activeEntry.start_time) {
@@ -144,7 +161,7 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
       }
       return sum + base + elapsed;
     }, 0);
-    
+
     this.hoursLeft = ratings.reduce((sum, emp) => {
       const leftDecimal = this.HHMMSSToDecimal(emp.hoursLeft);
       return sum + leftDecimal;
@@ -152,11 +169,18 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
 
     this.formattedHoursWorked = this.formatHoursToHMS(this.hoursWorked);
     this.formattedHoursLeft = this.formatHoursToHMS(this.hoursLeft);
-    
+
     try {
-      if (this.isChartLoaded && this.chart && typeof (this.chart as any).updateSeries === 'function') {
+      if (
+        this.isChartLoaded &&
+        this.chart &&
+        typeof (this.chart as any).updateSeries === 'function'
+      ) {
         (this.chart as any).updateSeries([this.hoursWorked, this.hoursLeft]);
-        const colors = (this.hoursWorked === 0 && this.hoursLeft === 0) ? ['#adb0bb', '#adb0bb'] : ['#92b46c', '#adb0bb'];
+        const colors =
+          this.hoursWorked === 0 && this.hoursLeft === 0
+            ? ['#adb0bb', '#adb0bb']
+            : ['#92b46c', '#adb0bb'];
         if (typeof (this.chart as any).updateOptions === 'function') {
           (this.chart as any).updateOptions({ colors });
         } else {
@@ -164,7 +188,10 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
         }
       } else {
         this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
-        this.trafficChart.colors = (this.hoursWorked === 0 && this.hoursLeft === 0) ? ['#adb0bb', '#adb0bb'] : ['#92b46c', '#adb0bb'];
+        this.trafficChart.colors =
+          this.hoursWorked === 0 && this.hoursLeft === 0
+            ? ['#adb0bb', '#adb0bb']
+            : ['#92b46c', '#adb0bb'];
       }
     } catch (e) {
       this.trafficChart.series = [this.hoursWorked, this.hoursLeft];
@@ -173,21 +200,21 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
 
   HHMMSSToDecimal(timeStr: string): number {
     if (!timeStr || timeStr === '00:00:00') return 0;
-    
+
     const parts = timeStr.split(':');
     if (parts.length !== 3) return 0;
-    
+
     const hours = parseInt(parts[0], 10) || 0;
     const minutes = parseInt(parts[1], 10) || 0;
     const seconds = parseInt(parts[2], 10) || 0;
-    
-    return hours + (minutes / 60) + (seconds / 3600);
+
+    return hours + minutes / 60 + seconds / 3600;
   }
 
   formatHoursToHMS(hoursDecimal: number): string {
     if (isNaN(hoursDecimal)) return '00:00:00';
     const hours = Math.abs(Number(hoursDecimal));
-    
+
     const totalSeconds = Math.round(hours * 3600);
     const hoursPart = Math.floor(totalSeconds / 3600);
     const remainingSeconds = totalSeconds % 3600;
@@ -197,7 +224,7 @@ export class AppActivityReportsComponent implements OnInit, OnChanges {
     return [
       String(hoursPart).padStart(2, '0'),
       String(minutesPart).padStart(2, '0'),
-      String(secondsPart).padStart(2, '0')
+      String(secondsPart).padStart(2, '0'),
     ].join(':');
   }
 }

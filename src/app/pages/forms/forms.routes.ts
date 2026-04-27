@@ -10,9 +10,9 @@ import {
 } from './form-elements';
 import { AppFormHorizontalComponent } from './form-horizontal/form-horizontal.component';
 import { AppFormLayoutsComponent } from './form-layouts/form-layouts.component';
+import { AppFormToastrComponent } from './form-toastr/form-toastr.component';
 import { AppFormVerticalComponent } from './form-vertical/form-vertical.component';
 import { AppFormWizardComponent } from './form-wizard/form-wizard.component';
-import { AppFormToastrComponent } from './form-toastr/form-toastr.component';
 
 export const FormsRoutes: Routes = [
   {

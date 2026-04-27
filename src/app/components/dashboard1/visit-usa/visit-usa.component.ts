@@ -1,46 +1,54 @@
-﻿import { Component, Inject, NgZone, OnInit, PLATFORM_ID, type AfterViewInit, type OnDestroy } from "@angular/core"
-import { TablerIconsModule } from "angular-tabler-icons"
-import { MaterialModule } from "@app/material.module"
-import { isPlatformBrowser, NgFor, NgIf } from "@angular/common"
-import moment from 'moment-timezone';
+import { isPlatformBrowser, NgFor, NgIf } from '@angular/common';
+import {
+  Component,
+  Inject,
+  NgZone,
+  OnInit,
+  PLATFORM_ID,
+  type AfterViewInit,
+  type OnDestroy,
+} from '@angular/core';
 
 // amCharts imports
-import * as am5 from "@amcharts/amcharts5"
-import am5themes_Animated from "@amcharts/amcharts5/themes/Animated"
-import * as am5map from "@amcharts/amcharts5/map"
-import am5geodata_worldLow from "@amcharts/amcharts5-geodata/worldLow"
-import { EmployeesService } from "@app/services/employees.service"
-import { LocationService } from "@app/services/location.service"
-import { TourMatMenuModule } from "ngx-ui-tour-md-menu"
+import * as am5 from '@amcharts/amcharts5';
+import * as am5map from '@amcharts/amcharts5/map';
+import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
+import am5geodata_worldLow from '@amcharts/amcharts5-geodata/worldLow';
+import { MaterialModule } from '@app/legacy/material.module';
+import { EmployeesService } from '@app/services/employees.service';
+import { LocationService } from '@app/services/location.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import moment from 'moment-timezone';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 @Component({
-  selector: "app-visit-usa",
+  selector: 'app-visit-usa',
   standalone: true,
   imports: [TablerIconsModule, MaterialModule, NgFor, NgIf, TourMatMenuModule],
-  templateUrl: "./visit-usa.component.html",
+  templateUrl: './visit-usa.component.html',
 })
 export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
-  private root: am5.Root | undefined
+  private root: am5.Root | undefined;
   private timer: any;
   locations: any[] = [];
   clientLocation: any = null;
-  locationError: string = '';
-  private clientPointAdded: boolean = false;
+  locationError = '';
+  private clientPointAdded = false;
   private readonly EMPLOYEE_POINT_COLOR = 0x1b84ff;
   private readonly CLIENT_POINT_COLOR = 0xff6b6b;
 
   constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
+    @Inject(PLATFORM_ID) private platformId: object,
     public zone: NgZone,
     private employeesService: EmployeesService,
-    private locationService: LocationService
+    private locationService: LocationService,
   ) {}
 
   browserOnly(f: () => void) {
     if (isPlatformBrowser(this.platformId)) {
       this.zone.runOutsideAngular(() => {
-        f()
-      })
+        f();
+      });
     }
   }
 
@@ -53,18 +61,21 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   async getClientLocation() {
     this.browserOnly(async () => {
       try {
-        const geocodedData = await this.locationService.getClientLocationWithGeocoding();
-        
+        const geocodedData =
+          await this.locationService.getClientLocationWithGeocoding();
+
         if (geocodedData) {
           this.clientLocation = {
             ...geocodedData,
             time: moment().format('hh:mm A'),
-            isClient: true
+            isClient: true,
           };
 
           this.addClientToMap();
         } else {
-          this.locationError = this.locationService.getLocationError() || 'Unable to get your location';
+          this.locationError =
+            this.locationService.getLocationError() ||
+            'Unable to get your location';
         }
       } catch (error) {
         console.error('Error getting client location:', error);
@@ -77,37 +88,44 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.root || !this.clientLocation || this.clientPointAdded) return;
 
     this.browserOnly(() => {
-      const chart = this.root!.container.children.getIndex(0) as am5map.MapChart;
+      const chart = this.root!.container.children.getIndex(
+        0,
+      ) as am5map.MapChart;
       if (!chart) return;
 
       const pointSeries = chart.series.getIndex(1) as am5map.MapPointSeries;
       if (!pointSeries) return;
 
       pointSeries.data.push({
-        geometry: { 
-          type: "Point", 
-          coordinates: [parseFloat(this.clientLocation.longitude), parseFloat(this.clientLocation.latitude)] 
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(this.clientLocation.longitude),
+            parseFloat(this.clientLocation.latitude),
+          ],
         },
         title: `You: ${this.clientLocation.city}`,
-        isClient: true
+        isClient: true,
       });
 
       this.createClientBullet();
 
       this.clientPointAdded = true;
-      
+
       chart.goHome();
     });
   }
 
   createClientBullet() {
     this.browserOnly(() => {
-      const chart = this.root!.container.children.getIndex(0) as am5map.MapChart;
+      const chart = this.root!.container.children.getIndex(
+        0,
+      ) as am5map.MapChart;
       const pointSeries = chart.series.getIndex(1) as am5map.MapPointSeries;
 
       pointSeries.bullets.push((root, _, dataItem) => {
         const dataContext = dataItem.dataContext as any;
-        
+
         if (dataContext.isClient) {
           const circle = am5.Circle.new(root, {
             radius: 8,
@@ -115,14 +133,14 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
             fill: am5.color(this.CLIENT_POINT_COLOR),
             strokeWidth: 2,
             stroke: am5.color(0xffffff),
-            tooltipText: "{title}",
+            tooltipText: '{title}',
           });
 
           return am5.Bullet.new(root, {
             sprite: circle,
           });
         }
-        
+
         return undefined;
       });
     });
@@ -145,17 +163,17 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       (error) => {
         console.error('Error fetching locations:', error);
-      }
+      },
     );
   }
 
   updateDisplayedTime() {
-    this.locations = this.locations.map(loc => {
+    this.locations = this.locations.map((loc) => {
       const timeMoment = moment(loc.time, 'hh:mm A');
       timeMoment.add(1, 'minute');
       return {
         ...loc,
-        time: timeMoment.format('hh:mm A')
+        time: timeMoment.format('hh:mm A'),
       };
     });
 
@@ -175,36 +193,39 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.browserOnly(() => {
       if (this.root) {
-        this.root.dispose()
+        this.root.dispose();
       }
       if (this.timer) {
-        clearInterval(this.timer)
+        clearInterval(this.timer);
       }
-    })
+    });
   }
 
   initMap() {
     this.browserOnly(() => {
-      const root = am5.Root.new("current-visitors");
+      const root = am5.Root.new('current-visitors');
       this.root = root;
 
       root.setThemes([am5themes_Animated.new(root)]);
 
       const chart = root.container.children.push(
         am5map.MapChart.new(root, {
-          panX: "rotateX",
-          panY: "translateY",
+          panX: 'rotateX',
+          panY: 'translateY',
           projection: am5map.geoMercator(),
         }),
       );
 
-      const zoomControl = chart.set("zoomControl", am5map.ZoomControl.new(root, {}));
-      zoomControl.homeButton.set("visible", true);
+      const zoomControl = chart.set(
+        'zoomControl',
+        am5map.ZoomControl.new(root, {}),
+      );
+      zoomControl.homeButton.set('visible', true);
 
       const polygonSeries = chart.series.push(
         am5map.MapPolygonSeries.new(root, {
           geoJSON: am5geodata_worldLow,
-          exclude: ["AQ"],
+          exclude: ['AQ'],
         }),
       );
 
@@ -212,11 +233,13 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
         fill: am5.color(0xdadada),
       });
 
-      const pointSeries = chart.series.push(am5map.MapPointSeries.new(root, {}));
+      const pointSeries = chart.series.push(
+        am5map.MapPointSeries.new(root, {}),
+      );
 
       pointSeries.bullets.push((root, _, dataItem) => {
         const dataContext = dataItem.dataContext as any;
-        
+
         if (!dataContext || !dataContext.isClient) {
           const circle = am5.Circle.new(root, {
             radius: 8,
@@ -224,22 +247,25 @@ export class AppVisitUsaComponent implements OnInit, AfterViewInit, OnDestroy {
             fill: am5.color(this.EMPLOYEE_POINT_COLOR),
             strokeWidth: 2,
             stroke: am5.color(0xffffff),
-            tooltipText: "{title}",
+            tooltipText: '{title}',
           });
 
           return am5.Bullet.new(root, {
             sprite: circle,
           });
         }
-        
+
         return undefined;
       });
 
       this.locations.forEach((loc) => {
         pointSeries.data.push({
-          geometry: { type: "Point", coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)] },
+          geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(loc.longitude), parseFloat(loc.latitude)],
+          },
           title: loc.city,
-          isClient: false
+          isClient: false,
         });
       });
 

@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getMessaging } from "firebase/messaging";
-import { environment } from "src/environments/environment";
+import { initializeApp } from 'firebase/app';
+import { getMessaging } from 'firebase/messaging';
+import { environment } from 'src/environments/environment';
 
 // Initialize Firebase app
 const firebaseApp = initializeApp(environment.firebaseConfig);

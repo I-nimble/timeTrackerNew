@@ -1,4 +1,4 @@
-import {TicketElement} from 'src/app/pages/apps/tickets/ticket'
+import { TicketElement } from 'src/app/pages/apps/tickets/ticket';
 
 export const tickets: TicketElement[] = [
   {
@@ -11,7 +11,7 @@ export const tickets: TicketElement[] = [
     status: 'inprogress',
     date: '2024-05-01',
   },
-  {     
+  {
     id: 2,
     title: 'Xtreme theme dropdown issue',
     subtext:

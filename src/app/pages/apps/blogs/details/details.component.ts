@@ -1,14 +1,16 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
-import { blogService } from 'src/app/services/apps/blog/blog.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { blogService } from 'src/app/services/apps/blog/blog.service';
 
 @Component({
   selector: 'app-blog-details',
@@ -33,7 +35,7 @@ export class AppBlogDetailsComponent implements OnInit {
   constructor(
     public router: Router,
     activatedRouter: ActivatedRoute,
-    public blogService: blogService
+    public blogService: blogService,
   ) {
     this.title.set(activatedRouter.snapshot.paramMap.get('id'));
   }

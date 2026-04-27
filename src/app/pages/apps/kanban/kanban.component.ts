@@ -1,33 +1,35 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   CdkDragDrop,
   DragDropModule,
   moveItemInArray,
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { MatDialog } from '@angular/material/dialog';
-import { AppKanbanDialogComponent } from './kanban-dialog.component';
-import { AppOkDialogComponent } from './ok-dialog/ok-dialog.component';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { Todos } from './kanban';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
+import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
 import { Subject, forkJoin } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { environment } from 'src/environments/environment';
-import { TourMatMenuModule, TourService } from 'ngx-ui-tour-md-menu';
-import { RoleTourService } from 'src/app/services/role-tour.service';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
 import { RoleTourStep } from 'src/app/services/role-tour-steps';
+import { RoleTourService } from 'src/app/services/role-tour.service';
+import { environment } from 'src/environments/environment';
+
+import { ColumnDialogComponent } from './column-dialog/column-dialog.component';
+import { Todos } from './kanban';
+import { AppKanbanDialogComponent } from './kanban-dialog.component';
+import { AppOkDialogComponent } from './ok-dialog/ok-dialog.component';
 
 @Component({
   selector: 'app-kanban',
@@ -40,7 +42,7 @@ import { RoleTourStep } from 'src/app/services/role-tour-steps';
     DragDropModule,
     NgScrollbarModule,
     FormsModule,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
 })
 export class AppKanbanComponent implements OnInit, OnDestroy {
@@ -57,7 +59,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   employees: any;
   isLoading = true;
   userId: string | null;
-  taskSearch: string = '';
+  taskSearch = '';
   private searchInput$ = new Subject<string>();
   private destroy$ = new Subject<void>();
   private readonly searchDebounceMs = 300;
@@ -84,13 +86,13 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(this.searchDebounceMs),
         distinctUntilChanged(),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe((query) => {
         this.applySearch(query);
       });
 
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.subscribe((params) => {
       const boardIdParam = params.get('id');
       this.selectedBoardId = boardIdParam ? +boardIdParam : null;
       if (this.selectedBoardId) {
@@ -126,7 +128,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     this.selectedBoardColumns.forEach((column) => {
       const sourceTasks = column.allTasks || column.tasks || [];
       column.tasks = sourceTasks.filter((task: any) =>
-        this.matchesTask(task, query)
+        this.matchesTask(task, query),
       );
     });
   }
@@ -173,7 +175,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
           console.error(err);
           this.isLoading = false;
           reject(err);
-        }
+        },
       });
     });
   }
@@ -190,7 +192,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
           console.error(err);
           this.isLoading = false;
           reject(err);
-        }
+        },
       });
     });
   }
@@ -215,7 +217,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       this.roleTourService.setKanbanHasTasks(tasks.length > 0);
       this.selectedBoardColumns.forEach((column) => {
         const columnTasks = tasks.filter(
-          (task: any) => task.column_id === column.id
+          (task: any) => task.column_id === column.id,
         );
         column.allTasks = columnTasks;
         column.tasks = [...columnTasks];
@@ -242,9 +244,9 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     moveItemInArray(
       event.container.data,
       event.previousIndex,
-      event.currentIndex
+      event.currentIndex,
     );
-  
+
     this.updateColumnPositions();
   }
 
@@ -253,7 +255,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       moveItemInArray(
         event.container.data,
         event.previousIndex,
-        event.currentIndex
+        event.currentIndex,
       );
     } else {
       const movedTask = event.previousContainer.data[event.previousIndex];
@@ -264,7 +266,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
         event.previousContainer.data,
         event.container.data,
         event.previousIndex,
-        event.currentIndex
+        event.currentIndex,
       );
 
       if (!this.isSearching) {
@@ -277,7 +279,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
       const columns = this.selectedBoardColumns;
       const lastColumn = columns.reduce((prev, curr) =>
-        prev.position > curr.position ? prev : curr
+        prev.position > curr.position ? prev : curr,
       );
 
       if (newColumnId === lastColumn.id && movedTask.active == true) {
@@ -308,7 +310,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
             () => {
               this.showSnackbar('Error moving task.');
               this.loadTasks(this.selectedBoardId);
-            }
+            },
           );
       }
     }
@@ -316,7 +318,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '900px', 
+      width: '900px',
       maxWidth: '90vw',
       data: {
         action,
@@ -326,7 +328,10 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (!result || result.event === 'Cancel') {
-        if (this.roleTourService.getPendingResumeAnchor() !== 'kanban-task-actions') {
+        if (
+          this.roleTourService.getPendingResumeAnchor() !==
+          'kanban-task-actions'
+        ) {
           this.roleTourService.clearPendingResume();
         }
         return;
@@ -411,7 +416,9 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
         const pendingAnchor = this.roleTourService.consumePendingResumeAnchor();
         if (pendingAnchor === 'kanban-task-actions') {
-          void this.roleTourService.resumeAtAnchor(pendingAnchor, { ignoreCompleted: true });
+          void this.roleTourService.resumeAtAnchor(pendingAnchor, {
+            ignoreCompleted: true,
+          });
         }
       },
       error: (error: any) => {
@@ -443,7 +450,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       },
       () => {
         this.showSnackbar('Error updating task.');
-      }
+      },
     );
   }
 
@@ -510,7 +517,10 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   }
 
   getInitials(user: any) {
-    return user.name.charAt(0).toUpperCase().concat(user.last_name.charAt(0).toUpperCase());
+    return user.name
+      .charAt(0)
+      .toUpperCase()
+      .concat(user.last_name.charAt(0).toUpperCase());
   }
 
   isOverdue(date: any) {
@@ -520,7 +530,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   }
 
   handleCreateTaskClick(column: any) {
-    if(!this.selectedBoardId) {
+    if (!this.selectedBoardId) {
       this.showSnackbar('Please select a board to add a task');
       return;
     }
@@ -531,79 +541,82 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     this.openDialog('Add', {
       columnId: column.id,
       columnName: column.name,
-      company_id: this.selectedBoard.company_id
-    })
+      company_id: this.selectedBoard.company_id,
+    });
   }
 
   createColumn(): void {
-  const dialogRef = this.dialog.open(ColumnDialogComponent, {
-    width: '400px',
-    data: { 
-      action: 'Add', 
-      name: '', 
-    }
-  });
+    const dialogRef = this.dialog.open(ColumnDialogComponent, {
+      width: '400px',
+      data: {
+        action: 'Add',
+        name: '',
+      },
+    });
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (result) {
-      this.kanbanService.createColumn(this.selectedBoardId, {
-        name: result.name,
-        position: this.selectedBoardColumns.length + 1,
-      }).subscribe(() => {
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.kanbanService
+          .createColumn(this.selectedBoardId, {
+            name: result.name,
+            position: this.selectedBoardColumns.length + 1,
+          })
+          .subscribe(() => {
+            this.loadTasks(this.selectedBoardId);
+            this.showSnackbar('Column created!');
+          });
+      }
+    });
+  }
+
+  editColumn(column: any): void {
+    const dialogRef = this.dialog.open(ColumnDialogComponent, {
+      width: '400px',
+      data: {
+        action: 'Edit',
+        name: column.name,
+        position: column.position,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.kanbanService
+          .updateColumn(column.id, {
+            name: result.name,
+            position: result.position,
+          })
+          .subscribe(() => {
+            this.loadTasks(this.selectedBoardId);
+            this.showSnackbar('Column updated!');
+          });
+      }
+    });
+  }
+
+  updateColumnPositions(): void {
+    this.selectedBoardColumns.forEach((column, index) => {
+      column.position = index + 1;
+    });
+
+    const updates = this.selectedBoardColumns.map((column) => ({
+      id: column.id,
+      position: column.position,
+    }));
+
+    const updateObservables = updates.map((update) =>
+      this.kanbanService.updateColumn(update.id, { position: update.position }),
+    );
+
+    forkJoin(updateObservables).subscribe({
+      next: () => {
+        this.showSnackbar('Columns reordered successfully');
+      },
+      error: (error) => {
+        console.error('Error updating column positions:', error);
+        this.showSnackbar('Error updating some column positions');
         this.loadTasks(this.selectedBoardId);
-        this.showSnackbar('Column created!');
-      });
-    }
-  });
-}
-
-editColumn(column: any): void {
-  const dialogRef = this.dialog.open(ColumnDialogComponent, {
-    width: '400px',
-    data: { 
-      action: 'Edit', 
-      name: column.name, 
-      position: column.position 
-    }
-  });
-
-  dialogRef.afterClosed().subscribe(result => {
-    if (result) {
-      this.kanbanService.updateColumn(column.id, {
-        name: result.name,
-        position: result.position
-      }).subscribe(() => {
-        this.loadTasks(this.selectedBoardId);
-        this.showSnackbar('Column updated!');
-      });
-    }
-  });
-}
-
-updateColumnPositions(): void {
-  this.selectedBoardColumns.forEach((column, index) => {
-    column.position = index + 1;
-  });
-
-  const updates = this.selectedBoardColumns.map(column => ({
-    id: column.id,
-    position: column.position
-  }));
-
-  const updateObservables = updates.map(update => 
-    this.kanbanService.updateColumn(update.id, { position: update.position })
-  );
-
-  forkJoin(updateObservables).subscribe({
-    next: () => {
-      this.showSnackbar('Columns reordered successfully');
-    },
-    error: (error) => {
-      console.error('Error updating column positions:', error);
-      this.showSnackbar('Error updating some column positions');
-      this.loadTasks(this.selectedBoardId);
-    }
-  });
-}
-
+      },
+    });
+  }
 }

@@ -1,4 +1,12 @@
-﻿import { Component, ViewChild, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
+import { BoardsService } from '@app/services/apps/kanban/boards.service';
+import { EmployeesService } from '@app/services/employees.service';
+import { RatingsService } from '@app/services/ratings.service';
+import { RatingsEntriesService } from '@app/services/ratings_entries.service';
+import { UsersService } from '@app/services/users.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -15,16 +23,10 @@ import {
   ApexMarkers,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { UsersService } from '@app/services/users.service';
-import { EmployeesService } from '@app/services/employees.service';
-import { RatingsService } from '@app/services/ratings.service';
-import { RatingsEntriesService } from '@app/services/ratings_entries.service';
-import { forkJoin } from 'rxjs';
-import { BoardsService } from '@app/services/apps/kanban/boards.service';
-import { RouterModule } from '@angular/router';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { forkJoin } from 'rxjs';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface revenuetwoChart {
   series: ApexAxisChartSeries;
@@ -49,7 +51,7 @@ export interface revenuetwoChart {
     NgApexchartsModule,
     TablerIconsModule,
     RouterModule,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
   templateUrl: './profile-expance.component.html',
 })
@@ -57,21 +59,21 @@ export class AppProfileExpanceCpmponent implements OnInit {
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public revenuetwoChart!: Partial<revenuetwoChart> | any;
   public allTasks: any[] = [];
-  public completedCount: number = 0;
-  public notCompletedCount: number = 0;
-  public totalCount: number = 0;
+  public completedCount = 0;
+  public notCompletedCount = 0;
+  public totalCount = 0;
   public teamReport: any[] = [];
-  public todoCount: number = 0;
-  public inProgressCount: number = 0;
-  public onHoldCount: number = 0;
-  public completedCountKanban: number = 0;
+  public todoCount = 0;
+  public inProgressCount = 0;
+  public onHoldCount = 0;
+  public completedCountKanban = 0;
 
   constructor(
     private usersService: UsersService,
     private employeesService: EmployeesService,
     private ratingsService: RatingsService,
     private ratingsEntriesService: RatingsEntriesService,
-    private boardsService: BoardsService
+    private boardsService: BoardsService,
   ) {
     this.revenuetwoChart = {
       series: [
@@ -147,13 +149,13 @@ export class AppProfileExpanceCpmponent implements OnInit {
     this.employeesService.get().subscribe({
       next: (employees: any) => {
         const filteredEmployees = employees.filter(
-          (user: any) => user.user.active == 1 && user.user.role == 2
+          (user: any) => user.user.active == 1 && user.user.role == 2,
         );
         const employeeIds = filteredEmployees.map((emp: any) => emp.user.id);
 
         const today = new Date();
         const tasksObservables = employeeIds.map((id: any) =>
-          this.ratingsService.getToDo(today, id)
+          this.ratingsService.getToDo(today, id),
         );
 
         import('rxjs').then((rxjs) => {
@@ -162,10 +164,10 @@ export class AppProfileExpanceCpmponent implements OnInit {
 
             this.totalCount = this.allTasks.length;
             this.completedCount = this.allTasks.filter(
-              (t) => t.achieved
+              (t) => t.achieved,
             ).length;
             this.notCompletedCount = this.allTasks.filter(
-              (t) => !t.achieved
+              (t) => !t.achieved,
             ).length;
           });
         });
@@ -194,7 +196,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
       this.ratingsEntriesService.getTeamReport({
         firstSelect: month.firstSelect,
         lastSelect: month.lastSelect,
-      })
+      }),
     );
     forkJoin(requests).subscribe({
       next: (results: any[]) => {
@@ -216,17 +218,17 @@ export class AppProfileExpanceCpmponent implements OnInit {
               completed += entryCompleted;
 
               totalTasks += entryCompleted + entryTotalTasks;
-            }
+            },
           );
 
           completedData.push(completed);
           totalTasksData.push(totalTasks);
         });
         const notCompletedData = totalTasksData.map(
-          (total, idx) => total - completedData[idx]
+          (total, idx) => total - completedData[idx],
         );
 
-        // Actualizar la grÃ¡fica
+        // Actualizar la gráfica
         this.notCompletedCount = this.totalCount - this.completedCount;
         this.revenuetwoChart.series = [
           {
@@ -266,7 +268,7 @@ export class AppProfileExpanceCpmponent implements OnInit {
       }
 
       const boardTasksObservables = boards.map((board: any) =>
-        this.boardsService.getBoardWithTasks(board.id, 7)
+        this.boardsService.getBoardWithTasks(board.id, 7),
       );
 
       forkJoin<any[]>(boardTasksObservables).subscribe((boardsData) => {
@@ -275,16 +277,16 @@ export class AppProfileExpanceCpmponent implements OnInit {
           const tasks = boardData.tasks || [];
 
           const todoColumn = columns.find((col: any) =>
-            col.name.toLowerCase().includes('to')
+            col.name.toLowerCase().includes('to'),
           );
           const inProgressColumn = columns.find((col: any) =>
-            col.name.toLowerCase().includes('progress')
+            col.name.toLowerCase().includes('progress'),
           );
           const onHoldColumn = columns.find((col: any) =>
-            col.name.toLowerCase().includes('hold')
+            col.name.toLowerCase().includes('hold'),
           );
           const completedColumn = columns.find((col: any) =>
-            col.name.toLowerCase().includes('completed')
+            col.name.toLowerCase().includes('completed'),
           );
 
           this.todoCount += todoColumn
@@ -358,4 +360,3 @@ export class AppProfileExpanceCpmponent implements OnInit {
     };
   }
 }
-

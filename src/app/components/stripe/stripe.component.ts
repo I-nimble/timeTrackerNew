@@ -1,43 +1,67 @@
-import { Component, Input, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { StripeFactoryService } from './stripe-factory.service';
-import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { StripeService } from 'src/app/services/stripe.service';
-import { firstValueFrom } from 'rxjs';
-import { Router } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { trigger, style, animate, transition } from '@angular/animations';
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  Input,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+  FormControl,
+} from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+
+import {
+  Stripe,
+  StripeElements,
+  StripePaymentElement,
+} from '@stripe/stripe-js';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { firstValueFrom } from 'rxjs';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { CustomSearchService } from 'src/app/services/custom-search.service';
+import { StripeService } from 'src/app/services/stripe.service';
+
+import { StripeFactoryService } from './stripe-factory.service';
 
 @Component({
   selector: 'app-stripe',
   templateUrl: './stripe.component.html',
   styleUrls: ['./stripe.component.scss'],
   imports: [
-    MaterialModule, 
-    CommonModule, 
-    FormsModule, 
-    ReactiveFormsModule, 
+    MaterialModule,
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
     TablerIconsModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
   ],
   animations: [
     trigger('fadeInUp', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+        animate(
+          '400ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
       ]),
     ]),
-  ]
+  ],
 })
 export class StripeComponent implements OnInit, OnDestroy {
-  @Input() invoiceId: string = '';
+  @Input() invoiceId = '';
   @ViewChild('paymentElementContainer') paymentElementContainer!: ElementRef;
-  amount: number = 0;
+  amount = 0;
 
   paymentForm!: FormGroup;
   stripe: Stripe | null = null;
@@ -57,7 +81,7 @@ export class StripeComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private stripeService: StripeService,
     private router: Router,
-    private customSearchService: CustomSearchService
+    private customSearchService: CustomSearchService,
   ) {}
 
   async ngOnInit() {
@@ -65,19 +89,19 @@ export class StripeComponent implements OnInit, OnDestroy {
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
     });
-    this.useClientInfoControl.valueChanges.subscribe(useInfo => {
+    this.useClientInfoControl.valueChanges.subscribe((useInfo) => {
       this.onToggleClientInfo(useInfo || false);
     });
 
     // Initialize Stripe
     this.stripe = await this.stripeFactory.getStripe();
-    
+
     await this.loadClientInfo();
-    
+
     // Create PaymentIntent
     try {
       const response = await firstValueFrom(
-        this.stripeService.createPaymentIntent(this.invoiceId)
+        this.stripeService.createPaymentIntent(this.invoiceId),
       );
       this.clientSecret = response.clientSecret;
       this.amount = response.amount;
@@ -93,16 +117,16 @@ export class StripeComponent implements OnInit, OnDestroy {
     this.isClientInfoLoading = true;
     try {
       const userId = localStorage.getItem('id');
-      
+
       if (!userId) {
         console.warn('User ID not found in localStorage');
         return;
       }
 
       const response = await firstValueFrom(
-        this.customSearchService.getClientInfo(userId)
+        this.customSearchService.getClientInfo(userId),
       );
-      
+
       if (response.success) {
         this.clientInfo = response.data;
         if (this.useClientInfoControl.value) {
@@ -131,15 +155,15 @@ export class StripeComponent implements OnInit, OnDestroy {
     this.paymentForm.patchValue({
       name: '',
       email: '',
-      phone: ''
+      phone: '',
     });
-    
+
     this.paymentForm.get('name')?.enable();
     this.paymentForm.get('email')?.enable();
     this.paymentForm.get('phone')?.enable();
   }
 
-  onToggleClientInfo(useInfo: boolean) {    
+  onToggleClientInfo(useInfo: boolean) {
     if (useInfo && this.clientInfo) {
       this.populateFormWithClientInfo();
     } else {
@@ -159,8 +183,8 @@ export class StripeComponent implements OnInit, OnDestroy {
         colorDanger: '#df1b41',
         fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
         spacingUnit: '2px',
-        borderRadius: '4px'
-      }
+        borderRadius: '4px',
+      },
     };
 
     const options = {
@@ -168,13 +192,13 @@ export class StripeComponent implements OnInit, OnDestroy {
         type: 'accordion',
         defaultCollapsed: false,
         radios: true,
-        spacedAccordionItems: false
+        spacedAccordionItems: false,
       },
     };
     // Create Stripe elements
     this.elements = this.stripe.elements({
       clientSecret: this.clientSecret,
-      appearance
+      appearance,
     });
 
     this.paymentElement = (this.elements as any).create('payment', options);
@@ -199,7 +223,7 @@ export class StripeComponent implements OnInit, OnDestroy {
     if (this.paymentForm.disabled) {
       this.paymentForm.enable();
     }
-    
+
     if (this.paymentForm.invalid) {
       this.paymentForm.markAllAsTouched();
       return;
@@ -216,11 +240,11 @@ export class StripeComponent implements OnInit, OnDestroy {
           payment_method_data: {
             billing_details: {
               name: this.paymentForm.value.name,
-              email: this.paymentForm.value.email
-            }
-          }
+              email: this.paymentForm.value.email,
+            },
+          },
         },
-        redirect: 'if_required'
+        redirect: 'if_required',
       });
 
       if (error) {
@@ -231,7 +255,7 @@ export class StripeComponent implements OnInit, OnDestroy {
         this.paymentStatus = 'succeeded';
         this.snackBar.open('Payment succeeded!', 'Close', {
           duration: 5000,
-          panelClass: ['success-snackbar']
+          panelClass: ['success-snackbar'],
         });
       } else {
         throw new Error('Payment not completed');
@@ -239,10 +263,14 @@ export class StripeComponent implements OnInit, OnDestroy {
     } catch (error: any) {
       this.paymentStatus = 'failed';
       this.errorMessage = error.message || 'An unexpected error occurred.';
-      this.snackBar.open(this.errorMessage ?? 'An unexpected error occurred.', 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      this.snackBar.open(
+        this.errorMessage ?? 'An unexpected error occurred.',
+        'Close',
+        {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        },
+      );
     } finally {
       this.isLoading = false;
     }
@@ -251,12 +279,14 @@ export class StripeComponent implements OnInit, OnDestroy {
   retryPayment() {
     this.paymentStatus = 'initial';
     this.errorMessage = null;
-    window.location.reload(); 
+    window.location.reload();
   }
 
   viewInvoice() {
     if (!this.invoiceId) {
-      this.snackBar.open('Invoice ID not available', 'Close', { duration: 3000 });
+      this.snackBar.open('Invoice ID not available', 'Close', {
+        duration: 3000,
+      });
       return;
     }
 
@@ -267,13 +297,17 @@ export class StripeComponent implements OnInit, OnDestroy {
             window.open(receiptUrl, '_blank');
           },
           error: () => {
-            this.snackBar.open('Failed to load receipt URL', 'Close', { duration: 3000 });
-          }
+            this.snackBar.open('Failed to load receipt URL', 'Close', {
+              duration: 3000,
+            });
+          },
         });
       },
       error: () => {
-        this.snackBar.open('No payment found for this invoice', 'Close', { duration: 3000 });
-      }
+        this.snackBar.open('No payment found for this invoice', 'Close', {
+          duration: 3000,
+        });
+      },
     });
   }
 

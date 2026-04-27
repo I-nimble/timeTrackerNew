@@ -15,13 +15,15 @@ const isMobile = (): boolean => {
   return window.innerWidth < 768;
 };
 
-export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionConfig[] => {
+export const buildClientSections = (
+  baseStep: Partial<RoleTourStep>,
+): SectionConfig[] => {
   const withBase = (step: RoleTourStep): RoleTourStep => ({
     ...baseStep,
     ...step,
   });
 
-  let talentMatchSteps = [
+  const talentMatchSteps = [
     withBase({
       anchorId: 'tm-custom-search',
       title: 'Find talent fast',
@@ -34,7 +36,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       content: 'Select the role and practice area to refine matches.',
       route: '/apps/talent-match',
     }),
-/*     withBase({
+    /*     withBase({
       anchorId: 'tm-budget',
       title: 'Adjust the budget',
       content: 'Set the rate range and type for candidates.',
@@ -54,21 +56,23 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       placement: {
         horizontal: false,
         xPosition: 'before',
-        yPosition: 'above'
+        yPosition: 'above',
       } as const,
     }),
   ];
 
-  if (!isMobile()) talentMatchSteps.push(
-    withBase({
-      anchorId: 'tm-actions',
-      title: 'Quick actions',
-      content: 'Schedule interviews, download resumes, or mark not interested.',
-      route: '/apps/talent-match',
-    }),
-  );
+  if (!isMobile())
+    talentMatchSteps.push(
+      withBase({
+        anchorId: 'tm-actions',
+        title: 'Quick actions',
+        content:
+          'Schedule interviews, download resumes, or mark not interested.',
+        route: '/apps/talent-match',
+      }),
+    );
 
-  let dashboardSteps = [
+  const dashboardSteps = [
     withBase({
       anchorId: 'dash-welcome',
       title: 'Updates',
@@ -148,7 +152,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
     }),
   ];
 
-  let reportsSteps : RoleTourStep[] = [];
+  let reportsSteps: RoleTourStep[] = [];
   if (!isMobile()) {
     reportsSteps = [
       withBase({
@@ -164,51 +168,53 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       }),
     ];
   }
-  reportsSteps.push(...[
-    withBase({
-      anchorId: 'reports-chart',
-      title: 'Team productivity',
-      content: 'Compare worked and pending hours over time here.',
-      route: '/dashboards/reports',
-      placement: {
-        yPosition: 'below',
-        xPosition: 'after',
-        horizontal: true,
-      } as const,
-    }),
-    withBase({
-      anchorId: 'reports-tm-selector',
-      title: 'Select team members',
-      content: 'Select a team member to view their productivity.',
-      route: '/dashboards/reports',
-    }),
-    withBase({
-      anchorId: 'reports-date-range',
-      title: 'Select date range',
-      content: 'Select a date range to view employee productivity.',
-      route: '/dashboards/reports',
-    }),
-    withBase({
-      anchorId: 'reports-download',
-      title: 'Download reports',
-      content: 'Download reports for selected team members as pdf or excel.',
-      route: '/dashboards/reports',
-      placement: {
-        yPosition: 'below',
-        horizontal: isMobile() ? false : true,
-      } as const,
-    }),
-    withBase({
-      anchorId: 'reports-employees',
-      title: 'Team productivity',
-      content: 'Check employee status and completed tasks here.',
-      route: '/dashboards/reports',
-      placement: {
-        yPosition: 'above',
-        horizontal: isMobile() ? false : true,
-      } as const,
-    }),
-  ]);
+  reportsSteps.push(
+    ...[
+      withBase({
+        anchorId: 'reports-chart',
+        title: 'Team productivity',
+        content: 'Compare worked and pending hours over time here.',
+        route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          xPosition: 'after',
+          horizontal: true,
+        } as const,
+      }),
+      withBase({
+        anchorId: 'reports-tm-selector',
+        title: 'Select team members',
+        content: 'Select a team member to view their productivity.',
+        route: '/dashboards/reports',
+      }),
+      withBase({
+        anchorId: 'reports-date-range',
+        title: 'Select date range',
+        content: 'Select a date range to view employee productivity.',
+        route: '/dashboards/reports',
+      }),
+      withBase({
+        anchorId: 'reports-download',
+        title: 'Download reports',
+        content: 'Download reports for selected team members as pdf or excel.',
+        route: '/dashboards/reports',
+        placement: {
+          yPosition: 'below',
+          horizontal: isMobile() ? false : true,
+        } as const,
+      }),
+      withBase({
+        anchorId: 'reports-employees',
+        title: 'Team productivity',
+        content: 'Check employee status and completed tasks here.',
+        route: '/dashboards/reports',
+        placement: {
+          yPosition: 'above',
+          horizontal: isMobile() ? false : true,
+        } as const,
+      }),
+    ],
+  );
 
   const productivitySteps = [
     withBase({
@@ -261,7 +267,8 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
     withBase({
       anchorId: 'chat-start-conversation',
       title: 'Start a conversation',
-      content: 'Start a new conversation with your team members, Inimble support or create a group.',
+      content:
+        'Start a new conversation with your team members, Inimble support or create a group.',
       route: '/apps/chat',
     }),
     withBase({
@@ -299,7 +306,8 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       anchorId: 'chat-first-conversation',
       stepId: 'chat-first-conversation',
       title: 'Open a conversation',
-      content: 'Click Next to open the first conversation and continue the tour.',
+      content:
+        'Click Next to open the first conversation and continue the tour.',
       route: '/apps/chat',
       placement: {
         yPosition: 'below',
@@ -320,7 +328,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         yPosition: 'above',
         xPosition: 'before',
         horizontal: false,
-      }
+      },
     }),
     withBase({
       anchorId: 'chat-audio-record',
@@ -444,7 +452,7 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
         yPosition: 'above',
         xPosition: 'before',
         horizontal: true,
-      }
+      },
     }),
     withBase({
       anchorId: 'kanban-columns',
@@ -504,7 +512,9 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
       disableScrollToAnchor: false,
       centerAnchorOnScroll: true,
       smoothScroll: true,
-      scrollContainer: document.querySelector('.task-list-section') as HTMLElement,
+      scrollContainer: document.querySelector(
+        '.task-list-section',
+      ) as HTMLElement,
     }),
   ];
 
@@ -580,7 +590,8 @@ export const buildClientSections = (baseStep: Partial<RoleTourStep>): SectionCon
     withBase({
       anchorId: 'employee-first-name',
       title: 'Open team member details',
-      content: 'Select a team member name to review their activity and location.',
+      content:
+        'Select a team member name to review their activity and location.',
       route: '/apps/time-tracker',
       nextBtnTitle: 'Go to details',
       placement: {

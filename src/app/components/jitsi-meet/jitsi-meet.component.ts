@@ -1,9 +1,23 @@
-import { Component, OnInit, inject, OnDestroy, ViewChild, ElementRef, Inject, Input, Output, EventEmitter, Optional } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { environment } from '../../../environments/environment';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  inject,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  Inject,
+  Input,
+  Output,
+  EventEmitter,
+  Optional,
+} from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { MaterialModule } from 'src/app/legacy/material.module';
+
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-jitsi-meet',
@@ -63,19 +77,26 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = this.data?.externalApiUrl || 'https://meet.inimbleapp.com/external_api.js';
+      script.src =
+        this.data?.externalApiUrl ||
+        'https://meet.inimbleapp.com/external_api.js';
       script.async = true;
       script.onload = () => resolve();
-      script.onerror = (e) => reject(new Error('Failed to load Jitsi external_api.js'));
+      script.onerror = (e) =>
+        reject(new Error('Failed to load Jitsi external_api.js'));
       document.body.appendChild(script);
     });
   }
 
   async initJitsi() {
-    const roomName = this.data?.roomName || `room-${this.data?.roomId || Date.now()}`;
+    const roomName =
+      this.data?.roomName || `room-${this.data?.roomId || Date.now()}`;
 
     const configOverwrite = Object.assign({}, this.data?.configOverwrite || {});
-    const interfaceConfigOverwrite = Object.assign({}, this.data?.interfaceConfigOverwrite || {});
+    const interfaceConfigOverwrite = Object.assign(
+      {},
+      this.data?.interfaceConfigOverwrite || {},
+    );
 
     if (this.isMobile) {
       interfaceConfigOverwrite.MOBILE_APP_PROMO = false;
@@ -91,11 +112,11 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
       parentNode: this.meetContainer.nativeElement,
       userInfo: {
         displayName: this.data?.displayName,
-        email: this.data?.email
+        email: this.data?.email,
       },
       configOverwrite,
       interfaceConfigOverwrite,
-      onload: () => {}
+      onload: () => {},
     };
 
     if (this.data?.jwt) {
@@ -104,12 +125,17 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
 
     try {
       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
-      this.api = new JitsiMeetExternalAPI(this.domainHost || this.domain, options);
+      this.api = new JitsiMeetExternalAPI(
+        this.domainHost || this.domain,
+        options,
+      );
 
       if (this.api && this.api.addEventListener) {
         this.api.addEventListener('readyToClose', () => {
           if (this.dialogRef) {
-            try { this.dialogRef.close(); } catch (e) {}
+            try {
+              this.dialogRef.close();
+            } catch (e) {}
           } else {
             this.closed.emit();
           }
@@ -131,28 +157,43 @@ export class JitsiMeetComponent implements OnInit, OnDestroy {
 
   closeMeeting() {
     if (this.dialogRef) {
-      try { this.dialogRef.close(); } catch (e) {}
+      try {
+        this.dialogRef.close();
+      } catch (e) {}
     } else {
-      try { this.closed.emit(); } catch (e) {}
+      try {
+        this.closed.emit();
+      } catch (e) {}
     }
   }
 
   resize() {
     this.isMinimized = !this.isMinimized;
-    try { this.minimized.emit(this.isMinimized); } catch (e) {}
+    try {
+      this.minimized.emit(this.isMinimized);
+    } catch (e) {}
     try {
       if (this.dialogRef) {
         if (this.isMinimized) {
           this.dialogRef.updateSize('600px', '300px');
-          try { this.dialogRef.addPanelClass('jitsi-minimized'); } catch (e) {}
-          try { this.dialogRef.removePanelClass('jitsi-fullscreen-dialog'); } catch (e) {}
+          try {
+            this.dialogRef.addPanelClass('jitsi-minimized');
+          } catch (e) {}
+          try {
+            this.dialogRef.removePanelClass('jitsi-fullscreen-dialog');
+          } catch (e) {}
         } else {
           this.dialogRef.updateSize('100vw', '100vh');
-          try { this.dialogRef.removePanelClass('jitsi-minimized'); } catch (e) {}
-          try { this.dialogRef.addPanelClass('jitsi-fullscreen-dialog'); } catch (e) {}
+          try {
+            this.dialogRef.removePanelClass('jitsi-minimized');
+          } catch (e) {}
+          try {
+            this.dialogRef.addPanelClass('jitsi-fullscreen-dialog');
+          } catch (e) {}
         }
       } else {
-        const host = (this.hostElement && (this.hostElement as any).nativeElement) || null;
+        const host =
+          (this.hostElement && (this.hostElement as any).nativeElement) || null;
         if (host) {
           if (this.isMinimized) {
             host.classList.add('jitsi-minimized');

@@ -1,5 +1,5 @@
 export const ORDINARY_FORM_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -62,7 +62,7 @@ export class AppFormLayoutComponent {
 `;
 
 export const DEFAULT_FORM_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
@@ -97,7 +97,7 @@ export class AppFormLayoutsComponent {
 `;
 
 export const BASIC_HEADER_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
@@ -135,7 +135,7 @@ export class AppFormLayoutsComponent {
 `;
 
 export const DISABLED_FORM_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -159,7 +159,7 @@ export class AppFormLayoutsComponent {
 `;
 
 export const LEFT_ICON_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -184,7 +184,7 @@ export class AppFormLayoutsComponent {
 `;
 
 export const RIGHT_ICON_TS_SNIPPET = `  import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';

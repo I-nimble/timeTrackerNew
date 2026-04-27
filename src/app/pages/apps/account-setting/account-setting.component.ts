@@ -1,15 +1,12 @@
-import { Component, OnInit, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTabsModule } from '@angular/material/tabs';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { CommonModule, NgIf } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectorRef,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import {
   FormBuilder,
   Validators,
@@ -18,44 +15,81 @@ import {
   FormGroup,
   AbstractControl,
   ValidatorFn,
-  ValidationErrors
+  ValidationErrors,
 } from '@angular/forms';
-import { NotificationStore } from 'src/app/stores/notification.store';
-import { UsersService } from 'src/app/services/users.service';
-import { MatDialog } from '@angular/material/dialog';
-import { CommonModule, NgIf } from '@angular/common';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatNativeDateModule } from '@angular/material/core';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { PlansService } from 'src/app/services/plans.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { environment } from 'src/environments/environment';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
-import { OlympiaService } from 'src/app/services/olympia.service';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { MatProgressBar } from '@angular/material/progress-bar';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { MatSlideToggleChange } from '@angular/material/slide-toggle';
-import { MaterialModule } from '../../../material.module';
-import { CertificationsService } from 'src/app/services/certifications.service';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { AppCertificationModalComponent } from './certification-modal.component';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { of } from 'rxjs';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { Loader } from 'src/app/app.models';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { ApplicationsService } from 'src/app/services/applications.service';
+import { CertificationsService } from 'src/app/services/certifications.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { OlympiaService } from 'src/app/services/olympia.service';
 import { PermissionService } from 'src/app/services/permission.service';
-import { formatEnglishLevelDisplay, getEnglishLevelLabel } from 'src/app/utils/english-level';
+import { PlansService } from 'src/app/services/plans.service';
+import { UsersService } from 'src/app/services/users.service';
+import { NotificationStore } from 'src/app/stores/notification.store';
+import {
+  formatEnglishLevelDisplay,
+  getEnglishLevelLabel,
+} from 'src/app/utils/english-level';
+import { environment } from 'src/environments/environment';
+
+import { AppCertificationModalComponent } from './certification-modal.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   standalone: true,
   selector: 'app-account-setting',
-  imports: [MaterialModule, MatCardModule, ReactiveFormsModule, MatIconModule, TablerIconsModule, MatTabsModule, MatFormFieldModule, MatSlideToggleModule, MatSelectModule, MatInputModule, MatButtonModule, MatDividerModule, MatDatepickerModule, MatNativeDateModule, NgIf, RouterLink, MatProgressBar, CommonModule, MatMenuModule, LoaderComponent, ModalComponent],
-  templateUrl: './account-setting.component.html'
+  imports: [
+    MaterialModule,
+    MatCardModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    TablerIconsModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatSlideToggleModule,
+    MatSelectModule,
+    MatInputModule,
+    MatButtonModule,
+    MatDividerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    NgIf,
+    RouterLink,
+    MatProgressBar,
+    CommonModule,
+    MatMenuModule,
+    LoaderComponent,
+    ModalComponent,
+  ],
+  templateUrl: './account-setting.component.html',
 })
 export class AppAccountSettingComponent implements OnInit {
-  selectedTabIndex: number = 0;
-  selectedTabLabel: string = '';
+  selectedTabIndex = 0;
+  selectedTabLabel = '';
   private pendingTabParam: any = null;
   isCandidate = false;
   notificationStore = inject(NotificationStore);
@@ -67,109 +101,124 @@ export class AppAccountSettingComponent implements OnInit {
     phone: '',
     address: '',
     employee: {
-        company: '',
-        position_name: '',
-        emergency_contact: {
-            name: '',
-            relationship: '',
-            phone: ''
-        },
-        medical_conditions: '',
-        social_media: {
-            facebook: '',
-            instagram: '',
-            twitter: '',
-            linkedin: ''
-        },
-        start_date: '',
-        insurance_data: {
-            provider: '',
-            policy_number: '',
-            coverage_details: '',
-            createdAt: ''
-        }
+      company: '',
+      position_name: '',
+      emergency_contact: {
+        name: '',
+        relationship: '',
+        phone: '',
+      },
+      medical_conditions: '',
+      social_media: {
+        facebook: '',
+        instagram: '',
+        twitter: '',
+        linkedin: '',
+      },
+      start_date: '',
+      insurance_data: {
+        provider: '',
+        policy_number: '',
+        coverage_details: '',
+        createdAt: '',
+      },
     },
     company: {
       name: '',
       headquarter: '',
       employees_amount: '',
       bussiness_segment: '',
-      show_info: true
-    }
+      show_info: true,
+    },
   };
-  profileForm: FormGroup = this.fb.group({
-    name: [''],
-    last_name: [''],
-    logo: [''],
-    email: [''],
-    phone: ['', [
-      Validators.pattern(/^[0-9]+$/),
-      Validators.minLength(10),
-      Validators.maxLength(15)
-    ]],
-    companyName: [''],
-    headquarter: [''],
-    employees_amount: [null, [Validators.min(0)]],
-    bussiness_segment: [''],
-    show_info: [true],
-    old_password: ['', [Validators.minLength(8)]],
-    new_password: ['', [Validators.minLength(8)]]
-  },  {
-    validators: this.passwordValidator
-  });
+  profileForm: FormGroup = this.fb.group(
+    {
+      name: [''],
+      last_name: [''],
+      logo: [''],
+      email: [''],
+      phone: [
+        '',
+        [
+          Validators.pattern(/^[0-9]+$/),
+          Validators.minLength(10),
+          Validators.maxLength(15),
+        ],
+      ],
+      companyName: [''],
+      headquarter: [''],
+      employees_amount: [null, [Validators.min(0)]],
+      bussiness_segment: [''],
+      show_info: [true],
+      old_password: ['', [Validators.minLength(8)]],
+      new_password: ['', [Validators.minLength(8)]],
+    },
+    {
+      validators: this.passwordValidator,
+    },
+  );
   personalForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     last_name: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', [
-      Validators.pattern(/^[0-9]+$/),
-      Validators.minLength(10),
-      Validators.maxLength(15)
-    ]],
+    phone: [
+      '',
+      [
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15),
+      ],
+    ],
     address: [''],
     profile: [''],
-    availability: [null]
+    availability: [null],
   });
   medicalForm: FormGroup = this.fb.group({
     medical_conditions: [''],
     emergency_contact: this.fb.group({
       name: [''],
       relationship: [''],
-      phone: ['', [
-        Validators.pattern(/^[0-9]+$/),
-        Validators.minLength(10),
-        Validators.maxLength(15)
-      ]]
+      phone: [
+        '',
+        [
+          Validators.pattern(/^[0-9]+$/),
+          Validators.minLength(10),
+          Validators.maxLength(15),
+        ],
+      ],
     }),
     insurance_data: this.fb.group({
       provider: [''],
       policy_number: [''],
       coverage_details: [''],
-    })
+    }),
   });
   socialMediaForm: FormGroup = this.fb.group({
     social_media: this.fb.group({
       facebook: [''],
       instagram: [''],
       twitter: [''],
-      linkedin: ['']
-    })
+      linkedin: [''],
+    }),
   });
-  isSubmitting: boolean = false;
-  showInsuranceDetails: boolean = false;
-  selectedTag: string = 'general';
+  isSubmitting = false;
+  showInsuranceDetails = false;
+  selectedTag = 'general';
   role: string | null = localStorage.getItem('role');
   currentPlan: any = {
     id: '',
-    name: ''
+    name: '',
   };
-  logo: string = 'assets/images/default-logo.jpg';
-  picture: string = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
-  originalLogo: string = '';
-  submitted: boolean = false;
-  showForm: boolean = false;
+  logo = 'assets/images/default-logo.jpg';
+  picture: string =
+    this.role === '3'
+      ? 'assets/images/default-user-profile-pic.png'
+      : 'assets/images/default-logo.jpg';
+  originalLogo = '';
+  submitted = false;
+  showForm = false;
   isOrphan: boolean;
-  matchRequested: boolean = false;
+  matchRequested = false;
   olympiaForm = this.fb.group({
     full_name: ['', Validators.required],
     birth_date: ['', Validators.required],
@@ -212,24 +261,36 @@ export class AppAccountSettingComponent implements OnInit {
     referred: ['no', Validators.required],
     referredName: [''],
     age: ['', [Validators.required, Validators.min(18)]],
-    contactPhone: ['', [
-      Validators.required,
-      Validators.pattern(/^[0-9]+$/),
-      Validators.minLength(10),
-      Validators.maxLength(15)
-    ]],
-    additionalPhone: ['', [
-      Validators.pattern(/^[0-9]+$/),
-      Validators.minLength(10),
-      Validators.maxLength(15)
-    ]],
+    contactPhone: [
+      '',
+      [
+        Validators.required,
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15),
+      ],
+    ],
+    additionalPhone: [
+      '',
+      [
+        Validators.pattern(/^[0-9]+$/),
+        Validators.minLength(10),
+        Validators.maxLength(15),
+      ],
+    ],
     currentResidence: [''],
     address: ['', Validators.required],
     children: [0, [Validators.min(0)]],
-    englishLevel: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
+    englishLevel: [
+      '',
+      [Validators.required, Validators.min(1), Validators.max(10)],
+    ],
     competencies: ['', Validators.required],
     technicalSkills: ['', Validators.required],
-    techProficiency: ['', [Validators.required, Validators.min(1), Validators.max(10)]],
+    techProficiency: [
+      '',
+      [Validators.required, Validators.min(1), Validators.max(10)],
+    ],
     educationHistory: ['', Validators.required],
     workExperience: ['', Validators.required],
     workReferences: ['', Validators.required],
@@ -240,13 +301,13 @@ export class AppAccountSettingComponent implements OnInit {
     portfolio: [null],
     google_user_id: [''],
     salaryRange: [null, [Validators.required, Validators.min(1)]],
-    programmingLanguages: ['']
+    programmingLanguages: [''],
   });
   locations: any[] = [];
   positions: any[] = [];
   careerRoles: any[] = [
-    { title: "Virtual Assistant", position_id: 16 },
-    { title: "IT and Technology", position_id: 41 }
+    { title: 'Virtual Assistant', position_id: 16 },
+    { title: 'IT and Technology', position_id: 41 },
   ];
   applicationId: number | null = null;
   private originalApplicationValues: any = null;
@@ -258,11 +319,11 @@ export class AppAccountSettingComponent implements OnInit {
   application!: any;
   videoPreview: string | null = null;
   selectedVideoFile: File | null = null;
-  videoUploadProgress: number = 0;
-  maxVideoSize: number = 100 * 1024 * 1024; 
-  maxPictureSize: number =  1 * 1024 * 1024;
+  videoUploadProgress = 0;
+  maxVideoSize: number = 100 * 1024 * 1024;
+  maxPictureSize: number = 1 * 1024 * 1024;
   isLoadingSubscription = false;
-  formChanged: boolean = false;
+  formChanged = false;
   originalUserData: any = null;
   isLoadingReceipt = false;
   certifications: any[] = [];
@@ -273,20 +334,21 @@ export class AppAccountSettingComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('videoInput') videoInput!: ElementRef<HTMLInputElement>;
-  
-  constructor(public companiesService: CompaniesService,  
-            private usersService: UsersService, 
-            private dialog: MatDialog,
-            private plansService: PlansService,
-            private olympiaService: OlympiaService,
-            public snackBar: MatSnackBar,
-            private cdr: ChangeDetectorRef,
-            public applicationsService: ApplicationsService,
-            private route: ActivatedRoute,
-            private router: Router,
-            private certificationsService: CertificationsService,
-            private permissionService: PermissionService,
-          ) {}
+
+  constructor(
+    public companiesService: CompaniesService,
+    private usersService: UsersService,
+    private dialog: MatDialog,
+    private plansService: PlansService,
+    private olympiaService: OlympiaService,
+    public snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef,
+    public applicationsService: ApplicationsService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private certificationsService: CertificationsService,
+    private permissionService: PermissionService,
+  ) {}
 
   getAttachmentUrl(key: string): string {
     return this.certificationsService.getAttachmentUrl(key);
@@ -303,15 +365,15 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.isOrphan = localStorage.getItem('isOrphan') === 'true';    
+    this.isOrphan = localStorage.getItem('isOrphan') === 'true';
     this.getUser();
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       const tab = params['tab'];
       if (tab !== undefined) {
         this.pendingTabParam = tab;
       }
       // this.checkSubscriptionSuccess();
-    }); 
+    });
     // this.loadSubscriptionStatus();
 
     this.setupNameTrimming(this.personalForm, 'name');
@@ -363,7 +425,7 @@ export class AppAccountSettingComponent implements OnInit {
   setupConditionalValidation(): void {
     const referredControl = this.applicationForm.get('referred');
     if (referredControl) {
-      referredControl.valueChanges.subscribe(value => {
+      referredControl.valueChanges.subscribe((value) => {
         const referredNameControl = this.applicationForm.get('referredName');
         if (value === 'yes') {
           referredNameControl?.setValidators(Validators.required);
@@ -376,8 +438,10 @@ export class AppAccountSettingComponent implements OnInit {
 
     const roleControl = this.applicationForm.get('role');
     if (roleControl) {
-      roleControl.valueChanges.subscribe(value => {
-        const programmingLanguagesControl = this.applicationForm.get('programmingLanguages');
+      roleControl.valueChanges.subscribe((value) => {
+        const programmingLanguagesControl = this.applicationForm.get(
+          'programmingLanguages',
+        );
         if (value && value.title === 'IT and Technology') {
           programmingLanguagesControl?.setValidators(Validators.required);
         } else {
@@ -387,7 +451,6 @@ export class AppAccountSettingComponent implements OnInit {
       });
     }
   }
-
 
   onTabChange(event: any) {
     this.selectedTabLabel = event.tab.textLabel;
@@ -400,18 +463,22 @@ export class AppAccountSettingComponent implements OnInit {
       this.user.application.inmediate_availability = availability;
       this.evaluateApplicationVisibility();
     }
-    this.personalForm.get('availability')?.setValue(availability, { emitEvent: false });
+    this.personalForm
+      .get('availability')
+      ?.setValue(availability, { emitEvent: false });
     this.formChanged = true;
     this.checkFormChanges();
-    this.applicationsService.updateAvailability({user_id: this.user.id, availability}).subscribe({
-      next: () => {
-        this.loadApplicationDetails(this.user.id);
-        this.permissionService.notifyPermissionsUpdated();
-      },
-      error: (err) => {
-        console.error('Error updating availability:', err);
-      }
-    });
+    this.applicationsService
+      .updateAvailability({ user_id: this.user.id, availability })
+      .subscribe({
+        next: () => {
+          this.loadApplicationDetails(this.user.id);
+          this.permissionService.notifyPermissionsUpdated();
+        },
+        error: (err) => {
+          console.error('Error updating availability:', err);
+        },
+      });
   }
 
   checkOlympiaStatus(): void {
@@ -421,7 +488,7 @@ export class AppAccountSettingComponent implements OnInit {
       },
       error: () => {
         console.error('Error checking Olympia form status');
-      }
+      },
     });
   }
 
@@ -437,7 +504,7 @@ export class AppAccountSettingComponent implements OnInit {
       },
       error: (err) => {
         console.warn('No introduction video found or failed to load', err);
-      }
+      },
     });
   }
 
@@ -445,9 +512,17 @@ export class AppAccountSettingComponent implements OnInit {
     const file = event.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'];
+    const allowedTypes = [
+      'video/mp4',
+      'video/quicktime',
+      'video/x-msvideo',
+      'video/mpeg',
+    ];
     if (!allowedTypes.includes(file.type)) {
-      this.openSnackBar('Only MP4, MOV, and AVI video files are allowed!', 'Close');
+      this.openSnackBar(
+        'Only MP4, MOV, and AVI video files are allowed!',
+        'Close',
+      );
       this.resetVideoInput();
       return;
     }
@@ -476,7 +551,7 @@ export class AppAccountSettingComponent implements OnInit {
     this.selectedVideoFile = null;
     this.videoUploadProgress = 0;
     this.resetVideoInput();
-    
+
     // this.usersService.deleteIntroductionVideo().subscribe({
     //   next: () => {
     //     this.notificationStore.addNotifications('Video deleted successfully', 'success');
@@ -494,47 +569,48 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   getUser() {
-    if(this.role === '3') { // Client user
-      this.usersService.getUsers(
-        { searchField: '', filter: { currentUser: true } }
-      ).subscribe({
+    if (this.role === '3') {
+      // Client user
+      this.usersService
+        .getUsers({ searchField: '', filter: { currentUser: true } })
+        .subscribe({
           next: (users: any) => {
             this.user = users[0];
-            this.checkMatchRequestStatus() 
+            this.checkMatchRequestStatus();
             this.loadExistingVideo();
             this.usersService.getProfilePic(this.user.id).subscribe({
               next: (url: any) => {
                 if (url) {
-                    this.picture = url;
+                  this.picture = url;
                 }
-              }
+              },
             });
 
             this.companiesService.getByOwner().subscribe((company: any) => {
-              if(company.company.logo) {
-                  this.logo = `${environment.upload}/company-logos/${company.company.logo}`;
-                  this.originalLogo = this.logo; // Store the previous logo
+              if (company.company.logo) {
+                this.logo = `${environment.upload}/company-logos/${company.company.logo}`;
+                this.originalLogo = this.logo; // Store the previous logo
               }
 
               this.plansService.getCurrentPlan(company.company_id).subscribe({
                 next: (plan: any) => {
-                  this.currentPlan.id = plan.plan.id
+                  this.currentPlan.id = plan.plan.id;
                   this.currentPlan.name = plan.plan.name;
                 },
                 complete: () => {
                   // Initialize form after all client data is fetched
                   this.initializeForm();
                   this.applyPendingTab();
-                }
+                },
               });
             });
           },
           error: () => {
             this.openSnackBar('Error loading data', 'Close');
-          }, 
-      });
-    }
-    else { // Admin or Team Member
+          },
+        });
+    } else {
+      // Admin or Team Member
       const userEmail = localStorage.getItem('email') || '';
       this.role = localStorage.getItem('role') || '';
       const userFilter = {
@@ -542,8 +618,8 @@ export class AppAccountSettingComponent implements OnInit {
         filter: {
           currentUser: true,
           email: userEmail,
-          includeAdmins: true
-        }
+          includeAdmins: true,
+        },
       };
       this.usersService.getUsers(userFilter).subscribe({
         next: (users: any) => {
@@ -552,21 +628,21 @@ export class AppAccountSettingComponent implements OnInit {
           this.initializeForm();
           this.applyPendingTab();
           if (this.role === '2') {
-             this.loadCertifications();
-             if (this.user.availability || this.isOrphan) {
+            this.loadCertifications();
+            if (this.user.availability || this.isOrphan) {
               this.loadApplicationDetails(this.user.id);
               this.loadExistingVideo();
               this.checkMatchRequestStatus();
               this.checkOlympiaStatus();
-              this.initializeApplicationFormDependencies();              
-             }
+              this.initializeApplicationFormDependencies();
+            }
           }
           this.usersService.getProfilePic(this.user.id).subscribe({
             next: (url: any) => {
               if (url) {
-                  this.picture = url;
+                this.picture = url;
               }
-            }
+            },
           });
         },
       });
@@ -586,20 +662,22 @@ export class AppAccountSettingComponent implements OnInit {
         this.evaluateApplicationVisibility();
         if (mergedApplication) {
           this.applicationId = mergedApplication.id;
-          const applicationAvailability = this.normalizeAvailability(mergedApplication.inmediate_availability);
+          const applicationAvailability = this.normalizeAvailability(
+            mergedApplication.inmediate_availability,
+          );
           this.personalForm.patchValue({
-            availability: applicationAvailability
+            availability: applicationAvailability,
           });
           if (this.originalUserData) {
             this.originalUserData = {
               ...this.originalUserData,
-              availability: applicationAvailability
+              availability: applicationAvailability,
             };
           }
           const roleFromPosition = this.careerRoles.find(
-            r => r.title === mergedApplication.current_position
+            (r) => r.title === mergedApplication.current_position,
           );
-          
+
           this.applicationForm.patchValue({
             location: mergedApplication.location_id,
             role: roleFromPosition || null,
@@ -630,38 +708,46 @@ export class AppAccountSettingComponent implements OnInit {
           if (mergedApplication.portfolio) {
             this.portfolioFileName = mergedApplication.portfolio;
           }
-            this.originalApplicationValues = {
-              location_id: mergedApplication.location_id,
-              position_id: mergedApplication.position_id || null,
-              current_position: mergedApplication.current_position,
-              applied_where: mergedApplication.applied_where,
-              referred: mergedApplication.referred || 'no',
-              referrer_name: mergedApplication.referrer_name,
-              age: mergedApplication.age,
-              phone: mergedApplication.phone,
-              additional_phone: mergedApplication.additional_phone,
-              address: mergedApplication.address,
-              children: mergedApplication.children ?? null,
-              english_level: mergedApplication.english_level,
-              competencies: mergedApplication.competencies,
-              skills: mergedApplication.skills,
-              tech_proficiency: mergedApplication.tech_proficiency,
-              education_history: mergedApplication.education_history,
-              work_experience: mergedApplication.work_experience,
-              work_references: mergedApplication.work_references,
-              schedule_availability: mergedApplication.schedule_availability,
-              hobbies: mergedApplication.hobbies,
-              google_user_id: mergedApplication.google_user_id,
-              salary_range: mergedApplication.salary_range,
-              programming_languages: mergedApplication.programming_languages,
-              resume: mergedApplication.resume || null,
-              portfolio: mergedApplication.portfolio || null,
-              picture: mergedApplication.picture || null,
-              introduction_video: mergedApplication.introduction_video || null
-            };
-          this.originalApplicationFormData = this.buildCurrentApplicationSnapshot();
-          const loc = this.locations.find((l: any) => l.id === mergedApplication.location_id) || this.locations[mergedApplication.location_id - 1] || null;
-          const locationString = loc ? `${loc.city || ''}${loc.city && loc.country ? ', ' : ''}${loc.country || ''}` : '';
+          this.originalApplicationValues = {
+            location_id: mergedApplication.location_id,
+            position_id: mergedApplication.position_id || null,
+            current_position: mergedApplication.current_position,
+            applied_where: mergedApplication.applied_where,
+            referred: mergedApplication.referred || 'no',
+            referrer_name: mergedApplication.referrer_name,
+            age: mergedApplication.age,
+            phone: mergedApplication.phone,
+            additional_phone: mergedApplication.additional_phone,
+            address: mergedApplication.address,
+            children: mergedApplication.children ?? null,
+            english_level: mergedApplication.english_level,
+            competencies: mergedApplication.competencies,
+            skills: mergedApplication.skills,
+            tech_proficiency: mergedApplication.tech_proficiency,
+            education_history: mergedApplication.education_history,
+            work_experience: mergedApplication.work_experience,
+            work_references: mergedApplication.work_references,
+            schedule_availability: mergedApplication.schedule_availability,
+            hobbies: mergedApplication.hobbies,
+            google_user_id: mergedApplication.google_user_id,
+            salary_range: mergedApplication.salary_range,
+            programming_languages: mergedApplication.programming_languages,
+            resume: mergedApplication.resume || null,
+            portfolio: mergedApplication.portfolio || null,
+            picture: mergedApplication.picture || null,
+            introduction_video: mergedApplication.introduction_video || null,
+          };
+          this.originalApplicationFormData =
+            this.buildCurrentApplicationSnapshot();
+          const loc =
+            this.locations.find(
+              (l: any) => l.id === mergedApplication.location_id,
+            ) ||
+            this.locations[mergedApplication.location_id - 1] ||
+            null;
+          const locationString = loc
+            ? `${loc.city || ''}${loc.city && loc.country ? ', ' : ''}${loc.country || ''}`
+            : '';
           const roleTitle = roleFromPosition ? roleFromPosition.title : null;
 
           this.olympiaForm.patchValue({
@@ -679,7 +765,7 @@ export class AppAccountSettingComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading applications', error);
-      }
+      },
     });
   }
 
@@ -700,12 +786,13 @@ export class AppAccountSettingComponent implements OnInit {
     }
     return {
       ...application,
-      ...pending
+      ...pending,
     };
   }
 
   checkFormChanges(): void {
-    const mediaChanged = !!this.personalForm.get('profile')?.value || !!this.selectedVideoFile;
+    const mediaChanged =
+      !!this.personalForm.get('profile')?.value || !!this.selectedVideoFile;
 
     if (this.role === '3') {
       const currentProfileData = {
@@ -732,10 +819,16 @@ export class AppAccountSettingComponent implements OnInit {
         show_info: this.user?.company?.show_info ?? true,
       };
 
-      const profileFieldsChanged = this.hasObjectDifferences(currentProfileData, originalProfileData);
-      const passwordChanged = !!this.profileForm.get('old_password')?.value || !!this.profileForm.get('new_password')?.value;
+      const profileFieldsChanged = this.hasObjectDifferences(
+        currentProfileData,
+        originalProfileData,
+      );
+      const passwordChanged =
+        !!this.profileForm.get('old_password')?.value ||
+        !!this.profileForm.get('new_password')?.value;
 
-      this.formChanged = profileFieldsChanged || passwordChanged || mediaChanged;
+      this.formChanged =
+        profileFieldsChanged || passwordChanged || mediaChanged;
       return;
     }
 
@@ -750,19 +843,28 @@ export class AppAccountSettingComponent implements OnInit {
       email: this.personalForm.get('email')?.value,
       phone: this.personalForm.get('phone')?.value,
       address: this.personalForm.get('address')?.value,
-      availability: this.normalizeAvailability(this.personalForm.get('availability')?.value),
+      availability: this.normalizeAvailability(
+        this.personalForm.get('availability')?.value,
+      ),
     };
 
-    const personalChanged = this.hasObjectDifferences(currentPersonalData, this.originalUserData);
+    const personalChanged = this.hasObjectDifferences(
+      currentPersonalData,
+      this.originalUserData,
+    );
 
-    const currentSocialMedia = this.socialMediaForm.get('social_media')?.value || {};
+    const currentSocialMedia =
+      this.socialMediaForm.get('social_media')?.value || {};
     const originalSocialMedia = {
       facebook: this.user?.employee?.social_media?.facebook || '',
       instagram: this.user?.employee?.social_media?.instagram || '',
       twitter: this.user?.employee?.social_media?.twitter || '',
-      linkedin: this.user?.employee?.social_media?.linkedin || ''
+      linkedin: this.user?.employee?.social_media?.linkedin || '',
     };
-    const socialMediaChanged = this.hasObjectDifferences(currentSocialMedia, originalSocialMedia);
+    const socialMediaChanged = this.hasObjectDifferences(
+      currentSocialMedia,
+      originalSocialMedia,
+    );
 
     let applicationChanged = false;
     if (this.isCandidate) {
@@ -775,14 +877,22 @@ export class AppAccountSettingComponent implements OnInit {
 
       applicationChanged = applicationFieldsChanged || applicationFilesChanged;
     }
-    
-    this.formChanged = personalChanged || socialMediaChanged || applicationChanged || this.certificationsChanged || mediaChanged;
+
+    this.formChanged =
+      personalChanged ||
+      socialMediaChanged ||
+      applicationChanged ||
+      this.certificationsChanged ||
+      mediaChanged;
   }
 
   private hasObjectDifferences(current: any, original: any): boolean {
     const currentObj = current || {};
     const originalObj = original || {};
-    const keys = new Set([...Object.keys(currentObj), ...Object.keys(originalObj)]);
+    const keys = new Set([
+      ...Object.keys(currentObj),
+      ...Object.keys(originalObj),
+    ]);
 
     for (const key of keys) {
       if (!this.areValuesEqual(currentObj[key], originalObj[key])) {
@@ -822,7 +932,10 @@ export class AppAccountSettingComponent implements OnInit {
       phone: this.applicationForm.get('contactPhone')?.value,
       additional_phone: this.applicationForm.get('additionalPhone')?.value,
       address: this.applicationForm.get('address')?.value,
-      children: this.applicationForm.get('children')?.value != null ? this.applicationForm.get('children')?.value : 0,
+      children:
+        this.applicationForm.get('children')?.value != null
+          ? this.applicationForm.get('children')?.value
+          : 0,
       english_level: this.applicationForm.get('englishLevel')?.value,
       competencies: this.applicationForm.get('competencies')?.value,
       skills: this.applicationForm.get('technicalSkills')?.value,
@@ -831,9 +944,11 @@ export class AppAccountSettingComponent implements OnInit {
       work_experience: this.applicationForm.get('workExperience')?.value,
       work_references: this.applicationForm.get('workReferences')?.value,
       hobbies: this.applicationForm.get('hobbies')?.value,
-      schedule_availability: this.applicationForm.get('scheduleAvailability')?.value,
+      schedule_availability: this.applicationForm.get('scheduleAvailability')
+        ?.value,
       salary_range: this.applicationForm.get('salaryRange')?.value,
-      programming_languages: this.applicationForm.get('programmingLanguages')?.value,
+      programming_languages: this.applicationForm.get('programmingLanguages')
+        ?.value,
     };
   }
 
@@ -848,11 +963,16 @@ export class AppAccountSettingComponent implements OnInit {
 
     const applicationFilesChanged = !!this.resumeFile || !!this.portfolioFile;
 
-    return applicationFieldsChanged || applicationFilesChanged || this.certificationsChanged || !!this.selectedVideoFile;
+    return (
+      applicationFieldsChanged ||
+      applicationFilesChanged ||
+      this.certificationsChanged ||
+      !!this.selectedVideoFile
+    );
   }
 
   initializeForm() {
-    if(this.role === '3') {
+    if (this.role === '3') {
       this.profileForm.patchValue({
         name: this.user.name,
         last_name: this.user.last_name,
@@ -864,12 +984,13 @@ export class AppAccountSettingComponent implements OnInit {
         headquarter: this.user.company.headquarter,
         employees_amount: this.user.company.employees_amount,
         bussiness_segment: this.user.company.bussiness_segment,
-        show_info: this.user.company.show_info ?? true
+        show_info: this.user.company.show_info ?? true,
       });
-    }
-    else {
+    } else {
       const initialAvailability = this.normalizeAvailability(
-        this.user?.application?.inmediate_availability ?? this.user?.availability ?? null
+        this.user?.application?.inmediate_availability ??
+          this.user?.availability ??
+          null,
       );
 
       this.originalUserData = {
@@ -889,7 +1010,7 @@ export class AppAccountSettingComponent implements OnInit {
         phone: this.user.phone,
         address: this.user.address,
         picture: this.picture,
-        availability: initialAvailability
+        availability: initialAvailability,
       });
 
       this.personalForm.get('phone')?.markAsTouched();
@@ -902,15 +1023,18 @@ export class AppAccountSettingComponent implements OnInit {
         medical_conditions: this.user.employee?.medical_conditions,
         emergency_contact: {
           name: this.user.employee?.emergency_contact?.name || '',
-          relationship: this.user.employee?.emergency_contact?.relationship || '',
-          phone: this.user.employee?.emergency_contact?.phone || ''
+          relationship:
+            this.user.employee?.emergency_contact?.relationship || '',
+          phone: this.user.employee?.emergency_contact?.phone || '',
         },
         insurance_data: {
           provider: this.user.employee?.insurance_data?.provider || '',
-          policy_number: this.user.employee?.insurance_data?.policy_number || '',
-          coverage_details: this.user.employee?.insurance_data?.coverage_details || '',
-          createdAt: this.user.employee?.insurance_data?.createdAt || null
-        }
+          policy_number:
+            this.user.employee?.insurance_data?.policy_number || '',
+          coverage_details:
+            this.user.employee?.insurance_data?.coverage_details || '',
+          createdAt: this.user.employee?.insurance_data?.createdAt || null,
+        },
       });
 
       // Populate social media form
@@ -919,14 +1043,13 @@ export class AppAccountSettingComponent implements OnInit {
           facebook: this.user.employee?.social_media?.facebook || '',
           instagram: this.user.employee?.social_media?.instagram || '',
           twitter: this.user.employee?.social_media?.twitter || '',
-          linkedin: this.user.employee?.social_media?.linkedin || ''
-        }
+          linkedin: this.user.employee?.social_media?.linkedin || '',
+        },
       });
 
-      if(this.isOrphan) {
+      if (this.isOrphan) {
         this.applicationForm.markAllAsTouched();
       }
-
     }
   }
 
@@ -934,7 +1057,7 @@ export class AppAccountSettingComponent implements OnInit {
     const oldPassword = group.get('old_password')?.value;
     const newPassword = group.get('new_password')?.value;
 
-    if (oldPassword && (!newPassword)) {
+    if (oldPassword && !newPassword) {
       return { newPasswordRequired: true };
     }
     return null;
@@ -943,20 +1066,26 @@ export class AppAccountSettingComponent implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-      if (file.size > this.maxPictureSize) {
-        this.notificationStore.addNotifications('Image size should be 1 MB or less', 'error')
-        this.openSnackBar('Image size should be 1 MB or less', 'Close');
-        return
-      }
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        this.notificationStore.addNotifications('Only JPG or PNG files are allowed!', 'error');
-        return;
-      }
-      this.previewImage(file);
-      // if(this.role === '3') this.profileForm.patchValue({ logo: img })
-      // else this.personalForm.patchValue({ profile: img });
-      this.personalForm.patchValue({ profile: file });
-      this.checkFormChanges(); 
+    if (file.size > this.maxPictureSize) {
+      this.notificationStore.addNotifications(
+        'Image size should be 1 MB or less',
+        'error',
+      );
+      this.openSnackBar('Image size should be 1 MB or less', 'Close');
+      return;
+    }
+    if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+      this.notificationStore.addNotifications(
+        'Only JPG or PNG files are allowed!',
+        'error',
+      );
+      return;
+    }
+    this.previewImage(file);
+    // if(this.role === '3') this.profileForm.patchValue({ logo: img })
+    // else this.personalForm.patchValue({ profile: img });
+    this.personalForm.patchValue({ profile: file });
+    this.checkFormChanges();
   }
 
   previewImage(file: File) {
@@ -975,9 +1104,12 @@ export class AppAccountSettingComponent implements OnInit {
     //   this.profileForm.patchValue({ logo: null });
     // }
     // else {
-      this.picture = this.role === '3' ? 'assets/images/default-user-profile-pic.png' : 'assets/images/default-logo.jpg';
-      this.personalForm.patchValue({ profile: null });
-      this.resetFileInput();
+    this.picture =
+      this.role === '3'
+        ? 'assets/images/default-user-profile-pic.png'
+        : 'assets/images/default-logo.jpg';
+    this.personalForm.patchValue({ profile: null });
+    this.resetFileInput();
     // }
   }
 
@@ -992,7 +1124,10 @@ export class AppAccountSettingComponent implements OnInit {
       return this.profileForm.valid && this.formChanged;
     } else {
       if (this.isCandidate) {
-        const isOpenToWork = this.normalizeAvailability(this.personalForm.get('availability')?.value) === true;
+        const isOpenToWork =
+          this.normalizeAvailability(
+            this.personalForm.get('availability')?.value,
+          ) === true;
 
         if (!isOpenToWork) {
           return this.personalForm.valid && this.formChanged;
@@ -1001,82 +1136,91 @@ export class AppAccountSettingComponent implements OnInit {
         const hasApplicationChanges = this.hasCandidateApplicationChanges();
         const canSaveWithoutApplicationValidation = !hasApplicationChanges;
 
-        return this.personalForm.valid && this.formChanged &&
-          (canSaveWithoutApplicationValidation || this.applicationForm.valid);
+        return (
+          this.personalForm.valid &&
+          this.formChanged &&
+          (canSaveWithoutApplicationValidation || this.applicationForm.valid)
+        );
       }
       return this.personalForm.valid && this.formChanged;
     }
   }
 
-  
   saveProfile() {
     this.isSubmitting = true;
 
-    if(this.role === '3') {
+    if (this.role === '3') {
       if (!this.profileForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
         this.isSubmitting = false;
         return;
       }
-  
+
       const userData = {
         ...this.user,
         ...this.profileForm.value,
         role: this.role,
         company: {
-          id: this.user.company.id
+          id: this.user.company.id,
         },
-        profile: this.personalForm.get('profile')?.value
+        profile: this.personalForm.get('profile')?.value,
       };
-  
+
       const companyData = {
         id: this.user.company.id,
         name: this.profileForm.value.companyName,
-        logo: this.logo !== this.originalLogo ? this.profileForm.value.logo : this.originalLogo, // Validate logo changes
+        logo:
+          this.logo !== this.originalLogo
+            ? this.profileForm.value.logo
+            : this.originalLogo, // Validate logo changes
         headquarter: this.profileForm.value.headquarter,
         employees_amount: this.profileForm.value.employees_amount,
         bussiness_segment: this.profileForm.value.bussiness_segment,
-        show_info: this.profileForm.value.show_info
+        show_info: this.profileForm.value.show_info,
       };
-  
+
       this.usersService.updateProfile(userData).subscribe({
         next: () => {
-            this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
-            this.companiesService.submit(companyData, companyData.id).subscribe({
-                complete: () => {
-                  this.permissionService.notifyPermissionsUpdated();
-                  this.openSnackBar('Profile updated successfully', 'Close');
-                  this.isSubmitting = false;
-                  this.getUser();
-                }
-            });
+          this.usersService.updateUsername(
+            `${userData.name} ${userData.last_name}`,
+          );
+          this.companiesService.submit(companyData, companyData.id).subscribe({
+            complete: () => {
+              this.permissionService.notifyPermissionsUpdated();
+              this.openSnackBar('Profile updated successfully', 'Close');
+              this.isSubmitting = false;
+              this.getUser();
+            },
+          });
         },
         error: (res: any) => {
           this.openSnackBar('Error updating profile.', 'Close');
           this.isSubmitting = false;
-        }
+        },
       });
-  
-      if(this.profileForm.value.old_password && this.profileForm.value.new_password) {
-          const passwordData = {
-              old_password: this.profileForm.value.old_password,
-              new_password: this.profileForm.value.new_password
-          };
-          this.usersService.updatePassword(passwordData).subscribe({
-              error: (res: any) => {
-                this.isSubmitting = false;
-                this.notificationStore.addNotifications(res.error.message, 'error');
-              }
-          });
+
+      if (
+        this.profileForm.value.old_password &&
+        this.profileForm.value.new_password
+      ) {
+        const passwordData = {
+          old_password: this.profileForm.value.old_password,
+          new_password: this.profileForm.value.new_password,
+        };
+        this.usersService.updatePassword(passwordData).subscribe({
+          error: (res: any) => {
+            this.isSubmitting = false;
+            this.notificationStore.addNotifications(res.error.message, 'error');
+          },
+        });
       }
-    }
-    else {
-      if(!this.personalForm.valid) {
+    } else {
+      if (!this.personalForm.valid) {
         this.openSnackBar('Please fill all fields', 'Close');
         this.isSubmitting = false;
         return;
       }
-  
+
       const userData = {
         ...this.user,
         ...this.personalForm.value,
@@ -1086,47 +1230,60 @@ export class AppAccountSettingComponent implements OnInit {
           medical_conditions: this.medicalForm.get('medical_conditions')?.value,
           emergency_contact: {
             name: this.medicalForm.get('emergency_contact.name')?.value,
-            relationship: this.medicalForm.get('emergency_contact.relationship')?.value,
-            phone: this.medicalForm.get('emergency_contact.phone')?.value
+            relationship: this.medicalForm.get('emergency_contact.relationship')
+              ?.value,
+            phone: this.medicalForm.get('emergency_contact.phone')?.value,
           },
           insurance_data: {
             provider: this.medicalForm.get('insurance_data.provider')?.value,
-            policy_number: this.medicalForm.get('insurance_data.policy_number')?.value,
-            coverage_details: this.medicalForm.get('insurance_data.coverage_details')?.value,
-            createdAt: this.medicalForm.get('insurance_data.createdAt')?.value
+            policy_number: this.medicalForm.get('insurance_data.policy_number')
+              ?.value,
+            coverage_details: this.medicalForm.get(
+              'insurance_data.coverage_details',
+            )?.value,
+            createdAt: this.medicalForm.get('insurance_data.createdAt')?.value,
           },
           social_media: {
             facebook: this.socialMediaForm.get('social_media.facebook')?.value,
-            instagram: this.socialMediaForm.get('social_media.instagram')?.value,
+            instagram: this.socialMediaForm.get('social_media.instagram')
+              ?.value,
             twitter: this.socialMediaForm.get('social_media.twitter')?.value,
-            linkedin: this.socialMediaForm.get('social_media.linkedin')?.value
-          }
-        }
+            linkedin: this.socialMediaForm.get('social_media.linkedin')?.value,
+          },
+        },
       };
-    
-      this.usersService.updateProfile(userData)
+
+      this.usersService
+        .updateProfile(userData)
         .pipe(
-          catchError(error => {
+          catchError((error) => {
             this.openSnackBar(error.error.message, 'Close');
             this.isSubmitting = false;
             return of(null);
-          })
+          }),
         )
-        .subscribe(response => {
-          if (response){
-            this.usersService.updateUsername(`${userData.name} ${userData.last_name}`);
+        .subscribe((response) => {
+          if (response) {
+            this.usersService.updateUsername(
+              `${userData.name} ${userData.last_name}`,
+            );
             if (this.applicationId && !this.isCandidate) {
-              this.usersService.submitApplicationDetails(
-                {
-                  name: `${userData.name} ${userData.last_name}`
-                },
-                this.applicationId
-              ).subscribe();
+              this.usersService
+                .submitApplicationDetails(
+                  {
+                    name: `${userData.name} ${userData.last_name}`,
+                  },
+                  this.applicationId,
+                )
+                .subscribe();
             }
-            if (this.isCandidate && this.applicationId && this.hasCandidateApplicationChanges()) {
+            if (
+              this.isCandidate &&
+              this.applicationId &&
+              this.hasCandidateApplicationChanges()
+            ) {
               this.submitApplicationDetailsInternal();
-            }
-            else if (this.selectedVideoFile) {
+            } else if (this.selectedVideoFile) {
               this.uploadVideo();
             } else {
               this.openSnackBar('User data updated successfully!', 'Close');
@@ -1142,7 +1299,12 @@ export class AppAccountSettingComponent implements OnInit {
   uploadVideo(): void {
     if (!this.selectedVideoFile) return;
 
-    this.usersService.uploadIntroductionVideo(this.selectedVideoFile, this.user.email, this.applicationId || undefined)
+    this.usersService
+      .uploadIntroductionVideo(
+        this.selectedVideoFile,
+        this.user.email,
+        this.applicationId || undefined,
+      )
       .pipe(
         finalize(() => {
           this.isSubmitting = false;
@@ -1150,7 +1312,7 @@ export class AppAccountSettingComponent implements OnInit {
           this.videoUploadProgress = 0;
           this.resetVideoInput();
           this.checkFormChanges();
-        })
+        }),
       )
       .subscribe({
         next: (res: any) => {
@@ -1160,9 +1322,12 @@ export class AppAccountSettingComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.openSnackBar('Error uploading video: ' + error.error?.message, 'Close');
+          this.openSnackBar(
+            'Error uploading video: ' + error.error?.message,
+            'Close',
+          );
           console.error('Video upload error:', error);
-        }
+        },
       });
   }
 
@@ -1183,7 +1348,7 @@ export class AppAccountSettingComponent implements OnInit {
       return;
     }
 
-    if(!this.resumeFileName) {
+    if (!this.resumeFileName) {
       this.openSnackBar('Resume is required', 'Close');
       return;
     }
@@ -1194,7 +1359,7 @@ export class AppAccountSettingComponent implements OnInit {
 
   private submitApplicationDetailsInternal(): void {
     const formValues = this.applicationForm.value;
-    
+
     const payload: any = {
       location_id: formValues.location,
       position_id: null,
@@ -1265,25 +1430,32 @@ export class AppAccountSettingComponent implements OnInit {
       return;
     }
 
-    this.usersService.submitApplicationDetails(diff, this.applicationId!).subscribe({
-      next: (res: any) => {
-        this.certificationsChanged = false;
-        this.certifications = this.certifications.filter(c => !c.isTemp);
-        this.originalCertifications = JSON.parse(JSON.stringify(this.certifications));
-        if (hasSelectedVideo) {
-          this.uploadVideo();
-        } else {
-          this.openSnackBar('Profile and application details updated successfully', 'Close');
+    this.usersService
+      .submitApplicationDetails(diff, this.applicationId!)
+      .subscribe({
+        next: (res: any) => {
+          this.certificationsChanged = false;
+          this.certifications = this.certifications.filter((c) => !c.isTemp);
+          this.originalCertifications = JSON.parse(
+            JSON.stringify(this.certifications),
+          );
+          if (hasSelectedVideo) {
+            this.uploadVideo();
+          } else {
+            this.openSnackBar(
+              'Profile and application details updated successfully',
+              'Close',
+            );
+            this.isSubmitting = false;
+            this.loadApplicationDetails(this.user.id);
+          }
+        },
+        error: (err: any) => {
+          this.openSnackBar('Error updating application details', 'Close');
           this.isSubmitting = false;
-          this.loadApplicationDetails(this.user.id);
-        }
-      },
-      error: (err: any) => {
-        this.openSnackBar('Error updating application details', 'Close');
-        this.isSubmitting = false;
-        console.error(err);
-      }
-    });
+          console.error(err);
+        },
+      });
   }
 
   onResumeSelected(event: any) {
@@ -1338,14 +1510,14 @@ export class AppAccountSettingComponent implements OnInit {
 
   checkMatchRequestStatus() {
     if (!this.user?.id) return;
-    
+
     this.usersService.checkMatchStatus(this.user.id).subscribe({
       next: (status: boolean) => {
         this.matchRequested = status;
       },
       error: (error) => {
         console.error('Error checking match status', error);
-      }
+      },
     });
   }
 
@@ -1369,14 +1541,25 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   restrictPhoneInput(event: KeyboardEvent) {
-    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const allowedKeys = [
+      '+',
+      ' ',
+      '(',
+      ')',
+      '-',
+      'Backspace',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+      'Delete',
+    ];
     const key = event.key;
-    
+
     // Allow control keys
     if (allowedKeys.includes(key)) {
       return;
     }
-    
+
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();
@@ -1400,13 +1583,15 @@ export class AppAccountSettingComponent implements OnInit {
         this.openSnackBar('Error loading certifications', 'Close');
         this.isLoadingCertifications = false;
         this.loader.started = false;
-      }
+      },
     });
   }
 
   cancelChanges(): void {
     try {
-      this.certifications = JSON.parse(JSON.stringify(this.originalCertifications || []));
+      this.certifications = JSON.parse(
+        JSON.stringify(this.originalCertifications || []),
+      );
       this.certificationsChanged = false;
       this.loadCertifications();
       this.resetFileInput();
@@ -1418,7 +1603,7 @@ export class AppAccountSettingComponent implements OnInit {
           email: this.originalUserData.email,
           phone: this.originalUserData.phone,
           address: this.originalUserData.address,
-          availability: this.originalUserData.availability
+          availability: this.originalUserData.availability,
         });
       }
       if (this.role === '3') {
@@ -1434,7 +1619,8 @@ export class AppAccountSettingComponent implements OnInit {
     try {
       if (!this.application) return;
 
-      let pending: any = this.application.pending_updates ?? this.application.certifications;
+      let pending: any =
+        this.application.pending_updates ?? this.application.certifications;
 
       if (!pending) return;
 
@@ -1454,13 +1640,19 @@ export class AppAccountSettingComponent implements OnInit {
       this.certifications = this.certifications || [];
 
       for (const p of pending) {
-        const pendingIdNum = typeof p.id === 'number' ? p.id : (typeof p.id === 'string' && /^\d+$/.test(p.id) ? Number(p.id) : null);
+        const pendingIdNum =
+          typeof p.id === 'number'
+            ? p.id
+            : typeof p.id === 'string' && /^\d+$/.test(p.id)
+              ? Number(p.id)
+              : null;
 
         const exists = this.certifications.some((c: any) => {
           if (pendingIdNum != null && typeof c.id === 'number') {
             return c.id === pendingIdNum;
           }
-          const nameEqual = (c.name || '').toLowerCase() === (p.name || '').toLowerCase();
+          const nameEqual =
+            (c.name || '').toLowerCase() === (p.name || '').toLowerCase();
           const dateA = (c.date || '').split('T')[0];
           const dateB = (p.date || '').split('T')[0];
           return nameEqual && dateA === dateB;
@@ -1474,8 +1666,14 @@ export class AppAccountSettingComponent implements OnInit {
       }
       const unique: any[] = [];
       for (const c of this.certifications) {
-        const key = `${(c.name||'').toLowerCase()}|${(c.date||'').split('T')[0]}`;
-        if (!unique.some(u => `${(u.name||'').toLowerCase()}|${(u.date||'').split('T')[0]}` === key)) {
+        const key = `${(c.name || '').toLowerCase()}|${(c.date || '').split('T')[0]}`;
+        if (
+          !unique.some(
+            (u) =>
+              `${(u.name || '').toLowerCase()}|${(u.date || '').split('T')[0]}` ===
+              key,
+          )
+        ) {
           unique.push(c);
         }
       }
@@ -1489,19 +1687,22 @@ export class AppAccountSettingComponent implements OnInit {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
-        subject: 'certification'
-      }
+        subject: 'certification',
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
         return;
       }
 
-      this.certifications = this.certifications.filter(c => c.id !== id);
+      this.certifications = this.certifications.filter((c) => c.id !== id);
       this.certificationsChanged = true;
       this.checkFormChanges();
-      this.openSnackBar('Certification deleted. Click Save to persist changes', 'Close');
+      this.openSnackBar(
+        'Certification deleted. Click Save to persist changes',
+        'Close',
+      );
     });
   }
 
@@ -1513,7 +1714,7 @@ export class AppAccountSettingComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(AppCertificationModalComponent, {
-      data
+      data,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
@@ -1536,30 +1737,39 @@ export class AppAccountSettingComponent implements OnInit {
               ...data,
               id: Date.now() + Math.random(),
               attachment_url: attachmentUrl,
-              isTemp: true
+              isTemp: true,
             };
             this.certifications = [...this.certifications, newCert];
             this.certificationsChanged = true;
             this.loader.started = false;
             this.checkFormChanges();
-            this.openSnackBar('Certification added. Click Save to persist changes.', 'Close');
+            this.openSnackBar(
+              'Certification added. Click Save to persist changes.',
+              'Close',
+            );
           },
           error: (err) => {
             console.error('Error uploading file', err);
-            this.openSnackBar('Error uploading file. Please try again.', 'Close');
+            this.openSnackBar(
+              'Error uploading file. Please try again.',
+              'Close',
+            );
             this.loader.started = false;
-          }
+          },
         });
       } else {
         const newCert: any = {
           ...data,
           id: Date.now() + Math.random(),
-          isTemp: true
+          isTemp: true,
         };
         this.certifications = [...this.certifications, newCert];
         this.certificationsChanged = true;
         this.checkFormChanges();
-        this.openSnackBar('Certification added. Click Save to persist changes.', 'Close');
+        this.openSnackBar(
+          'Certification added. Click Save to persist changes.',
+          'Close',
+        );
       }
     } else if (event === 'Edit') {
       if (file) {
@@ -1569,34 +1779,46 @@ export class AppAccountSettingComponent implements OnInit {
             const attachmentUrl = uploadRes.key.split('/').pop();
             const updatedCert = {
               ...data,
-              attachment_url: attachmentUrl
+              attachment_url: attachmentUrl,
             };
-            this.certifications = this.certifications.map(c =>
-              c.id === data.id ? updatedCert : c
+            this.certifications = this.certifications.map((c) =>
+              c.id === data.id ? updatedCert : c,
             );
             this.certificationsChanged = true;
             this.loader.started = false;
             this.checkFormChanges();
-            this.openSnackBar('Certification updated. Click Save to persist changes.', 'Close');
+            this.openSnackBar(
+              'Certification updated. Click Save to persist changes.',
+              'Close',
+            );
           },
           error: (err) => {
             console.error('Error uploading file', err);
-            this.openSnackBar('Error uploading file. Please try again.', 'Close');
+            this.openSnackBar(
+              'Error uploading file. Please try again.',
+              'Close',
+            );
             this.loader.started = false;
-          }
+          },
         });
       } else {
-        this.certifications = this.certifications.map(c =>
-          c.id === data.id ? { ...c, ...data } : c
+        this.certifications = this.certifications.map((c) =>
+          c.id === data.id ? { ...c, ...data } : c,
         );
         this.certificationsChanged = true;
         this.checkFormChanges();
-        this.openSnackBar('Certification updated. Click Save to persist changes.', 'Close');
+        this.openSnackBar(
+          'Certification updated. Click Save to persist changes.',
+          'Close',
+        );
       }
     }
   }
 
-  private getCertificationOwner(): { user_id: number | null, application_id: number | null } {
+  private getCertificationOwner(): {
+    user_id: number | null;
+    application_id: number | null;
+  } {
     if (this.user?.id) {
       return { user_id: this.user.id, application_id: null };
     }
@@ -1627,7 +1849,7 @@ export class AppAccountSettingComponent implements OnInit {
   setupNameTrimming(form: FormGroup, controlName: string) {
     const control = form.get(controlName);
     if (control) {
-      control.valueChanges.subscribe(value => {
+      control.valueChanges.subscribe((value) => {
         if (value && typeof value === 'string' && value !== value.trim()) {
           control.setValue(value.trim(), { emitEvent: false });
         }
@@ -1659,7 +1881,8 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   private applyPendingTab(): void {
-    if (this.pendingTabParam === null || this.pendingTabParam === undefined) return;
+    if (this.pendingTabParam === null || this.pendingTabParam === undefined)
+      return;
     const raw = this.pendingTabParam;
     const num = Number(raw);
     if (!isNaN(num) && num === 1) {
@@ -1690,4 +1913,4 @@ export class AppAccountSettingComponent implements OnInit {
       }
     }
   }
-} 
+}

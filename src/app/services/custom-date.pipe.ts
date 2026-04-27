@@ -1,4 +1,5 @@
 import { Pipe, PipeTransform, Injectable } from '@angular/core';
+
 import moment from 'moment';
 
 @Injectable({ providedIn: 'root' })
@@ -6,18 +7,18 @@ import moment from 'moment';
   name: 'customDate',
 })
 export class CustomDatePipe implements PipeTransform {
-  transform(value: Date, format: string = 'DD-MM-YYYY HH:mm:ss'): string {
+  transform(value: Date, format = 'DD-MM-YYYY HH:mm:ss'): string {
     return moment(value).format(format);
   }
 
-  getTotalHours(date: any, now:any = new Date): any {
-    let format = new Date(date).getTime();
+  getTotalHours(date: any, now: any = new Date()): any {
+    const format = new Date(date).getTime();
     const diff = now.getTime() - format;
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor(diff / (1000 * 60));
     const seconds = Math.floor(diff / 1000);
     const timer = `${this.padzero(hours)}:${this.padzero(
-      minutes - hours * 60
+      minutes - hours * 60,
     )}:${this.padzero(seconds - minutes * 60)}`;
     return timer;
   }

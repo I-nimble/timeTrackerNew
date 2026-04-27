@@ -1,20 +1,18 @@
-import { Component, OnInit } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatDividerModule } from '@angular/material/divider';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { FILTERABLE_TABLE_HTML_SNIPPET } from './code/filterable-table-html-snippet';
 import { FILTERABLE_TABLE_TS_SNIPPET } from './code/filterable-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 export interface productsData {
   id: number;

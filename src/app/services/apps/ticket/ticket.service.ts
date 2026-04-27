@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import { TicketElement } from 'src/app/pages/apps/tickets/ticket';
 import { tickets } from 'src/app/pages/apps/tickets/ticketsData';
 
@@ -56,14 +57,14 @@ export class TicketService {
   updateTicket(updatedTicket: TicketElement): void {
     this.ticketsData.update((currentTickets) =>
       currentTickets.map((ticket) =>
-        ticket.id === updatedTicket.id ? updatedTicket : ticket
-      )
+        ticket.id === updatedTicket.id ? updatedTicket : ticket,
+      ),
     );
   }
 
   deleteTicket(id: number): void {
     this.ticketsData.update((currentTickets) =>
-      currentTickets.filter((ticket) => ticket.id !== id)
+      currentTickets.filter((ticket) => ticket.id !== id),
     );
   }
 }

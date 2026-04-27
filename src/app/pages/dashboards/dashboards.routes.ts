@@ -1,16 +1,16 @@
 import { Routes } from '@angular/router';
 
 // dashboards
+import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
+import { UserTypeGuardService } from 'src/app/services/guards/user-type-guard.service';
+
+import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
+import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
-import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';
+import { ReportsComponent } from './reports/reports.component';
 import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
-import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
-
-import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
-import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
-import { UserTypeGuardService } from 'src/app/services/guards/user-type-guard.service';
 
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
@@ -36,19 +36,27 @@ export const DashboardsRoutes: Routes = [
       {
         path: 'admin',
         component: AppDashboardAdminComponent,
-        data: { title: 'Dashboard', allowedUserTypes: [ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
+        data: {
+          title: 'Dashboard',
+          allowedUserTypes: [ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE],
+        },
         canActivate: [UserTypeGuardService],
       },
       {
         path: 'reports',
         component: ReportsComponent,
-        data: { 
-          title: 'Reports', 
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE],
+        data: {
+          title: 'Reports',
+          allowedUserTypes: [
+            ADMIN_TYPE_ROLE,
+            USER_TYPE_ROLE,
+            CLIENT_TYPE_ROLE,
+            SUPPORT_TYPE_ROLE,
+          ],
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Reports' }
-          ]
+            { title: 'Reports' },
+          ],
         },
         canActivate: [UserTypeGuardService],
       },
@@ -57,11 +65,16 @@ export const DashboardsRoutes: Routes = [
         component: ProductivityComponent,
         data: {
           title: 'Productivity',
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE],
+          allowedUserTypes: [
+            ADMIN_TYPE_ROLE,
+            USER_TYPE_ROLE,
+            CLIENT_TYPE_ROLE,
+            SUPPORT_TYPE_ROLE,
+          ],
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Productivity' }
-          ]
+            { title: 'Productivity' },
+          ],
         },
         canActivate: [UserTypeGuardService],
       },
@@ -70,7 +83,12 @@ export const DashboardsRoutes: Routes = [
         component: NotificationsPageComponent,
         data: {
           title: 'Notifications',
-          allowedUserTypes: [ADMIN_TYPE_ROLE, USER_TYPE_ROLE, CLIENT_TYPE_ROLE, SUPPORT_TYPE_ROLE]
+          allowedUserTypes: [
+            ADMIN_TYPE_ROLE,
+            USER_TYPE_ROLE,
+            CLIENT_TYPE_ROLE,
+            SUPPORT_TYPE_ROLE,
+          ],
         },
         canActivate: [UserTypeGuardService],
       },
@@ -80,7 +98,7 @@ export const DashboardsRoutes: Routes = [
         data: {
           title: 'Maintenance',
         },
-      }
+      },
     ],
   },
 ];

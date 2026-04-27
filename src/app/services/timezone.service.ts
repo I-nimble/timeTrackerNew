@@ -1,19 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
+import moment from 'moment-timezone';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import moment from 'moment-timezone';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TimezoneService {
-  private userTimezoneSubject = new BehaviorSubject<string>(this.detectUserTimezone());
+  private userTimezoneSubject = new BehaviorSubject<string>(
+    this.detectUserTimezone(),
+  );
   public userTimezone$ = this.userTimezoneSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  API_URI = `${environment.apiUrl}/timezones`
+  API_URI = `${environment.apiUrl}/timezones`;
 
   fetchTimezonesApi() {
     return this.http.get(`${this.API_URI}`);
@@ -37,11 +40,11 @@ export class TimezoneService {
   detectUserTimezone(): string {
     try {
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      
+
       if (userTimezone && this.isValidTimezone(userTimezone)) {
         return userTimezone;
       }
-      
+
       return 'UTC';
     } catch (error) {
       console.warn('Could not detect timezone, using UTC as fallback:', error);
@@ -61,14 +64,23 @@ export class TimezoneService {
   convertLocalTimeToUTC(localTime: string, timezone?: string): string {
     try {
       const targetTimezone = timezone || this.userTimezoneSubject.value;
-      
+
       const today = new Date();
       const [hours, minutes] = localTime.split(':');
-      
-      const localDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 
-                                parseInt(hours), parseInt(minutes || '0'), 0);
-      
-      const utcTime = moment(localDate).tz(targetTimezone).utc().format('HH:mm:ss');
+
+      const localDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        parseInt(hours),
+        parseInt(minutes || '0'),
+        0,
+      );
+
+      const utcTime = moment(localDate)
+        .tz(targetTimezone)
+        .utc()
+        .format('HH:mm:ss');
       return utcTime;
     } catch (error) {
       console.error('Error converting local time to UTC:', error);
@@ -80,16 +92,21 @@ export class TimezoneService {
     try {
       const targetTimezone = timezone || this.userTimezoneSubject.value;
       let cleanTime = utcTime;
-      
+
       if (cleanTime.includes(':')) {
         const parts = cleanTime.split(':');
         cleanTime = `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
       }
-      
+
       const today = new Date();
       const [hours, minutes, seconds] = cleanTime.split(':');
-      today.setUTCHours(parseInt(hours), parseInt(minutes || '0'), parseInt(seconds || '0'), 0);
-      
+      today.setUTCHours(
+        parseInt(hours),
+        parseInt(minutes || '0'),
+        parseInt(seconds || '0'),
+        0,
+      );
+
       const localTime = moment(today).tz(targetTimezone).format('HH:mm');
       return localTime;
     } catch (error) {
@@ -101,15 +118,15 @@ export class TimezoneService {
   convertUTCToLocalDateTime(utcTime: string, timezone?: string): string {
     try {
       const targetTimezone = timezone || this.userTimezoneSubject.value;
-      
+
       const utcDate = moment.utc(utcTime);
-      
+
       const originalDate = utcDate.format('YYYY-MM-DD');
-      
+
       const localDateTime = utcDate.tz(targetTimezone);
 
       const result = `${originalDate}T${localDateTime.format('HH:mm')}`;
-    
+
       return result;
     } catch (error) {
       console.error('Error converting UTC to local time:', error, utcTime);
@@ -120,13 +137,17 @@ export class TimezoneService {
   convertLocalDateTimeToUTC(localTime: string, timezone?: string): string {
     try {
       const targetTimezone = timezone || this.userTimezoneSubject.value;
-      
-      const localDate = moment.tz(localTime, 'YYYY-MM-DDTHH:mm', targetTimezone);
-      
+
+      const localDate = moment.tz(
+        localTime,
+        'YYYY-MM-DDTHH:mm',
+        targetTimezone,
+      );
+
       const utcDate = localDate.utc();
-      
+
       const result = utcDate.format('YYYY-MM-DD HH:mm:ss');
-      
+
       return result;
     } catch (error) {
       console.error('Error converting local time to UTC:', error, localTime);

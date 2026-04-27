@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -28,7 +29,7 @@ export interface SubscriptionReceipt {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SubscriptionService {
   private apiUrl = `${environment.apiUrl}/stripe/subscription`;
@@ -41,12 +42,18 @@ export class SubscriptionService {
 
   createPlanSubscription(planId: number): Observable<{ url: string }> {
     return this.http.post<{ url: string }>(`${this.apiUrl}/create`, {
-      plan_id: planId
+      plan_id: planId,
     });
   }
 
-  cancelSubscription(): Observable<{ message: string; current_period_end: number }> {
-    return this.http.post<{ message: string; current_period_end: number }>(`${this.apiUrl}/cancel`, {});
+  cancelSubscription(): Observable<{
+    message: string;
+    current_period_end: number;
+  }> {
+    return this.http.post<{ message: string; current_period_end: number }>(
+      `${this.apiUrl}/cancel`,
+      {},
+    );
   }
 
   getSubscriptionStatus(): Observable<SubscriptionStatus> {

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
 import { Location } from '@angular/common';
-import { MaterialModule } from '../../material.module';
+import { Component } from '@angular/core';
+
+import { MaterialModule } from '../../legacy/material.module';
 
 @Component({
   selector: 'app-go-back',
@@ -9,9 +10,8 @@ import { MaterialModule } from '../../material.module';
   imports: [MaterialModule],
 })
 export class GoBackComponent {
+  constructor(private location: Location) {}
 
-  constructor(private location: Location) { }
- 
   goBack(): void {
     this.location.back();
   }

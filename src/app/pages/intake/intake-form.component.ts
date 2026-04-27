@@ -1,3 +1,4 @@
+import { CommonModule, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -5,21 +6,22 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../material.module';
+import { FormGroup, FormArray, FormControl } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { CommonModule, NgIf } from '@angular/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable } from 'rxjs';
+import { startWith, map } from 'rxjs/operators';
 import { IntakeService } from 'src/app/services/intake.service';
 import { PositionsService } from 'src/app/services/positions.service';
-import { Positions } from '../../models/Position.model';
-import { FormGroup, FormArray, FormControl } from '@angular/forms';
-import { startWith, map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { environment } from 'src/environments/environment';
+
+import { MaterialModule } from '../../legacy/material.module';
+import { Positions } from '../../models/Position.model';
 
 @Component({
   standalone: true,
@@ -35,7 +37,7 @@ import { environment } from 'src/environments/environment';
     MatChipsModule,
     MatAutocompleteModule,
     RouterLink,
-    NgIf
+    NgIf,
   ],
   templateUrl: './intake-form.component.html',
   styleUrl: './intake-form.component.scss',
@@ -50,33 +52,39 @@ export class AppIntakeFormComponent implements OnInit {
     'Tech Startup',
     'Marketing Agency',
     'Small Own Business',
-    'Other'
+    'Other',
   ];
   weekDays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
   lunchTimes = [
     { label: '30 minutes', value: 30 },
     { label: '45 minutes', value: 45 },
-    { label: '1 hour', value: 60 }
+    { label: '1 hour', value: 60 },
   ];
 
   holidaysList = [
-    'New Year\'s Day',
+    "New Year's Day",
     'Martin Luther King Jr. Day',
-    'Presidents\' Day',
+    "Presidents' Day",
     'Memorial Day',
     'Independence Day',
     'Labor Day',
     'Thanksgiving Day',
-    'Christmas Day'
+    'Christmas Day',
   ];
   predefinedCompetencies = [
     'Leadership',
     'Communication',
     'Problem Solving',
     'Teamwork',
-    'Technical Writing'
+    'Technical Writing',
   ];
 
   selectedCompetencies: string[] = [];
@@ -102,7 +110,7 @@ export class AppIntakeFormComponent implements OnInit {
       trainingContact: [''],
       itContact: [''],
       techNeeds: [''],
-      additionalInfo: ['']
+      additionalInfo: [''],
     }),
     scheduleInfo: this.fb.group({
       scheduleDays: [[], Validators.required],
@@ -113,16 +121,16 @@ export class AppIntakeFormComponent implements OnInit {
     }),
     termsInfo: this.fb.group({
       acceptOtherCommunications: [false, Validators.requiredTrue],
-      acceptPersonalData: [false, Validators.requiredTrue]
-    })
+      acceptPersonalData: [false, Validators.requiredTrue],
+    }),
   });
 
   formSubmitted = false;
-  showForm: boolean = true;
-  showVideo: boolean = false;
+  showForm = true;
+  showVideo = false;
   lastIntakeId: number | null = null;
   lastIntakeUuid: number | null = null;
-  lastClientName: string = '';
+  lastClientName = '';
   videoUrl = environment.videos + '/intake-presentation.mp4';
 
   constructor(
@@ -131,11 +139,11 @@ export class AppIntakeFormComponent implements OnInit {
     private intakeService: IntakeService,
     private positionsService: PositionsService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
-      map(value => this._filter(value || ''))
+      map((value) => this._filter(value || '')),
     );
     this.showForm = !this.router.url.includes('/talent-match');
     this.showVideo = this.router.url.includes('/talent-match');
@@ -148,7 +156,7 @@ export class AppIntakeFormComponent implements OnInit {
       },
       error: () => {
         this.openSnackBar('Error loading positions', 'Close');
-      }
+      },
     });
 
     const uuid = this.route.snapshot.paramMap.get('uuid');
@@ -156,7 +164,9 @@ export class AppIntakeFormComponent implements OnInit {
       this.loadIntake(uuid);
     }
 
-    const competencies = this.intakeForm.get('positionInfo.competencies')?.value;
+    const competencies = this.intakeForm.get(
+      'positionInfo.competencies',
+    )?.value;
     if (Array.isArray(competencies)) {
       this.selectedCompetencies = competencies;
     }
@@ -164,9 +174,10 @@ export class AppIntakeFormComponent implements OnInit {
 
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.predefinedCompetencies.filter(comp =>
-      comp.toLowerCase().includes(filterValue) &&
-      !this.selectedCompetencies.includes(comp)
+    return this.predefinedCompetencies.filter(
+      (comp) =>
+        comp.toLowerCase().includes(filterValue) &&
+        !this.selectedCompetencies.includes(comp),
     );
   }
 
@@ -177,7 +188,10 @@ export class AppIntakeFormComponent implements OnInit {
   addFromDropdown(event: any): void {
     if (this.predefinedCompetencies.includes(event.option.value)) {
       const value = event.option.value;
-      if (this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+      if (
+        this.selectedCompetencies.length < 5 &&
+        !this.selectedCompetencies.includes(value)
+      ) {
         this.selectedCompetencies.push(value);
         this._updateCompetenciesForm();
         this.clearInput();
@@ -185,18 +199,24 @@ export class AppIntakeFormComponent implements OnInit {
     }
   }
 
-  addCustomCompetency(): void {    
+  addCustomCompetency(): void {
     const value = (this.competencyCtrl.value || '').trim();
-    if (value && this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+    if (
+      value &&
+      this.selectedCompetencies.length < 5 &&
+      !this.selectedCompetencies.includes(value)
+    ) {
       this.selectedCompetencies.push(value);
       this._updateCompetenciesForm();
-      
+
       this.competencyCtrl.reset('');
       this.competencyCtrl.markAsPristine();
       this.competencyCtrl.updateValueAndValidity();
-      
+
       setTimeout(() => {
-        const inputElement = document.querySelector('[matChipInputFor] input') as HTMLInputElement;
+        const inputElement = document.querySelector(
+          '[matChipInputFor] input',
+        ) as HTMLInputElement;
         if (inputElement) {
           inputElement.value = '';
         }
@@ -218,7 +238,9 @@ export class AppIntakeFormComponent implements OnInit {
   }
 
   private _updateCompetenciesForm() {
-    const competenciesControl = this.intakeForm.get('positionInfo.competencies');
+    const competenciesControl = this.intakeForm.get(
+      'positionInfo.competencies',
+    );
     if (competenciesControl) {
       competenciesControl.setValue(this.selectedCompetencies || []);
       competenciesControl.markAsDirty();
@@ -259,7 +281,7 @@ export class AppIntakeFormComponent implements OnInit {
           },
         });
         this.selectedCompetencies = data.competencies?.split(', ') || [];
-        if (data.status == "submitted"){
+        if (data.status == 'submitted') {
           this.formSubmitted = true;
         }
         this.lastIntakeId = data.id || null;
@@ -287,7 +309,10 @@ export class AppIntakeFormComponent implements OnInit {
         this.openSnackBar('Intake saved successfully', 'Close');
         this.lastIntakeId = response?.id || null;
         this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
-        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
+        this.lastClientName = (response?.client || data.client || '').replace(
+          /[^a-zA-Z0-9]/g,
+          '_',
+        );
       },
       error: () => {
         this.openSnackBar('Error saving intake', 'Close');
@@ -316,7 +341,10 @@ export class AppIntakeFormComponent implements OnInit {
         this.formSubmitted = true;
         this.lastIntakeId = response?.id || null;
         this.lastIntakeUuid = response?.uuid || this.lastIntakeUuid || null;
-        this.lastClientName = (response?.client || data.client || '').replace(/[^a-zA-Z0-9]/g, '_');
+        this.lastClientName = (response?.client || data.client || '').replace(
+          /[^a-zA-Z0-9]/g,
+          '_',
+        );
         this.intakeForm.reset();
       },
       error: () => {
@@ -339,7 +367,7 @@ export class AppIntakeFormComponent implements OnInit {
       },
       error: () => {
         this.openSnackBar('Error downloading PDF', 'Close');
-      }
+      },
     });
   }
 

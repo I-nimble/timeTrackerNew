@@ -1,13 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { LINE_CHART_HTML_SNIPPET } from './code/line-html-snippet';
-import { LINE_CHART_TS_SNIPPET } from './code/line-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 import {
   ApexAxisChartSeries,
@@ -24,10 +15,16 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
+// snippets
+import { LINE_CHART_HTML_SNIPPET } from './code/line-html-snippet';
+import { LINE_CHART_TS_SNIPPET } from './code/line-ts-snippet';
+import { MaterialModule } from '../../../legacy/material.module';
 
-export type ChartOptions = {
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -43,23 +40,23 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 @Component({
-    selector: 'app-line',
-    imports: [NgApexchartsModule, MaterialModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './line.component.html'
+  selector: 'app-line',
+  imports: [
+    NgApexchartsModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './line.component.html',
 })
 export class AppLineChartComponent {
-
   // 1 [Basic with Datepicker]
   codeForLineChart = LINE_CHART_HTML_SNIPPET;
   codeForLineChartTs = LINE_CHART_TS_SNIPPET;
-
 
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public lineChartOptions: Partial<ChartOptions> | any;

@@ -1,19 +1,33 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable, firstValueFrom, lastValueFrom } from 'rxjs';
-import { NotificationStore } from 'src/app/stores/notification.store';
-import { environment } from 'src/environments/environment';
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { Router, NavigationEnd } from '@angular/router';
-import { NotificationsService } from './notifications.service';
+import { Injectable, inject } from '@angular/core';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
-import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, user } from '@angular/fire/auth';
+import {
+  Auth,
+  authState,
+  AuthProvider,
+  signInWithPopup,
+  GoogleAuthProvider,
+  user,
+} from '@angular/fire/auth';
+import { Router, NavigationEnd } from '@angular/router';
+
+import { JwtHelperService } from '@auth0/angular-jwt';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import {
+  BehaviorSubject,
+  Observable,
+  firstValueFrom,
+  lastValueFrom,
+} from 'rxjs';
 import { from } from 'rxjs';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { RoleTourService } from './role-tour.service';
 import { filter, take } from 'rxjs/operators';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { NotificationStore } from 'src/app/stores/notification.store';
+import { environment } from 'src/environments/environment';
+
+import { NotificationsService } from './notifications.service';
+import { RoleTourService } from './role-tour.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,10 +36,12 @@ export class AuthService {
   notificationStore = inject(NotificationStore);
   firebaseAuth = inject(Auth);
   user$ = user(this.firebaseAuth);
-  
+
   private isLogged = new BehaviorSubject<boolean>(false);
   private isAdmin = new BehaviorSubject<boolean>(false);
-  private role = new BehaviorSubject<string>(localStorage.getItem('role') || 'default');
+  private role = new BehaviorSubject<string>(
+    localStorage.getItem('role') || 'default',
+  );
   userType$ = this.role.asObservable();
   liveChatBubble?: any;
   constructor(
@@ -34,7 +50,7 @@ export class AuthService {
     private routes: Router,
     private notificationsService: NotificationsService,
     private employeesService: EmployeesService,
-    private roleTourService: RoleTourService
+    private roleTourService: RoleTourService,
   ) {}
   API_URI = environment.apiUrl + '/auth';
 
@@ -47,36 +63,35 @@ export class AuthService {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
   }
-  async logout(redirect: boolean = true) {
-    try { this.roleTourService.skipActiveTour(); } catch (e) {}
+  async logout(redirect = true) {
+    try {
+      this.roleTourService.skipActiveTour();
+    } catch (e) {}
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
     this.notificationsService.clearNotifications();
-    
+
     if (redirect) {
       this.routes.navigate(['/authentication/login']);
     }
   }
 
- checkTokenExpiration(): void {
-    let jwt = localStorage.getItem('jwt');
+  checkTokenExpiration(): void {
+    const jwt = localStorage.getItem('jwt');
     const checkToken = () => {
-      
-        if(jwt && this.jwtHelper.isTokenExpired(jwt)) {
-          this.logout();
-          this.navigateToLoginIfNotRegister();
-        }
-       else {
+      if (jwt && this.jwtHelper.isTokenExpired(jwt)) {
+        this.logout();
+        this.navigateToLoginIfNotRegister();
+      } else {
         const remainingTime = this.getTokenRemainingTime();
         if (remainingTime !== null) {
           setTimeout(checkToken, remainingTime);
         }
       }
-    }
+    };
     checkToken();
   }
-
 
   getTokenRemainingTime(): number | null {
     const token = localStorage.getItem('jwt');
@@ -113,17 +128,17 @@ export class AuthService {
       return this.isLogged.asObservable();
     }
   }
-  setUserType(newUserType: string){
-    localStorage.setItem('role', newUserType)
-    this.role.next(newUserType)
+  setUserType(newUserType: string) {
+    localStorage.setItem('role', newUserType);
+    this.role.next(newUserType);
   }
   getUserType() {
-    const role = localStorage.getItem('role')
+    const role = localStorage.getItem('role');
     if (role !== null) {
-      this.role.next(localStorage.getItem('role')!.toString())
+      this.role.next(localStorage.getItem('role')!.toString());
       return this.role.asObservable();
-    }else{
-      this.role.next('default')
+    } else {
+      this.role.next('default');
       return this.role.asObservable();
     }
   }
@@ -147,9 +162,9 @@ export class AuthService {
     } else if (rol == '3') {
       const hasTeam = await this.hasTeamMembers();
       localStorage.setItem('clientHasTeam', hasTeam ? 'true' : 'false');
-      if(hasTeam){
+      if (hasTeam) {
         await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
-      }else{
+      } else {
         await this.navigateAndMaybeStart('/apps/talent-match', rol);
       }
       return;
@@ -182,19 +197,24 @@ export class AuthService {
     }
   }
 
-  getLoggedInUser(){
-    return this.http.get(`${this.API_URI}/auth/loggedIn`)
+  getLoggedInUser() {
+    return this.http.get(`${this.API_URI}/auth/loggedIn`);
   }
 
   forgotPassword(email: string): Observable<any> {
     return this.http.post<any>(`${this.API_URI}/forgot-password`, { email });
   }
 
-  resetPassword(token: string, email: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.API_URI}/reset-password`,
-      { token, email, newPassword }
-    );
+  resetPassword(
+    token: string,
+    email: string,
+    newPassword: string,
+  ): Observable<any> {
+    return this.http.post<any>(`${this.API_URI}/reset-password`, {
+      token,
+      email,
+      newPassword,
+    });
   }
 
   // singUpWithGoogle(): Observable<{ name: string; email: string; picture: string; googleId: string }> {

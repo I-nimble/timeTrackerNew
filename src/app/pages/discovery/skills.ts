@@ -2,126 +2,126 @@ export const allSkills = [
   // Technology Skills
   {
     name: 'Web development',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'AI/ML & Generative AI',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Cloud Computing (AWS/Azure/GCP)',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Cybersecurity',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Data Engineering & Analytics',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'DevOps & Automation',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Full-Stack Development',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'UI/UX Design',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Blockchain & Smart Contracts',
-    category: 'technology'
+    category: 'technology',
   },
   {
     name: 'Mobile App Development',
-    category: 'technology'
+    category: 'technology',
   },
 
   // Administrative Skills
   {
     name: 'Office suite (Microsoft 365, Google Workspace)',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Project Management (Agile/Scrum)',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Financial Literacy & Budgeting',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Event Coordination & Logistics',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Data Protection & Confidentiality (GDPR/HIPAA)',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Customer Relationship Management (CRM)',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Virtual Assistance & Remote Collaboration',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Business Writing & Communication',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'HR & Talent Management',
-    category: 'administrative'
+    category: 'administrative',
   },
   {
     name: 'Adaptability & Problem-Solving',
-    category: 'administrative'
+    category: 'administrative',
   },
 
   // Real Estate Skills
   {
     name: 'Open houses',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Digital & Social Media Marketing',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Visual Marketing (Drone Photography, 3D Tours)',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Virtual Tours & Staging',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Prospecting & Hyperlocal Networking',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Real Estate Law & Contracts',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Property Valuation & Market Analysis',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Negotiation & Sales Techniques',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Diversified Licensure (Mortgage, Inspection)',
-    category: 'real estate'
+    category: 'real estate',
   },
   {
     name: 'Tech Adoption (AI, Blockchain, CRM Tools)',
-    category: 'real estate'
-  }
+    category: 'real estate',
+  },
 ];

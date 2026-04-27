@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -6,6 +7,7 @@ import {
   Output,
   signal,
   ViewChild,
+  OnChanges,
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -18,28 +20,29 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatInputModule } from '@angular/material/input';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { AppFullcalendarComponent } from '../fullcalendar/fullcalendar.component';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
-import { UsersService } from 'src/app/services/users.service';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { provideNativeDateAdapter } from '@angular/material/core';
-import { EmployeesService } from 'src/app/services/employees.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { BoardsService } from 'src/app/services/apps/kanban/boards.service';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { RatingsEntriesService } from 'src/app/services/ratings_entries.service';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import { UsersService } from 'src/app/services/users.service';
+
+import { AppFullcalendarComponent } from '../fullcalendar/fullcalendar.component';
 
 @Component({
   selector: 'app-todo',
@@ -62,7 +65,7 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
   ],
   providers: [provideNativeDateAdapter()],
 })
-export class AppTodoComponent implements OnInit {
+export class AppTodoComponent implements OnInit, OnChanges {
   @Output() toDoDataChange = new EventEmitter<any[]>();
   @Output() selectedDateChange = new EventEmitter<any>();
   @Input() selectedDateFromChart: any;
@@ -73,12 +76,12 @@ export class AppTodoComponent implements OnInit {
   totalTodos = signal<number>(0);
   totalCompleted = signal<number>(0);
   totalIncomplete = signal<number>(0);
-  allCheckedFlag: boolean = false;
+  allCheckedFlag = false;
   selectedDate = new Date();
   selectedDateStr: any = this.formatDate(this.selectedDate);
-  isDateFuture: boolean = false;
+  isDateFuture = false;
   toDoData: any = [];
-  goalsStatus: boolean = false;
+  goalsStatus = false;
   userRole = localStorage.getItem('role');
   teamMemberId: number | null = null;
   companyId: number | null = null;
@@ -87,7 +90,7 @@ export class AppTodoComponent implements OnInit {
   priorities: any[] = [];
   filteredArray: any[] = [];
   loggedInUser: any;
-  isLoading: boolean = true;
+  isLoading = true;
   @ViewChild(AppFullcalendarComponent) calendar!: AppFullcalendarComponent;
   boards: any[] = [];
   newTaskForm: FormGroup = this.fb.group(
@@ -106,7 +109,7 @@ export class AppTodoComponent implements OnInit {
       board_id: [null],
       updatedAt: [new Date(), []],
     },
-    { validators: this.recurrentDueDateValidator }
+    { validators: this.recurrentDueDateValidator },
   );
 
   toDoForm: FormGroup = this.fb.group({
@@ -123,7 +126,7 @@ export class AppTodoComponent implements OnInit {
     private userService: UsersService,
     public employeesService: EmployeesService,
     public companiesService: CompaniesService,
-    public kanbanService: BoardsService
+    public kanbanService: BoardsService,
   ) {}
 
   isOver(): boolean {
@@ -145,7 +148,7 @@ export class AppTodoComponent implements OnInit {
       changes['selectedDateFromChart'].currentValue
     ) {
       this.selectedDate = new Date(
-        changes['selectedDateFromChart'].currentValue
+        changes['selectedDateFromChart'].currentValue,
       );
       this.selectedDateStr = this.formatDate(this.selectedDate);
       this.toDoFormArray.clear();
@@ -224,7 +227,7 @@ export class AppTodoComponent implements OnInit {
       this.employeesService.get().subscribe({
         next: (employees: any) => {
           this.teamMembers = employees.filter(
-            (user: any) => user.user.active == 1 && user.user.role == 2
+            (user: any) => user.user.active == 1 && user.user.role == 2,
           );
           this.companiesService
             .getEmployer(this.teamMembers[0].company_id)
@@ -268,7 +271,7 @@ export class AppTodoComponent implements OnInit {
       });
     } else {
       const selectedTeamMember = this.teamMembers.find(
-        (tm) => tm.user.id === event.value
+        (tm) => tm.user.id === event.value,
       );
       if (selectedTeamMember) {
         this.teamMemberId = selectedTeamMember.user.id;
@@ -291,28 +294,28 @@ export class AppTodoComponent implements OnInit {
 
   private formatDate(date: Date): string {
     if (!date || isNaN(date.getTime())) return '';
-    
+
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   }
 
   formatDateForComparison = (dateString: string | Date | null) => {
     if (!dateString) return null;
-    
+
     const date = dateString instanceof Date ? dateString : new Date(dateString);
-    
+
     if (isNaN(date.getTime())) {
       console.error('Invalid date:', dateString);
       return null;
     }
-    
+
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}`;
   };
 
@@ -321,7 +324,8 @@ export class AppTodoComponent implements OnInit {
     this.toDoFormArray.clear();
 
     if (
-      ((this.userRole === '1' || this.userRole === '4') && this.teamMemberId === null) ||
+      ((this.userRole === '1' || this.userRole === '4') &&
+        this.teamMemberId === null) ||
       this.userRole === '2' ||
       (this.userRole === '3' && this.teamMemberId === null && this.companyId)
     ) {
@@ -329,12 +333,12 @@ export class AppTodoComponent implements OnInit {
         next: (array: any) => {
           const activeArray = (array || []).filter((task: any) => {
             if (!task.active) return false;
-            
+
             if (!task.due_date) return true;
-            
+
             const taskDueDate = this.formatDateForComparison(task.due_date);
             if (!taskDueDate) return false;
-            
+
             return taskDueDate === this.selectedDateStr;
           });
 
@@ -346,8 +350,8 @@ export class AppTodoComponent implements OnInit {
             return true;
           });
 
-          for (let toDo of this.filteredArray) {
-            let toDoField = this.fb.group({
+          for (const toDo of this.filteredArray) {
+            const toDoField = this.fb.group({
               rating_id: [toDo.id],
               goal: [toDo.goal],
               date: [this.selectedDateStr],
@@ -374,11 +378,14 @@ export class AppTodoComponent implements OnInit {
 
     this.ratingsService.getByUser(this.teamMemberId).subscribe({
       next: (array: any) => {
-        const activeArray = (array || []).filter((task: any) => 
-          task.active && 
-          (!task.due_date || this.formatDateForComparison(task.due_date) === this.selectedDateStr)
+        const activeArray = (array || []).filter(
+          (task: any) =>
+            task.active &&
+            (!task.due_date ||
+              this.formatDateForComparison(task.due_date) ===
+                this.selectedDateStr),
         );
-      
+
         this.ratingsEntriesService
           .getByUser(this.teamMemberId as number)
           .subscribe({
@@ -386,7 +393,7 @@ export class AppTodoComponent implements OnInit {
               if (!activeArray || !Array.isArray(activeArray)) {
                 this.openSnackBar(
                   'No To Do data found or data is not an array.',
-                  'Close'
+                  'Close',
                 );
                 return;
               }
@@ -395,7 +402,7 @@ export class AppTodoComponent implements OnInit {
               this.toDoArray.forEach((todo: any) => {
                 const entry = ratingsEntries.find(
                   (re: any) =>
-                    re.rating_id === todo.id && re.date == this.selectedDateStr
+                    re.rating_id === todo.id && re.date == this.selectedDateStr,
                 );
                 if (entry) {
                   todo.achieved = entry.achieved;
@@ -416,8 +423,8 @@ export class AppTodoComponent implements OnInit {
                 return true;
               });
 
-              for (let toDo of this.filteredArray) {
-                let toDoField = this.fb.group({
+              for (const toDo of this.filteredArray) {
+                const toDoField = this.fb.group({
                   rating_id: [toDo.id],
                   goal: [toDo.goal],
                   date: [this.selectedDateStr],
@@ -467,10 +474,10 @@ export class AppTodoComponent implements OnInit {
   updateCounts() {
     this.totalTodos.set(this.toDoArray.length);
     this.totalCompleted.set(
-      this.toDoArray.filter((todo: any) => !todo.active).length
+      this.toDoArray.filter((todo: any) => !todo.active).length,
     );
     this.totalIncomplete.set(
-      this.toDoArray.filter((todo: any) => todo.active).length
+      this.toDoArray.filter((todo: any) => todo.active).length,
     );
   }
 
@@ -489,7 +496,8 @@ export class AppTodoComponent implements OnInit {
     const updatedToDoFormArray = this.toDoFormArray.value
       .filter(
         (todo: any, idx: number) =>
-          todo.achieved && !this.toDoFormArray.at(idx).get('wasAchieved')?.value
+          todo.achieved &&
+          !this.toDoFormArray.at(idx).get('wasAchieved')?.value,
       )
       .map((toDo: any) => ({
         rating_id: Number(toDo.rating_id),
@@ -519,7 +527,7 @@ export class AppTodoComponent implements OnInit {
       goal.get('details')?.reset();
     }
     this.allCheckedFlag = this.toDoFormArray.controls.every(
-      (todo: any) => todo.get('achieved')?.value === true
+      (todo: any) => todo.get('achieved')?.value === true,
     );
     this.updateCounts();
   }
@@ -542,7 +550,9 @@ export class AppTodoComponent implements OnInit {
 
     const date: Date = this.newTaskForm.value.due_date;
     const timeDate: Date = this.newTaskForm.value.due_time;
-    const dueDate = new Date(date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0));
+    const dueDate = new Date(
+      date.setHours(timeDate.getHours(), timeDate.getMinutes(), 0, 0),
+    );
 
     const taskData = {
       ...this.newTaskForm.value,
@@ -561,7 +571,7 @@ export class AppTodoComponent implements OnInit {
           } else {
             // Update an existing element
             const taskIndex = this.toDoArray.findIndex(
-              (task: any) => task.id == this.toDoToEdit.id
+              (task: any) => task.id == this.toDoToEdit.id,
             );
             this.toDoArray[taskIndex] = response;
           }
@@ -613,7 +623,7 @@ export class AppTodoComponent implements OnInit {
     if (dueDate && !isNaN(dueDate.getTime())) {
       this.newTaskForm.patchValue({
         due_date: dueDate,
-        due_time: dueDate
+        due_time: dueDate,
       });
     }
   }
@@ -632,7 +642,7 @@ export class AppTodoComponent implements OnInit {
         this.ratingsService.delete(id).subscribe({
           next: () => {
             this.toDoArray = this.toDoArray.filter(
-              (task: any) => task.id != id
+              (task: any) => task.id != id,
             );
             this.buildToDoForm();
             this.calendar?.getToDos();
@@ -648,7 +658,7 @@ export class AppTodoComponent implements OnInit {
 
   hasAnyAchieved(): boolean {
     return this.toDoFormArray.controls.some(
-      (ctrl) => ctrl.get('achieved')?.value
+      (ctrl) => ctrl.get('achieved')?.value,
     );
   }
 

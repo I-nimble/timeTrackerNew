@@ -1,30 +1,33 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   AfterViewInit,
   ViewChild,
   Signal,
   signal,
+  OnInit,
 } from '@angular/core';
-import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
-import { InvoiceList } from '../invoice';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { RouterModule } from '@angular/router';
-import { AppConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { StripeService } from 'src/app/services/stripe.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
-import { PermissionService } from 'src/app/services/permission.service';
-import { environment } from 'src/environments/environment';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import moment from 'moment';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { StripeService } from 'src/app/services/stripe.service';
+import { environment } from 'src/environments/environment';
+
+import { AppConfirmDeleteDialogComponent } from './confirm-delete-dialog.component';
+import { InvoiceList } from '../invoice';
 
 @Component({
   selector: 'app-invoice-list',
@@ -38,24 +41,24 @@ import moment from 'moment';
     ReactiveFormsModule,
     TablerIconsModule,
     StripeComponent,
-  ]
+  ],
 })
-export class AppInvoiceListComponent implements AfterViewInit {
+export class AppInvoiceListComponent implements AfterViewInit, OnInit {
   role: any = localStorage.getItem('role');
   allComplete = signal<boolean>(false);
   invoiceList = new MatTableDataSource<any>([]);
   activeTab = signal<string>('All');
   displayedColumns: string[] = [];
   companies: any[] = [];
-  companyMap: { [key: number]: string } = {};
+  companyMap: Record<number, string> = {};
   paidInvoices = signal<any[]>([]);
   pendingInvoices = signal<any[]>([]);
   overdueInvoices = signal<any[]>([]);
   selectedCompanyId = signal<number | null>(null);
-  allowedPaymentsView: boolean = false;
-  allowedPaymentsManage: boolean = false;
-  allowedPaymentsEdit: boolean = false;
-  allowedPaymentsDelete: boolean = false;
+  allowedPaymentsView = false;
+  allowedPaymentsManage = false;
+  allowedPaymentsEdit = false;
+  allowedPaymentsDelete = false;
   startDate: Date | null = null;
   endDate: Date | null = null;
 
@@ -63,14 +66,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
 
   constructor(
-    private invoiceService: InvoiceService, 
-    private dialog: MatDialog, 
-    private snackBar: MatSnackBar, 
-    private stripeService: StripeService, 
+    private invoiceService: InvoiceService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+    private stripeService: StripeService,
     private companiesService: CompaniesService,
     private permissionService: PermissionService,
     public router: Router,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.role = localStorage.getItem('role');
@@ -80,10 +83,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
       next: (userPerms: any) => {
         const effectivePermissions = userPerms.effectivePermissions || [];
 
-        this.allowedPaymentsView = effectivePermissions.includes('payments.view');
-        this.allowedPaymentsManage = effectivePermissions.includes('payments.manage');
-        this.allowedPaymentsEdit = effectivePermissions.includes('payments.edit');
-        this.allowedPaymentsDelete = effectivePermissions.includes('payments.delete');
+        this.allowedPaymentsView =
+          effectivePermissions.includes('payments.view');
+        this.allowedPaymentsManage =
+          effectivePermissions.includes('payments.manage');
+        this.allowedPaymentsEdit =
+          effectivePermissions.includes('payments.edit');
+        this.allowedPaymentsDelete =
+          effectivePermissions.includes('payments.delete');
         this.initInvoiceColumns();
         this.loadCompanies();
         this.loadInvoices();
@@ -94,18 +101,13 @@ export class AppInvoiceListComponent implements AfterViewInit {
         this.initInvoiceColumns();
         this.loadCompanies();
         this.loadInvoices();
-      }
+      },
     });
   }
 
   private initInvoiceColumns(): void {
     if (this.role === '3') {
-      this.displayedColumns = [
-        'paymentDate',
-        'amount',
-        'status',
-        'action',
-      ];
+      this.displayedColumns = ['paymentDate', 'amount', 'status', 'action'];
     } else {
       this.displayedColumns = [
         'paymentDate',
@@ -122,9 +124,9 @@ export class AppInvoiceListComponent implements AfterViewInit {
       next: (companies: any[]) => {
         this.companies = companies;
         this.companyMap = {};
-        companies.forEach(c => this.companyMap[c.id] = c.name);
+        companies.forEach((c) => (this.companyMap[c.id] = c.name));
       },
-      error: (err) => console.error('Error loading companies', err)
+      error: (err) => console.error('Error loading companies', err),
     });
   }
 
@@ -140,10 +142,14 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
 
   onRowClick(row: any, event: MouseEvent): void {
-    if ((event?.target as HTMLElement).parentElement?.classList.contains('actions-btn')) {
+    if (
+      (event?.target as HTMLElement).parentElement?.classList.contains(
+        'actions-btn',
+      )
+    ) {
       return;
     }
-    if(this.role == '1' || this.allowedPaymentsManage) {
+    if (this.role == '1' || this.allowedPaymentsManage) {
       this.router.navigate(['/apps/editinvoice', row.id]);
       return;
     }
@@ -159,7 +165,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
         link.download = `invoice-${id}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
         document.body.appendChild(link);
         link.click();
-        
+
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
       },
@@ -170,28 +176,32 @@ export class AppInvoiceListComponent implements AfterViewInit {
   }
 
   generateInvoice(): void {
-    if(!this.selectedCompanyId() || !this.startDate || !this.endDate) {
+    if (!this.selectedCompanyId() || !this.startDate || !this.endDate) {
       this.showSnackbar('Please select a company and a date range');
       return;
     }
 
-    this.invoiceService.createInvoice({
-      company_id: this.selectedCompanyId(),
-      billing_period_start: moment(this.startDate).startOf('day').toISOString(),
-      billing_period_end: moment(this.endDate).endOf('day').toISOString(),
-    }).subscribe({
-      next: (response: any) => {
-      this.selectedCompanyId.set(null);
-      this.startDate = null;
-      this.endDate = null;
-      this.invoiceList.data.push(response);
-      this.activeTab.set('All');
-      this.loadInvoices();
-      },
-      error: (err: any) => {
-      console.error('Error creating invoice:', err);
-      },
-    });
+    this.invoiceService
+      .createInvoice({
+        company_id: this.selectedCompanyId(),
+        billing_period_start: moment(this.startDate)
+          .startOf('day')
+          .toISOString(),
+        billing_period_end: moment(this.endDate).endOf('day').toISOString(),
+      })
+      .subscribe({
+        next: (response: any) => {
+          this.selectedCompanyId.set(null);
+          this.startDate = null;
+          this.endDate = null;
+          this.invoiceList.data.push(response);
+          this.activeTab.set('All');
+          this.loadInvoices();
+        },
+        error: (err: any) => {
+          console.error('Error creating invoice:', err);
+        },
+      });
   }
 
   handleTabClick(tab: string): void {
@@ -205,30 +215,33 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
     if (currentTab === 'All') {
       filteredInvoices = [
-        ...this.paidInvoices(), 
-        ...this.pendingInvoices(), 
+        ...this.paidInvoices(),
+        ...this.pendingInvoices(),
         ...this.overdueInvoices(),
-        ...this.invoiceList.data.filter((inv: any) => inv.status.name === 'Draft')
+        ...this.invoiceList.data.filter(
+          (inv: any) => inv.status.name === 'Draft',
+        ),
       ];
     } else if (currentTab === 'Paid') {
       filteredInvoices = [...this.paidInvoices()];
     } else if (currentTab === 'Pending') {
       filteredInvoices = [...this.pendingInvoices()];
-    }
-    else if (currentTab === 'Overdue') {
+    } else if (currentTab === 'Overdue') {
       filteredInvoices = [...this.overdueInvoices()];
     }
 
     if (this.selectedCompanyId() !== null) {
       filteredInvoices = filteredInvoices.filter(
-        invoice => invoice.user?.company?.id === this.selectedCompanyId()
+        (invoice) => invoice.user?.company?.id === this.selectedCompanyId(),
       );
-    } 
+    }
 
     if (this.startDate && this.endDate) {
-      const [start, end] = [this.startDate, this.endDate].map(d => new Date(d).setHours(0,0,0,0));
+      const [start, end] = [this.startDate, this.endDate].map((d) =>
+        new Date(d).setHours(0, 0, 0, 0),
+      );
       filteredInvoices = filteredInvoices.filter((invoice: any) => {
-        const dueDate = new Date(invoice.due_date).setHours(0,0,0,0);
+        const dueDate = new Date(invoice.due_date).setHours(0, 0, 0, 0);
         return dueDate >= start && dueDate <= end;
       });
     }
@@ -239,9 +252,15 @@ export class AppInvoiceListComponent implements AfterViewInit {
 
   private loadInvoices(): void {
     this.invoiceService.getInvoiceList().subscribe((invoices) => {
-      this.paidInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Paid'));
-      this.pendingInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Pending'));
-      this.overdueInvoices.set(invoices.filter((invoice: any) => invoice.status.name === 'Overdue'));
+      this.paidInvoices.set(
+        invoices.filter((invoice: any) => invoice.status.name === 'Paid'),
+      );
+      this.pendingInvoices.set(
+        invoices.filter((invoice: any) => invoice.status.name === 'Pending'),
+      );
+      this.overdueInvoices.set(
+        invoices.filter((invoice: any) => invoice.status.name === 'Overdue'),
+      );
 
       this.invoiceList = new MatTableDataSource(invoices);
       this.invoiceList.paginator = this.paginator;
@@ -252,7 +271,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
   updateAllComplete(): void {
     const allInvoices = this.invoiceList.data;
     this.allComplete.set(
-      allInvoices.length > 0 && allInvoices.every((t) => t.completed)
+      allInvoices.length > 0 && allInvoices.every((t) => t.completed),
     );
   }
 
@@ -274,7 +293,6 @@ export class AppInvoiceListComponent implements AfterViewInit {
       .length;
   }
 
-
   deleteInvoice(id: number): void {
     const dialogRef = this.dialog.open(AppConfirmDeleteDialogComponent);
 
@@ -289,7 +307,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
           },
           error: () => {
             this.showSnackbar('Error deleting invoice.');
-          }
+          },
         });
       }
     });
@@ -319,7 +337,7 @@ export class AppInvoiceListComponent implements AfterViewInit {
       },
       error: () => {
         this.showSnackbar('Error sending invoice to client.');
-      }
+      },
     });
   }
 

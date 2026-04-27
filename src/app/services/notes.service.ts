@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { environment } from 'src/environments/environment';
+
 import { Note } from '../pages/apps/notes/note';
 
 @Injectable({
@@ -15,15 +17,23 @@ export class NotesService {
     return this.http.get<Note[]>(`${this.API_URI}/user/${user_id}`);
   }
 
-  createNote(note: { user_id: number; date_time: string; content: string; color: string }) {
+  createNote(note: {
+    user_id: number;
+    date_time: string;
+    content: string;
+    color: string;
+  }) {
     return this.http.post(this.API_URI, note);
   }
 
-  updateNote(id: number, note: { date_time: string; content: string; color: string }) {
+  updateNote(
+    id: number,
+    note: { date_time: string; content: string; color: string },
+  ) {
     return this.http.put(`${this.API_URI}/${id}`, note);
   }
 
   deleteNote(id: number) {
-  return this.http.delete(`${this.API_URI}/${id}`);
-}
+    return this.http.delete(`${this.API_URI}/${id}`);
+  }
 }

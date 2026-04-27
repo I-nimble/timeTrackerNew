@@ -41,7 +41,6 @@ export const STICKY_FOOTER_TABLE_TS_SNIPPET = `  import { Component, OnInit } fr
     }
 `;
 
-
 export const STICKY_HEADER_TABLE_TS_SNIPPET = `  import { Component, OnInit } from '@angular/core';
     import { CommonModule } from '@angular/common';
     import { MatCardModule } from '@angular/material/card';

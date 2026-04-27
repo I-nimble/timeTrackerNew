@@ -5,13 +5,13 @@ const ENGLISH_LEVEL_BUCKETS = [
   { min: 4.1, max: 5.0, label: 'B1' },
   { min: 5.1, max: 6.0, label: 'B2' },
   { min: 6.1, max: 7.0, label: 'C1' },
-  { min: 7.1, max: 10.0, label: 'C2' }
+  { min: 7.1, max: 10.0, label: 'C2' },
 ];
 
 export const getEnglishLevelLabel = (value: number): string => {
   if (!value) return '';
   const bucket = ENGLISH_LEVEL_BUCKETS.find(
-    (entry) => value >= entry.min && value <= entry.max
+    (entry) => value >= entry.min && value <= entry.max,
   );
   return bucket ? bucket.label : '';
 };

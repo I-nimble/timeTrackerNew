@@ -1,9 +1,11 @@
 import { Component } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MaterialModule } from '../../../material.module';
+
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-side-two-steps',

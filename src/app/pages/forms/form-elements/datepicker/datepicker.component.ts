@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, Injectable, ViewEncapsulation } from '@angular/core';
 import {
   FormGroup,
@@ -14,27 +15,51 @@ import {
 } from '@angular/material/datepicker';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MaterialModule } from '../../../../material.module';
-import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { ACTION_BUTTONS_DATEPICKER_TS_SNIPPET, BASIC_DATEPICKER_TS_SNIPPET, CHANGE_EVENTS_DATEPICKER_TS_SNIPPET, CUSTOM_DATE_CLASSES_DATEPICKER_TS_SNIPPET, CUSTOM_SELECTIONS_DATEPICKER_TS_SNIPPET, DATE_RANGE_PICKER_DATEPICKER_TS_SNIPPET, FORM_INTEGRATION_DATEPICKER_TS_SNIPPET, INLINE_DATEPICKER_TS_SNIPPET, START_DATE_DATEPICKER_TS_SNIPPET } from './code/datepicker-ts-snippet';
-import { ACTION_BUTTONS_DATEPICKER_HTML_SNIPPET, BASIC_DATEPICKER_HTML_SNIPPET, CHANGE_EVENTS_DATEPICKER_HTML_SNIPPET, CUSTOM_DATE_CLASSES_DATEPICKER_HTML_SNIPPET, CUSTOM_ICON_DATEPICKER_HTML_SNIPPET, CUSTOM_SELECTIONS_DATEPICKER_HTML_SNIPPET, DATE_RANGE_PICKER_DATEPICKER_HTML_SNIPPET, DISABLED_DATEPICKER_HTML_SNIPPET, FORM_INTEGRATION_DATEPICKER_HTML_SNIPPET, INLINE_DATEPICKER_HTML_SNIPPET, OPEN_METHOD_DATEPICKER_HTML_SNIPPET, PALLETE_COLORS_DATEPICKER_HTML_SNIPPET, START_DATE_DATEPICKER_HTML_SNIPPET, TOUCH_UI_DATEPICKER_HTML_SNIPPET } from './code/datepicker-html-snippet';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
+// snippets
+import {
+  ACTION_BUTTONS_DATEPICKER_HTML_SNIPPET,
+  BASIC_DATEPICKER_HTML_SNIPPET,
+  CHANGE_EVENTS_DATEPICKER_HTML_SNIPPET,
+  CUSTOM_DATE_CLASSES_DATEPICKER_HTML_SNIPPET,
+  CUSTOM_ICON_DATEPICKER_HTML_SNIPPET,
+  CUSTOM_SELECTIONS_DATEPICKER_HTML_SNIPPET,
+  DATE_RANGE_PICKER_DATEPICKER_HTML_SNIPPET,
+  DISABLED_DATEPICKER_HTML_SNIPPET,
+  FORM_INTEGRATION_DATEPICKER_HTML_SNIPPET,
+  INLINE_DATEPICKER_HTML_SNIPPET,
+  OPEN_METHOD_DATEPICKER_HTML_SNIPPET,
+  PALLETE_COLORS_DATEPICKER_HTML_SNIPPET,
+  START_DATE_DATEPICKER_HTML_SNIPPET,
+  TOUCH_UI_DATEPICKER_HTML_SNIPPET,
+} from './code/datepicker-html-snippet';
+import {
+  ACTION_BUTTONS_DATEPICKER_TS_SNIPPET,
+  BASIC_DATEPICKER_TS_SNIPPET,
+  CHANGE_EVENTS_DATEPICKER_TS_SNIPPET,
+  CUSTOM_DATE_CLASSES_DATEPICKER_TS_SNIPPET,
+  CUSTOM_SELECTIONS_DATEPICKER_TS_SNIPPET,
+  DATE_RANGE_PICKER_DATEPICKER_TS_SNIPPET,
+  FORM_INTEGRATION_DATEPICKER_TS_SNIPPET,
+  INLINE_DATEPICKER_TS_SNIPPET,
+  START_DATE_DATEPICKER_TS_SNIPPET,
+} from './code/datepicker-ts-snippet';
+import { MaterialModule } from '../../../../legacy/material.module';
 
 const today = new Date();
 const month = today.getMonth();
 const year = today.getFullYear();
 
 @Injectable()
-export class FiveDayRangeSelectionStrategy<D>
-  implements MatDateRangeSelectionStrategy<D> {
-  constructor(private _dateAdapter: DateAdapter<D>) { }
+export class FiveDayRangeSelectionStrategy<
+  D,
+> implements MatDateRangeSelectionStrategy<D> {
+  constructor(private _dateAdapter: DateAdapter<D>) {}
 
   selectionFinished(date: D | null): DateRange<D> {
     return this._createFiveDayRange(date);
@@ -78,10 +103,9 @@ export class FiveDayRangeSelectionStrategy<D>
       provide: MAT_DATE_RANGE_SELECTION_STRATEGY,
       useClass: FiveDayRangeSelectionStrategy,
     },
-  ]
+  ],
 })
 export class AppDatepickerComponent {
-
   // 1 [Basic with Datepicker]
   codeForBasicDatepicker = BASIC_DATEPICKER_HTML_SNIPPET;
   codeForBasicDatepickerTs = BASIC_DATEPICKER_TS_SNIPPET;
@@ -111,8 +135,10 @@ export class AppDatepickerComponent {
   codeForCustomIconDatepickerTs = ACTION_BUTTONS_DATEPICKER_TS_SNIPPET;
 
   // 8 [Custom Date Classes with Datepicker]
-  codeForCustomDateClassesDatepicker = CUSTOM_DATE_CLASSES_DATEPICKER_HTML_SNIPPET;
-  codeForCustomDateClassesDatepickerTs = CUSTOM_DATE_CLASSES_DATEPICKER_TS_SNIPPET;
+  codeForCustomDateClassesDatepicker =
+    CUSTOM_DATE_CLASSES_DATEPICKER_HTML_SNIPPET;
+  codeForCustomDateClassesDatepickerTs =
+    CUSTOM_DATE_CLASSES_DATEPICKER_TS_SNIPPET;
 
   // 9 [Pallete Colors with Datepicker]
   codeForPalleteColorsDatepicker = PALLETE_COLORS_DATEPICKER_HTML_SNIPPET;
@@ -137,7 +163,6 @@ export class AppDatepickerComponent {
   // 14 [touch UI with Datepicker]
   codeForTouchUIDatepicker = TOUCH_UI_DATEPICKER_HTML_SNIPPET;
   codeForTouchUIDatepickerTs = ACTION_BUTTONS_DATEPICKER_TS_SNIPPET;
-
 
   // inline
   selected: Date | null;
@@ -182,5 +207,5 @@ export class AppDatepickerComponent {
     this.events.push(`${type}: ${event.value}`);
   }
 
-  constructor() { }
+  constructor() {}
 }

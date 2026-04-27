@@ -1,4 +1,12 @@
-﻿import { Component, ViewChild, OnInit } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { Component, ViewChild, OnInit } from '@angular/core';
+
+import { CompaniesService } from '@app/services/companies.service';
+import { EmployeesService } from '@app/services/employees.service';
+import { EntriesService } from '@app/services/entries.service';
+import { SchedulesService } from '@app/services/schedules.service';
+import { UsersService } from '@app/services/users.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -10,16 +18,10 @@ import {
   ApexStroke,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { CompaniesService } from '@app/services/companies.service';
-import { EmployeesService } from '@app/services/employees.service';
-import { UsersService } from '@app/services/users.service';
-import { EntriesService } from '@app/services/entries.service';
 import { forkJoin, Observable } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
-import { SchedulesService } from '@app/services/schedules.service';
-import { DecimalPipe } from '@angular/common';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface trafficChart {
   series: ApexAxisChartSeries;
@@ -42,15 +44,15 @@ export class AppDailyProductivityComponent implements OnInit {
   dateRange: any = this.getCurrentWeekDates();
   userRole: string | null = localStorage.getItem('role');
   employees: any[] = [];
-  totalHours: number = 0;
-  hoursWorked: number = 0;
+  totalHours = 0;
+  hoursWorked = 0;
 
   constructor(
     private companiesService: CompaniesService,
     private employeesService: EmployeesService,
     private usersService: UsersService,
     private entriesService: EntriesService,
-    private schedulesService: SchedulesService
+    private schedulesService: SchedulesService,
   ) {
     this.trafficChart = {
       series: [0, 0],
@@ -64,10 +66,7 @@ export class AppDailyProductivityComponent implements OnInit {
         },
         height: 250,
       },
-      labels: [
-        'Worked hours',
-        'Hours left'
-      ],
+      labels: ['Worked hours', 'Hours left'],
       colors: ['#92b46c', '#adb0bb'],
       plotOptions: {
         pie: {
@@ -112,10 +111,10 @@ export class AppDailyProductivityComponent implements OnInit {
 
       // Get the entries for the selected date range for every employee
       const entriesObservables = employees.map((employee: number) => {
-        return this.entriesService.getAllEntries({ 
-          start_time: this.dateRange.firstSelect, 
+        return this.entriesService.getAllEntries({
+          start_time: this.dateRange.firstSelect,
           end_time: this.dateRange.lastSelect,
-          user_id: employee
+          user_id: employee,
         });
       });
 
@@ -126,7 +125,7 @@ export class AppDailyProductivityComponent implements OnInit {
       // Wait for all entries requests to complete
       forkJoin([
         forkJoin(entriesObservables),
-        forkJoin(schedulesObservables)
+        forkJoin(schedulesObservables),
       ]).subscribe(([userEntries, schedules]) => {
         // create an array with all the entries
         const allEntries = userEntries.map((obj: any) => obj.entries).flat();
@@ -139,16 +138,30 @@ export class AppDailyProductivityComponent implements OnInit {
         });
 
         // Get the schedules for every employee, calculate the hours of every shift and add them to the total hours
-        const allSchedules = schedules.map((schedule: any) => schedule.schedules).flat();
+        const allSchedules = schedules
+          .map((schedule: any) => schedule.schedules)
+          .flat();
 
         allSchedules.forEach((schedule: any) => {
           // console.log('schedule: ', schedule)
-          const [startHour, startMinute, startSecond] = schedule.start_time.split(':').map(Number);
-          const [endHour, endMinute, endSecond] = schedule.end_time.split(':').map(Number);
+          const [startHour, startMinute, startSecond] = schedule.start_time
+            .split(':')
+            .map(Number);
+          const [endHour, endMinute, endSecond] = schedule.end_time
+            .split(':')
+            .map(Number);
           // Calculate duration in hours
-          let startDate = new Date(0, 0, 0, startHour, startMinute, startSecond);
-          let endDate = new Date(0, 0, 0, endHour, endMinute, endSecond);
-          let duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+          const startDate = new Date(
+            0,
+            0,
+            0,
+            startHour,
+            startMinute,
+            startSecond,
+          );
+          const endDate = new Date(0, 0, 0, endHour, endMinute, endSecond);
+          let duration =
+            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
           // Handle overnight shifts where end is before start
           if (duration < 0) {
             duration += 24;
@@ -165,25 +178,33 @@ export class AppDailyProductivityComponent implements OnInit {
 
   getTeamMembers(): Observable<number[]> {
     // Return an Observable of employee IDs depending on user role
-    if(this.userRole === '3') {
+    if (this.userRole === '3') {
       return this.companiesService.getByOwner().pipe(
-        switchMap((company: any) => this.companiesService.getEmployees(company.company.id)),
-        map((employees: any) => employees.map((employee: any) => employee.user.id))
+        switchMap((company: any) =>
+          this.companiesService.getEmployees(company.company.id),
+        ),
+        map((employees: any) =>
+          employees.map((employee: any) => employee.user.id),
+        ),
       );
-    }
-    else if(this.userRole === '1') {
-      return this.employeesService.get().pipe(
-        map((employees: any) => employees.map((employee: any) => employee.user.id))
-      );
-    }
-    else {
-      return this.usersService.getUsers({ searchField: "", filter: { currentUser: true } }).pipe(
-        switchMap((res: any) => {
-          const userId = res[0].id;
-          return this.employeesService.getById(userId);
-        }),
-        map((employee: any) => [employee.user.id])
-      );
+    } else if (this.userRole === '1') {
+      return this.employeesService
+        .get()
+        .pipe(
+          map((employees: any) =>
+            employees.map((employee: any) => employee.user.id),
+          ),
+        );
+    } else {
+      return this.usersService
+        .getUsers({ searchField: '', filter: { currentUser: true } })
+        .pipe(
+          switchMap((res: any) => {
+            const userId = res[0].id;
+            return this.employeesService.getById(userId);
+          }),
+          map((employee: any) => [employee.user.id]),
+        );
     }
   }
 
@@ -191,11 +212,10 @@ export class AppDailyProductivityComponent implements OnInit {
     const today = new Date();
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 6);
-    
+
     return {
       firstSelect: sevenDaysAgo.toISOString(),
-      lastSelect: today.toISOString()
+      lastSelect: today.toISOString(),
     };
   }
 }
-

@@ -1,12 +1,13 @@
 import { Injectable, signal } from '@angular/core';
+
 import { BehaviorSubject } from 'rxjs';
+import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
 import { ContactList } from 'src/app/pages/apps/contact-list/contactlistData';
 import {
   Category,
   filter,
   label,
 } from 'src/app/pages/apps/contact-list/listing/categories';
-import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
 
 @Injectable({
   providedIn: 'root',
@@ -37,7 +38,7 @@ export class ContactService {
   }
   updateContact(updatedContact: any) {
     const updatedList = this.contactList().map((contact) =>
-      contact.id === updatedContact.id ? updatedContact : contact
+      contact.id === updatedContact.id ? updatedContact : contact,
     );
     this.contactList.set(updatedList);
     if (this.selectedContactSubject.getValue()?.id === updatedContact.id) {
@@ -48,7 +49,7 @@ export class ContactService {
   applyFilter(filter: Category): void {
     this.selectedFilter.set(filter);
     this.filters.set(
-      this.filters().map((f) => ({ ...f, active: f === filter }))
+      this.filters().map((f) => ({ ...f, active: f === filter })),
     );
     this.selectedCategory.set(null);
   }
@@ -67,7 +68,7 @@ export class ContactService {
 
   deleteContact(contactToDelete: ContactBox) {
     const updatedList = this.contactList().filter(
-      (contact) => contact.id !== contactToDelete.id
+      (contact) => contact.id !== contactToDelete.id,
     );
     this.contactList.set(updatedList);
 

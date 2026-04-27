@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
   FormControl,
@@ -8,8 +7,11 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MaterialModule } from '../../../material.module';
+
+import { CoreService } from 'src/app/services/core.service';
+
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
+import { MaterialModule } from '../../../legacy/material.module';
 @Component({
   selector: 'app-boxed-login',
   standalone: true,
@@ -25,7 +27,10 @@ import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/brandi
 export class AppBoxedLoginComponent {
   options = this.settings.getOptions();
 
-  constructor(private settings: CoreService, private router: Router) {}
+  constructor(
+    private settings: CoreService,
+    private router: Router,
+  ) {}
 
   form = new FormGroup({
     uname: new FormControl('', [Validators.required, Validators.minLength(6)]),

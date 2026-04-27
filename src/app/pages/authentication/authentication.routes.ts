@@ -6,11 +6,11 @@ import { AppBoxedRegisterComponent } from './boxed-register/boxed-register.compo
 import { AppBoxedTwoStepsComponent } from './boxed-two-steps/boxed-two-steps.component';
 import { AppErrorComponent } from './error/error.component';
 import { AppMaintenanceComponent } from './maintenance/maintenance.component';
+import { AppResetPasswordComponent } from './reset-password/reset-password.component';
 import { AppSideForgotPasswordComponent } from './side-forgot-password/side-forgot-password.component';
 import { AppSideLoginComponent } from './side-login/side-login.component';
 import { AppSideRegisterComponent } from './side-register/side-register.component';
 import { AppSideTwoStepsComponent } from './side-two-steps/side-two-steps.component';
-import { AppResetPasswordComponent } from './reset-password/reset-password.component';
 
 export const AuthenticationRoutes: Routes = [
   {

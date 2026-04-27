@@ -31,7 +31,7 @@ export class MoreVertComponent implements OnInit {
   @Input() itemId!: string;
   @Output() onSelectedItem: EventEmitter<{ id: string; action: string }> =
     new EventEmitter<{ id: string; action: string }>();
-  show: boolean = false;
+  show = false;
 
   constructor(private elementRef: ElementRef<HTMLElement>) {}
 

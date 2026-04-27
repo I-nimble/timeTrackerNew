@@ -1,3 +1,4 @@
+import { CommonModule, DOCUMENT, NgSwitch } from '@angular/common';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -8,14 +9,6 @@ import {
   Output,
   EventEmitter,
 } from '@angular/core';
-import { CommonModule, DOCUMENT, NgSwitch } from '@angular/common';
-import {
-  MatDialog,
-  MatDialogRef,
-  MatDialogConfig,
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-} from '@angular/material/dialog';
 import {
   FormGroup,
   FormsModule,
@@ -24,9 +17,21 @@ import {
   UntypedFormGroup,
   Validators,
 } from '@angular/forms';
-import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
-import { isSameDay, isSameMonth, subMonths, addMonths } from 'date-fns';
-import { Subject } from 'rxjs';
+import {
+  MatNativeDateModule,
+  provideNativeDateAdapter,
+} from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MatDialog,
+  MatDialogRef,
+  MatDialogConfig,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 import {
   CalendarDateFormatter,
   CalendarEvent,
@@ -35,22 +40,19 @@ import {
   CalendarModule,
   CalendarView,
 } from 'angular-calendar';
-import { MaterialModule } from 'src/app/material.module';
-import {
-  MatNativeDateModule,
-  provideNativeDateAdapter,
-} from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { RatingsService } from 'src/app/services/ratings.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { UsersService } from 'src/app/services/users.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { CompaniesService } from 'src/app/services/companies.service';
+import { isSameDay, isSameMonth, subMonths, addMonths } from 'date-fns';
 import { addWeeks, subWeeks } from 'date-fns';
-import { AppKanbanDialogComponent } from '../kanban/kanban-dialog.component';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { Subject } from 'rxjs';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { RatingsService } from 'src/app/services/ratings.service';
+import { UsersService } from 'src/app/services/users.service';
+
+import { AppKanbanDialogComponent } from '../kanban/kanban-dialog.component';
+import { CalendarFormDialogComponent } from './calendar-form-dialog/calendar-form-dialog.component';
 
 const colors: any = {
   red: {
@@ -101,7 +103,7 @@ export class CalendarDialogComponent implements OnInit {
       employee_id: [null, [Validators.required]],
       updatedAt: [new Date(), []],
     },
-    { validators: this.recurrentDueDateValidator }
+    { validators: this.recurrentDueDateValidator },
   );
 
   priorities: any[] = [];
@@ -111,7 +113,7 @@ export class CalendarDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<CalendarDialogComponent>,
     public fb: UntypedFormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private ratingsService: RatingsService
+    private ratingsService: RatingsService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -285,7 +287,7 @@ export class AppFullcalendarComponent implements OnInit {
   };
   numTemplateOpens = 0;
 
-  refresh: Subject<any> = new Subject();
+  refresh = new Subject<any>();
 
   constructor(
     public dialog: MatDialog,
@@ -294,7 +296,7 @@ export class AppFullcalendarComponent implements OnInit {
     private employeesService: EmployeesService,
     private userService: UsersService,
     public snackBar: MatSnackBar,
-    private companiesService: CompaniesService
+    private companiesService: CompaniesService,
   ) {}
 
   ngOnInit(): void {
@@ -384,13 +386,15 @@ export class AppFullcalendarComponent implements OnInit {
       return toDos
         .filter((toDo: any) => toDo.due_date)
         .filter((toDo: any) =>
-          this.selectedPriority ? toDo.priority === this.selectedPriority : true
+          this.selectedPriority
+            ? toDo.priority === this.selectedPriority
+            : true,
         )
         .filter((toDo: any) =>
-          this.companyId ? toDo.company_id === this.companyId : true
+          this.companyId ? toDo.company_id === this.companyId : true,
         )
         .filter((toDo: any) =>
-          this.teamMemberId ? toDo.employee_id === this.teamMemberId : true
+          this.teamMemberId ? toDo.employee_id === this.teamMemberId : true,
         )
         .map((toDo: any) => {
           const priority = toDo.priority;
@@ -494,13 +498,13 @@ export class AppFullcalendarComponent implements OnInit {
   }
 
   handleTimeGridClick(date: Date): void {
-  if (!this.isOrphan && !this.companyId) {
-    this.openSnackBar('Please select a company to create a task', 'Close');
-    return;
-  }
+    if (!this.isOrphan && !this.companyId) {
+      this.openSnackBar('Please select a company to create a task', 'Close');
+      return;
+    }
 
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '900px', 
+      width: '900px',
       maxWidth: '90vw',
       data: {
         action: 'Add',
@@ -555,7 +559,7 @@ export class AppFullcalendarComponent implements OnInit {
 
   handleEvent(action: string, event: CustomCalendarEvent): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '900px', 
+      width: '900px',
       maxWidth: '90vw',
       data: {
         action: 'Edit',
@@ -607,8 +611,8 @@ export class AppFullcalendarComponent implements OnInit {
 
             this.events.set(
               this.events().map((iEvent: CustomCalendarEvent) =>
-                iEvent.id === updatedEvent.id ? updatedEvent : iEvent
-              )
+                iEvent.id === updatedEvent.id ? updatedEvent : iEvent,
+              ),
             );
             this.refresh.next(updatedEvent);
             this.openSnackBar('Task updated successfully!', 'Close');

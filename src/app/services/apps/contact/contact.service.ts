@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { signal } from '@angular/core';
+
 import { Contact } from 'src/app/pages/apps/contact/contact';
 import { contactList } from 'src/app/pages/apps/contact/contactData';
 
@@ -19,7 +20,7 @@ export class ContactService {
 
   public filterContacts(searchText: string): Contact[] {
     return this.contacts().filter((contact) =>
-      contact.contactname.toLowerCase().includes(searchText.toLowerCase())
+      contact.contactname.toLowerCase().includes(searchText.toLowerCase()),
     );
   }
 }

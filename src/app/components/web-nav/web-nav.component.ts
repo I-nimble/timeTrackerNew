@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
-import { SharedModule } from '../shared.module';
+
 import { environment } from 'src/environments/environment';
+
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'app-web-nav',
@@ -10,8 +12,8 @@ import { environment } from 'src/environments/environment';
   styleUrl: './web-nav.component.scss',
 })
 export class WebNavComponent {
-  isActive: boolean = false;
-  links: Array<any> = [
+  isActive = false;
+  links: any[] = [
     {
       title: 'Home',
       href: '',
@@ -34,7 +36,7 @@ export class WebNavComponent {
     },
     {
       title: 'blog',
-      href: 'blog'
+      href: 'blog',
     },
   ];
   assetsPath: string = environment.assets + '/inimble.png';

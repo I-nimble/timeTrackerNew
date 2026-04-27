@@ -1,13 +1,4 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { RADAR_CHART_HTML_SNIPPET, RADIALBAR_CHART_HTML_SNIPPET } from './code/radial-radar-html-snippet';
-import { RADAR_CHART_TS_SNIPPET, RADIALBAR_CHART_TS_SNIPPET } from './code/radial-radar-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-
 
 import {
   ApexAxisChartSeries,
@@ -24,9 +15,22 @@ import {
   ApexFill,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
-export type ChartOptions = {
+// snippets
+import {
+  RADAR_CHART_HTML_SNIPPET,
+  RADIALBAR_CHART_HTML_SNIPPET,
+} from './code/radial-radar-html-snippet';
+import {
+  RADAR_CHART_TS_SNIPPET,
+  RADIALBAR_CHART_TS_SNIPPET,
+} from './code/radial-radar-ts-snippet';
+import { MaterialModule } from '../../../legacy/material.module';
+
+export interface ChartOptions {
   series: ApexAxisChartSeries;
   chart: ApexChart;
   xaxis: ApexXAxis;
@@ -42,20 +46,21 @@ export type ChartOptions = {
   plotOptions: ApexPlotOptions;
   fill: ApexFill;
   labels: string[];
-};
+}
 
 @Component({
-    selector: 'app-radial-radar',
-    imports: [NgApexchartsModule, MaterialModule,
-      Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
-    ],
-    templateUrl: './radial-radar.component.html'
+  selector: 'app-radial-radar',
+  imports: [
+    NgApexchartsModule,
+    MaterialModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './radial-radar.component.html',
 })
 export class AppRadialRadarChartComponent {
-
   // 1 [Radialbar with Datepicker]
   codeForRadialbarChart = RADIALBAR_CHART_HTML_SNIPPET;
   codeForRadialbarChartTs = RADIALBAR_CHART_TS_SNIPPET;
@@ -63,7 +68,6 @@ export class AppRadialRadarChartComponent {
   // 2 [Radar with Datepicker]
   codeForRadarChart = RADAR_CHART_HTML_SNIPPET;
   codeForRadarChartTs = RADAR_CHART_TS_SNIPPET;
-
 
   @ViewChild('chart') chart: ChartComponent = Object.create(null);
   public radialbarChartOptions: Partial<ChartOptions> | any;

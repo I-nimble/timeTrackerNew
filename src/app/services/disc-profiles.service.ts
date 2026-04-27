@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -21,26 +22,32 @@ export class DiscProfilesService {
     return this.http.get<DiscProfile[]>(`${this.API_URI}`);
   }
 
-  assignToApplication(applicationId: number, discProfileIds: number[]): Observable<any> {
+  assignToApplication(
+    applicationId: number,
+    discProfileIds: number[],
+  ): Observable<any> {
     return this.http.post(`${this.API_URI}/assign-application`, {
       application_id: applicationId,
-      disc_profile_ids: discProfileIds
+      disc_profile_ids: discProfileIds,
     });
   }
 
-  assignToPosition(positionId: number, discProfileIds: number[]): Observable<any> {
+  assignToPosition(
+    positionId: number,
+    discProfileIds: number[],
+  ): Observable<any> {
     return this.http.post(`${this.API_URI}/assign-position`, {
       position_id: positionId,
-      disc_profile_ids: discProfileIds
+      disc_profile_ids: discProfileIds,
     });
   }
 
   getDiscProfileColor(profileName: string): string {
-    const colors: { [key: string]: string } = {
-      'Dominance': 'rgb(195, 227, 202)',
-      'Influence': 'rgb(251, 205, 192)',
-      'Steadiness': 'rgb(253, 229, 175)',
-      'Conscientiousness': 'rgb(181, 218, 240)'
+    const colors: Record<string, string> = {
+      Dominance: 'rgb(195, 227, 202)',
+      Influence: 'rgb(251, 205, 192)',
+      Steadiness: 'rgb(253, 229, 175)',
+      Conscientiousness: 'rgb(181, 218, 240)',
     };
     return colors[profileName] || '#ccc';
   }

@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../../material.module';
+import { MaterialModule } from '../../../legacy/material.module';
 
 
 @Component({

@@ -9,15 +9,16 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { Company } from 'src/app/models/Company.model';
 import { Project } from 'src/app/models/Project.model';
 import { User } from 'src/app/models/User.model';
-import { Company } from 'src/app/models/Company.model';
 import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
 import { ProjectsService } from 'src/app/services/projects.service';
 import { UsersService } from 'src/app/services/users.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-//import { SharedModule } from '../shared.module';
+//import { SharedModule } from '../legacy/shared.module';
 
 export interface ReportFilter {
   user: any;
@@ -51,7 +52,7 @@ export class ReportsFilterComponent implements OnInit {
 
   @Output() onSelectedFilters: EventEmitter<any> = new EventEmitter<any>();
   role = localStorage.getItem('role') ?? '';
-  userId: string = 'all';
+  userId = 'all';
   usersList!: User[];
   projectsList!: Project[];
 
@@ -74,8 +75,8 @@ export class ReportsFilterComponent implements OnInit {
     },
   ];
 
-  type: string = 'user';
-  byClient: boolean = false;
+  type = 'user';
+  byClient = false;
 
   filterForm: FormGroup = this.fb.group({
     project: ['all'],
@@ -100,10 +101,9 @@ export class ReportsFilterComponent implements OnInit {
     });
     this.filterForm.get('user')?.valueChanges.subscribe((control) => {
       if (control != 'all') {
-        this.getProjects(control.id)
+        this.getProjects(control.id);
         this.userService.setTeamMember(control.id);
-      }
-      else this.getProjects();
+      } else this.getProjects();
     });
     this.filterForm.get('byClient')?.valueChanges.subscribe(() => {
       this.filterForm.patchValue({
@@ -115,7 +115,7 @@ export class ReportsFilterComponent implements OnInit {
     this.filterForm.get('company')?.valueChanges.subscribe((control) => {
       if (control != 'all')
         this.projects = this.projectsList.filter(
-          (project: Project) => project.company_id == control.id
+          (project: Project) => project.company_id == control.id,
         );
       else this.getProjects();
     });
@@ -125,12 +125,12 @@ export class ReportsFilterComponent implements OnInit {
   }
 
   getUsers() {
-    let body = {};
+    const body = {};
     this.userService.getUsers(body).subscribe({
       next: (users) => {
         this.usersList = users.filter((user: any) => user.active == 1);
         this.users = this.usersList.filter(
-          (user: any) => user.role === 2 && user.active == 1
+          (user: any) => user.role === 2 && user.active == 1,
         );
       },
       error: (err) => {},
@@ -154,12 +154,12 @@ export class ReportsFilterComponent implements OnInit {
     });
   }
 
-  getProjects(userId: string = '0') {
+  getProjects(userId = '0') {
     this.handleType();
     this.projectService.get(userId, this.type).subscribe({
       next: (projects: any) => {
         this.projectsList = projects.filter(
-          (project: any) => project.active == 1
+          (project: any) => project.active == 1,
         );
         this.projects = this.projectsList;
       },

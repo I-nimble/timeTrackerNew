@@ -1,4 +1,7 @@
+import { DecimalPipe, NgIf } from '@angular/common';
 import { Component, ViewChild, OnInit, Input, OnChanges } from '@angular/core';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   ApexChart,
   ChartComponent,
@@ -10,9 +13,8 @@ import {
   ApexStroke,
   NgApexchartsModule,
 } from 'ng-apexcharts';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { DecimalPipe, NgIf } from '@angular/common';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface trafficChart {
   series: ApexAxisChartSeries;
@@ -26,7 +28,13 @@ export interface trafficChart {
 @Component({
   selector: 'team-productivity',
   standalone: true,
-  imports: [MaterialModule, NgApexchartsModule, TablerIconsModule, DecimalPipe, NgIf],
+  imports: [
+    MaterialModule,
+    NgApexchartsModule,
+    TablerIconsModule,
+    DecimalPipe,
+    NgIf,
+  ],
   templateUrl: './team-productivity.component.html',
   styleUrls: ['./team-productivity.component.scss'],
 })
@@ -36,12 +44,12 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
   public trafficChart!: Partial<trafficChart> | any;
   userRole: string | null = localStorage.getItem('role');
   employees: any[] = [];
-  totalHours: number = 0;
-  completed: number = 0;
-  totalTasks: number = 0;
-  tasksLeft: number = 0;
-  productivityPercentage: number = 0;
-  isChartLoaded: boolean = false;
+  totalHours = 0;
+  completed = 0;
+  totalTasks = 0;
+  tasksLeft = 0;
+  productivityPercentage = 0;
+  isChartLoaded = false;
 
   constructor() {
     this.trafficChart = {
@@ -56,10 +64,7 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
         },
         height: 250,
       },
-      labels: [
-        'Completed tasks',
-        'Tasks left'
-      ],
+      labels: ['Completed tasks', 'Tasks left'],
       colors: ['#92b46c', '#adb0bb'],
       plotOptions: {
         pie: {
@@ -69,14 +74,14 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
             labels: {
               show: true,
               name: {
-                show: false, 
+                show: false,
               },
               value: {
-                show: false, 
+                show: false,
               },
               total: {
-                show: false 
-              }
+                show: false,
+              },
             },
           },
         },
@@ -90,12 +95,12 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
       legend: {
         show: false,
       },
-       tooltip: {
+      tooltip: {
         theme: 'dark',
         fillSeriesColor: false,
         y: {
-          formatter: (val: number) => val.toFixed(2)
-        }
+          formatter: (val: number) => val.toFixed(2),
+        },
       },
     };
   }
@@ -112,9 +117,16 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
   }
 
   updateWorkedAndLeftFromRatings(ratings: any[]) {
-    this.completed = ratings.reduce((sum, emp) => sum + (emp.completed ?? 0), 0);
-    this.totalTasks = ratings.reduce((sum, emp) => sum + (emp.totalTasks ?? 0), 0);
-    this.productivityPercentage = this.totalTasks > 0 ? (this.completed / this.totalTasks) * 100 : 0;
+    this.completed = ratings.reduce(
+      (sum, emp) => sum + (emp.completed ?? 0),
+      0,
+    );
+    this.totalTasks = ratings.reduce(
+      (sum, emp) => sum + (emp.totalTasks ?? 0),
+      0,
+    );
+    this.productivityPercentage =
+      this.totalTasks > 0 ? (this.completed / this.totalTasks) * 100 : 0;
     this.tasksLeft = this.totalTasks - this.completed;
     if (this.completed === 0 && this.totalTasks === 0) {
       this.trafficChart.series = [0, 1];
@@ -122,5 +134,4 @@ export class TeamProductivityComponent implements OnInit, OnChanges {
       this.trafficChart.series = [this.completed, this.tasksLeft];
     }
   }
-
 }

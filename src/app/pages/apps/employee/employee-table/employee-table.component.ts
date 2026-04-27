@@ -1,3 +1,6 @@
+import { SelectionModel } from '@angular/cdk/collections';
+import { DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -9,41 +12,43 @@ import {
   ViewChild,
   EventEmitter,
 } from '@angular/core';
-import { MatTableDataSource, MatTable } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import {
+  FormArray,
+  FormControl,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { DatePipe } from '@angular/common';
-import { AppAddEmployeeComponent } from '../add/add.component';
-import { FormArray, FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { Employee } from 'src/app/pages/apps/employee/employee';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { CommonModule } from '@angular/common';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
-import { UsersService } from 'src/app/services/users.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import { PositionsService } from 'src/app/services/positions.service';
-import { environment } from 'src/environments/environment';
-import { SchedulesService } from 'src/app/services/schedules.service';
-import { ReportsService } from 'src/app/services/reports.service';
-import { ProjectsService } from 'src/app/services/projects.service';
-import {
-  ReportFilter,
-} from 'src/app/components/reports-filter/reports-filter.component';
-import moment from 'moment-timezone';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import * as filesaver from 'file-saver';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TimerComponent } from 'src/app/components/timer-component/timer.component';
-import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
-import { SelectionModel } from '@angular/cdk/collections';
-import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
+import moment from 'moment-timezone';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { AppDateRangeDialogComponent } from 'src/app/components/date-range-dialog/date-range-dialog.component';
+import { ReportFilter } from 'src/app/components/reports-filter/reports-filter.component';
+import { TimerComponent } from 'src/app/components/timer-component/timer.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { Employee } from 'src/app/pages/apps/employee/employee';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { EmployeesService } from 'src/app/services/employees.service';
+import { PositionsService } from 'src/app/services/positions.service';
+import { ProjectsService } from 'src/app/services/projects.service';
+import { ReportsService } from 'src/app/services/reports.service';
+import { SchedulesService } from 'src/app/services/schedules.service';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
+import { AppAddEmployeeComponent } from '../add/add.component';
+import { AppEmployeeDialogContentComponent } from '../employee-dialog-content';
 
 @Component({
   templateUrl: './employee-table.component.html',
@@ -56,7 +61,7 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     RouterModule,
     TimerComponent,
     MatPaginatorModule,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
   selector: 'app-employee-table',
   standalone: true,
@@ -71,14 +76,14 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     'status',
     'schedule',
     'projects',
-    'action'
+    'action',
   ];
   users: any[] = [];
   employees: any[] = [];
-  loaded: boolean = false;
+  loaded = false;
   company: any;
-  companyTimezone: string = 'America/Los_Angeles';
-  timeZone: string = 'America/Caracas';
+  companyTimezone = 'America/Los_Angeles';
+  timeZone = 'America/Caracas';
   assetsPath: string = environment.assets;
   filters: ReportFilter = {
     user: 'all',
@@ -114,7 +119,6 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   dataSourceTable = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
-
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngAfterViewInit() {
@@ -139,10 +143,9 @@ export class AppEmployeeTableComponent implements AfterViewInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.event === 'Delete' && result?.id) {
         this.dataSourceTable.data = this.dataSourceTable.data.filter(
-          (emp: any) => emp.profile.id !== result.id
+          (emp: any) => emp.profile.id !== result.id,
         );
-      }
-      else {
+      } else {
         this.getEmployees.emit();
       }
     });
@@ -151,9 +154,18 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   // Helper function to format days as a range "Monday to Friday"
   formatDaysRange(days: string[]): string {
     const weekDays = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
-    const indices = days.map(day => weekDays.indexOf(day)).filter(i => i !== -1).sort((a, b) => a - b);
+    const indices = days
+      .map((day) => weekDays.indexOf(day))
+      .filter((i) => i !== -1)
+      .sort((a, b) => a - b);
     if (indices.length === 0) return '';
     // Check if days are consecutive
     let isConsecutive = true;
@@ -172,14 +184,14 @@ export class AppEmployeeTableComponent implements AfterViewInit {
 
   setUser(user: any): void {
     this.employees.map((employee: any) => {
-      user.id == employee.user.id ? user = employee.user : null;
+      user.id == employee.user.id ? (user = employee.user) : null;
     });
 
     this.userService.setUserInformation(user.profile);
   }
 
   downloadReport(user: any): void {
-    let selectedIds = this.selection.selected.map((u:any) => u.profile.id);
+    const selectedIds = this.selection.selected.map((u: any) => u.profile.id);
     if (!selectedIds.includes(user.profile.id)) {
       selectedIds.push(user.profile.id);
     }
@@ -206,7 +218,7 @@ export class AppEmployeeTableComponent implements AfterViewInit {
       const multipleUsers = this.filters.multipleUsers;
       const userId = user?.profile?.id ?? user?.id;
       const requestUser = {
-        id: multipleUsers ? this.filters.user.id : userId
+        id: multipleUsers ? this.filters.user.id : userId,
       };
       this.reportsService
         .getReport(datesRange, requestUser, this.filters)
@@ -219,15 +231,15 @@ export class AppEmployeeTableComponent implements AfterViewInit {
               displayName = `${name}_${last}`.replace(/\s+/g, '_');
             }
             const filename = `I-nimble_Report_${displayName}_${moment(
-              result.firstSelect
-            ).format('DD-MM-YYYY')}_${moment(
-              result.lastSelect
-            ).format('DD-MM-YYYY')}.xlsx`;
+              result.firstSelect,
+            ).format('DD-MM-YYYY')}_${moment(result.lastSelect).format(
+              'DD-MM-YYYY',
+            )}.xlsx`;
             filesaver.saveAs(v, filename);
           },
           error: (error: any) => {
             console.error('Error downloading report:', error);
-          }
+          },
         });
     });
   }
@@ -239,9 +251,9 @@ export class AppEmployeeTableComponent implements AfterViewInit {
   }
 
   masterToggle(): void {
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.dataSourceTable.data.forEach(row => this.selection.select(row));
+    this.isAllSelected()
+      ? this.selection.clear()
+      : this.dataSourceTable.data.forEach((row) => this.selection.select(row));
   }
 
   checkboxLabel(row?: any): string {

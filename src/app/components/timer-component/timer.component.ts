@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   Input,
@@ -6,18 +7,19 @@ import {
   SimpleChanges,
   inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-// import { SharedModule } from '../shared.module';
-import { EntriesService } from 'src/app/services/entries.service';
-import { WebSocketService } from 'src/app/services/socket/web-socket.service';
-import { Subscription, interval } from 'rxjs';
-import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
-import { Entry } from 'src/app/models/Entries';
-// import { NotificationStore } from 'src/app/stores/notification.store';
-import { LeaveRequestsService } from 'src/app/services/leave_requests.service';
-import { UsersService } from 'src/app/services/users.service';
-import moment from 'moment-timezone';
+
+// import { SharedModule } from '../legacy/shared.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import moment from 'moment-timezone';
+import { Subscription, interval } from 'rxjs';
+import { Entry } from 'src/app/models/Entries';
+import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
+import { EntriesService } from 'src/app/services/entries.service';
+import { LeaveRequestsService } from 'src/app/services/leave_requests.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+// import { NotificationStore } from 'src/app/stores/notification.store';
+import { UsersService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-timer',
@@ -25,12 +27,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './timer.component.html',
   styleUrl: './timer.component.scss',
 })
-export class TimerComponent {
+export class TimerComponent implements OnChanges, OnInit {
   @Input() userId: any;
-  @Input() timeZone: string = 'America/Caracas';
+  @Input() timeZone = 'America/Caracas';
   start_date: string = moment().format('YYYY/MM/DD');
   end_date: string = moment().format('YYYY/MM/DD');
-  initializing: boolean = false;
+  initializing = false;
   validStartTime: any;
   localValidStartTime: any;
   validEndTime: any;
@@ -38,7 +40,7 @@ export class TimerComponent {
   localEntryStartTime: any;
   localTime: any;
   justInTime?: boolean;
-  initialized: boolean = false;
+  initialized = false;
   private subscription: Subscription[] = [];
   private entries: any;
   private userType: any;
@@ -49,7 +51,7 @@ export class TimerComponent {
     started: '',
     totalHours: '',
   };
-  public hasLeaveRequest: boolean = false;
+  public hasLeaveRequest = false;
   public leaveRequest?: any;
   user: any;
 
@@ -59,7 +61,7 @@ export class TimerComponent {
     public customDate: CustomDatePipe,
     private leaveRequestsService: LeaveRequestsService,
     private usersService: UsersService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -134,7 +136,7 @@ export class TimerComponent {
     if (schedules.length <= 0 && !this.initialized) {
       this.openSnackBar(
         `${this.user.name} ${this.user.last_name} doesn't have a defined schedule`,
-        'Close'
+        'Close',
       );
     } else {
       let dayOfWeek = new Date().getDay();
@@ -143,7 +145,7 @@ export class TimerComponent {
       schedules.forEach((schedule: any) => {
         const scheduleDays = schedule.days;
         const matchingDay = scheduleDays.find(
-          (day: any) => dayOfWeek == day.id
+          (day: any) => dayOfWeek == day.id,
         );
 
         if (matchingDay) {
@@ -234,10 +236,10 @@ export class TimerComponent {
           ':' +
           this.padZero(timeSeconds),
         'HH:mm:ss',
-        true
+        true,
       );
       const convertedDate = this.strToDate(
-        utcMoment.format('MM/DD/YYYY HH:mm:ss')
+        utcMoment.format('MM/DD/YYYY HH:mm:ss'),
       );
 
       return convertedDate;
@@ -264,14 +266,14 @@ export class TimerComponent {
    * Append the entries to their respective users
    */
   filterUsersData(entries: any, user: any) {
-    let acc: number = 0;
+    let acc = 0;
     entries.forEach((entry: any) => {
       if (user.id == entry.user_id) {
         acc += this.getHours(entry.start_time, entry.end_time);
       }
     });
-    let status = entries.find(
-      (item: any) => item.status === 0 && item.user_id === user.id
+    const status = entries.find(
+      (item: any) => item.status === 0 && item.user_id === user.id,
     );
     if (status) {
       const utcStartTime = moment
@@ -280,7 +282,7 @@ export class TimerComponent {
       this.entry.start_time = this.strToDate(utcStartTime);
       this.localEntryStartTime = this.utcToLocal(this.entry.start_time);
 
-      let timer = interval(1000).subscribe(() => {
+      const timer = interval(1000).subscribe(() => {
         const utcTime = moment.utc();
         const now = this.strToDate(utcTime.format('MM/DD/YYYY HH:mm:ss'));
 
@@ -289,7 +291,7 @@ export class TimerComponent {
         // } else {
         this.entry.started = this.customDate.getTotalHours(
           this.entry.start_time,
-          now
+          now,
         );
         // }
         this.entry.timeRef = this.getTimeAgo(this.entry.started.split(':'));
@@ -305,14 +307,15 @@ export class TimerComponent {
     this.entry.totalHours = this.formatHours(acc);
   }
 
-  getTimeAgo(time: Array<any>) {
+  getTimeAgo(time: any[]) {
     if (time[1] == '00' && time[0] == '00') return 'sec';
     if (time[0] == '00') return 'min';
     return 'hours';
   }
 
   getHours(start_time: Date, end_time: Date) {
-    const diff = new Date(end_time)?.getTime() - new Date(start_time)?.getTime();
+    const diff =
+      new Date(end_time)?.getTime() - new Date(start_time)?.getTime();
     const total = diff / (60 * 60 * 1000);
     return total;
   }

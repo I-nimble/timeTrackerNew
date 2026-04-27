@@ -1,3 +1,4 @@
+import { CommonModule, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import {
   FormArray,
@@ -6,21 +7,22 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MaterialModule } from '../../material.module';
+import { FormGroup, FormControl } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
-import { CommonModule, NgIf } from '@angular/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { PositionsService } from 'src/app/services/positions.service';
-import { Positions } from '../../models/Position.model';
-import { FormGroup, FormControl } from '@angular/forms';
-import { startWith, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { startWith, map } from 'rxjs/operators';
 import { CustomSearchService } from 'src/app/services/custom-search.service';
+import { PositionsService } from 'src/app/services/positions.service';
+
+import { MaterialModule } from '../../legacy/material.module';
+import { Positions } from '../../models/Position.model';
 
 @Component({
   standalone: true,
@@ -37,7 +39,7 @@ import { CustomSearchService } from 'src/app/services/custom-search.service';
     MatAutocompleteModule,
     RouterLink,
     NgIf,
-    MatSlideToggleModule
+    MatSlideToggleModule,
   ],
   templateUrl: './custom-search.component.html',
   styleUrl: './custom-search.component.scss',
@@ -52,33 +54,39 @@ export class CustomSearchComponent implements OnInit {
     'Tech Startup',
     'Marketing Agency',
     'Small Own Business',
-    'Other'
+    'Other',
   ];
   weekDays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
   lunchTimes = [
     { label: '30 minutes', value: 30 },
     { label: '45 minutes', value: 45 },
-    { label: '1 hour', value: 60 }
+    { label: '1 hour', value: 60 },
   ];
 
   holidaysList = [
-    'New Year\'s Day',
+    "New Year's Day",
     'Martin Luther King Jr. Day',
-    'Presidents\' Day',
+    "Presidents' Day",
     'Memorial Day',
     'Independence Day',
     'Labor Day',
     'Thanksgiving Day',
-    'Christmas Day'
+    'Christmas Day',
   ];
   predefinedCompetencies = [
     'Leadership',
     'Communication',
     'Problem Solving',
     'Teamwork',
-    'Technical Writing'
+    'Technical Writing',
   ];
 
   selectedCompetencies: string[] = [];
@@ -93,13 +101,25 @@ export class CustomSearchComponent implements OnInit {
     contactInfo: this.fb.group({
       client: [{ value: '', disabled: false }, Validators.required],
       contactPerson: [{ value: '', disabled: false }, Validators.required],
-      email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
+      email: [
+        { value: '', disabled: false },
+        [Validators.required, Validators.email],
+      ],
       countryCode: [{ value: '+1', disabled: false }, Validators.required],
-      phone: [{ value: '', disabled: false }, [Validators.required, Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/)]],
+      phone: [
+        { value: '', disabled: false },
+        [
+          Validators.required,
+          Validators.pattern(/^\+1\s\(\d{3}\)\s\d{3}-\d{4}$/),
+        ],
+      ],
       website: [{ value: '', disabled: false }],
       industry: [{ value: '', disabled: false }, Validators.required],
-      numberOfEmployees: [{ value: 1, disabled: false }, [Validators.required, Validators.min(1)]],
-  }),
+      numberOfEmployees: [
+        { value: 1, disabled: false },
+        [Validators.required, Validators.min(1)],
+      ],
+    }),
     positionInfo: this.fb.group({
       jobTitle: ['', Validators.required],
       jobDescription: ['', Validators.required],
@@ -108,7 +128,7 @@ export class CustomSearchComponent implements OnInit {
       trainingContact: [''],
       itContact: [''],
       techNeeds: [''],
-      additionalInfo: ['']
+      additionalInfo: [''],
     }),
     scheduleInfo: this.fb.group({
       scheduleDays: [[], Validators.required],
@@ -119,13 +139,13 @@ export class CustomSearchComponent implements OnInit {
     }),
     termsInfo: this.fb.group({
       acceptOtherCommunications: [false, Validators.requiredTrue],
-      acceptPersonalData: [false, Validators.requiredTrue]
-    })
+      acceptPersonalData: [false, Validators.requiredTrue],
+    }),
   });
 
   formSubmitted = false;
-  showVideo: boolean = false;
-  lastClientName: string = '';
+  showVideo = false;
+  lastClientName = '';
 
   constructor(
     private fb: FormBuilder,
@@ -133,11 +153,11 @@ export class CustomSearchComponent implements OnInit {
     private customSearchService: CustomSearchService,
     private positionsService: PositionsService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {
     this.filteredCompetencies = this.competencyCtrl.valueChanges.pipe(
       startWith(''),
-      map(value => this._filter(value || ''))
+      map((value) => this._filter(value || '')),
     );
     this.showVideo = this.router.url.includes('/talent-match');
   }
@@ -149,12 +169,12 @@ export class CustomSearchComponent implements OnInit {
       },
       error: () => {
         this.openSnackBar('Error loading positions', 'Close');
-      }
+      },
     });
 
     this.loadClientInfo();
 
-    this.showInfoControl.valueChanges.subscribe(showInfo => {
+    this.showInfoControl.valueChanges.subscribe((showInfo) => {
       if (showInfo) {
         this.populateClientInfo();
       } else {
@@ -168,7 +188,7 @@ export class CustomSearchComponent implements OnInit {
   }
 
   markAllFormControlsAsTouched(formGroup: FormGroup | FormArray) {
-    Object.keys(formGroup.controls).forEach(key => {
+    Object.keys(formGroup.controls).forEach((key) => {
       const control = formGroup.get(key);
       if (control instanceof FormControl) {
         control.markAsTouched();
@@ -182,7 +202,7 @@ export class CustomSearchComponent implements OnInit {
   loadClientInfo(): void {
     this.isLoading = true;
     const userId = localStorage.getItem('id');
-    
+
     if (!userId) {
       this.openSnackBar('User ID not found in localStorage', 'Close');
       this.isLoading = false;
@@ -205,14 +225,14 @@ export class CustomSearchComponent implements OnInit {
         this.isLoading = false;
         console.error('Error loading client info:', err);
         this.openSnackBar('Error loading client information', 'Close');
-      }
+      },
     });
   }
 
   populateClientInfo(): void {
     if (this.clientInfo) {
-      const industry = this.industries.includes(this.clientInfo.industry) 
-        ? this.clientInfo.industry 
+      const industry = this.industries.includes(this.clientInfo.industry)
+        ? this.clientInfo.industry
         : 'Other';
 
       this.contactInfoGroup.patchValue({
@@ -223,7 +243,7 @@ export class CustomSearchComponent implements OnInit {
         phone: this.clientInfo.phone || '',
         website: this.clientInfo.website || '',
         industry: industry,
-        numberOfEmployees: this.clientInfo.number_of_employees || 1
+        numberOfEmployees: this.clientInfo.number_of_employees || 1,
       });
     }
   }
@@ -237,7 +257,7 @@ export class CustomSearchComponent implements OnInit {
       phone: '',
       website: '',
       industry: '',
-      numberOfEmployees: 1
+      numberOfEmployees: 1,
     });
   }
 
@@ -259,7 +279,6 @@ export class CustomSearchComponent implements OnInit {
         this.openSnackBar('Form submitted successfully', 'Close');
         this.formSubmitted = true;
         this.router.navigate([`apps/talent-match`]);
-        
       },
       error: (err) => {
         console.error('Error submitting form:', err);
@@ -270,9 +289,10 @@ export class CustomSearchComponent implements OnInit {
 
   private _filter(value: string): string[] {
     const filterValue = value.toLowerCase();
-    return this.predefinedCompetencies.filter(comp =>
-      comp.toLowerCase().includes(filterValue) &&
-      !this.selectedCompetencies.includes(comp)
+    return this.predefinedCompetencies.filter(
+      (comp) =>
+        comp.toLowerCase().includes(filterValue) &&
+        !this.selectedCompetencies.includes(comp),
     );
   }
 
@@ -283,7 +303,10 @@ export class CustomSearchComponent implements OnInit {
   addFromDropdown(event: any): void {
     if (this.predefinedCompetencies.includes(event.option.value)) {
       const value = event.option.value;
-      if (this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+      if (
+        this.selectedCompetencies.length < 5 &&
+        !this.selectedCompetencies.includes(value)
+      ) {
         this.selectedCompetencies.push(value);
         this._updateCompetenciesForm();
         this.clearInput();
@@ -291,18 +314,24 @@ export class CustomSearchComponent implements OnInit {
     }
   }
 
-  addCustomCompetency(): void {    
+  addCustomCompetency(): void {
     const value = (this.competencyCtrl.value || '').trim();
-    if (value && this.selectedCompetencies.length < 5 && !this.selectedCompetencies.includes(value)) {
+    if (
+      value &&
+      this.selectedCompetencies.length < 5 &&
+      !this.selectedCompetencies.includes(value)
+    ) {
       this.selectedCompetencies.push(value);
       this._updateCompetenciesForm();
-      
+
       this.competencyCtrl.reset('');
       this.competencyCtrl.markAsPristine();
       this.competencyCtrl.updateValueAndValidity();
-      
+
       setTimeout(() => {
-        const inputElement = document.querySelector('[matChipInputFor] input') as HTMLInputElement;
+        const inputElement = document.querySelector(
+          '[matChipInputFor] input',
+        ) as HTMLInputElement;
         if (inputElement) {
           inputElement.value = '';
         }
@@ -324,7 +353,9 @@ export class CustomSearchComponent implements OnInit {
   }
 
   private _updateCompetenciesForm() {
-    const competenciesControl = this.customSearchForm.get('positionInfo.competencies');
+    const competenciesControl = this.customSearchForm.get(
+      'positionInfo.competencies',
+    );
     if (competenciesControl) {
       competenciesControl.setValue(this.selectedCompetencies || []);
       competenciesControl.markAsDirty();
@@ -357,14 +388,25 @@ export class CustomSearchComponent implements OnInit {
   }
 
   restrictPhoneInput(event: KeyboardEvent) {
-    const allowedKeys = ['+', ' ', '(', ')', '-', 'Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
+    const allowedKeys = [
+      '+',
+      ' ',
+      '(',
+      ')',
+      '-',
+      'Backspace',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+      'Delete',
+    ];
     const key = event.key;
-    
+
     // Allow control keys
     if (allowedKeys.includes(key)) {
       return;
     }
-    
+
     // Allow only numbers
     if (!/^\d$/.test(key)) {
       event.preventDefault();

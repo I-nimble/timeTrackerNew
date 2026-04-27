@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import { course } from 'src/app/pages/apps/courses/course';
 import { courseList } from 'src/app/pages/apps/courses/courseData';
 

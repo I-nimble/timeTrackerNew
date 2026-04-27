@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { SharedModule } from '../shared.module';
+
+import { SharedModule } from '../legacy/shared.module';
 import { TimerComponent } from '../timer/timer.component';
 import { UserOptionsComponent } from '../user-options/user-options.component';
 
@@ -23,11 +24,11 @@ export class PositionsListComponent {
 
   constructor() {}
 
-  parseTitle(position_title:string) {
-    if(position_title.slice(-1).toUpperCase() == 'S') {
-      return position_title.trim()
+  parseTitle(position_title: string) {
+    if (position_title.slice(-1).toUpperCase() == 'S') {
+      return position_title.trim();
     } else {
-      return position_title.trim() + 's'
+      return position_title.trim() + 's';
     }
   }
 

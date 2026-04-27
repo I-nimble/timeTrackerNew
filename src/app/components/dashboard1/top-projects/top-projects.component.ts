@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
 import { CommonModule } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
+import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface productsData {
   id: number;

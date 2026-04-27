@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTableModule } from '@angular/material/table';
 
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
 
 // snippets
 import { MULTI_HEADER_FOOTER_TABLE_HTML_SNIPPET } from './code/multi-header-footer-table-html-snippet';
 import { MULTI_HEADER_FOOTER_TABLE_TS_SNIPPET } from './code/multi-header-footer-table-ts-snippet';
-
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
 export interface Transaction {
   item: string;
@@ -21,11 +20,15 @@ export interface Transaction {
 
 @Component({
   selector: 'app-multi-header-footer-table',
-  imports: [MatCardModule, MatTableModule, CommonModule, MatDividerModule,
+  imports: [
+    MatCardModule,
+    MatTableModule,
+    CommonModule,
+    MatDividerModule,
     Highlight,
-      HighlightAuto,
-      HighlightLineNumbers,
-      AppCodeViewComponent,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
   ],
   templateUrl: './multi-header-footer-table.component.html',
   styleUrls: ['./multi-header-footer-table.component.scss'],

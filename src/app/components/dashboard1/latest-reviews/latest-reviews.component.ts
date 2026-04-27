@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
+import { SelectionModel } from '@angular/cdk/collections';
 import { CommonModule } from '@angular/common';
-import { MatMenuModule } from '@angular/material/menu';
+import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { SelectionModel } from '@angular/cdk/collections';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatTableDataSource } from '@angular/material/table';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 export interface productsData {
   id: number;

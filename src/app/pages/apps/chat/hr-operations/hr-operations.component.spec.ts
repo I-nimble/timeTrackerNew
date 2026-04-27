@@ -8,9 +8,8 @@ describe('HrOperationsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HrOperationsComponent]
-    })
-    .compileComponents();
+      imports: [HrOperationsComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(HrOperationsComponent);
     component = fixture.componentInstance;

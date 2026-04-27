@@ -1,23 +1,23 @@
+import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
-import { getUser } from '../user-data';
+import { Router } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { NgScrollbarModule } from 'ngx-scrollbar';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import {
   mailGlobalVariable,
   mailService,
 } from 'src/app/services/apps/email/email.service';
-import { Router } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { CommonModule } from '@angular/common';
-import { NgScrollbarModule } from 'ngx-scrollbar';
+
+import { getUser } from '../user-data';
 
 @Component({
-    selector: 'app-maildetail',
-    templateUrl: './detail.component.html',
-    imports: [MaterialModule, TablerIconsModule, CommonModule, NgScrollbarModule]
+  selector: 'app-maildetail',
+  templateUrl: './detail.component.html',
+  imports: [MaterialModule, TablerIconsModule, CommonModule, NgScrollbarModule],
 })
 export class DetailComponent {
-  // tslint:disable-next-line: no-shadowed-variable
-
   selectedMail = this.ms.selectedMail;
   users = signal<any[]>([]);
   topLabel = signal<string>('Inbox');
@@ -26,7 +26,7 @@ export class DetailComponent {
   constructor(
     public ms: mailGlobalVariable,
     public mailService: mailService,
-    public router: Router
+    public router: Router,
   ) {}
 
   labelClick(type: string): void {

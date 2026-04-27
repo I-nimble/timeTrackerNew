@@ -1,15 +1,17 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { Note } from './note';
-import { NoteService } from 'src/app/services/apps/notes/note.service';
 import { CommonModule } from '@angular/common';
-import { NgScrollbarModule } from 'ngx-scrollbar';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { UsersService } from 'src/app/services/users.service';
-import { NotesService } from 'src/app/services/notes.service';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { NoteService } from 'src/app/services/apps/notes/note.service';
+import { NotesService } from 'src/app/services/notes.service';
+import { UsersService } from 'src/app/services/users.service';
+
+import { Note } from './note';
 
 @Component({
   standalone: true,
@@ -24,7 +26,7 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
     ReactiveFormsModule,
     MaterialModule,
     TourMatMenuModule,
-  ]
+  ],
 })
 export class AppNotesComponent implements OnInit {
   sidePanelOpened = signal(true);
@@ -51,14 +53,14 @@ export class AppNotesComponent implements OnInit {
   selectedColor = signal<string | null>(null);
 
   userInfo: any;
-  changedTitle: string = '';
+  changedTitle = '';
 
   constructor(
-    public noteService: NoteService, 
-    private snackBar: MatSnackBar, 
-    private usersService: UsersService, 
-    private notesService: NotesService
-  ) { }
+    public noteService: NoteService,
+    private snackBar: MatSnackBar,
+    private usersService: UsersService,
+    private notesService: NotesService,
+  ) {}
 
   ngOnInit(): void {
     this.getUserInfo();
@@ -101,7 +103,10 @@ export class AppNotesComponent implements OnInit {
     if (currentNote) {
       this.notesService
         .updateNote(currentNote.id, {
-          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          date_time:
+            currentNote.date_time instanceof Date
+              ? currentNote.date_time.toISOString()
+              : currentNote.date_time,
           content: this.changedTitle,
           color: colorName,
         })
@@ -156,7 +161,10 @@ export class AppNotesComponent implements OnInit {
     if (currentNote) {
       this.notesService
         .updateNote(currentNote.id, {
-          date_time: currentNote.date_time instanceof Date ? currentNote.date_time.toISOString() : currentNote.date_time,
+          date_time:
+            currentNote.date_time instanceof Date
+              ? currentNote.date_time.toISOString()
+              : currentNote.date_time,
           content: newTitle,
           color: currentNote.color,
         })
@@ -176,16 +184,18 @@ export class AppNotesComponent implements OnInit {
   }
 
   getUserInfo() {
-    this.usersService.getUsers({
-      searchField: "",
-      filter: {
-        currentUser: true,
-        includeAdmins: true
-      }
-    }).subscribe((user) => {
-      this.userInfo = user[0];
-      this.loadNotes(this.userInfo.id);
-    });
+    this.usersService
+      .getUsers({
+        searchField: '',
+        filter: {
+          currentUser: true,
+          includeAdmins: true,
+        },
+      })
+      .subscribe((user) => {
+        this.userInfo = user[0];
+        this.loadNotes(this.userInfo.id);
+      });
   }
 
   loadNotes(userId: number): void {
@@ -199,7 +209,9 @@ export class AppNotesComponent implements OnInit {
             this.selectedColor.set(currentNote.color);
             this.clrName.set(currentNote.color);
             this.currentNoteTitle.set(currentNote.content);
-            if (this.changedTitle == '') { this.changedTitle = currentNote.content; }
+            if (this.changedTitle == '') {
+              this.changedTitle = currentNote.content;
+            }
           }
         }
       },
@@ -211,8 +223,8 @@ export class AppNotesComponent implements OnInit {
 
   openSnackBar(
     message: string,
-    action: string = 'Close',
-    type: 'create' | 'delete' = 'create'
+    action = 'Close',
+    type: 'create' | 'delete' = 'create',
   ): void {
     this.snackBar.open(message, action, {
       duration: 2000,

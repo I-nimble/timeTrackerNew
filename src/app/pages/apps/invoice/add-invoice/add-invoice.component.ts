@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, signal, OnInit } from '@angular/core';
 import {
   UntypedFormGroup,
@@ -6,27 +7,27 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
-import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { UsersService } from 'src/app/services/users.service';
 
 @Component({
-    selector: 'app-add-invoice',
-    templateUrl: './add-invoice.component.html',
-    imports: [
-        MaterialModule,
-        CommonModule,
-        RouterModule,
-        FormsModule,
-        ReactiveFormsModule,
-        TablerIconsModule,
-    ]
+  selector: 'app-add-invoice',
+  templateUrl: './add-invoice.component.html',
+  imports: [
+    MaterialModule,
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TablerIconsModule,
+  ],
 })
 export class AppAddInvoiceComponent implements OnInit {
   addForm: UntypedFormGroup;
@@ -37,14 +38,14 @@ export class AppAddInvoiceComponent implements OnInit {
     amount: 0,
     due_date: new Date(),
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   });
 
   plans: any[] = [];
   users: any[] = [];
   companies: any[] = [];
   clients: any[] = [];
-  companyMap: { [key: number]: string } = {};
+  companyMap: Record<number, string> = {};
   role: string = localStorage.getItem('role') || '3';
 
   constructor(
@@ -53,13 +54,13 @@ export class AppAddInvoiceComponent implements OnInit {
     private snackBar: MatSnackBar,
     private companiesService: CompaniesService,
     private usersService: UsersService,
-    public invoiceService: InvoiceService
+    public invoiceService: InvoiceService,
   ) {
     this.addForm = this.fb.group({
       description: ['', Validators.required],
       amount: ['', Validators.required],
       due_date: ['', Validators.required],
-      user_id: [null, Validators.required]
+      user_id: [null, Validators.required],
     });
   }
 
@@ -68,14 +69,15 @@ export class AppAddInvoiceComponent implements OnInit {
       next: (companies: any[]) => {
         this.companies = companies;
         this.companyMap = {};
-        companies.forEach(c => this.companyMap[c.id] = c.name);
-      }
+        companies.forEach((c) => (this.companyMap[c.id] = c.name));
+      },
     });
-    this.usersService.getUsers({}).subscribe(users => {
-      this.clients = users.filter((user:any) => user.role == 3 && user.active == 1);
-    })
+    this.usersService.getUsers({}).subscribe((users) => {
+      this.clients = users.filter(
+        (user: any) => user.role == 3 && user.active == 1,
+      );
+    });
   }
-
 
   saveDetail(event: Event): void {
     event.preventDefault();
@@ -86,13 +88,15 @@ export class AppAddInvoiceComponent implements OnInit {
 
     const invoiceData = this.addForm.value;
 
-    const selectedClient = this.clients.find((c: any) => c.id === invoiceData.user_id);
+    const selectedClient = this.clients.find(
+      (c: any) => c.id === invoiceData.user_id,
+    );
 
     const company_id = selectedClient?.company?.id || null;
 
     const payload = {
       ...invoiceData,
-      company_id
+      company_id,
     };
 
     this.invoiceService.createInvoice(payload).subscribe({
@@ -103,7 +107,7 @@ export class AppAddInvoiceComponent implements OnInit {
       error: (err) => {
         this.showSnackbar('Error creating invoice.');
         console.error(err);
-      }
+      },
     });
   }
 
@@ -116,8 +120,8 @@ export class AppAddInvoiceComponent implements OnInit {
   }
 
   handleCompanySelection(event: any) {
-      const companyId = event.value;
-      //const filtered = this.paidInvoices().filter(inv => inv.user_id === companyId);
-      //this.invoiceList.data = filtered;
-    }
+    const companyId = event.value;
+    //const filtered = this.paidInvoices().filter(inv => inv.user_id === companyId);
+    //this.invoiceList.data = filtered;
+  }
 }

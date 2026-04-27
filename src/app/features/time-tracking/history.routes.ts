@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { AppHistoryComponent } from '../../pages/apps/history/history.component';
 
 export const TimeTrackingHistoryRoutes: Routes = [

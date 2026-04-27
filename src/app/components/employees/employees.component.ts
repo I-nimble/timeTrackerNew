@@ -1,7 +1,8 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+
+import { EmployeesService } from 'src/app/services/employees.service';
 import { UsersService } from 'src/app/services/users.service';
 import { environment } from 'src/environments/environment';
-import { EmployeesService } from 'src/app/services/employees.service';
 
 @Component({
   selector: 'app-employees',
@@ -11,8 +12,11 @@ import { EmployeesService } from 'src/app/services/employees.service';
 export class EmployeesComponent implements OnInit {
   employees: any = [];
   assetsPath: string = environment.assets;
-  
-  constructor(private userService: UsersService, private employeesService: EmployeesService) {}
+
+  constructor(
+    private userService: UsersService,
+    private employeesService: EmployeesService,
+  ) {}
 
   ngOnInit(): void {
     this.getEmployees();
@@ -31,5 +35,3 @@ export class EmployeesComponent implements OnInit {
     this.userService.resetUser();
   }
 }
-
-

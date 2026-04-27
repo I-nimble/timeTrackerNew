@@ -1,7 +1,9 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { Injectable } from '@angular/core';
+
 import { Observable, BehaviorSubject } from 'rxjs';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +30,4 @@ export class PlansService {
   public clearCurrentPlan(): void {
     this.currentPlanSubject.next(null);
   }
-
 }

@@ -12,7 +12,7 @@ import { RouterLink } from '@angular/router';
 export class SidePanelComponent {
   @Input() title!: string;
   @Output() closePanel = new EventEmitter<void>();
-  show: boolean = true;
+  show = true;
 
   close() {
     this.show = false;

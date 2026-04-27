@@ -1,11 +1,13 @@
-import { Pipe, PipeTransform, Injectable  } from '@angular/core';
+import { Pipe, PipeTransform, Injectable } from '@angular/core';
+
 import data from '@emoji-mart/data';
 
 @Pipe({ name: 'emojiMart', pure: true })
 @Injectable({ providedIn: 'root' })
 export class EmojiMartPipe implements PipeTransform {
   private map: Record<string, string> = {};
-  private readonly emojiSequenceRegex = /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
+  private readonly emojiSequenceRegex =
+    /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
   private readonly debugEnabled = true;
 
   constructor() {
@@ -16,18 +18,20 @@ export class EmojiMartPipe implements PipeTransform {
     const categories: any[] = (data as any).categories;
     const emojiData = (data as any).emojis;
     if (!categories || !emojiData) {
-      console.error("Emoji mart categories or emojis missing!", data);
+      console.error('Emoji mart categories or emojis missing!', data);
       return;
     }
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       (cat.emojis || []).forEach((emojiId: string) => {
         const e = emojiData[emojiId];
         if (!e) return;
         const native = e.skins?.[0]?.native;
         if (!native) return;
         if (e.shortcodes) {
-          const list = Array.isArray(e.shortcodes) ? e.shortcodes : [e.shortcodes];
-          list.forEach((sc: string) => this.map[sc] = native);
+          const list = Array.isArray(e.shortcodes)
+            ? e.shortcodes
+            : [e.shortcodes];
+          list.forEach((sc: string) => (this.map[sc] = native));
         }
         this.map[e.id] = native;
       });
@@ -81,14 +85,14 @@ export class EmojiMartPipe implements PipeTransform {
     return this.getAppleImageHtmlFromNative(native, 18);
   }
 
-  getAppleImgFromNative(native: string, size: number = 18): string {
+  getAppleImgFromNative(native: string, size = 18): string {
     return this.getAppleImageHtmlFromNative(native, size);
   }
 
   private getAppleImageHtmlFromNative(native: string, size: number): string {
     const normalized = this.normalizeNativeEmoji(native);
     const hex = Array.from(normalized)
-      .map(c => c.codePointAt(0)?.toString(16))
+      .map((c) => c.codePointAt(0)?.toString(16))
       .filter((v): v is string => !!v)
       .join('-');
 

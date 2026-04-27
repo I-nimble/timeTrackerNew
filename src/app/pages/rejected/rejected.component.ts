@@ -1,26 +1,30 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   ViewChild,
   signal,
+  OnInit,
+  AfterViewInit,
 } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatSort } from '@angular/material/sort';
-import { MatPaginator } from '@angular/material/paginator';
-import { MaterialModule } from 'src/app/material.module';
-import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
-import { PositionsService } from 'src/app/services/positions.service';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { StripeComponent } from 'src/app/components/stripe/stripe.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { ApplicationsService } from 'src/app/services/applications.service';
 import { CompaniesService } from 'src/app/services/companies.service';
-import { PermissionService } from 'src/app/services/permission.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
+import { PermissionService } from 'src/app/services/permission.service';
+import { PositionsService } from 'src/app/services/positions.service';
+
 import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.component';
 
 @Component({
@@ -35,21 +39,21 @@ import { RejectionDialogComponent } from './rejection-dialog/rejection-dialog.co
     StripeComponent,
   ],
   templateUrl: './rejected.component.html',
-  styleUrl: './rejected.component.scss'
+  styleUrl: './rejected.component.scss',
 })
-export class RejectedComponent {
+export class RejectedComponent implements OnInit, AfterViewInit {
   role: any = localStorage.getItem('role');
   candidatesList = new MatTableDataSource<any>([]);
-	rejectedCandidates: any[] = [];
+  rejectedCandidates: any[] = [];
   displayedColumns: string[] = [];
   startDate: Date | null = null;
   endDate: Date | null = null;
   positions = signal<any[]>([]);
   companiesData: any[] = [];
-  canView: boolean = false;
-  canManage: boolean = false;
-  canEdit: boolean = false;
-	canDelete: boolean = false;
+  canView = false;
+  canManage = false;
+  canEdit = false;
+  canDelete = false;
 
   @ViewChild(MatSort) sort: MatSort = Object.create(null);
   @ViewChild(MatPaginator) paginator: MatPaginator = Object.create(null);
@@ -62,15 +66,15 @@ export class RejectedComponent {
     private positionsService: PositionsService,
     private companiesService: CompaniesService,
     private permissionService: PermissionService,
-    private discProfilesService: DiscProfilesService
-  ) { }
+    private discProfilesService: DiscProfilesService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCandidates();
     this.loadPositions();
 
     this.companiesService.getCompanies().subscribe({
-      next: companies => {
+      next: (companies) => {
         this.companiesData = companies;
       },
     });
@@ -82,7 +86,7 @@ export class RejectedComponent {
         this.canManage = effective.includes('rejected.manage');
         this.canEdit = effective.includes('rejected.edit');
         this.canView = effective.includes('rejected.view');
-				this.canDelete = effective.includes('rejected.delete');
+        this.canDelete = effective.includes('rejected.delete');
 
         if (this.role != '1' && !this.canView) {
           this.router.navigate(['/dashboard']);
@@ -119,7 +123,7 @@ export class RejectedComponent {
     this.candidatesList.paginator = this.paginator;
     this.candidatesList.sort = this.sort;
   }
-	
+
   onDateRangeChange(): void {
     this.applyFilters();
   }
@@ -129,7 +133,7 @@ export class RejectedComponent {
     if (this.startDate && this.endDate) {
       const start = new Date(this.startDate).setHours(0, 0, 0, 0);
       const end = new Date(this.endDate).setHours(23, 59, 59, 999);
-      filtered = filtered.filter(c => {
+      filtered = filtered.filter((c) => {
         const submission = new Date(c.submission_date).getTime();
         return submission >= start && submission <= end;
       });
@@ -141,12 +145,14 @@ export class RejectedComponent {
     this.positionsService.get().subscribe({
       next: (positions: any[]) => {
         this.positions.set(positions);
-      }
+      },
     });
   }
 
   getPositionName(positionId: number): string {
-    const position = this.positions().find((position: any) => position.id === positionId);
+    const position = this.positions().find(
+      (position: any) => position.id === positionId,
+    );
     return position ? position.title : '';
   }
 
@@ -179,34 +185,36 @@ export class RejectedComponent {
 
   private loadCandidates(): void {
     this.applicationsService.get().subscribe((applications: any[]) => {
-      this.rejectedCandidates = applications.filter(a => a.status === 'rejected' || a.status === 6);
+      this.rejectedCandidates = applications.filter(
+        (a) => a.status === 'rejected' || a.status === 6,
+      );
       this.applyFilters();
     });
   }
 
-	openRejectDialog(candidate: any): void {
-		const dialogRef = this.dialog.open(RejectionDialogComponent, {
-			width: '500px',
-			data: {
-				mode: 'reject',
-				candidate: candidate
-			}
-		});
+  openRejectDialog(candidate: any): void {
+    const dialogRef = this.dialog.open(RejectionDialogComponent, {
+      width: '500px',
+      data: {
+        mode: 'reject',
+        candidate: candidate,
+      },
+    });
 
-		dialogRef.afterClosed().subscribe(result => {
-			if (result?.success) {
-				this.showSnackbar('Reason updated successfully');
-				this.loadCandidates();
-			}
-		});
-	}
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.success) {
+        this.showSnackbar('Reason updated successfully');
+        this.loadCandidates();
+      }
+    });
+  }
 
   deleteApplication(id: number): void {
     const dialogRef = this.dialog.open(ModalComponent, {
       data: {
         action: 'delete',
         type: 'application',
-      }
+      },
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
@@ -219,23 +227,23 @@ export class RejectedComponent {
           },
           error: () => {
             this.showSnackbar('Error deleting invoice.');
-          }
+          },
         });
       }
     });
   }
 
-	sendToCandidates(candidate: any) {
-		this.applicationsService.sendToCandidates(candidate.id).subscribe({
-			next: (res) => {
-				console.log('Candidate sent', res);
-				this.loadCandidates();
-			},
-			error: (err) => {
-				console.error('Error sending candidate:', err);
-			}
-		});
-	}
+  sendToCandidates(candidate: any) {
+    this.applicationsService.sendToCandidates(candidate.id).subscribe({
+      next: (res) => {
+        console.log('Candidate sent', res);
+        this.loadCandidates();
+      },
+      error: (err) => {
+        console.error('Error sending candidate:', err);
+      },
+    });
+  }
 
   showSnackbar(message: string): void {
     this.snackBar.open(message, 'Close', {

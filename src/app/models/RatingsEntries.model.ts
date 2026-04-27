@@ -1,8 +1,8 @@
 export class RatingsEntries {
   id?: number;
-  rating_id?: number; 
+  rating_id?: number;
   date?: any;
-  achieved?: boolean; 
+  achieved?: boolean;
   amount_achieved?: number;
   justification?: string;
   createdAt?: Date;

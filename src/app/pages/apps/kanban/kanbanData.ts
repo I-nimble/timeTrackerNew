@@ -40,7 +40,7 @@ export const inprogress: Todos[] = [
   {
     id: 202,
     title: 'Angular 5 material',
-    description:'',
+    description: '',
     class: 'task-status-danger',
     date: '24 july',
     taskProperty: 'Data Science',
@@ -61,7 +61,7 @@ export const completed: Todos[] = [
   {
     id: 301,
     title: 'Design work',
-    description:'',
+    description: '',
     date: '11 july',
     taskProperty: 'Data Science',
     imageUrl: '/assets/images/taskboard/kanban-img-3.jpg',

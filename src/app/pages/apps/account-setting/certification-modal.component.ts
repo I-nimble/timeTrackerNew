@@ -1,11 +1,16 @@
-import { Component, Inject, Optional } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { Component, Inject, Optional } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MaterialModule } from 'src/app/material.module';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import {
+  MatDialogRef,
+  MAT_DIALOG_DATA,
+  MatDialogModule,
+} from '@angular/material/dialog';
+
 import { TablerIconsModule } from 'angular-tabler-icons';
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 @Component({
   selector: 'app-certification-modal',
@@ -18,10 +23,10 @@ import { TablerIconsModule } from 'angular-tabler-icons';
     MatDialogModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    TablerIconsModule
+    TablerIconsModule,
   ],
   templateUrl: './certification-modal.component.html',
-  providers: [DatePipe]
+  providers: [DatePipe],
 })
 export class AppCertificationModalComponent {
   action: string;
@@ -33,12 +38,12 @@ export class AppCertificationModalComponent {
 
   constructor(
     public dialogRef: MatDialogRef<AppCertificationModalComponent>,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: any
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
     this.local_data = {
       user_id: data?.user_id ?? null,
       application_id: data?.application_id ?? null,
-      ...data
+      ...data,
     };
     this.action = this.local_data.action;
   }
@@ -49,7 +54,7 @@ export class AppCertificationModalComponent {
     // }
     this.dialogRef.close({
       event: this.action,
-      data: this.local_data
+      data: this.local_data,
     });
   }
 
@@ -87,7 +92,7 @@ export class AppCertificationModalComponent {
   //       'image/jpg',
   //       'image/png'
   //     ];
-      
+
   //     const extension = file.name.split('.').pop()?.toLowerCase();
   //     const allowedExtensions = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'jpg', 'jpeg', 'png'];
 

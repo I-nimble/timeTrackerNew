@@ -1,7 +1,9 @@
-﻿import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { SharedModule } from '../shared.module';
-import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+
 import { Entries } from 'src/app/models/Entries';
+import { CustomDatePipe } from 'src/app/services/custom-date.pipe';
+
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'app-entry',
@@ -19,7 +21,7 @@ export class EntryComponent implements OnInit {
   @Output() onDeleteEntry: EventEmitter<any> = new EventEmitter<any>();
   @Output() onAuthorizeEntry: EventEmitter<any> = new EventEmitter<any>();
   @Input() entry: any;
-  @Input() suspicious: boolean = false;
+  @Input() suspicious = false;
   @Input() admin?: boolean;
   public startDate?: any;
   public endDate?: any;
@@ -41,12 +43,12 @@ export class EntryComponent implements OnInit {
   constructor(private customDate: CustomDatePipe) {}
 
   ngOnInit(): void {
-    const userType = localStorage.getItem('role')
-    if(userType){
-      if(userType === '1') {
-        this.admin = true
+    const userType = localStorage.getItem('role');
+    if (userType) {
+      if (userType === '1') {
+        this.admin = true;
       } else {
-        this.admin = false
+        this.admin = false;
       }
     }
 
@@ -66,18 +68,18 @@ export class EntryComponent implements OnInit {
   updateEnd_date(entry: any, event: Event) {
     this.onUpdateEndDate.emit({ entry, event });
   }
-  
+
   updateTask(entry: any, event: any) {
     this.onUpdateTask.emit(entry);
   }
 
-  handleAction(action: string, entry: Entries){
-    switch (action){
+  handleAction(action: string, entry: Entries) {
+    switch (action) {
       case 'authorize':
-        this.authorize(entry)
+        this.authorize(entry);
         break;
       case 'delete':
-        this.deleteEntry(entry)
+        this.deleteEntry(entry);
         break;
     }
   }
@@ -117,12 +119,12 @@ export class EntryComponent implements OnInit {
   public isToday(date: any) {
     const yesterday = this.customDate.transform(
       new Date(Date.now() - 24 * 60 * 60 * 1000),
-      'DD-MM-YYYY'
+      'DD-MM-YYYY',
     );
     const today = this.customDate.transform(new Date(), 'DD-MM-YYYY');
     const compareDate = this.customDate.transform(
       date.toLocaleString(),
-      'DD-MM-YYYY'
+      'DD-MM-YYYY',
     );
     if (compareDate === today) {
       return 'Today';
@@ -133,5 +135,3 @@ export class EntryComponent implements OnInit {
     }
   }
 }
-
-

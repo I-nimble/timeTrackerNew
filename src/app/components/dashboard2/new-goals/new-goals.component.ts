@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
-import { MaterialModule } from '../../../material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-new-goals',

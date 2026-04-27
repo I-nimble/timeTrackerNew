@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+
 import { Project } from '../models/Project.model';
 
 @Injectable({
@@ -9,11 +11,11 @@ import { Project } from '../models/Project.model';
 })
 export class ProjectsService {
   constructor(private http: HttpClient) {}
-  API_URI: string = `${environment.apiUrl}/projects`;
+  API_URI = `${environment.apiUrl}/projects`;
 
-  public get(userId: string = '0', type: string = ''): Observable<Project[]> {
+  public get(userId = '0', type = ''): Observable<Project[]> {
     if (type && userId != '0') {
-      let body = {
+      const body = {
         type,
         userId,
       };

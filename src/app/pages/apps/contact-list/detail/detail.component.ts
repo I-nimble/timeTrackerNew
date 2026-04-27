@@ -1,15 +1,17 @@
-import { Component, computed, OnInit, signal } from '@angular/core';
-import { MatDividerModule } from '@angular/material/divider';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ContactService } from 'src/app/services/apps/contact-list/contact-list.service';
-import { AppDeleteDialogComponent } from '../delete-dialog/delete-dialog.component';
+import { Component, computed, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import { MaterialModule } from 'src/app/material.module';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { ContactBox } from 'src/app/pages/apps/contact-list/contact-list';
+import { ContactService } from 'src/app/services/apps/contact-list/contact-list.service';
+
+import { AppDeleteDialogComponent } from '../delete-dialog/delete-dialog.component';
 @Component({
   selector: 'app-detail',
   imports: [
@@ -31,7 +33,7 @@ export class AppContactListDetailComponent implements OnInit {
   constructor(
     public dialog: MatDialog,
     private contactService: ContactService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   departments = [

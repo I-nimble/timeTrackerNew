@@ -1,10 +1,21 @@
-import { Component, Input, OnInit, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SharedModule } from '../../shared.module';
+import {
+  Component,
+  Input,
+  OnInit,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { PdfViewerModule, PdfViewerComponent } from 'ng2-pdf-viewer';
 import { RouterLink } from '@angular/router';
+
+import { PdfViewerModule, PdfViewerComponent } from 'ng2-pdf-viewer';
+import { ApplicationsService } from 'src/app/services/applications.service';
+
+import { SharedModule } from '../../legacy/shared.module';
 
 @Component({
   selector: 'app-marketplace-cards',
@@ -12,7 +23,7 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, SharedModule, PdfViewerModule, RouterLink],
   templateUrl: './marketplace-cards.component.html',
   styleUrls: ['./marketplace-cards.component.scss'],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
   @Input() selectedPosition: any = null;
@@ -20,36 +31,45 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
   @ViewChild('magnifier') magnifier!: ElementRef;
   @ViewChild('magnifierCanvas') magnifierCanvas!: ElementRef;
 
-  resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
+  resumesUrl = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   cards: any[] = [];
   private startX = 0;
-  loading: boolean = true;
+  loading = true;
   magnifierSize = 200;
   zoomLevel = 2;
   isHovering = false;
   private canvas?: HTMLCanvasElement;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef, private applicationsService: ApplicationsService) { }
+  constructor(
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private applicationsService: ApplicationsService,
+  ) {}
 
   ngOnInit(): void {
-    this.applicationsService.getApplicationsByPosition(this.selectedPosition?.id).subscribe({
-      next: (applications) => {
-        this.cards = applications;
-      }
-    })
+    this.applicationsService
+      .getApplicationsByPosition(this.selectedPosition?.id)
+      .subscribe({
+        next: (applications) => {
+          this.cards = applications;
+        },
+      });
   }
-  
-  ngAfterViewInit(): void {
-  }
-  
+
+  ngAfterViewInit(): void {}
+
   onPageRendered() {
-    const cards = document.querySelectorAll('swiper-slide.card') as NodeListOf<HTMLElement>;
+    const cards = document.querySelectorAll(
+      'swiper-slide.card',
+    ) as NodeListOf<HTMLElement>;
     cards.forEach((card: HTMLElement) => {
       const pdfViewer = card.querySelector('pdf-viewer') as HTMLElement;
       const pdfViewerPage = pdfViewer.querySelector('.page') as HTMLElement;
       pdfViewerPage.style.height = '447px';
       pdfViewerPage.style.width = '325px';
-      const pdfViewerContainer = pdfViewer.querySelector('.ng2-pdf-viewer-container') as HTMLElement;
+      const pdfViewerContainer = pdfViewer.querySelector(
+        '.ng2-pdf-viewer-container',
+      ) as HTMLElement;
       pdfViewerContainer.style.display = 'flex';
       pdfViewerContainer.style.justifyContent = 'center';
       pdfViewerContainer.style.alignItems = 'center';
@@ -58,9 +78,11 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
     this.getCurrentCardCanvas();
     this.loading = false;
   }
-  
+
   getCurrentCardCanvas() {
-    this.canvas = document.querySelector('.card-container .card:first-child .pdf-viewer canvas') as HTMLCanvasElement;
+    this.canvas = document.querySelector(
+      '.card-container .card:first-child .pdf-viewer canvas',
+    ) as HTMLCanvasElement;
   }
 
   onMouseEnter() {
@@ -74,14 +96,14 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
   public handleMouseMove(e: MouseEvent) {
     if (!this.isHovering) return;
 
-    if(this.canvas) {
+    if (this.canvas) {
       const rect = this.canvas.getBoundingClientRect();
       const scaleX = this.canvas.width / rect.width;
       const scaleY = this.canvas.height / rect.height;
-  
+
       const mouseX = (e.clientX - rect.left) * scaleX;
       const mouseY = (e.clientY - rect.top) * scaleY;
-  
+
       this.updateMagnifierPosition(e);
       this.updateMagnifierContent(this.canvas, mouseX, mouseY);
     }
@@ -94,30 +116,46 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
     magnifier.style.top = `${e.clientY + 15}px`;
   }
 
-  private updateMagnifierContent(canvas: HTMLCanvasElement, x: number, y: number) {
-    const magnifierCtx = (this.magnifierCanvas.nativeElement as HTMLCanvasElement).getContext('2d');
+  private updateMagnifierContent(
+    canvas: HTMLCanvasElement,
+    x: number,
+    y: number,
+  ) {
+    const magnifierCtx = (
+      this.magnifierCanvas.nativeElement as HTMLCanvasElement
+    ).getContext('2d');
     if (!magnifierCtx) return;
 
     const sourceSize = this.magnifierSize / this.zoomLevel;
     const destSize = this.magnifierSize;
 
     // Ensure coordinates stay within canvas bounds
-    const sx = Math.max(0, x - sourceSize/2);
-    const sy = Math.max(0, y - sourceSize/2);
-    const actualSize = Math.min(sourceSize, canvas.width - sx, canvas.height - sy);
+    const sx = Math.max(0, x - sourceSize / 2);
+    const sy = Math.max(0, y - sourceSize / 2);
+    const actualSize = Math.min(
+      sourceSize,
+      canvas.width - sx,
+      canvas.height - sy,
+    );
 
     magnifierCtx.clearRect(0, 0, destSize, destSize);
     magnifierCtx.drawImage(
       canvas,
-      sx, sy, actualSize, actualSize,
-      0, 0, destSize, destSize
+      sx,
+      sy,
+      actualSize,
+      actualSize,
+      0,
+      0,
+      destSize,
+      destSize,
     );
   }
 
   onSwipeLeft(): void {
     this.addToInterestList();
   }
-  
+
   onSwipeRight(): void {
     this.discardCard();
   }
@@ -149,7 +187,7 @@ export class MarketplaceCardsComponent implements OnInit, AfterViewInit {
       next: () => {
         this.resetSwiper();
         this.getCurrentCardCanvas();
-      }
+      },
     });
   }
 

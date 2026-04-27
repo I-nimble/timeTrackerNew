@@ -1,13 +1,14 @@
-import { Component, signal } from '@angular/core';
-import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
+import { Component, signal, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { Loader } from 'src/app/app.models';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import { InvoiceService } from 'src/app/services/apps/invoice/invoice.service';
 
 @Component({
   selector: 'app-invoice-view',
@@ -20,19 +21,43 @@ import { Loader } from 'src/app/app.models';
     FormsModule,
     ReactiveFormsModule,
     TablerIconsModule,
-    LoaderComponent
-  ]
+    LoaderComponent,
+  ],
 })
-export class AppInvoiceViewComponent {
+export class AppInvoiceViewComponent implements OnInit {
   id = signal<number>(0);
   invoiceDetail = signal<any>(null);
-  locationLinksMap: { [entryId: number]: Array<{ label: string; url: string; title: string }> } = {};
-  itemsDisplayedColumns: string[] = ['description', 'hours', 'hourly-rate', 'flat-fee', 'cost'];
-  itemsFooterDisplayedColumns = ['footer-sub-total', 'footer-amount', 'empty-column'];
-  itemsSecondFooterDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  ratingsDisplayedColumns: string[] = ['day', 'date', 'clock-in', 'clock-out', 'total-hours', 'comments'];
+  locationLinksMap: Record<
+    number,
+    { label: string; url: string; title: string }[]
+  > = {};
+  itemsDisplayedColumns: string[] = [
+    'description',
+    'hours',
+    'hourly-rate',
+    'flat-fee',
+    'cost',
+  ];
+  itemsFooterDisplayedColumns = [
+    'footer-sub-total',
+    'footer-amount',
+    'empty-column',
+  ];
+  itemsSecondFooterDisplayedColumns = [
+    'footer-total',
+    'footer-amount',
+    'empty-column',
+  ];
+  ratingsDisplayedColumns: string[] = [
+    'day',
+    'date',
+    'clock-in',
+    'clock-out',
+    'total-hours',
+    'comments',
+  ];
   footerDisplayedColumns = ['footer-total', 'footer-amount', 'empty-column'];
-  tax: number = 0;
+  tax = 0;
   inimbleSupervisor = signal<string>('Sergio Ávila');
   loader = new Loader(false, false, false);
   message = '';
@@ -40,16 +65,17 @@ export class AppInvoiceViewComponent {
   constructor(
     private activatedRouter: ActivatedRoute,
     private invoiceService: InvoiceService,
-    public snackBar: MatSnackBar
-  ) { }
+    public snackBar: MatSnackBar,
+  ) {}
 
   ngOnInit(): void {
     this.loader.started = true;
     this.id.set(+this.activatedRouter.snapshot.paramMap.get('id')!);
-    if(!this.id()) {
+    if (!this.id()) {
       this.loader.complete = true;
       this.loader.error = true;
-      this.message = 'The invoice you are trying to view does not exist or has been deleted.';
+      this.message =
+        'The invoice you are trying to view does not exist or has been deleted.';
       return;
     }
     this.loadInvoiceDetail();
@@ -58,20 +84,26 @@ export class AppInvoiceViewComponent {
   getLocationsForEntry(entryId: number): string {
     const links = this.getLocationLinks(entryId);
     if (!links || links.length === 0) return '';
-    return links.map((l, idx) => `${l.label}${idx < links.length - 1 ? ' | ' : ''}`).join('');
+    return links
+      .map((l, idx) => `${l.label}${idx < links.length - 1 ? ' | ' : ''}`)
+      .join('');
   }
 
-  getLocationLinks(entryId: number): Array<{ label: string; url: string; title: string }> {
+  getLocationLinks(
+    entryId: number,
+  ): { label: string; url: string; title: string }[] {
     const invoice = this.invoiceDetail();
     if (!invoice || !invoice.invoice_locations) return [];
-    const matches = (invoice.invoice_locations || []).filter((l: any) => l.entry_id === entryId);
+    const matches = (invoice.invoice_locations || []).filter(
+      (l: any) => l.entry_id === entryId,
+    );
     if (!matches || matches.length === 0) return [];
 
     const points = matches.flatMap((m: any) => m.locations || []);
     if (!points || points.length === 0) return [];
 
     const seen = new Set<string>();
-    const out: Array<{ label: string; url: string; title: string }> = [];
+    const out: { label: string; url: string; title: string }[] = [];
     points.forEach((p: any, idx: number) => {
       const lat = parseFloat(p.latitude as any);
       const lon = parseFloat(p.longitude as any);
@@ -107,7 +139,7 @@ export class AppInvoiceViewComponent {
           console.warn('Failed to build location links map', e);
         }
         this.loader.complete = true;
-      }
+      },
     });
   }
 
@@ -122,7 +154,11 @@ export class AppInvoiceViewComponent {
           const links = this.getLocationLinks(entry.id) || [];
           this.locationLinksMap[entry.id] = links;
         } catch (err) {
-          console.warn('buildLocationLinksMap: failed for entry', entry.id, err);
+          console.warn(
+            'buildLocationLinksMap: failed for entry',
+            entry.id,
+            err,
+          );
           this.locationLinksMap[entry.id] = [];
         }
       });
@@ -139,7 +175,7 @@ export class AppInvoiceViewComponent {
       },
       error: (error) => {
         console.error('Error approving invoice:', error);
-      }
+      },
     });
   }
 
@@ -147,11 +183,11 @@ export class AppInvoiceViewComponent {
     if (isNaN(decimal)) return '00:00:00';
     const hours = Math.floor(decimal);
     const minutes = Math.floor((decimal - hours) * 60);
-    const seconds = Math.round((((decimal - hours) * 60) - minutes) * 60);
+    const seconds = Math.round(((decimal - hours) * 60 - minutes) * 60);
     return [
       hours.toString().padStart(2, '0'),
       minutes.toString().padStart(2, '0'),
-      seconds.toString().padStart(2, '0')
+      seconds.toString().padStart(2, '0'),
     ].join(':');
   }
 

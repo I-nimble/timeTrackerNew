@@ -1,5 +1,4 @@
 export class Mailbox {
- 
   constructor(
     public MailId: string,
     public fromId: string,
@@ -11,6 +10,6 @@ export class Mailbox {
     public mailbox: string,
     public filter: string[],
     public label: string[],
-    public isChecked?: boolean
+    public isChecked?: boolean,
   ) {}
 }

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { CoreService } from 'src/app/services/core.service';
 import {
   FormGroup,
   FormControl,
@@ -8,10 +7,13 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
-import { MaterialModule } from '../../../material.module';
-import { AuthService } from 'src/app/services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router, RouterModule } from '@angular/router';
+
+import { AuthService } from 'src/app/services/auth.service';
+import { CoreService } from 'src/app/services/core.service';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-side-forgot-password',
@@ -21,7 +23,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MaterialModule,
     FormsModule,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './side-forgot-password.component.html',
 })
@@ -29,10 +31,10 @@ export class AppSideForgotPasswordComponent {
   options = this.settings.getOptions();
   assetPath = '/assets/images/backgrounds/password-bg.png';
   constructor(
-    private settings: CoreService, 
-    private router: Router, 
+    private settings: CoreService,
+    private router: Router,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {}
 
   form = new FormGroup({
@@ -54,7 +56,7 @@ export class AppSideForgotPasswordComponent {
           this.showCheckEmail = true;
           this.openSnackBar('Password reset email sent', 'Close');
         },
-        error: (res:any) => {
+        error: (res: any) => {
           console.error(res.error.message, res.error);
           this.openSnackBar(res.error.message, 'Close');
         },

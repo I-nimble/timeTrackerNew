@@ -1,41 +1,56 @@
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component } from '@angular/core';
-import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {TooltipPosition, MatTooltipModule} from '@angular/material/tooltip';
-import {MatButtonModule} from '@angular/material/button';
-import {CdkScrollable} from '@angular/cdk/scrolling';
-import {MatSelectModule} from '@angular/material/select';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { BASIC_TOOLTIPS_TS_SNIPPET, CHANGE_MESSAGE_TOOLTIPS_TS_SNIPPET, DISABLED_CLICK_TOOLTIPS_TS_SNIPPET, SHOW_AND_HIDE_TOOLTIPS_TS_SNIPPET } from './code/tooltips-ts-snippet';
-import { BASIC_TOOLTIPS_HTML_SNIPPET, CHANGE_MESSAGE_TOOLTIPS_HTML_SNIPPET, DISABLED_CLICK_TOOLTIPS_HTML_SNIPPET, POSITION_TOOLTIPS_HTML_SNIPPET, SHOW_AND_HIDE_TOOLTIPS_HTML_SNIPPET, UPPERCASE_TOOLTIPS_HTML_SNIPPET } from './code/tooltips-html-snippet';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { TooltipPosition, MatTooltipModule } from '@angular/material/tooltip';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 
+// snippets
+
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+import {
+  BASIC_TOOLTIPS_HTML_SNIPPET,
+  CHANGE_MESSAGE_TOOLTIPS_HTML_SNIPPET,
+  DISABLED_CLICK_TOOLTIPS_HTML_SNIPPET,
+  POSITION_TOOLTIPS_HTML_SNIPPET,
+  SHOW_AND_HIDE_TOOLTIPS_HTML_SNIPPET,
+  UPPERCASE_TOOLTIPS_HTML_SNIPPET,
+} from './code/tooltips-html-snippet';
+import {
+  BASIC_TOOLTIPS_TS_SNIPPET,
+  CHANGE_MESSAGE_TOOLTIPS_TS_SNIPPET,
+  DISABLED_CLICK_TOOLTIPS_TS_SNIPPET,
+  SHOW_AND_HIDE_TOOLTIPS_TS_SNIPPET,
+} from './code/tooltips-ts-snippet';
 
 @Component({
-    selector: 'app-tooltips',
-    imports: [
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatTooltipModule, MatCardModule, MatInputModule, MatCheckboxModule,
-        Highlight,
-        HighlightAuto,
-        HighlightLineNumbers,
-        AppCodeViewComponent,
-    ],
-    templateUrl: './tooltips.component.html'
+  selector: 'app-tooltips',
+  imports: [
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatCardModule,
+    MatInputModule,
+    MatCheckboxModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './tooltips.component.html',
 })
 export class AppTooltipsComponent {
-
   // 1 [tooltips with toolbar]
   codeForTooltipsBasic = BASIC_TOOLTIPS_HTML_SNIPPET;
   codeForTooltipsBasicTs = BASIC_TOOLTIPS_TS_SNIPPET;

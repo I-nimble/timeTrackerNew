@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 
-import { MaterialModule } from '../../../material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
+
+import { MaterialModule } from '../../../legacy/material.module';
 
 @Component({
   selector: 'app-upcoming-schedules',

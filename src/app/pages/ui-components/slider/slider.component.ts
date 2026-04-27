@@ -1,37 +1,45 @@
 import { Component, OnInit } from '@angular/core';
-import {MatSliderModule} from '@angular/material/slider';
-import {MatCheckboxModule} from '@angular/material/checkbox';
-import {FormsModule} from '@angular/forms';
-import {MatInputModule} from '@angular/material/input';
-import {MatFormFieldModule} from '@angular/material/form-field';
-import {MatCardModule} from '@angular/material/card';
-import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
-
-// snippets
-import { BASIC_SLIDER_HTML_SNIPPET, CONFIGURATION_SLIDER_HTML_SNIPPET, CUSTOM_THUMB_LABEL_SLIDER_HTML_SNIPPET, RANGE_SLIDER_HTML_SNIPPET } from './code/slider-html-snippet';
-import { BASIC_SLIDER_TS_SNIPPET, CONFIGURATION_SLIDER_TS_SNIPPET, CUSTOM_THUMB_LABEL_SLIDER_TS_SNIPPET } from './code/slider-ts-snippet';
+import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSliderModule } from '@angular/material/slider';
 
 import { Highlight, HighlightAuto } from 'ngx-highlightjs';
 import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { AppCodeViewComponent } from 'src/app/components/code-view/code-view.component';
+
+// snippets
+import {
+  BASIC_SLIDER_HTML_SNIPPET,
+  CONFIGURATION_SLIDER_HTML_SNIPPET,
+  CUSTOM_THUMB_LABEL_SLIDER_HTML_SNIPPET,
+  RANGE_SLIDER_HTML_SNIPPET,
+} from './code/slider-html-snippet';
+import {
+  BASIC_SLIDER_TS_SNIPPET,
+  CONFIGURATION_SLIDER_TS_SNIPPET,
+  CUSTOM_THUMB_LABEL_SLIDER_TS_SNIPPET,
+} from './code/slider-ts-snippet';
 
 @Component({
-    selector: 'app-slider',
-    imports: [
-        MatCardModule,
-        MatFormFieldModule,
-        MatInputModule,
-        FormsModule,
-        MatCheckboxModule,
-        MatSliderModule,
-        Highlight,
-              HighlightAuto,
-              HighlightLineNumbers,
-              AppCodeViewComponent,
-    ],
-    templateUrl: './slider.component.html'
+  selector: 'app-slider',
+  imports: [
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    MatCheckboxModule,
+    MatSliderModule,
+    Highlight,
+    HighlightAuto,
+    HighlightLineNumbers,
+    AppCodeViewComponent,
+  ],
+  templateUrl: './slider.component.html',
 })
 export class AppSliderComponent implements OnInit {
-
   // 1 [Configuration with Slider]
   codeForSliderConfiguration = CONFIGURATION_SLIDER_HTML_SNIPPET;
   codeForSliderConfigurationTs = CONFIGURATION_SLIDER_TS_SNIPPET;

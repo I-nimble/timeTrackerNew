@@ -1,12 +1,12 @@
 import { Component, Inject } from '@angular/core';
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MaterialModule } from 'src/app/material.module';
-
 import {
   MAT_DIALOG_DATA,
   MatDialog,
   MatDialogModule,
 } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+
+import { MaterialModule } from 'src/app/legacy/material.module';
 
 @Component({
   selector: 'app-modal',

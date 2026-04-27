@@ -1,26 +1,33 @@
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
-import { SharedModule } from '../shared.module';
+import {
+  Component,
+  Input,
+  OnInit,
+  SimpleChanges,
+  OnChanges,
+} from '@angular/core';
+
+import { SharedModule } from '../legacy/shared.module';
 
 @Component({
   selector: 'app-pending-invoices-counter',
   standalone: true,
-  imports: [ SharedModule ],
+  imports: [SharedModule],
   templateUrl: './pending-invoices-counter.component.html',
-  styleUrl: './pending-invoices-counter.component.scss'
+  styleUrl: './pending-invoices-counter.component.scss',
 })
-export class PendingInvoicesCounter implements OnInit {
+export class PendingInvoicesCounter implements OnInit, OnChanges {
   @Input() pending?: any = [];
-  pendingCount: number = 0
+  pendingCount = 0;
 
-  constructor() { }
-  
+  constructor() {}
+
   ngOnInit(): void {
-    this.updateCount()
+    this.updateCount();
   }
-  
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['pending']) {
-      this.updateCount()
+      this.updateCount();
     }
   }
   updateCount() {

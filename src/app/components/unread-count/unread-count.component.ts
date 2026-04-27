@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+
 import { Subscription } from 'rxjs';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
 
@@ -21,15 +22,20 @@ export class UnreadCountComponent implements OnInit, OnDestroy {
     });
     this.subscriptions.push(liveSub);
 
-    const activeSub = this.chatService.getActiveRoomStream().subscribe((roomId) => {
-      if (!roomId) return;
-      this.chatService.setUnreadForRoom(roomId, 0);
-      this.refreshUnread();
-    });
+    const activeSub = this.chatService
+      .getActiveRoomStream()
+      .subscribe((roomId) => {
+        if (!roomId) return;
+        this.chatService.setUnreadForRoom(roomId, 0);
+        this.refreshUnread();
+      });
     this.subscriptions.push(activeSub);
 
     const mapSub = this.chatService.getUnreadMapStream().subscribe((map) => {
-      this.unreadMessageCount = Object.values(map).reduce((acc, value) => acc + (value || 0), 0);
+      this.unreadMessageCount = Object.values(map).reduce(
+        (acc, value) => acc + (value || 0),
+        0,
+      );
     });
     this.subscriptions.push(mapSub);
   }
@@ -39,7 +45,9 @@ export class UnreadCountComponent implements OnInit, OnDestroy {
   }
 
   private refreshUnread(): void {
-    const refreshSub = this.chatService.refreshUnreadFromCurrentUserRooms().subscribe();
+    const refreshSub = this.chatService
+      .refreshUnreadFromCurrentUserRooms()
+      .subscribe();
     this.subscriptions.push(refreshSub);
   }
 }

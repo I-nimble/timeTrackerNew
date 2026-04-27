@@ -1,8 +1,8 @@
 export class ContactBox {
-    constructor(
+  constructor(
     public id: number | string,
     public firstname: string,
-    public  lastname: string,
+    public lastname: string,
     public image: string,
     public department: string,
     public company: string,
@@ -13,5 +13,5 @@ export class ContactBox {
     public frequentlycontacted: boolean,
     public starred: boolean,
     public deleted: boolean,
-    ){}
-  }
+  ) {}
+}

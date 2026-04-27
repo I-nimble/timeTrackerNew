@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -10,50 +11,51 @@ import {
   HostListener,
   ChangeDetectorRef,
 } from '@angular/core';
-import { PlansService } from 'src/app/services/plans.service';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenav } from '@angular/material/sidenav';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltip } from '@angular/material/tooltip';
+import { SafeHtml } from '@angular/platform-browser';
+
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { Subscription } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { Loader } from 'src/app/app.models';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { MaterialModule } from 'src/app/legacy/material.module';
 import { Plan } from 'src/app/models/Plan.model';
+import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { EmployeesService } from 'src/app/services/employees.service';
-import { CommonModule } from '@angular/common';
-import { MaterialModule } from 'src/app/material.module';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
-import { Subscription } from 'rxjs';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
-import { Loader } from 'src/app/app.models';
-import { environment } from 'src/environments/environment';
-import { MatCardModule } from '@angular/material/card';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatButtonModule } from '@angular/material/button';
-import { FormsModule } from '@angular/forms';
-import { MatSidenav } from '@angular/material/sidenav';
-import { MatMenuModule } from '@angular/material/menu';
+import { PlansService } from 'src/app/services/plans.service';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
-import { CreateRoomComponent } from './create-room/create-room.component';
+import { ThemeService } from 'src/app/services/theme.service';
+import { environment } from 'src/environments/environment';
+
 import { ChatInfoComponent } from './chat-info/chat-info.component';
+import { CreateRoomComponent } from './create-room/create-room.component';
 import { JitsiMeetComponent } from '../../../components/jitsi-meet/jitsi-meet.component';
 import {
   RocketChatRoom,
   RocketChatMessage,
   RocketChatUser,
-  RocketChatMessageAttachment
+  RocketChatMessageAttachment,
 } from '../../../models/rocketChat.model';
-import { Observable, of } from 'rxjs';
 import { PlatformPermissionsService } from '../../../services/permissions.service';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
-import { EmojiMartPipe } from 'src/app/pipe/emoji-render.pipe';
-import { PickerModule } from '@ctrl/ngx-emoji-mart';
-import { MatTooltip } from '@angular/material/tooltip';
-import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
-import { ThemeService } from 'src/app/services/theme.service';
-import { SafeHtml } from '@angular/platform-browser';
 
 interface Emoji {
   emoji: string;
@@ -82,7 +84,7 @@ interface Emoji {
     PickerModule,
     EmojiMartPipe,
     MatTooltip,
-    TourMatMenuModule
+    TourMatMenuModule,
   ],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
@@ -107,7 +109,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   channelMembers: any[] = [];
   defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
   defaultGroupPicUrl = environment.assets + '/group-icon.webp';
-  roomPictures: { [roomId: string]: string } = {};
+  roomPictures: Record<string, string> = {};
   realtimeSubscription: Subscription | null = null;
   private serverUpdatedSubscription: Subscription | null = null;
   private typingSubscription!: Subscription;
@@ -132,7 +134,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     { emoji: '👍', description: 'Thumbs Up' },
     { emoji: '❤️', description: 'Heart' },
     { emoji: '😂', description: 'Face with Tears of Joy' },
-    { emoji: '😮', description: 'Face with Open Mouth' }
+    { emoji: '😮', description: 'Face with Open Mouth' },
   ];
   basicEmojiHtml = new Map<string, SafeHtml>();
   private editingQuoteUrl: string | null = null;
@@ -142,21 +144,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   protected mediaPlayable = new Map<string, boolean>();
 
-  isRecording: boolean = false;
+  isRecording = false;
   isComposeMode = false;
   composeBoldActive = false;
   composeItalicActive = false;
   mediaRecorder: any = null;
   recordedChunks: BlobPart[] = [];
   recordedAudioUrl: string | null = null;
-  voiceRecorderStartTime: number = 0;
+  voiceRecorderStartTime = 0;
   voiceRecorderInterval: any = null;
-  voiceRecorderTime: string = '00:00';
-  shouldSendAfterStop: boolean = false;
+  voiceRecorderTime = '00:00';
+  shouldSendAfterStop = false;
   currentAudioMimeType: string | null = null;
   private composeEditorSelectionRange: Range | null = null;
   private plainEditorSelectionRange: Range | null = null;
-  private readonly composeEmojiSequenceRegex = /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
+  private readonly composeEmojiSequenceRegex =
+    /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
 
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
@@ -166,7 +169,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.showEmojiPicker && !this.showReactionPicker) return;
-    
+
     const target = event.target as HTMLElement | null;
 
     if (!target) {
@@ -176,48 +179,60 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
 
     if (this.showEmojiPicker) {
-      if (!target.closest('.emoji-panel') && !target.closest('.emoji-toggle-btn')) {
+      if (
+        !target.closest('.emoji-panel') &&
+        !target.closest('.emoji-toggle-btn')
+      ) {
         this.showEmojiPicker = false;
       }
     }
 
     if (this.showReactionPicker) {
-      if (!target.closest('.reaction-emoji-container') && !target.closest('.reaction-picker-toggle')) {
+      if (
+        !target.closest('.reaction-emoji-container') &&
+        !target.closest('.reaction-picker-toggle')
+      ) {
         this.closeReactionPicker();
       }
     }
   }
 
   constructor(
-    protected chatService: RocketChatService, 
-    private dialog: MatDialog, 
-    private cdr: ChangeDetectorRef, 
-    private snackBar: MatSnackBar, 
-    private permissionsService: PlatformPermissionsService, 
-    private confirmationModal: MatDialog, 
+    protected chatService: RocketChatService,
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar,
+    private permissionsService: PlatformPermissionsService,
+    private confirmationModal: MatDialog,
     public emojiPipe: EmojiMartPipe,
-    public themeService: ThemeService
+    public themeService: ThemeService,
   ) {}
 
   ngOnInit(): void {
     this.loadRooms();
     try {
-      this.realtimeSubscription = this.chatService.getMessageStream().subscribe((message: RocketChatMessage) => {
-        try {
-          if (!message || !message.rid) return;
-          const room = this.rooms.find(r => r._id === message.rid);
-          if (room) {
-            (room as any).lastMessage = message;
-            (room as any).lastMessageTs = message.ts || (room as any).ts || message.ts;
-            this.moveRoomToTop(message.rid);
+      this.realtimeSubscription = this.chatService
+        .getMessageStream()
+        .subscribe((message: RocketChatMessage) => {
+          try {
+            if (!message || !message.rid) return;
+            const room = this.rooms.find((r) => r._id === message.rid);
+            if (room) {
+              (room as any).lastMessage = message;
+              (room as any).lastMessageTs =
+                message.ts || (room as any).ts || message.ts;
+              this.moveRoomToTop(message.rid);
+            } else {
+              this.loadRooms();
+            }
+          } catch (err) {
+            console.error(
+              'Error updating room lastMessage from global stream:',
+              err,
+              message,
+            );
           }
-          else {
-            this.loadRooms();
-          }
-        } catch (err) {
-          console.error('Error updating room lastMessage from global stream:', err, message);
-        }
-      });
+        });
     } catch (err) {
       console.error('Failed to subscribe to global message stream:', err);
     }
@@ -227,48 +242,82 @@ export class AppChatComponent implements OnInit, OnDestroy {
       this.chatService.getRoomUpdateStream().subscribe((ev: any) => {
         try {
           if (!ev || !ev.collection) return;
-          if (ev.collection === 'stream-notify-room' && ev.fields && ev.fields.eventName && Array.isArray(ev.fields.args)) {
+          if (
+            ev.collection === 'stream-notify-room' &&
+            ev.fields &&
+            ev.fields.eventName &&
+            Array.isArray(ev.fields.args)
+          ) {
             const eventName: string = ev.fields.eventName;
             const args = ev.fields.args;
             if (eventName.includes('/deleteMessage')) {
               const roomId = eventName.split('/')[0];
-              if (this.selectedConversation && this.selectedConversation._id === roomId) {
+              if (
+                this.selectedConversation &&
+                this.selectedConversation._id === roomId
+              ) {
                 const maybeId = args?.[0]?._id || args?.[0]?.messageId || null;
                 if (maybeId) {
-                  this.messages = this.messages.filter((m) => m._id !== maybeId);
+                  this.messages = this.messages.filter(
+                    (m) => m._id !== maybeId,
+                  );
                   this.cdr.detectChanges();
                 } else if (this.selectedConversation) {
-                  this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
-                    this.messages = msgs || [];
-                    this.sortMessagesAscending();
-                    this.cdr.detectChanges();
-                  });
+                  this.loadRoomMessages(this.selectedConversation).subscribe(
+                    (msgs) => {
+                      this.messages = msgs || [];
+                      this.sortMessagesAscending();
+                      this.cdr.detectChanges();
+                    },
+                  );
                 }
               }
             }
           }
 
-          if (ev.collection === 'stream-room-messages' && ev.fields && ev.fields.eventName && Array.isArray(ev.fields.args)) {
+          if (
+            ev.collection === 'stream-room-messages' &&
+            ev.fields &&
+            ev.fields.eventName &&
+            Array.isArray(ev.fields.args)
+          ) {
             const args = ev.fields.args;
             const maybeMsg = args?.[0];
             if (!maybeMsg || !maybeMsg._id) return;
             const roomId = (ev.fields.eventName || '').split('/')[0];
-            if (!this.selectedConversation || this.selectedConversation._id !== roomId) return;
+            if (
+              !this.selectedConversation ||
+              this.selectedConversation._id !== roomId
+            )
+              return;
 
             const incoming: RocketChatMessage = maybeMsg as RocketChatMessage;
             try {
-              const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+              const looksLikePinnedEvent =
+                incoming.t === 'message_pinned' ||
+                typeof (incoming as any).pinned !== 'undefined';
               if (looksLikePinnedEvent) {
-                const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
-                const pendingExpected = this.pendingPinActions.get(incoming._id);
+                const isPinned =
+                  incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+                const pendingExpected = this.pendingPinActions.get(
+                  incoming._id,
+                );
 
                 if (typeof pendingExpected !== 'undefined') {
                   if (pendingExpected === isPinned) {
-                    const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                    const idx2 = this.messages.findIndex(
+                      (m) => m._id === incoming._id,
+                    );
                     if (idx2 !== -1) {
-                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                      this.messages[idx2] = {
+                        ...this.messages[idx2],
+                        ...incoming,
+                        pinned: isPinned,
+                      };
                     } else if (this.selectedConversation) {
-                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                      this.loadRoomMessages(
+                        this.selectedConversation,
+                      ).subscribe((msgs) => {
                         this.messages = msgs || [];
                         this.sortMessagesAscending();
                         this.cdr.detectChanges();
@@ -281,15 +330,23 @@ export class AppChatComponent implements OnInit, OnDestroy {
                     this.pendingPinActions.delete(incoming._id);
                   }
                 } else {
-                  const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                  const idx2 = this.messages.findIndex(
+                    (m) => m._id === incoming._id,
+                  );
                   if (idx2 !== -1) {
                     const localPinned = !!this.messages[idx2].pinned;
                     if (localPinned !== isPinned) {
-                      this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                      this.messages[idx2] = {
+                        ...this.messages[idx2],
+                        ...incoming,
+                        pinned: isPinned,
+                      };
                     }
                   } else {
                     if (this.selectedConversation) {
-                      this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
+                      this.loadRoomMessages(
+                        this.selectedConversation,
+                      ).subscribe((msgs) => {
                         this.messages = msgs || [];
                         this.sortMessagesAscending();
                         this.cdr.detectChanges();
@@ -301,10 +358,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
                 }
               }
             } catch (err) {
-              console.error('Error handling pin/unpin detection:', err, incoming);
+              console.error(
+                'Error handling pin/unpin detection:',
+                err,
+                incoming,
+              );
             }
- 
-            const idx = this.messages.findIndex(m => m._id === incoming._id);
+
+            const idx = this.messages.findIndex((m) => m._id === incoming._id);
             if (idx !== -1) {
               this.messages[idx] = { ...this.messages[idx], ...incoming };
             } else {
@@ -316,15 +377,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
           if (ev.collection === 'stream-notify-room') {
             try {
               const eventName = ev.fields?.eventName || '';
-              if (typeof eventName === 'string' && !eventName.includes('/deleteMessage')) {
+              if (
+                typeof eventName === 'string' &&
+                !eventName.includes('/deleteMessage')
+              ) {
                 this.loadRooms();
               }
             } catch (err) {
-              console.error('Error handling stream-notify-room refresh:', err, ev);
+              console.error(
+                'Error handling stream-notify-room refresh:',
+                err,
+                ev,
+              );
             }
           }
         } catch (err) {
-          console.error('Error handling room update event in component:', err, ev);
+          console.error(
+            'Error handling room update event in component:',
+            err,
+            ev,
+          );
         }
       });
     } catch (err) {
@@ -332,30 +404,44 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
 
     try {
-      this.unreadMapSubscription = this.chatService.getUnreadMapStream().subscribe(() => {
-        this.sortRooms();
-      });
+      this.unreadMapSubscription = this.chatService
+        .getUnreadMapStream()
+        .subscribe(() => {
+          this.sortRooms();
+        });
     } catch (err) {
       console.error('Failed to subscribe to unread map stream:', err);
     }
 
     // reload messages when server sends an 'updated' notification
     try {
-      this.serverUpdatedSubscription = this.chatService.getServerUpdatedStream().subscribe((methods: any) => {
-        try {
-          if (!this.selectedConversation) return;
-          this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
-            this.messages = msgs || [];
-            this.sortMessagesAscending();
-            this.cdr.detectChanges();
-            this.scrollToBottom();
-          }, (err) => {
-            console.error('Failed to reload room messages after server updated event:', err);
-          });
-        } catch (err) {
-          console.error('Error handling server updated event in component:', err, methods);
-        }
-      });
+      this.serverUpdatedSubscription = this.chatService
+        .getServerUpdatedStream()
+        .subscribe((methods: any) => {
+          try {
+            if (!this.selectedConversation) return;
+            this.loadRoomMessages(this.selectedConversation).subscribe(
+              (msgs) => {
+                this.messages = msgs || [];
+                this.sortMessagesAscending();
+                this.cdr.detectChanges();
+                this.scrollToBottom();
+              },
+              (err) => {
+                console.error(
+                  'Failed to reload room messages after server updated event:',
+                  err,
+                );
+              },
+            );
+          } catch (err) {
+            console.error(
+              'Error handling server updated event in component:',
+              err,
+              methods,
+            );
+          }
+        });
     } catch (err) {
       console.error('Failed to subscribe to server updated stream:', err);
     }
@@ -367,12 +453,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.openSnackBar(`Call started in ${roomName}`, 'Join');
             return;
           }
-          const maybeRid = notification?.roomId || notification?.fields?.args?.[0]?.rid || notification?.fields?.args?.[1]?.rid || notification?.fields?.args?.rid;
+          const maybeRid =
+            notification?.roomId ||
+            notification?.fields?.args?.[0]?.rid ||
+            notification?.fields?.args?.[1]?.rid ||
+            notification?.fields?.args?.rid;
           if (maybeRid) {
             this.loadRooms();
           }
         } catch (err) {
-          console.error('Error handling user notify event in component:', err, notification);
+          console.error(
+            'Error handling user notify event in component:',
+            err,
+            notification,
+          );
         }
       });
     } catch (err) {
@@ -391,18 +485,26 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
         // Create suppor chat if not found
         const supportUsername = environment.supportUsername;
-        const supportUserRoom = this.rooms.find((room: any) => room.t === 'd' && room.usernames.includes(supportUsername));
-        if (!supportUserRoom && this.chatService.loggedInUser?.username !== supportUsername) {
-          this.chatService.createDirectMessage(supportUsername)
-            .then(room => {
+        const supportUserRoom = this.rooms.find(
+          (room: any) =>
+            room.t === 'd' && room.usernames.includes(supportUsername),
+        );
+        if (
+          !supportUserRoom &&
+          this.chatService.loggedInUser?.username !== supportUsername
+        ) {
+          this.chatService
+            .createDirectMessage(supportUsername)
+            .then((room) => {
               this.rooms.push(room);
               this.sortRooms();
               this.loadAllRoomPictures();
               this.scrollToBottom();
             })
-            .catch(err => this.openSnackBar('Error creating direct message:', 'Close'));
-        }
-        else {
+            .catch((err) =>
+              this.openSnackBar('Error creating direct message:', 'Close'),
+            );
+        } else {
           this.sortRooms();
           this.loadAllRoomPictures();
           this.scrollToBottom();
@@ -415,7 +517,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   isRoomSupportUser(room: RocketChatRoom): boolean {
-    return room.t === 'd' && room.usernames?.includes(environment.supportUsername) || false;
+    return (
+      (room.t === 'd' &&
+        room.usernames?.includes(environment.supportUsername)) ||
+      false
+    );
   }
 
   private loadAllRoomPictures() {
@@ -454,17 +560,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!this.selectedConversation) return 'Info';
 
     switch (this.selectedConversation.t) {
-      case 'd': return 'Contact Info';
-      case 'c': return 'Channel Info';
-      case 'p': return 'Team Info';
-      case 'l': return 'Support Info';
-      default: return 'Info';
+      case 'd':
+        return 'Contact Info';
+      case 'c':
+        return 'Channel Info';
+      case 'p':
+        return 'Team Info';
+      case 'l':
+        return 'Support Info';
+      default:
+        return 'Info';
     }
   }
 
   private hasAnyRole(roles: string[]): boolean {
     const userRoles = this.chatService.loggedInUser?.roles || [];
-    return userRoles.some(r => roles.includes(r));
+    return userRoles.some((r) => roles.includes(r));
   }
 
   isActionsVisible(message: RocketChatMessage) {
@@ -474,13 +585,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   isSystemMessage(message: RocketChatMessage): boolean {
     const systemTypes = [
-      'rm', 'r',
-      'uj', 'ul', 'ult', 'ru',
+      'rm',
+      'r',
+      'uj',
+      'ul',
+      'ult',
+      'ru',
       'au',
       'added-user-to-team',
       'removed-user-from-team',
       'user-added-room-to-team',
-      'user-deleted-room-from-team',    
+      'user-deleted-room-from-team',
       'room_changed_name',
       'room_changed_description',
       'room_changed_avatar',
@@ -488,7 +603,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     ];
     return systemTypes.includes(message.t || '');
   }
-  
+
   formatSystemMessage(message: RocketChatMessage): string {
     const actor = this.getDisplayName(message.u);
     const target = message.msg || '';
@@ -521,7 +636,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       case 'room_changed_avatar':
         return `${actor} changed the room avatar`;
       case 'message_pinned':
-        return `${actor} pinned a message`
+        return `${actor} pinned a message`;
       default:
         return target || '';
     }
@@ -530,7 +645,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   trackByMessageId(index: number, message: RocketChatMessage): string {
     return message._id;
   }
-  
+
   getDisplayName(user: any): string {
     if (!user) return 'Unknown';
     if (user.name && user.name.trim().length > 0) return user.name.trim();
@@ -546,21 +661,37 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const roles = this.chatService.loggedInUser?.roles || [];
 
     switch (room.t) {
-      case 'c': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
-      case 'p': return roles.includes('admin') || roles.includes('moderator') || roles.includes('leader');
-      case 'd': return true;
-      default: return false;
+      case 'c':
+        return (
+          roles.includes('admin') ||
+          roles.includes('moderator') ||
+          roles.includes('leader')
+        );
+      case 'p':
+        return (
+          roles.includes('admin') ||
+          roles.includes('moderator') ||
+          roles.includes('leader')
+        );
+      case 'd':
+        return true;
+      default:
+        return false;
     }
   }
 
   async call(type: 'video' | 'audio') {
     if (!this.selectedConversation) return;
 
-    if(!this.chatService.callsAvailable) {
-      const permissionsGranted = await this.permissionsService.requestMediaPermissions(type === 'video');
-      
+    if (!this.chatService.callsAvailable) {
+      const permissionsGranted =
+        await this.permissionsService.requestMediaPermissions(type === 'video');
+
       if (!permissionsGranted) {
-        this.openSnackBar('Camera/microphone permissions are required for calls.', 'Close');
+        this.openSnackBar(
+          'Camera/microphone permissions are required for calls.',
+          'Close',
+        );
         return;
       }
     }
@@ -575,33 +706,41 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const callId = res.callId;
       const jwt = res.callToken;
       const roomName = `RocketChat${callId}`;
-      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+      const externalApiUrl =
+        (environment.jitsiMeetUrl || '').replace(/\/$/, '') +
+        '/external_api.js';
 
       this.chatService.openJitsiMeeting({
         roomId: callId,
         roomName,
         jwt,
         externalApiUrl,
-        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        displayName:
+          this.chatService.loggedInUser?.name ||
+          this.chatService.loggedInUser?.username,
         email: this.getUserEmail(),
-        configOverwrite: { 
-          startWithAudioMuted: false, 
-          startWithVideoMuted: type === 'audio', 
-          prejoinPageEnabled: false 
+        configOverwrite: {
+          startWithAudioMuted: false,
+          startWithVideoMuted: type === 'audio',
+          prejoinPageEnabled: false,
         },
         interfaceConfigOverwrite: {
           MOBILE_APP_PROMO: false,
-        }
+        },
       });
     });
   }
 
   async joinCall(message: RocketChatMessage) {
-    if(!this.chatService.callsAvailable) {
-      const permissionsGranted = await this.permissionsService.requestMediaPermissions(true);
-      
+    if (!this.chatService.callsAvailable) {
+      const permissionsGranted =
+        await this.permissionsService.requestMediaPermissions(true);
+
       if (!permissionsGranted) {
-        this.openSnackBar('Camera/microphone permissions are required for calls.', 'Close');
+        this.openSnackBar(
+          'Camera/microphone permissions are required for calls.',
+          'Close',
+        );
         return;
       }
     }
@@ -615,19 +754,23 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const callId = res.callId;
       const jwt = res.callToken;
       const roomName = `RocketChat${callId}`;
-      const externalApiUrl = (environment.jitsiMeetUrl || '').replace(/\/$/, '') + '/external_api.js';
+      const externalApiUrl =
+        (environment.jitsiMeetUrl || '').replace(/\/$/, '') +
+        '/external_api.js';
 
       this.chatService.openJitsiMeeting({
         roomId: callId,
         roomName,
         jwt,
         externalApiUrl,
-        displayName: this.chatService.loggedInUser?.name || this.chatService.loggedInUser?.username,
+        displayName:
+          this.chatService.loggedInUser?.name ||
+          this.chatService.loggedInUser?.username,
         email: this.getUserEmail(),
         configOverwrite: { prejoinPageEnabled: false },
         interfaceConfigOverwrite: {
           MOBILE_APP_PROMO: false,
-        }
+        },
       });
     });
   }
@@ -636,8 +779,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return message.u._id === this.chatService.loggedInUser?._id;
   }
 
-
-  getAttachmentType(attachment: RocketChatMessageAttachment): 'image' | 'video' | 'audio' | 'file' {
+  getAttachmentType(
+    attachment: RocketChatMessageAttachment,
+  ): 'image' | 'video' | 'audio' | 'file' {
     if (!attachment) return 'file';
 
     if (attachment.image_url) return 'image';
@@ -646,13 +790,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return 'file';
   }
 
-  async downloadFile(attachment: RocketChatMessageAttachment, messageId?: string) {
-    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+  async downloadFile(
+    attachment: RocketChatMessageAttachment,
+    messageId?: string,
+  ) {
+    const fullFileName =
+      attachment.image_url ||
+      attachment.video_url ||
+      attachment.audio_url ||
+      attachment.title_link;
     if (!fullFileName) return;
 
     const fileNameInS3 = fullFileName.split('/')[2];
     const groupId = this.selectedConversation?._id;
-    
+
     if (!groupId) return;
 
     const segment1 = groupId;
@@ -676,22 +827,24 @@ export class AppChatComponent implements OnInit, OnDestroy {
       }
     }
 
-    const tryDownload = async (url: string): Promise<'ok' | 'error' | 'network_error'> => {
+    const tryDownload = async (
+      url: string,
+    ): Promise<'ok' | 'error' | 'network_error'> => {
       try {
         const response = await fetch(url);
         if (!response.ok) return 'error';
         const blob = await response.blob();
-        
+
         const blobUrl = window.URL.createObjectURL(blob);
-        
+
         const link = document.createElement('a');
         link.href = blobUrl;
         link.download = originalFileName;
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         window.URL.revokeObjectURL(blobUrl);
         return 'ok';
       } catch (error) {
@@ -712,7 +865,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async tryDownloadAndSave(url: string, fileName: string): Promise<boolean> {
+  private async tryDownloadAndSave(
+    url: string,
+    fileName: string,
+  ): Promise<boolean> {
     try {
       const response = await fetch(url);
       if (!response.ok) return false;
@@ -746,28 +902,28 @@ export class AppChatComponent implements OnInit, OnDestroy {
               console.error('Failed to upload file:', res.error);
               return;
             }
-            
+
             const fileType = file.type.split('/')[0];
             const attachment: RocketChatMessageAttachment = {
               title: file.name,
               title_link: res.file.url,
               title_link_download: true,
               ts: new Date().toISOString(),
-              
-              ...(fileType === 'image' && { 
+
+              ...(fileType === 'image' && {
                 image_url: res.file.url,
-                thumb_url: res.file.url 
+                thumb_url: res.file.url,
               }),
-              ...(fileType === 'video' && { 
-                video_url: res.file.url 
+              ...(fileType === 'video' && {
+                video_url: res.file.url,
               }),
-              ...(fileType === 'audio' && { 
-                audio_url: res.file.url 
+              ...(fileType === 'audio' && {
+                audio_url: res.file.url,
               }),
-              
+
               ...(!['image', 'video', 'audio'].includes(fileType) && {
-                text: `File: ${file.name} (${this.formatFileSize(file.size)})`
-              })
+                text: `File: ${file.name} (${this.formatFileSize(file.size)})`,
+              }),
             };
 
             this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
@@ -777,13 +933,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
               error: (err: any) => {
                 console.error('Error sending message with attachment:', err);
                 this.isSendingMessage = false;
-              }
+              },
             });
           },
           error: (err: any) => {
             console.error('Error uploading file:', err);
             this.isSendingMessage = false;
-          }
+          },
         });
       }
     };
@@ -792,7 +948,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   onVoiceButtonClick(event: Event) {
     event.stopPropagation();
     if (!this.selectedConversation) {
-      this.openSnackBar('Select a conversation to send a voice message', 'Close');
+      this.openSnackBar(
+        'Select a conversation to send a voice message',
+        'Close',
+      );
       return;
     }
 
@@ -810,53 +969,67 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.voiceRecorderStartTime = Date.now();
     this.startVoiceRecorderTimer();
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      try {
-        const mime = this.getSupportedAudioMimeType();
-        this.currentAudioMimeType = mime;
-        this.mediaRecorder = new (window as any).MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-      } catch (e) {
-        this.openSnackBar('Could not start recorder on this browser.', 'Close');
-        this.isRecording = false;
-        this.stopVoiceRecorderTimer();
-        stream.getTracks().forEach((t: any) => t.stop());
-        return;
-      }
-
-      this.mediaRecorder.ondataavailable = (e: any) => {
-        if (e.data && e.data.size > 0) {
-          this.recordedChunks.push(e.data);
-        }
-      };
-
-      this.mediaRecorder.onstop = () => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
         try {
-          const type = this.currentAudioMimeType || 'audio/webm';
-          const audioBlob = new Blob(this.recordedChunks, { type });
-          this.recordedAudioUrl = URL.createObjectURL(audioBlob);
-          if (this.shouldSendAfterStop) {
-            this.shouldSendAfterStop = false;
-            this.uploadAndSendAudio(audioBlob);
-          }
+          const mime = this.getSupportedAudioMimeType();
+          this.currentAudioMimeType = mime;
+          this.mediaRecorder = new (window as any).MediaRecorder(
+            stream,
+            mime ? { mimeType: mime } : undefined,
+          );
         } catch (e) {
-          console.error('Error creating audio blob url', e);
+          this.openSnackBar(
+            'Could not start recorder on this browser.',
+            'Close',
+          );
+          this.isRecording = false;
+          this.stopVoiceRecorderTimer();
+          stream.getTracks().forEach((t: any) => t.stop());
+          return;
         }
-        try { stream.getTracks().forEach((t: any) => t.stop()); } catch (e) {}
-      };
 
-      try {
-        this.mediaRecorder.start();
-      } catch (e) {
-        console.error('Failed to start MediaRecorder', e);
+        this.mediaRecorder.ondataavailable = (e: any) => {
+          if (e.data && e.data.size > 0) {
+            this.recordedChunks.push(e.data);
+          }
+        };
+
+        this.mediaRecorder.onstop = () => {
+          try {
+            const type = this.currentAudioMimeType || 'audio/webm';
+            const audioBlob = new Blob(this.recordedChunks, { type });
+            this.recordedAudioUrl = URL.createObjectURL(audioBlob);
+            if (this.shouldSendAfterStop) {
+              this.shouldSendAfterStop = false;
+              this.uploadAndSendAudio(audioBlob);
+            }
+          } catch (e) {
+            console.error('Error creating audio blob url', e);
+          }
+          try {
+            stream.getTracks().forEach((t: any) => t.stop());
+          } catch (e) {}
+        };
+
+        try {
+          this.mediaRecorder.start();
+        } catch (e) {
+          console.error('Failed to start MediaRecorder', e);
+          this.isRecording = false;
+          this.stopVoiceRecorderTimer();
+        }
+      })
+      .catch((err) => {
+        console.error('Microphone permission denied or not available', err);
+        this.openSnackBar(
+          'Microphone access is required to record voice messages.',
+          'Close',
+        );
         this.isRecording = false;
         this.stopVoiceRecorderTimer();
-      }
-    }).catch((err) => {
-      console.error('Microphone permission denied or not available', err);
-      this.openSnackBar('Microphone access is required to record voice messages.', 'Close');
-      this.isRecording = false;
-      this.stopVoiceRecorderTimer();
-    });
+      });
   }
 
   stopVoiceRecordingAndSend() {
@@ -887,7 +1060,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   discardVoiceRecording() {
     try {
-      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive')
+        this.mediaRecorder.stop();
     } catch (e) {}
     this.isRecording = false;
     this.recordedChunks = [];
@@ -900,7 +1074,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!this.selectedConversation) return;
     const roomId = this.selectedConversation._id;
     const mime = this.currentAudioMimeType || blob.type || 'audio/webm';
-    const ext = mime.includes('ogg') ? 'ogg' : mime.includes('wav') ? 'wav' : 'webm';
+    const ext = mime.includes('ogg')
+      ? 'ogg'
+      : mime.includes('wav')
+        ? 'wav'
+        : 'webm';
     const fileName = `voice-message-${Date.now()}.${ext}`;
     const file = new File([blob], fileName, { type: mime });
 
@@ -919,7 +1097,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           title_link: res.file.url,
           title_link_download: true,
           ts: new Date().toISOString(),
-          audio_url: res.file.url
+          audio_url: res.file.url,
         };
 
         this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
@@ -931,14 +1109,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
             console.error('Error sending voice message:', err);
             this.openSnackBar('Failed to send voice message', 'Close');
             this.isSendingMessage = false;
-          }
+          },
         });
       },
       error: (err: any) => {
         console.error('Error uploading voice file:', err);
         this.openSnackBar('Failed to upload voice message', 'Close');
         this.isSendingMessage = false;
-      }
+      },
     });
   }
 
@@ -948,7 +1126,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.voiceRecorderInterval = setInterval(() => {
       const diff = Date.now() - this.voiceRecorderStartTime;
       this.voiceRecorderTime = this.formatDuration(diff);
-      try { this.cdr.detectChanges(); } catch (e) {}
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
     }, 500);
   }
 
@@ -962,7 +1142,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private formatDuration(ms: number): string {
     const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
     const seconds = (totalSeconds % 60).toString().padStart(2, '0');
     return `${minutes}:${seconds}`;
   }
@@ -974,7 +1156,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         'audio/webm',
         'audio/ogg;codecs=opus',
         'audio/ogg',
-        'audio/wav'
+        'audio/wav',
       ];
       const MR = (window as any).MediaRecorder;
       if (!MR || !MR.isTypeSupported) return null;
@@ -987,8 +1169,12 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  getFileUrl(attachment: RocketChatMessageAttachment, urlVariant: number = 1) {
-    const fullFileName = attachment.image_url || attachment.video_url || attachment.audio_url || attachment.title_link;
+  getFileUrl(attachment: RocketChatMessageAttachment, urlVariant = 1) {
+    const fullFileName =
+      attachment.image_url ||
+      attachment.video_url ||
+      attachment.audio_url ||
+      attachment.title_link;
     if (!fullFileName) return;
 
     const fileNameInS3 = fullFileName.split('/')[2];
@@ -1008,7 +1194,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       const key = `${messageId}|${variant}`;
       this.mediaPlayable.set(key, true);
-      try { this.cdr.detectChanges(); } catch (e) {}
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
     } catch (e) {}
   }
 
@@ -1016,7 +1204,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       const key = `${messageId}|${variant}`;
       this.mediaPlayable.set(key, false);
-      try { this.cdr.detectChanges(); } catch (e) {}
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
     } catch (e) {}
   }
 
@@ -1037,13 +1227,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  openCreateRoomDialog(type: 'd' | 'c' | 't' | 'p', teamId?: string, teamName?: string) {
+  openCreateRoomDialog(
+    type: 'd' | 'c' | 't' | 'p',
+    teamId?: string,
+    teamName?: string,
+  ) {
     const dialogRef = this.dialog.open(CreateRoomComponent, {
       width: '400px',
       data: { type, teamId, teamName },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result?.success) {
         this.loadRooms();
       }
@@ -1051,24 +1245,24 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   loadUserInfo(username: string) {
-    this.chatService.getUserInfo(username).subscribe(user => {
+    this.chatService.getUserInfo(username).subscribe((user) => {
       this.selectedUserInfo = {
         ...user,
         email: user.emails?.[0]?.address,
-        avatarUrl: this.chatService.getUserAvatarUrl(user.username)
+        avatarUrl: this.chatService.getUserAvatarUrl(user.username),
       };
     });
   }
 
   loadChannelMembers(roomId: string, type: 'c' | 'p') {
-    this.chatService.getRoomMembers(roomId, type).subscribe(members => {
-      this.channelMembers = members.map(m => ({
+    this.chatService.getRoomMembers(roomId, type).subscribe((members) => {
+      this.channelMembers = members.map((m) => ({
         ...m,
-        avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+        avatarUrl: this.chatService.getUserAvatarUrl(m.username),
       }));
     });
   }
-  
+
   openInfoDialog() {
     if (!this.selectedConversation) return;
 
@@ -1076,14 +1270,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     if (room.t === 'd') {
       const otherUsername = room.usernames?.find(
-        u => u !== this.chatService.loggedInUser?.username
+        (u) => u !== this.chatService.loggedInUser?.username,
       );
       if (otherUsername) {
-        this.chatService.getUserInfo(otherUsername).subscribe(user => {
+        this.chatService.getUserInfo(otherUsername).subscribe((user) => {
           const userInfo = {
             ...user,
             email: user.emails?.[0]?.address,
-            avatarUrl: this.chatService.getUserAvatarUrl(user.username)
+            avatarUrl: this.chatService.getUserAvatarUrl(user.username),
           };
 
           const dialogRef = this.dialog.open(ChatInfoComponent, {
@@ -1092,23 +1286,32 @@ export class AppChatComponent implements OnInit, OnDestroy {
             data: {
               conversation: room,
               userInfo,
-              channelMembers: []
+              channelMembers: [],
             },
-            panelClass: 'chat-info-dialog'
+            panelClass: 'chat-info-dialog',
           });
 
           dialogRef.afterClosed().subscribe((result: any) => {
             if (result && result.deleted) {
               const roomId = result.roomId || room._id;
-              this.rooms = this.rooms.filter(r => r._id !== roomId);
+              this.rooms = this.rooms.filter((r) => r._id !== roomId);
               const sub = this.roomSubscriptions.get(roomId);
               if (sub) {
-                try { sub.unsubscribe(); } catch (e) {}
+                try {
+                  sub.unsubscribe();
+                } catch (e) {}
                 this.roomSubscriptions.delete(roomId);
               }
-              try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
-              try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
-              if (this.selectedConversation && this.selectedConversation._id === roomId) {
+              try {
+                this.chatService.unsubscribeFromRoomMessages(roomId);
+              } catch (e) {}
+              try {
+                this.chatService.setUnreadForRoom(roomId, 0);
+              } catch (e) {}
+              if (
+                this.selectedConversation &&
+                this.selectedConversation._id === roomId
+              ) {
                 this.selectedConversation = null as any;
                 this.messages = [];
               }
@@ -1119,10 +1322,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
         });
       }
     } else if (room.t === 'c' || room.t === 'p') {
-      this.chatService.getRoomMembers(room._id, room.t).subscribe(members => {
-        const enrichedMembers = members.map(m => ({
+      this.chatService.getRoomMembers(room._id, room.t).subscribe((members) => {
+        const enrichedMembers = members.map((m) => ({
           ...m,
-          avatarUrl: this.chatService.getUserAvatarUrl(m.username)
+          avatarUrl: this.chatService.getUserAvatarUrl(m.username),
         }));
 
         const dialogRef = this.dialog.open(ChatInfoComponent, {
@@ -1131,23 +1334,32 @@ export class AppChatComponent implements OnInit, OnDestroy {
           data: {
             conversation: room,
             userInfo: null,
-            channelMembers: enrichedMembers
+            channelMembers: enrichedMembers,
           },
-          panelClass: 'chat-info-dialog'
+          panelClass: 'chat-info-dialog',
         });
 
         dialogRef.afterClosed().subscribe((result: any) => {
           if (result && result.deleted) {
             const roomId = result.roomId || room._id;
-            this.rooms = this.rooms.filter(r => r._id !== roomId);
+            this.rooms = this.rooms.filter((r) => r._id !== roomId);
             const sub = this.roomSubscriptions.get(roomId);
             if (sub) {
-              try { sub.unsubscribe(); } catch (e) {}
+              try {
+                sub.unsubscribe();
+              } catch (e) {}
               this.roomSubscriptions.delete(roomId);
             }
-            try { this.chatService.unsubscribeFromRoomMessages(roomId); } catch (e) {}
-            try { this.chatService.setUnreadForRoom(roomId, 0); } catch (e) {}
-            if (this.selectedConversation && this.selectedConversation._id === roomId) {
+            try {
+              this.chatService.unsubscribeFromRoomMessages(roomId);
+            } catch (e) {}
+            try {
+              this.chatService.setUnreadForRoom(roomId, 0);
+            } catch (e) {}
+            if (
+              this.selectedConversation &&
+              this.selectedConversation._id === roomId
+            ) {
               this.selectedConversation = null as any;
               this.messages = [];
             }
@@ -1161,7 +1373,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   filteredRooms(): RocketChatRoom[] {
     return this.rooms
-      .filter(r => {
+      .filter((r) => {
         if (r.teamMain) return false;
         if (r.t === 'd') return true;
         if (r.t === 'c') return true;
@@ -1175,7 +1387,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
           const nameMatch = !!r?.name && r.name.toLowerCase().includes(q);
           let otherUsername = '';
           if (Array.isArray(r?.usernames) && r.usernames.length > 0) {
-            const others = r.usernames.filter((u: string) => u !== this.chatService.loggedInUser?.username);
+            const others = r.usernames.filter(
+              (u: string) => u !== this.chatService.loggedInUser?.username,
+            );
             otherUsername = (others && others[0]) || '';
           }
           const usernameMatch = otherUsername.toLowerCase().includes(q);
@@ -1188,20 +1402,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   getConversationName(room: RocketChatRoom): string {
     if (!room) return 'Unknown';
-    
+
     switch (room.t) {
       case 'd': {
         if (room.name && room.name.trim().length > 0) return room.name;
         if (Array.isArray(room.usernames) && room.usernames.length > 0) {
-          const other = room.usernames.find((u: string) => u !== this.chatService.loggedInUser?.username);
-          if (!other) return (room.usernames[0] || 'Direct Message');
-          
+          const other = room.usernames.find(
+            (u: string) => u !== this.chatService.loggedInUser?.username,
+          );
+          if (!other) return room.usernames[0] || 'Direct Message';
+
           if (this.userNameCache.has(other)) {
             return this.userNameCache.get(other)!;
           }
-          
+
           this.loadUserName(other);
-          return other; 
+          return other;
         }
         return 'Direct Message';
       }
@@ -1218,14 +1434,15 @@ export class AppChatComponent implements OnInit, OnDestroy {
   private loadUserName(username: string): void {
     this.chatService.getUserInfo(username).subscribe({
       next: (user: RocketChatUser) => {
-        const displayName = user.name && user.name.trim().length > 0 ? user.name : username;
+        const displayName =
+          user.name && user.name.trim().length > 0 ? user.name : username;
         this.userNameCache.set(username, displayName);
         this.cdr.detectChanges();
       },
       error: () => {
         this.userNameCache.set(username, username);
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -1235,7 +1452,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const count = this.chatService.getUnreadForRoom(room._id);
       return count || 0;
     } catch (err) {
-      console.error('Error reading unread count from service for room', room._id, err);
+      console.error(
+        'Error reading unread count from service for room',
+        room._id,
+        err,
+      );
       return 0;
     }
   }
@@ -1249,10 +1470,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
         } catch {}
         this.sortRooms();
       },
-      error: err => {
+      error: (err) => {
         console.error('Failed to mark as read:', err);
         this.openSnackBar('Failed to mark room as read', 'Close');
-      }
+      },
     });
   }
 
@@ -1313,7 +1534,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         weekday: 'short',
         month: 'short',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
       });
     }
   }
@@ -1324,7 +1545,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     return this.chatService.getUserAvatarUrl(message.u.username);
   }
-    
+
   getSenderName(message: RocketChatMessage): string {
     return message.u?.name || message.u?.username || 'Unknown';
   }
@@ -1346,8 +1567,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         if (this.typingSubscription) {
           this.typingSubscription.unsubscribe();
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     this.selectedConversation = room;
     this.typingUsers = [];
@@ -1371,10 +1591,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
       this.roomSubscriptions.get(room._id)?.unsubscribe();
     }
 
-    const { history, realtimeStream, typingStream } = await this.chatService.loadRoomHistoryWithRealtime(room);
+    const { history, realtimeStream, typingStream } =
+      await this.chatService.loadRoomHistoryWithRealtime(room);
     this.messages = history;
     this.sortMessagesAscending();
-    const existingMessageIds = new Set(this.messages.map(msg => msg._id));
+    const existingMessageIds = new Set(this.messages.map((msg) => msg._id));
 
     const sub = realtimeStream.subscribe((newMessage) => {
       try {
@@ -1382,54 +1603,81 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
         try {
           const incoming: RocketChatMessage = newMessage as RocketChatMessage;
-          const looksLikePinnedEvent = incoming.t === 'message_pinned' || typeof (incoming as any).pinned !== 'undefined';
+          const looksLikePinnedEvent =
+            incoming.t === 'message_pinned' ||
+            typeof (incoming as any).pinned !== 'undefined';
           if (looksLikePinnedEvent) {
-            const isPinned = incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+            const isPinned =
+              incoming.t === 'message_pinned' || !!(incoming as any).pinned;
             const pendingExpected = this.pendingPinActions.get(incoming._id);
 
             if (typeof pendingExpected !== 'undefined') {
               if (pendingExpected === isPinned) {
-                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                const idx2 = this.messages.findIndex(
+                  (m) => m._id === incoming._id,
+                );
                 if (idx2 !== -1) {
-                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
                 }
                 this.pendingPinActions.delete(incoming._id);
                 this.sortMessagesAscending();
                 this.cdr.detectChanges();
               } else {
                 this.pendingPinActions.delete(incoming._id);
-                const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+                const idx2 = this.messages.findIndex(
+                  (m) => m._id === incoming._id,
+                );
                 if (idx2 !== -1) {
-                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
                   this.cdr.detectChanges();
                 }
               }
             } else {
-              const idx2 = this.messages.findIndex(m => m._id === incoming._id);
+              const idx2 = this.messages.findIndex(
+                (m) => m._id === incoming._id,
+              );
               if (idx2 !== -1) {
                 const localPinned = !!this.messages[idx2].pinned;
                 if (localPinned !== isPinned) {
-                  this.messages[idx2] = { ...this.messages[idx2], ...incoming, pinned: isPinned };
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
                   this.cdr.detectChanges();
                 }
               } else {
                 if (this.selectedConversation) {
-                  this.loadRoomMessages(this.selectedConversation).subscribe((msgs) => {
-                    this.messages = msgs || [];
-                    this.sortMessagesAscending();
-                    this.cdr.detectChanges();
-                  });
+                  this.loadRoomMessages(this.selectedConversation).subscribe(
+                    (msgs) => {
+                      this.messages = msgs || [];
+                      this.sortMessagesAscending();
+                      this.cdr.detectChanges();
+                    },
+                  );
                 }
               }
             }
           }
         } catch (err) {
-          console.error('Error handling pin/unpin detection for realtime message:', err, newMessage);
+          console.error(
+            'Error handling pin/unpin detection for realtime message:',
+            err,
+            newMessage,
+          );
         }
 
         if (existingMessageIds.has(newMessage._id)) {
           // update existing message
-          const idx = this.messages.findIndex(m => m._id === newMessage._id);
+          const idx = this.messages.findIndex((m) => m._id === newMessage._id);
           if (idx !== -1) {
             this.messages[idx] = { ...this.messages[idx], ...newMessage };
             this.cdr.detectChanges();
@@ -1443,18 +1691,27 @@ export class AppChatComponent implements OnInit, OnDestroy {
             this.chatService.setUnreadForRoom(room._id, 0);
           } catch (e) {}
           try {
-            const roomIdx = this.rooms.findIndex(r => r._id === room._id);
+            const roomIdx = this.rooms.findIndex((r) => r._id === room._id);
             if (roomIdx !== -1) {
               (this.rooms[roomIdx] as any).lastMessage = newMessage;
-              (this.rooms[roomIdx] as any).lastMessageTs = newMessage.ts || (this.rooms[roomIdx] as any).ts;
+              (this.rooms[roomIdx] as any).lastMessageTs =
+                newMessage.ts || (this.rooms[roomIdx] as any).ts;
               this.moveRoomToTop(room._id);
             }
           } catch (err) {
-            console.error('Error updating room lastMessage after realtime message:', err, newMessage);
+            console.error(
+              'Error updating room lastMessage after realtime message:',
+              err,
+              newMessage,
+            );
           }
         }
       } catch (err) {
-        console.error('Error handling realtime message in room subscription:', err, newMessage);
+        console.error(
+          'Error handling realtime message in room subscription:',
+          err,
+          newMessage,
+        );
       }
     });
     this.roomSubscriptions.set(room._id, sub);
@@ -1478,12 +1735,15 @@ export class AppChatComponent implements OnInit, OnDestroy {
           try {
             this.chatService.refreshUnreadFromCurrentUserRooms().subscribe();
           } catch (e) {
-            console.error('Error refreshing unread after markChannelAsRead:', e);
+            console.error(
+              'Error refreshing unread after markChannelAsRead:',
+              e,
+            );
           }
         },
         error: (err) => {
           console.error('Failed to mark room as read on server:', err);
-        }
+        },
       });
     } catch (err) {
       console.error('Error calling markChannelAsRead:', err);
@@ -1491,7 +1751,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     if (room.t === 'd') {
       const otherUsername = room.usernames?.find(
-        u => u !== this.chatService.loggedInUser?.username
+        (u) => u !== this.chatService.loggedInUser?.username,
       );
       if (otherUsername) this.loadUserInfo(otherUsername);
       this.channelMembers = [];
@@ -1505,7 +1765,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private sortMessagesAscending(): void {
     try {
-      this.messages.sort((a, b) => this.getMessageTimestamp(a).getTime() - this.getMessageTimestamp(b).getTime());
+      this.messages.sort(
+        (a, b) =>
+          this.getMessageTimestamp(a).getTime() -
+          this.getMessageTimestamp(b).getTime(),
+      );
       this.messages = [...this.messages];
     } catch (err) {
       console.error('Error sorting messages ascending:', err);
@@ -1547,18 +1811,21 @@ export class AppChatComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Failed to refresh room messages after reaction update:', err);
-      }
+        console.error(
+          'Failed to refresh room messages after reaction update:',
+          err,
+        );
+      },
     });
   }
-  
+
   onDeleteRoom(room: RocketChatRoom) {
     if (!room || !room._id) return;
 
     this.chatService.deleteRoom(room._id).subscribe({
-      next: success => {
+      next: (success) => {
         if (success) {
-          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          this.rooms = this.rooms.filter((r) => r._id !== room._id);
           if (this.selectedConversation?._id === room._id) {
             this.selectedConversation = undefined as any;
             this.messages = [];
@@ -1566,10 +1833,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.openSnackBar(`Chat deleted`, 'OK');
         }
       },
-      error: err => {
+      error: (err) => {
         console.error('Error deleting chat:', err);
         this.openSnackBar('Failed to delete chat', 'Close');
-      }
+      },
     });
   }
 
@@ -1577,9 +1844,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!room || !room._id) return;
 
     this.chatService.leaveRoom(room._id).subscribe({
-      next: success => {
+      next: (success) => {
         if (success) {
-          this.rooms = this.rooms.filter(r => r._id !== room._id);
+          this.rooms = this.rooms.filter((r) => r._id !== room._id);
           if (this.selectedConversation?._id === room._id) {
             this.selectedConversation = undefined as any;
             this.messages = [];
@@ -1587,15 +1854,18 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.openSnackBar(`Left room`, 'OK');
         }
       },
-      error: err => {
+      error: (err) => {
         console.error('Error leaving group:', err);
         const errorType = err?.error?.errorType;
-        if (errorType === "error-you-are-last-owner") {
-          this.openSnackBar('You are the last owner. Delete the group instead.', 'Close');
+        if (errorType === 'error-you-are-last-owner') {
+          this.openSnackBar(
+            'You are the last owner. Delete the group instead.',
+            'Close',
+          );
         } else {
           this.openSnackBar('Could not leave the group.', 'Close');
         }
-      }
+      },
     });
   }
 
@@ -1623,12 +1893,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
       }
     } else {
       this.typingUsers = this.typingUsers.filter(
-        (user) => user !== event.username
+        (user) => user !== event.username,
       );
     }
 
     this.isUserTyping = this.typingUsers.length > 0;
-    if (this.messagesContainer?.nativeElement.scrollTop + this.messagesContainer?.nativeElement.clientHeight >= this.messagesContainer?.nativeElement.scrollHeight) {
+    if (
+      this.messagesContainer?.nativeElement.scrollTop +
+        this.messagesContainer?.nativeElement.clientHeight >=
+      this.messagesContainer?.nativeElement.scrollHeight
+    ) {
       this.scrollToBottom();
     }
 
@@ -1639,10 +1913,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (event.isTyping) {
       this.typingTimeout = setTimeout(() => {
         this.typingUsers = this.typingUsers.filter(
-          (user) => user !== event.username
+          (user) => user !== event.username,
         );
         this.isUserTyping = this.typingUsers.length > 0;
-        if (this.messagesContainer?.nativeElement.scrollTop + this.messagesContainer?.nativeElement.clientHeight >= this.messagesContainer?.nativeElement.scrollHeight) {
+        if (
+          this.messagesContainer?.nativeElement.scrollTop +
+            this.messagesContainer?.nativeElement.clientHeight >=
+          this.messagesContainer?.nativeElement.scrollHeight
+        ) {
           this.scrollToBottom();
         }
       }, 3000);
@@ -1663,7 +1941,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         .editMessage(
           this.selectedConversation._id,
           this.editingMessage._id,
-          updatedText
+          updatedText,
         )
         .subscribe({
           next: (res) => {
@@ -1693,7 +1971,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     const baseText = this.newMessage.trim();
     const quoteUrl = this.replyToMessage
-      ? this.buildQuoteUrl(this.selectedConversation._id, this.replyToMessage._id)
+      ? this.buildQuoteUrl(
+          this.selectedConversation._id,
+          this.replyToMessage._id,
+        )
       : null;
     const finalMessage = quoteUrl ? `${quoteUrl}\n${baseText}` : baseText;
     const previewUrls = quoteUrl ? [] : undefined;
@@ -1704,7 +1985,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         finalMessage,
         [],
         undefined,
-        previewUrls
+        previewUrls,
       )
       .subscribe({
         next: (result) => {
@@ -1758,21 +2039,24 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   discardComposeDraft() {
-    this.confirmationModal.open(ModalComponent, {
-      data: {
-        action: 'discard',
-        subject: 'draft',
-        message: 'This action will discard your current draft message.',
-      }
-    }).afterClosed().subscribe((result) => {
-      if (!result) return;
-      this.newMessage = '';
-      this.isComposeMode = false;
-      this.composeBoldActive = false;
-      this.composeItalicActive = false;
-      this.clearComposeEditor();
-      this.clearPlainEditor();
-    });
+    this.confirmationModal
+      .open(ModalComponent, {
+        data: {
+          action: 'discard',
+          subject: 'draft',
+          message: 'This action will discard your current draft message.',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+        this.newMessage = '';
+        this.isComposeMode = false;
+        this.composeBoldActive = false;
+        this.composeItalicActive = false;
+        this.clearComposeEditor();
+        this.clearPlainEditor();
+      });
   }
 
   toggleComposeTextStyle(style: 'bold' | 'italic') {
@@ -1789,9 +2073,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   handleEditorInput(mode: 'compose' | 'plain'): void {
-    const editor = mode === 'compose'
-      ? this.composeEditor?.nativeElement
-      : this.plainEditor?.nativeElement;
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
 
     if (!editor) return;
     clearTimeout(this.emojiNormalizeTimeout);
@@ -1812,9 +2097,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   handleCursorChange(mode: 'compose' | 'plain'): void {
-    const editor = mode === 'compose'
-      ? this.composeEditor?.nativeElement
-      : this.plainEditor?.nativeElement;
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
 
     const range = this.captureEditorSelection(editor);
     if (!range) return;
@@ -1847,7 +2133,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   handleEditorKeydown(event: KeyboardEvent, mode: 'compose' | 'plain') {
     if (event.key !== 'Enter') return;
 
-    if ((event.shiftKey && mode === 'compose') || (!event.shiftKey && mode === 'plain')) {
+    if (
+      (event.shiftKey && mode === 'compose') ||
+      (!event.shiftKey && mode === 'plain')
+    ) {
       event.preventDefault();
       this.sendMessage();
       return;
@@ -1895,7 +2184,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     if (this.composeEditorSelectionRange) {
       const savedRange = this.composeEditorSelectionRange.cloneRange();
-      if (editor.contains(savedRange.startContainer) && editor.contains(savedRange.endContainer)) {
+      if (
+        editor.contains(savedRange.startContainer) &&
+        editor.contains(savedRange.endContainer)
+      ) {
         selection.removeAllRanges();
         selection.addRange(savedRange);
         return;
@@ -1922,7 +2214,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     if (this.plainEditorSelectionRange) {
       const savedRange = this.plainEditorSelectionRange.cloneRange();
-      if (editor.contains(savedRange.startContainer) && editor.contains(savedRange.endContainer)) {
+      if (
+        editor.contains(savedRange.startContainer) &&
+        editor.contains(savedRange.endContainer)
+      ) {
         selection.removeAllRanges();
         selection.addRange(savedRange);
         return;
@@ -1937,9 +2232,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   private syncMessageFromEditor(mode: 'compose' | 'plain'): void {
-    const editor = mode === 'compose'
-      ? this.composeEditor?.nativeElement
-      : this.plainEditor?.nativeElement;
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
 
     if (!editor) return;
     this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
@@ -1963,7 +2259,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
         .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>')
+        .replace(/\n/g, '<br>'),
     );
   }
 
@@ -1991,7 +2287,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
         return this.getEmojiShortcodeFromImage(element) || '';
       }
 
-      const childText = Array.from(element.childNodes).map(nodeToMarkdown).join('');
+      const childText = Array.from(element.childNodes)
+        .map(nodeToMarkdown)
+        .join('');
 
       if (tag === 'br') return '\n';
       if (tag === 'strong' || tag === 'b') return `**${childText}**`;
@@ -2031,8 +2329,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const originalText = textNode.textContent || '';
       const cleanedText = this.cleanComposeLeakedHtmlText(originalText);
       const transformedText = this.renderComposeEmojiText(cleanedText, {
-        onShortcode: () => shortcodeReplacements += 1,
-        onNative: () => nativeReplacements += 1
+        onShortcode: () => (shortcodeReplacements += 1),
+        onNative: () => (nativeReplacements += 1),
       });
 
       if (transformedText === originalText) {
@@ -2059,17 +2357,20 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private renderComposeEmojiText(
     value: string,
-    counters?: { onShortcode?: () => void; onNative?: () => void; }
+    counters?: { onShortcode?: () => void; onNative?: () => void },
   ): string {
     if (!value) return '';
 
-    const withShortcodes = value.replace(/:([a-zA-Z0-9_+-]+):/g, (full, shortcode) => {
-      const html = this.getComposeEmojiImageHtml(`:${shortcode}:`);
-      if (html) {
-        counters?.onShortcode?.();
-      }
-      return html || full;
-    });
+    const withShortcodes = value.replace(
+      /:([a-zA-Z0-9_+-]+):/g,
+      (full, shortcode) => {
+        const html = this.getComposeEmojiImageHtml(`:${shortcode}:`);
+        if (html) {
+          counters?.onShortcode?.();
+        }
+        return html || full;
+      },
+    );
 
     return withShortcodes.replace(this.composeEmojiSequenceRegex, (emoji) => {
       const html = this.getComposeEmojiImageHtmlFromNative(emoji);
@@ -2086,26 +2387,35 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return value
       .replace(/<img[^>]*>/gi, '')
       .replace(/"?\s*data-native-codepoints="[^"]+"[^>]*>/gi, '')
-      .replace(/"?\s*src="https?:\/\/cdn\.jsdelivr\.net\/npm\/emoji-datasource-apple\/img\/apple\/64\/[^"]+"[^>]*>/gi, '');
+      .replace(
+        /"?\s*src="https?:\/\/cdn\.jsdelivr\.net\/npm\/emoji-datasource-apple\/img\/apple\/64\/[^"]+"[^>]*>/gi,
+        '',
+      );
   }
 
   private getComposeEmojiImageHtml(shortcode: string): string | null {
     const normalizedShortcode = this.normalizeEmojiShortcode(shortcode);
     if (!normalizedShortcode) return null;
 
-    const baseImageHtml = this.emojiPipe.getAppleImgFromShortcode(normalizedShortcode);
+    const baseImageHtml =
+      this.emojiPipe.getAppleImgFromShortcode(normalizedShortcode);
     if (!baseImageHtml) return null;
 
-    const nativeEmoji = this.emojiPipe.getNativeFromShortcode(normalizedShortcode);
-    const nativeCodepoints = nativeEmoji ? this.nativeToCodepoints(nativeEmoji) : null;
+    const nativeEmoji =
+      this.emojiPipe.getNativeFromShortcode(normalizedShortcode);
+    const nativeCodepoints = nativeEmoji
+      ? this.nativeToCodepoints(nativeEmoji)
+      : null;
 
     return baseImageHtml.replace(
       '<img ',
-      `<img class="emoji compose-emoji" data-shortcode="${normalizedShortcode}"${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${normalizedShortcode}" `
+      `<img class="emoji compose-emoji" data-shortcode="${normalizedShortcode}"${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${normalizedShortcode}" `,
     );
   }
 
-  private getComposeEmojiImageHtmlFromNative(nativeEmoji: string): string | null {
+  private getComposeEmojiImageHtmlFromNative(
+    nativeEmoji: string,
+  ): string | null {
     if (!nativeEmoji) return null;
 
     const baseImageHtml = this.emojiPipe.getAppleImgFromNative(nativeEmoji, 18);
@@ -2115,25 +2425,33 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const nativeCodepoints = this.nativeToCodepoints(nativeEmoji);
     return baseImageHtml.replace(
       '<img ',
-      `<img class="emoji compose-emoji"${shortcode ? ` data-shortcode="${shortcode}"` : ''}${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${shortcode || 'emoji'}" `
+      `<img class="emoji compose-emoji"${shortcode ? ` data-shortcode="${shortcode}"` : ''}${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${shortcode || 'emoji'}" `,
     );
   }
 
   private getEmojiShortcodeFromImage(imageElement: HTMLElement): string | null {
-    const fromData = imageElement.getAttribute('data-shortcode') || imageElement.getAttribute('alt');
+    const fromData =
+      imageElement.getAttribute('data-shortcode') ||
+      imageElement.getAttribute('alt');
     if (fromData) {
       const normalizedShortcode = this.normalizeEmojiShortcode(fromData);
       if (normalizedShortcode) return normalizedShortcode;
       return fromData;
     }
 
-    const nativeCodepoints = imageElement.getAttribute('data-native-codepoints');
+    const nativeCodepoints = imageElement.getAttribute(
+      'data-native-codepoints',
+    );
     if (nativeCodepoints) {
       const nativeFromData = this.codepointsToNative(nativeCodepoints);
       if (nativeFromData) {
-        const shortcodeFromNative = this.emojiPipe.getShortcodeFromNative(nativeFromData);
+        const shortcodeFromNative =
+          this.emojiPipe.getShortcodeFromNative(nativeFromData);
         if (shortcodeFromNative) {
-          return this.normalizeEmojiShortcode(shortcodeFromNative) || shortcodeFromNative;
+          return (
+            this.normalizeEmojiShortcode(shortcodeFromNative) ||
+            shortcodeFromNative
+          );
         }
         return nativeFromData;
       }
@@ -2145,7 +2463,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
     const native = match[1]
       .split('-')
-      .map(hex => String.fromCodePoint(parseInt(hex, 16)))
+      .map((hex) => String.fromCodePoint(parseInt(hex, 16)))
       .join('');
 
     const shortcode = this.emojiPipe.getShortcodeFromNative(native);
@@ -2183,10 +2501,15 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return `:${clean}:`;
   }
 
-  private normalizeEditorEmojiRendering(editor: HTMLElement, scope: 'compose' | 'plain'): void {
-
+  private normalizeEditorEmojiRendering(
+    editor: HTMLElement,
+    scope: 'compose' | 'plain',
+  ): void {
     const selection = window.getSelection();
-    const hasSelectionInsideEditor = !!selection && selection.rangeCount > 0 && this.isSelectionInsideEditor(editor);
+    const hasSelectionInsideEditor =
+      !!selection &&
+      selection.rangeCount > 0 &&
+      this.isSelectionInsideEditor(editor);
 
     let markerId = '';
     if (hasSelectionInsideEditor && selection) {
@@ -2209,17 +2532,22 @@ export class AppChatComponent implements OnInit, OnDestroy {
       const caretToken = markerId ? `@@CARET_${markerId}@@` : '';
       const htmlWithCaretToken = markerId
         ? currentHtml.replace(
-            new RegExp(`<span[^>]*data-compose-caret="${markerId}"[^>]*><\\/span>`, 'g'),
-            caretToken
+            new RegExp(
+              `<span[^>]*data-compose-caret="${markerId}"[^>]*><\\/span>`,
+              'g',
+            ),
+            caretToken,
           )
         : currentHtml;
 
-      normalizedHtml = this.plainTextToEditorHtml(this.editorHtmlToMarkdown(htmlWithCaretToken));
+      normalizedHtml = this.plainTextToEditorHtml(
+        this.editorHtmlToMarkdown(htmlWithCaretToken),
+      );
 
       if (caretToken) {
         normalizedHtml = normalizedHtml.replace(
           caretToken,
-          `<span data-compose-caret="${markerId}" style="display:inline-block;width:0;height:0;overflow:hidden"></span>`
+          `<span data-compose-caret="${markerId}" style="display:inline-block;width:0;height:0;overflow:hidden"></span>`,
         );
       }
     } else {
@@ -2230,7 +2558,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
 
     if (markerId && selection) {
-      const marker = editor.querySelector(`[data-compose-caret="${markerId}"]`) as HTMLElement | null;
+      const marker = editor.querySelector(
+        `[data-compose-caret="${markerId}"]`,
+      ) as HTMLElement | null;
       if (marker) {
         const range = document.createRange();
         range.setStartAfter(marker);
@@ -2274,8 +2604,8 @@ export class AppChatComponent implements OnInit, OnDestroy {
     try {
       const el = this.messagesContainer?.nativeElement;
       if (el) {
-        setTimeout(() => el.scrollTop = el.scrollHeight, 500);
-      };
+        setTimeout(() => (el.scrollTop = el.scrollHeight), 500);
+      }
     } catch (e) {}
   }
 
@@ -2297,10 +2627,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     if (this.selectedConversation) {
       this.chatService.unsubscribeFromRoomMessages(
-        this.selectedConversation._id
+        this.selectedConversation._id,
       );
       this.chatService.unsubscribeFromTypingEvents(
-        this.selectedConversation._id
+        this.selectedConversation._id,
       );
     }
 
@@ -2320,8 +2650,12 @@ export class AppChatComponent implements OnInit, OnDestroy {
         const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
         if (aUnread !== bUnread) return bUnread - aUnread;
 
-        const aTs = a.lastMessage ? this.getMessageTimestamp(a.lastMessage).getTime() : 0;
-        const bTs = b.lastMessage ? this.getMessageTimestamp(b.lastMessage).getTime() : 0;
+        const aTs = a.lastMessage
+          ? this.getMessageTimestamp(a.lastMessage).getTime()
+          : 0;
+        const bTs = b.lastMessage
+          ? this.getMessageTimestamp(b.lastMessage).getTime()
+          : 0;
         return bTs - aTs;
       });
       this.rooms = [...this.rooms];
@@ -2332,12 +2666,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private moveRoomToTop(roomId: string): void {
     try {
-      const idx = this.rooms.findIndex(r => r._id === roomId);
+      const idx = this.rooms.findIndex((r) => r._id === roomId);
       if (idx === -1) return;
       const [room] = this.rooms.splice(idx, 1);
       this.rooms.unshift(room);
       this.rooms = [...this.rooms];
-      try { this.cdr.detectChanges(); } catch (e) {}
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
     } catch (err) {
       console.error('Error moving room to top:', err, roomId);
     }
@@ -2418,7 +2754,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
   toggleReactionPicker(message: RocketChatMessage, event?: Event): void {
     event?.stopPropagation();
 
-    if (this.showReactionPicker && this.reactionTargetMessage?._id === message._id) {
+    if (
+      this.showReactionPicker &&
+      this.reactionTargetMessage?._id === message._id
+    ) {
       this.closeReactionPicker();
       return;
     }
@@ -2427,7 +2766,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.showReactionPicker = true;
   }
 
- closeReactionPicker(): void {
+  closeReactionPicker(): void {
     this.showReactionPicker = false;
     this.reactionTargetMessage = null;
   }
@@ -2442,7 +2781,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
         editor.focus();
         this.restoreComposeEditorSelection();
         const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
-        const emojiHtml = (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) || this.getComposeEmojiImageHtmlFromNative(emoji);
+        const emojiHtml =
+          (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) ||
+          this.getComposeEmojiImageHtmlFromNative(emoji);
         if (emojiHtml) {
           document.execCommand('insertHTML', false, emojiHtml);
         } else {
@@ -2459,7 +2800,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
       plainEditor.focus();
       this.restorePlainEditorSelection();
       const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
-      const emojiHtml = (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) || this.getComposeEmojiImageHtmlFromNative(emoji);
+      const emojiHtml =
+        (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) ||
+        this.getComposeEmojiImageHtmlFromNative(emoji);
       if (emojiHtml) {
         document.execCommand('insertHTML', false, emojiHtml);
       } else {
@@ -2481,9 +2824,12 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!nativeEmoji) return;
     const message = this.reactionTargetMessage;
     const candidates = this.getReactionKeysForNative(nativeEmoji);
-    const existingKey = candidates.find((key) => !!this.reactionTargetMessage?.reactions?.[key]);
+    const existingKey = candidates.find(
+      (key) => !!this.reactionTargetMessage?.reactions?.[key],
+    );
     const reactionKey = existingKey || candidates[0] || nativeEmoji;
-    if (!reactionKey) return console.error('No reaction key for emoji', nativeEmoji);
+    if (!reactionKey)
+      return console.error('No reaction key for emoji', nativeEmoji);
     const myUsername = this.chatService.loggedInUser?.username;
     if (!myUsername) return;
     if (!message.reactions) {
@@ -2495,18 +2841,17 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const usernames = message.reactions[reactionKey].usernames;
     const alreadyReacted = usernames.includes(myUsername);
     if (alreadyReacted) {
-      message.reactions[reactionKey].usernames =
-        usernames.filter((u) => u !== myUsername);
+      message.reactions[reactionKey].usernames = usernames.filter(
+        (u) => u !== myUsername,
+      );
     } else {
       message.reactions[reactionKey].usernames.push(myUsername);
     }
-    this.chatService
-      .reactToMessage(message._id, reactionKey)
-      .subscribe({
-        error: (err) => {
-          console.error('Error reacting to message:', err);
-        },
-      });
+    this.chatService.reactToMessage(message._id, reactionKey).subscribe({
+      error: (err) => {
+        console.error('Error reacting to message:', err);
+      },
+    });
     this.showReactionPicker = false;
     this.reactionTargetMessage = null;
   }
@@ -2538,7 +2883,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const usernames = message.reactions[emoji].usernames;
     const alreadyReacted = usernames.includes(myUsername);
     if (alreadyReacted) {
-      const updated = usernames.filter(u => u !== myUsername);
+      const updated = usernames.filter((u) => u !== myUsername);
       if (updated.length === 0) {
         delete message.reactions[emoji];
       } else {
@@ -2551,7 +2896,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       delete message.reactions;
     }
     this.chatService.reactToMessage(message._id, emoji).subscribe({
-      error: err => console.error('Error toggling reaction:', err)
+      error: (err) => console.error('Error toggling reaction:', err),
     });
   }
 
@@ -2560,15 +2905,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
     return candidates.some((key) => this.didIReact(message, key));
   }
 
-  selectReactionEmoji(nativeEmoji: string, message: RocketChatMessage | null): void {
+  selectReactionEmoji(
+    nativeEmoji: string,
+    message: RocketChatMessage | null,
+  ): void {
     if (!message?._id) return;
 
     this.closeReactionPicker();
 
     const candidates = this.getReactionKeysForNative(nativeEmoji);
-    const existingKey = candidates.find(
-      (key) => !!message.reactions?.[key]
-    );
+    const existingKey = candidates.find((key) => !!message.reactions?.[key]);
     const reactionKey = existingKey || candidates[0] || nativeEmoji;
     if (!reactionKey) return;
 
@@ -2583,7 +2929,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const usernames = message.reactions[reactionKey].usernames;
     const alreadyReacted = usernames.includes(myUsername);
     if (alreadyReacted) {
-      const updated = usernames.filter(u => u !== myUsername);
+      const updated = usernames.filter((u) => u !== myUsername);
       if (updated.length === 0) {
         delete message.reactions[reactionKey];
       } else {
@@ -2598,7 +2944,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.chatService.reactToMessage(message._id, reactionKey).subscribe({
       error: (err) => {
         console.error('Error selecting reaction:', err);
-      }
+      },
     });
   }
 
@@ -2683,19 +3029,27 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const normalized = text.replace(/<([^>]+)>/g, '$1');
     const urls = [
       ...(markdownMatch ? [markdownMatch[1]] : []),
-      ...(normalized.match(/https?:\/\/\S+/g) || [])
+      ...(normalized.match(/https?:\/\/\S+/g) || []),
     ];
     for (const rawUrl of urls) {
       const cleaned = rawUrl.replace(/[)>.,]*$/, '').replace(/^\(/, '');
       try {
         const url = new URL(cleaned);
-        const msgId = url.searchParams.get('msg') || url.searchParams.get('messageId');
+        const msgId =
+          url.searchParams.get('msg') || url.searchParams.get('messageId');
         const pathParts = url.pathname.split('/').filter(Boolean);
         const directIdx = pathParts.indexOf('direct');
-        const roomId = directIdx >= 0 ? pathParts[directIdx + 1] : pathParts[pathParts.length - 1];
+        const roomId =
+          directIdx >= 0
+            ? pathParts[directIdx + 1]
+            : pathParts[pathParts.length - 1];
 
         if (msgId && roomId) {
-          return { quoteUrl: cleaned, quoteMessageId: msgId, quoteRoomId: roomId };
+          return {
+            quoteUrl: cleaned,
+            quoteMessageId: msgId,
+            quoteRoomId: roomId,
+          };
         }
       } catch (err) {
         continue;
@@ -2715,8 +3069,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private stripQuoteUrlFromText(text: string): string {
     if (!text) return text;
-    const markdownQuotePattern = /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
-    const quoteUrlPattern = /<?https?:\/\/[^\s>]+\/direct\/[^\s?]+\?msg=[^\s>]+>?/gi;
+    const markdownQuotePattern =
+      /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const quoteUrlPattern =
+      /<?https?:\/\/[^\s>]+\/direct\/[^\s?]+\?msg=[^\s>]+>?/gi;
     const cleaned = text
       .replace(markdownQuotePattern, '')
       .replace(quoteUrlPattern, '')
@@ -2746,7 +3102,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         att?.title_link,
         att?.title,
         att?.text,
-        att?.description
+        att?.description,
       ].filter(Boolean) as string[];
       return candidates.some((c) => this.isQuoteUrl(c));
     });
@@ -2758,7 +3114,13 @@ export class AppChatComponent implements OnInit, OnDestroy {
     const info = this.extractQuoteInfo(message);
     if (!info.quoteMessageId) {
       const anyMsg: any = message as any;
-      const possibleIds = [anyMsg.tmid, anyMsg.tmidString, anyMsg.threadId, anyMsg.tmid_id, anyMsg.tmidId];
+      const possibleIds = [
+        anyMsg.tmid,
+        anyMsg.tmidString,
+        anyMsg.threadId,
+        anyMsg.tmid_id,
+        anyMsg.tmidId,
+      ];
       const tmid = possibleIds.find((id) => !!id) as string | undefined;
       return tmid ? this.messages.find((m) => m._id === tmid) || null : null;
     }
@@ -2782,7 +3144,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       error: () => {
         this.quotedMessageCache.set(info.quoteMessageId!, null);
         this.quotedMessageInFlight.delete(info.quoteMessageId!);
-      }
+      },
     });
 
     return null;
@@ -2790,8 +3152,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   getQuotedTextOrAttachment(msg: RocketChatMessage): string {
     if (!msg) return '';
-    if (msg.msg && msg.msg.trim().length > 0) return this.stripQuoteUrlFromText(msg.msg);
-    if (msg.attachments && msg.attachments.length > 0) return msg.attachments[0].title || 'Attachment';
+    if (msg.msg && msg.msg.trim().length > 0)
+      return this.stripQuoteUrlFromText(msg.msg);
+    if (msg.attachments && msg.attachments.length > 0)
+      return msg.attachments[0].title || 'Attachment';
     return '';
   }
 
@@ -2809,7 +3173,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     }
     return '';
   }
-  
+
   isReplyMessage(message: RocketChatMessage): boolean {
     if (!message) return false;
     const info = this.extractQuoteInfo(message);
@@ -2821,10 +3185,12 @@ export class AppChatComponent implements OnInit, OnDestroy {
       anyMsg.tmidString,
       anyMsg.threadId,
       anyMsg.tmid_id,
-      anyMsg.tmidId
+      anyMsg.tmidId,
     ];
 
-    return possibleIds.some(id => typeof id === 'string' && id.trim().length > 0);
+    return possibleIds.some(
+      (id) => typeof id === 'string' && id.trim().length > 0,
+    );
   }
 
   pinnedMessage(): RocketChatMessage | null {
@@ -2833,7 +3199,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (pinned.length === 0) return null;
 
     try {
-      pinned.sort((a, b) => this.getMessageTimestamp(a).getTime() - this.getMessageTimestamp(b).getTime());
+      pinned.sort(
+        (a, b) =>
+          this.getMessageTimestamp(a).getTime() -
+          this.getMessageTimestamp(b).getTime(),
+      );
       return pinned[pinned.length - 1] || null;
     } catch (e) {
       return pinned[pinned.length - 1] || null;
@@ -2895,7 +3265,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error pinning/unpinning message:', err);
         this.pendingPinActions.delete(message._id);
-      }
+      },
     });
   }
 
@@ -2916,7 +3286,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       this.handleCursorChange('compose');
     }, 0);
   }
-  
+
   cancelEditing() {
     this.editingMessage = null;
     this.editingQuoteUrl = null;
@@ -2931,7 +3301,9 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!message) return '';
 
     const quoted = this.getQuotedMessage(message);
-    const currentText = (this.newMessage || '').trim() || this.getMessageTextWithoutQuote(message);
+    const currentText =
+      (this.newMessage || '').trim() ||
+      this.getMessageTextWithoutQuote(message);
 
     if (quoted) {
       const quotedText = this.getQuotedTextOrAttachment(quoted);
@@ -2943,24 +3315,29 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   deleteMessage(message: RocketChatMessage) {
-    this.confirmationModal.open(ModalComponent, {
-      data: {
-        action: 'delete',
-        subject: 'message',
-        message: `This action will be permanent.`,
-      }
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.chatService.deleteMessage(message._id, message.rid).subscribe({
-          next: (res) => {
-            this.messages = this.messages.filter((m) => m._id !== message._id);
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error deleting message:', err);
-          }
-        });
-      }
-    });
+    this.confirmationModal
+      .open(ModalComponent, {
+        data: {
+          action: 'delete',
+          subject: 'message',
+          message: `This action will be permanent.`,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.chatService.deleteMessage(message._id, message.rid).subscribe({
+            next: (res) => {
+              this.messages = this.messages.filter(
+                (m) => m._id !== message._id,
+              );
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              console.error('Error deleting message:', err);
+            },
+          });
+        }
+      });
   }
 }

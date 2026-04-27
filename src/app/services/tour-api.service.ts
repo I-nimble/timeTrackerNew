@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -22,21 +23,32 @@ export class TourApiService {
   constructor(private http: HttpClient) {}
 
   getProgress(tourKey?: string): Observable<TourProgress | null> {
-    const params = tourKey ? new HttpParams().set('tour_key', tourKey) : undefined;
+    const params = tourKey
+      ? new HttpParams().set('tour_key', tourKey)
+      : undefined;
     return this.http.get<TourProgress | null>(`${this.baseUrl}`, { params });
   }
 
-  start(payload: Partial<TourProgress>, tourKey?: string): Observable<TourProgress> {
+  start(
+    payload: Partial<TourProgress>,
+    tourKey?: string,
+  ): Observable<TourProgress> {
     const body = tourKey ? { ...payload, tour_key: tourKey } : payload;
     return this.http.post<TourProgress>(`${this.baseUrl}/start`, body);
   }
 
-  updateProgress(payload: Partial<TourProgress>, tourKey?: string): Observable<TourProgress> {
+  updateProgress(
+    payload: Partial<TourProgress>,
+    tourKey?: string,
+  ): Observable<TourProgress> {
     const body = tourKey ? { ...payload, tour_key: tourKey } : payload;
     return this.http.patch<TourProgress>(`${this.baseUrl}/progress`, body);
   }
 
-  complete(payload: Partial<TourProgress> = {}, tourKey?: string): Observable<TourProgress> {
+  complete(
+    payload: Partial<TourProgress> = {},
+    tourKey?: string,
+  ): Observable<TourProgress> {
     const body = tourKey ? { ...payload, tour_key: tourKey } : payload;
     return this.http.post<TourProgress>(`${this.baseUrl}/complete`, body);
   }

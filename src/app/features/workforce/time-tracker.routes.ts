@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { AppEmployeeComponent } from '../../pages/apps/employee/employee.component';
 
 export const WorkforceTimeTrackerRoutes: Routes = [

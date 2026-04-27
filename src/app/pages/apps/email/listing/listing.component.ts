@@ -1,3 +1,5 @@
+import { MediaMatcher } from '@angular/cdk/layout';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
@@ -7,21 +9,6 @@ import {
   ChangeDetectorRef,
   OnDestroy,
 } from '@angular/core';
-import { Category, mailbox, filter, label } from './categories';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import {
-  mailGlobalVariable,
-  mailService,
-} from 'src/app/services/apps/email/email.service';
-import { getUser, User } from '../user-data';
-import { mailboxList } from '../email-data';
-import { Mailbox } from '../email';
-import { Router } from '@angular/router';
-import { MaterialModule } from 'src/app/material.module';
-import {
-  AngularEditorConfig,
-  AngularEditorModule,
-} from '@kolkov/angular-editor';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -29,14 +16,29 @@ import {
   UntypedFormGroup,
   Validators,
 } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { NgScrollbarModule } from 'ngx-scrollbar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
+
+import {
+  AngularEditorConfig,
+  AngularEditorModule,
+} from '@kolkov/angular-editor';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgScrollbarModule } from 'ngx-scrollbar';
+import { MaterialModule } from 'src/app/legacy/material.module';
+import {
+  mailGlobalVariable,
+  mailService,
+} from 'src/app/services/apps/email/email.service';
+
+import { Category, mailbox, filter, label } from './categories';
 import { DetailComponent } from '../detail/detail.component';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MediaMatcher } from '@angular/cdk/layout';
+import { Mailbox } from '../email';
+import { mailboxList } from '../email-data';
+import { getUser, User } from '../user-data';
 
 type MailboxType = 'Inbox' | 'Sent' | 'Draft' | 'Spam' | 'Trash';
 
@@ -51,7 +53,7 @@ type MailboxType = 'Inbox' | 'Sent' | 'Draft' | 'Spam' | 'Trash';
     TablerIconsModule,
   ],
 })
-export class ListingDialogDataExampleDialogComponent {
+export class ListingDialogDataExampleDialogComponent implements OnInit {
   form: UntypedFormGroup;
 
   htmlContent1 = '';
@@ -91,7 +93,7 @@ export class ListingDialogDataExampleDialogComponent {
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private formBuilder: UntypedFormBuilder
+    private formBuilder: UntypedFormBuilder,
   ) {}
 
   ngOnInit(): void {
@@ -149,7 +151,7 @@ export class ListingComponent implements OnInit, OnDestroy {
     public mailService: mailService,
     public router: Router,
     public dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     if (!this.ms.type()) {
       this.router.navigate(['apps/email/inbox']);
@@ -211,7 +213,7 @@ export class ListingComponent implements OnInit, OnDestroy {
   mailSelected(mail: Mailbox): void {
     const currentMailbox = this.ms.mailList(); // Get the current mailbox
     const mailExists = currentMailbox.some(
-      (item: { MailId: string }) => item.MailId === mail.MailId
+      (item: { MailId: string }) => item.MailId === mail.MailId,
     );
 
     if (!mailExists) {
@@ -259,7 +261,7 @@ export class ListingComponent implements OnInit, OnDestroy {
     this.activeFilter.set(type);
     this.mailActiveClass('');
     const filteredMails = mailboxList.filter((mail) =>
-      mail.filter.includes(type)
+      mail.filter.includes(type),
     );
     this.updateMailListAndUsers(filteredMails);
     this.ms.topLabel.set(type);
@@ -272,7 +274,7 @@ export class ListingComponent implements OnInit, OnDestroy {
     this.activeLabel.set(type);
     this.mailActiveClass('');
     const labeledMails = mailboxList.filter((mail) =>
-      mail.label.includes(type)
+      mail.label.includes(type),
     );
     this.updateMailListAndUsers(labeledMails);
     this.ms.topLabel.set(type);
@@ -283,7 +285,7 @@ export class ListingComponent implements OnInit, OnDestroy {
   openDialog(): void {
     const dialogRef = this.dialog.open(
       ListingDialogDataExampleDialogComponent,
-      { autoFocus: false }
+      { autoFocus: false },
     );
     dialogRef.afterClosed().subscribe((result) => {
       console.log(`Dialog result: ${result}`);
@@ -298,13 +300,13 @@ export class ListingComponent implements OnInit, OnDestroy {
         duration: 15000,
         horizontalPosition: 'center',
         verticalPosition: 'top',
-      }
+      },
     );
     snackBarRef.onAction().subscribe(() => {
       // This code runs when the user clicks the 'Delete' button
       const currentInbox = this.ms.inboxList();
       const updatedInbox = currentInbox.filter(
-        (item: { MailId: string }) => item.MailId !== mail.MailId
+        (item: { MailId: string }) => item.MailId !== mail.MailId,
       );
 
       this.ms.inboxList.set(updatedInbox);

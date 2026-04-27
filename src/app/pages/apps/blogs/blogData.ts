@@ -16,46 +16,53 @@ export const blogPosts: blogPosts[] = [
   {
     id: 1,
     time: '2 mins Read',
-    imgSrc: 'https://i-nimble.com/wp-content/uploads/2025/04/ChatGPT-Image-Apr-2-2025-05_09_21-PM-1.png',
+    imgSrc:
+      'https://i-nimble.com/wp-content/uploads/2025/04/ChatGPT-Image-Apr-2-2025-05_09_21-PM-1.png',
     user: '/assets/images/profile/inimble-profile.jpg',
-    title: 'What This New ChatGPT Trend Reveals About the Future of AI in Business ',
+    title:
+      'What This New ChatGPT Trend Reveals About the Future of AI in Business ',
     views: '9,125',
     category: 'Gadget',
     comments: 3,
     featuredPost: true,
     date: '8, Apr 25',
-    link: 'https://i-nimble.com/2025/04/08/what-this-new-chatgpt-trend-reveals-about-the-future-of-ai-in-business/',  
+    link: 'https://i-nimble.com/2025/04/08/what-this-new-chatgpt-trend-reveals-about-the-future-of-ai-in-business/',
   },
   {
     id: 2,
     time: '2 mins Read',
-    imgSrc: 'https://i-nimble.com/wp-content/uploads/2025/04/Imagen-blog-19.png',
+    imgSrc:
+      'https://i-nimble.com/wp-content/uploads/2025/04/Imagen-blog-19.png',
     user: '/assets/images/profile/inimble-profile.jpg',
-    title: 'What We’ve Learned from Working with Businesses Across the U.S. And What You Can Learn Too',
+    title:
+      'What We’ve Learned from Working with Businesses Across the U.S. And What You Can Learn Too',
     views: '9,125',
     category: 'Health',
     comments: 3,
     featuredPost: false,
     date: '8, Apr 25',
-    link: 'https://i-nimble.com/2025/04/08/what-weve-learned-from-working-with-businesses-across-the-u-s-and-what-you-can-learn-too/'
+    link: 'https://i-nimble.com/2025/04/08/what-weve-learned-from-working-with-businesses-across-the-u-s-and-what-you-can-learn-too/',
   },
   {
     id: 3,
     time: '2 mins Read',
-    imgSrc: 'https://i-nimble.com/wp-content/uploads/2025/03/Imagen-blog-18.png',
+    imgSrc:
+      'https://i-nimble.com/wp-content/uploads/2025/03/Imagen-blog-18.png',
     user: '/assets/images/profile/inimble-profile.jpg',
-    title: 'The All-in-One Platform businesses Didn’t Know They Needed (Until Now)',
+    title:
+      'The All-in-One Platform businesses Didn’t Know They Needed (Until Now)',
     views: '9,125',
     category: 'Gadget',
     comments: 12,
     featuredPost: false,
     date: '6, Mar 25',
-    link: 'https://i-nimble.com/2025/03/06/the-all-in-one-platform-businesses-didnt-know-they-needed-until-now/'
+    link: 'https://i-nimble.com/2025/03/06/the-all-in-one-platform-businesses-didnt-know-they-needed-until-now/',
   },
   {
     id: 4,
     time: '2 mins Read',
-    imgSrc: 'https://i-nimble.com/wp-content/uploads/2025/03/Imagen-blog-17-600x380.png',
+    imgSrc:
+      'https://i-nimble.com/wp-content/uploads/2025/03/Imagen-blog-17-600x380.png',
     user: '/assets/images/profile/inimble-profile.jpg',
     title:
       'Managing Remote Teams Just Got Easier — Track Time, Set KPIs & Get Performance Reviews All in One Place',
@@ -64,12 +71,13 @@ export const blogPosts: blogPosts[] = [
     comments: 12,
     featuredPost: false,
     date: '6, Mar 25',
-    link: 'https://i-nimble.com/2025/03/06/managing-remote-teams-just-got-easier-track-time-set-kpis-get-performance-reviews-all-in-one-place/'
+    link: 'https://i-nimble.com/2025/03/06/managing-remote-teams-just-got-easier-track-time-set-kpis-get-performance-reviews-all-in-one-place/',
   },
   {
     id: 5,
     time: '2 mins Read',
-    imgSrc: 'https://i-nimble.com/wp-content/uploads/2025/02/Imagen-blog-16-16-600x380.png',
+    imgSrc:
+      'https://i-nimble.com/wp-content/uploads/2025/02/Imagen-blog-16-16-600x380.png',
     user: '/assets/images/profile/inimble-profile.jpg',
     title: 'The Best Time-Tracker for Your Remote Team ',
     views: '9,125',
@@ -77,7 +85,7 @@ export const blogPosts: blogPosts[] = [
     comments: 3,
     featuredPost: false,
     date: '18, Feb 25',
-    link: 'https://i-nimble.com/2025/02/18/the-best-time-tracker-for-your-remote-team/'
+    link: 'https://i-nimble.com/2025/02/18/the-best-time-tracker-for-your-remote-team/',
   },
   // {
   //   id: 6,
@@ -141,5 +149,3 @@ export const blogPosts: blogPosts[] = [
   //   date: 'Sun, Dec 25',
   // },
 ];
-
-
