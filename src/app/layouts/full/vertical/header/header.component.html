@@ -365,8 +365,10 @@
     @for(notification of recentNotifications; track notification.id) {
     <button mat-menu-item class="p-x-32 p-y-16" (click)="redirectNotification(notification)">
       <div class="d-flex align-items-center">
-         <i [ngClass]="notificationIcons[notification.type_id-1].icon" 
-             [ngStyle]="{'color': notificationIcons[notification.type_id-1].color}"></i>
+         <i
+           [ngClass]="getNotificationIcon(notification).icon"
+           [ngStyle]="{ color: getNotificationIcon(notification).color }"
+         ></i>
         <div class="m-l-16">
           <p class="f-s-14 f-w-600 m-0" [innerHTML]="formatMessage(notification.message)"></p>
           <span>{{ notification.createdAt | date: 'MMM d, y' }}</span>

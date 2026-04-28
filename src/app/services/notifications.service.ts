@@ -22,6 +22,13 @@ export class NotificationsService {
       notifications: []
     },
     {
+      id: 7,
+      name: 'Mention',
+      icon: 'fa-solid fa-at',
+      color: '#5b7cfa',
+      notifications: []
+    },
+    {
       id: 1,
       name: 'Notification',
       icon: 'fa-solid fa-circle-info',

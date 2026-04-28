@@ -1,0 +1,35 @@
+.mention {
+  color: var(--mat-sys-primary);
+  background-color: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.comment-text .mention,
+.custom-description .mention {
+  color: var(--mat-sys-primary);
+}
+
+.comment-editor {
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+  border-radius: 6px;
+  background: var(--mat-sys-surface, transparent);
+  color: var(--mat-sys-on-surface);
+  outline: none;
+  font: inherit;
+
+  &:focus {
+    border-color: var(--mat-sys-primary);
+  }
+
+  &[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--mat-sys-outline, #888);
+    pointer-events: none;
+  }
+}
