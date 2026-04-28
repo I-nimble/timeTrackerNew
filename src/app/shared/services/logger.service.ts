@@ -4,6 +4,14 @@ import { environment } from 'src/environments/environment';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+export interface ScopedLogger {
+  debug(message: string, context?: unknown): void;
+  info(message: string, context?: unknown): void;
+  warn(message: string, context?: unknown): void;
+  error(message: string, context?: unknown): void;
+  withScope(scope: string): ScopedLogger;
+}
+
 const LEVEL_RANK: Record<LogLevel, number> = {
   debug: 10,
   info: 20,
@@ -37,16 +45,8 @@ export class LoggerService {
    * Returns a scoped logger that prefixes every message with `[scope]`.
    * Useful for feature-specific logging without leaking the scope into callers.
    */
-  withScope(
-    scope: string,
-  ): Pick<LoggerService, 'debug' | 'info' | 'warn' | 'error'> {
-    const prefix = `[${scope}]`;
-    return {
-      debug: (message, context) => this.debug(`${prefix} ${message}`, context),
-      info: (message, context) => this.info(`${prefix} ${message}`, context),
-      warn: (message, context) => this.warn(`${prefix} ${message}`, context),
-      error: (message, context) => this.error(`${prefix} ${message}`, context),
-    };
+  withScope(scope: string): ScopedLogger {
+    return this.createScopedLogger(`[${scope}]`);
   }
 
   private write(level: LogLevel, message: string, context?: unknown): void {
@@ -55,21 +55,51 @@ export class LoggerService {
     }
 
     const timestamp = new Date().toISOString();
-    const payload = context === undefined ? '' : context;
 
     switch (level) {
       case 'debug':
-        console.debug(timestamp, message, payload);
+        if (context === undefined) {
+          console.debug(timestamp, message);
+          break;
+        }
+
+        console.debug(timestamp, message, context);
         break;
       case 'info':
-        console.info(timestamp, message, payload);
+        if (context === undefined) {
+          console.info(timestamp, message);
+          break;
+        }
+
+        console.info(timestamp, message, context);
         break;
       case 'warn':
-        console.warn(timestamp, message, payload);
+        if (context === undefined) {
+          console.warn(timestamp, message);
+          break;
+        }
+
+        console.warn(timestamp, message, context);
         break;
       case 'error':
-        console.error(timestamp, message, payload);
+        if (context === undefined) {
+          console.error(timestamp, message);
+          break;
+        }
+
+        console.error(timestamp, message, context);
         break;
     }
+  }
+
+  private createScopedLogger(prefix: string): ScopedLogger {
+    return {
+      debug: (message, context) => this.debug(`${prefix} ${message}`, context),
+      info: (message, context) => this.info(`${prefix} ${message}`, context),
+      warn: (message, context) => this.warn(`${prefix} ${message}`, context),
+      error: (message, context) => this.error(`${prefix} ${message}`, context),
+      withScope: (scope: string) =>
+        this.createScopedLogger(`${prefix} [${scope}]`),
+    };
   }
 }

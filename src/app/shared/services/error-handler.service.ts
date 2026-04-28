@@ -1,9 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorHandler, Injectable, Provider, inject } from '@angular/core';
+import {
+  ErrorHandler,
+  Injectable,
+  OnDestroy,
+  Provider,
+  inject,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable, Subject } from 'rxjs';
 
+import { AUTH_TOKEN_STORAGE_KEY } from './auth-storage.constants';
 import { LoggerService } from './logger.service';
 import { NotificationService } from './notification.service';
 
@@ -33,7 +40,7 @@ const DEFAULT_FALLBACK = 'Something went wrong. Please try again.';
 const LOGIN_ROUTE = '/authentication/login';
 
 @Injectable({ providedIn: 'root' })
-export class ErrorHandlerService implements ErrorHandler {
+export class ErrorHandlerService implements ErrorHandler, OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
@@ -43,7 +50,16 @@ export class ErrorHandlerService implements ErrorHandler {
 
   /** Angular `ErrorHandler` contract — invoked for uncaught errors when registered globally. */
   handleError(error: unknown): void {
+    if (error instanceof HttpErrorResponse) {
+      this.handle(this.fromHttp(error, 'unknown'));
+      return;
+    }
+
     this.report(error);
+  }
+
+  ngOnDestroy(): void {
+    this.errorSubject.complete();
   }
 
   /**
@@ -52,7 +68,7 @@ export class ErrorHandlerService implements ErrorHandler {
    */
   report(error: unknown, options: ErrorHandlerOptions = {}): void {
     const { fallbackMessage = DEFAULT_FALLBACK, silent = false } = options;
-    const message = this.extractMessage(error, fallbackMessage);
+    const message = this.resolveMessage(error, fallbackMessage);
 
     this.logger.error(message, error);
 
@@ -93,34 +109,17 @@ export class ErrorHandlerService implements ErrorHandler {
       status: error.status,
       url,
       timestamp: new Date(),
-      message: this.resolveMessage(error.status, body),
+      message: this.resolveBodyMessage(error.status, body),
       technical: error.message,
       validation: this.extractValidation(body),
       original: error,
     };
   }
 
-  private extractMessage(error: unknown, fallback: string): string {
+  private resolveMessage(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
-      const body = error.error as
-        | { message?: string }
-        | string
-        | null
-        | undefined;
-      if (typeof body === 'string' && body.trim().length > 0) {
-        return body;
-      }
-      if (
-        body &&
-        typeof body === 'object' &&
-        typeof body.message === 'string'
-      ) {
-        return body.message;
-      }
-      if (error.message) {
-        return error.message;
-      }
-      return fallback;
+      const body = this.extractBody(error);
+      return this.resolveBodyMessage(error.status, body, fallback);
     }
 
     if (error instanceof Error && error.message) {
@@ -134,6 +133,24 @@ export class ErrorHandlerService implements ErrorHandler {
     return fallback;
   }
 
+  private resolveBodyMessage(
+    status: number,
+    body: Record<string, unknown> | string | null,
+    fallback = this.defaultMessageForStatus(status),
+  ): string {
+    if (typeof body === 'string' && body.trim().length > 0) {
+      return body;
+    }
+    if (body && typeof body === 'object') {
+      const bodyRecord = body as Record<string, unknown>;
+      const message = bodyRecord['message'];
+      if (typeof message === 'string' && message.trim().length > 0) {
+        return message;
+      }
+    }
+    return fallback;
+  }
+
   private extractBody(
     error: HttpErrorResponse,
   ): Record<string, unknown> | string | null {
@@ -142,22 +159,6 @@ export class ErrorHandlerService implements ErrorHandler {
     if (typeof raw === 'string') return raw;
     if (typeof raw === 'object') return raw as Record<string, unknown>;
     return null;
-  }
-
-  private resolveMessage(
-    status: number,
-    body: Record<string, unknown> | string | null,
-  ): string {
-    if (typeof body === 'string' && body.trim().length > 0) {
-      return body;
-    }
-    if (body && typeof body === 'object') {
-      const message = (body as Record<string, unknown>)['message'];
-      if (typeof message === 'string' && message.trim().length > 0) {
-        return message;
-      }
-    }
-    return this.defaultMessageForStatus(status);
   }
 
   private extractValidation(
@@ -195,7 +196,7 @@ export class ErrorHandlerService implements ErrorHandler {
 
   private redirectToLogin(): void {
     try {
-      localStorage.removeItem('jwt');
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     } catch {
       /* ignore storage errors (SSR / privacy mode) */
     }

@@ -47,6 +47,23 @@ describe('ErrorHandlerService', () => {
     expect(notifications.error).toHaveBeenCalledWith('kaboom');
   });
 
+  it('handleError() should transform HttpErrorResponse and redirect on 401', () => {
+    const error = new HttpErrorResponse({
+      error: { message: 'Unauthorized' },
+      status: 401,
+      statusText: 'Unauthorized',
+    });
+
+    service.handleError(error);
+
+    expect(logger.error).toHaveBeenCalledWith(
+      '[HTTP 401] Unauthorized',
+      jasmine.objectContaining({ status: 401 }),
+    );
+    expect(notifications.error).toHaveBeenCalledWith('Unauthorized');
+    expect(router.navigate).toHaveBeenCalledWith(['/authentication/login']);
+  });
+
   it('report() with silent=true should log but NOT notify', () => {
     service.report(new Error('quiet'), { silent: true });
     expect(logger.error).toHaveBeenCalled();
@@ -110,6 +127,21 @@ describe('ErrorHandlerService', () => {
 
       service.handle(error);
       expect(router.navigate).toHaveBeenCalledWith(['/authentication/login']);
+    });
+
+    it('handle() should not navigate when already on the login route', () => {
+      Object.defineProperty(router, 'url', {
+        value: '/authentication/login',
+      });
+
+      const error = {
+        message: 'Unauthorized',
+        status: 401,
+        timestamp: new Date(),
+      };
+
+      service.handle(error);
+      expect(router.navigate).not.toHaveBeenCalled();
     });
 
     it('fromHttp() should create AppError from HttpErrorResponse', () => {
