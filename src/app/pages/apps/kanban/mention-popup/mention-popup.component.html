@@ -1,0 +1,17 @@
+<div
+  *ngIf="open && users.length"
+  class="mention-popup"
+  [style.top.px]="top"
+  [style.left.px]="left"
+  (mousedown)="$event.preventDefault()"
+>
+  <div
+    *ngFor="let u of users; let i = index; trackBy: trackById"
+    class="mention-item"
+    [class.active]="i === activeIndex"
+    (mousedown)="onPick($event, u)"
+  >
+    <span class="mention-name">{{ u.name }} {{ u.last_name }}</span>
+    <span class="mention-email" *ngIf="u.email">{{ u.email }}</span>
+  </div>
+</div>
