@@ -159,7 +159,6 @@
             >
             </app-match>
             <button
-              *ngIf="searchPerformed"
               mat-raised-button
               color="accent"
               [disabled]="isSubmittingTalentMatch || !intakeForm?.valid"
@@ -169,7 +168,7 @@
               <span *ngIf="isSubmittingTalentMatch">Submitting...</span>
             </button>
           </div>
-          <p *ngIf="searchPerformed" class="text-center f-s-13 text-muted m-b-16">
+          <p class="text-center f-s-13 text-muted m-b-16">
             Select your preferred candidates and click <strong>Submit</strong>
           </p>
         </div>

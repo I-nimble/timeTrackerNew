@@ -156,7 +156,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   intakeValuesReady = false;
   sessionInterestedCandidates: any[] = [];
   isSubmittingTalentMatch = false;
-  searchPerformed = false;
 
   onIntakeFormReady(form: FormGroup) {
     this.intakeForm = form;
@@ -216,7 +215,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.aiLoading = false;
         this.tableLoading = false;
         this.aiAnswer = response.meta.total > 0 ? '' : 'No matches.';
-        this.searchPerformed = true;
 
         this.saveAISearchState(this.activeAISearchSessionId, this.buildAISearchFilters());
       },
@@ -239,7 +237,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           this.aiAnswer = 'Error getting answer from AI, try again later. You are getting manual search results this time.';
           console.error('AI evaluation error:', err);
         }
-        this.searchPerformed = true;
         this.aiLoading = false;
         this.tableLoading = false;
       }
@@ -264,12 +261,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         this.allCandidates = response.items;
         this.applyApplicationListResponse(response);
         this.hasSearchResults = response.items.length > 0;
-        this.searchPerformed = true;
         this.tableLoading = false;
       },
       error: (err) => {
         console.error('Manual search error:', err);
-        this.searchPerformed = true;
         this.tableLoading = false;
       }
     });
