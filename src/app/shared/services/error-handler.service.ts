@@ -1,5 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ErrorHandler, Injectable, Provider, inject } from '@angular/core';
+import {
+  ErrorHandler,
+  Injectable,
+  OnDestroy,
+  Provider,
+  inject,
+} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { Observable, Subject } from 'rxjs';
@@ -33,7 +39,7 @@ const DEFAULT_FALLBACK = 'Something went wrong. Please try again.';
 const LOGIN_ROUTE = '/authentication/login';
 
 @Injectable({ providedIn: 'root' })
-export class ErrorHandlerService implements ErrorHandler {
+export class ErrorHandlerService implements ErrorHandler, OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly notifications = inject(NotificationService);
   private readonly router = inject(Router);
@@ -43,7 +49,16 @@ export class ErrorHandlerService implements ErrorHandler {
 
   /** Angular `ErrorHandler` contract — invoked for uncaught errors when registered globally. */
   handleError(error: unknown): void {
-    this.report(error);
+    if (error instanceof HttpErrorResponse) {
+      const appError = this.fromHttp(error, 'unknown');
+      this.handle(appError);
+    } else {
+      this.report(error);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.errorSubject.complete();
   }
 
   /**
@@ -102,24 +117,10 @@ export class ErrorHandlerService implements ErrorHandler {
 
   private extractMessage(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
-      const body = error.error as
-        | { message?: string }
-        | string
-        | null
-        | undefined;
-      if (typeof body === 'string' && body.trim().length > 0) {
-        return body;
-      }
-      if (
-        body &&
-        typeof body === 'object' &&
-        typeof body.message === 'string'
-      ) {
-        return body.message;
-      }
-      if (error.message) {
-        return error.message;
-      }
+      const body = this.extractBody(error);
+      const resolved = this.resolveMessage(error.status, body);
+      if (resolved) return resolved;
+      if (error.message) return error.message;
       return fallback;
     }
 
@@ -169,13 +170,20 @@ export class ErrorHandlerService implements ErrorHandler {
 
     return errors
       .filter(
-        (entry): entry is AppErrorValidationIssue =>
-          !!entry &&
-          typeof entry === 'object' &&
-          typeof (entry as AppErrorValidationIssue).field === 'string' &&
-          typeof (entry as AppErrorValidationIssue).error === 'string',
+        (entry): entry is Record<string, unknown> =>
+          !!entry && typeof entry === 'object',
       )
-      .map((entry) => ({ field: entry.field, error: entry.error }));
+      .map((entry) => {
+        const e = entry as Record<string, unknown>;
+        const field = e['field'] ?? e['fieldName'] ?? e['name'] ?? '';
+        const errorValue = e['error'] ?? e['message'] ?? '';
+        return {
+          field: String(field),
+          error:
+            typeof errorValue === 'string' ? errorValue : String(errorValue),
+        } as AppErrorValidationIssue;
+      })
+      .filter((v) => v.field.length > 0 && v.error.length > 0);
   }
 
   private defaultMessageForStatus(status: number): string {

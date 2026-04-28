@@ -16,7 +16,7 @@ export const ErrorInterceptor: HttpInterceptorFn = (
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
   // S3 pre-signed URLs are consumed directly by feature code; skip global handling.
-  if (request.url.includes('amazonaws.com')) {
+  if (request.url.toLowerCase().includes('amazonaws.com')) {
     return next(request);
   }
 
