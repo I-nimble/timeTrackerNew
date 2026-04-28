@@ -10,6 +10,19 @@ export interface Role {
   name: string;
 }
 
+/**
+ * Static role slug constants — values must match the `name` column in the DB roles table.
+ * Used in route `data.allowedRoles` and compared at runtime against RoleService.getSlugById().
+ */
+export const ROLES = {
+  ADMIN: 'Admin',
+  USER: 'Employee',
+  CLIENT: 'Employer',
+  SUPPORT: 'Support',
+} as const;
+
+export type RoleSlug = (typeof ROLES)[keyof typeof ROLES];
+
 @Injectable({ providedIn: 'root' })
 export class RoleService {
   private readonly http = inject(HttpClient);

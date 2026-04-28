@@ -4,7 +4,6 @@
 
 import { Routes } from '@angular/router';
 
-import { ROLES } from '@core/role.constants';
 import { environment } from 'src/environments/environment';
 
 import { BlankComponent } from './layouts/blank/blank.component';
@@ -15,6 +14,7 @@ import { AuthGuard } from './services/guards/auth-guard.service';
 import { featureFlagGuard } from './services/guards/feature-flag.guard';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { roleGuard } from './services/guards/role.guard';
+import { ROLES } from './services/role.service';
 
 export const routes: Routes = [
   /**
