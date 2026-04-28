@@ -433,17 +433,35 @@ export class AppKanbanDialogComponent implements OnInit {
       this.selectedComment = null;
       this.commentText = '';
       this.showSnackbar('Comment updated!');
-    } else {
-      const payload = {
-        rating_id: this.local_data.id,
-        comment: this.commentText
-      };
-      this.ratingsService.addComment(payload).subscribe(newComment => {
-        this.comments.push(newComment);
-        this.commentText = '';
-        this.showSnackbar('Comment added!');
-      });
+      return;
     }
+
+    if (!this.local_data.id) {
+      const userName = localStorage.getItem('name') || '';
+      const userLastName = localStorage.getItem('last_name') || '';
+      const localComment = {
+        comment: this.commentText,
+        user_id: this.userId,
+        createdAt: new Date(),
+        user: { name: userName, last_name: userLastName },
+        isPending: true,
+      };
+      this.comments.push(localComment);
+      this.local_data.comments = this.comments.filter(c => c.isPending);
+      this.commentText = '';
+      this.showSnackbar('Comment added!');
+      return;
+    }
+
+    const payload = {
+      rating_id: this.local_data.id,
+      comment: this.commentText
+    };
+    this.ratingsService.addComment(payload).subscribe(newComment => {
+      this.comments.push(newComment);
+      this.commentText = '';
+      this.showSnackbar('Comment added!');
+    });
   }
 
   startEditingComment(comment: any) {
