@@ -5,6 +5,7 @@ export interface CandidateEvaluationFilters {
   selectedPracticeArea?: string | null;
   roleDescription?: string;
   query?: string;
+  disc_profile_ids?: number[];
 }
 
 export interface CandidateEvaluationIntakeInfo {

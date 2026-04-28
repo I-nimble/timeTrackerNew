@@ -36,6 +36,7 @@ import { switchMap } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { environment } from 'src/environments/environment';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 
 @Component({
   standalone: true,
@@ -104,6 +105,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfiles: number[] = [];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -183,6 +186,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getPositions();
     this.getCompany();
     this.getPositionCategories();
+    this.discProfilesService.getAll().subscribe(profiles => this.discProfiles = profiles);
   }
 
   ngAfterViewInit(): void {
@@ -802,6 +806,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       .map((value) => String(value || '').trim())
       .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
 
+    if (this.selectedDiscProfiles.length > 0) {
+      terms.push(`disc_profiles:${this.selectedDiscProfiles.join(',')}`);
+    }
+
     return terms.join(' ');
   }
 
@@ -811,6 +819,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       selectedPracticeArea: this.selectedPracticeArea,
       roleDescription: this.roleDescription,
       query: this.query,
+      disc_profile_ids: this.selectedDiscProfiles,
     };
   }
 
