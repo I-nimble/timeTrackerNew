@@ -118,10 +118,7 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
   private extractMessage(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
       const body = this.extractBody(error);
-      const resolved = this.resolveMessage(error.status, body);
-      if (resolved) return resolved;
-      if (error.message) return error.message;
-      return fallback;
+      return this.resolveMessage(error.status, body);
     }
 
     if (error instanceof Error && error.message) {
