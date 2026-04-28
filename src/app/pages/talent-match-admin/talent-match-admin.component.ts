@@ -33,6 +33,7 @@ import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 import { ApplicationMatchScoreSummary } from 'src/app/models/application.model';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 
 export interface PeriodicElement {
   id: number;
@@ -84,6 +85,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   selectedRole: string | null = null;
   selectedPracticeArea: string | null = null;
   roleDescription: string = '';
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfiles: number[] = [];
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
@@ -156,6 +159,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.applicationsService.loadApplicationStatuses().subscribe();
     this.getPositions();
     this.getInterviews();
+    this.discProfilesService.getAll().subscribe(profiles => this.discProfiles = profiles);
 
     const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
@@ -602,6 +606,11 @@ export class AppTalentMatchAdminComponent implements OnInit {
     ]
       .map((value) => String(value || '').trim())
       .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
+
+    if (this.selectedDiscProfiles.length > 0) {
+      terms.push(`disc_profiles:${this.selectedDiscProfiles.join(',')}`);
+    }
+
     return terms.join(' ');
   }
 
@@ -611,6 +620,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
       selectedPracticeArea: this.selectedPracticeArea,
       roleDescription: this.roleDescription,
       query: this.query,
+      disc_profile_ids: this.selectedDiscProfiles,
     };
   }
 
