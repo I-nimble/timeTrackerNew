@@ -14,7 +14,6 @@ import { AuthGuard } from './services/guards/auth-guard.service';
 import { featureFlagGuard } from './services/guards/feature-flag.guard';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { roleGuard } from './services/guards/role.guard';
-import { ROLES } from './services/role.service';
 
 export const routes: Routes = [
   /**
@@ -54,9 +53,7 @@ export const routes: Routes = [
             (m) => m.DashboardRoutes,
           ),
         canActivate: [AuthGuard, roleGuard],
-        data: {
-          allowedRoles: [ROLES.USER, ROLES.CLIENT, ROLES.ADMIN, ROLES.SUPPORT],
-        },
+        data: { allowedRoles: '*' },
       },
 
       /**

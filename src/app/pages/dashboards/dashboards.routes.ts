@@ -12,8 +12,6 @@ import { ProductivityComponent } from './productivity/productivity.component';
 import { ReportsComponent } from './reports/reports.component';
 import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
 
-const ALL_ROLES = [ROLES.ADMIN, ROLES.USER, ROLES.CLIENT, ROLES.SUPPORT];
-
 export const DashboardsRoutes: Routes = [
   {
     path: '',
@@ -45,7 +43,7 @@ export const DashboardsRoutes: Routes = [
         canActivate: [AuthGuard, roleGuard],
         data: {
           title: 'Reports',
-          allowedRoles: ALL_ROLES,
+          allowedRoles: '*',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Reports' },
@@ -58,7 +56,7 @@ export const DashboardsRoutes: Routes = [
         canActivate: [AuthGuard, roleGuard],
         data: {
           title: 'Productivity',
-          allowedRoles: ALL_ROLES,
+          allowedRoles: '*',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Productivity' },
@@ -69,7 +67,7 @@ export const DashboardsRoutes: Routes = [
         path: 'notifications',
         component: NotificationsPageComponent,
         canActivate: [AuthGuard, roleGuard],
-        data: { title: 'Notifications', allowedRoles: ALL_ROLES },
+        data: { title: 'Notifications', allowedRoles: '*' },
       },
       {
         path: 'maintenance',

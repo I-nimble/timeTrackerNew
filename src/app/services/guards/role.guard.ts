@@ -13,24 +13,25 @@ import { RoleService } from '../role.service';
  *
  * Usage in route config:
  *   canActivate: [AuthGuard, roleGuard],
- *   data: { allowedRoles: [ROLES.ADMIN, ROLES.SUPPORT] }
+ *   data: { allowedRoles: [ROLES.ADMIN, ROLES.SUPPORT] }  // specific roles
+ *   data: { allowedRoles: '*' }                            // any DB role
+ *   (omit allowedRoles entirely to skip role check)
  */
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const authService = inject(AuthService);
   const roleService = inject(RoleService);
   const router = inject(Router);
 
-  const allowedRoles: string[] = route.data['allowedRoles'] ?? [];
-  if (allowedRoles.length === 0) return true;
+  const allowedRoles: string[] | '*' = route.data['allowedRoles'] ?? [];
+  if (allowedRoles !== '*' && allowedRoles.length === 0) return true;
 
   return authService.getUserType().pipe(
     take(1),
     switchMap((roleId) => roleService.getSlugById(roleId)),
     map((slug) => {
-      if (slug && allowedRoles.includes(slug)) {
-        return true;
-      }
-      return router.createUrlTree(['/authentication/error']);
+      const allowed =
+        slug !== null && (allowedRoles === '*' || allowedRoles.includes(slug));
+      return allowed || router.createUrlTree(['/authentication/error']);
     }),
   );
 };
