@@ -57,6 +57,7 @@ export class AppKanbanDialogComponent implements OnInit {
   priorities: any[] = [];
   visibilities = ['public', 'restricted', 'private'];
   users: any[] = [];
+  boardMembers: any[] = [];
   attachments: any[] = [];
   showMentionList = false;
   mentionQuery = '';
@@ -68,12 +69,13 @@ export class AppKanbanDialogComponent implements OnInit {
   editingComment: any = null;
   selectedComment: any = null;
 
-  // Unified mention picker state (for both description + comment contenteditable editors)
   mentionPopupOpen = false;
   mentionPopupTop = 0;
   mentionPopupLeft = 0;
   mentionTarget: 'description' | 'comment' | null = null;
-  private mentionAnchor: { node: Node; start: number; end: number } | null = null;
+  private mentionAnchor:
+    | { node: Node; start: number; end: number; mentionElement?: HTMLElement }
+    | null = null;
   dueDateTime: Date | null = null;
   companies: any[] = [];
   firstAttachmentImage: any = null;
@@ -105,6 +107,7 @@ export class AppKanbanDialogComponent implements OnInit {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
+    this.boardMembers = Array.isArray(data?.boardMembers) ? data.boardMembers : [];
     this.isOrphan = localStorage.getItem('isOrphan') === 'true' || localStorage.getItem('role') === '4';
     if (this.isOrphan && (!this.data.type || this.data.type === 'task')) {
       const employeeId = this.local_data.employee_id;
@@ -282,7 +285,8 @@ export class AppKanbanDialogComponent implements OnInit {
 
   setSelectedEmployee() {
     if (this.local_data.employee_id) {
-      const assignedUser = this.users.find(u => u.id === this.local_data.employee_id);
+      const pool = this.boardMembers.length ? this.boardMembers : this.users;
+      const assignedUser = pool.find(u => u.id === this.local_data.employee_id);
       if (assignedUser) {
         this.selectedEmployeeId = assignedUser.id;
       }
@@ -387,23 +391,97 @@ export class AppKanbanDialogComponent implements OnInit {
     }
   }
 
+  onDialogScroll() {
+    this.updateMentionPopupPosition();
+  }
+
+  private updateMentionPopupPosition() {
+    if (!this.mentionPopupOpen || !this.mentionAnchor) return;
+
+    if (this.mentionAnchor.mentionElement) {
+      if (!document.contains(this.mentionAnchor.mentionElement)) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      const mentionRect = this.mentionAnchor.mentionElement.getBoundingClientRect();
+      this.mentionPopupTop = mentionRect.bottom + 4;
+      this.mentionPopupLeft = mentionRect.left;
+      return;
+    }
+
+    const { node, end } = this.mentionAnchor;
+    if (!document.contains(node)) {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const range = document.createRange();
+    try {
+      range.setStart(node, end);
+      range.setEnd(node, end);
+    } catch {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const rect = range.getBoundingClientRect();
+    this.mentionPopupTop = rect.bottom + 4;
+    this.mentionPopupLeft = rect.left;
+  }
+
   detectMention(target: 'description' | 'comment') {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) {
       this.closeMentionPopup();
       return;
     }
+
     const range = sel.getRangeAt(0);
     const node = range.startContainer;
+
+    const nodeElement = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : null;
+    const parentElement = node.nodeType === Node.TEXT_NODE ? node.parentElement : null;
+    const rawMentionElement =
+      nodeElement?.closest('span.mention') || parentElement?.closest('span.mention');
+    const mentionElement = rawMentionElement instanceof HTMLElement ? rawMentionElement : null;
+
+    if (mentionElement) {
+      const mentionText = mentionElement.textContent || '';
+      const mentionQuery = mentionText.startsWith('@') ? mentionText.slice(1).trim() : '';
+
+      this.mentionQuery = mentionQuery;
+      this.mentionTarget = target;
+      this.mentionIndex = 0;
+      const source = this.boardMembers.length ? this.boardMembers : this.users;
+      this.filteredUsers = source;
+      this.mentionAnchor = {
+        node: mentionElement,
+        start: 0,
+        end: mentionText.length,
+        mentionElement,
+      };
+      this.mentionPopupOpen = this.filteredUsers.length > 0;
+
+      if (!this.mentionPopupOpen) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      this.updateMentionPopupPosition();
+      return;
+    }
+
     if (node.nodeType !== Node.TEXT_NODE) {
       this.closeMentionPopup();
       return;
     }
+
     const text = node.textContent || '';
     const offset = range.startOffset;
 
     let i = offset - 1;
-    while (i >= 0 && /[A-Za-z0-9_]/.test(text[i])) i--;
+    while (i >= 0 && /[\p{L}\p{N}_]/u.test(text[i])) i--;
     if (i < 0 || text[i] !== '@') {
       this.closeMentionPopup();
       return;
@@ -416,7 +494,8 @@ export class AppKanbanDialogComponent implements OnInit {
     this.mentionQuery = text.substring(i + 1, offset);
     this.mentionTarget = target;
     this.mentionIndex = 0;
-    this.filteredUsers = this.users.filter(u =>
+    const source = this.boardMembers.length ? this.boardMembers : this.users;
+    this.filteredUsers = source.filter(u =>
       `${u.name} ${u.last_name}`.toLowerCase().includes(this.mentionQuery.toLowerCase())
     );
     if (this.filteredUsers.length === 0) {
@@ -425,24 +504,37 @@ export class AppKanbanDialogComponent implements OnInit {
     }
     this.mentionAnchor = { node, start: i, end: offset };
 
-    const rect = range.getBoundingClientRect();
-    this.mentionPopupTop = rect.bottom + 4;
-    this.mentionPopupLeft = rect.left;
     this.mentionPopupOpen = true;
+    this.updateMentionPopupPosition();
   }
 
   insertMention(user: any) {
     if (!this.mentionAnchor) return;
-    const { node, start, end } = this.mentionAnchor;
     const range = document.createRange();
-    range.setStart(node, start);
-    range.setEnd(node, end);
+
+    if (this.mentionAnchor.mentionElement) {
+      const mentionElement = this.mentionAnchor.mentionElement;
+      if (!document.contains(mentionElement)) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      range.setStartBefore(mentionElement);
+      range.setEndAfter(mentionElement);
+    } else {
+      const { node, start, end } = this.mentionAnchor;
+      range.setStart(node, start);
+      range.setEnd(node, end);
+    }
+
     range.deleteContents();
 
     const span = document.createElement('span');
     span.className = 'mention';
     span.setAttribute('data-user-id', String(user.id));
     span.setAttribute('contenteditable', 'false');
+    span.style.color = '#92b46c';
+    span.style.backgroundColor = 'rgba(146, 180, 108, 0.14)';
     span.textContent = `@${user.name} ${user.last_name}`;
     range.insertNode(span);
 

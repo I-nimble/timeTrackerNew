@@ -1,16 +1,20 @@
+@import url(../../../../assets/scss/_variables.scss);
+
 .mention {
-  color: var(--mat-sys-primary);
-  background-color: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  color: #92b46c !important;
+  background-color: rgba(146, 180, 108, 0.14);
   border-radius: 4px;
-  padding: 0 4px;
+  padding: 2px 6px;
   font-weight: 600;
   cursor: default;
   white-space: nowrap;
+  display: inline-block;
 }
 
 .comment-text .mention,
 .custom-description .mention {
-  color: var(--mat-sys-primary);
+  color: #92b46c !important;
+  background-color: rgba(146, 180, 108, 0.14);
 }
 
 .comment-editor {

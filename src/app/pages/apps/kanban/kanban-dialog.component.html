@@ -1,4 +1,4 @@
-<mat-dialog-content class="mat-typography trello-style">
+<mat-dialog-content class="mat-typography trello-style" (scroll)="onDialogScroll()">
   <div class="image-preview" *ngIf="firstAttachmentImage">
     <img
       [src]="getImageUrl(firstAttachmentImage)"
@@ -40,7 +40,7 @@
           required
           [class.field-error]="!local_data.employee_id"
         >
-          <mat-option *ngFor="let user of users" [value]="user.id">
+          <mat-option *ngFor="let user of boardMembers" [value]="user.id">
             {{ user.name }} {{ user.last_name }}
           </mat-option>
         </mat-select>
