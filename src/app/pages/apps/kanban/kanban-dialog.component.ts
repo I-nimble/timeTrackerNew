@@ -437,13 +437,15 @@ export class AppKanbanDialogComponent implements OnInit {
     }
 
     if (!this.local_data.id) {
-      const userName = localStorage.getItem('name') || '';
-      const userLastName = localStorage.getItem('last_name') || '';
+      const currentUser = this.users.find(u => u.id == this.userId) || {
+        name: localStorage.getItem('name') || 'Unknown',
+        last_name: localStorage.getItem('last_name') || 'User',
+      };
       const localComment = {
         comment: this.commentText,
         user_id: this.userId,
         createdAt: new Date(),
-        user: { name: userName, last_name: userLastName },
+        user: { name: currentUser.name, last_name: currentUser.last_name },
         isPending: true,
       };
       this.comments.push(localComment);
@@ -474,15 +476,28 @@ export class AppKanbanDialogComponent implements OnInit {
 
   editComment(comment: any, newText: string) {
     if (!newText.trim()) return;
+    if (comment.isPending) {
+      comment.comment = newText;
+      return;
+    }
     this.ratingsService.updateComment(comment.id, newText).subscribe(updated => {
       comment.comment = updated.comment;
       comment.isEditing = false;
     });
   }
 
-  deleteComment(commentId: number) {
-    this.ratingsService.deleteComment(commentId).subscribe(() => {
-      this.comments = this.comments.filter(c => c.id !== commentId);
+  deleteComment(comment: any) {
+    if (!comment) return;
+
+    if (comment.isPending) {
+      this.comments = this.comments.filter(c => c !== comment);
+      this.local_data.comments = this.comments.filter(c => c.isPending);
+      this.showSnackbar('Comment deleted!');
+      return;
+    }
+
+    this.ratingsService.deleteComment(comment.id).subscribe(() => {
+      this.comments = this.comments.filter(c => c.id !== comment.id);
       this.showSnackbar('Comment deleted!');
     });
   }
