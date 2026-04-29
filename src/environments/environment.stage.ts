@@ -9,7 +9,7 @@ export const environment = {
   mp3: "https://inimble-app.s3.us-east-1.amazonaws.com/assets/sounds",
   videos: 'https://inimble-app.s3.us-east-1.amazonaws.com/assets/videos',
   upload: 'https://inimble-app.s3.us-east-1.amazonaws.com/uploads',
-  stripePublicKey:'pk_test_51RoRhYA7lAmLJd56IjAbCmMWMtjh7iLIVxMLav5vCeBjGaTBlRFyAErXSeGtRLFNx49mmwWSOc9cnJHnXUsRT9VV00joP4DxQo',
+  stripePublicKey:'pk_test_51RoRhKPR12udsRYOT8bzLX2fRCleOIXwD1HPPzegaT2080VNBejdx9RviPnLbwJTiWs19yxJcItgHT7bPobCiqu000Wd6EVC06',
   firebaseConfig: {
     apiKey: "AIzaSyDi2g2jOi9coqrHgjF8Ojg_5mPKC1FNs1k",
     authDomain: "inimbleapp.firebaseapp.com",

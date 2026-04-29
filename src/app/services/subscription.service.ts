@@ -49,8 +49,8 @@ export class SubscriptionService {
     return this.http.post<{ message: string; current_period_end: number }>(`${this.apiUrl}/cancel`, {});
   }
 
-  getSubscriptionStatus(): Observable<SubscriptionStatus> {
-    return this.http.get<SubscriptionStatus>(`${this.apiUrl}/status`);
+  getSentinelStatus(): Observable<SubscriptionStatus> {
+    return this.http.get<SubscriptionStatus>(`${this.apiUrl}/sentinel/status`);
   }
 
   getSubscriptionReceipt(): Observable<SubscriptionReceipt> {
