@@ -584,18 +584,38 @@ export class AppKanbanDialogComponent implements OnInit {
       this.selectedComment = null;
       this.clearCommentEditor();
       this.showSnackbar('Comment updated!');
-    } else {
-      const payload = {
-        rating_id: this.local_data.id,
-        comment: html,
-        mentioned_user_ids,
-      };
-      this.ratingsService.addComment(payload).subscribe(newComment => {
-        this.comments.push(newComment);
-        this.clearCommentEditor();
-        this.showSnackbar('Comment added!');
-      });
+      return;
     }
+
+    if (!this.local_data.id) {
+      const currentUser = this.users.find(u => u.id == this.userId) || {
+        name: localStorage.getItem('name') || 'Unknown',
+        last_name: localStorage.getItem('last_name') || 'User',
+      };
+      const localComment = {
+        comment: this.commentText,
+        user_id: this.userId,
+        createdAt: new Date(),
+        user: { name: currentUser.name, last_name: currentUser.last_name },
+        isPending: true,
+      };
+      this.comments.push(localComment);
+      this.local_data.comments = this.comments.filter(c => c.isPending);
+      this.commentText = '';
+      this.showSnackbar('Comment added!');
+      return;
+    }
+
+    const payload = {
+      rating_id: this.local_data.id,
+      comment: html,
+        mentioned_user_ids,
+    };
+    this.ratingsService.addComment(payload).subscribe(newComment => {
+      this.comments.push(newComment);
+      this.clearCommentEditor();
+      this.showSnackbar('Comment added!');
+    });
   }
 
   private clearCommentEditor() {
@@ -621,15 +641,28 @@ export class AppKanbanDialogComponent implements OnInit {
 
   editComment(comment: any, newHtml: string, mentioned_user_ids: number[] = []) {
     if (!newHtml.trim()) return;
+    if (comment.isPending) {
+      comment.comment = newHtml;
+      return;
+    }
     this.ratingsService.updateComment(comment.id, newHtml, mentioned_user_ids).subscribe(updated => {
       comment.comment = updated.comment;
       comment.isEditing = false;
     });
   }
 
-  deleteComment(commentId: number) {
-    this.ratingsService.deleteComment(commentId).subscribe(() => {
-      this.comments = this.comments.filter(c => c.id !== commentId);
+  deleteComment(comment: any) {
+    if (!comment) return;
+
+    if (comment.isPending) {
+      this.comments = this.comments.filter(c => c !== comment);
+      this.local_data.comments = this.comments.filter(c => c.isPending);
+      this.showSnackbar('Comment deleted!');
+      return;
+    }
+
+    this.ratingsService.deleteComment(comment.id).subscribe(() => {
+      this.comments = this.comments.filter(c => c.id !== comment.id);
       this.showSnackbar('Comment deleted!');
     });
   }

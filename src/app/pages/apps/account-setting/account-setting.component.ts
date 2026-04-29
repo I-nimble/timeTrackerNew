@@ -1463,7 +1463,7 @@ export class AppAccountSettingComponent implements OnInit {
   }
 
   loadSubscriptionStatus(): void {
-    this.subscriptionService.getSubscriptionStatus().subscribe({
+    this.subscriptionService.getSentinelStatus().subscribe({
       next: (status) => {
         this.sentinelSubscription = status;
         this.loadSubscriptionReceipt();

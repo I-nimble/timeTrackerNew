@@ -36,6 +36,7 @@ import { switchMap } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { environment } from 'src/environments/environment';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 
 @Component({
   standalone: true,
@@ -104,6 +105,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfiles: number[] = [];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -182,6 +185,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getPositions();
     this.getCompany();
     this.getPositionCategories();
+    this.discProfilesService.getAll().subscribe(profiles => this.discProfiles = profiles);
   }
 
   ngAfterViewInit(): void {
@@ -248,14 +252,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const additionalSearchText = this.buildApplicationsSearchTerm();
+    const searchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
+
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: additionalSearchText,
+      search: searchText,
+      discProfileIds: this.selectedDiscProfiles.length > 0 ? this.selectedDiscProfiles : undefined,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -788,16 +794,15 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private buildApplicationsSearchTerm(): string {
-    const terms = [
+    return [
       this.selectedRole,
       this.selectedPracticeArea,
       this.query,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
-      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
-
-    return terms.join(' ');
+      .filter(Boolean)
+      .join(' ');
   }
 
   private buildAISearchFilters(): CandidateEvaluationFilters {
@@ -806,6 +811,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       selectedPracticeArea: this.selectedPracticeArea,
       roleDescription: this.roleDescription,
       query: this.query,
+      disc_profile_ids: this.selectedDiscProfiles,
     };
   }
 
