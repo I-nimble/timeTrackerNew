@@ -10,6 +10,7 @@ import { GeolocationData, GeolocationUpdate, GeolocationRequest, GeolocationDeni
 export class WebSocketService {
   socket: Socket;
   private notificationsSubject = new Subject<any>();
+  private mentionSubject = new Subject<{ notification_id: number; rating_id: number; board_id: number; message: string }>();
   private typingSubject = new Subject<{ roomId: string; username: string; isTyping: boolean }>();
   
   private geolocationRequestSubject = new Subject<GeolocationRequest>();
@@ -76,6 +77,16 @@ export class WebSocketService {
 
     this.socket.on('server:notificationsUpdated', () => {
       this.notificationsSubject.next('update');
+    });
+
+    this.socket.on('server:userMentioned', (data: any) => {
+      try {
+        if (data && data.rating_id) {
+          this.mentionSubject.next(data);
+        }
+      } catch (err) {
+        console.error('Error processing server:userMentioned event', err, data);
+      }
     });
 
     this.socket.on('server:newTalentMatch', (data) => {
@@ -150,6 +161,10 @@ export class WebSocketService {
 
   getNotifications() {
     return this.notificationsSubject.asObservable();
+  }
+
+  getMentionStream() {
+    return this.mentionSubject.asObservable();
   }
 
   joinRoom(roomId: string) {

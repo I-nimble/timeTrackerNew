@@ -145,4 +145,8 @@ export class BoardsService {
     return this.http.get<any>(`${this.API_URI}/search/tasks?board_id=${boardId}&q=${search}`);
   }
 
+  getBoardMembers(boardId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}/${boardId}/members`);
+  }
+
 }

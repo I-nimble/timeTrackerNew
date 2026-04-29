@@ -1,0 +1,39 @@
+@import url(../../../../assets/scss/_variables.scss);
+
+.mention {
+  color: #92b46c !important;
+  background-color: rgba(146, 180, 108, 0.14);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.comment-text .mention,
+.custom-description .mention {
+  color: #92b46c !important;
+  background-color: rgba(146, 180, 108, 0.14);
+}
+
+.comment-editor {
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+  border-radius: 6px;
+  background: var(--mat-sys-surface, transparent);
+  color: var(--mat-sys-on-surface);
+  outline: none;
+  font: inherit;
+
+  &:focus {
+    border-color: var(--mat-sys-primary);
+  }
+
+  &[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--mat-sys-outline, #888);
+    pointer-events: none;
+  }
+}
