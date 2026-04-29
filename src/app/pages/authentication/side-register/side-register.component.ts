@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnInit, OnDestroy, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import {
   FormBuilder,
@@ -115,6 +115,7 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
   signedWithGoogleClicked: boolean = false;
 
   @ViewChild('clientStepper') clientStepper?: MatStepper;
+  @ViewChild('registrationPaymentContainer') registrationPaymentContainer?: ElementRef<HTMLElement>;
   private registrationStripe: Stripe | null = null;
   private registrationElements: StripeElements | null = null;
   private registrationPaymentElement: StripePaymentElement | null = null;
@@ -655,13 +656,11 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
       this.registrationPaymentElement = (this.registrationElements as any).create('payment', {
         layout: { type: 'accordion', defaultCollapsed: false },
       });
-      setTimeout(() => {
-        const container = document.getElementById('registration-payment-element');
-        if (container) {
-          this.registrationPaymentElement?.mount(container);
-        }
-        this.isPaymentStepLoading = false;
-      }, 100);
+      this.cdr.detectChanges();
+      if (this.registrationPaymentContainer?.nativeElement) {
+        this.registrationPaymentElement?.mount(this.registrationPaymentContainer.nativeElement);
+      }
+      this.isPaymentStepLoading = false;
     } catch (error: any) {
       console.error('Error initializing payment step:', error);
       this.paymentStepError = 'Failed to initialize payment. Please check your information.';
