@@ -33,6 +33,7 @@ import { of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 import { ApplicationMatchScoreSummary } from 'src/app/models/application.model';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 
 export interface PeriodicElement {
   id: number;
@@ -84,6 +85,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   selectedRole: string | null = null;
   selectedPracticeArea: string | null = null;
   roleDescription: string = '';
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfiles: number[] = [];
   pageSize = 10;
   currentPage = 1;
   totalPages = 1;
@@ -156,6 +159,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.applicationsService.loadApplicationStatuses().subscribe();
     this.getPositions();
     this.getInterviews();
+    this.discProfilesService.getAll().subscribe(profiles => this.discProfiles = profiles);
 
     const userId = Number(localStorage.getItem('id'));
     this.permissionService.getUserPermissions(userId).subscribe({
@@ -571,14 +575,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const additionalSearchText = this.buildApplicationsSearchTerm();
+    const searchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
+
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: additionalSearchText,
+      search: searchText,
+      discProfileIds: this.selectedDiscProfiles.length > 0 ? this.selectedDiscProfiles : undefined,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -594,15 +600,15 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   private buildApplicationsSearchTerm(): string {
-    const terms = [
+    return [
       this.selectedRole,
       this.selectedPracticeArea,
       this.query,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
-      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
-    return terms.join(' ');
+      .filter(Boolean)
+      .join(' ');
   }
 
   private buildAISearchFilters(): CandidateEvaluationFilters {
@@ -611,6 +617,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
       selectedPracticeArea: this.selectedPracticeArea,
       roleDescription: this.roleDescription,
       query: this.query,
+      disc_profile_ids: this.selectedDiscProfiles,
     };
   }
 
