@@ -575,14 +575,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    const searchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
+
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: fullSearchTerm,
+      search: searchText,
+      discProfileIds: this.selectedDiscProfiles.length > 0 ? this.selectedDiscProfiles : undefined,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -598,20 +600,14 @@ export class AppTalentMatchAdminComponent implements OnInit {
   }
 
   private buildApplicationsSearchTerm(): string {
-    const terms = [
-      this.query,
+    return [
       this.selectedRole,
       this.selectedPracticeArea,
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
-      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
-
-    if (this.selectedDiscProfiles.length > 0) {
-      terms.push(`disc_profiles:${this.selectedDiscProfiles.join(',')}`);
-    }
-
-    return terms.join(' ');
+      .filter(Boolean)
+      .join(' ');
   }
 
   private buildAISearchFilters(): CandidateEvaluationFilters {
