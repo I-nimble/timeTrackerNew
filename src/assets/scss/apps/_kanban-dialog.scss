@@ -288,9 +288,8 @@
   background: none;
 }
 
-.mention-item.selected,
 .mention-item:hover {
-  color: #388e3c;
+  background: var(--mat-sys-primary)!important;
 }
 
 ::ng-deep mention,

@@ -54,6 +54,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   onhold: Todos[] = [];
   selectedBoardId: any = null;
   selectedBoardColumns: any[] = [];
+  boardMembers: any[] = [];
   firstTaskAnchorColumnId: number | null = null;
   hasTasks = false;
   employees: any;
@@ -100,10 +101,12 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       if (this.selectedBoardId) {
         this.loadSelectedBoard(this.selectedBoardId).then(() => {
           this.loadTasks(this.selectedBoardId);
+          this.loadBoardMembers(this.selectedBoardId);
         });
       } else {
         this.isLoading = false;
         this.selectedBoardColumns = [];
+        this.boardMembers = [];
       }
     });
 
@@ -186,6 +189,17 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
           reject(err);
         }
       });
+    });
+  }
+
+  loadBoardMembers(boardId: number): void {
+    this.kanbanService.getBoardMembers(boardId).subscribe({
+      next: (members) => {
+        this.boardMembers = members || [];
+      },
+      error: () => {
+        this.boardMembers = [];
+      },
     });
   }
 
@@ -347,11 +361,12 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '900px', 
+      width: '900px',
       maxWidth: '90vw',
       data: {
         action,
         ...data,
+        boardMembers: this.boardMembers,
       },
     });
 
