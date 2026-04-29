@@ -18,6 +18,7 @@ export interface ApplicationListParams {
 	search?: string;
 	selectedRole?: string;
 	selectedPracticeArea?: string;
+	discProfileIds?: number[];
 	onlyTalentPool?: boolean;
 }
 
