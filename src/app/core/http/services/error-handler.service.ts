@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@shared/services/auth-storage.constants';
@@ -11,12 +11,29 @@ import { AppError, AppErrorValidationIssue } from '../models/app-error.model';
 const LOGIN_ROUTE = '/authentication/login';
 
 @Injectable({ providedIn: 'root' })
-export class ErrorHandlerService {
+export class ErrorHandlerService implements OnDestroy {
   private readonly logger = inject(LoggerService);
   private readonly router = inject(Router);
   private readonly errorSubject = new Subject<AppError>();
 
   readonly error$: Observable<AppError> = this.errorSubject.asObservable();
+
+  ngOnDestroy(): void {
+    this.errorSubject.complete();
+  }
+
+  /**
+   * Handle uncaught errors routed through Angular's global error handler.
+   * Transform HttpErrorResponse into AppError so 401 flows are handled.
+   */
+  handleError(error: unknown): void {
+    if (error instanceof HttpErrorResponse) {
+      const appError = this.fromHttp(error, 'unknown');
+      this.handle(appError);
+    } else {
+      this.logger.error('Uncaught error', error);
+    }
+  }
 
   handle(error: AppError): void {
     this.logger.error(
@@ -80,13 +97,20 @@ export class ErrorHandlerService {
 
     return errors
       .filter(
-        (entry): entry is AppErrorValidationIssue =>
-          !!entry &&
-          typeof entry === 'object' &&
-          typeof (entry as AppErrorValidationIssue).field === 'string' &&
-          typeof (entry as AppErrorValidationIssue).error === 'string',
+        (entry): entry is Record<string, unknown> =>
+          !!entry && typeof entry === 'object',
       )
-      .map((entry) => ({ field: entry.field, error: entry.error }));
+      .map((entry) => {
+        const e = entry as Record<string, unknown>;
+        const field = e['field'] ?? e['fieldName'] ?? e['name'] ?? '';
+        const errorValue = e['error'] ?? e['message'] ?? '';
+        return {
+          field: String(field),
+          error:
+            typeof errorValue === 'string' ? errorValue : String(errorValue),
+        } as AppErrorValidationIssue;
+      })
+      .filter((v) => v.field.length > 0 && v.error.length > 0);
   }
 
   private defaultMessageForStatus(status: number): string {

@@ -13,12 +13,7 @@ import { LandingPageRedirectComponent } from './pages/theme-pages/landingpage/la
 import { AuthGuard } from './services/guards/auth-guard.service';
 import { featureFlagGuard } from './services/guards/feature-flag.guard';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
-
-// User role type constants
-const ADMIN_TYPE_ROLE = '1';
-const USER_TYPE_ROLE = '2';
-const CLIENT_TYPE_ROLE = '3';
-const SUPPORT_TYPE_ROLE = '4';
+import { roleGuard } from './services/guards/role.guard';
 
 export const routes: Routes = [
   /**
@@ -57,15 +52,8 @@ export const routes: Routes = [
           import('@features/dashboard/dashboard.routes').then(
             (m) => m.DashboardRoutes,
           ),
-        canActivate: [AuthGuard],
-        data: {
-          allowedUserTypes: [
-            USER_TYPE_ROLE,
-            CLIENT_TYPE_ROLE,
-            ADMIN_TYPE_ROLE,
-            SUPPORT_TYPE_ROLE,
-          ],
-        },
+        canActivate: [AuthGuard, roleGuard],
+        data: { allowedRoles: '*' },
       },
 
       /**

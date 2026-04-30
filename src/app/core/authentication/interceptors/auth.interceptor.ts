@@ -12,7 +12,11 @@ const normalizeUrl = (value: string): string => value.replace(/\/+$/, '');
 
 const isApiRequest = (requestUrl: string, apiUrl: string): boolean => {
   const normalizedApiUrl = normalizeUrl(apiUrl);
-  return normalizeUrl(requestUrl).startsWith(normalizedApiUrl);
+  const normalizedRequest = normalizeUrl(requestUrl);
+  return (
+    normalizedRequest === normalizedApiUrl ||
+    normalizedRequest.startsWith(normalizedApiUrl + '/')
+  );
 };
 
 const readToken = (): string | null => {
@@ -27,7 +31,7 @@ export const AuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  if (request.url.includes('amazonaws.com')) {
+  if (request.url.toLowerCase().includes('amazonaws.com')) {
     return next(request);
   }
 

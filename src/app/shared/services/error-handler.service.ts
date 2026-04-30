@@ -51,11 +51,11 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
   /** Angular `ErrorHandler` contract — invoked for uncaught errors when registered globally. */
   handleError(error: unknown): void {
     if (error instanceof HttpErrorResponse) {
-      this.handle(this.fromHttp(error, 'unknown'));
-      return;
+      const appError = this.fromHttp(error, 'unknown');
+      this.handle(appError);
+    } else {
+      this.report(error);
     }
-
-    this.report(error);
   }
 
   ngOnDestroy(): void {
@@ -170,13 +170,20 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
 
     return errors
       .filter(
-        (entry): entry is AppErrorValidationIssue =>
-          !!entry &&
-          typeof entry === 'object' &&
-          typeof (entry as AppErrorValidationIssue).field === 'string' &&
-          typeof (entry as AppErrorValidationIssue).error === 'string',
+        (entry): entry is Record<string, unknown> =>
+          !!entry && typeof entry === 'object',
       )
-      .map((entry) => ({ field: entry.field, error: entry.error }));
+      .map((entry) => {
+        const e = entry as Record<string, unknown>;
+        const field = e['field'] ?? e['fieldName'] ?? e['name'] ?? '';
+        const errorValue = e['error'] ?? e['message'] ?? '';
+        return {
+          field: String(field),
+          error:
+            typeof errorValue === 'string' ? errorValue : String(errorValue),
+        } as AppErrorValidationIssue;
+      })
+      .filter((v) => v.field.length > 0 && v.error.length > 0);
   }
 
   private defaultMessageForStatus(status: number): string {
