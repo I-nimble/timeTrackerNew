@@ -12,8 +12,8 @@
     "format": "prettier --write .",
     "refactor:check-legacy": "powershell -ExecutionPolicy Bypass -File ./tools/refactor/check-legacy-imports.ps1",
     "prepare": "husky",
-    "analyze:baseline:prod": "mkdir -p bundle-analysis/baseline && ng build --configuration=analysis-prod --stats-json && source-map-explorer 'dist/browser/*.js' --html bundle-analysis/baseline/baseline-report-prod.html --no-border-checks && cp dist/stats.json bundle-analysis/baseline/baseline-stats-prod.json",
-    "analyze:baseline:dev": "mkdir -p bundle-analysis/baseline && ng build --configuration=development --source-map --stats-json && source-map-explorer 'dist/browser/*.js' --html bundle-analysis/baseline/baseline-report-dev.html --no-border-checks && cp dist/stats.json bundle-analysis/baseline/baseline-stats-dev.json",
+    "analyze:baseline:prod": "shx mkdir -p bundle-analysis/baseline && ng build --configuration=analysis-prod --stats-json && node ./node_modules/source-map-explorer/bin/cli.js \"dist/browser/*.js\" --html bundle-analysis/baseline/baseline-report-prod.html --no-border-checks && shx cp dist/stats.json bundle-analysis/baseline/baseline-stats-prod.json",
+    "analyze:baseline:dev": "shx mkdir -p bundle-analysis/baseline && ng build --configuration=development --source-map --stats-json && node ./node_modules/source-map-explorer/bin/cli.js \"dist/browser/*.js\" --html bundle-analysis/baseline/baseline-report-dev.html --no-border-checks && shx cp dist/stats.json bundle-analysis/baseline/baseline-stats-dev.json",
     "analyze:wb:prod": "webpack-bundle-analyzer bundle-analysis/baseline/baseline-stats-prod.json --mode static --report bundle-analysis/baseline/baseline-report-wb-prod.html --no-open",
     "analyze:wb:dev": "webpack-bundle-analyzer bundle-analysis/baseline/baseline-stats-dev.json --mode static --report bundle-analysis/baseline/baseline-report-wb-dev.html --no-open"
   },
@@ -125,6 +125,7 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
+    "shx": "^0.4.0",
     "source-map-explorer": "^2.5.3",
     "typescript": "~5.6.3",
     "typescript-eslint": "8.46.4",
