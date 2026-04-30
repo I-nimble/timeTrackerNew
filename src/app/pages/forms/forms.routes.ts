@@ -12,7 +12,6 @@ import { AppFormHorizontalComponent } from './form-horizontal/form-horizontal.co
 import { AppFormLayoutsComponent } from './form-layouts/form-layouts.component';
 import { AppFormVerticalComponent } from './form-vertical/form-vertical.component';
 import { AppFormWizardComponent } from './form-wizard/form-wizard.component';
-import { AppFormToastrComponent } from './form-toastr/form-toastr.component';
 
 export const FormsRoutes: Routes = [
   {
@@ -120,17 +119,6 @@ export const FormsRoutes: Routes = [
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Form Wizard' },
-          ],
-        },
-      },
-      {
-        path: 'form-toastr',
-        component: AppFormToastrComponent,
-        data: {
-          title: 'Form Toastr',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Form Toastr' },
           ],
         },
       },
