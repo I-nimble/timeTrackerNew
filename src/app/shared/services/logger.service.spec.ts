@@ -41,6 +41,28 @@ describe('LoggerService', () => {
     expect(spy).toHaveBeenCalled();
   });
 
+  it('debug() should not append an empty context argument', () => {
+    const spy = spyOn(console, 'debug');
+    service.debug('trace');
+
+    expect(spy.calls.mostRecent().args).toEqual([jasmine.any(String), 'trace']);
+  });
+
+  it('should suppress debug logs when the minimum level is warn', () => {
+    const spy = spyOn(console, 'debug');
+    Object.defineProperty(
+      service as LoggerService & { minLevel: string },
+      'minLevel',
+      {
+        value: 'warn',
+      },
+    );
+
+    service.debug('ignored');
+
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it('withScope() should prefix messages with the scope name', () => {
     const spy = spyOn(console, 'info');
     const scoped = service.withScope('Users');
@@ -55,5 +77,13 @@ describe('LoggerService', () => {
     const spy = spyOn(console, 'error');
     service.withScope('Auth').error('failed');
     expect(spy).toHaveBeenCalled();
+  });
+
+  it('withScope() should allow chained scopes', () => {
+    const spy = spyOn(console, 'warn');
+
+    service.withScope('Auth').withScope('JWT').warn('expired');
+
+    expect(spy.calls.mostRecent().args[1]).toBe('[Auth] [JWT] expired');
   });
 });

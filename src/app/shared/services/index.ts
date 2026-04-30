@@ -10,3 +10,4 @@ export {
   type AppError,
   type AppErrorValidationIssue,
 } from './error-handler.service';
+export { AUTH_TOKEN_STORAGE_KEY } from './auth-storage.constants';

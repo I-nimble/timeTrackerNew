@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { AUTH_TOKEN_STORAGE_KEY } from '@shared/services/auth-storage.constants';
 import { LoggerService } from '@shared/services/logger.service';
 import { Observable, Subject } from 'rxjs';
 
@@ -129,7 +130,7 @@ export class ErrorHandlerService implements OnDestroy {
 
   private redirectToLogin(): void {
     try {
-      localStorage.removeItem('jwt');
+      localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     } catch {
       /* ignore storage errors (SSR / privacy mode) */
     }
