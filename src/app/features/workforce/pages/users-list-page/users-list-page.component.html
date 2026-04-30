@@ -1,0 +1,43 @@
+<section class="users-list-page">
+  @if (title(); as headingText) {
+    <header class="users-list-page__header">
+      <h1 class="users-list-page__title">{{ headingText }}</h1>
+    </header>
+  }
+
+  @if (error(); as errorMessage) {
+    <div class="users-list-page__error" role="alert">{{ errorMessage }}</div>
+  }
+
+  <app-users-controls
+    [filter]="filter()"
+    (search)="onSearch($event)"
+    (filterByRole)="onFilterByRole($event)"
+    (newUser)="openForm()"
+  />
+
+  @if (showSpinner()) {
+    <div class="users-list-page__spinner">
+      <mat-progress-spinner mode="indeterminate" diameter="48" />
+    </div>
+  }
+
+  <app-user-list
+    [items]="usersList().items"
+    [meta]="usersList().meta"
+    [columns]="columns()"
+    (delete)="onDelete($event)"
+    (edit)="openForm($event)"
+    (toggleActive)="onToggleActive($event)"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)"
+  />
+
+  @if (formOpen()) {
+    <app-user-form-modal
+      [user]="editingUser()"
+      (save)="onSaveUser($event)"
+      (close)="closeForm()"
+    />
+  }
+</section>
