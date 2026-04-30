@@ -9,10 +9,13 @@ import { Router } from '@angular/router';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MaterialModule } from 'src/app/material.module';
+import { ApplicationListResponse } from 'src/app/models/application.model';
 import { Certification } from 'src/app/models/certifications';
 import { Company } from 'src/app/models/Company.model';
+import { Positions } from 'src/app/models/Position.model';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { ApplicationListQuery } from 'src/app/services/applications.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { DiscProfilesService } from 'src/app/services/disc-profiles.service';
 import { InterviewsService } from 'src/app/services/interviews.service';
@@ -35,11 +38,9 @@ interface PermissionResponse {
   effectivePermissions?: string[];
 }
 
-interface PositionRecord {
-  id: number;
-  title?: string;
+type PositionRecord = Positions & {
   disc_profiles?: ProfileRecord[];
-}
+};
 
 interface ProfileRecord {
   name?: string | null;
@@ -64,18 +65,6 @@ interface TalentMatchApplication {
   status?: string | null;
   disc_profiles?: ProfileRecord[];
   resume_url?: string | null;
-}
-
-interface ApplicationListResponse {
-  items: TalentMatchApplication[];
-  meta: {
-    totalPages: number;
-    currentPage: number;
-    limit: number;
-    sortBy: string;
-    sortOrder: string;
-  };
-  message?: string;
 }
 
 @Component({
@@ -151,7 +140,7 @@ export class AppTalentMatchAdminComponent implements OnInit {
 
   getPositions(): void {
     this.positionsService.get().subscribe({
-      next: (positions: PositionRecord[]) => {
+      next: (positions: Positions[]) => {
         this.positions = positions;
       },
       error: (err: unknown) => {
@@ -171,11 +160,12 @@ export class AppTalentMatchAdminComponent implements OnInit {
         sortBy: this.sortBy,
         sortOrder: this.sortOrder,
         search: this.searchTerm,
-      })
+      } as ApplicationListQuery)
       .subscribe({
         next: (response: ApplicationListResponse) => {
-          this.applicationsData = response.items;
-          this.rows = response.items;
+          const items = response.items as TalentMatchApplication[];
+          this.applicationsData = items;
+          this.rows = items;
           this.totalPages = response.meta.totalPages;
           this.currentPage = response.meta.currentPage;
           this.pageSize = response.meta.limit;
@@ -237,14 +227,16 @@ export class AppTalentMatchAdminComponent implements OnInit {
     return null;
   }
 
-  getPositionTitle(positionId: number | null | undefined): string | undefined {
-    return this.positions.find((position) => position.id === positionId)?.title;
+  getPositionTitle(
+    positionId: string | number | null | undefined,
+  ): string | undefined {
+    return this.positions.find((position) => position.id == positionId)?.title;
   }
 
   getPositionById(
-    positionId: number | null | undefined,
+    positionId: string | number | null | undefined,
   ): PositionRecord | undefined {
-    return this.positions.find((position) => position.id === positionId);
+    return this.positions.find((position) => position.id == positionId);
   }
 
   getDiscProfileColor(profileName: string): string {

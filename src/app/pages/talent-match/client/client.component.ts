@@ -11,34 +11,18 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  OnInit,
-  ViewChild,
   Inject,
+  OnInit,
   TemplateRef,
-} from '@angular/core';
-import {
-  Component,
-  OnInit,
   ViewChild,
-  AfterViewInit,
-  Optional,
-  Inject,
 } from '@angular/core';
 import {
-  FormsModule,
-  ReactiveFormsModule,
   FormBuilder,
   FormGroup,
-  Validators,
-  NgModel,
-} from '@angular/forms';
-import {
   FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
   NgModel,
+  ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -48,44 +32,29 @@ import {
   MatDialog,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatTabHeader, MatTabBody } from '@angular/material/tabs';
-import { Router } from '@angular/router';
+import { MatTabBody, MatTabHeader } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 
-import { NgxSliderModule } from '@angular-slider/ngx-slider';
-import { Options } from '@angular-slider/ngx-slider';
+import { NgxSliderModule, Options } from '@angular-slider/ngx-slider';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import moment from 'moment';
+import { Highlight, HighlightAuto } from 'ngx-highlightjs';
+import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
+import { MaterialModule } from 'src/app/material.module';
 import {
-  CandidateEvaluationResponse,
   CandidateEvaluationFilters,
+  CandidateEvaluationResponse,
 } from 'src/app/models/ai.model';
+import { ApplicationListResponse } from 'src/app/models/application.model';
 import { FormatNamePipe } from 'src/app/pipe/format-name.pipe';
-import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
-import { AIService } from 'src/app/services/ai.service';
-import { ApplicationsService } from 'src/app/services/applications.service';
-import { PositionsService } from 'src/app/services/positions.service';
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { InterviewsService } from 'src/app/services/interviews.service';
-import { CompaniesService } from 'src/app/services/companies.service';
-import {
-  ApplicationMatchScoresService,
-  PositionCategory,
-} from 'src/app/services/application-match-scores.service';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { AIService } from 'src/app/services/ai.service';
 import {
@@ -104,7 +73,10 @@ import {
   DynamicTableSortChange,
 } from 'src/app/shared/models/dynamic-table.model';
 import { getTrainingNames } from 'src/app/utils/candidate.utils';
-import { ApplicationListResponse } from 'src/app/models/application.model';
+import {
+  formatEnglishLevelDisplay,
+  getEnglishLevelPercent,
+} from 'src/app/utils/english-level';
 
 @Component({
   standalone: true,
@@ -417,9 +389,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         if (stored.filters.selectedPracticeArea !== undefined)
           this.selectedPracticeArea = stored.filters.selectedPracticeArea;
         if (stored.filters.roleDescription !== undefined)
-          this.roleDescription = stored.filters.roleDescription;
+          this.roleDescription = stored.filters.roleDescription ?? '';
         if (stored.filters.query !== undefined)
-          this.query = stored.filters.query;
+          this.query = stored.filters.query ?? '';
       }
       if (stored?.sessionId) this.activeAISearchSessionId = stored.sessionId;
       this.hasRestoredStoredSearch = true;
