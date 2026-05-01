@@ -1,19 +1,19 @@
 import { NgIf } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
-  FormGroup,
   FormControl,
-  Validators,
+  FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
-import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { Loader } from 'src/app/app.models';
-import { Login, SignUp } from 'src/app/models/Auth';
 import { SignupDataService } from 'src/app/models/SignupData.model';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { CoreService } from 'src/app/services/core.service';
@@ -24,10 +24,9 @@ import { RocketChatService } from 'src/app/services/rocket-chat.service';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { UsersService } from 'src/app/services/users.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
-import { environment } from 'src/environments/environment';
 
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { MaterialModule } from '../../../legacy/material.module';
+import { MaterialModule } from '../../../material.module';
 import { AuthService } from '../../../services/auth.service';
 
 export function jwtOptionsFactory() {
@@ -62,46 +61,28 @@ export function jwtOptionsFactory() {
 })
 export class AppSideLoginComponent {
   notificationStore = inject(NotificationStore);
-  //@HostBinding('class') classes = 'row';
-  // isSignUp: boolean = false;
-  // login: Login = {
-  //  email: '',
-  //  password: '',
-  // };
-  // signUp: SignUp = {
-  //   email: '',
-  //   password: '',
-  //   confirmPass: '',
-  //   name: '',
-  //   last_name: '',
-  // };
-  message: any;
+  private settings = inject(CoreService);
+  private router = inject(Router);
+  private socketService = inject(WebSocketService);
+  private notificationsService = inject(NotificationsService);
+  private entriesService = inject(EntriesService);
+  private signupDataService = inject(SignupDataService);
+  private employeeService = inject(UsersService);
+  private companieService = inject(CompaniesService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+  private rocketChatService = inject(RocketChatService);
+  private locationService = inject(LocationService);
+
+  message: string | null = null;
   passerror = false;
   emailerror = false;
   includeLiveChat = false;
-  liveChatScript?: any;
-  liveChatBubble?: any;
-  //assetPath = environment.assets + '/resources/empleadossection.png';
   assetPath = 'assets/images/login.png';
   options = this.settings.getOptions();
   loader: Loader = new Loader(false, false, false);
-  route: any = '';
+  route = '';
   loginWithGoogle = false;
-
-  constructor(
-    private settings: CoreService,
-    private router: Router,
-    private socketService: WebSocketService,
-    private notificationsService: NotificationsService,
-    private entriesService: EntriesService,
-    private signupDataService: SignupDataService,
-    private employeeService: UsersService,
-    private companieService: CompaniesService,
-    private authService: AuthService,
-    private snackBar: MatSnackBar,
-    private rocketChatService: RocketChatService,
-    private locationService: LocationService,
-  ) {}
 
   form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.minLength(6)]),
@@ -115,22 +96,6 @@ export class AppSideLoginComponent {
     return this.form.controls;
   }
 
-  // googleLogin() {
-  //   this.loginWithGoogle = true;
-  //   this.authService.signInWithGoogle().subscribe({
-  //     next: (response: any) => {
-  //       this.loginWithGoogle = false;
-  //       this.authLogin(response.googleId);
-  //     },
-  //     error: (e) => {
-  //       this.loginWithGoogle = false;
-  //       this.openSnackBar("Error logging in with Google", "error");
-  //       console.error(e);
-  //       return;
-  //     },
-  //   });
-  // }
-
   authLogin(googleId?: string) {
     if ((this.form.value.email && this.form.value.password) || googleId) {
       this.authService
@@ -141,14 +106,14 @@ export class AppSideLoginComponent {
         )
         .subscribe({
           next: (v) => {
-            const jwt = v.token;
-            const name = v.username;
-            const last_name = v.last_name;
-            const role = v.role_id;
-            const email = v.email;
-            const id = v.id;
-            const isOrphan = v.isOrphan;
-            const chatCredentials = v.chatCredentials;
+            const jwt = v['token'] as string;
+            const name = v['username'] as string;
+            const last_name = v['last_name'] as string;
+            const role = v['role_id'] as string;
+            const email = v['email'] as string;
+            const id = v['id'] as string;
+            const isOrphan = v['isOrphan'] as string;
+            const chatCredentials = v['chatCredentials'];
             localStorage.setItem('role', role);
             localStorage.setItem('username', name + ' ' + last_name);
             localStorage.setItem('jwt', jwt);
@@ -180,22 +145,19 @@ export class AppSideLoginComponent {
                 visibleChatCollection.length > 0 ||
                 hiddenChatCollection.length > 0
               ) {
-                if (visibleChatCollection.length > 0) {
-                  this.liveChatBubble = visibleChatCollection[0];
-                } else if (hiddenChatCollection.length > 0) {
-                  this.liveChatBubble = hiddenChatCollection[0];
-                }
+                const bubble =
+                  visibleChatCollection.length > 0
+                    ? visibleChatCollection[0]
+                    : hiddenChatCollection[0];
                 if (role == '3') {
-                  if (this.liveChatBubble.classList.contains('widget-hidden')) {
-                    this.liveChatBubble.classList.remove('widget-hidden');
-                    this.liveChatBubble.classList.add('widget-visible');
+                  if (bubble.classList.contains('widget-hidden')) {
+                    bubble.classList.remove('widget-hidden');
+                    bubble.classList.add('widget-visible');
                   }
                 } else {
-                  if (
-                    this.liveChatBubble.classList.contains('widget-visible')
-                  ) {
-                    this.liveChatBubble.classList.remove('widget-visible');
-                    this.liveChatBubble.classList.add('widget-hidden');
+                  if (bubble.classList.contains('widget-visible')) {
+                    bubble.classList.remove('widget-visible');
+                    bubble.classList.add('widget-hidden');
                   }
                 }
               }
@@ -203,7 +165,6 @@ export class AppSideLoginComponent {
             }, 100);
           },
           error: (err: HttpErrorResponse) => {
-            const { error } = err;
             this.openSnackBar(
               'Login error: ' + (err.error?.message || ' Please, try again.'),
             );

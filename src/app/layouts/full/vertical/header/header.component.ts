@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   Output,
@@ -9,7 +10,11 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { RouterModule } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+
 import { RouterModule } from '@angular/router';
 import { Router, NavigationEnd } from '@angular/router';
 
@@ -18,15 +23,24 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { filter } from 'rxjs/operators';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { filter } from 'rxjs/operators';
 import { AppSettings } from 'src/app/config';
 import { MaterialModule } from 'src/app/legacy/material.module';
 import { ApplicationsService } from 'src/app/services/applications.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { CoreService } from 'src/app/services/core.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { CoreService } from 'src/app/services/core.service';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PermissionService } from 'src/app/services/permission.service';
 import { RoleTourService } from 'src/app/services/role-tour.service';
+import { WebSocketService } from 'src/app/services/socket/web-socket.service';
+import { UsersService } from 'src/app/services/users.service';
+import { environment } from 'src/environments/environment';
+
+import { getNavItems } from '../sidebar/sidebar-data';
 import { WebSocketService } from 'src/app/services/socket/web-socket.service';
 import { UsersService } from 'src/app/services/users.service';
 import { environment } from 'src/environments/environment';
@@ -84,6 +98,7 @@ export class HeaderComponent implements OnInit {
   @Output() toggleCollapsed = new EventEmitter<void>();
 
   isCollapse = false; // Initially hidden
+  isCollapse = false; // Initially hidden
   company: any;
   userName: any;
   userId: any;
@@ -97,7 +112,13 @@ export class HeaderComponent implements OnInit {
   hasPendingNotifications = false;
   private previousNotificationCount = 0;
   hasNewTalentMatch = false;
+  hasPendingNotifications = false;
+  private previousNotificationCount = 0;
+  hasNewTalentMatch = false;
   role: any = localStorage.getItem('role');
+  allowedTM = false;
+  allowedContentCreatorEmails: string[] =
+    environment.allowedContentCreatorEmails;
   allowedTM = false;
   allowedContentCreatorEmails: string[] =
     environment.allowedContentCreatorEmails;
@@ -108,7 +129,14 @@ export class HeaderComponent implements OnInit {
   canViewCandidates = false;
   canViewExpertMatch = false;
   canViewMySentinel = false;
+  isOrphan = false;
+  canViewTalentMatch = false;
+  canViewCandidates = false;
+  canViewExpertMatch = false;
+  canViewMySentinel = false;
   isTourActive$ = this.roleTourService.isActive$;
+  showTourHelpButton = false;
+  canViewRejected = false;
   showTourHelpButton = false;
   canViewRejected = false;
   toggleCollpase() {
@@ -178,6 +206,7 @@ export class HeaderComponent implements OnInit {
       this.loadProfilePicture();
     });
     this.usersService.username$.subscribe((name) => {
+    this.usersService.username$.subscribe((name) => {
       this.userName = name;
     });
     this.getUserData();
@@ -210,6 +239,7 @@ export class HeaderComponent implements OnInit {
         console.error('Error fetching user permissions', err);
         this.buildProfileMenu();
       },
+      },
     });
     const allowedTM = environment.allowedReportEmails;
     const email = localStorage.getItem('email');
@@ -235,6 +265,14 @@ export class HeaderComponent implements OnInit {
     this.permissionService.getUserPermissions(userId).subscribe({
       next: (userPerms: any) => {
         this.userPermissions = userPerms.effectivePermissions || [];
+        this.canViewTalentMatch =
+          this.userPermissions.includes('talent-match.view');
+        this.canViewCandidates =
+          this.userPermissions.includes('candidates.view');
+        this.canViewExpertMatch =
+          this.userPermissions.includes('expert-match.view');
+        this.canViewMySentinel =
+          this.userPermissions.includes('my-sentinel.view');
         this.canViewTalentMatch =
           this.userPermissions.includes('talent-match.view');
         this.canViewCandidates =
@@ -308,6 +346,62 @@ export class HeaderComponent implements OnInit {
         : []),
     ];
   }
+  private buildProfileMenu() {
+    this.profiledd = [
+      {
+        id: 1,
+        img: 'wallet',
+        color: 'primary',
+        title: 'My Profile',
+        subtitle: 'Account Settings',
+        link: 'apps/account-settings',
+      },
+      {
+        id: 2,
+        img: 'shield',
+        color: 'success',
+        title: 'My Inbox',
+        subtitle: 'Notifications',
+        link: '/dashboards/notifications',
+      },
+      ...(this.userPermissions.includes('users.view')
+        ? [
+            {
+              id: 3,
+              img: 'users',
+              color: 'error',
+              title: 'My Team',
+              subtitle: 'Team members',
+              link: '/apps/team',
+            },
+          ]
+        : []),
+      ...(this.userPermissions.includes('payments.view')
+        ? [
+            {
+              id: 4,
+              img: 'credit-card',
+              color: 'warning',
+              title: 'Payments',
+              subtitle: 'Manage your payments',
+              link: '/apps/invoice',
+            },
+          ]
+        : []),
+      ...(!this.isOrphan
+        ? [
+            {
+              id: 5,
+              img: 'target',
+              color: 'success',
+              title: 'R3',
+              subtitle: 'Document your future plans',
+              link: 'apps/r3',
+            },
+          ]
+        : []),
+    ];
+  }
 
   getUserData() {
     this.userId = localStorage.getItem('id');
@@ -321,6 +415,7 @@ export class HeaderComponent implements OnInit {
       });
     }
     // else {
+    this.loadProfilePicture();
     this.loadProfilePicture();
     // }
   }
@@ -347,9 +442,14 @@ export class HeaderComponent implements OnInit {
 
   getApplications() {
     this.applicationsService.get().subscribe({
-      next: (apps) => {
-        this.applications = apps;
+      next: (apps: any[] | { items?: any[] }) => {
+        this.applications = Array.isArray(apps) ? apps : apps.items || [];
         const role = localStorage.getItem('role');
+
+        if (
+          role === '3' &&
+          this.applications.find((app: any) => app.status_id === 1)
+        ) {
 
         if (
           role === '3' &&
@@ -563,17 +663,21 @@ export class HeaderComponent implements OnInit {
     this.notificationsService.get().subscribe((notifications) => {
       const unreadNotifications = notifications.filter(
         (n: any) => n.users_notifications.status != 2,
+        (n: any) => n.users_notifications.status != 2,
       );
       unreadNotifications.sort(
         (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
       this.recentNotifications = unreadNotifications.slice(0, 5);
       this.hasPendingNotifications = this.recentNotifications?.some(
         (n) => n.users_notifications.status === 4,
+        (n) => n.users_notifications.status === 4,
       );
       const isNew = notifications.length > this.previousNotificationCount;
       if (isNew && this.hasPendingNotifications) {
+        // this.playNotificationSound();
         // this.playNotificationSound();
       }
       this.previousNotificationCount = notifications.length;
@@ -614,6 +718,7 @@ export class HeaderComponent implements OnInit {
     //   this.loadNotifications();
     // });
 
+
     this.notificationsService.update([notification], 2).subscribe(() => {
       this.loadNotifications();
       this.router.navigate(['/dashboards/notifications']);
@@ -629,9 +734,11 @@ export class HeaderComponent implements OnInit {
 export class AppSearchDialogComponent {
   role: any = localStorage.getItem('role');
   searchText = '';
+  searchText = '';
   navItems = getNavItems(this.role);
 
   navItemsData = getNavItems(this.role).filter(
+    (navitem) => navitem.displayName,
     (navitem) => navitem.displayName,
   );
 

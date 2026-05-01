@@ -123,17 +123,6 @@ export const FormsRoutes: Routes = [
           ],
         },
       },
-      {
-        path: 'form-toastr',
-        component: AppFormToastrComponent,
-        data: {
-          title: 'Form Toastr',
-          urls: [
-            { title: 'Dashboard', url: '/dashboards/dashboard2' },
-            { title: 'Form Toastr' },
-          ],
-        },
-      },
     ],
   },
 ];

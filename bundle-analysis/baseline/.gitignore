@@ -1,0 +1,4 @@
+# Generated reports — re-run npm scripts to regenerate
+*.html
+*.json
+!.gitignore

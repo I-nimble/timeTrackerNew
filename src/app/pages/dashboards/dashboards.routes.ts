@@ -1,21 +1,16 @@
 import { Routes } from '@angular/router';
 
-// dashboards
+import { ROLES } from '@core/role.constants';
 import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
-import { UserTypeGuardService } from 'src/app/services/guards/user-type-guard.service';
+import { AuthGuard } from 'src/app/services/guards/auth-guard.service';
+import { roleGuard } from 'src/app/services/guards/role.guard';
 
 import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
-import { AppDashboard1Component } from './dashboard1/dashboard1.component';
 import { AppDashboard2Component } from './dashboard2/dashboard2.component';
 import { ProductivityComponent } from './productivity/productivity.component';
 import { ReportsComponent } from './reports/reports.component';
 import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
-
-const ADMIN_TYPE_ROLE = '1';
-const USER_TYPE_ROLE = '2';
-const CLIENT_TYPE_ROLE = '3';
-const SUPPORT_TYPE_ROLE = '4';
 
 export const DashboardsRoutes: Routes = [
   {
@@ -24,80 +19,60 @@ export const DashboardsRoutes: Routes = [
       {
         path: 'dashboard2',
         component: AppDashboard2Component,
-        data: { title: 'Dashboard', allowedUserTypes: [CLIENT_TYPE_ROLE] },
-        canActivate: [UserTypeGuardService],
+        canActivate: [AuthGuard, roleGuard],
+        data: { title: 'Dashboard', allowedRoles: [ROLES.CLIENT] },
       },
       {
         path: 'tm',
         component: AppDashboardTMComponent,
-        data: { title: 'Dashboard', allowedUserTypes: [USER_TYPE_ROLE] },
-        canActivate: [UserTypeGuardService],
+        canActivate: [AuthGuard, roleGuard],
+        data: { title: 'Dashboard', allowedRoles: [ROLES.USER] },
       },
       {
         path: 'admin',
         component: AppDashboardAdminComponent,
+        canActivate: [AuthGuard, roleGuard],
         data: {
           title: 'Dashboard',
-          allowedUserTypes: [ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE],
+          allowedRoles: [ROLES.ADMIN, ROLES.SUPPORT],
         },
-        canActivate: [UserTypeGuardService],
       },
       {
         path: 'reports',
         component: ReportsComponent,
+        canActivate: [AuthGuard, roleGuard],
         data: {
           title: 'Reports',
-          allowedUserTypes: [
-            ADMIN_TYPE_ROLE,
-            USER_TYPE_ROLE,
-            CLIENT_TYPE_ROLE,
-            SUPPORT_TYPE_ROLE,
-          ],
+          allowedRoles: '*',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Reports' },
           ],
         },
-        canActivate: [UserTypeGuardService],
       },
       {
         path: 'productivity',
         component: ProductivityComponent,
+        canActivate: [AuthGuard, roleGuard],
         data: {
           title: 'Productivity',
-          allowedUserTypes: [
-            ADMIN_TYPE_ROLE,
-            USER_TYPE_ROLE,
-            CLIENT_TYPE_ROLE,
-            SUPPORT_TYPE_ROLE,
-          ],
+          allowedRoles: '*',
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard2' },
             { title: 'Productivity' },
           ],
         },
-        canActivate: [UserTypeGuardService],
       },
       {
         path: 'notifications',
         component: NotificationsPageComponent,
-        data: {
-          title: 'Notifications',
-          allowedUserTypes: [
-            ADMIN_TYPE_ROLE,
-            USER_TYPE_ROLE,
-            CLIENT_TYPE_ROLE,
-            SUPPORT_TYPE_ROLE,
-          ],
-        },
-        canActivate: [UserTypeGuardService],
+        canActivate: [AuthGuard, roleGuard],
+        data: { title: 'Notifications', allowedRoles: '*' },
       },
       {
         path: 'maintenance',
         component: AppMaintenanceComponent,
-        data: {
-          title: 'Maintenance',
-        },
+        data: { title: 'Maintenance' },
       },
     ],
   },

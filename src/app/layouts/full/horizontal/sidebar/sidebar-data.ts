@@ -362,11 +362,6 @@ function getNavItems(): NavItem[] {
                 iconName: 'point',
                 route: '/forms/form-wizard',
               },
-              {
-                displayName: 'Toastr',
-                iconName: 'point',
-                route: '/forms/form-toastr',
-              },
             ],
           },
         ]

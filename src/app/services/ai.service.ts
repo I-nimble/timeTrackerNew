@@ -4,6 +4,17 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
+import {
+  CandidateEvaluationFilters,
+  CandidateEvaluationResponse,
+} from '../models/ai.model';
+
+interface CandidateEvaluationQuery {
+  page?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
 
 @Injectable({ providedIn: 'root' })
 export class AIService {
@@ -21,39 +32,43 @@ export class AIService {
     );
   }
 
-  evaluateCandidates(
-    candidates: any[],
-    question: string,
-  ): Observable<{
-    answer: { parts: { text: string }[] };
-    enhanced_results: {
-      name: string;
-      match_percentage: number;
-      overall_match_percentage?: number;
-      position_category: string;
-      category_description?: string;
-      best_position_category_id?: number;
-    }[];
-    best_position_category?: {
-      id: number;
-      name: string;
-    };
-  }> {
-    return this.http.post<{
-      answer: { parts: { text: string }[] };
-      enhanced_results: {
-        name: string;
-        match_percentage: number;
-        overall_match_percentage?: number;
-        position_category: string;
-        category_description?: string;
-        best_position_category_id?: number;
-      }[];
-      best_position_category?: {
-        id: number;
-        name: string;
-      };
-    }>(`${this.API_URI}/ai/candidate-evaluation`, { candidates, question });
+  evaluateCandidates(payload: {
+    question: string;
+    filters: CandidateEvaluationFilters;
+    page?: number;
+    offset?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }): Observable<CandidateEvaluationResponse> {
+    return this.http.post<CandidateEvaluationResponse>(
+      `${this.API_URI}/ai/candidate-evaluation`,
+      payload,
+    );
+  }
+
+  getCandidateEvaluationResults(
+    sessionId: string,
+    query: CandidateEvaluationQuery,
+  ): Observable<CandidateEvaluationResponse> {
+    const queryParams = new URLSearchParams();
+    if (query.page !== undefined) {
+      queryParams.set('page', String(query.page));
+    }
+    if (query.offset !== undefined) {
+      queryParams.set('offset', String(query.offset));
+    }
+    if (query.sortBy) {
+      queryParams.set('sortBy', query.sortBy);
+    }
+    if (query.sortOrder) {
+      queryParams.set('sortOrder', query.sortOrder);
+    }
+
+    const queryString = queryParams.toString();
+
+    return this.http.get<CandidateEvaluationResponse>(
+      `${this.API_URI}/ai/candidate-evaluation/${sessionId}/results${queryString ? `?${queryString}` : ''}`,
+    );
   }
 
   evaluatePosts(question: string): Observable<{

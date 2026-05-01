@@ -5,6 +5,16 @@ import { Observable, forkJoin, of, Subject, tap } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
+import { ApplicationListResponse } from '../models/application.model';
+
+export interface ApplicationListQuery {
+  page?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  search?: string;
+  onlyTalentPool?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -101,10 +111,47 @@ export class ApplicationsService {
     return this.http.get<any[]>(`${this.API_URI}/applications/rankings`);
   }
 
-  public get(onlyTalentPool = false): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.API_URI}/applications/${onlyTalentPool ? '?onlyTalentPool=true' : ''}`,
-    );
+  public get(onlyTalentPool?: boolean): Observable<any[]>;
+  public get(
+    options: ApplicationListQuery,
+  ): Observable<ApplicationListResponse>;
+  public get(
+    onlyTalentPoolOrOptions: boolean | ApplicationListQuery = false,
+  ): Observable<any[] | ApplicationListResponse> {
+    const isOptionsObject =
+      typeof onlyTalentPoolOrOptions === 'object' &&
+      onlyTalentPoolOrOptions !== null;
+
+    const queryParams = new URLSearchParams();
+
+    if (isOptionsObject) {
+      const options = onlyTalentPoolOrOptions;
+      if (options.onlyTalentPool) {
+        queryParams.set('onlyTalentPool', 'true');
+      }
+      if (options.page !== undefined) {
+        queryParams.set('page', String(options.page));
+      }
+      if (options.offset !== undefined) {
+        queryParams.set('offset', String(options.offset));
+      }
+      if (options.sortBy) {
+        queryParams.set('sortBy', options.sortBy);
+      }
+      if (options.sortOrder) {
+        queryParams.set('sortOrder', options.sortOrder);
+      }
+      if (options.search !== undefined) {
+        queryParams.set('search', options.search);
+      }
+    } else if (onlyTalentPoolOrOptions) {
+      queryParams.set('onlyTalentPool', 'true');
+    }
+
+    const queryString = queryParams.toString();
+    const url = `${this.API_URI}/applications${queryString ? `?${queryString}` : ''}`;
+
+    return this.http.get<any[] | ApplicationListResponse>(url);
   }
 
   public getSelectedApplications(): Observable<any[]> {

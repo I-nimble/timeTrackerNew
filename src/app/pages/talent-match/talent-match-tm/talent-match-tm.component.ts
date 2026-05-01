@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { TemplateRef, ViewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Router } from '@angular/router';
 
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/legacy/material.module';
+import { MaterialModule } from 'src/app/material.module';
 import { Department } from 'src/app/models/Department.model';
 import { Positions } from 'src/app/models/Position.model';
 import { ApplicationsService } from 'src/app/services/applications.service';
-import { DepartmentsService } from 'src/app/services/departments.service';
-import { EmployeesService } from 'src/app/services/employees.service';
-import { PositionsService } from 'src/app/services/positions.service';
+import { DynamicTableComponent } from 'src/app/shared/components/dynamic-table/dynamic-table.component';
+import { DynamicTableColumn } from 'src/app/shared/models/dynamic-table.model';
 
 @Component({
   standalone: true,
@@ -21,18 +21,22 @@ import { PositionsService } from 'src/app/services/positions.service';
   imports: [
     CommonModule,
     MatCardModule,
-    MatTableModule,
     MaterialModule,
     TablerIconsModule,
+    DynamicTableComponent,
   ],
 })
 export class AppTalentMatchTmComponent implements OnInit {
-  displayedColumns: string[] = ['title', 'actions'];
+  tableColumns: DynamicTableColumn<Positions>[] = [];
   applicationId!: number;
   currentApplicationPositionId?: number;
   departments: Department[] = [];
   allPositions: Positions[] = [];
-  dataSource = new MatTableDataSource<Positions>([]);
+  rows: Positions[] = [];
+  tableLoading = false;
+
+  @ViewChild('applyActionTemplate', { static: true })
+  applyActionTemplate!: TemplateRef<any>;
 
   constructor(
     private positionsService: PositionsService,
@@ -44,27 +48,36 @@ export class AppTalentMatchTmComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.initializeColumns();
     this.loadDepartments();
   }
 
   getPositions(): void {
+    this.tableLoading = true;
     this.positionsService.get().subscribe({
       next: (positions: any[]) => {
-        this.dataSource.data = positions;
+        this.rows = positions;
+        this.tableLoading = false;
       },
       error: (err) => {
         console.error('Error loading positions', err);
+        this.tableLoading = false;
       },
     });
   }
 
   loadDepartments(): void {
+    this.tableLoading = true;
     this.departmentsService.get().subscribe({
       next: (departments: Department[]) => {
         this.departments = departments;
         this.loadPositions();
       },
-      error: (err) => console.error('Error loading departments', err),
+      error: (err) => {
+        console.error('Error loading departments', err);
+        this.rows = [];
+        this.tableLoading = false;
+      },
     });
   }
 
@@ -74,7 +87,11 @@ export class AppTalentMatchTmComponent implements OnInit {
         this.allPositions = positions;
         this.filterPositionsByCurrentPosition();
       },
-      error: (err) => console.error('Error loading positions', err),
+      error: (err) => {
+        console.error('Error loading positions', err);
+        this.rows = [];
+        this.tableLoading = false;
+      },
     });
   }
 
@@ -84,7 +101,8 @@ export class AppTalentMatchTmComponent implements OnInit {
       next: (application: any) => {
         if (!application) {
           console.warn('No application found for user');
-          this.dataSource.data = [];
+          this.rows = [];
+          this.tableLoading = false;
           return;
         }
         this.applicationId = application.id;
@@ -92,21 +110,24 @@ export class AppTalentMatchTmComponent implements OnInit {
         const currentPosition = application.current_position;
         if (!currentPosition) {
           console.warn('No current_position found for user');
-          this.dataSource.data = [];
+          this.rows = [];
+          this.tableLoading = false;
           return;
         }
 
         const allowedDepartmentIds =
           this.getAllowedDepartmentIds(currentPosition);
 
-        this.dataSource.data = this.allPositions.filter((p: any) => {
+        this.rows = this.allPositions.filter((p: any) => {
           const deptId = p.department_id ?? p.department?.id ?? null;
           return deptId && allowedDepartmentIds.includes(Number(deptId));
         });
+        this.tableLoading = false;
       },
       error: (err) => {
         console.error('Error fetching user application', err);
-        this.dataSource.data = [];
+        this.rows = [];
+        this.tableLoading = false;
       },
     });
   }
@@ -142,7 +163,11 @@ export class AppTalentMatchTmComponent implements OnInit {
     };
     this.applicationsService.submit(payload, this.applicationId).subscribe({
       next: (updatedApp) => {
-        this.currentApplicationPositionId = updatedApp.position_id;
+        // Some responses do not include position_id; fallback to clicked row id.
+        this.currentApplicationPositionId = Number(
+          updatedApp?.position_id ?? position?.id,
+        );
+        this.rows = [...this.rows];
         this.snackBar.open(
           'You successfully applied to this position.',
           'Close',
@@ -160,11 +185,47 @@ export class AppTalentMatchTmComponent implements OnInit {
     });
   }
 
+  isPositionApplied(position: any): boolean {
+    if (
+      this.currentApplicationPositionId === undefined ||
+      this.currentApplicationPositionId === null
+    ) {
+      return false;
+    }
+
+    return Number(position?.id) === Number(this.currentApplicationPositionId);
+  }
+
   openSnackBar(message: string, action: string): void {
     this.snackBar.open(message, action, {
       duration: 2000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
     });
+  }
+
+  private initializeColumns(): void {
+    this.tableColumns = [
+      {
+        id: 'title',
+        header: 'Position',
+        accessor: 'title',
+        renderer: {
+          type: 'text-badges',
+          textAccessor: 'title',
+          textTransform: (value, row: any) => {
+            const description = row?.description ? ` ${row.description}` : '';
+            return `${String(value || '')}${description}`.trim();
+          },
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Action',
+        headerClass: 'text-center',
+        cellClass: 'text-center',
+        cellTemplate: this.applyActionTemplate,
+      },
+    ];
   }
 }

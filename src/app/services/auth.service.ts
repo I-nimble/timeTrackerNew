@@ -1,33 +1,19 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideAuth, getAuth } from '@angular/fire/auth';
-import {
-  Auth,
-  authState,
-  AuthProvider,
-  signInWithPopup,
-  GoogleAuthProvider,
-  user,
-} from '@angular/fire/auth';
-import { Router, NavigationEnd } from '@angular/router';
+import { Auth, user } from '@angular/fire/auth';
+import { Router } from '@angular/router';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import {
-  BehaviorSubject,
-  Observable,
-  firstValueFrom,
-  lastValueFrom,
-} from 'rxjs';
-import { from } from 'rxjs';
-import { filter, take } from 'rxjs/operators';
+import { ROLES } from '@core/role.constants';
+import { BehaviorSubject, Observable, lastValueFrom } from 'rxjs';
 import { EmployeesService } from 'src/app/services/employees.service';
 import { NotificationStore } from 'src/app/stores/notification.store';
 import { environment } from 'src/environments/environment';
 
 import { NotificationsService } from './notifications.service';
 import { RoleTourService } from './role-tour.service';
+
+type ApiResponse = Record<string, unknown>;
 
 @Injectable({
   providedIn: 'root',
@@ -37,36 +23,45 @@ export class AuthService {
   firebaseAuth = inject(Auth);
   user$ = user(this.firebaseAuth);
 
+  private http = inject(HttpClient);
+  private jwtHelper = inject(JwtHelperService);
+  private routes = inject(Router);
+  private notificationsService = inject(NotificationsService);
+  private employeesService = inject(EmployeesService);
+  private roleTourService = inject(RoleTourService);
+
   private isLogged = new BehaviorSubject<boolean>(false);
   private isAdmin = new BehaviorSubject<boolean>(false);
   private role = new BehaviorSubject<string>(
     localStorage.getItem('role') || 'default',
   );
   userType$ = this.role.asObservable();
-  liveChatBubble?: any;
-  constructor(
-    private http: HttpClient,
-    private jwtHelper: JwtHelperService,
-    private routes: Router,
-    private notificationsService: NotificationsService,
-    private employeesService: EmployeesService,
-    private roleTourService: RoleTourService,
-  ) {}
+  liveChatBubble?: unknown;
   API_URI = environment.apiUrl + '/auth';
 
-  login(email?: string, password?: string, googleId?: string): Observable<any> {
+  login(
+    email?: string,
+    password?: string,
+    googleId?: string,
+  ): Observable<ApiResponse> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
     const body = JSON.stringify({ email, password, googleId });
-    return this.http.post<any>(`${this.API_URI}/signin`, body, { headers });
+    return this.http.post<ApiResponse>(`${this.API_URI}/signin`, body, {
+      headers,
+    });
   }
-  signup(newUser: any): Observable<any> {
+  signup(newUser: Record<string, unknown>): Observable<ApiResponse> {
     const headers = new HttpHeaders({ 'content-type': 'application/json' });
-    return this.http.post<any>(`${this.API_URI}/signup`, newUser, { headers });
+    return this.http.post<ApiResponse>(`${this.API_URI}/signup`, newUser, {
+      headers,
+    });
   }
   async logout(redirect = true) {
     try {
       this.roleTourService.skipActiveTour();
-    } catch (e) {}
+    } catch {
+      // skipActiveTour throws if no tour is active; safe to ignore
+    }
     localStorage.clear();
     this.isLogged.next(false);
     this.notificationStore.removeAll();
@@ -123,7 +118,7 @@ export class AuthService {
         this.isLogged.next(false);
         return this.isLogged.asObservable();
       }
-    } catch (error) {
+    } catch {
       this.isLogged.next(false);
       return this.isLogged.asObservable();
     }
@@ -144,22 +139,23 @@ export class AuthService {
   }
   verifyAdmin() {
     const role = localStorage.getItem('role');
-    if (role !== null && (role === '1' || role === '4')) {
-      this.isAdmin.next(true);
-      return this.isAdmin.asObservable();
-    } else {
-      this.isAdmin.next(false);
-      return this.isAdmin.asObservable();
-    }
+    const isAdmin =
+      role === ROLES.ADMIN ||
+      role === ROLES.SUPPORT ||
+      role === '1' || // legacy numeric ID fallback
+      role === '4';
+    this.isAdmin.next(isAdmin);
+    return this.isAdmin.asObservable();
   }
+
   async userTypeRouting(rol: string) {
-    if (rol == '1') {
-      await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
+    if (rol === ROLES.ADMIN || rol === '1') {
+      await this.navigateAndMaybeStart('/dashboards/admin', rol);
       return;
-    } else if (rol == '2') {
-      await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
+    } else if (rol === ROLES.USER || rol === '2') {
+      await this.navigateAndMaybeStart('/dashboards/tm', rol);
       return;
-    } else if (rol == '3') {
+    } else if (rol === ROLES.CLIENT || rol === '3') {
       const hasTeam = await this.hasTeamMembers();
       localStorage.setItem('clientHasTeam', hasTeam ? 'true' : 'false');
       if (hasTeam) {
@@ -167,6 +163,9 @@ export class AuthService {
       } else {
         await this.navigateAndMaybeStart('/apps/talent-match', rol);
       }
+      return;
+    } else if (rol === ROLES.SUPPORT || rol === '4') {
+      await this.navigateAndMaybeStart('/dashboards/admin', rol);
       return;
     }
   }
@@ -192,7 +191,7 @@ export class AuthService {
     try {
       const employees = await lastValueFrom(this.employeesService.get());
       return employees && employees.length > 0;
-    } catch (err) {
+    } catch {
       return false;
     }
   }
@@ -201,16 +200,18 @@ export class AuthService {
     return this.http.get(`${this.API_URI}/auth/loggedIn`);
   }
 
-  forgotPassword(email: string): Observable<any> {
-    return this.http.post<any>(`${this.API_URI}/forgot-password`, { email });
+  forgotPassword(email: string): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.API_URI}/forgot-password`, {
+      email,
+    });
   }
 
   resetPassword(
     token: string,
     email: string,
     newPassword: string,
-  ): Observable<any> {
-    return this.http.post<any>(`${this.API_URI}/reset-password`, {
+  ): Observable<ApiResponse> {
+    return this.http.post<ApiResponse>(`${this.API_URI}/reset-password`, {
       token,
       email,
       newPassword,

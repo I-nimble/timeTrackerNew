@@ -1,7 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
+@use "assets/scss/_variables" as *;
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 .no-scroll {
   overflow: hidden !important;
 }
@@ -19,15 +26,16 @@ body.tour-active .tour-step-container {
 
 .tour-step,
 .tour-step-container,
-.cdk-overlay-container > .cdk-overlay-connected-position-bounding-box:first-of-type {
+.cdk-overlay-container
+  > .cdk-overlay-connected-position-bounding-box:first-of-type {
   z-index: 99999999 !important;
 }
 .card-dashboard {
-  margin-bottom: 0!important;
+  margin-bottom: 0 !important;
 }
 .text-btn button p {
-    color: #fff!important;
-    font-weight: bold!important;
+  color: #fff !important;
+  font-weight: bold !important;
 }
 .comparison-table-img {
   width: 80%;
@@ -37,7 +45,7 @@ body.tour-active .tour-step-container {
 }
 @media (max-width: 500px) {
   .f-s-25 {
-    font-size: 18px!important;
+    font-size: 18px !important;
   }
   .mat-mdc-tab-labels {
     flex-direction: column;
@@ -87,7 +95,7 @@ app-jitsi-meet.jitsi-minimized {
   z-index: 100001 !important;
   border-radius: 8px !important;
   overflow: hidden !important;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
 }
 
 app-jitsi-meet.jitsi-minimized .jitsi-container,
@@ -121,7 +129,7 @@ app-jitsi-meet iframe {
 }
 
 .mat-mdc-dialog-surface {
-  overflow-y: hidden!important;
+  overflow-y: hidden !important;
 }
 .cdk-overlay-pane.jitsi-minimized,
 .jitsi-minimized,
@@ -136,8 +144,8 @@ app-jitsi-meet iframe {
 }
 .cdk-overlay-pane.jitsi-minimized {
   position: fixed !important;
-  right: 1rem!important;
-  bottom: 1rem!important;
+  right: 1rem !important;
+  bottom: 1rem !important;
   left: auto !important;
   top: auto !important;
   z-index: 2000 !important;
@@ -166,7 +174,7 @@ app-jitsi-meet iframe {
   z-index: 100000;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .jitsi-permanent-container.minimized > * {
@@ -216,3 +224,26 @@ app-jitsi-meet iframe {
   text-decoration: underline;
 }
 
+.mat-mdc-snack-bar-container.app-snackbar-success {
+  --mdc-snackbar-container-color: #{$success};
+  --mdc-snackbar-supporting-text-color: #1f2a1a;
+  --mat-snack-bar-button-color: #1f2a1a;
+}
+
+.mat-mdc-snack-bar-container.app-snackbar-error {
+  --mdc-snackbar-container-color: #{$error};
+  --mdc-snackbar-supporting-text-color: #2d1515;
+  --mat-snack-bar-button-color: #2d1515;
+}
+
+.mat-mdc-snack-bar-container.app-snackbar-warning {
+  --mdc-snackbar-container-color: #{$warning};
+  --mdc-snackbar-supporting-text-color: #2b2412;
+  --mat-snack-bar-button-color: #2b2412;
+}
+
+.mat-mdc-snack-bar-container.app-snackbar-info {
+  --mdc-snackbar-container-color: #{$primary};
+  --mdc-snackbar-supporting-text-color: #2f2f2f;
+  --mat-snack-bar-button-color: #2f2f2f;
+}

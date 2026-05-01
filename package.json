@@ -11,7 +11,11 @@
     "lint": "ng lint",
     "format": "prettier --write .",
     "refactor:check-legacy": "powershell -ExecutionPolicy Bypass -File ./tools/refactor/check-legacy-imports.ps1",
-    "prepare": "husky"
+    "prepare": "husky",
+    "analyze:baseline:prod": "shx mkdir -p bundle-analysis/baseline && ng build --configuration=analysis-prod --stats-json && node ./node_modules/source-map-explorer/bin/cli.js \"dist/browser/*.js\" --html bundle-analysis/baseline/baseline-report-prod.html --no-border-checks && shx cp dist/stats.json bundle-analysis/baseline/baseline-stats-prod.json",
+    "analyze:baseline:dev": "shx mkdir -p bundle-analysis/baseline && ng build --configuration=development --source-map --stats-json && node ./node_modules/source-map-explorer/bin/cli.js \"dist/browser/*.js\" --html bundle-analysis/baseline/baseline-report-dev.html --no-border-checks && shx cp dist/stats.json bundle-analysis/baseline/baseline-stats-dev.json",
+    "analyze:wb:prod": "esbuild-visualizer --metadata bundle-analysis/baseline/baseline-stats-prod.json --filename bundle-analysis/baseline/baseline-report-wb-prod.html --template treemap --title \"Inimble Bundle (prod)\"",
+    "analyze:wb:dev": "esbuild-visualizer --metadata bundle-analysis/baseline/baseline-stats-dev.json --filename bundle-analysis/baseline/baseline-report-wb-dev.html --template treemap --title \"Inimble Bundle (dev)\""
   },
   "private": true,
   "dependencies": {
@@ -81,7 +85,6 @@
     "ngx-permissions": "^13.0.1",
     "ngx-scrollbar": "^11.0.0",
     "ngx-socket-io": "^4.6.1",
-    "ngx-toastr": "^19.0.0",
     "ngx-ui-tour-core": "^14.0.0",
     "ngx-ui-tour-md-menu": "^14.0.0",
     "rxjs": "~7.5.0",
@@ -108,6 +111,7 @@
     "@types/luxon": "^3.7.1",
     "@types/moment": "^2.13.0",
     "angular-eslint": "21.0.1",
+    "esbuild-visualizer": "^0.7.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
@@ -121,6 +125,8 @@
     "karma-jasmine-html-reporter": "~2.0.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
+    "shx": "^0.4.0",
+    "source-map-explorer": "^2.5.3",
     "typescript": "~5.6.3",
     "typescript-eslint": "8.46.4"
   },
