@@ -28,10 +28,12 @@ import { SafeHtmlPipe } from './safe-html.pipe';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MentionPopupComponent } from './mention-popup/mention-popup.component';
 
 @Component({
   selector: 'app-kanban-dialog',
   templateUrl: './kanban-dialog.component.html',
+  styleUrl: './kanban-dialog.component.scss',
   standalone: true,
   imports: [
     MaterialModule,
@@ -45,6 +47,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatMenuModule,
     MatIconModule,
     MatButtonModule,
+    MentionPopupComponent,
   ],
   providers: [DatePipe, provideNativeDateAdapter()],
 })
@@ -54,6 +57,7 @@ export class AppKanbanDialogComponent implements OnInit {
   priorities: any[] = [];
   visibilities = ['public', 'restricted', 'private'];
   users: any[] = [];
+  boardMembers: any[] = [];
   attachments: any[] = [];
   showMentionList = false;
   mentionQuery = '';
@@ -64,12 +68,21 @@ export class AppKanbanDialogComponent implements OnInit {
   comments: any[] = [];
   editingComment: any = null;
   selectedComment: any = null;
+
+  mentionPopupOpen = false;
+  mentionPopupTop = 0;
+  mentionPopupLeft = 0;
+  mentionTarget: 'description' | 'comment' | null = null;
+  private mentionAnchor:
+    | { node: Node; start: number; end: number; mentionElement?: HTMLElement }
+    | null = null;
   dueDateTime: Date | null = null;
   companies: any[] = [];
   firstAttachmentImage: any = null;
   pastedAttachments: any[] = [];
   @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
+  @ViewChild('commentEditor') commentEditor?: ElementRef<HTMLDivElement>;
   formTouched: boolean = false;
   isSaving: boolean = false;
   isOrphan: boolean = false;
@@ -94,6 +107,7 @@ export class AppKanbanDialogComponent implements OnInit {
     this.getPriorities();
     this.local_data = { ...data };
     this.action = this.local_data.action;
+    this.boardMembers = Array.isArray(data?.boardMembers) ? data.boardMembers : [];
     this.isOrphan = localStorage.getItem('isOrphan') === 'true' || localStorage.getItem('role') === '4';
     if (this.isOrphan && (!this.data.type || this.data.type === 'task')) {
       const employeeId = this.local_data.employee_id;
@@ -271,7 +285,8 @@ export class AppKanbanDialogComponent implements OnInit {
 
   setSelectedEmployee() {
     if (this.local_data.employee_id) {
-      const assignedUser = this.users.find(u => u.id === this.local_data.employee_id);
+      const pool = this.boardMembers.length ? this.boardMembers : this.users;
+      const assignedUser = pool.find(u => u.id === this.local_data.employee_id);
       if (assignedUser) {
         this.selectedEmployeeId = assignedUser.id;
       }
@@ -316,6 +331,8 @@ export class AppKanbanDialogComponent implements OnInit {
       this.local_data.due_date = this.dueDateTime;
     }
 
+    this.local_data.mentioned_user_ids = this.extractMentionIds(this.local_data.recommendations);
+
     if (
       this.action === 'Edit' &&
       this.local_data.previousVisibility === 'private' &&
@@ -355,108 +372,256 @@ export class AppKanbanDialogComponent implements OnInit {
     this.local_data.restrictedUsers = [];
   }
 
-  onCommentInput(event: any) {
-    const textarea = event.target;
-    const value = textarea.value;
-    const pos = textarea.selectionStart;
-    const textUpToCursor = value.slice(0, pos);
-
-    const atMatch = /@([a-zA-Z0-9_]*)$/.exec(textUpToCursor);
-
-    if (atMatch) {
-      this.mentionQuery = atMatch[1];
-      this.filteredUsers = this.users.filter(u =>
-        `${u.name} ${u.last_name}`
-          .toLowerCase()
-          .includes(this.mentionQuery.toLowerCase())
-      );
-      this.showMentionList = this.filteredUsers.length > 0;
-      this.mentionStartPos = pos - this.mentionQuery.length - 1;
-      this.mentionIndex = 0;
-    } else {
-      this.showMentionList = false;
-    }
-  }
-
-  onCommentKeydown(event: KeyboardEvent) {
-    if (!this.showMentionList) return;
-
+  onEditorKeydown(event: KeyboardEvent, target: 'description' | 'comment') {
+    if (!this.mentionPopupOpen || this.mentionTarget !== target) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       this.mentionIndex = (this.mentionIndex + 1) % this.filteredUsers.length;
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
       this.mentionIndex =
-        (this.mentionIndex - 1 + this.filteredUsers.length) %
-        this.filteredUsers.length;
-    } else if (event.key === 'Enter') {
+        (this.mentionIndex - 1 + this.filteredUsers.length) % this.filteredUsers.length;
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
       event.preventDefault();
-      if (this.filteredUsers[this.mentionIndex]) {
-        this.selectMention(this.filteredUsers[this.mentionIndex]);
-      }
+      const picked = this.filteredUsers[this.mentionIndex];
+      if (picked) this.insertMention(picked);
     } else if (event.key === 'Escape') {
       event.preventDefault();
-      this.showMentionList = false;
+      this.closeMentionPopup();
     }
   }
 
-  selectMention(user: any) {
-    const textarea = this.commentTextarea?.nativeElement;
-    if (!textarea) return;
-
-    const value = this.commentText || '';
-    const before = value.substring(0, this.mentionStartPos);
-    const after = value.substring(textarea.selectionStart);
-
-    const mentionText = `@${user.name} ${user.last_name}`;
-    this.commentText = before + mentionText + ' ' + after;
-
-    this.showMentionList = false;
-
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = before.length + mentionText.length + 1;
-      textarea.selectionStart = newPosition;
-      textarea.selectionEnd = newPosition;
-    });
+  onDialogScroll() {
+    this.updateMentionPopupPosition();
   }
 
-  getMentionMarkup(user: any): string {
-    return `@${user.name}${user.last_name}`;
+  private updateMentionPopupPosition() {
+    if (!this.mentionPopupOpen || !this.mentionAnchor) return;
+
+    if (this.mentionAnchor.mentionElement) {
+      if (!document.contains(this.mentionAnchor.mentionElement)) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      const mentionRect = this.mentionAnchor.mentionElement.getBoundingClientRect();
+      this.mentionPopupTop = mentionRect.bottom + 4;
+      this.mentionPopupLeft = mentionRect.left;
+      return;
+    }
+
+    const { node, end } = this.mentionAnchor;
+    if (!document.contains(node)) {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const range = document.createRange();
+    try {
+      range.setStart(node, end);
+      range.setEnd(node, end);
+    } catch {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const rect = range.getBoundingClientRect();
+    this.mentionPopupTop = rect.bottom + 4;
+    this.mentionPopupLeft = rect.left;
+  }
+
+  detectMention(target: 'description' | 'comment') {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+
+    const nodeElement = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : null;
+    const parentElement = node.nodeType === Node.TEXT_NODE ? node.parentElement : null;
+    const rawMentionElement =
+      nodeElement?.closest('span.mention') || parentElement?.closest('span.mention');
+    const mentionElement = rawMentionElement instanceof HTMLElement ? rawMentionElement : null;
+
+    if (mentionElement) {
+      const mentionText = mentionElement.textContent || '';
+      const mentionQuery = mentionText.startsWith('@') ? mentionText.slice(1).trim() : '';
+
+      this.mentionQuery = mentionQuery;
+      this.mentionTarget = target;
+      this.mentionIndex = 0;
+      const source = this.boardMembers.length ? this.boardMembers : this.users;
+      this.filteredUsers = source;
+      this.mentionAnchor = {
+        node: mentionElement,
+        start: 0,
+        end: mentionText.length,
+        mentionElement,
+      };
+      this.mentionPopupOpen = this.filteredUsers.length > 0;
+
+      if (!this.mentionPopupOpen) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      this.updateMentionPopupPosition();
+      return;
+    }
+
+    if (node.nodeType !== Node.TEXT_NODE) {
+      this.closeMentionPopup();
+      return;
+    }
+
+    const text = node.textContent || '';
+    const offset = range.startOffset;
+
+    let i = offset - 1;
+    while (i >= 0 && /[\p{L}\p{N}_]/u.test(text[i])) i--;
+    if (i < 0 || text[i] !== '@') {
+      this.closeMentionPopup();
+      return;
+    }
+    if (i > 0 && /\S/.test(text[i - 1])) {
+      this.closeMentionPopup();
+      return;
+    }
+
+    this.mentionQuery = text.substring(i + 1, offset);
+    this.mentionTarget = target;
+    this.mentionIndex = 0;
+    const source = this.boardMembers.length ? this.boardMembers : this.users;
+    this.filteredUsers = source.filter(u =>
+      `${u.name} ${u.last_name}`.toLowerCase().includes(this.mentionQuery.toLowerCase())
+    );
+    if (this.filteredUsers.length === 0) {
+      this.closeMentionPopup();
+      return;
+    }
+    this.mentionAnchor = { node, start: i, end: offset };
+
+    this.mentionPopupOpen = true;
+    this.updateMentionPopupPosition();
+  }
+
+  insertMention(user: any) {
+    if (!this.mentionAnchor) return;
+    const range = document.createRange();
+
+    if (this.mentionAnchor.mentionElement) {
+      const mentionElement = this.mentionAnchor.mentionElement;
+      if (!document.contains(mentionElement)) {
+        this.closeMentionPopup();
+        return;
+      }
+
+      range.setStartBefore(mentionElement);
+      range.setEndAfter(mentionElement);
+    } else {
+      const { node, start, end } = this.mentionAnchor;
+      range.setStart(node, start);
+      range.setEnd(node, end);
+    }
+
+    range.deleteContents();
+
+    const span = document.createElement('span');
+    span.className = 'mention';
+    span.setAttribute('data-user-id', String(user.id));
+    span.setAttribute('contenteditable', 'false');
+    span.style.color = '#92b46c';
+    span.style.backgroundColor = 'rgba(146, 180, 108, 0.14)';
+    span.textContent = `@${user.name} ${user.last_name}`;
+    range.insertNode(span);
+
+    const space = document.createTextNode(' ');
+    span.after(space);
+    const newRange = document.createRange();
+    newRange.setStart(space, 1);
+    newRange.collapse(true);
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    }
+
+    if (this.mentionTarget === 'description') {
+      this.updateRecommendationsValue();
+    }
+    this.closeMentionPopup();
+  }
+
+  closeMentionPopup() {
+    this.mentionPopupOpen = false;
+    this.mentionTarget = null;
+    this.mentionAnchor = null;
+    this.filteredUsers = [];
+  }
+
+  private extractMentionIds(html: string | null | undefined): number[] {
+    if (!html) return [];
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const ids = Array.from(div.querySelectorAll('span.mention[data-user-id]'))
+      .map(el => parseInt(el.getAttribute('data-user-id') || '0', 10))
+      .filter(id => Number.isFinite(id) && id > 0);
+    return Array.from(new Set(ids));
   }
 
   submitComment() {
-    if (!this.commentText.trim()) return;
+    const html = (this.commentEditor?.nativeElement.innerHTML || '').trim();
+    const text = (this.commentEditor?.nativeElement.innerText || '').trim();
+    if (!text) return;
+
+    const mentioned_user_ids = this.extractMentionIds(html);
 
     if (this.selectedComment) {
-      this.editComment(this.selectedComment, this.commentText);
+      this.editComment(this.selectedComment, html, mentioned_user_ids);
       this.selectedComment = null;
-      this.commentText = '';
+      this.clearCommentEditor();
       this.showSnackbar('Comment updated!');
     } else {
       const payload = {
         rating_id: this.local_data.id,
-        comment: this.commentText
+        comment: html,
+        mentioned_user_ids,
       };
       this.ratingsService.addComment(payload).subscribe(newComment => {
         this.comments.push(newComment);
-        this.commentText = '';
+        this.clearCommentEditor();
         this.showSnackbar('Comment added!');
       });
     }
   }
 
+  private clearCommentEditor() {
+    this.commentText = '';
+    if (this.commentEditor?.nativeElement) {
+      this.commentEditor.nativeElement.innerHTML = '';
+    }
+  }
+
+  hasCommentText(): boolean {
+    return !!(this.commentEditor?.nativeElement.innerText || '').trim();
+  }
+
   startEditingComment(comment: any) {
-    this.commentText = comment.comment;
     this.selectedComment = comment;
     setTimeout(() => {
-      this.commentTextarea?.nativeElement.focus();
+      if (this.commentEditor?.nativeElement) {
+        this.commentEditor.nativeElement.innerHTML = comment.comment || '';
+        this.commentEditor.nativeElement.focus();
+      }
     });
   }
 
-  editComment(comment: any, newText: string) {
-    if (!newText.trim()) return;
-    this.ratingsService.updateComment(comment.id, newText).subscribe(updated => {
+  editComment(comment: any, newHtml: string, mentioned_user_ids: number[] = []) {
+    if (!newHtml.trim()) return;
+    this.ratingsService.updateComment(comment.id, newHtml, mentioned_user_ids).subscribe(updated => {
       comment.comment = updated.comment;
       comment.isEditing = false;
     });

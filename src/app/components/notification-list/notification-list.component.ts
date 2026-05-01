@@ -86,7 +86,40 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
       color: '#b54343',
       type: 'Job application',
     },
+    {
+      icon: 'fa-solid fa-at',
+      color: '#5b7cfa',
+      type: 'Mention',
+    },
   ];
+
+  getNotificationIcon(notification: any) {
+    const typeId = Number(notification?.type_id);
+    const byId = Number.isFinite(typeId)
+      ? this.notificationIcons[typeId - 1]
+      : null;
+    if (byId) return byId;
+
+    const typeName = notification?.type?.name || notification?.type_name;
+    const byName = typeName
+      ? this.notificationIcons.find(icon => icon.type === typeName)
+      : null;
+    if (byName) return byName;
+
+    if (typeof notification?.message === 'string' && notification.message.toLowerCase().includes('mentioned you')) {
+      return this.notificationIcons.find(icon => icon.type === 'Mention') || {
+        icon: 'fa-solid fa-bell',
+        color: '#d0bf45',
+        type: 'Notification',
+      };
+    }
+
+    return {
+      icon: 'fa-solid fa-bell',
+      color: '#d0bf45',
+      type: 'Notification',
+    };
+  }
 
   ngOnInit() {
     this.loadNotifications();
@@ -111,7 +144,7 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
   }
 
   handleClick(notification: any) {
-    if(notification.type_id === 6) { 
+    if(notification.type_id === 6) {
       let dialogRef = this.dialog.open(this.applicationDetailsDialog, {
         height: '500px',
         width: '600px',
@@ -122,6 +155,21 @@ export class NotificationListComponent implements OnInit, AfterViewInit {
     }
 
     this.notificationsService.update([notification], 2).subscribe(() => {
+      const isMention = Number(notification.type_id) === 7 || notification?.type?.name === 'Mention';
+      if (isMention && notification.rating_id && notification.board_id) {
+        void this.router.navigate(['/apps/kanban', notification.board_id], {
+          queryParams: { taskId: notification.rating_id },
+        });
+        return;
+      }
+
+      if (notification.rating_id && notification.board_id) {
+        void this.router.navigate(['/apps/kanban', notification.board_id], {
+          queryParams: { taskId: notification.rating_id },
+        });
+        return;
+      }
+
       this.loadNotifications();
     });
   }

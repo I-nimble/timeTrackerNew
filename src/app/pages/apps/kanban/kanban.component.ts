@@ -54,6 +54,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   onhold: Todos[] = [];
   selectedBoardId: any = null;
   selectedBoardColumns: any[] = [];
+  boardMembers: any[] = [];
   firstTaskAnchorColumnId: number | null = null;
   hasTasks = false;
   employees: any;
@@ -64,6 +65,8 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private readonly searchDebounceMs = 300;
   isSearching = false;
+  private pendingTaskIdToOpen: number | null = null;
+  private pendingTaskDialogOpened = false;
   developmentTeamEmails: string[] = environment.developmentTeamEmails;
   userEmail: string = localStorage.getItem('email') || '';
 
@@ -98,11 +101,20 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       if (this.selectedBoardId) {
         this.loadSelectedBoard(this.selectedBoardId).then(() => {
           this.loadTasks(this.selectedBoardId);
+          this.loadBoardMembers(this.selectedBoardId);
         });
       } else {
         this.isLoading = false;
         this.selectedBoardColumns = [];
+        this.boardMembers = [];
       }
+    });
+
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(qp => {
+      const taskIdParam = qp.get('taskId');
+      this.pendingTaskIdToOpen = taskIdParam ? +taskIdParam : null;
+      this.pendingTaskDialogOpened = false;
+      this.tryOpenPendingTaskDialog();
     });
   }
 
@@ -180,6 +192,17 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadBoardMembers(boardId: number): void {
+    this.kanbanService.getBoardMembers(boardId).subscribe({
+      next: (members) => {
+        this.boardMembers = members || [];
+      },
+      error: () => {
+        this.boardMembers = [];
+      },
+    });
+  }
+
   loadSelectedBoard(boardId: number): Promise<void> {
     return new Promise((resolve, reject) => {
       this.kanbanService.getBoardById(boardId).subscribe({
@@ -229,7 +252,24 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       if (this.taskSearch) {
         this.applySearch(this.taskSearch);
       }
+      this.tryOpenPendingTaskDialog();
     });
+  }
+
+  private tryOpenPendingTaskDialog(): void {
+    if (!this.pendingTaskIdToOpen || this.pendingTaskDialogOpened) return;
+
+    for (const column of this.selectedBoardColumns) {
+      const found = (column.allTasks || column.tasks || []).find(
+        (task: any) => task.id === this.pendingTaskIdToOpen
+      );
+      if (found) {
+        this.pendingTaskDialogOpened = true;
+        this.openDialog('Edit', found);
+        this.pendingTaskIdToOpen = null;
+        return;
+      }
+    }
   }
 
   private updateFirstTaskAnchorColumnId(): void {
@@ -321,11 +361,12 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
 
   openDialog(action: string, data: any): void {
     const dialogRef = this.dialog.open(AppKanbanDialogComponent, {
-      width: '900px', 
+      width: '900px',
       maxWidth: '90vw',
       data: {
         action,
         ...data,
+        boardMembers: this.boardMembers,
       },
     });
 
@@ -439,6 +480,7 @@ export class AppKanbanComponent implements OnInit, OnDestroy {
       employee_id: taskData.employee_id,
       comments: taskData.comments,
       task_attachments: taskData.task_attachments,
+      mentioned_user_ids: taskData.mentioned_user_ids,
     };
 
     this.kanbanService.updateTask(updatedTask.id, updatedTask).subscribe(

@@ -447,7 +447,40 @@ export class HeaderComponent implements OnInit {
       color: '#b54343',
       type: 'Job application',
     },
+    {
+      icon: 'fa-solid fa-at',
+      color: '#5b7cfa',
+      type: 'Mention',
+    },
   ];
+
+  getNotificationIcon(notification: any) {
+    const typeId = Number(notification?.type_id);
+    const byId = Number.isFinite(typeId)
+      ? this.notificationIcons[typeId - 1]
+      : null;
+    if (byId) return byId;
+
+    const typeName = notification?.type?.name || notification?.type_name;
+    const byName = typeName
+      ? this.notificationIcons.find(icon => icon.type === typeName)
+      : null;
+    if (byName) return byName;
+
+    if (typeof notification?.message === 'string' && notification.message.toLowerCase().includes('mentioned you')) {
+      return this.notificationIcons.find(icon => icon.type === 'Mention') || {
+        icon: 'fa-solid fa-bell',
+        color: '#d0bf45',
+        type: 'Notification',
+      };
+    }
+
+    return {
+      icon: 'fa-solid fa-bell',
+      color: '#d0bf45',
+      type: 'Notification',
+    };
+  }
 
   // profiledd is now built dynamically in ngOnInit
 

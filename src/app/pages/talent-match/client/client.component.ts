@@ -35,6 +35,7 @@ import { of, forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
+import { DiscProfile } from 'src/app/models/disc-profile.model';
 
 @Component({
   standalone: true,
@@ -103,18 +104,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   sortOrder: 'asc' | 'desc' = 'desc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
-  positionsOptions: string[] = [
-    'Legal Assistant',
-    'Paralegal',
-    'Case Manager',
-    'Intake Specialist',
-    'Demand Writer',
-    'Medical Records Specialist',
-    'Litigation Support Assistant',
-    'Executive Assistant',
-    'Administrative Assistant',
-    'Virtual Assistant (General)'
-  ];
+  discProfiles: DiscProfile[] = [];
+  selectedDiscProfiles: number[] = [];
 
   practiceAreas: string[] = [
     'Personal Injury',
@@ -165,6 +156,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   intakeForm?: FormGroup;
   intakeInitialValues: IntakeInitialValues = {};
   intakeValuesReady = false;
+  sessionInterestedCandidates: any[] = [];
+  isSubmittingTalentMatch = false;
 
   onIntakeFormReady(form: FormGroup) {
     this.intakeForm = form;
@@ -191,6 +184,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getPositions();
     this.getCompany();
     this.getPositionCategories();
+    this.discProfilesService.getAll().subscribe(profiles => this.discProfiles = profiles);
   }
 
   ngAfterViewInit(): void {
@@ -257,14 +251,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.resetActiveAISearch();
     const searchQuery = (query || this.query || '').trim();
     this.query = searchQuery;
-    const fullSearchTerm = this.buildApplicationsSearchTerm();
+    const searchText = this.buildApplicationsSearchTerm();
     this.tableLoading = true;
+
     this.applicationsService.get({
       page: 1,
       offset: 1000,
       sortBy: this.sortBy || 'submission_date',
       sortOrder: this.sortOrder || 'desc',
-      search: fullSearchTerm,
+      search: searchText,
+      discProfileIds: this.selectedDiscProfiles.length > 0 ? this.selectedDiscProfiles : undefined,
     }).subscribe({
       next: (response: ApplicationListResponse) => {
         this.allCandidates = response.items;
@@ -482,6 +478,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return this.discProfilesService.getDiscProfileColor(profileName);
   }
 
+  getDiscProfileForCategory(categoryName: string | null | undefined): string {
+    return this.discProfilesService.getDiscProfileForCategory(categoryName);
+  }
+
   getAllMatchScores() {
     this.allCandidates.forEach(candidate => {
       this.getMatchScores(candidate.id);
@@ -638,18 +638,30 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.getApplications();
   }
 
+  isSessionInterested(candidate: any): boolean {
+    return this.sessionInterestedCandidates.some(c => c.id === candidate.id);
+  }
+
   markInterested(candidate: any): void {
     if (!(this.selectedRole && this.selectedPracticeArea)) {
       this.snackBar.open('Complete role and practice area before marking interest.', 'Close', { duration: 2000 });
       return;
     }
 
-    const userId = Number(localStorage.getItem('id')) || 0;
-    const candidateId = candidate.id;
-    const candidatePosition = this.selectedRole;
-    const candidateArea = this.selectedPracticeArea;
+    if (this.isSessionInterested(candidate)) {
+      this.sessionInterestedCandidates = this.sessionInterestedCandidates.filter(c => c.id !== candidate.id);
+      this.snackBar.open('Candidate removed from your selection.', 'Close', { duration: 2000 });
+      return;
+    }
 
-    this.notificationsService.markInterested(userId, candidateId, candidatePosition, candidateArea)
+    this.sessionInterestedCandidates.push({
+      id: candidate.id,
+      name: candidate.name,
+      position: this.getPositionTitle(candidate.position_id) || this.selectedRole || '',
+    });
+
+    const userId = Number(localStorage.getItem('id')) || 0;
+    this.notificationsService.markInterested(userId, candidate.id, this.selectedRole!, this.selectedPracticeArea!)
       .subscribe({
         next: (data: any) => {
           if (data.success) {
@@ -664,6 +676,32 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       });
   }
 
+  submitTalentMatch(): void {
+    if (!this.intakeForm?.valid) {
+      this.snackBar.open('Please complete all intake fields before submitting.', 'Close', { duration: 3000 });
+      return;
+    }
+    this.isSubmittingTalentMatch = true;
+    this.notificationsService.submitTalentMatch({
+      searchParams: {
+        filters: this.buildAISearchFilters(),
+        question: this.query,
+      },
+      intakeInfo: this.intakeForm.value,
+      interestedCandidates: this.sessionInterestedCandidates,
+    }).subscribe({
+      next: () => {
+        this.snackBar.open('Your selection has been submitted. Our team will follow up shortly.', 'Close', { duration: 4000 });
+        this.sessionInterestedCandidates = [];
+        this.isSubmittingTalentMatch = false;
+      },
+      error: () => {
+        this.snackBar.open('Error submitting your selection. Please try again.', 'Close', { duration: 3000 });
+        this.isSubmittingTalentMatch = false;
+      }
+    });
+  }
+
   goToCandidate(id: number, event: MouseEvent) {
     event.stopPropagation();
     this.router.navigate([`apps/talent-match/${id}`]);
@@ -674,12 +712,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   get canSearchAI(): boolean {
-    const hasRequiredFilters =
-      !!this.selectedRole &&
-      !!this.selectedPracticeArea &&
-      (this.intakeForm?.valid ?? false);
-    if (!!this.query && (this.intakeForm?.valid ?? false)) return true;
-    return hasRequiredFilters;
+    if (!!this.query) return true;
+    return !!this.selectedRole && !!this.selectedPracticeArea;
   }
 
   handleImageError(event: Event) {
@@ -759,7 +793,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   }
 
   private buildApplicationsSearchTerm(): string {
-    const terms = [
+    return [
       this.selectedRole,
       this.selectedPracticeArea,
       this.query,
@@ -768,9 +802,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       this.roleDescription,
     ]
       .map((value) => String(value || '').trim())
-      .filter((value, index, values) => value.length > 0 && values.indexOf(value) === index);
-
-    return terms.join(' ');
+      .filter(Boolean)
+      .join(' ');
   }
 
   private buildAISearchFilters(): CandidateEvaluationFilters {
@@ -779,6 +812,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       selectedPracticeArea: this.selectedPracticeArea,
       roleDescription: this.roleDescription,
       query: this.query,
+      disc_profile_ids: this.selectedDiscProfiles,
     };
   }
 

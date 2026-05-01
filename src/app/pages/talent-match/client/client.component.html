@@ -27,7 +27,7 @@
       <div class="p-16">
         <h4 class="f-w-700 m-b-16">Main Filters</h4>
         <div class="row m-t-10">
-          <div class="col-lg-6" tourAnchor="tm-main-filters">
+          <div class="col-lg-4" tourAnchor="tm-main-filters">
             <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Role *</mat-label>
             <mat-form-field appearance="outline" class="w-100">
               <mat-select
@@ -67,7 +67,7 @@
               </mat-error>
             </mat-form-field>
           </div>
-          <div class="col-lg-6">
+          <div class="col-lg-4">
             <mat-label class="f-s-14 f-w-600 m-b-8 d-block"
               >Practice Area *</mat-label
             >
@@ -87,6 +87,19 @@
               >
                 Practice Area is required.
               </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="col-lg-4">
+            <mat-label class="f-s-14 f-w-600 m-b-8 d-block">DISC Profile</mat-label>
+            <mat-form-field appearance="outline" class="w-100">
+              <mat-select multiple [(ngModel)]="selectedDiscProfiles">
+                <mat-option *ngFor="let profile of discProfiles" [value]="profile.id">
+                  <span class="disc-badge-inline" [style.background-color]="getDiscProfileColor(profile.name)">
+                    {{ profile.name.charAt(0) }}
+                  </span>
+                  {{ profile.name }}
+                </mat-option>
+              </mat-select>
             </mat-form-field>
           </div>
           <!--           <div class="col-lg-6" tourAnchor="tm-budget">
@@ -143,7 +156,7 @@
             </mat-error>
           </mat-form-field>
           <div
-            class="d-flex align-items-center justify-content-center gap-2 m-b-16 m-t-16"
+            class="d-flex align-items-center justify-content-center gap-2 m-b-8 m-t-16"
           >
             <app-match
               appearance="outline"
@@ -159,7 +172,19 @@
               (searchRequest)="useManualSearch ? onManualSearch($event) : null"
             >
             </app-match>
+            <button
+              mat-raised-button
+              color="accent"
+              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid"
+              (click)="submitTalentMatch()"
+            >
+              <span *ngIf="!isSubmittingTalentMatch">Submit</span>
+              <span *ngIf="isSubmittingTalentMatch">Submitting...</span>
+            </button>
           </div>
+          <p class="text-center f-s-13 text-muted m-b-16">
+            Select your preferred candidates and click <strong>Submit</strong>
+          </p>
         </div>
       </div>
       <div output>
@@ -408,8 +433,10 @@
                     mat-menu-item
                     (click)="markInterested(element)"
                   >
-                    <mat-icon>favorite_border</mat-icon>
-                    <span>Interested</span>
+                    <mat-icon>
+                      {{ isSessionInterested(element) ? 'favorite' : 'favorite_border' }}
+                    </mat-icon>
+                    <span>{{ isSessionInterested(element) ? 'Remove Interest' : 'Interested' }}</span>
                   </button>
                   <button mat-menu-item (click)="deleteApplication(element.id)">
                     <mat-icon>delete</mat-icon>
@@ -540,8 +567,16 @@
                             class="match-score-item m-b-20"
                           >
                             <div
-                              class="d-flex justify-content-start align-items-start m-b-4"
+                              class="d-flex justify-content-start align-items-center m-b-4"
                             >
+                              <span
+                                *ngIf="getDiscProfileForCategory(score.category_name) as discName"
+                                class="disc-badge-small m-r-8"
+                                [style.background-color]="getDiscProfileColor(discName)"
+                                [title]="discName"
+                              >
+                                {{ discName.charAt(0) }}
+                              </span>
                               <span class="f-s-16 f-w-500 m-r-16">{{
                                 score.category_name
                               }}</span>

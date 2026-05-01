@@ -22,6 +22,13 @@ export class NotificationsService {
       notifications: []
     },
     {
+      id: 7,
+      name: 'Mention',
+      icon: 'fa-solid fa-at',
+      color: '#5b7cfa',
+      notifications: []
+    },
+    {
       id: 1,
       name: 'Notification',
       icon: 'fa-solid fa-circle-info',
@@ -230,5 +237,13 @@ export class NotificationsService {
       `${this.API_URI}/interested`,
       { userId, candidateId, candidatePosition, candidateArea },
     );
+  }
+
+  submitTalentMatch(payload: {
+    searchParams: any;
+    intakeInfo: any;
+    interestedCandidates: { id: number; name: string; position: string }[];
+  }) {
+    return this.http.post(`${this.API_URI}/talent-match-submit`, payload);
   }
 }
