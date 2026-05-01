@@ -21,6 +21,8 @@ import {
 
 import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { AuthInterceptor, ErrorInterceptor } from '@core/http/interceptors';
+import { NotificationsEffects } from '@features/notifications/store/notifications.effects';
+import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -80,6 +82,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
     ),
     provideStore(),
+    provideEffects(NotificationsEffects),
     provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
     provideGlobalErrorHandler(),
     ...dialogProviders,
