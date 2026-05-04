@@ -174,7 +174,7 @@
             <button
               mat-raised-button
               color="accent"
-              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid"
+              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid || sessionInterestedCandidates.length === 0"
               (click)="submitTalentMatch()"
             >
               <span *ngIf="!isSubmittingTalentMatch">Submit</span>
