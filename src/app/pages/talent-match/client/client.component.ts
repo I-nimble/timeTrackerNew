@@ -692,14 +692,37 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       interestedCandidates: this.sessionInterestedCandidates,
     }).subscribe({
       next: () => {
-        this.snackBar.open('Your selection has been submitted. Our team will follow up shortly.', 'Close', { duration: 4000 });
         this.sessionInterestedCandidates = [];
         this.isSubmittingTalentMatch = false;
+        this.openTalentMatchSuccessModal();
       },
       error: () => {
-        this.snackBar.open('Error submitting your selection. Please try again.', 'Close', { duration: 3000 });
         this.isSubmittingTalentMatch = false;
+        this.snackBar.open(
+          'We could not submit your request. Please try again.',
+          'Close',
+          { duration: 4000, panelClass: ['error-snackbar'] },
+        );
       }
+    });
+  }
+
+  private openTalentMatchSuccessModal(): void {
+    this.dialog.open(ModalComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+      panelClass: 'talent-match-success-modal',
+      data: {
+        title: 'Request submitted successfully',
+        body: 'Your request has been sent to our team. You will receive a response as soon as possible.',
+        showCloseIcon: true,
+        hideConfirm: true,
+        cancelText: 'Understood',
+        cta: {
+          label: 'Upgrade your plan',
+          route: '/apps/upgrade-plan',
+        },
+      },
     });
   }
 
