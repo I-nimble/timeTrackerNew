@@ -17,7 +17,7 @@ import {
   DynamicTableRenderer,
   DynamicTableRowActionEvent,
   DynamicValueAccessor,
-} from '../../legacy/models/dynamic-table.model';
+} from '../../models/dynamic-table.model';
 
 @Component({
   selector: 'app-dynamic-table-cell',
@@ -221,7 +221,7 @@ export class DynamicTableCellComponent<T> {
     return String(value);
   }
 
-  getBadges(): any[] {
+  getBadges(): unknown[] {
     const badgeConfig = this.getBadgeConfig();
     if (!badgeConfig) {
       return [];
@@ -231,7 +231,7 @@ export class DynamicTableCellComponent<T> {
     return Array.isArray(badges) ? badges : [];
   }
 
-  getBadgeLabel(badge: any): string {
+  getBadgeLabel(badge: unknown): string {
     const badgeConfig = this.getBadgeConfig();
     if (!badgeConfig) {
       return '';
@@ -247,10 +247,11 @@ export class DynamicTableCellComponent<T> {
       );
     }
 
-    return typeof badge?.name === 'string' ? badge.name : String(badge || '');
+    const badgeName = this.getBadgeName(badge);
+    return badgeName ?? String(badge || '');
   }
 
-  getBadgeColor(badge: any): string | null {
+  getBadgeColor(badge: unknown): string | null {
     const badgeConfig = this.getBadgeConfig();
     if (!badgeConfig?.colorAccessor) {
       return null;
@@ -372,7 +373,16 @@ export class DynamicTableCellComponent<T> {
     return defaultValue;
   }
 
-  private resolvePathValue(source: any, path: string): unknown {
+  private getBadgeName(badge: unknown): string | null {
+    if (badge && typeof badge === 'object' && 'name' in badge) {
+      const value = (badge as Record<string, unknown>).name;
+      return typeof value === 'string' ? value : null;
+    }
+
+    return null;
+  }
+
+  private resolvePathValue(source: unknown, path: string): unknown {
     return path.split('.').reduce<unknown>((value, part) => {
       if (
         value &&

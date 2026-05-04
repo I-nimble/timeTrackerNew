@@ -239,6 +239,15 @@ export class AppTalentMatchAdminComponent implements OnInit {
     return this.positions.find((position) => position.id == positionId);
   }
 
+  getProfileName(profile: unknown): string {
+    if (profile && typeof profile === 'object' && 'name' in profile) {
+      const name = (profile as { name?: unknown }).name;
+      return typeof name === 'string' ? name : '';
+    }
+
+    return '';
+  }
+
   getDiscProfileColor(profileName: string): string {
     return this.discProfilesService.getDiscProfileColor(profileName);
   }
@@ -387,9 +396,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
           titleTransform: (value) => this.formatNamePipe.transform(value),
           badges: {
             accessor: (row: TalentMatchApplication) => row.disc_profiles || [],
-            labelAccessor: (profile: ProfileRecord) => profile?.name || '',
-            colorAccessor: (profile: ProfileRecord) =>
-              this.getDiscProfileColor(profile?.name || ''),
+            labelAccessor: (profile: unknown) => this.getProfileName(profile),
+            colorAccessor: (profile: unknown) =>
+              this.getDiscProfileColor(this.getProfileName(profile)),
           },
         },
       },
@@ -420,9 +429,9 @@ export class AppTalentMatchAdminComponent implements OnInit {
           badges: {
             accessor: (row: TalentMatchApplication) =>
               this.getPositionById(row.position_id)?.disc_profiles || [],
-            labelAccessor: (profile: ProfileRecord) => profile?.name || '',
-            colorAccessor: (profile: ProfileRecord) =>
-              this.getDiscProfileColor(profile?.name || ''),
+            labelAccessor: (profile: unknown) => this.getProfileName(profile),
+            colorAccessor: (profile: unknown) =>
+              this.getDiscProfileColor(this.getProfileName(profile)),
           },
         },
       },

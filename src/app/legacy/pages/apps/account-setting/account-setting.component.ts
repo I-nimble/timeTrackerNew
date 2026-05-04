@@ -102,7 +102,7 @@ export class AppAccountSettingComponent implements OnInit {
   isCandidate = false;
   notificationStore = inject(NotificationStore);
   private fb = inject(FormBuilder);
-  user: Record<string, unknown> = {
+  user: any = {
     name: '',
     last_name: '',
     email: '',
@@ -311,20 +311,20 @@ export class AppAccountSettingComponent implements OnInit {
     salaryRange: [null, [Validators.required, Validators.min(1)]],
     programmingLanguages: [''],
   });
-  locations: Record<string, unknown>[] = [];
-  positions: Record<string, unknown>[] = [];
+  locations: any[] = [];
+  positions: any[] = [];
   careerRoles: { title: string; position_id: number }[] = [
     { title: 'Virtual Assistant', position_id: 16 },
     { title: 'IT and Technology', position_id: 41 },
   ];
   applicationId: number | null = null;
-  private originalApplicationValues: Record<string, unknown> | null = null;
-  private originalApplicationFormData: Record<string, unknown> | null = null;
+  private originalApplicationValues: any = null;
+  private originalApplicationFormData: any = null;
   resumeFileName: string | null = null;
   resumeFile: File | null = null;
   portfolioFileName: string | null = null;
   portfolioFile: File | null = null;
-  application!: Record<string, unknown>;
+  application!: any;
   videoPreview: string | null = null;
   selectedVideoFile: File | null = null;
   videoUploadProgress = 0;
@@ -332,12 +332,12 @@ export class AppAccountSettingComponent implements OnInit {
   maxPictureSize: number = 1 * 1024 * 1024;
   isLoadingSubscription = false;
   formChanged = false;
-  originalUserData: Record<string, unknown> | null = null;
+  originalUserData: any = null;
   isLoadingReceipt = false;
-  certifications: Record<string, unknown>[] = [];
+  certifications: any[] = [];
   isLoadingCertifications = false;
   loader: Loader = new Loader(false, false, false);
-  originalCertifications: Record<string, unknown>[] = [];
+  originalCertifications: any[] = [];
   certificationsChanged = false;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;

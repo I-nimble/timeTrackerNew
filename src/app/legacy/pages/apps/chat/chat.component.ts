@@ -8,6 +8,7 @@ import {
   ElementRef,
   HostListener,
   ChangeDetectorRef,
+  inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +24,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSidenav } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { SafeHtml } from '@angular/platform-browser';
 
 import { PickerModule } from '@ctrl/ngx-emoji-mart';
@@ -69,6 +71,7 @@ interface Emoji {
     MatDividerModule,
     MatButtonModule,
     MatMenuModule,
+    MatTooltipModule,
     CreateRoomComponent,
     ChatInfoComponent,
     MarkdownPipe,
@@ -485,7 +488,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         ) {
           this.chatService
             .createDirectMessage(supportUsername)
-            .then((room) => {
+            .then((room: RocketChatRoom) => {
               this.rooms.push(room);
               this.sortRooms();
               this.loadAllRoomPictures();
@@ -500,7 +503,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.scrollToBottom();
         }
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error loading rooms:', err);
       },
     });
@@ -516,9 +519,11 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private loadAllRoomPictures() {
     this.rooms.forEach((room) => {
-      this.chatService.getConversationPicture(room).subscribe((pictureUrl) => {
-        this.roomPictures[room._id] = pictureUrl;
-      });
+      this.chatService
+        .getConversationPicture(room)
+        .subscribe((pictureUrl: string | null) => {
+          this.roomPictures[room._id] = pictureUrl || '';
+        });
     });
   }
 
@@ -565,7 +570,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
   private hasAnyRole(roles: string[]): boolean {
     const userRoles = this.chatService.loggedInUser?.roles || [];
-    return userRoles.some((r) => roles.includes(r));
+    return userRoles.some((r: string) => roles.includes(r));
   }
 
   isActionsVisible(message: RocketChatMessage) {
@@ -1236,7 +1241,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       data: { type, teamId, teamName },
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe((result: any) => {
       if (result?.success) {
         this.loadRooms();
       }
@@ -1244,7 +1249,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   loadUserInfo(username: string) {
-    this.chatService.getUserInfo(username).subscribe((user) => {
+    this.chatService.getUserInfo(username).subscribe((user: any) => {
       this.selectedUserInfo = {
         ...user,
         email: user.emails?.[0]?.address,
@@ -1254,12 +1259,14 @@ export class AppChatComponent implements OnInit, OnDestroy {
   }
 
   loadChannelMembers(roomId: string, type: 'c' | 'p') {
-    this.chatService.getRoomMembers(roomId, type).subscribe((members) => {
-      this.channelMembers = members.map((m) => ({
-        ...m,
-        avatarUrl: this.chatService.getUserAvatarUrl(m.username),
-      }));
-    });
+    this.chatService
+      .getRoomMembers(roomId, type)
+      .subscribe((members: any[]) => {
+        this.channelMembers = members.map((m: any) => ({
+          ...m,
+          avatarUrl: this.chatService.getUserAvatarUrl(m.username),
+        }));
+      });
   }
 
   openInfoDialog() {
@@ -1272,7 +1279,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         (u) => u !== this.chatService.loggedInUser?.username,
       );
       if (otherUsername) {
-        this.chatService.getUserInfo(otherUsername).subscribe((user) => {
+        this.chatService.getUserInfo(otherUsername).subscribe((user: any) => {
           const userInfo = {
             ...user,
             email: user.emails?.[0]?.address,
@@ -1321,52 +1328,54 @@ export class AppChatComponent implements OnInit, OnDestroy {
         });
       }
     } else if (room.t === 'c' || room.t === 'p') {
-      this.chatService.getRoomMembers(room._id, room.t).subscribe((members) => {
-        const enrichedMembers = members.map((m) => ({
-          ...m,
-          avatarUrl: this.chatService.getUserAvatarUrl(m.username),
-        }));
+      this.chatService
+        .getRoomMembers(room._id, room.t)
+        .subscribe((members: any[]) => {
+          const enrichedMembers = members.map((m: any) => ({
+            ...m,
+            avatarUrl: this.chatService.getUserAvatarUrl(m.username),
+          }));
 
-        const dialogRef = this.dialog.open(ChatInfoComponent, {
-          width: this.isMobile ? '95vw' : '400px',
-          maxWidth: '95vw',
-          data: {
-            conversation: room,
-            userInfo: null,
-            channelMembers: enrichedMembers,
-          },
-          panelClass: 'chat-info-dialog',
-        });
+          const dialogRef = this.dialog.open(ChatInfoComponent, {
+            width: this.isMobile ? '95vw' : '400px',
+            maxWidth: '95vw',
+            data: {
+              conversation: room,
+              userInfo: null,
+              channelMembers: enrichedMembers,
+            },
+            panelClass: 'chat-info-dialog',
+          });
 
-        dialogRef.afterClosed().subscribe((result: any) => {
-          if (result && result.deleted) {
-            const roomId = result.roomId || room._id;
-            this.rooms = this.rooms.filter((r) => r._id !== roomId);
-            const sub = this.roomSubscriptions.get(roomId);
-            if (sub) {
+          dialogRef.afterClosed().subscribe((result: any) => {
+            if (result && result.deleted) {
+              const roomId = result.roomId || room._id;
+              this.rooms = this.rooms.filter((r) => r._id !== roomId);
+              const sub = this.roomSubscriptions.get(roomId);
+              if (sub) {
+                try {
+                  sub.unsubscribe();
+                } catch (e) {}
+                this.roomSubscriptions.delete(roomId);
+              }
               try {
-                sub.unsubscribe();
+                this.chatService.unsubscribeFromRoomMessages(roomId);
               } catch (e) {}
-              this.roomSubscriptions.delete(roomId);
+              try {
+                this.chatService.setUnreadForRoom(roomId, 0);
+              } catch (e) {}
+              if (
+                this.selectedConversation &&
+                this.selectedConversation._id === roomId
+              ) {
+                this.selectedConversation = null as any;
+                this.messages = [];
+              }
+              this.sortRooms();
+              this.cdr.markForCheck();
             }
-            try {
-              this.chatService.unsubscribeFromRoomMessages(roomId);
-            } catch (e) {}
-            try {
-              this.chatService.setUnreadForRoom(roomId, 0);
-            } catch (e) {}
-            if (
-              this.selectedConversation &&
-              this.selectedConversation._id === roomId
-            ) {
-              this.selectedConversation = null as any;
-              this.messages = [];
-            }
-            this.sortRooms();
-            this.cdr.markForCheck();
-          }
+          });
         });
-      });
     }
   }
 
@@ -1469,7 +1478,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         } catch {}
         this.sortRooms();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Failed to mark as read:', err);
         this.openSnackBar('Failed to mark room as read', 'Close');
       },
@@ -1596,7 +1605,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.sortMessagesAscending();
     const existingMessageIds = new Set(this.messages.map((msg) => msg._id));
 
-    const sub = realtimeStream.subscribe((newMessage) => {
+    const sub = realtimeStream.subscribe((newMessage: RocketChatMessage) => {
       try {
         if (!newMessage || !newMessage._id) return;
 
@@ -1718,10 +1727,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
     this.roomSubscriptions.set(room._id, sub);
 
     this.typingSubscription = typingStream.subscribe({
-      next: (typingEvent) => {
+      next: (typingEvent: any) => {
         this.handleTypingEvent(typingEvent);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error('Error in typing stream:', error);
       },
     });
@@ -1744,7 +1753,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
             );
           }
         },
-        error: (err) => {
+        error: (err: unknown) => {
           console.error('Failed to mark room as read on server:', err);
         },
       });
@@ -1826,7 +1835,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!room || !room._id) return;
 
     this.chatService.deleteRoom(room._id).subscribe({
-      next: (success) => {
+      next: (success: any) => {
         if (success) {
           this.rooms = this.rooms.filter((r) => r._id !== room._id);
           if (this.selectedConversation?._id === room._id) {
@@ -1836,7 +1845,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.openSnackBar(`Chat deleted`, 'OK');
         }
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error deleting chat:', err);
         this.openSnackBar('Failed to delete chat', 'Close');
       },
@@ -1847,7 +1856,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
     if (!room || !room._id) return;
 
     this.chatService.leaveRoom(room._id).subscribe({
-      next: (success) => {
+      next: (success: any) => {
         if (success) {
           this.rooms = this.rooms.filter((r) => r._id !== room._id);
           if (this.selectedConversation?._id === room._id) {
@@ -1857,9 +1866,10 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.openSnackBar(`Left room`, 'OK');
         }
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error leaving group:', err);
-        const errorType = err?.error?.errorType;
+        const errorType = (err as { error?: { errorType?: string } })?.error
+          ?.errorType;
         if (errorType === 'error-you-are-last-owner') {
           this.openSnackBar(
             'You are the last owner. Delete the group instead.',
@@ -1947,7 +1957,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           updatedText,
         )
         .subscribe({
-          next: (res) => {
+          next: (res: any) => {
             this.editingMessage!.msg = updatedText;
             this.editingMessage = null;
             this.editingQuoteUrl = null;
@@ -1960,7 +1970,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
 
             this.cdr.detectChanges();
           },
-          error: (err) => {
+          error: (err: unknown) => {
             console.error('Error editing message:', err);
           },
         });
@@ -1991,7 +2001,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         previewUrls,
       )
       .subscribe({
-        next: (result) => {
+        next: (result: any) => {
           if (result.success) {
             this.newMessage = '';
             this.replyToMessage = null;
@@ -2003,7 +2013,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           }
           this.isSendingMessage = false;
         },
-        error: (error) => {
+        error: (error: unknown) => {
           console.error('Error sending message:', error);
           this.isSendingMessage = false;
         },
@@ -2051,7 +2061,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
         },
       })
       .afterClosed()
-      .subscribe((result) => {
+      .subscribe((result: boolean) => {
         if (!result) return;
         this.newMessage = '';
         this.isComposeMode = false;
@@ -2855,7 +2865,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       message.reactions[reactionKey].usernames.push(myUsername);
     }
     this.chatService.reactToMessage(message._id, reactionKey).subscribe({
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error reacting to message:', err);
       },
     });
@@ -2903,7 +2913,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       delete message.reactions;
     }
     this.chatService.reactToMessage(message._id, emoji).subscribe({
-      error: (err) => console.error('Error toggling reaction:', err),
+      error: (err: unknown) => console.error('Error toggling reaction:', err),
     });
   }
 
@@ -2949,7 +2959,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       delete message.reactions;
     }
     this.chatService.reactToMessage(message._id, reactionKey).subscribe({
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error selecting reaction:', err);
       },
     });
@@ -3261,7 +3271,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
       : this.chatService.pinMessage(message);
 
     action$.subscribe({
-      next: (res) => {
+      next: (res: any) => {
         try {
           message.pinned = expectedPinnedState;
           this.cdr.detectChanges();
@@ -3269,7 +3279,7 @@ export class AppChatComponent implements OnInit, OnDestroy {
           this.pendingPinActions.delete(message._id);
         }
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('Error pinning/unpinning message:', err);
         this.pendingPinActions.delete(message._id);
       },
@@ -3331,16 +3341,16 @@ export class AppChatComponent implements OnInit, OnDestroy {
         },
       })
       .afterClosed()
-      .subscribe((result) => {
+      .subscribe((result: boolean) => {
         if (result) {
           this.chatService.deleteMessage(message._id, message.rid).subscribe({
-            next: (res) => {
+            next: (_res: unknown) => {
               this.messages = this.messages.filter(
                 (m) => m._id !== message._id,
               );
               this.cdr.detectChanges();
             },
-            error: (err) => {
+            error: (err: unknown) => {
               console.error('Error deleting message:', err);
             },
           });

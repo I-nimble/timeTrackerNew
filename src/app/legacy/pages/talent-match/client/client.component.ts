@@ -534,6 +534,15 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return this.positions.find((p: any) => p.id == positionId);
   }
 
+  getProfileName(profile: unknown): string {
+    if (profile && typeof profile === 'object' && 'name' in profile) {
+      const name = (profile as { name?: unknown }).name;
+      return typeof name === 'string' ? name : '';
+    }
+
+    return '';
+  }
+
   getDiscProfileColor(profileName: string): string {
     return this.discProfilesService.getDiscProfileColor(profileName);
   }
@@ -959,9 +968,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           subtitleAccessor: 'current_position',
           badges: {
             accessor: (row) => row.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) =>
-              this.getDiscProfileColor(profile?.name || ''),
+            labelAccessor: (profile: unknown) => this.getProfileName(profile),
+            colorAccessor: (profile: unknown) =>
+              this.getDiscProfileColor(this.getProfileName(profile)),
           },
         },
       },
@@ -990,9 +999,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
           badges: {
             accessor: (row) =>
               this.getPositionById(row.position_id)?.disc_profiles || [],
-            labelAccessor: (profile) => profile?.name || '',
-            colorAccessor: (profile) =>
-              this.getDiscProfileColor(profile?.name || ''),
+            labelAccessor: (profile: unknown) => this.getProfileName(profile),
+            colorAccessor: (profile: unknown) =>
+              this.getDiscProfileColor(this.getProfileName(profile)),
           },
         },
       },

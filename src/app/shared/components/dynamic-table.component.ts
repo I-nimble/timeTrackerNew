@@ -23,7 +23,7 @@ import {
   DynamicTablePageChange,
   DynamicTableRowActionEvent,
   DynamicTableSortChange,
-} from '../../legacy/models/dynamic-table.model';
+} from '../../models/dynamic-table.model';
 import { DynamicPaginatorComponent } from '../dynamic-paginator/dynamic-paginator.component';
 
 @Component({

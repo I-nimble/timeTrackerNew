@@ -101,7 +101,7 @@ export class FullComponent implements OnInit, OnDestroy {
   private chatService = inject(RocketChatService);
 
   role: string | null = localStorage.getItem('role');
-  navItems = getNavItems(this.role);
+  navItems = getNavItems(Number(this.role));
   company: unknown;
   userName: string | null = null;
   userId: string | null = null;
@@ -374,7 +374,7 @@ export class FullComponent implements OnInit, OnDestroy {
   }
 
   loadProfilePicture() {
-    this.usersService.getProfilePic(this.userId).subscribe({
+    this.usersService.getProfilePic(Number(this.userId)).subscribe({
       next: (image: string | null) => {
         if (image != null) {
           this.profilePicture = image;

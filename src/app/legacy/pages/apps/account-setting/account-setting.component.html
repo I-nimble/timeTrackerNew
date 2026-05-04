@@ -29,7 +29,7 @@
                   </mat-card-title>
                   <mat-card-subtitle
                     class="f-s-14"
-                    *ngIf="currentPlan?.id !== 1"
+                    *ngIf="currentPlan?.id !== '1'"
                     >Thanks for being a premium member and supporting
                     Inimble.</mat-card-subtitle
                   >
@@ -38,7 +38,7 @@
                     <button
                       mat-flat-button
                       color="primary"
-                      *ngIf="currentPlan?.id === 1"
+                      *ngIf="currentPlan?.id === '1'"
                     >
                       <span> Go Premium </span>
                       <i-tabler
@@ -50,7 +50,7 @@
                       mat-stroked-button
                       class="m-l-8"
                       color="warn"
-                      *ngIf="currentPlan?.id !== 1"
+                      *ngIf="currentPlan?.id !== '1'"
                     >
                       Reset Plan
                     </button>
