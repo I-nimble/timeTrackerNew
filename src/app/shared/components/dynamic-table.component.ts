@@ -10,11 +10,12 @@ import {
   TemplateRef,
 } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { MaterialModule } from 'src/app/material.module';
-import { DynamicPaginatorComponent } from '../dynamic-paginator/dynamic-paginator.component';
-import { DynamicTableCellComponent } from './dynamic-table-cell.component';
+
 import { Loader } from 'src/app/app.models';
-import { LoaderComponent } from 'src/app/components/loader/loader.component';
+import { LoaderComponent } from 'src/app/legacy/components/loader/loader.component';
+import { MaterialModule } from 'src/app/material.module';
+
+import { DynamicTableCellComponent } from './dynamic-table-cell.component';
 import {
   DynamicSortOrder,
   DynamicTableCellContext,
@@ -22,12 +23,19 @@ import {
   DynamicTablePageChange,
   DynamicTableRowActionEvent,
   DynamicTableSortChange,
-} from '../../models/dynamic-table.model';
+} from '../../legacy/models/dynamic-table.model';
+import { DynamicPaginatorComponent } from '../dynamic-paginator/dynamic-paginator.component';
 
 @Component({
   selector: 'app-dynamic-table',
   standalone: true,
-  imports: [CommonModule, MaterialModule, DynamicPaginatorComponent, DynamicTableCellComponent, LoaderComponent],
+  imports: [
+    CommonModule,
+    MaterialModule,
+    DynamicPaginatorComponent,
+    DynamicTableCellComponent,
+    LoaderComponent,
+  ],
   templateUrl: './dynamic-table.component.html',
   styleUrl: './dynamic-table.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -160,7 +168,10 @@ export class DynamicTableComponent<T> implements OnChanges {
       return accessor(row);
     }
 
-    return this.resolvePathValue(row as Record<string, unknown>, accessor as string);
+    return this.resolvePathValue(
+      row as Record<string, unknown>,
+      accessor as string,
+    );
   }
 
   getCellText(row: T, column: DynamicTableColumn<T>): string {
@@ -173,7 +184,11 @@ export class DynamicTableComponent<T> implements OnChanges {
     return String(value);
   }
 
-  getCellContext(row: T, column: DynamicTableColumn<T>, index: number): DynamicTableCellContext<T> {
+  getCellContext(
+    row: T,
+    column: DynamicTableColumn<T>,
+    index: number,
+  ): DynamicTableCellContext<T> {
     return {
       $implicit: row,
       row,
@@ -199,9 +214,16 @@ export class DynamicTableComponent<T> implements OnChanges {
     return !!this.expandedRowTemplate && this.expandedRow === row;
   }
 
-  private resolvePathValue(row: Record<string, unknown>, path: string): unknown {
+  private resolvePathValue(
+    row: Record<string, unknown>,
+    path: string,
+  ): unknown {
     return path.split('.').reduce<unknown>((value, part) => {
-      if (value && typeof value === 'object' && part in (value as Record<string, unknown>)) {
+      if (
+        value &&
+        typeof value === 'object' &&
+        part in (value as Record<string, unknown>)
+      ) {
         return (value as Record<string, unknown>)[part];
       }
 

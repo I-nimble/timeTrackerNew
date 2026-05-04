@@ -38,8 +38,8 @@ import { routes } from './app.routes';
 import { dialogProviders } from './dialog.config';
 import { MaterialModule } from './material.module';
 import { environment } from '../environments/environment';
-import { ReportsService } from './services/reports.service';
-import { WebSocketService } from './services/socket/web-socket.service';
+import { ReportsService } from './legacy/services/reports.service';
+import { WebSocketService } from './legacy/services/socket/web-socket.service';
 
 import 'highlight.js/styles/atom-one-dark.min.css';
 

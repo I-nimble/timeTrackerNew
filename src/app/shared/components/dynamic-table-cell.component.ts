@@ -1,7 +1,15 @@
 import { CommonModule, formatDate } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
-import { MaterialModule } from 'src/app/material.module';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+} from '@angular/core';
 import { MatSortModule } from '@angular/material/sort';
+
+import { MaterialModule } from 'src/app/material.module';
+
 import {
   DynamicTableActionItem,
   DynamicTableBadgeConfig,
@@ -9,7 +17,7 @@ import {
   DynamicTableRenderer,
   DynamicTableRowActionEvent,
   DynamicValueAccessor,
-} from '../../models/dynamic-table.model';
+} from '../../legacy/models/dynamic-table.model';
 
 @Component({
   selector: 'app-dynamic-table-cell',
@@ -56,7 +64,11 @@ export class DynamicTableCellComponent<T> {
       return '';
     }
 
-    return this.formatRendererValue(renderer.subtitleAccessor, renderer.subtitleTransform, '');
+    return this.formatRendererValue(
+      renderer.subtitleAccessor,
+      renderer.subtitleTransform,
+      '',
+    );
   }
 
   getAvatarImage(): string {
@@ -65,7 +77,10 @@ export class DynamicTableCellComponent<T> {
       return '';
     }
 
-    const value = this.getCellValue(renderer.imageAccessor, renderer.imageFallback || '');
+    const value = this.getCellValue(
+      renderer.imageAccessor,
+      renderer.imageFallback || '',
+    );
     return value === null || value === undefined ? '' : String(value);
   }
 
@@ -107,7 +122,11 @@ export class DynamicTableCellComponent<T> {
       return '';
     }
 
-    return this.formatRendererValue(renderer.secondaryAccessor, renderer.secondaryTransform, '');
+    return this.formatRendererValue(
+      renderer.secondaryAccessor,
+      renderer.secondaryTransform,
+      '',
+    );
   }
 
   getTruncatedText(): string {
@@ -120,7 +139,9 @@ export class DynamicTableCellComponent<T> {
     const fallbackText = renderer.fallbackAccessor
       ? this.getCellValue(renderer.fallbackAccessor, '')
       : '';
-    const resolvedText = String(primaryText || fallbackText || this.column.emptyValue || 'N/A');
+    const resolvedText = String(
+      primaryText || fallbackText || this.column.emptyValue || 'N/A',
+    );
     const maxLength = renderer.maxLength || 50;
 
     return resolvedText.length <= maxLength
@@ -131,8 +152,14 @@ export class DynamicTableCellComponent<T> {
   getStatusLabel(): string {
     const renderer = this.getRenderer('status-pill');
     const rawValue = renderer?.valueAccessor
-      ? this.getCellValue(renderer.valueAccessor, this.column.emptyValue ?? 'N/A')
-      : this.getCellValue(this.column.accessor, this.column.emptyValue ?? 'N/A');
+      ? this.getCellValue(
+          renderer.valueAccessor,
+          this.column.emptyValue ?? 'N/A',
+        )
+      : this.getCellValue(
+          this.column.accessor,
+          this.column.emptyValue ?? 'N/A',
+        );
 
     if (!renderer) {
       return this.getFallbackText();
@@ -143,7 +170,7 @@ export class DynamicTableCellComponent<T> {
     }
 
     return rawValue === null || rawValue === undefined || rawValue === ''
-      ? this.column.emptyValue ?? 'N/A'
+      ? (this.column.emptyValue ?? 'N/A')
       : String(rawValue);
   }
 
@@ -179,7 +206,11 @@ export class DynamicTableCellComponent<T> {
       return renderer.fallbackText || this.column.emptyValue || 'N/A';
     }
 
-    if (value instanceof Date || typeof value === 'string' || typeof value === 'number') {
+    if (
+      value instanceof Date ||
+      typeof value === 'string' ||
+      typeof value === 'number'
+    ) {
       try {
         return formatDate(value, renderer.format || 'mediumDate', 'en-US');
       } catch {
@@ -211,7 +242,9 @@ export class DynamicTableCellComponent<T> {
     }
 
     if (typeof badgeConfig.labelAccessor === 'string') {
-      return String(this.resolvePathValue(badge, badgeConfig.labelAccessor) || '');
+      return String(
+        this.resolvePathValue(badge, badgeConfig.labelAccessor) || '',
+      );
     }
 
     return typeof badge?.name === 'string' ? badge.name : String(badge || '');
@@ -227,7 +260,10 @@ export class DynamicTableCellComponent<T> {
       return badgeConfig.colorAccessor(badge) || null;
     }
 
-    return String(this.resolvePathValue(badge, badgeConfig.colorAccessor) || '') || null;
+    return (
+      String(this.resolvePathValue(badge, badgeConfig.colorAccessor) || '') ||
+      null
+    );
   }
 
   getVisibleActions(): DynamicTableActionItem<T>[] {
@@ -236,7 +272,9 @@ export class DynamicTableCellComponent<T> {
       return [];
     }
 
-    return renderer.items.filter((action) => this.evaluateActionState(action.visible, true));
+    return renderer.items.filter((action) =>
+      this.evaluateActionState(action.visible, true),
+    );
   }
 
   isActionDisabled(action: DynamicTableActionItem<T>): boolean {
@@ -289,14 +327,19 @@ export class DynamicTableCellComponent<T> {
 
     if (typeof accessor === 'function') {
       const value = accessor(this.row);
-      return value === null || value === undefined || value === '' ? fallback : value;
+      return value === null || value === undefined || value === ''
+        ? fallback
+        : value;
     }
 
-    const value = typeof accessor === 'string'
-      ? this.resolvePathValue(this.row as Record<string, unknown>, accessor)
-      : (this.row as Record<string, unknown>)[String(accessor)];
+    const value =
+      typeof accessor === 'string'
+        ? this.resolvePathValue(this.row as Record<string, unknown>, accessor)
+        : (this.row as Record<string, unknown>)[String(accessor)];
 
-    return value === null || value === undefined || value === '' ? fallback : value;
+    return value === null || value === undefined || value === ''
+      ? fallback
+      : value;
   }
 
   private formatRendererValue(
@@ -309,7 +352,9 @@ export class DynamicTableCellComponent<T> {
       return transform(value, this.row);
     }
 
-    return value === null || value === undefined || value === '' ? fallback : String(value);
+    return value === null || value === undefined || value === ''
+      ? fallback
+      : String(value);
   }
 
   private evaluateActionState(
@@ -329,7 +374,11 @@ export class DynamicTableCellComponent<T> {
 
   private resolvePathValue(source: any, path: string): unknown {
     return path.split('.').reduce<unknown>((value, part) => {
-      if (value && typeof value === 'object' && part in (value as Record<string, unknown>)) {
+      if (
+        value &&
+        typeof value === 'object' &&
+        part in (value as Record<string, unknown>)
+      ) {
         return (value as Record<string, unknown>)[part];
       }
 

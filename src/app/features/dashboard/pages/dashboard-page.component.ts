@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AppDashboard2Component } from 'src/app/pages/dashboards/dashboard2/dashboard2.component';
+
+import { AppDashboard2Component } from 'src/app/legacy/pages/dashboards/dashboard2/dashboard2.component';
 
 @Component({
   selector: 'app-dashboard-page',

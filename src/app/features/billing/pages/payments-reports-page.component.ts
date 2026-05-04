@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { PaymentsReportsComponent } from 'src/app/pages/apps/invoice/payments-reports/payments-reports.component';
+
+import { PaymentsReportsComponent } from 'src/app/legacy/pages/apps/invoice/payments-reports/payments-reports.component';
 
 @Component({
   selector: 'app-billing-payments-reports-page',

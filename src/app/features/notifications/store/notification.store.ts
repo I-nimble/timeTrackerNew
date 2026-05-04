@@ -1,1 +1,1 @@
-export { NotificationStore } from '../../../stores/notification.store';
+export { NotificationStore } from '../../../legacy/stores/notification.store';

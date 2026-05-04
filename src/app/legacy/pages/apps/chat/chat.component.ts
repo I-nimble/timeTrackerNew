@@ -1,0 +1,3350 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, no-empty */
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  HostListener,
+  ChangeDetectorRef,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenav } from '@angular/material/sidenav';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { SafeHtml } from '@angular/platform-browser';
+
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { Subscription } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
+import { EmojiMartPipe } from 'src/app/legacy/pipe/emoji-render.pipe';
+import { MarkdownPipe, LinebreakPipe } from 'src/app/legacy/pipe/markdown.pipe';
+// companies/employees/plans services removed (not used in this file)
+import { RocketChatService } from 'src/app/legacy/services/rocket-chat.service';
+import { ThemeService } from 'src/app/legacy/services/theme.service';
+// MaterialModule removed (unused)
+import { environment } from 'src/environments/environment';
+
+import { ChatInfoComponent } from './chat-info/chat-info.component';
+import { CreateRoomComponent } from './create-room/create-room.component';
+// JitsiMeetComponent removed (unused)
+import {
+  RocketChatRoom,
+  RocketChatMessage,
+  RocketChatUser,
+  RocketChatMessageAttachment,
+} from '../../../models/rocketChat.model';
+import { PlatformPermissionsService } from '../../../services/permissions.service';
+
+interface Emoji {
+  emoji: string;
+  description: string;
+}
+
+@Component({
+  selector: 'app-chat',
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatSidenavModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatListModule,
+    MatToolbarModule,
+    MatDividerModule,
+    MatButtonModule,
+    MatMenuModule,
+    CreateRoomComponent,
+    ChatInfoComponent,
+    MarkdownPipe,
+    LinebreakPipe,
+    PickerModule,
+    EmojiMartPipe,
+
+    TourMatMenuModule,
+  ],
+  templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.scss'],
+})
+export class AppChatComponent implements OnInit, OnDestroy {
+  roomsFilter = '';
+  selectedConversation!: RocketChatRoom;
+  rooms: RocketChatRoom[] = [];
+  messages: RocketChatMessage[] = [];
+  newMessage = '';
+  isSidebarOpen = true;
+  @ViewChild('messagesContainer', { static: false })
+  messagesContainer?: ElementRef;
+  @ViewChild('composeEditor', { static: false })
+  composeEditor?: ElementRef<HTMLDivElement>;
+  @ViewChild('plainEditor', { static: false })
+  plainEditor?: ElementRef<HTMLDivElement>;
+  @ViewChild('sidebar') sidebar!: MatSidenav;
+  isMobile = window.innerWidth <= 768;
+  @ViewChild('infoSidebar') infoSidebar!: MatSidenav;
+  selectedUserInfo: any = null;
+  channelMembers: any[] = [];
+  defaultAvatarUrl = environment.assets + '/default-profile-pic.png';
+  defaultGroupPicUrl = environment.assets + '/group-icon.webp';
+  roomPictures: Record<string, string> = {};
+  realtimeSubscription: Subscription | null = null;
+  private serverUpdatedSubscription: Subscription | null = null;
+  private typingSubscription!: Subscription;
+  private typingTimeout: any;
+  typingUsers: string[] = [];
+  isUserTyping = false;
+  unreadMapSubscription: Subscription | null = null;
+  private roomSubscriptions = new Map<string, Subscription>();
+  private pendingPinActions = new Map<string, boolean>();
+  rocketChatS3Bucket: string = environment.rocketChatS3Bucket;
+  isSendingMessage = false;
+  editingMessage: RocketChatMessage | null = null;
+  replyToMessage: RocketChatMessage | null = null;
+  pressedMessageId: string | null = null;
+  actionsMenuMessageId: string | null = null;
+  private touchTimer: any = null;
+  userNameCache = new Map<string, string>();
+  showEmojiPicker = false;
+  reactionTargetMessage: RocketChatMessage | null = null;
+  showReactionPicker = false;
+  basicEmojis: Emoji[] = [
+    { emoji: '👍', description: 'Thumbs Up' },
+    { emoji: '❤️', description: 'Heart' },
+    { emoji: '😂', description: 'Face with Tears of Joy' },
+    { emoji: '😮', description: 'Face with Open Mouth' },
+  ];
+  basicEmojiHtml = new Map<string, SafeHtml>();
+  private editingQuoteUrl: string | null = null;
+  private emojiNormalizeTimeout: any;
+  private quotedMessageCache = new Map<string, RocketChatMessage | null>();
+  private quotedMessageInFlight = new Set<string>();
+
+  protected mediaPlayable = new Map<string, boolean>();
+
+  isRecording = false;
+  isComposeMode = false;
+  composeBoldActive = false;
+  composeItalicActive = false;
+  mediaRecorder: any = null;
+  recordedChunks: BlobPart[] = [];
+  recordedAudioUrl: string | null = null;
+  voiceRecorderStartTime = 0;
+  voiceRecorderInterval: any = null;
+  voiceRecorderTime = '00:00';
+  shouldSendAfterStop = false;
+  currentAudioMimeType: string | null = null;
+  private composeEditorSelectionRange: Range | null = null;
+  private plainEditorSelectionRange: Range | null = null;
+  private readonly composeEmojiSequenceRegex =
+    /(\p{Regional_Indicator}{2}|[\d#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*)/gu;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.isMobile = event.target.innerWidth <= 768;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.showEmojiPicker && !this.showReactionPicker) return;
+
+    const target = event.target as HTMLElement | null;
+
+    if (!target) {
+      this.showEmojiPicker = false;
+      this.closeReactionPicker();
+      return;
+    }
+
+    if (this.showEmojiPicker) {
+      if (
+        !target.closest('.emoji-panel') &&
+        !target.closest('.emoji-toggle-btn')
+      ) {
+        this.showEmojiPicker = false;
+      }
+    }
+
+    if (this.showReactionPicker) {
+      if (
+        !target.closest('.reaction-emoji-container') &&
+        !target.closest('.reaction-picker-toggle')
+      ) {
+        this.closeReactionPicker();
+      }
+    }
+  }
+
+  protected chatService = inject(RocketChatService);
+  private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
+  private snackBar = inject(MatSnackBar);
+  private permissionsService = inject(PlatformPermissionsService);
+  private confirmationModal = inject(MatDialog);
+  public emojiPipe = inject(EmojiMartPipe);
+  public themeService = inject(ThemeService);
+
+  ngOnInit(): void {
+    this.loadRooms();
+    try {
+      this.realtimeSubscription = this.chatService
+        .getMessageStream()
+        .subscribe((message: RocketChatMessage) => {
+          try {
+            if (!message || !message.rid) return;
+            const room = this.rooms.find((r) => r._id === message.rid);
+            if (room) {
+              (room as any).lastMessage = message;
+              (room as any).lastMessageTs =
+                message.ts || (room as any).ts || message.ts;
+              this.moveRoomToTop(message.rid);
+            } else {
+              this.loadRooms();
+            }
+          } catch (err) {
+            console.error(
+              'Error updating room lastMessage from global stream:',
+              err,
+              message,
+            );
+          }
+        });
+    } catch (err) {
+      console.error('Failed to subscribe to global message stream:', err);
+    }
+
+    // listen for low-level room notify events (deleteMessage, editMessage) and handle them
+    try {
+      this.chatService.getRoomUpdateStream().subscribe((ev: any) => {
+        try {
+          if (!ev || !ev.collection) return;
+          if (
+            ev.collection === 'stream-notify-room' &&
+            ev.fields &&
+            ev.fields.eventName &&
+            Array.isArray(ev.fields.args)
+          ) {
+            const eventName: string = ev.fields.eventName;
+            const args = ev.fields.args;
+            if (eventName.includes('/deleteMessage')) {
+              const roomId = eventName.split('/')[0];
+              if (
+                this.selectedConversation &&
+                this.selectedConversation._id === roomId
+              ) {
+                const maybeId = args?.[0]?._id || args?.[0]?.messageId || null;
+                if (maybeId) {
+                  this.messages = this.messages.filter(
+                    (m) => m._id !== maybeId,
+                  );
+                  this.cdr.detectChanges();
+                } else if (this.selectedConversation) {
+                  this.loadRoomMessages(this.selectedConversation).subscribe(
+                    (msgs) => {
+                      this.messages = msgs || [];
+                      this.sortMessagesAscending();
+                      this.cdr.detectChanges();
+                    },
+                  );
+                }
+              }
+            }
+          }
+
+          if (
+            ev.collection === 'stream-room-messages' &&
+            ev.fields &&
+            ev.fields.eventName &&
+            Array.isArray(ev.fields.args)
+          ) {
+            const args = ev.fields.args;
+            const maybeMsg = args?.[0];
+            if (!maybeMsg || !maybeMsg._id) return;
+            const roomId = (ev.fields.eventName || '').split('/')[0];
+            if (
+              !this.selectedConversation ||
+              this.selectedConversation._id !== roomId
+            )
+              return;
+
+            const incoming: RocketChatMessage = maybeMsg as RocketChatMessage;
+            try {
+              const looksLikePinnedEvent =
+                incoming.t === 'message_pinned' ||
+                typeof (incoming as any).pinned !== 'undefined';
+              if (looksLikePinnedEvent) {
+                const isPinned =
+                  incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+                const pendingExpected = this.pendingPinActions.get(
+                  incoming._id,
+                );
+
+                if (typeof pendingExpected !== 'undefined') {
+                  if (pendingExpected === isPinned) {
+                    const idx2 = this.messages.findIndex(
+                      (m) => m._id === incoming._id,
+                    );
+                    if (idx2 !== -1) {
+                      this.messages[idx2] = {
+                        ...this.messages[idx2],
+                        ...incoming,
+                        pinned: isPinned,
+                      };
+                    } else if (this.selectedConversation) {
+                      this.loadRoomMessages(
+                        this.selectedConversation,
+                      ).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                    this.pendingPinActions.delete(incoming._id);
+                    this.sortMessagesAscending();
+                    this.cdr.detectChanges();
+                  } else {
+                    this.pendingPinActions.delete(incoming._id);
+                  }
+                } else {
+                  const idx2 = this.messages.findIndex(
+                    (m) => m._id === incoming._id,
+                  );
+                  if (idx2 !== -1) {
+                    const localPinned = !!this.messages[idx2].pinned;
+                    if (localPinned !== isPinned) {
+                      this.messages[idx2] = {
+                        ...this.messages[idx2],
+                        ...incoming,
+                        pinned: isPinned,
+                      };
+                    }
+                  } else {
+                    if (this.selectedConversation) {
+                      this.loadRoomMessages(
+                        this.selectedConversation,
+                      ).subscribe((msgs) => {
+                        this.messages = msgs || [];
+                        this.sortMessagesAscending();
+                        this.cdr.detectChanges();
+                      });
+                    }
+                  }
+                  this.sortMessagesAscending();
+                  this.cdr.detectChanges();
+                }
+              }
+            } catch (err) {
+              console.error(
+                'Error handling pin/unpin detection:',
+                err,
+                incoming,
+              );
+            }
+
+            const idx = this.messages.findIndex((m) => m._id === incoming._id);
+            if (idx !== -1) {
+              this.messages[idx] = { ...this.messages[idx], ...incoming };
+            } else {
+              this.messages.push(incoming);
+            }
+            this.sortMessagesAscending();
+            this.cdr.detectChanges();
+          }
+          if (ev.collection === 'stream-notify-room') {
+            try {
+              const eventName = ev.fields?.eventName || '';
+              if (
+                typeof eventName === 'string' &&
+                !eventName.includes('/deleteMessage')
+              ) {
+                this.loadRooms();
+              }
+            } catch (err) {
+              console.error(
+                'Error handling stream-notify-room refresh:',
+                err,
+                ev,
+              );
+            }
+          }
+        } catch (err) {
+          console.error(
+            'Error handling room update event in component:',
+            err,
+            ev,
+          );
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to room update stream:', err);
+    }
+
+    try {
+      this.unreadMapSubscription = this.chatService
+        .getUnreadMapStream()
+        .subscribe(() => {
+          this.sortRooms();
+        });
+    } catch (err) {
+      console.error('Failed to subscribe to unread map stream:', err);
+    }
+
+    // reload messages when server sends an 'updated' notification
+    try {
+      this.serverUpdatedSubscription = this.chatService
+        .getServerUpdatedStream()
+        .subscribe((methods: any) => {
+          try {
+            if (!this.selectedConversation) return;
+            this.loadRoomMessages(this.selectedConversation).subscribe(
+              (msgs) => {
+                this.messages = msgs || [];
+                this.sortMessagesAscending();
+                this.cdr.detectChanges();
+                this.scrollToBottom();
+              },
+              (err) => {
+                console.error(
+                  'Failed to reload room messages after server updated event:',
+                  err,
+                );
+              },
+            );
+          } catch (err) {
+            console.error(
+              'Error handling server updated event in component:',
+              err,
+              methods,
+            );
+          }
+        });
+    } catch (err) {
+      console.error('Failed to subscribe to server updated stream:', err);
+    }
+    try {
+      this.chatService.getUserNotifyStream().subscribe((notification: any) => {
+        try {
+          if (notification.type === 'call-started') {
+            const roomName = notification.roomName || 'a room';
+            this.openSnackBar(`Call started in ${roomName}`, 'Join');
+            return;
+          }
+          const maybeRid =
+            notification?.roomId ||
+            notification?.fields?.args?.[0]?.rid ||
+            notification?.fields?.args?.[1]?.rid ||
+            notification?.fields?.args?.rid;
+          if (maybeRid) {
+            this.loadRooms();
+          }
+        } catch (err) {
+          console.error(
+            'Error handling user notify event in component:',
+            err,
+            notification,
+          );
+        }
+      });
+    } catch (err) {
+      console.error('Failed to subscribe to call notifications stream:', err);
+    }
+  }
+
+  get isEmptyText(): boolean {
+    return this.newMessage.trim().length === 0;
+  }
+
+  private loadRooms(): void {
+    this.chatService.getRooms().subscribe({
+      next: (rooms: any) => {
+        this.rooms = rooms;
+
+        // Create suppor chat if not found
+        const supportUsername = environment.supportUsername;
+        const supportUserRoom = this.rooms.find(
+          (room: any) =>
+            room.t === 'd' && room.usernames.includes(supportUsername),
+        );
+        if (
+          !supportUserRoom &&
+          this.chatService.loggedInUser?.username !== supportUsername
+        ) {
+          this.chatService
+            .createDirectMessage(supportUsername)
+            .then((room) => {
+              this.rooms.push(room);
+              this.sortRooms();
+              this.loadAllRoomPictures();
+              this.scrollToBottom();
+            })
+            .catch(() =>
+              this.openSnackBar('Error creating direct message:', 'Close'),
+            );
+        } else {
+          this.sortRooms();
+          this.loadAllRoomPictures();
+          this.scrollToBottom();
+        }
+      },
+      error: (err) => {
+        console.error('Error loading rooms:', err);
+      },
+    });
+  }
+
+  isRoomSupportUser(room: RocketChatRoom): boolean {
+    return (
+      (room.t === 'd' &&
+        room.usernames?.includes(environment.supportUsername)) ||
+      false
+    );
+  }
+
+  private loadAllRoomPictures() {
+    this.rooms.forEach((room) => {
+      this.chatService.getConversationPicture(room).subscribe((pictureUrl) => {
+        this.roomPictures[room._id] = pictureUrl;
+      });
+    });
+  }
+
+  getConversationPicture(room?: RocketChatRoom): string {
+    return this.roomPictures[room?._id || ''] || this.getDefaultPicture(room!);
+  }
+
+  private getDefaultPicture(room: RocketChatRoom): string {
+    switch (room.t) {
+      case 'd':
+        return this.defaultAvatarUrl;
+      case 'p':
+        return this.defaultGroupPicUrl;
+      case 'c':
+        return this.defaultGroupPicUrl;
+      case 'l':
+        return this.defaultAvatarUrl;
+      default:
+        return this.defaultAvatarUrl;
+    }
+  }
+
+  getUserEmail(): string {
+    const emails = this.chatService.loggedInUser?.emails;
+    return emails && emails.length > 0 ? emails[0].address : '';
+  }
+
+  getInfoTitle(): string {
+    if (!this.selectedConversation) return 'Info';
+
+    switch (this.selectedConversation.t) {
+      case 'd':
+        return 'Contact Info';
+      case 'c':
+        return 'Channel Info';
+      case 'p':
+        return 'Team Info';
+      case 'l':
+        return 'Support Info';
+      default:
+        return 'Info';
+    }
+  }
+
+  private hasAnyRole(roles: string[]): boolean {
+    const userRoles = this.chatService.loggedInUser?.roles || [];
+    return userRoles.some((r) => roles.includes(r));
+  }
+
+  isActionsVisible(message: RocketChatMessage) {
+    if (!this.isMobile) return true;
+    return this.pressedMessageId === message._id;
+  }
+
+  isSystemMessage(message: RocketChatMessage): boolean {
+    const systemTypes = [
+      'rm',
+      'r',
+      'uj',
+      'ul',
+      'ult',
+      'ru',
+      'au',
+      'added-user-to-team',
+      'removed-user-from-team',
+      'user-added-room-to-team',
+      'user-deleted-room-from-team',
+      'room_changed_name',
+      'room_changed_description',
+      'room_changed_avatar',
+      'message_pinned',
+    ];
+    return systemTypes.includes(message.t || '');
+  }
+
+  formatSystemMessage(message: RocketChatMessage): string {
+    const actor = this.getDisplayName(message.u);
+    const target = message.msg || '';
+
+    switch (message.t) {
+      case 'rm':
+        return `${actor} removed a message`;
+      case 'uj':
+        return `${actor} joined the room`;
+      case 'ul':
+      case 'ult':
+        return `${actor} left the room`;
+      case 'ru':
+        return `${actor} removed user ${target}`;
+      case 'au':
+        return `${actor} added user ${target}`;
+      case 'added-user-to-team':
+        return `${actor} added user ${target} to the team`;
+      case 'removed-user-from-team':
+        return `${actor} removed user ${target} from the team`;
+      case 'user-added-room-to-team':
+        return `${actor} added room ${target} to the team`;
+      case 'user-deleted-room-from-team':
+        return `${actor} removed room "${target}" from the team`;
+      case 'r':
+      case 'room_changed_name':
+        return `${actor} changed the room name to ${target}`;
+      case 'room_changed_description':
+        return `${actor} changed the description to "${target}"`;
+      case 'room_changed_avatar':
+        return `${actor} changed the room avatar`;
+      case 'message_pinned':
+        return `${actor} pinned a message`;
+      default:
+        return target || '';
+    }
+  }
+
+  trackByMessageId(index: number, message: RocketChatMessage): string {
+    return message._id;
+  }
+
+  getDisplayName(user: any): string {
+    if (!user) return 'Unknown';
+    if (user.name && user.name.trim().length > 0) return user.name.trim();
+    return user.username || 'Unknown';
+  }
+
+  canCreateTeam(): boolean {
+    return this.hasAnyRole(['moderator', 'admin']);
+  }
+
+  canDeleteRoom(room: RocketChatRoom): boolean {
+    if (!room || !room.t) return false;
+    const roles = this.chatService.loggedInUser?.roles || [];
+
+    switch (room.t) {
+      case 'c':
+        return (
+          roles.includes('admin') ||
+          roles.includes('moderator') ||
+          roles.includes('leader')
+        );
+      case 'p':
+        return (
+          roles.includes('admin') ||
+          roles.includes('moderator') ||
+          roles.includes('leader')
+        );
+      case 'd':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  async call(type: 'video' | 'audio') {
+    if (!this.selectedConversation) return;
+
+    if (!this.chatService.callsAvailable) {
+      const permissionsGranted =
+        await this.permissionsService.requestMediaPermissions(type === 'video');
+
+      if (!permissionsGranted) {
+        this.openSnackBar(
+          'Camera/microphone permissions are required for calls.',
+          'Close',
+        );
+        return;
+      }
+    }
+
+    const roomId = this.selectedConversation._id;
+    this.chatService.initializeJitsiMeeting(roomId).subscribe((res: any) => {
+      if (!res || !res.success) {
+        console.error('Error calling room', roomId, res?.error);
+        return;
+      }
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl =
+        (environment.jitsiMeetUrl || '').replace(/\/$/, '') +
+        '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName:
+          this.chatService.loggedInUser?.name ||
+          this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: {
+          startWithAudioMuted: false,
+          startWithVideoMuted: type === 'audio',
+          prejoinPageEnabled: false,
+        },
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        },
+      });
+    });
+  }
+
+  async joinCall(message: RocketChatMessage) {
+    if (!this.chatService.callsAvailable) {
+      const permissionsGranted =
+        await this.permissionsService.requestMediaPermissions(true);
+
+      if (!permissionsGranted) {
+        this.openSnackBar(
+          'Camera/microphone permissions are required for calls.',
+          'Close',
+        );
+        return;
+      }
+    }
+
+    this.chatService.joinJitsiMeeting(message).subscribe((res: any) => {
+      if (!res || !res.success) {
+        console.error('Error joining room', res?.error);
+        return;
+      }
+
+      const callId = res.callId;
+      const jwt = res.callToken;
+      const roomName = `RocketChat${callId}`;
+      const externalApiUrl =
+        (environment.jitsiMeetUrl || '').replace(/\/$/, '') +
+        '/external_api.js';
+
+      this.chatService.openJitsiMeeting({
+        roomId: callId,
+        roomName,
+        jwt,
+        externalApiUrl,
+        displayName:
+          this.chatService.loggedInUser?.name ||
+          this.chatService.loggedInUser?.username,
+        email: this.getUserEmail(),
+        configOverwrite: { prejoinPageEnabled: false },
+        interfaceConfigOverwrite: {
+          MOBILE_APP_PROMO: false,
+        },
+      });
+    });
+  }
+
+  isFromMe(message: RocketChatMessage) {
+    return message.u._id === this.chatService.loggedInUser?._id;
+  }
+
+  getAttachmentType(
+    attachment: RocketChatMessageAttachment,
+  ): 'image' | 'video' | 'audio' | 'file' {
+    if (!attachment) return 'file';
+
+    if (attachment.image_url) return 'image';
+    if (attachment.video_url) return 'video';
+    if (attachment.audio_url) return 'audio';
+    return 'file';
+  }
+
+  async downloadFile(
+    attachment: RocketChatMessageAttachment,
+    messageId?: string,
+  ) {
+    const fullFileName =
+      attachment.image_url ||
+      attachment.video_url ||
+      attachment.audio_url ||
+      attachment.title_link;
+    if (!fullFileName) return;
+
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+
+    if (!groupId) return;
+
+    const segment1 = groupId;
+    const segment2 = groupId.substring(0, 17);
+    const segment3 = groupId.substring(17);
+
+    const url1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const url2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
+    const originalFileName = attachment.title || fileNameInS3;
+
+    if (messageId) {
+      if (this.mediaPlayable.get(`${messageId}|1`)) {
+        if (await this.tryDownloadAndSave(url1, originalFileName)) return;
+        window.open(url1, '_blank');
+        return;
+      }
+      if (this.mediaPlayable.get(`${messageId}|2`)) {
+        if (await this.tryDownloadAndSave(url2, originalFileName)) return;
+        window.open(url2, '_blank');
+        return;
+      }
+    }
+
+    const tryDownload = async (
+      url: string,
+    ): Promise<'ok' | 'error' | 'network_error'> => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) return 'error';
+        const blob = await response.blob();
+
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = originalFileName;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        window.URL.revokeObjectURL(blobUrl);
+        return 'ok';
+      } catch {
+        return 'network_error';
+      }
+    };
+
+    const result1 = await tryDownload(url1);
+    if (result1 === 'ok') return;
+
+    const result2 = await tryDownload(url2);
+    if (result2 === 'ok') return;
+
+    if (result2 === 'network_error') {
+      window.open(url2, '_blank');
+    } else {
+      window.open(url1, '_blank');
+    }
+  }
+
+  private async tryDownloadAndSave(
+    url: string,
+    fileName: string,
+  ): Promise<boolean> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return false;
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      return true;
+    } catch (e) {
+      void e;
+      return false;
+    }
+  }
+
+  selectFile() {
+    this.isSendingMessage = true;
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.click();
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+      const roomId = this.selectedConversation?._id;
+      if (file) {
+        this.chatService.uploadFile(file, roomId).subscribe({
+          next: (res: any) => {
+            if (!res.success) {
+              console.error('Failed to upload file:', res.error);
+              return;
+            }
+
+            const fileType = file.type.split('/')[0];
+            const attachment: RocketChatMessageAttachment = {
+              title: file.name,
+              title_link: res.file.url,
+              title_link_download: true,
+              ts: new Date().toISOString(),
+
+              ...(fileType === 'image' && {
+                image_url: res.file.url,
+                thumb_url: res.file.url,
+              }),
+              ...(fileType === 'video' && {
+                video_url: res.file.url,
+              }),
+              ...(fileType === 'audio' && {
+                audio_url: res.file.url,
+              }),
+
+              ...(!['image', 'video', 'audio'].includes(fileType) && {
+                text: `File: ${file.name} (${this.formatFileSize(file.size)})`,
+              }),
+            };
+
+            this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
+              next: (res: any) => {
+                this.isSendingMessage = false;
+              },
+              error: (err: any) => {
+                console.error('Error sending message with attachment:', err);
+                this.isSendingMessage = false;
+              },
+            });
+          },
+          error: (err: any) => {
+            console.error('Error uploading file:', err);
+            this.isSendingMessage = false;
+          },
+        });
+      }
+    };
+  }
+
+  onVoiceButtonClick(event: Event) {
+    event.stopPropagation();
+    if (!this.selectedConversation) {
+      this.openSnackBar(
+        'Select a conversation to send a voice message',
+        'Close',
+      );
+      return;
+    }
+
+    if (!this.isRecording) {
+      this.startVoiceRecording();
+    } else {
+      this.stopVoiceRecordingAndSend();
+    }
+  }
+
+  startVoiceRecording() {
+    this.recordedChunks = [];
+    this.recordedAudioUrl = null;
+    this.isRecording = true;
+    this.voiceRecorderStartTime = Date.now();
+    this.startVoiceRecorderTimer();
+
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        try {
+          const mime = this.getSupportedAudioMimeType();
+          this.currentAudioMimeType = mime;
+          this.mediaRecorder = new (window as any).MediaRecorder(
+            stream,
+            mime ? { mimeType: mime } : undefined,
+          );
+        } catch (e) {
+          this.openSnackBar(
+            'Could not start recorder on this browser.',
+            'Close',
+          );
+          this.isRecording = false;
+          this.stopVoiceRecorderTimer();
+          stream.getTracks().forEach((t: any) => t.stop());
+          return;
+        }
+
+        this.mediaRecorder.ondataavailable = (e: any) => {
+          if (e.data && e.data.size > 0) {
+            this.recordedChunks.push(e.data);
+          }
+        };
+
+        this.mediaRecorder.onstop = () => {
+          try {
+            const type = this.currentAudioMimeType || 'audio/webm';
+            const audioBlob = new Blob(this.recordedChunks, { type });
+            this.recordedAudioUrl = URL.createObjectURL(audioBlob);
+            if (this.shouldSendAfterStop) {
+              this.shouldSendAfterStop = false;
+              this.uploadAndSendAudio(audioBlob);
+            }
+          } catch (e) {
+            console.error('Error creating audio blob url', e);
+          }
+          try {
+            stream.getTracks().forEach((t: any) => t.stop());
+          } catch (e) {}
+        };
+
+        try {
+          this.mediaRecorder.start();
+        } catch (e) {
+          console.error('Failed to start MediaRecorder', e);
+          this.isRecording = false;
+          this.stopVoiceRecorderTimer();
+        }
+      })
+      .catch((err) => {
+        console.error('Microphone permission denied or not available', err);
+        this.openSnackBar(
+          'Microphone access is required to record voice messages.',
+          'Close',
+        );
+        this.isRecording = false;
+        this.stopVoiceRecorderTimer();
+      });
+  }
+
+  stopVoiceRecordingAndSend() {
+    if (!this.isRecording) return;
+    this.isRecording = false;
+    this.stopVoiceRecorderTimer();
+    try {
+      this.shouldSendAfterStop = true;
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+      } else {
+        if (!this.recordedChunks || this.recordedChunks.length === 0) {
+          this.openSnackBar('No audio recorded', 'Close');
+          this.discardVoiceRecording();
+        } else {
+          const type = this.currentAudioMimeType || 'audio/webm';
+          const audioBlob = new Blob(this.recordedChunks, { type });
+          this.shouldSendAfterStop = false;
+          this.uploadAndSendAudio(audioBlob);
+        }
+      }
+    } catch (e) {
+      console.warn('Error stopping mediaRecorder', e);
+      this.openSnackBar('Failed to stop recording', 'Close');
+      this.discardVoiceRecording();
+    }
+  }
+
+  discardVoiceRecording() {
+    try {
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive')
+        this.mediaRecorder.stop();
+    } catch (e) {}
+    this.isRecording = false;
+    this.recordedChunks = [];
+    this.recordedAudioUrl = null;
+    this.shouldSendAfterStop = false;
+    this.stopVoiceRecorderTimer();
+  }
+
+  private uploadAndSendAudio(blob: Blob) {
+    if (!this.selectedConversation) return;
+    const roomId = this.selectedConversation._id;
+    const mime = this.currentAudioMimeType || blob.type || 'audio/webm';
+    const ext = mime.includes('ogg')
+      ? 'ogg'
+      : mime.includes('wav')
+        ? 'wav'
+        : 'webm';
+    const fileName = `voice-message-${Date.now()}.${ext}`;
+    const file = new File([blob], fileName, { type: mime });
+
+    this.isSendingMessage = true;
+    this.chatService.uploadFile(file, roomId).subscribe({
+      next: (res: any) => {
+        if (!res || !res.success) {
+          console.error('Failed to upload voice file', res);
+          this.openSnackBar('Failed to upload voice message', 'Close');
+          this.isSendingMessage = false;
+          return;
+        }
+
+        const attachment: RocketChatMessageAttachment = {
+          title: file.name,
+          title_link: res.file.url,
+          title_link_download: true,
+          ts: new Date().toISOString(),
+          audio_url: res.file.url,
+        };
+
+        this.chatService.sendMessage(roomId, '', [attachment]).subscribe({
+          next: () => {
+            this.isSendingMessage = false;
+            this.discardVoiceRecording();
+          },
+          error: (err: any) => {
+            console.error('Error sending voice message:', err);
+            this.openSnackBar('Failed to send voice message', 'Close');
+            this.isSendingMessage = false;
+          },
+        });
+      },
+      error: (err: any) => {
+        console.error('Error uploading voice file:', err);
+        this.openSnackBar('Failed to upload voice message', 'Close');
+        this.isSendingMessage = false;
+      },
+    });
+  }
+
+  private startVoiceRecorderTimer() {
+    this.stopVoiceRecorderTimer();
+    this.voiceRecorderStartTime = Date.now();
+    this.voiceRecorderInterval = setInterval(() => {
+      const diff = Date.now() - this.voiceRecorderStartTime;
+      this.voiceRecorderTime = this.formatDuration(diff);
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {
+        void e;
+      }
+    }, 500);
+  }
+
+  private stopVoiceRecorderTimer() {
+    if (this.voiceRecorderInterval) {
+      clearInterval(this.voiceRecorderInterval);
+      this.voiceRecorderInterval = null;
+    }
+    this.voiceRecorderTime = '00:00';
+  }
+
+  private formatDuration(ms: number): string {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+
+  private getSupportedAudioMimeType(): string | null {
+    try {
+      const candidates = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/ogg',
+        'audio/wav',
+      ];
+      const MR = (window as any).MediaRecorder;
+      if (!MR || !MR.isTypeSupported) return null;
+      for (const m of candidates) {
+        try {
+          if (MR.isTypeSupported(m)) return m;
+        } catch (e) {
+          void e;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  getFileUrl(attachment: RocketChatMessageAttachment, urlVariant = 1) {
+    const fullFileName =
+      attachment.image_url ||
+      attachment.video_url ||
+      attachment.audio_url ||
+      attachment.title_link;
+    if (!fullFileName) return;
+
+    const fileNameInS3 = fullFileName.split('/')[2];
+    const groupId = this.selectedConversation?._id;
+    const segment1 = groupId;
+    const segment2 = groupId.substring(0, 17);
+    const segment3 = groupId.substring(17);
+
+    const fullUrl1 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment2}/${fileNameInS3}`;
+    const fullUrl2 = `${this.rocketChatS3Bucket}/uploads/${segment1}/${segment3}/${fileNameInS3}`;
+
+    if (urlVariant === 1) return fullUrl1;
+    return fullUrl2;
+  }
+
+  onMediaPlayable(messageId: string, variant: number) {
+    try {
+      const key = `${messageId}|${variant}`;
+      this.mediaPlayable.set(key, true);
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {
+        void e;
+      }
+    } catch (e) {
+      void e;
+    }
+  }
+
+  onMediaError(messageId: string, variant: number) {
+    try {
+      const key = `${messageId}|${variant}`;
+      this.mediaPlayable.set(key, false);
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
+    } catch (e) {}
+  }
+
+  private async checkUrlExists(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.status === 200 || response.status !== 403;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  openCreateRoomDialog(
+    type: 'd' | 'c' | 't' | 'p',
+    teamId?: string,
+    teamName?: string,
+  ) {
+    const dialogRef = this.dialog.open(CreateRoomComponent, {
+      width: '400px',
+      data: { type, teamId, teamName },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.success) {
+        this.loadRooms();
+      }
+    });
+  }
+
+  loadUserInfo(username: string) {
+    this.chatService.getUserInfo(username).subscribe((user) => {
+      this.selectedUserInfo = {
+        ...user,
+        email: user.emails?.[0]?.address,
+        avatarUrl: this.chatService.getUserAvatarUrl(user.username),
+      };
+    });
+  }
+
+  loadChannelMembers(roomId: string, type: 'c' | 'p') {
+    this.chatService.getRoomMembers(roomId, type).subscribe((members) => {
+      this.channelMembers = members.map((m) => ({
+        ...m,
+        avatarUrl: this.chatService.getUserAvatarUrl(m.username),
+      }));
+    });
+  }
+
+  openInfoDialog() {
+    if (!this.selectedConversation) return;
+
+    const room = this.selectedConversation;
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        (u) => u !== this.chatService.loggedInUser?.username,
+      );
+      if (otherUsername) {
+        this.chatService.getUserInfo(otherUsername).subscribe((user) => {
+          const userInfo = {
+            ...user,
+            email: user.emails?.[0]?.address,
+            avatarUrl: this.chatService.getUserAvatarUrl(user.username),
+          };
+
+          const dialogRef = this.dialog.open(ChatInfoComponent, {
+            width: this.isMobile ? '95vw' : '400px',
+            maxWidth: '95vw',
+            data: {
+              conversation: room,
+              userInfo,
+              channelMembers: [],
+            },
+            panelClass: 'chat-info-dialog',
+          });
+
+          dialogRef.afterClosed().subscribe((result: any) => {
+            if (result && result.deleted) {
+              const roomId = result.roomId || room._id;
+              this.rooms = this.rooms.filter((r) => r._id !== roomId);
+              const sub = this.roomSubscriptions.get(roomId);
+              if (sub) {
+                try {
+                  sub.unsubscribe();
+                } catch (e) {}
+                this.roomSubscriptions.delete(roomId);
+              }
+              try {
+                this.chatService.unsubscribeFromRoomMessages(roomId);
+              } catch (e) {}
+              try {
+                this.chatService.setUnreadForRoom(roomId, 0);
+              } catch (e) {}
+              if (
+                this.selectedConversation &&
+                this.selectedConversation._id === roomId
+              ) {
+                this.selectedConversation = null as any;
+                this.messages = [];
+              }
+              this.sortRooms();
+              this.cdr.markForCheck();
+            }
+          });
+        });
+      }
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.chatService.getRoomMembers(room._id, room.t).subscribe((members) => {
+        const enrichedMembers = members.map((m) => ({
+          ...m,
+          avatarUrl: this.chatService.getUserAvatarUrl(m.username),
+        }));
+
+        const dialogRef = this.dialog.open(ChatInfoComponent, {
+          width: this.isMobile ? '95vw' : '400px',
+          maxWidth: '95vw',
+          data: {
+            conversation: room,
+            userInfo: null,
+            channelMembers: enrichedMembers,
+          },
+          panelClass: 'chat-info-dialog',
+        });
+
+        dialogRef.afterClosed().subscribe((result: any) => {
+          if (result && result.deleted) {
+            const roomId = result.roomId || room._id;
+            this.rooms = this.rooms.filter((r) => r._id !== roomId);
+            const sub = this.roomSubscriptions.get(roomId);
+            if (sub) {
+              try {
+                sub.unsubscribe();
+              } catch (e) {}
+              this.roomSubscriptions.delete(roomId);
+            }
+            try {
+              this.chatService.unsubscribeFromRoomMessages(roomId);
+            } catch (e) {}
+            try {
+              this.chatService.setUnreadForRoom(roomId, 0);
+            } catch (e) {}
+            if (
+              this.selectedConversation &&
+              this.selectedConversation._id === roomId
+            ) {
+              this.selectedConversation = null as any;
+              this.messages = [];
+            }
+            this.sortRooms();
+            this.cdr.markForCheck();
+          }
+        });
+      });
+    }
+  }
+
+  filteredRooms(): RocketChatRoom[] {
+    return this.rooms
+      .filter((r) => {
+        if (r.teamMain) return false;
+        if (r.t === 'd') return true;
+        if (r.t === 'c') return true;
+        if (r.t === 'p') return true;
+        return false;
+      })
+      .filter((r) => {
+        if (!this.roomsFilter) return true;
+        const q = this.roomsFilter.toLowerCase();
+        try {
+          const nameMatch = !!r?.name && r.name.toLowerCase().includes(q);
+          let otherUsername = '';
+          if (Array.isArray(r?.usernames) && r.usernames.length > 0) {
+            const others = r.usernames.filter(
+              (u: string) => u !== this.chatService.loggedInUser?.username,
+            );
+            otherUsername = (others && others[0]) || '';
+          }
+          const usernameMatch = otherUsername.toLowerCase().includes(q);
+          return nameMatch || usernameMatch;
+        } catch (e) {
+          return false;
+        }
+      });
+  }
+
+  getConversationName(room: RocketChatRoom): string {
+    if (!room) return 'Unknown';
+
+    switch (room.t) {
+      case 'd': {
+        if (room.name && room.name.trim().length > 0) return room.name;
+        if (Array.isArray(room.usernames) && room.usernames.length > 0) {
+          const other = room.usernames.find(
+            (u: string) => u !== this.chatService.loggedInUser?.username,
+          );
+          if (!other) return room.usernames[0] || 'Direct Message';
+
+          if (this.userNameCache.has(other)) {
+            return this.userNameCache.get(other)!;
+          }
+
+          this.loadUserName(other);
+          return other;
+        }
+        return 'Direct Message';
+      }
+      case 'p':
+      case 'c':
+        return room.name || 'Unknown';
+      case 'l':
+        return 'Inimble Support';
+      default:
+        return room.name || 'Unknown';
+    }
+  }
+
+  private loadUserName(username: string): void {
+    this.chatService.getUserInfo(username).subscribe({
+      next: (user: RocketChatUser) => {
+        const displayName =
+          user.name && user.name.trim().length > 0 ? user.name : username;
+        this.userNameCache.set(username, displayName);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.userNameCache.set(username, username);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  getUnreadMessageCount(room: RocketChatRoom): number {
+    if (!room) return 0;
+    try {
+      const count = this.chatService.getUnreadForRoom(room._id);
+      return count || 0;
+    } catch (err) {
+      console.error(
+        'Error reading unread count from service for room',
+        room._id,
+        err,
+      );
+      return 0;
+    }
+  }
+
+  markAsRead(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    this.chatService.markChannelAsRead(room._id).subscribe({
+      next: () => {
+        try {
+          this.chatService.setUnreadForRoom(room._id, 0);
+        } catch {}
+        this.sortRooms();
+      },
+      error: (err) => {
+        console.error('Failed to mark as read:', err);
+        this.openSnackBar('Failed to mark room as read', 'Close');
+      },
+    });
+  }
+
+  markAsUnread(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+    try {
+      this.chatService.setUnreadForRoom(room._id, 1);
+    } catch (err) {
+      console.error('Failed to mark as unread:', err);
+      this.openSnackBar('Failed to mark room as unread', 'Close');
+    }
+    this.sortRooms();
+  }
+
+  getMessageTimestamp(message: RocketChatMessage): Date {
+    if (typeof message.ts === 'string') {
+      return new Date(message.ts);
+    } else if (
+      message.ts &&
+      typeof message.ts === 'object' &&
+      '$date' in message.ts
+    ) {
+      const dateValue = message.ts.$date;
+      return new Date(dateValue);
+    }
+    console.warn('Invalid timestamp format for message:', message._id);
+    return new Date();
+  }
+
+  formatMessageTime(message: RocketChatMessage): string {
+    const date = this.getMessageTimestamp(message);
+    return date.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
+  isSameDay(date1: Date, date2: Date): boolean {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  }
+
+  getDateLabel(date: Date): string {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (this.isSameDay(date, today)) {
+      return 'Today';
+    } else if (this.isSameDay(date, yesterday)) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+  }
+
+  getSenderAvatar(message: RocketChatMessage): string {
+    if (this.isFromMe(message)) {
+      return this.chatService.loggedInUser?.avatarUrl || this.defaultAvatarUrl;
+    }
+    return this.chatService.getUserAvatarUrl(message.u.username);
+  }
+
+  getSenderName(message: RocketChatMessage): string {
+    return message.u?.name || message.u?.username || 'Unknown';
+  }
+
+  async selectRoom(room: RocketChatRoom) {
+    const previousRoomId = this.selectedConversation?._id;
+    if (previousRoomId && previousRoomId !== room._id) {
+      try {
+        const prevSub = this.roomSubscriptions.get(previousRoomId);
+        if (prevSub) {
+          prevSub.unsubscribe();
+          this.roomSubscriptions.delete(previousRoomId);
+        }
+      } catch (e) {
+        console.error('Failed to unsubscribe previous room subscription', e);
+      }
+
+      try {
+        if (this.typingSubscription) {
+          this.typingSubscription.unsubscribe();
+        }
+      } catch (e) {}
+    }
+    this.selectedConversation = room;
+    this.typingUsers = [];
+    if (this.isMobile) {
+      this.sidebar?.close();
+    }
+
+    try {
+      this.chatService.setActiveRoom(room._id);
+    } catch (err) {
+      console.error('Failed to notify active room:', err);
+    }
+
+    try {
+      this.chatService.markChannelAsRead(room._id);
+    } catch (err) {
+      console.error('Failed to mark channel as read:', err);
+    }
+
+    if (this.roomSubscriptions.has(room._id)) {
+      this.roomSubscriptions.get(room._id)?.unsubscribe();
+    }
+
+    const { history, realtimeStream, typingStream } =
+      await this.chatService.loadRoomHistoryWithRealtime(room);
+    this.messages = history;
+    this.sortMessagesAscending();
+    const existingMessageIds = new Set(this.messages.map((msg) => msg._id));
+
+    const sub = realtimeStream.subscribe((newMessage) => {
+      try {
+        if (!newMessage || !newMessage._id) return;
+
+        try {
+          const incoming: RocketChatMessage = newMessage as RocketChatMessage;
+          const looksLikePinnedEvent =
+            incoming.t === 'message_pinned' ||
+            typeof (incoming as any).pinned !== 'undefined';
+          if (looksLikePinnedEvent) {
+            const isPinned =
+              incoming.t === 'message_pinned' || !!(incoming as any).pinned;
+            const pendingExpected = this.pendingPinActions.get(incoming._id);
+
+            if (typeof pendingExpected !== 'undefined') {
+              if (pendingExpected === isPinned) {
+                const idx2 = this.messages.findIndex(
+                  (m) => m._id === incoming._id,
+                );
+                if (idx2 !== -1) {
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
+                }
+                this.pendingPinActions.delete(incoming._id);
+                this.sortMessagesAscending();
+                this.cdr.detectChanges();
+              } else {
+                this.pendingPinActions.delete(incoming._id);
+                const idx2 = this.messages.findIndex(
+                  (m) => m._id === incoming._id,
+                );
+                if (idx2 !== -1) {
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
+                  this.cdr.detectChanges();
+                }
+              }
+            } else {
+              const idx2 = this.messages.findIndex(
+                (m) => m._id === incoming._id,
+              );
+              if (idx2 !== -1) {
+                const localPinned = !!this.messages[idx2].pinned;
+                if (localPinned !== isPinned) {
+                  this.messages[idx2] = {
+                    ...this.messages[idx2],
+                    ...incoming,
+                    pinned: isPinned,
+                  };
+                  this.cdr.detectChanges();
+                }
+              } else {
+                if (this.selectedConversation) {
+                  this.loadRoomMessages(this.selectedConversation).subscribe(
+                    (msgs) => {
+                      this.messages = msgs || [];
+                      this.sortMessagesAscending();
+                      this.cdr.detectChanges();
+                    },
+                  );
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error(
+            'Error handling pin/unpin detection for realtime message:',
+            err,
+            newMessage,
+          );
+        }
+
+        if (existingMessageIds.has(newMessage._id)) {
+          // update existing message
+          const idx = this.messages.findIndex((m) => m._id === newMessage._id);
+          if (idx !== -1) {
+            this.messages[idx] = { ...this.messages[idx], ...newMessage };
+            this.cdr.detectChanges();
+          }
+        } else {
+          // append new message
+          this.messages = [...this.messages, newMessage];
+          existingMessageIds.add(newMessage._id);
+          this.scrollToBottom();
+          try {
+            this.chatService.setUnreadForRoom(room._id, 0);
+          } catch (e) {
+            void e;
+          }
+          try {
+            const roomIdx = this.rooms.findIndex((r) => r._id === room._id);
+            if (roomIdx !== -1) {
+              (this.rooms[roomIdx] as any).lastMessage = newMessage;
+              (this.rooms[roomIdx] as any).lastMessageTs =
+                newMessage.ts || (this.rooms[roomIdx] as any).ts;
+              this.moveRoomToTop(room._id);
+            }
+          } catch (err) {
+            console.error(
+              'Error updating room lastMessage after realtime message:',
+              err,
+              newMessage,
+            );
+          }
+        }
+      } catch (err) {
+        console.error(
+          'Error handling realtime message in room subscription:',
+          err,
+          newMessage,
+        );
+      }
+    });
+    this.roomSubscriptions.set(room._id, sub);
+
+    this.typingSubscription = typingStream.subscribe({
+      next: (typingEvent) => {
+        this.handleTypingEvent(typingEvent);
+      },
+      error: (error) => {
+        console.error('Error in typing stream:', error);
+      },
+    });
+
+    try {
+      this.chatService.markChannelAsRead(room._id).subscribe({
+        next: (res: any) => {
+          try {
+            this.chatService.setUnreadForRoom(room._id, 0);
+          } catch (e) {
+            void e;
+          }
+
+          try {
+            this.chatService.refreshUnreadFromCurrentUserRooms().subscribe();
+          } catch (e) {
+            console.error(
+              'Error refreshing unread after markChannelAsRead:',
+              e,
+            );
+          }
+        },
+        error: (err) => {
+          console.error('Failed to mark room as read on server:', err);
+        },
+      });
+    } catch (err) {
+      console.error('Error calling markChannelAsRead:', err);
+    }
+
+    if (room.t === 'd') {
+      const otherUsername = room.usernames?.find(
+        (u) => u !== this.chatService.loggedInUser?.username,
+      );
+      if (otherUsername) this.loadUserInfo(otherUsername);
+      this.channelMembers = [];
+    } else if (room.t === 'c' || room.t === 'p') {
+      this.loadChannelMembers(room._id, room.t);
+      this.selectedUserInfo = null;
+    }
+
+    this.scrollToBottom();
+  }
+
+  private sortMessagesAscending(): void {
+    try {
+      this.messages.sort(
+        (a, b) =>
+          this.getMessageTimestamp(a).getTime() -
+          this.getMessageTimestamp(b).getTime(),
+      );
+      this.messages = [...this.messages];
+    } catch (err) {
+      console.error('Error sorting messages ascending:', err);
+    }
+  }
+
+  getTypingText(): string {
+    if (this.typingUsers.length === 0) return '';
+
+    if (this.typingUsers.length === 1) {
+      return `${this.typingUsers[0]} is typing...`;
+    } else if (this.typingUsers.length === 2) {
+      return `${this.typingUsers[0]} and ${this.typingUsers[1]} are typing...`;
+    } else {
+      return `${this.typingUsers[0]} and ${
+        this.typingUsers.length - 1
+      } others are typing...`;
+    }
+  }
+
+  loadRoomMessages(room: RocketChatRoom): Observable<RocketChatMessage[]> {
+    if (room.t === 'd') {
+      return this.chatService.loadDirectMessagesHistory(room._id);
+    } else if (room.t === 'p') {
+      return this.chatService.getGroupMessagesHistory(room._id);
+    } else if (room.t === 'c') {
+      return this.chatService.loadChannelMessagesHistory(room._id);
+    }
+    return of([]);
+  }
+
+  private refreshCurrentRoomMessages(): void {
+    if (!this.selectedConversation) return;
+
+    this.loadRoomMessages(this.selectedConversation).subscribe({
+      next: (msgs) => {
+        this.messages = msgs || [];
+        this.sortMessagesAscending();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error(
+          'Failed to refresh room messages after reaction update:',
+          err,
+        );
+      },
+    });
+  }
+
+  onDeleteRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.deleteRoom(room._id).subscribe({
+      next: (success) => {
+        if (success) {
+          this.rooms = this.rooms.filter((r) => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Chat deleted`, 'OK');
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting chat:', err);
+        this.openSnackBar('Failed to delete chat', 'Close');
+      },
+    });
+  }
+
+  onLeaveRoom(room: RocketChatRoom) {
+    if (!room || !room._id) return;
+
+    this.chatService.leaveRoom(room._id).subscribe({
+      next: (success) => {
+        if (success) {
+          this.rooms = this.rooms.filter((r) => r._id !== room._id);
+          if (this.selectedConversation?._id === room._id) {
+            this.selectedConversation = undefined as any;
+            this.messages = [];
+          }
+          this.openSnackBar(`Left room`, 'OK');
+        }
+      },
+      error: (err) => {
+        console.error('Error leaving group:', err);
+        const errorType = err?.error?.errorType;
+        if (errorType === 'error-you-are-last-owner') {
+          this.openSnackBar(
+            'You are the last owner. Delete the group instead.',
+            'Close',
+          );
+        } else {
+          this.openSnackBar('Could not leave the group.', 'Close');
+        }
+      },
+    });
+  }
+
+  getLastMessage(room: RocketChatRoom): string {
+    const lastMessage = room.lastMessage;
+    if (!lastMessage) return 'No messages yet';
+    if (lastMessage.t === 'videoconf') return 'Call started';
+    const msgText = this.stripQuoteUrlFromText(lastMessage.msg || '');
+    if (room.t !== 'd' && lastMessage.u?.username && msgText) {
+      return `${lastMessage.u.username}: ${msgText}`;
+    }
+    return msgText || 'No messages yet';
+  }
+
+  private handleTypingEvent(event: {
+    roomId: string;
+    username: string;
+    isTyping: boolean;
+  }): void {
+    if (event.roomId !== this.selectedConversation?._id) return;
+
+    if (event.isTyping) {
+      if (!this.typingUsers.includes(event.username)) {
+        this.typingUsers.push(event.username);
+      }
+    } else {
+      this.typingUsers = this.typingUsers.filter(
+        (user) => user !== event.username,
+      );
+    }
+
+    this.isUserTyping = this.typingUsers.length > 0;
+    if (
+      this.messagesContainer?.nativeElement.scrollTop +
+        this.messagesContainer?.nativeElement.clientHeight >=
+      this.messagesContainer?.nativeElement.scrollHeight
+    ) {
+      this.scrollToBottom();
+    }
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    if (event.isTyping) {
+      this.typingTimeout = setTimeout(() => {
+        this.typingUsers = this.typingUsers.filter(
+          (user) => user !== event.username,
+        );
+        this.isUserTyping = this.typingUsers.length > 0;
+        if (
+          this.messagesContainer?.nativeElement.scrollTop +
+            this.messagesContainer?.nativeElement.clientHeight >=
+          this.messagesContainer?.nativeElement.scrollHeight
+        ) {
+          this.scrollToBottom();
+        }
+      }, 3000);
+    }
+  }
+
+  sendMessage() {
+    this.syncMessageFromEditor(this.isComposeMode ? 'compose' : 'plain');
+
+    if (!this.newMessage.trim() || !this.selectedConversation) return;
+    if (this.editingMessage) {
+      const baseText = this.newMessage.trim();
+      const updatedText = this.editingQuoteUrl
+        ? `${this.editingQuoteUrl}\n${baseText}`
+        : baseText;
+
+      this.chatService
+        .editMessage(
+          this.selectedConversation._id,
+          this.editingMessage._id,
+          updatedText,
+        )
+        .subscribe({
+          next: (res) => {
+            this.editingMessage!.msg = updatedText;
+            this.editingMessage = null;
+            this.editingQuoteUrl = null;
+            this.newMessage = '';
+            this.isComposeMode = false;
+            this.composeBoldActive = false;
+            this.composeItalicActive = false;
+            this.clearComposeEditor();
+            this.clearPlainEditor();
+
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error editing message:', err);
+          },
+        });
+
+      return;
+    }
+    this.isSendingMessage = true;
+
+    this.chatService.stopTyping(this.selectedConversation._id);
+    this.typingUsers = [];
+
+    const baseText = this.newMessage.trim();
+    const quoteUrl = this.replyToMessage
+      ? this.buildQuoteUrl(
+          this.selectedConversation._id,
+          this.replyToMessage._id,
+        )
+      : null;
+    const finalMessage = quoteUrl ? `${quoteUrl}\n${baseText}` : baseText;
+    const previewUrls = quoteUrl ? [] : undefined;
+
+    this.chatService
+      .sendMessage(
+        this.selectedConversation._id,
+        finalMessage,
+        [],
+        undefined,
+        previewUrls,
+      )
+      .subscribe({
+        next: (result) => {
+          if (result.success) {
+            this.newMessage = '';
+            this.replyToMessage = null;
+            this.isComposeMode = false;
+            this.composeBoldActive = false;
+            this.composeItalicActive = false;
+            this.clearComposeEditor();
+            this.clearPlainEditor();
+          }
+          this.isSendingMessage = false;
+        },
+        error: (error) => {
+          console.error('Error sending message:', error);
+          this.isSendingMessage = false;
+        },
+      });
+  }
+
+  onEnter(event: Event) {
+    const keyboardEvent = event as KeyboardEvent;
+    const shouldSend = this.isComposeMode
+      ? keyboardEvent.shiftKey
+      : !keyboardEvent.shiftKey;
+
+    if (shouldSend) {
+      keyboardEvent.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  toggleComposeMode() {
+    this.isComposeMode = !this.isComposeMode;
+    if (!this.isComposeMode) {
+      this.composeBoldActive = false;
+      this.composeItalicActive = false;
+      setTimeout(() => {
+        this.syncPlainEditorFromMessage();
+        this.focusPlainEditor();
+      }, 0);
+      return;
+    }
+
+    setTimeout(() => {
+      this.syncComposeEditorFromMessage();
+      this.focusComposeEditor();
+      this.handleCursorChange('compose');
+    }, 0);
+  }
+
+  discardComposeDraft() {
+    this.confirmationModal
+      .open(ModalComponent, {
+        data: {
+          action: 'discard',
+          subject: 'draft',
+          message: 'This action will discard your current draft message.',
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+        this.newMessage = '';
+        this.isComposeMode = false;
+        this.composeBoldActive = false;
+        this.composeItalicActive = false;
+        this.clearComposeEditor();
+        this.clearPlainEditor();
+      });
+  }
+
+  toggleComposeTextStyle(style: 'bold' | 'italic') {
+    if (!this.isComposeMode) return;
+
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+
+    const command = style === 'bold' ? 'bold' : 'italic';
+    editor.focus();
+    document.execCommand(command, false);
+    this.syncMessageFromEditor('compose');
+    this.handleCursorChange('compose');
+  }
+
+  handleEditorInput(mode: 'compose' | 'plain'): void {
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
+
+    if (!editor) return;
+    clearTimeout(this.emojiNormalizeTimeout);
+
+    this.emojiNormalizeTimeout = setTimeout(() => {
+      this.normalizeEditorEmojiRendering(editor, mode);
+    }, 250);
+
+    if (mode === 'compose') {
+      this.syncMessageFromEditor('compose');
+      // this.handleCursorChange('compose');
+      return;
+    }
+
+    this.syncMessageFromEditor('plain');
+    // this.handleCursorChange('plain');
+    this.onMessageInput();
+  }
+
+  handleCursorChange(mode: 'compose' | 'plain'): void {
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
+
+    const range = this.captureEditorSelection(editor);
+    if (!range) return;
+
+    if (mode === 'compose') {
+      this.composeEditorSelectionRange = range;
+      try {
+        this.composeBoldActive = document.queryCommandState('bold');
+        this.composeItalicActive = document.queryCommandState('italic');
+      } catch (e) {
+        this.composeBoldActive = false;
+        this.composeItalicActive = false;
+      }
+      return;
+    }
+
+    this.plainEditorSelectionRange = range;
+  }
+
+  private captureEditorSelection(editor?: HTMLElement | null): Range | null {
+    if (!editor) return null;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return null;
+    if (!this.isSelectionInsideEditor(editor)) return null;
+
+    return selection.getRangeAt(0).cloneRange();
+  }
+
+  handleEditorKeydown(event: KeyboardEvent, mode: 'compose' | 'plain') {
+    if (event.key !== 'Enter') return;
+
+    if (
+      (event.shiftKey && mode === 'compose') ||
+      (!event.shiftKey && mode === 'plain')
+    ) {
+      event.preventDefault();
+      this.sendMessage();
+      return;
+    }
+
+    event.preventDefault();
+    document.execCommand('insertLineBreak');
+    this.syncMessageFromEditor(mode);
+  }
+
+  private syncComposeEditorFromMessage() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = this.markdownToEditorHtml(this.newMessage || '');
+  }
+
+  private syncPlainEditorFromMessage() {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = this.plainTextToEditorHtml(this.newMessage || '');
+  }
+
+  private clearComposeEditor() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = '';
+  }
+
+  private clearPlainEditor() {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+    editor.innerHTML = '';
+  }
+
+  private focusComposeEditor() {
+    const editor = this.composeEditor?.nativeElement;
+    if (!editor) return;
+    editor.focus();
+  }
+
+  private restoreComposeEditorSelection(): void {
+    const editor = this.composeEditor?.nativeElement;
+    const selection = window.getSelection();
+    if (!editor || !selection) return;
+
+    if (this.composeEditorSelectionRange) {
+      const savedRange = this.composeEditorSelectionRange.cloneRange();
+      if (
+        editor.contains(savedRange.startContainer) &&
+        editor.contains(savedRange.endContainer)
+      ) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        return;
+      }
+    }
+
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private focusPlainEditor() {
+    const editor = this.plainEditor?.nativeElement;
+    if (!editor) return;
+    editor.focus();
+  }
+
+  private restorePlainEditorSelection(): void {
+    const editor = this.plainEditor?.nativeElement;
+    const selection = window.getSelection();
+    if (!editor || !selection) return;
+
+    if (this.plainEditorSelectionRange) {
+      const savedRange = this.plainEditorSelectionRange.cloneRange();
+      if (
+        editor.contains(savedRange.startContainer) &&
+        editor.contains(savedRange.endContainer)
+      ) {
+        selection.removeAllRanges();
+        selection.addRange(savedRange);
+        return;
+      }
+    }
+
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private syncMessageFromEditor(mode: 'compose' | 'plain'): void {
+    const editor =
+      mode === 'compose'
+        ? this.composeEditor?.nativeElement
+        : this.plainEditor?.nativeElement;
+
+    if (!editor) return;
+    this.newMessage = this.editorHtmlToMarkdown(editor.innerHTML || '');
+  }
+
+  private isSelectionInsideEditor(editor: HTMLElement): boolean {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const anchorNode = sel.anchorNode;
+    return !!anchorNode && editor.contains(anchorNode);
+  }
+
+  private markdownToEditorHtml(markdown: string): string {
+    const escaped = (markdown || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    return this.renderComposeEmojis(
+      escaped
+        .replace(/\*\*\*([\s\S]*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([\s\S]*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>'),
+    );
+  }
+
+  private plainTextToEditorHtml(text: string): string {
+    return this.markdownToEditorHtml(text || '');
+  }
+
+  private editorHtmlToMarkdown(html: string): string {
+    const container = document.createElement('div');
+    container.innerHTML = html || '';
+
+    const nodeToMarkdown = (node: Node): string => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const raw = node.textContent || '';
+        const cleaned = this.cleanComposeLeakedHtmlText(raw);
+        return cleaned;
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const element = node as HTMLElement;
+      const tag = element.tagName.toLowerCase();
+
+      if (tag === 'img') {
+        return this.getEmojiShortcodeFromImage(element) || '';
+      }
+
+      const childText = Array.from(element.childNodes)
+        .map(nodeToMarkdown)
+        .join('');
+
+      if (tag === 'br') return '\n';
+      if (tag === 'strong' || tag === 'b') return `**${childText}**`;
+      if (tag === 'em' || tag === 'i') return `*${childText}*`;
+      if (tag === 'div' || tag === 'p') return `${childText}\n`;
+      return childText;
+    };
+
+    return Array.from(container.childNodes)
+      .map(nodeToMarkdown)
+      .join('')
+      .replace(/(:[a-zA-Z0-9_+-]+:)(?=:[a-zA-Z0-9_+-]+:)/g, '$1 ')
+      .replace(/\u00a0/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd();
+  }
+
+  private renderComposeEmojis(value: string): string {
+    if (!value) return '';
+
+    const original = value;
+    const container = document.createElement('div');
+    container.innerHTML = value;
+
+    const textNodes: Text[] = [];
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    let currentNode: Node | null = walker.nextNode();
+    while (currentNode) {
+      textNodes.push(currentNode as Text);
+      currentNode = walker.nextNode();
+    }
+
+    let shortcodeReplacements = 0;
+    let nativeReplacements = 0;
+
+    textNodes.forEach((textNode) => {
+      const originalText = textNode.textContent || '';
+      const cleanedText = this.cleanComposeLeakedHtmlText(originalText);
+      const transformedText = this.renderComposeEmojiText(cleanedText, {
+        onShortcode: () => (shortcodeReplacements += 1),
+        onNative: () => (nativeReplacements += 1),
+      });
+
+      if (transformedText === originalText) {
+        return;
+      }
+
+      const parent = textNode.parentNode;
+      if (!parent) return;
+
+      const holder = document.createElement('span');
+      holder.innerHTML = transformedText;
+      const fragment = document.createDocumentFragment();
+      while (holder.firstChild) {
+        fragment.appendChild(holder.firstChild);
+      }
+
+      parent.replaceChild(fragment, textNode);
+    });
+
+    const transformed = container.innerHTML;
+
+    return transformed;
+  }
+
+  private renderComposeEmojiText(
+    value: string,
+    counters?: { onShortcode?: () => void; onNative?: () => void },
+  ): string {
+    if (!value) return '';
+
+    const withShortcodes = value.replace(
+      /:([a-zA-Z0-9_+-]+):/g,
+      (full, shortcode) => {
+        const html = this.getComposeEmojiImageHtml(`:${shortcode}:`);
+        if (html) {
+          counters?.onShortcode?.();
+        }
+        return html || full;
+      },
+    );
+
+    return withShortcodes.replace(this.composeEmojiSequenceRegex, (emoji) => {
+      const html = this.getComposeEmojiImageHtmlFromNative(emoji);
+      if (html) {
+        counters?.onNative?.();
+      }
+      return html || emoji;
+    });
+  }
+
+  private cleanComposeLeakedHtmlText(value: string): string {
+    if (!value) return '';
+
+    return value
+      .replace(/<img[^>]*>/gi, '')
+      .replace(/"?\s*data-native-codepoints="[^"]+"[^>]*>/gi, '')
+      .replace(
+        /"?\s*src="https?:\/\/cdn\.jsdelivr\.net\/npm\/emoji-datasource-apple\/img\/apple\/64\/[^"]+"[^>]*>/gi,
+        '',
+      );
+  }
+
+  private getComposeEmojiImageHtml(shortcode: string): string | null {
+    const normalizedShortcode = this.normalizeEmojiShortcode(shortcode);
+    if (!normalizedShortcode) return null;
+
+    const baseImageHtml =
+      this.emojiPipe.getAppleImgFromShortcode(normalizedShortcode);
+    if (!baseImageHtml) return null;
+
+    const nativeEmoji =
+      this.emojiPipe.getNativeFromShortcode(normalizedShortcode);
+    const nativeCodepoints = nativeEmoji
+      ? this.nativeToCodepoints(nativeEmoji)
+      : null;
+
+    return baseImageHtml.replace(
+      '<img ',
+      `<img class="emoji compose-emoji" data-shortcode="${normalizedShortcode}"${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${normalizedShortcode}" `,
+    );
+  }
+
+  private getComposeEmojiImageHtmlFromNative(
+    nativeEmoji: string,
+  ): string | null {
+    if (!nativeEmoji) return null;
+
+    const baseImageHtml = this.emojiPipe.getAppleImgFromNative(nativeEmoji, 18);
+    if (!baseImageHtml) return null;
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    const nativeCodepoints = this.nativeToCodepoints(nativeEmoji);
+    return baseImageHtml.replace(
+      '<img ',
+      `<img class="emoji compose-emoji"${shortcode ? ` data-shortcode="${shortcode}"` : ''}${nativeCodepoints ? ` data-native-codepoints="${nativeCodepoints}"` : ''} alt="${shortcode || 'emoji'}" `,
+    );
+  }
+
+  private getEmojiShortcodeFromImage(imageElement: HTMLElement): string | null {
+    const fromData =
+      imageElement.getAttribute('data-shortcode') ||
+      imageElement.getAttribute('alt');
+    if (fromData) {
+      const normalizedShortcode = this.normalizeEmojiShortcode(fromData);
+      if (normalizedShortcode) return normalizedShortcode;
+      return fromData;
+    }
+
+    const nativeCodepoints = imageElement.getAttribute(
+      'data-native-codepoints',
+    );
+    if (nativeCodepoints) {
+      const nativeFromData = this.codepointsToNative(nativeCodepoints);
+      if (nativeFromData) {
+        const shortcodeFromNative =
+          this.emojiPipe.getShortcodeFromNative(nativeFromData);
+        if (shortcodeFromNative) {
+          return (
+            this.normalizeEmojiShortcode(shortcodeFromNative) ||
+            shortcodeFromNative
+          );
+        }
+        return nativeFromData;
+      }
+    }
+
+    const source = imageElement.getAttribute('src') || '';
+    const match = source.match(/\/apple\/64\/([a-fA-F0-9-]+)\.png/);
+    if (!match?.[1]) return null;
+
+    const native = match[1]
+      .split('-')
+      .map((hex) => String.fromCodePoint(parseInt(hex, 16)))
+      .join('');
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(native);
+    if (shortcode) {
+      return this.normalizeEmojiShortcode(shortcode);
+    }
+    return native || null;
+  }
+
+  private nativeToCodepoints(nativeEmoji: string): string {
+    return Array.from(nativeEmoji || '')
+      .map((char) => char.codePointAt(0)?.toString(16))
+      .filter((value): value is string => !!value)
+      .join('-');
+  }
+
+  private codepointsToNative(codepoints: string): string | null {
+    if (!codepoints) return null;
+
+    try {
+      return codepoints
+        .split('-')
+        .map((hex) => String.fromCodePoint(parseInt(hex, 16)))
+        .join('');
+    } catch (error) {
+      console.error('Error converting codepoints to native emoji:', error);
+      return null;
+    }
+  }
+
+  private normalizeEmojiShortcode(shortcode: string): string | null {
+    const clean = (shortcode || '').replace(/:/g, '').trim();
+    if (!clean) return null;
+    if (!/^[a-zA-Z0-9_+-]+$/.test(clean)) return null;
+    return `:${clean}:`;
+  }
+
+  private normalizeEditorEmojiRendering(
+    editor: HTMLElement,
+    scope: 'compose' | 'plain',
+  ): void {
+    const selection = window.getSelection();
+    const hasSelectionInsideEditor =
+      !!selection &&
+      selection.rangeCount > 0 &&
+      this.isSelectionInsideEditor(editor);
+
+    let markerId = '';
+    if (hasSelectionInsideEditor && selection) {
+      markerId = `compose-caret-${Date.now()}`;
+      const range = selection.getRangeAt(0).cloneRange();
+      range.collapse(true);
+      const marker = document.createElement('span');
+      marker.setAttribute('data-compose-caret', markerId);
+      marker.style.display = 'inline-block';
+      marker.style.width = '0';
+      marker.style.height = '0';
+      marker.style.overflow = 'hidden';
+      range.insertNode(marker);
+    }
+
+    const currentHtml = editor.innerHTML || '';
+    let normalizedHtml = '';
+
+    if (scope === 'plain') {
+      const caretToken = markerId ? `@@CARET_${markerId}@@` : '';
+      const htmlWithCaretToken = markerId
+        ? currentHtml.replace(
+            new RegExp(
+              `<span[^>]*data-compose-caret="${markerId}"[^>]*><\\/span>`,
+              'g',
+            ),
+            caretToken,
+          )
+        : currentHtml;
+
+      normalizedHtml = this.plainTextToEditorHtml(
+        this.editorHtmlToMarkdown(htmlWithCaretToken),
+      );
+
+      if (caretToken) {
+        normalizedHtml = normalizedHtml.replace(
+          caretToken,
+          `<span data-compose-caret="${markerId}" style="display:inline-block;width:0;height:0;overflow:hidden"></span>`,
+        );
+      }
+    } else {
+      normalizedHtml = this.renderComposeEmojis(currentHtml);
+    }
+    if (normalizedHtml !== currentHtml) {
+      editor.innerHTML = normalizedHtml;
+    }
+
+    if (markerId && selection) {
+      const marker = editor.querySelector(
+        `[data-compose-caret="${markerId}"]`,
+      ) as HTMLElement | null;
+      if (marker) {
+        const range = document.createRange();
+        range.setStartAfter(marker);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        marker.remove();
+      } else if (scope === 'plain') {
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    }
+  }
+
+  getComposeModeTooltip(): string {
+    if (this.isComposeMode) {
+      return 'Format mode enabled.';
+    }
+
+    return 'Enable format mode, or use Shift + Enter to add a line break.';
+  }
+
+  getLocalTime(offset: number | undefined): string {
+    if (offset === undefined || offset === null) return '';
+
+    const now = new Date();
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const local = new Date(utcTime + offset * 3600000);
+    return local.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    this.isSidebarOpen ? this.sidebar.open() : this.sidebar.close();
+  }
+
+  private scrollToBottom() {
+    try {
+      const el = this.messagesContainer?.nativeElement;
+      if (el) {
+        setTimeout(() => (el.scrollTop = el.scrollHeight), 500);
+      }
+    } catch (e) {
+      void e;
+    }
+  }
+
+  ngOnDestroy() {
+    try {
+      this.chatService.setActiveRoom(null);
+    } catch (err) {
+      console.error(err);
+    }
+    if (this.realtimeSubscription) {
+      this.realtimeSubscription.unsubscribe();
+    }
+    if (this.typingSubscription) {
+      this.typingSubscription.unsubscribe();
+    }
+    if (this.unreadMapSubscription) {
+      this.unreadMapSubscription.unsubscribe();
+    }
+    if (this.serverUpdatedSubscription) {
+      this.serverUpdatedSubscription.unsubscribe();
+    }
+    if (this.selectedConversation) {
+      this.chatService.unsubscribeFromRoomMessages(
+        this.selectedConversation._id,
+      );
+      this.chatService.unsubscribeFromTypingEvents(
+        this.selectedConversation._id,
+      );
+    }
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+  }
+
+  private sortRooms(): void {
+    try {
+      const supportUsername = environment.supportUsername;
+      this.rooms.sort((a, b) => {
+        // Pin the support chat to the top of the list
+        if (a.t === 'd' && a.usernames?.includes(supportUsername)) return -1;
+        if (b.t === 'd' && b.usernames?.includes(supportUsername)) return 1;
+        const aUnread = this.chatService.getUnreadForRoom(a._id) || 0;
+        const bUnread = this.chatService.getUnreadForRoom(b._id) || 0;
+        if (aUnread !== bUnread) return bUnread - aUnread;
+
+        const aTs = a.lastMessage
+          ? this.getMessageTimestamp(a.lastMessage).getTime()
+          : 0;
+        const bTs = b.lastMessage
+          ? this.getMessageTimestamp(b.lastMessage).getTime()
+          : 0;
+        return bTs - aTs;
+      });
+      this.rooms = [...this.rooms];
+    } catch (err) {
+      console.error('Error sorting rooms by unread:', err);
+    }
+  }
+
+  private moveRoomToTop(roomId: string): void {
+    try {
+      const idx = this.rooms.findIndex((r) => r._id === roomId);
+      if (idx === -1) return;
+      const [room] = this.rooms.splice(idx, 1);
+      this.rooms.unshift(room);
+      this.rooms = [...this.rooms];
+      try {
+        this.cdr.detectChanges();
+      } catch (e) {}
+    } catch (err) {
+      console.error('Error moving room to top:', err, roomId);
+    }
+  }
+
+  openSnackBar(message: string, action: string): void {
+    this.snackBar.open(message, action, {
+      duration: 2000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    });
+  }
+
+  onMessageInput(): void {
+    if (!this.selectedConversation) return;
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    this.chatService.startTyping(this.selectedConversation._id);
+
+    this.typingTimeout = setTimeout(() => {
+      this.chatService.stopTyping(this.selectedConversation._id);
+    }, 1000);
+  }
+
+  onMessageTouchStart(event: TouchEvent, message: RocketChatMessage) {
+    if (!this.isMobile) return;
+    this.clearTouchTimer();
+    const msgId = message?._id;
+    this.touchTimer = setTimeout(() => {
+      this.pressedMessageId = msgId || null;
+      setTimeout(() => {
+        if (this.pressedMessageId === msgId) {
+          this.pressedMessageId = null;
+          this.cdr.markForCheck();
+        }
+      }, 3000);
+      this.cdr.markForCheck();
+    }, 600);
+  }
+
+  onMessageTouchEnd(event: TouchEvent, message: RocketChatMessage) {
+    if (!this.isMobile) return;
+    if (this.touchTimer) {
+      this.clearTouchTimer();
+    }
+  }
+
+  onMessageTouchCancel(event: TouchEvent) {
+    this.clearTouchTimer();
+  }
+
+  private clearTouchTimer() {
+    if (this.touchTimer) {
+      clearTimeout(this.touchTimer);
+      this.touchTimer = null;
+    }
+  }
+
+  toggleEmojiPicker() {
+    if (!this.showEmojiPicker) {
+      if (this.isComposeMode) {
+        this.handleCursorChange('compose');
+      } else {
+        this.handleCursorChange('plain');
+      }
+    }
+
+    this.showEmojiPicker = !this.showEmojiPicker;
+  }
+
+  openReactionPicker(message: RocketChatMessage) {
+    this.toggleReactionPicker(message);
+  }
+
+  toggleReactionPicker(message: RocketChatMessage, event?: Event): void {
+    event?.stopPropagation();
+
+    if (
+      this.showReactionPicker &&
+      this.reactionTargetMessage?._id === message._id
+    ) {
+      this.closeReactionPicker();
+      return;
+    }
+
+    this.reactionTargetMessage = message;
+    this.showReactionPicker = true;
+  }
+
+  closeReactionPicker(): void {
+    this.showReactionPicker = false;
+    this.reactionTargetMessage = null;
+  }
+
+  addEmoji(event: any) {
+    const emoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!emoji) return;
+
+    if (this.isComposeMode) {
+      const editor = this.composeEditor?.nativeElement;
+      if (editor) {
+        editor.focus();
+        this.restoreComposeEditorSelection();
+        const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+        const emojiHtml =
+          (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) ||
+          this.getComposeEmojiImageHtmlFromNative(emoji);
+        if (emojiHtml) {
+          document.execCommand('insertHTML', false, emojiHtml);
+        } else {
+          document.execCommand('insertText', false, emoji);
+        }
+        this.syncMessageFromEditor('compose');
+        this.handleCursorChange('compose');
+      }
+      return;
+    }
+
+    const plainEditor = this.plainEditor?.nativeElement;
+    if (plainEditor) {
+      plainEditor.focus();
+      this.restorePlainEditorSelection();
+      const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+      const emojiHtml =
+        (shortcode ? this.getComposeEmojiImageHtml(shortcode) : null) ||
+        this.getComposeEmojiImageHtmlFromNative(emoji);
+      if (emojiHtml) {
+        document.execCommand('insertHTML', false, emojiHtml);
+      } else {
+        document.execCommand('insertText', false, shortcode || emoji);
+      }
+      this.syncMessageFromEditor('plain');
+      this.handleCursorChange('plain');
+      this.onMessageInput();
+      return;
+    }
+
+    const shortcode = this.emojiPipe.getShortcodeFromNative(emoji);
+    this.newMessage = (this.newMessage || '') + (shortcode || emoji);
+  }
+
+  sendReaction(event: any) {
+    if (!this.reactionTargetMessage) return;
+    const nativeEmoji = event?.emoji?.native || event?.detail?.emoji?.native;
+    if (!nativeEmoji) return;
+    const message = this.reactionTargetMessage;
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    const existingKey = candidates.find(
+      (key) => !!this.reactionTargetMessage?.reactions?.[key],
+    );
+    const reactionKey = existingKey || candidates[0] || nativeEmoji;
+    if (!reactionKey)
+      return console.error('No reaction key for emoji', nativeEmoji);
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[reactionKey]) {
+      message.reactions[reactionKey] = { usernames: [] };
+    }
+    const usernames = message.reactions[reactionKey].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      message.reactions[reactionKey].usernames = usernames.filter(
+        (u) => u !== myUsername,
+      );
+    } else {
+      message.reactions[reactionKey].usernames.push(myUsername);
+    }
+    this.chatService.reactToMessage(message._id, reactionKey).subscribe({
+      error: (err) => {
+        console.error('Error reacting to message:', err);
+      },
+    });
+    this.showReactionPicker = false;
+    this.reactionTargetMessage = null;
+  }
+
+  getReactionKeys(message: RocketChatMessage): string[] {
+    return message.reactions ? Object.keys(message.reactions) : [];
+  }
+
+  getReactionUsernames(message: RocketChatMessage, emoji: string): string {
+    const users = message.reactions?.[emoji]?.usernames || [];
+    return users.length > 0 ? users.join(', ') : '';
+  }
+
+  didIReact(message: RocketChatMessage, emoji: string): boolean {
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return false;
+    return message.reactions?.[emoji]?.usernames.includes(myUsername) || false;
+  }
+
+  toggleReaction(message: RocketChatMessage, emoji: string) {
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[emoji]) {
+      message.reactions[emoji] = { usernames: [] };
+    }
+    const usernames = message.reactions[emoji].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      const updated = usernames.filter((u) => u !== myUsername);
+      if (updated.length === 0) {
+        delete message.reactions[emoji];
+      } else {
+        message.reactions[emoji].usernames = updated;
+      }
+    } else {
+      message.reactions[emoji].usernames.push(myUsername);
+    }
+    if (Object.keys(message.reactions).length === 0) {
+      delete message.reactions;
+    }
+    this.chatService.reactToMessage(message._id, emoji).subscribe({
+      error: (err) => console.error('Error toggling reaction:', err),
+    });
+  }
+
+  didIReactNative(message: RocketChatMessage, nativeEmoji: string): boolean {
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    return candidates.some((key) => this.didIReact(message, key));
+  }
+
+  selectReactionEmoji(
+    nativeEmoji: string,
+    message: RocketChatMessage | null,
+  ): void {
+    if (!message?._id) return;
+
+    this.closeReactionPicker();
+
+    const candidates = this.getReactionKeysForNative(nativeEmoji);
+    const existingKey = candidates.find((key) => !!message.reactions?.[key]);
+    const reactionKey = existingKey || candidates[0] || nativeEmoji;
+    if (!reactionKey) return;
+
+    const myUsername = this.chatService.loggedInUser?.username;
+    if (!myUsername) return;
+    if (!message.reactions) {
+      message.reactions = {};
+    }
+    if (!message.reactions[reactionKey]) {
+      message.reactions[reactionKey] = { usernames: [] };
+    }
+    const usernames = message.reactions[reactionKey].usernames;
+    const alreadyReacted = usernames.includes(myUsername);
+    if (alreadyReacted) {
+      const updated = usernames.filter((u) => u !== myUsername);
+      if (updated.length === 0) {
+        delete message.reactions[reactionKey];
+      } else {
+        message.reactions[reactionKey].usernames = updated;
+      }
+    } else {
+      message.reactions[reactionKey].usernames.push(myUsername);
+    }
+    if (Object.keys(message.reactions).length === 0) {
+      delete message.reactions;
+    }
+    this.chatService.reactToMessage(message._id, reactionKey).subscribe({
+      error: (err) => {
+        console.error('Error selecting reaction:', err);
+      },
+    });
+  }
+
+  getAppleEmojiHtml(nativeEmoji: string): string {
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    if (!shortcode) {
+      return this.emojiPipe.transform(nativeEmoji);
+    }
+
+    const appleHtml = this.emojiPipe.getAppleImgFromShortcode(shortcode);
+    return appleHtml || this.emojiPipe.transform(nativeEmoji);
+  }
+
+  onMoreActionsMenuOpened(message: RocketChatMessage): void {
+    this.actionsMenuMessageId = message?._id || null;
+  }
+
+  onMoreActionsMenuClosed(): void {
+    this.actionsMenuMessageId = null;
+  }
+
+  getVisibleReactionKeys(message: RocketChatMessage): string[] {
+    return this.getReactionKeys(message).slice(0, 3);
+  }
+
+  getHiddenReactionKeys(message: RocketChatMessage): string[] {
+    return this.getReactionKeys(message).slice(3);
+  }
+
+  getHiddenReactionCount(message: RocketChatMessage): number {
+    const total = this.getReactionKeys(message).length;
+    return total > 3 ? total - 3 : 0;
+  }
+
+  private getReactionKeysForNative(nativeEmoji: string): string[] {
+    const shortcode = this.emojiPipe.getShortcodeFromNative(nativeEmoji);
+    const normalizedNative = this.normalizeNativeEmoji(nativeEmoji);
+
+    const keys = new Set<string>();
+    if (shortcode) {
+      keys.add(shortcode);
+      keys.add(shortcode.replace(/:/g, ''));
+    }
+
+    if (normalizedNative) {
+      keys.add(normalizedNative);
+    }
+
+    return Array.from(keys);
+  }
+
+  private normalizeNativeEmoji(value: string): string {
+    return (value || '').replace(/\uFE0F/g, '');
+  }
+
+  quoteMessage(message: RocketChatMessage) {
+    this.replyToMessage = message;
+    this.scrollToBottom();
+  }
+
+  cancelReply() {
+    this.replyToMessage = null;
+  }
+
+  private buildQuoteUrl(roomId: string, messageId: string): string {
+    const base = (environment.rocketChatUrl || '').replace(/\/$/, '');
+    const rid = encodeURIComponent(roomId || '');
+    const msg = encodeURIComponent(messageId || '');
+    return `[ ](${base}/direct/${rid}?msg=${msg})`;
+  }
+
+  private extractQuoteInfoFromText(text: string): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    if (!text || text.trim().length === 0) {
+      return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+    }
+
+    const markdownMatch = text.match(/\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i);
+    const normalized = text.replace(/<([^>]+)>/g, '$1');
+    const urls = [
+      ...(markdownMatch ? [markdownMatch[1]] : []),
+      ...(normalized.match(/https?:\/\/\S+/g) || []),
+    ];
+    for (const rawUrl of urls) {
+      const cleaned = rawUrl.replace(/[)>.,]*$/, '').replace(/^\(/, '');
+      try {
+        const url = new URL(cleaned);
+        const msgId =
+          url.searchParams.get('msg') || url.searchParams.get('messageId');
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const directIdx = pathParts.indexOf('direct');
+        const roomId =
+          directIdx >= 0
+            ? pathParts[directIdx + 1]
+            : pathParts[pathParts.length - 1];
+
+        if (msgId && roomId) {
+          return {
+            quoteUrl: cleaned,
+            quoteMessageId: msgId,
+            quoteRoomId: roomId,
+          };
+        }
+      } catch (err) {
+        continue;
+      }
+    }
+
+    return { quoteUrl: null, quoteMessageId: null, quoteRoomId: null };
+  }
+
+  private extractQuoteInfo(message: RocketChatMessage | null): {
+    quoteUrl: string | null;
+    quoteMessageId: string | null;
+    quoteRoomId: string | null;
+  } {
+    return this.extractQuoteInfoFromText(message?.msg || '');
+  }
+
+  private stripQuoteUrlFromText(text: string): string {
+    if (!text) return text;
+    const markdownQuotePattern =
+      /\[[^\]]*\]\(https?:\/\/[^\s)]+\/direct\/[^\s?]+\?msg=[^\s)]+\)\s*/gi;
+    const quoteUrlPattern =
+      /<?https?:\/\/[^\s>]+\/direct\/[^\s?]+\?msg=[^\s>]+>?/gi;
+    const cleaned = text
+      .replace(markdownQuotePattern, '')
+      .replace(quoteUrlPattern, '')
+      .replace(/^[\s\r\n-]+/, '')
+      .trimEnd();
+    return cleaned;
+  }
+
+  private isQuoteUrl(text: string | undefined | null): boolean {
+    if (!text) return false;
+    return /\/direct\/[^\s?]+\?msg=[^\s)]+/i.test(text);
+  }
+
+  isQuoteMessage(message: RocketChatMessage): boolean {
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
+    return this.isQuoteUrl(message?.msg || '');
+  }
+
+  shouldRenderAttachments(message: RocketChatMessage): boolean {
+    if (!message?.attachments || message.attachments.length === 0) return false;
+    if (!this.isQuoteMessage(message)) return true;
+
+    const allQuotePreviews = message.attachments.every((att: any) => {
+      const candidates = [
+        att?.message_link,
+        att?.title_link,
+        att?.title,
+        att?.text,
+        att?.description,
+      ].filter(Boolean) as string[];
+      return candidates.some((c) => this.isQuoteUrl(c));
+    });
+
+    return !allQuotePreviews;
+  }
+
+  getQuotedMessage(message: RocketChatMessage): RocketChatMessage | null {
+    const info = this.extractQuoteInfo(message);
+    if (!info.quoteMessageId) {
+      const anyMsg: any = message as any;
+      const possibleIds = [
+        anyMsg.tmid,
+        anyMsg.tmidString,
+        anyMsg.threadId,
+        anyMsg.tmid_id,
+        anyMsg.tmidId,
+      ];
+      const tmid = possibleIds.find((id) => !!id) as string | undefined;
+      return tmid ? this.messages.find((m) => m._id === tmid) || null : null;
+    }
+
+    if (this.quotedMessageCache.has(info.quoteMessageId)) {
+      return this.quotedMessageCache.get(info.quoteMessageId) || null;
+    }
+
+    if (this.quotedMessageInFlight.has(info.quoteMessageId)) {
+      return null;
+    }
+
+    this.quotedMessageInFlight.add(info.quoteMessageId);
+    this.chatService.getMessage(info.quoteMessageId).subscribe({
+      next: (res: any) => {
+        const resolved = (res as any)?.message || res || null;
+        this.quotedMessageCache.set(info.quoteMessageId!, resolved);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.quotedMessageCache.set(info.quoteMessageId!, null);
+        this.quotedMessageInFlight.delete(info.quoteMessageId!);
+      },
+    });
+
+    return null;
+  }
+
+  getQuotedTextOrAttachment(msg: RocketChatMessage): string {
+    if (!msg) return '';
+    if (msg.msg && msg.msg.trim().length > 0)
+      return this.stripQuoteUrlFromText(msg.msg);
+    if (msg.attachments && msg.attachments.length > 0)
+      return msg.attachments[0].title || 'Attachment';
+    return '';
+  }
+
+  getMessageTextWithoutQuote(message: RocketChatMessage): string {
+    const text = message?.msg || '';
+    return this.stripQuoteUrlFromText(text);
+  }
+
+  getReplyPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+    const text = this.stripQuoteUrlFromText(message.msg || '').trim();
+    if (text) return text;
+    if (message.attachments && message.attachments.length > 0) {
+      return message.attachments[0]?.title || 'Attachment';
+    }
+    return '';
+  }
+
+  isReplyMessage(message: RocketChatMessage): boolean {
+    if (!message) return false;
+    const info = this.extractQuoteInfo(message);
+    if (info.quoteMessageId) return true;
+
+    const anyMsg: any = message;
+    const possibleIds = [
+      anyMsg.tmid,
+      anyMsg.tmidString,
+      anyMsg.threadId,
+      anyMsg.tmid_id,
+      anyMsg.tmidId,
+    ];
+
+    return possibleIds.some(
+      (id) => typeof id === 'string' && id.trim().length > 0,
+    );
+  }
+
+  pinnedMessage(): RocketChatMessage | null {
+    if (!this.messages || this.messages.length === 0) return null;
+    const pinned = this.messages.filter((m) => !!m.pinned);
+    if (pinned.length === 0) return null;
+
+    try {
+      pinned.sort(
+        (a, b) =>
+          this.getMessageTimestamp(a).getTime() -
+          this.getMessageTimestamp(b).getTime(),
+      );
+      return pinned[pinned.length - 1] || null;
+    } catch (e) {
+      return pinned[pinned.length - 1] || null;
+    }
+  }
+
+  pinnedPreview(msg: RocketChatMessage | null): string {
+    if (!msg) return '';
+    if (msg.msg && msg.msg.trim().length > 0) {
+      const txt = this.stripQuoteUrlFromText(msg.msg.trim());
+      return txt.length > 120 ? txt.slice(0, 120) + '...' : txt;
+    }
+    if (msg.attachments && msg.attachments.length > 0) {
+      const a: any = msg.attachments[0];
+      const title = a?.title || a?.text || a?.description || '';
+      if (title && title.trim().length > 0) {
+        return title.length > 120 ? title.slice(0, 120) + '...' : title;
+      }
+      return a?.title || 'Attachment';
+    }
+    return '';
+  }
+
+  scrollToMessage(id?: string | null) {
+    if (!id) return;
+    try {
+      const container = this.messagesContainer?.nativeElement;
+      if (!container) return;
+      const el = container.querySelector(`#msg-${id}`) as HTMLElement | null;
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('replied-highlight');
+        setTimeout(() => {
+          el.classList.remove('replied-highlight');
+        }, 1400);
+      }
+    } catch (err) {
+      console.error('scrollToMessage error', err);
+    }
+  }
+
+  togglePin(message: RocketChatMessage) {
+    const expectedPinnedState = !message.pinned;
+    this.pendingPinActions.set(message._id, expectedPinnedState);
+
+    const action$ = message.pinned
+      ? this.chatService.unpinMessage(message)
+      : this.chatService.pinMessage(message);
+
+    action$.subscribe({
+      next: (res) => {
+        try {
+          message.pinned = expectedPinnedState;
+          this.cdr.detectChanges();
+        } finally {
+          this.pendingPinActions.delete(message._id);
+        }
+      },
+      error: (err) => {
+        console.error('Error pinning/unpinning message:', err);
+        this.pendingPinActions.delete(message._id);
+      },
+    });
+  }
+
+  editMessage(message: RocketChatMessage) {
+    this.replyToMessage = null;
+    this.editingMessage = message;
+    const quoteInfo = this.extractQuoteInfoFromText(message.msg || '');
+    this.editingQuoteUrl = quoteInfo.quoteUrl;
+    this.newMessage = this.getMessageTextWithoutQuote(message) || '';
+
+    this.isComposeMode = true;
+    this.composeBoldActive = false;
+    this.composeItalicActive = false;
+
+    setTimeout(() => {
+      this.syncComposeEditorFromMessage();
+      this.focusComposeEditor();
+      this.handleCursorChange('compose');
+    }, 0);
+  }
+
+  cancelEditing() {
+    this.editingMessage = null;
+    this.editingQuoteUrl = null;
+    this.newMessage = '';
+    this.isComposeMode = false;
+    this.composeBoldActive = false;
+    this.composeItalicActive = false;
+    this.clearComposeEditor();
+  }
+
+  getEditingPreviewText(message: RocketChatMessage | null): string {
+    if (!message) return '';
+
+    const quoted = this.getQuotedMessage(message);
+    const currentText =
+      (this.newMessage || '').trim() ||
+      this.getMessageTextWithoutQuote(message);
+
+    if (quoted) {
+      const quotedText = this.getQuotedTextOrAttachment(quoted);
+      const quotedName = this.getSenderName(quoted);
+      return `replied to ${quotedName}: ${quotedText}\n${currentText}`;
+    }
+
+    return currentText;
+  }
+
+  deleteMessage(message: RocketChatMessage) {
+    this.confirmationModal
+      .open(ModalComponent, {
+        data: {
+          action: 'delete',
+          subject: 'message',
+          message: `This action will be permanent.`,
+        },
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.chatService.deleteMessage(message._id, message.rid).subscribe({
+            next: (res) => {
+              this.messages = this.messages.filter(
+                (m) => m._id !== message._id,
+              );
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              console.error('Error deleting message:', err);
+            },
+          });
+        }
+      });
+  }
+}

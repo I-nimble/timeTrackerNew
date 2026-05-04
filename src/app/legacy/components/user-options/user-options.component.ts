@@ -1,0 +1,148 @@
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+
+import { Company } from 'src/app/legacy/models/Company.model';
+import { CompaniesService } from 'src/app/legacy/services/companies.service';
+import { EmployeesService } from 'src/app/legacy/services/employees.service';
+import { ProjectsService } from 'src/app/legacy/services/projects.service';
+import { UsersService } from 'src/app/legacy/services/users.service';
+
+import { SharedModule } from '../shared.module';
+
+@Component({
+  selector: 'app-user-options',
+  standalone: true,
+  imports: [SharedModule],
+  templateUrl: './user-options.component.html',
+  styleUrl: './user-options.component.scss',
+})
+export class UserOptionsComponent implements OnInit {
+  @Output() onSelectUserId: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onSelectProjectId: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onGetEntries: EventEmitter<any> = new EventEmitter<any>();
+  users: any;
+  companies: Company[] = [];
+  usersList: any;
+  select = '';
+  projectsList: any;
+  selectProject = '-1';
+  type = 'user';
+  byClient = false;
+  role = localStorage.getItem('role');
+  selected = true;
+  constructor(
+    private userService: UsersService,
+    private companiesService: CompaniesService,
+    private projectService: ProjectsService,
+    private employeesService: EmployeesService,
+  ) {}
+
+  ngOnInit(): void {
+    if (this.role == '1') {
+      this.getUsers();
+      this.getCompanies();
+    }
+    if (this.role == '3') {
+      this.getEmployees();
+    }
+    this.getProjects();
+  }
+  handleDisplay(user: any) {
+    if (this.byClient) {
+      return user.name;
+    } else {
+      return user.name + ' ' + user.last_name;
+    }
+  }
+
+  getUsers() {
+    const body = {};
+    this.userService.getUsers(body).subscribe({
+      next: (users) => {
+        this.usersList = users.filter((user: any) => user.active == 1);
+        this.users = this.usersList.filter(
+          (user: any) => user.role === 2 && user.active == 1,
+        );
+      },
+      error: (err) => {},
+    });
+  }
+
+  getEmployees() {
+    this.employeesService.get().subscribe({
+      next: (employees: any) => {
+        this.usersList = employees.map((user: any) => user.user);
+        this.users = this.usersList.filter((user: any) => user.active == 1);
+      },
+    });
+  }
+
+  getProjects(userId = '0') {
+    this.handleType();
+    this.projectService.get(userId, this.type).subscribe({
+      next: (projects: any) => {
+        this.projectsList = projects.filter(
+          (project: any) => project.active == 1,
+        );
+      },
+    });
+  }
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: Company[]) => {
+        this.companies = companies;
+      },
+    });
+  }
+  toggleCheck() {
+    this.byClient = !this.byClient;
+    this.handleType();
+    this.select = '';
+    this.selectProject = '-1';
+
+    if (this.byClient) {
+      this.selected = false;
+      this.users = this.companies;
+    } else {
+      this.getProjects();
+      this.selected = true;
+      this.users = this.usersList.filter((user: any) => user.role == 2);
+    }
+    this.onSelectUserId.emit({ id: '0' });
+    return this.onGetEntries.emit();
+  }
+
+  handleType() {
+    this.type = this.byClient ? 'company' : 'user';
+  }
+
+  selectUserId(event: Event) {
+    let user;
+    const userId = (event.target as HTMLInputElement).value;
+    this.selectProject = '-1';
+    this.getProjects(userId);
+
+    this.selected = true;
+    this.onSelectProjectId.emit({ id: '0' });
+    if (userId == '0') {
+      this.onSelectUserId.emit({ id: userId });
+    } else {
+      user = this.users.find((user: any) => user.id == userId);
+      this.onSelectUserId.emit(user);
+    }
+
+    this.onGetEntries.emit();
+  }
+
+  selectProjectId(event: Event) {
+    let project;
+    const projectId = (event.target as HTMLInputElement).value;
+
+    if (!projectId || projectId == '0')
+      this.onSelectProjectId.emit({ id: '0' });
+    else {
+      project = this.projectsList.find((p: any) => p.id == projectId);
+      this.onSelectProjectId.emit(project);
+    }
+    this.onGetEntries.emit();
+  }
+}
