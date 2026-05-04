@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { NotificationListComponent } from 'src/app/components/notification-list/notification-list.component';
+
+import { NotificationListComponent } from 'src/app/legacy/components/notification-list/notification-list.component';
 
 @Component({
   selector: 'app-notifications-page',

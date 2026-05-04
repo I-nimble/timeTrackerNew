@@ -1,0 +1,52 @@
+<table mat-table [dataSource]="dataSourceTable" class="w-100">
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Name</th>
+    <td mat-cell *matCellDef="let element">
+      <div class="d-flex align-items-center gap-16">
+        <img
+          [src]="element.profile.imagePath || element.profile.image || 'assets/images/default-user-profile-pic.png'"
+          class="rounded-circle"
+          width="45"
+          height="45"
+          style="object-fit: cover; aspect-ratio: 1 / 1;"
+        />
+        <div>
+          <h6 class="f-w-600 f-s-16 m-t-0">
+            {{ element.profile.name }} {{ element.profile.last_name }}
+          </h6>
+        </div>
+      </div>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="role">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Role</th>
+    <td mat-cell *matCellDef="let element">
+      <span class="f-s-14">{{ element.role }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="permissions">
+    <th mat-header-cell *matHeaderCellDef class="f-s-16 f-w-600">Permissions</th>
+    <td mat-cell *matCellDef="let user">
+      <div class="d-flex flex-wrap gap-2">
+        <mat-slide-toggle
+          *ngFor="let permission of permissions"
+          [checked]="userPermissionsMap[user.id]?.includes(permission.code)"
+          (change)="onTogglePermissionById(user.id, permission.id, permission.code, $event.checked)">
+          {{ permission.action }}
+        </mat-slide-toggle>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+
+<mat-paginator
+  [pageSizeOptions]="[5, 10, 20]"
+  showFirstLastButtons
+  [length]="dataSourceTable.data.length"
+  [pageSize]="5">
+</mat-paginator>

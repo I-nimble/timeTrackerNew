@@ -1,1 +1,1 @@
-﻿export * from '../../../components/button/button.component';
+﻿export * from '../../../legacy/components/button/button.component';

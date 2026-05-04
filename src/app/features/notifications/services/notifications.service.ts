@@ -1,1 +1,1 @@
-export { NotificationsService } from 'src/app/services/notifications.service';
+export { NotificationsService } from 'src/app/legacy/services/notifications.service';

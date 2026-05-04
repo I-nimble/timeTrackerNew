@@ -8,8 +8,8 @@ export type DynamicValueAccessor<T, TValue = unknown> =
 
 export interface DynamicTableBadgeConfig<T> {
   accessor: DynamicValueAccessor<T, unknown[]>;
-  labelAccessor?: string | ((badge: any) => string);
-  colorAccessor?: string | ((badge: any) => string | null | undefined);
+  labelAccessor?: string | ((badge: unknown) => string);
+  colorAccessor?: string | ((badge: unknown) => string | null | undefined);
 }
 
 export interface DynamicTableActionItem<T> {

@@ -1,1 +1,1 @@
-﻿export * from '../../../components/loader/loader.component';
+﻿export * from '../../../legacy/components/loader/loader.component';

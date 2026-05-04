@@ -1,0 +1,219 @@
+import { SelectionModel } from '@angular/cdk/collections';
+import { CommonModule } from '@angular/common';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  ViewChild,
+  OnInit,
+  inject,
+} from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTable } from '@angular/material/table';
+import { RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { ReportFilter } from 'src/app/legacy/components/reports-filter/reports-filter.component';
+import { Employee } from 'src/app/legacy/pages/apps/employee/employee';
+import { CompaniesService } from 'src/app/legacy/services/companies.service';
+import { EmployeesService } from 'src/app/legacy/services/employees.service';
+import { PermissionService } from 'src/app/legacy/services/permission.service';
+import { PositionsService } from 'src/app/legacy/services/positions.service';
+import { ReportsService } from 'src/app/legacy/services/reports.service';
+import { SchedulesService } from 'src/app/legacy/services/schedules.service';
+import { UsersService } from 'src/app/legacy/services/users.service';
+import { MaterialModule } from 'src/app/material.module';
+import { environment } from 'src/environments/environment';
+
+import { EmployeeDetailsComponent } from '../employee/employee-details/employee-details.component';
+import { AppEmployeeDialogContentComponent } from '../employee/employee-dialog-content';
+import { AppEmployeeTableComponent } from '../employee/employee-table/employee-table.component';
+
+@Component({
+  templateUrl: './team.component.html',
+  imports: [
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TablerIconsModule,
+    CommonModule,
+    RouterModule,
+    EmployeeDetailsComponent,
+    AppEmployeeTableComponent,
+  ],
+  standalone: true,
+})
+export class TeamComponent implements OnInit {
+  @Output() dataSourceChange = new EventEmitter<any[]>();
+  @ViewChild(MatTable, { static: true }) table: MatTable<any> =
+    Object.create(null);
+  users: any[] = [];
+  employees: any[] = [];
+  loaded = false;
+  company: any;
+  timeZone = 'America/Caracas';
+  assetsPath: string = environment.assets;
+  filters: ReportFilter = {
+    user: 'all',
+    company: 'all',
+    project: 'all',
+    byClient: false,
+    useTimezone: false,
+    multipleUsers: false,
+  };
+  userRole = localStorage.getItem('role');
+  userId = localStorage.getItem('id');
+  companies: any[] = [];
+  companyId: number | null = null;
+  searchText: any;
+  permissions = {
+    canView: false,
+    canEdit: false,
+    canManage: false,
+    canDelete: false,
+  };
+  permissionsLoaded = false;
+  displayedColumns: string[] = ['nameUser', 'role', 'email', 'action'];
+  customColumns: string[] = ['nameUser', 'role', 'email', 'action'];
+  dataSource: any[] = [];
+  selection = new SelectionModel<any>(true, []);
+
+  public dialog = inject(MatDialog);
+  private employeesService = inject(EmployeesService);
+  private userService = inject(UsersService);
+  private positionsService = inject(PositionsService);
+  private schedulesService = inject(SchedulesService);
+  private reportsService = inject(ReportsService);
+  private companiesService = inject(CompaniesService);
+  private permissionService = inject(PermissionService);
+
+  ngOnInit(): void {
+    if (this.userRole === '3') {
+      this.loadCompany();
+    }
+    this.permissionService
+      .getUserPermissions(Number(this.userId))
+      .subscribe((res) => {
+        const effective = res.effectivePermissions || [];
+        this.permissions = {
+          canView: effective.includes('users.view'),
+          canEdit: effective.includes('users.edit'),
+          canManage: effective.includes('users.manage'),
+          canDelete: effective.includes('users.delete'),
+        };
+        this.permissionsLoaded = true;
+      });
+    this.getEmployees();
+    this.getCompanies();
+  }
+
+  getCompanies() {
+    this.companiesService.getCompanies().subscribe({
+      next: (companies: any) => {
+        this.companies = companies;
+      },
+    });
+  }
+
+  handleCompanySelection(event: any) {
+    this.companyId = event.value;
+    this.dataSource = this.users.filter(
+      (user: any) => user.profile.company_id === this.companyId,
+    );
+  }
+
+  loadCompany(): void {
+    this.companiesService.getByOwner().subscribe((company: any) => {
+      this.company = company.company.name;
+    });
+  }
+
+  applyCombinedFilters(): void {
+    const value = this.searchText?.trim().toLowerCase();
+    this.dataSource = this.users.filter((user: any) => {
+      const matchesCompany = this.companyId
+        ? user.profile.company_id === this.companyId
+        : true;
+      if (!value) return matchesCompany;
+      const matchesSearch =
+        (user.profile.name &&
+          user.profile.name.toLowerCase().includes(value)) ||
+        (user.profile.last_name &&
+          user.profile.last_name.toLowerCase().includes(value)) ||
+        (user.profile.email &&
+          user.profile.email.toLowerCase().includes(value));
+      return matchesSearch && matchesCompany;
+    });
+  }
+
+  openDialog(action: string, employee: Employee | any): void {
+    const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
+      data: { action, employee, permissions: this.permissions },
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.getEmployees();
+    });
+  }
+
+  getEmployees() {
+    this.employeesService.get().subscribe({
+      next: (employees: any) => {
+        this.employees = employees;
+        this.users = employees.filter(
+          (user: any) => user.user.active == 1 && user.user.role == 2,
+        );
+        this.users = this.users.map((user: any) => {
+          return {
+            profile: {
+              id: user.user.id,
+              company_id: user.company_id,
+              name: user.user.name,
+              last_name: user.user.last_name,
+              email: user.user.email,
+              position: user.position_id || user.position?.id || '',
+              hourly_rate: user.hourly_rate,
+              projects: user.projects
+                ? user.projects.map((project: any) => project.id)
+                : [],
+              imagePath: '/assets/images/default-user-profile-pic.png',
+            },
+            role: user.position?.title || 'Other',
+          };
+        });
+        this.getProfilePics();
+      },
+      error: (err) => {
+        console.error('Error fetching employees:', err);
+      },
+    });
+  }
+
+  getProfilePics() {
+    this.users.map((user: any) => {
+      this.userService.getProfilePic(user.profile.id).subscribe({
+        next: (response: any) => {
+          if (!response) return;
+          user.profile.imagePath = response;
+        },
+        error: (err) => {
+          console.error('Error fetching profile picture:', err);
+        },
+      });
+    });
+    this.dataSource = this.users;
+    this.loaded = true;
+  }
+
+  setUser(user: any): void {
+    this.employees.forEach((employee: any) => {
+      if (user.id == employee.user.id) {
+        user = employee.user;
+      }
+    });
+
+    this.userService.setUserInformation(user);
+  }
+}
