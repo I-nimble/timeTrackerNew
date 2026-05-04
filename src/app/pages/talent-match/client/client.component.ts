@@ -660,21 +660,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       name: candidate.name,
       position: this.getPositionTitle(candidate.position_id) || this.selectedRole || '',
     });
-
-    const userId = Number(localStorage.getItem('id')) || 0;
-    this.notificationsService.markInterested(userId, candidate.id, this.selectedRole!, this.selectedPracticeArea!)
-      .subscribe({
-        next: (data: any) => {
-          if (data.success) {
-            this.snackBar.open('Your interest has been recorded, and the HR team has been alerted.', 'Close', { duration: 2000 });
-          } else {
-            this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
-          }
-        },
-        error: () => {
-          this.snackBar.open('Error sending notification.', 'Close', { duration: 2000 });
-        }
-      });
+    this.snackBar.open('Candidate added to your selection.', 'Close', { duration: 2000 });
   }
 
   submitTalentMatch(): void {
