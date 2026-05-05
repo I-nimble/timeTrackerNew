@@ -1,4 +1,3 @@
-// Scaffolded for SD-2214 to unblock smart-component tests; identical to PR #825.
 export type UserStatus = 0 | 1;
 
 export interface TimeTrackerEntryReview {

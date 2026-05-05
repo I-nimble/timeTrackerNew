@@ -1,0 +1,30 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+import { Observable } from 'rxjs';
+
+import { environment } from '../../../environments/environment';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class InterviewsService {
+  constructor(private http: HttpClient) {}
+  API_URI = environment.apiUrl + '/interviews';
+
+  public post(data: any): Observable<any[]> {
+    return this.http.post<any[]>(`${this.API_URI}`, data);
+  }
+
+  public put(data: any, interviewId: number): Observable<any[]> {
+    return this.http.put<any[]>(`${this.API_URI}/${interviewId}`, data);
+  }
+
+  public get(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API_URI}`);
+  }
+
+  public cancel(id: number): Observable<any[]> {
+    return this.http.delete<any[]>(`${this.API_URI}/${id}`);
+  }
+}

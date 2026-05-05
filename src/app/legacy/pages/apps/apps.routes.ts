@@ -1,0 +1,569 @@
+import { Routes } from '@angular/router';
+
+import { BillingAddInvoicePageComponent } from '@features/billing/pages/add-invoice-page.component';
+import { BillingEditInvoicePageComponent } from '@features/billing/pages/edit-invoice-page.component';
+import { BillingInvoiceListPageComponent } from '@features/billing/pages/invoice-list-page.component';
+import { BillingInvoiceViewPageComponent } from '@features/billing/pages/invoice-view-page.component';
+import { BillingPaymentsReportsPageComponent } from '@features/billing/pages/payments-reports-page.component';
+import { BillingPricingPageComponent } from '@features/billing/pages/pricing-page.component';
+import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
+import { TimeTrackingTodoPageComponent } from '@features/time-tracking/pages/todo-page.component';
+import { WorkforceEmployeeDetailsPageComponent } from '@features/workforce/pages/employee-details-page.component';
+
+import { AppAccountSettingComponent } from './account-setting/account-setting.component';
+import { AppBlogsComponent } from './blogs/blogs.component';
+import { AppBlogDetailsComponent } from './blogs/details/details.component';
+import { AppChatComponent } from './chat/chat.component';
+import { HrOperationsComponent } from './chat/hr-operations/hr-operations.component';
+import { AppContactComponent } from './contact/contact.component';
+import { AppContactListComponent } from './contact-list/contact-list.component';
+import { CandidatesComponent } from '../candidates/candidates.component';
+import { AppCourseDetailComponent } from './courses/course-detail/course-detail.component';
+import { AppCoursesComponent } from './courses/courses.component';
+import { DetailComponent } from './email/detail/detail.component';
+import { AppEmailComponent } from './email/email.component';
+import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.component';
+import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
+import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
+import { AppNotesComponent } from './notes/notes.component';
+import { AppPermissionComponent } from './permission/permission.component';
+import { R3Component } from './r3/r3.component';
+import { AppStorageComponent } from './storage/storage.component';
+import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
+import { RejectedComponent } from '../rejected/rejected.component';
+import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
+import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
+import { AppEventsComponent } from './events/events.component';
+import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
+import { AppExpertComponent } from './expert/expert.component';
+import { AppFullcalendarComponent } from './fullcalendar/fullcalendar.component';
+import { AppInvoiceListComponent } from './invoice/invoice-list/invoice-list.component';
+import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
+import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
+import { AppBoardsComponent } from './kanban/boards/boards.component';
+import { AppKanbanComponent } from './kanban/kanban.component';
+import { R3ActionComponent } from './r3/action/r3.action.component';
+import { R3TractionComponent } from './r3/traction/r3.traction.component';
+import { R3VisionComponent } from './r3/vision/r3.vision.component';
+import { ScrapperComponent } from './scrapper/scrapper.component';
+import { AppTicketlistComponent } from './tickets/tickets.component';
+import { AppTodoComponent } from './todo/todo.component';
+
+export const AppsRoutes: Routes = [
+  {
+    path: '',
+    children: [
+      {
+        path: 'team',
+        loadChildren: () =>
+          import('@features/workforce/team.routes').then(
+            (m) => m.WorkforceTeamRoutes,
+          ),
+      },
+      {
+        path: 'chat',
+        component: AppChatComponent,
+        data: {
+          title: 'Chat',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Chat' },
+          ],
+        },
+      },
+      {
+        path: 'chat/support',
+        component: HrOperationsComponent,
+        data: {
+          title: 'Chat',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Support chat' },
+          ],
+        },
+      },
+      {
+        path: 'notifications',
+        component: NotificationsPageComponent,
+        data: {
+          title: 'Notifications',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Notifications' },
+          ],
+        },
+      },
+      {
+        path: 'calendar',
+        component: AppFullcalendarComponent,
+        data: {
+          title: 'Calendar',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Calendar' },
+          ],
+        },
+      },
+      {
+        path: 'notes',
+        component: AppNotesComponent,
+        data: {
+          title: 'Notes',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Notes' },
+          ],
+        },
+      },
+      { path: 'email', redirectTo: 'email/inbox', pathMatch: 'full' },
+      {
+        path: 'email/:type',
+        component: AppEmailComponent,
+        data: {
+          title: 'Email',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Email' },
+          ],
+        },
+        children: [
+          {
+            path: ':id',
+            component: DetailComponent,
+            data: {
+              title: 'Email Detail',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard2' },
+                { title: 'Email Detail' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'permission',
+        component: AppPermissionComponent,
+        data: {
+          title: 'Roll Base Access',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Roll Base Access' },
+          ],
+        },
+      },
+      {
+        path: 'todo',
+        component: TimeTrackingTodoPageComponent,
+        data: {
+          title: 'Todo App',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Todo App' },
+          ],
+        },
+      },
+      {
+        path: 'storage',
+        component: AppStorageComponent,
+        data: {
+          title: 'Storage',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Storage' },
+          ],
+        },
+      },
+      {
+        path: 'history',
+        loadChildren: () =>
+          import('@features/time-tracking/history.routes').then(
+            (m) => m.TimeTrackingHistoryRoutes,
+          ),
+      },
+      {
+        path: 'candidates',
+        children: [
+          {
+            path: '',
+            component: CandidatesComponent,
+            data: {
+              title: 'Candidates',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates', url: '/candidates' },
+                { title: 'Details' },
+              ],
+            },
+          },
+          {
+            path: 'new',
+            component: CandidateDetailsComponent,
+            data: {
+              title: 'New Candidate Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Candidates', url: '/candidates' },
+                { title: 'Details' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'rejected',
+        children: [
+          {
+            path: '',
+            component: RejectedComponent,
+            data: {
+              title: 'Rejected',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Rejected' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'talent-match',
+        loadChildren: () =>
+          import('@features/talent-match/talent-match.routes').then(
+            (m) => m.TalentMatchRoutes,
+          ),
+      },
+      {
+        path: 'expert',
+        children: [
+          {
+            path: '',
+            component: AppExpertComponent,
+            data: {
+              title: 'Expert',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Expert' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: ClientDetailsComponent,
+            data: {
+              title: 'Client Details',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Client Details' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'kanban',
+        children: [
+          {
+            path: '',
+            component: AppBoardsComponent,
+            data: {
+              title: 'Boards',
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Boards' },
+              ],
+            },
+          },
+          {
+            path: ':id',
+            component: AppKanbanComponent,
+            data: {
+              title: 'Kanban',
+              showGoBack: true,
+              urls: [
+                { title: 'Dashboard', url: '/dashboards/dashboard1' },
+                { title: 'Kanban' },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        path: 'tickets',
+        component: AppTicketlistComponent,
+        data: {
+          title: 'Tickets',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Tickets' },
+          ],
+        },
+      },
+      {
+        path: 'contacts',
+        component: AppContactComponent,
+        data: {
+          title: 'Contacts',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Contacts' },
+          ],
+        },
+      },
+      {
+        path: 'courses',
+        component: AppCoursesComponent,
+        data: {
+          title: 'Courses',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Courses' },
+          ],
+        },
+      },
+      {
+        path: 'contact-list',
+        component: AppContactListComponent,
+        data: {
+          title: 'Contact List',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Contact List' },
+          ],
+        },
+      },
+      {
+        path: 'courses/coursesdetail/:id',
+        component: AppCourseDetailComponent,
+        data: {
+          title: 'Course Detail',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Course Detail' },
+          ],
+        },
+      },
+      {
+        path: 'blog/post',
+        component: AppBlogsComponent,
+        data: {
+          title: 'Posts',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Posts' },
+          ],
+        },
+      },
+      {
+        path: 'blog/detail/:id',
+        component: AppBlogDetailsComponent,
+        data: {
+          title: 'Blog Detail',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Blog Detail' },
+          ],
+        },
+      },
+      {
+        path: 'time-tracker',
+        loadChildren: () =>
+          import('@features/workforce/time-tracker.routes').then(
+            (m) => m.WorkforceTimeTrackerRoutes,
+          ),
+      },
+      {
+        path: 'employee',
+        component: WorkforceEmployeeDetailsPageComponent,
+        data: {
+          title: 'Employee Details',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Employee Details' },
+          ],
+        },
+      },
+      {
+        path: 'events',
+        component: AppEventsComponent,
+        data: {
+          title: 'Events',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Events' },
+          ],
+        },
+      },
+      {
+        path: 'invoice',
+        component: BillingInvoiceListPageComponent,
+        data: {
+          title: 'Invoice',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Invoice' },
+          ],
+        },
+      },
+      {
+        path: 'payments-reports',
+        component: BillingPaymentsReportsPageComponent,
+        data: {
+          title: 'Reports',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Reports' },
+          ],
+        },
+      },
+      {
+        path: 'addInvoice',
+        component: BillingAddInvoicePageComponent,
+        data: {
+          title: 'Add Invoice',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Add Invoice' },
+          ],
+        },
+      },
+      {
+        path: 'viewInvoice/:id',
+        component: BillingInvoiceViewPageComponent,
+        data: {
+          title: 'View Invoice',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'View Invoice' },
+          ],
+        },
+      },
+      {
+        path: 'editinvoice/:id',
+        component: BillingEditInvoicePageComponent,
+        data: {
+          title: 'Edit Invoice',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard2' },
+            { title: 'Edit Invoice' },
+          ],
+        },
+      },
+      {
+        path: 'account-settings',
+        component: AppAccountSettingComponent,
+        data: {
+          title: 'Account Settings',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Account Settings' },
+          ],
+        },
+      },
+      {
+        path: 'permission',
+        component: AppPermissionComponent,
+        data: {
+          title: 'Permission',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Permission' },
+          ],
+        },
+      },
+      {
+        path: 'pricing',
+        component: BillingPricingPageComponent,
+        data: {
+          title: 'Pricing',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Pricing' },
+          ],
+        },
+      },
+      {
+        path: 'r3',
+        component: R3Component,
+        data: {
+          title: 'R3',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3' },
+          ],
+        },
+      },
+      {
+        path: 'r3/compass',
+        component: R3VisionComponent,
+        data: {
+          title: 'Compass',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Compass' },
+          ],
+        },
+      },
+      {
+        path: 'r3/blueprint',
+        component: R3TractionComponent,
+        data: {
+          title: 'Blueprint',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Blueprint' },
+          ],
+        },
+      },
+      {
+        path: 'r3/engine',
+        component: R3ActionComponent,
+        data: {
+          title: 'Engine',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'R3', url: '/apps/r3' },
+            { title: 'Engine' },
+          ],
+        },
+      },
+      {
+        path: 'scrapper',
+        component: ScrapperComponent,
+        data: {
+          title: 'Scrapper',
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'scrapper' },
+          ],
+        },
+      },
+    ],
+  },
+];

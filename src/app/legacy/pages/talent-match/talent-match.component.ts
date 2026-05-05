@@ -1,0 +1,65 @@
+import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+
+import { ApplicationsService } from 'src/app/legacy/services/applications.service';
+import { PermissionService } from 'src/app/legacy/services/permission.service';
+import { environment } from 'src/environments/environment';
+
+import { AppTalentMatchClientComponent } from './client/client.component';
+import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
+import { AppTalentMatchTmComponent } from './talent-match-tm/talent-match-tm.component';
+import { AppIntakeFormComponent } from '../intake/intake-form.component';
+
+@Component({
+  standalone: true,
+  selector: 'app-talent-match',
+  imports: [
+    AppTalentMatchClientComponent,
+    AppTalentMatchAdminComponent,
+    AppTalentMatchTmComponent,
+    AppIntakeFormComponent,
+    CommonModule,
+  ],
+  templateUrl: './talent-match.component.html',
+})
+export class AppTalentMatchComponent {
+  userRole = localStorage.getItem('role');
+  userEmail = localStorage.getItem('email');
+  isOrphan = localStorage.getItem('isOrphan') === 'true';
+  canViewTalentMatch = false;
+  allowedTM = false;
+  hasAvailableApplication = false;
+  hasApplication = false;
+
+  constructor(
+    private permissionService: PermissionService,
+    private applicationsService: ApplicationsService,
+  ) {
+    const allowedEmails = environment.allowedReportEmails;
+    this.allowedTM =
+      this.userRole === '2' && allowedEmails.includes(this.userEmail || '');
+
+    const userId = Number(localStorage.getItem('id'));
+    this.permissionService.getUserPermissions(userId).subscribe({
+      next: (userPerms: any) => {
+        const effective = userPerms.effectivePermissions || [];
+        this.canViewTalentMatch = effective.includes('talent-match.view');
+        if (!this.canViewTalentMatch) return;
+        if (this.userRole !== '3') {
+          this.loadApplication(userId);
+        }
+      },
+    });
+  }
+
+  private loadApplication(userId: number): void {
+    this.applicationsService.getUserApplication(userId).subscribe({
+      next: (application) => {
+        this.hasAvailableApplication = !!application?.inmediate_availability;
+      },
+      error: () => {
+        this.hasAvailableApplication = false;
+      },
+    });
+  }
+}

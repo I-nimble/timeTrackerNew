@@ -1,4 +1,3 @@
-// Scaffolded for SD-2214 to unblock smart-component tests; identical to PR #825.
 export type UsersSortDirection = 'asc' | 'desc';
 
 export type UsersSortField = 'name' | 'email' | 'role' | 'createdAt';

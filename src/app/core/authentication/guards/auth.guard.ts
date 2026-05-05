@@ -1,1 +1,1 @@
-﻿export { AuthGuard } from '../../../services/guards/auth-guard.service';
+﻿export { AuthGuard } from '../../../legacy/services/guards/auth-guard.service';

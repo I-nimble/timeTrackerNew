@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { EmployeeDetailsComponent } from 'src/app/pages/apps/employee/employee-details/employee-details.component';
+
+import { EmployeeDetailsComponent } from 'src/app/legacy/pages/apps/employee/employee-details/employee-details.component';
 
 @Component({
   selector: 'app-workforce-employee-details-page',

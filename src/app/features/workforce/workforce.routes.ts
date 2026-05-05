@@ -4,9 +4,9 @@ import { provideState } from '@ngrx/store';
 
 import { UsersListPageComponent } from './pages/users-list-page/users-list-page.component';
 import { usersReducer } from './store/users.reducer';
-import { EmployeeDetailsComponent } from '../../pages/apps/employee/employee-details/employee-details.component';
-import { AppEmployeeComponent } from '../../pages/apps/employee/employee.component';
-import { TeamComponent } from '../../pages/apps/team/team.component';
+import { EmployeeDetailsComponent } from '../../legacy/pages/apps/employee/employee-details/employee-details.component';
+import { AppEmployeeComponent } from '../../legacy/pages/apps/employee/employee.component';
+import { TeamComponent } from '../../legacy/pages/apps/team/team.component';
 
 export const WorkforceRoutes: Routes = [
   {

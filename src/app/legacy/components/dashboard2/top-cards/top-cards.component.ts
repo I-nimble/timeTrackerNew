@@ -1,0 +1,87 @@
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterModule } from '@angular/router';
+
+import { RatingsEntriesService } from '@legacy/services/ratings_entries.service';
+import { TablerIconsModule } from 'angular-tabler-icons';
+
+import { MaterialModule } from '../../../../material.module';
+
+@Component({
+  selector: 'app-top-cards',
+  standalone: true,
+  imports: [MaterialModule, TablerIconsModule, RouterModule],
+  templateUrl: './top-cards.component.html',
+  styleUrls: ['./top-cards.component.scss'],
+})
+export class AppTopCardsComponent implements OnInit, OnDestroy {
+  totalTasksSum = 0;
+  constructor(private ratingsEntriesService: RatingsEntriesService) {}
+
+  companyTimezone = 'UTC';
+  totalHours = 0;
+  performance = 0;
+  elapsedHours = 0;
+  intervalId: any;
+
+  ngOnInit() {
+    this.loadTeamReport();
+    this.updateElapsedHours();
+    this.intervalId = setInterval(() => this.updateElapsedHours(), 60000);
+  }
+
+  ngOnDestroy() {
+    if (this.intervalId) clearInterval(this.intervalId);
+  }
+
+  loadTeamReport() {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    const dateRange = {
+      firstSelect: todayStr,
+      lastSelect: todayStr,
+    };
+
+    this.ratingsEntriesService.getTeamReport(dateRange).subscribe({
+      next: (data) => {
+        const ratings = Array.isArray(data?.ratings) ? data.ratings : [];
+        this.totalTasksSum = ratings.reduce(
+          (acc: number, curr: { completed?: number }) =>
+            acc + (curr.completed || 0),
+          0,
+        );
+        this.performance =
+          this.elapsedHours > 0
+            ? Number((this.totalTasksSum / this.elapsedHours).toFixed(2))
+            : 0;
+      },
+      error: (err) => {
+        console.error('Error loading team report:', err);
+      },
+    });
+  }
+
+  getElapsedHours(): number {
+    const now = new Date();
+    const today9am = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      9,
+      0,
+      0,
+      0,
+    );
+    const diffMs = now.getTime() - today9am.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours > 0 ? Number(diffHours.toFixed(2)) : 0;
+  }
+
+  updateElapsedHours() {
+    this.elapsedHours = this.getElapsedHours();
+    this.performance =
+      this.elapsedHours > 0
+        ? Number((this.totalTasksSum / this.elapsedHours).toFixed(2))
+        : 0;
+  }
+}

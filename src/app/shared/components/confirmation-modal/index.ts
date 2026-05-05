@@ -1,1 +1,1 @@
-﻿export * from '../../../components/confirmation-modal/confirmation-modal.component';
+﻿export * from '../../../legacy/components/confirmation-modal/confirmation-modal.component';

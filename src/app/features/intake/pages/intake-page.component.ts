@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AppIntakeFormComponent } from 'src/app/pages/intake/intake-form.component';
+
+import { AppIntakeFormComponent } from 'src/app/legacy/pages/intake/intake-form.component';
 
 @Component({
   selector: 'app-intake-page',

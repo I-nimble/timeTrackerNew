@@ -1,0 +1,68 @@
+import { Component, signal } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { RouterModule } from '@angular/router';
+
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { CourseService } from 'src/app/legacy/services/apps/course/course.service';
+
+import { course } from './course';
+
+@Component({
+  selector: 'app-courses',
+  templateUrl: './courses.component.html',
+  imports: [
+    MatCardModule,
+    TablerIconsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatDividerModule,
+    RouterModule,
+    MatIconModule,
+    MatInputModule,
+    MatButtonModule,
+  ],
+})
+export class AppCoursesComponent {
+  courseList = signal<course[]>([]);
+  selectedCategory = signal<string>('All');
+
+  constructor(private courseService: CourseService) {
+    this.courseList.set(this.courseService.getCourse());
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.courseList.set(this.filter(filterValue));
+  }
+
+  filter(v: string): course[] {
+    return this.courseService
+      .getCourse()
+      .filter(
+        (x) => x.courseName.toLowerCase().indexOf(v.toLowerCase()) !== -1,
+      );
+  }
+
+  ddlChange(ob: any): void {
+    const filterValue = ob.value;
+    if (filterValue === 'All') {
+      this.courseList.set(this.courseService.getCourse());
+    } else {
+      this.courseList.set(
+        this.courseService
+          .getCourse()
+
+          .filter((course) => course.courseFramework === filterValue),
+      );
+    }
+  }
+}
