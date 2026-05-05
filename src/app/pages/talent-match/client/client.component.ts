@@ -706,7 +706,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
         cancelText: 'Understood',
         cta: {
           label: 'Upgrade your plan',
-          route: '/apps/upgrade-plan',
+          route: '/apps/pricing',
         },
       },
     });
