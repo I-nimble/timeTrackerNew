@@ -116,6 +116,13 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
     };
   }
 
+  fromUnknown(error: unknown, url: string): AppError {
+    if (error instanceof HttpErrorResponse) {
+      return this.fromHttp(error, url);
+    }
+    return this.fromHttp(new HttpErrorResponse({ error, status: 0 }), url);
+  }
+
   private resolveMessage(error: unknown, fallback: string): string {
     if (error instanceof HttpErrorResponse) {
       const body = this.extractBody(error);

@@ -1,13 +1,7 @@
 import { Notification } from '@app/models/Notifications';
+import { NotificationSubmitPayload } from '@features/notifications/models/notifications.model';
 import { createActionGroup, props } from '@ngrx/store';
 import { AppError } from '@shared/services';
-
-export interface NotificationSubmitPayload {
-  cv?: File;
-  message?: string;
-  type_id: number;
-  selectedUsers: { user_id: number; checked: boolean }[];
-}
 
 export const NotificationsActions = createActionGroup({
   source: 'Notifications',

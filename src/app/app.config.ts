@@ -21,8 +21,6 @@ import {
 
 import { JwtHelperService, JwtModule, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { AuthInterceptor, ErrorInterceptor } from '@core/http/interceptors';
-import { NotificationsEffects } from '@features/notifications/store/notifications.effects';
-import { provideEffects } from '@ngrx/effects';
 import { provideStore } from '@ngrx/store';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -42,8 +40,6 @@ import { MaterialModule } from './material.module';
 import { environment } from '../environments/environment';
 import { ReportsService } from './services/reports.service';
 import { WebSocketService } from './services/socket/web-socket.service';
-
-import 'highlight.js/styles/atom-one-dark.min.css';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -82,7 +78,6 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
     ),
     provideStore(),
-    provideEffects(NotificationsEffects),
     provideHttpClient(withInterceptors([AuthInterceptor, ErrorInterceptor])),
     provideGlobalErrorHandler(),
     ...dialogProviders,
