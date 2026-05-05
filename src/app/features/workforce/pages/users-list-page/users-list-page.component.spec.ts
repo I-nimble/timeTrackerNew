@@ -1,21 +1,47 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 
 import { User } from '@features/workforce/models/user.model';
-import {
-  DEFAULT_USERS_FILTER,
-  UsersFilter,
-} from '@features/workforce/models/users-filter.model';
+import { DEFAULT_USERS_FILTER } from '@features/workforce/models/users-filter.model';
 import {
   DEFAULT_USERS_LIST_COLUMNS,
   UserListResponse,
 } from '@features/workforce/models/users-list.model';
 import * as UsersActions from '@features/workforce/store/users.actions';
 import * as UsersSelectors from '@features/workforce/store/users.selectors';
-import { MemoizedSelector } from '@ngrx/store';
-import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { Action, Store } from '@ngrx/store';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 import { UsersListPageComponent } from './users-list-page.component';
+
+class FakeStore {
+  private readonly subjects = new Map<unknown, BehaviorSubject<unknown>>();
+  readonly dispatch = jasmine.createSpy('dispatch');
+
+  setSelectorValue<T>(selector: unknown, value: T): void {
+    const existing = this.subjects.get(selector);
+    if (existing) {
+      existing.next(value);
+      return;
+    }
+
+    this.subjects.set(selector, new BehaviorSubject<unknown>(value));
+  }
+
+  select<T>(selector: unknown): Observable<T> {
+    const subject = this.subjects.get(selector);
+    if (!subject) {
+      throw new Error('No mock value configured for selector');
+    }
+
+    return subject.asObservable() as Observable<T>;
+  }
+}
+
+class FakeMatDialog {
+  readonly open = jasmine.createSpy('open');
+}
 
 const buildUser = (overrides: Partial<User> = {}): User => ({
   id: 1,
@@ -39,44 +65,47 @@ const buildList = (items: User[] = [buildUser()]): UserListResponse => ({
   },
 });
 
+const createDialogRef = (result: boolean) =>
+  ({
+    afterClosed: () => of(result),
+  }) as never;
+
 describe('UsersListPageComponent', () => {
   let fixture: ComponentFixture<UsersListPageComponent>;
   let component: UsersListPageComponent;
-  let store: MockStore;
-  let dispatchSpy: jasmine.Spy;
+  let store: FakeStore;
+  let dialog: FakeMatDialog;
+
+  const dispatchedActions = (): Action[] =>
+    store.dispatch.calls.allArgs().map((args) => args[0] as Action);
 
   beforeEach(async () => {
+    store = new FakeStore();
+    dialog = new FakeMatDialog();
+
+    store.setSelectorValue(UsersSelectors.selectUsersList, buildList());
+    store.setSelectorValue(UsersSelectors.selectLoading, false);
+    store.setSelectorValue(UsersSelectors.selectError, null);
+    store.setSelectorValue(UsersSelectors.selectFilter, DEFAULT_USERS_FILTER);
+
+    dialog.open.and.returnValue(createDialogRef(true));
+
     await TestBed.configureTestingModule({
       imports: [UsersListPageComponent],
-      providers: [provideMockStore()],
+      providers: [
+        { provide: Store, useValue: store },
+        { provide: MatDialog, useValue: dialog },
+      ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
-    store = TestBed.inject(MockStore);
-    store.overrideSelector(
-      UsersSelectors.selectUsersList as MemoizedSelector<
-        object,
-        UserListResponse
-      >,
-      buildList(),
-    );
-    store.overrideSelector(UsersSelectors.selectLoading, false);
-    store.overrideSelector(UsersSelectors.selectError, null);
-    store.overrideSelector(
-      UsersSelectors.selectFilter as MemoizedSelector<object, UsersFilter>,
-      DEFAULT_USERS_FILTER,
-    );
-    store.overrideSelector(UsersSelectors.selectFormOpen, false);
-    store.overrideSelector(UsersSelectors.selectEditingUser, null);
-
     fixture = TestBed.createComponent(UsersListPageComponent);
     component = fixture.componentInstance;
-    dispatchSpy = spyOn(store, 'dispatch').and.callThrough();
     fixture.detectChanges();
   });
 
-  it('dispatches loadUsers with default filter on init', () => {
-    expect(dispatchSpy).toHaveBeenCalledWith(
+  it('dispatches loadUsers with the default filter on init', () => {
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.loadUsers({ filter: DEFAULT_USERS_FILTER }),
     );
   });
@@ -114,16 +143,9 @@ describe('UsersListPageComponent', () => {
     expect(header?.textContent?.trim()).toBe('Team Members');
   });
 
-  it('shows spinner when loading and list is empty', () => {
-    store.overrideSelector(UsersSelectors.selectLoading, true);
-    store.overrideSelector(
-      UsersSelectors.selectUsersList as MemoizedSelector<
-        object,
-        UserListResponse
-      >,
-      buildList([]),
-    );
-    store.refreshState();
+  it('shows the spinner when loading and the list is empty', () => {
+    store.setSelectorValue(UsersSelectors.selectLoading, true);
+    store.setSelectorValue(UsersSelectors.selectUsersList, buildList([]));
     fixture.detectChanges();
 
     expect(component.hasUsers()).toBe(false);
@@ -131,16 +153,16 @@ describe('UsersListPageComponent', () => {
   });
 
   it('onSearch dispatches setFilter then loadUsers with merged filter', () => {
-    dispatchSpy.calls.reset();
+    store.dispatch.calls.reset();
 
     component.onSearch('foo');
 
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.setFilter({
         filter: { searchField: 'foo', currentPage: 1 },
       }),
     );
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.loadUsers({
         filter: { ...DEFAULT_USERS_FILTER, searchField: 'foo', currentPage: 1 },
       }),
@@ -148,14 +170,14 @@ describe('UsersListPageComponent', () => {
   });
 
   it('onFilterByRole resets currentPage to 1', () => {
-    dispatchSpy.calls.reset();
+    store.dispatch.calls.reset();
 
     component.onFilterByRole(2);
 
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.setFilter({ filter: { role: 2, currentPage: 1 } }),
     );
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.loadUsers({
         filter: { ...DEFAULT_USERS_FILTER, role: 2, currentPage: 1 },
       }),
@@ -163,11 +185,11 @@ describe('UsersListPageComponent', () => {
   });
 
   it('onPageChange preserves the rest of the filter', () => {
-    dispatchSpy.calls.reset();
+    store.dispatch.calls.reset();
 
     component.onPageChange(3);
 
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.loadUsers({
         filter: { ...DEFAULT_USERS_FILTER, currentPage: 3 },
       }),
@@ -175,11 +197,11 @@ describe('UsersListPageComponent', () => {
   });
 
   it('onSortChange dispatches with merged sort and resets the page', () => {
-    dispatchSpy.calls.reset();
+    store.dispatch.calls.reset();
 
     component.onSortChange({ field: 'email', direction: 'desc' });
 
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.loadUsers({
         filter: {
           ...DEFAULT_USERS_FILTER,
@@ -191,57 +213,72 @@ describe('UsersListPageComponent', () => {
     );
   });
 
-  it('openForm and closeForm dispatch the corresponding actions', () => {
-    dispatchSpy.calls.reset();
-    const user = buildUser({ id: 5 });
+  it('openForm opens the invite dialog and refreshes the list on close', () => {
+    store.dispatch.calls.reset();
 
-    component.openForm(user);
-    component.closeForm();
+    component.openForm();
 
-    expect(dispatchSpy).toHaveBeenCalledWith(UsersActions.openForm({ user }));
-    expect(dispatchSpy).toHaveBeenCalledWith(UsersActions.closeForm());
+    expect(dialog.open).toHaveBeenCalled();
+    expect(store.dispatch).toHaveBeenCalledWith(
+      UsersActions.loadUsers({ filter: DEFAULT_USERS_FILTER }),
+    );
   });
 
-  it('onDelete dispatches deleteUser only when confirm returns true', () => {
-    dispatchSpy.calls.reset();
-    spyOn(window, 'confirm').and.returnValues(false, true);
+  it('openForm opens the update dialog with the mapped employee payload', () => {
+    const user = buildUser({
+      id: 5,
+      picture: 'avatar.png',
+      company: { id: 9, name: 'Acme' },
+      employee: { id: 11, position: 'Paralegal', hourly_rate: 25 },
+    });
+
+    component.openForm(user);
+
+    expect(dialog.open).toHaveBeenCalled();
+    const [, config] = dialog.open.calls.mostRecent().args;
+    expect(config.data.action).toBe('Update');
+    expect(config.data.employee.profile).toEqual({
+      id: 5,
+      name: 'Jane',
+      last_name: 'Doe',
+      email: 'jane@example.com',
+      company_id: 9,
+      position: 'Paralegal',
+      projects: [],
+      hourly_rate: 25,
+      imagePath: 'avatar.png',
+    });
+  });
+
+  it('onDelete opens the confirmation dialog and dispatches deleteUser when confirmed', () => {
+    store.dispatch.calls.reset();
 
     component.onDelete(7);
-    expect(dispatchSpy).not.toHaveBeenCalledWith(
+
+    expect(dialog.open).toHaveBeenCalled();
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.deleteUser({ id: 7 }),
     );
+  });
+
+  it('onDelete does not dispatch deleteUser when the confirmation is canceled', () => {
+    dialog.open.and.returnValue(createDialogRef(false));
+    store.dispatch.calls.reset();
 
     component.onDelete(7);
-    expect(dispatchSpy).toHaveBeenCalledWith(
+
+    expect(dispatchedActions()).not.toContain(
       UsersActions.deleteUser({ id: 7 }),
     );
   });
 
   it('onToggleActive dispatches toggleActive', () => {
-    dispatchSpy.calls.reset();
+    store.dispatch.calls.reset();
 
     component.onToggleActive(9);
 
-    expect(dispatchSpy).toHaveBeenCalledWith(
+    expect(store.dispatch).toHaveBeenCalledWith(
       UsersActions.toggleActive({ id: 9 }),
     );
-  });
-
-  it('onSaveUser routes to updateUser when id is truthy', () => {
-    dispatchSpy.calls.reset();
-    const user = buildUser({ id: 42 });
-
-    component.onSaveUser(user);
-
-    expect(dispatchSpy).toHaveBeenCalledWith(UsersActions.updateUser({ user }));
-  });
-
-  it('onSaveUser routes to createUser when id is falsy', () => {
-    dispatchSpy.calls.reset();
-    const user = buildUser({ id: 0 });
-
-    component.onSaveUser(user);
-
-    expect(dispatchSpy).toHaveBeenCalledWith(UsersActions.createUser({ user }));
   });
 });

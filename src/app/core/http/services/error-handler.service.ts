@@ -27,11 +27,19 @@ export class ErrorHandlerService implements OnDestroy {
    * Transform HttpErrorResponse into AppError so 401 flows are handled.
    */
   handleError(error: unknown): void {
-    if (error instanceof HttpErrorResponse) {
-      const appError = this.fromHttp(error, 'unknown');
-      this.handle(appError);
-    } else {
-      this.logger.error('Uncaught error', error);
+    try {
+      if (error instanceof HttpErrorResponse) {
+        const appError = this.fromHttp(error, 'unknown');
+        this.handle(appError);
+      } else {
+        this.logger.error('Uncaught error', error);
+      }
+    } catch (handlerError) {
+      console.error(
+        'ErrorHandlerService.handleError failed',
+        handlerError,
+        error,
+      );
     }
   }
 
@@ -48,15 +56,16 @@ export class ErrorHandlerService implements OnDestroy {
     this.errorSubject.next(error);
   }
 
-  fromHttp(error: HttpErrorResponse, url: string): AppError {
-    const body = this.extractBody(error);
+  fromHttp(error: HttpErrorResponse | null | undefined, url: string): AppError {
+    const body = error ? this.extractBody(error) : null;
+    const status = error?.status ?? 0;
 
     return {
-      status: error.status,
+      status,
       url,
       timestamp: new Date(),
-      message: this.resolveMessage(error.status, body),
-      technical: error.message,
+      message: this.resolveMessage(status, body),
+      technical: error?.message,
       validation: this.extractValidation(body),
       original: error,
     };

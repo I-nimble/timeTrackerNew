@@ -11,7 +11,7 @@
 
   <app-users-controls
     [filter]="filter()"
-    (search)="onSearch($event)"
+    (searchChange)="onSearch($event)"
     (filterByRole)="onFilterByRole($event)"
     (newUser)="openForm()"
   />
@@ -32,12 +32,4 @@
     (pageChange)="onPageChange($event)"
     (sortChange)="onSortChange($event)"
   />
-
-  @if (formOpen()) {
-    <app-user-form-modal
-      [user]="editingUser()"
-      (save)="onSaveUser($event)"
-      (close)="closeForm()"
-    />
-  }
 </section>

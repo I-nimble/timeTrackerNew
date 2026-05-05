@@ -7,9 +7,9 @@ import {
   input,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
-import { UserFormModalComponent } from '@features/workforce/components/user-form-modal/user-form-modal.component';
 import { UserListComponent } from '@features/workforce/components/user-list/user-list.component';
 import { UsersControlsComponent } from '@features/workforce/components/users-controls/users-controls.component';
 import { User } from '@features/workforce/models/user.model';
@@ -27,6 +27,54 @@ import {
 import * as UsersActions from '@features/workforce/store/users.actions';
 import * as UsersSelectors from '@features/workforce/store/users.selectors';
 import { Store } from '@ngrx/store';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { AppEmployeeDialogContentComponent } from 'src/app/pages/apps/employee/employee-dialog-content';
+
+interface EmployeeDialogPermissions {
+  canView: boolean;
+  canEdit: boolean;
+  canManage: boolean;
+  canDelete: boolean;
+}
+
+interface EmployeeDialogProfile {
+  id: number;
+  name: string;
+  last_name: string;
+  email: string;
+  company_id: number | null;
+  position: number | string | null;
+  projects: number[];
+  hourly_rate: number;
+  imagePath: string | null;
+}
+
+interface EmployeeDialogData {
+  action: 'Invite' | 'Update';
+  employee: {
+    profile: EmployeeDialogProfile;
+  };
+  permissions: EmployeeDialogPermissions;
+}
+
+const DEFAULT_EMPLOYEE_DIALOG_PERMISSIONS: EmployeeDialogPermissions = {
+  canView: true,
+  canEdit: true,
+  canManage: true,
+  canDelete: true,
+};
+
+const EMPTY_EMPLOYEE_DIALOG_PROFILE: EmployeeDialogProfile = {
+  id: 0,
+  name: '',
+  last_name: '',
+  email: '',
+  company_id: null,
+  position: null,
+  projects: [],
+  hourly_rate: 0,
+  imagePath: null,
+};
 
 const EMPTY_USER_LIST: UserListResponse = {
   items: [],
@@ -48,13 +96,13 @@ const EMPTY_USER_LIST: UserListResponse = {
     MatProgressSpinnerModule,
     UsersControlsComponent,
     UserListComponent,
-    UserFormModalComponent,
   ],
   templateUrl: './users-list-page.component.html',
   styleUrl: './users-list-page.component.scss',
 })
 export class UsersListPageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly dialog = inject(MatDialog);
 
   readonly columns = input<UsersListColumn[]>(DEFAULT_USERS_LIST_COLUMNS);
   readonly title = input<string>('');
@@ -74,18 +122,6 @@ export class UsersListPageComponent implements OnInit {
   readonly filter = toSignal(this.store.select(UsersSelectors.selectFilter), {
     initialValue: DEFAULT_USERS_FILTER,
   });
-  readonly formOpen = toSignal(
-    this.store.select(UsersSelectors.selectFormOpen),
-    {
-      initialValue: false,
-    },
-  );
-  readonly editingUser = toSignal(
-    this.store.select(UsersSelectors.selectEditingUser),
-    {
-      initialValue: null,
-    },
-  );
 
   readonly hasUsers = computed(() => this.usersList().items.length > 0);
   readonly showSpinner = computed(() => this.loading() && !this.hasUsers());
@@ -120,35 +156,74 @@ export class UsersListPageComponent implements OnInit {
   }
 
   openForm(user?: User): void {
-    this.store.dispatch(UsersActions.openForm({ user }));
-  }
+    const dialogRef = this.dialog.open(AppEmployeeDialogContentComponent, {
+      autoFocus: false,
+      data: this.buildEmployeeDialogData(user),
+    });
 
-  closeForm(): void {
-    this.store.dispatch(UsersActions.closeForm());
+    dialogRef.afterClosed().subscribe(() => {
+      this.reloadUsers();
+    });
   }
 
   onDelete(id: number): void {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
-      return;
-    }
-    this.store.dispatch(UsersActions.deleteUser({ id }));
+    const dialogRef = this.dialog.open(ModalComponent, {
+      autoFocus: false,
+      data: {
+        action: 'Delete',
+        subject: 'user',
+        message: 'This action cannot be undone.',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.store.dispatch(UsersActions.deleteUser({ id }));
+      }
+    });
   }
 
   onToggleActive(id: number): void {
     this.store.dispatch(UsersActions.toggleActive({ id }));
   }
 
-  onSaveUser(user: User): void {
-    if (user.id) {
-      this.store.dispatch(UsersActions.updateUser({ user }));
-    } else {
-      this.store.dispatch(UsersActions.createUser({ user }));
-    }
-  }
-
   private applyFilter(patch: Partial<UsersFilter>): void {
     const next: UsersFilter = { ...this.filter(), ...patch };
     this.store.dispatch(UsersActions.setFilter({ filter: patch }));
     this.store.dispatch(UsersActions.loadUsers({ filter: next }));
+  }
+
+  private reloadUsers(): void {
+    this.store.dispatch(UsersActions.loadUsers({ filter: this.filter() }));
+  }
+
+  private buildEmployeeDialogData(user?: User): EmployeeDialogData {
+    if (!user) {
+      return {
+        action: 'Invite',
+        employee: {
+          profile: EMPTY_EMPLOYEE_DIALOG_PROFILE,
+        },
+        permissions: DEFAULT_EMPLOYEE_DIALOG_PERMISSIONS,
+      };
+    }
+
+    return {
+      action: 'Update',
+      employee: {
+        profile: {
+          id: user.id,
+          name: user.name,
+          last_name: user.last_name,
+          email: user.email,
+          company_id: user.company?.id ?? null,
+          position: user.employee?.position ?? null,
+          projects: [],
+          hourly_rate: user.employee?.hourly_rate ?? 0,
+          imagePath: user.picture ?? null,
+        },
+      },
+      permissions: DEFAULT_EMPLOYEE_DIALOG_PERMISSIONS,
+    };
   }
 }
