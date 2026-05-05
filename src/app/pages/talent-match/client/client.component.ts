@@ -107,7 +107,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private hasRestoredStoredSearch = false;
   discProfiles: DiscProfile[] = [];
   selectedDiscProfiles: number[] = [];
-
+  hasTeam = localStorage.getItem('clientHasTeam') === 'true';
   practiceAreas: string[] = [
     'Personal Injury',
     'Immigration Law',

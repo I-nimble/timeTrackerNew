@@ -10,6 +10,7 @@
             color="primary"
             (click)="goToCustomSearch()"
             tourAnchor="tm-custom-search"
+            [disabled]="!hasTeam"
           >
             Custom Search
           </button>
@@ -164,7 +165,7 @@
               style="max-width: max-content"
               [loading]="aiLoading"
               [aiEnabled]="!useManualSearch"
-              [canSearch]="canSearchAI"
+              [canSearch]="canSearchAI && hasTeam"
               [showCustomSearch]="!showCustomFilterInput"
               [skipCooldown]="useManualSearch"
               (askAI)="searchCandidatesWithAI($event)"
@@ -174,7 +175,7 @@
             <button
               mat-raised-button
               color="accent"
-              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid"
+              [disabled]="isSubmittingTalentMatch || !intakeForm?.valid || !hasTeam"
               (click)="submitTalentMatch()"
             >
               <span *ngIf="!isSubmittingTalentMatch">Submit</span>
@@ -414,6 +415,7 @@
                   mat-icon-button
                   [matMenuTriggerFor]="actionsMenu"
                   (click)="$event.stopPropagation()"
+                  [disabled]="!hasTeam"
                 >
                   <mat-icon>more_vert</mat-icon>
                 </button>
