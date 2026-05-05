@@ -24,7 +24,7 @@ import {
   UserListMeta,
   UsersListColumn,
 } from '@features/workforce/models/users-list.model';
-import { AppEmployeeTableComponent } from 'src/app/pages/apps/employee/employee-table/employee-table.component';
+import { AppEmployeeTableComponent } from 'src/app/legacy/pages/apps/employee/employee-table/employee-table.component';
 
 const ROLE_LABELS: Record<number, string> = {
   1: 'Admin',

@@ -27,8 +27,8 @@ import {
 import * as UsersActions from '@features/workforce/store/users.actions';
 import * as UsersSelectors from '@features/workforce/store/users.selectors';
 import { Store } from '@ngrx/store';
-import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
-import { AppEmployeeDialogContentComponent } from 'src/app/pages/apps/employee/employee-dialog-content';
+import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
+import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
 
 interface EmployeeDialogPermissions {
   canView: boolean;
