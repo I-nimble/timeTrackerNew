@@ -113,7 +113,10 @@ export class HeaderComponent implements OnInit {
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
-
+  clientHasTeam = localStorage.getItem('clientHasTeam') === 'true';
+  get isRestrictedClient(): boolean {
+    return this.role === '3' && !this.clientHasTeam;
+  }
   showFiller = false;
 
   public selectedLanguage: any = {

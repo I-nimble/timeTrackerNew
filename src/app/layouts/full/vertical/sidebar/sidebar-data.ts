@@ -5,6 +5,12 @@ export function getNavItems(role: number): NavItem[] {
   const isOrphan = localStorage.getItem('isOrphan') == 'true';
   const email = localStorage.getItem('email');
   const allowedReportEmails = environment.allowedReportEmails;
+  const clientHasTeam = localStorage.getItem('clientHasTeam') === 'true';
+
+  if (Number(role) === 3 && !clientHasTeam) {
+    return [];
+  }
+
   return [
     {
       navCap: 'Home',
