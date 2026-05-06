@@ -3,8 +3,8 @@ import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 
 import { switchMap, map, take } from 'rxjs/operators';
 
-import { AuthService } from '../../../shared/services/auth.service';
-import { RoleService } from '../../../shared/services/role.service';
+import { AuthService } from '../auth.service';
+import { RoleService } from '../role.service';
 
 /**
  * Authorization guard — use alongside AuthGuard in canActivate arrays.

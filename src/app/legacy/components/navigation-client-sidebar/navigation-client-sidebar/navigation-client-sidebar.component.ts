@@ -3,8 +3,8 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '@app/shared/services/auth.service';
 import { Plan } from 'src/app/legacy/models/Plan.model';
-import { AuthService } from 'src/app/legacy/services/auth.service';
 import { CompaniesService } from 'src/app/legacy/services/companies.service';
 import { PlansService } from 'src/app/legacy/services/plans.service';
 

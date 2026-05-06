@@ -10,8 +10,8 @@ import { EmployeesService } from 'src/app/legacy/services/employees.service';
 import { NotificationStore } from 'src/app/legacy/stores/notification.store';
 import { environment } from 'src/environments/environment';
 
-import { NotificationsService } from './notifications.service';
-import { RoleTourService } from './role-tour.service';
+import { NotificationsService } from '../../legacy/services/notifications.service';
+import { RoleTourService } from '../../legacy/services/role-tour.service';
 
 type ApiResponse = Record<string, unknown>;
 

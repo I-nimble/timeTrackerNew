@@ -2,9 +2,9 @@ import { NgClass, NgForOf, NgIf, NgStyle } from '@angular/common';
 import { Component, inject, Input, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { AuthService } from '@app/shared/services/auth.service';
 import { NotificationsService } from '@features/notifications/services/notifications.service';
 import { Plan } from 'src/app/legacy/models/Plan.model';
-import { AuthService } from 'src/app/legacy/services/auth.service';
 import { CompaniesService } from 'src/app/legacy/services/companies.service';
 import { EntriesService } from 'src/app/legacy/services/entries.service';
 import { PlansService } from 'src/app/legacy/services/plans.service';

@@ -30,7 +30,7 @@ import { UsersService } from 'src/app/legacy/services/users.service';
 import { NotificationStore } from 'src/app/legacy/stores/notification.store';
 import { environment } from 'src/environments/environment';
 
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { ClientSidebarComponent } from '../navigation-client-sidebar/navigation-client-sidebar/navigation-client-sidebar.component';
 import { NewPasswordComponent } from '../new-password/new-password.component';
 
