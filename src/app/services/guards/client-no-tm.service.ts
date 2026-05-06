@@ -1,33 +1,33 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router, UrlTree } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { EmployeesService } from '../employees.service';
+import { Injectable, inject } from '@angular/core';
+import {
+  ActivatedRouteSnapshot,
+  CanActivate,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+} from '@angular/router';
+import { ClientAccessService } from '../client-access.service';
+
+const ALLOWED_RESTRICTED_PATHS = ['/apps/talent-match', '/apps/account-settings'];
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ClientNoTMGuard implements CanActivate {
-  constructor(
-    private employeesService: EmployeesService,
-    private router: Router
-  ) {}
+  private readonly clientAccessService = inject(ClientAccessService);
+  private readonly router = inject(Router);
 
-  canActivate(): Observable<boolean | UrlTree> {
+  canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
     const role = localStorage.getItem('role');
     if (role !== '3') {
-      return of(true);
+      return true;
     }
-    return this.employeesService.get().pipe(
-      map((employees) => {
-        if (!employees || employees.length === 0) {
-          return this.router.createUrlTree(['/apps/talent-match']);
-        }
-        return true;
-      }),
-      catchError(() => {
-        return of(this.router.createUrlTree(['/apps/talent-match']));
-      })
-    );
+    if (this.clientAccessService.hasAccess()) {
+      return true;
+    }
+    if (ALLOWED_RESTRICTED_PATHS.some((p) => state.url.startsWith(p))) {
+      return true;
+    }
+    return this.router.createUrlTree(['/apps/talent-match']);
   }
 }

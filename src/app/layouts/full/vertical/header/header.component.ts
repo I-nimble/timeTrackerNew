@@ -6,6 +6,7 @@ import {
   signal,
   ViewEncapsulation,
   OnInit,
+  inject,
 } from '@angular/core';
 import { CoreService } from 'src/app/services/core.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,6 +33,7 @@ import { RoleTourService } from 'src/app/services/role-tour.service';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { ThemeService } from 'src/app/services/theme.service';
 import { ThemePreference } from 'src/app/config';
+import { ClientAccessService } from 'src/app/services/client-access.service';
 
 interface notifications {
   id: number;
@@ -113,9 +115,9 @@ export class HeaderComponent implements OnInit {
   toggleCollpase() {
     this.isCollapse = !this.isCollapse; // Toggle visibility
   }
-  clientHasTeam = localStorage.getItem('clientHasTeam') === 'true';
+  private readonly clientAccessService = inject(ClientAccessService);
   get isRestrictedClient(): boolean {
-    return this.role === '3' && !this.clientHasTeam;
+    return this.role === '3' && !this.clientAccessService.hasAccess();
   }
   showFiller = false;
 

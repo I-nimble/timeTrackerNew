@@ -286,6 +286,142 @@
   color: #333;
 }
 
+.cv-restricted-section {
+  position: relative;
+}
+
+.cv-restricted-content {
+  &.cv-blurred {
+    filter: blur(6px);
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+.cv-blur-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px;
+  overflow-y: auto;
+}
+
+.subscription-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+
+  .subscription-crown-icon {
+    display: block;
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #92b46c;
+    margin: 0 auto 8px;
+  }
+
+  .subscription-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #4e4e4e;
+    margin: 0 0 10px;
+  }
+
+  .subscription-subtitle {
+    font-size: 13px;
+    color: #6c757d;
+    margin: 0 0 20px;
+  }
+
+  .trial-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f0f6ea;
+    border: 1px solid #c5daa8;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+
+    .trial-icon {
+      color: #92b46c;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+
+    .trial-headline {
+      font-size: 14px;
+      font-weight: 700;
+      color: #4e4e4e;
+    }
+
+    .trial-detail {
+      font-size: 12px;
+      color: #6c757d;
+    }
+  }
+
+  .secure-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #6c757d;
+
+    .secure-note-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+:host-context(html.dark-theme) {
+  .subscription-card {
+    background: #111c2d;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+
+    .subscription-title {
+      color: var(--mat-sys-on-background);
+    }
+
+    .subscription-subtitle {
+      color: rgba(255, 255, 255, 0.67);
+    }
+
+    .trial-banner {
+      background: rgba(146, 180, 108, 0.1);
+      border-color: rgba(146, 180, 108, 0.25);
+
+      .trial-headline {
+        color: var(--mat-sys-on-background);
+      }
+
+      .trial-detail {
+        color: rgba(255, 255, 255, 0.67);
+      }
+    }
+
+    .secure-note {
+      color: rgba(255, 255, 255, 0.67);
+    }
+  }
+}
+
 .disc-badge-inline {
   display: inline-flex;
   align-items: center;

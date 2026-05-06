@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild, Inject, TemplateRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, TemplateRef } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { ApplicationsService } from 'src/app/services/applications.service';
+import { AuthService } from 'src/app/services/auth.service';
 import { PositionsService } from 'src/app/services/positions.service';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NgModel } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -18,6 +19,7 @@ import moment from 'moment';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { AIService } from 'src/app/services/ai.service';
+import { Subscription } from 'rxjs';
 import { CandidateEvaluationResponse, CandidateEvaluationFilters } from 'src/app/models/ai.model';
 import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { Router } from '@angular/router';
@@ -31,12 +33,16 @@ import { getTrainingNames } from 'src/app/utils/candidate.utils';
 import { ApplicationListResponse, ApplicationMatchScoreSummary } from 'src/app/models/application.model';
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
-import { of, forkJoin } from 'rxjs';
+import { of, forkJoin, firstValueFrom } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { environment } from 'src/environments/environment';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
 import { DiscProfile } from 'src/app/models/disc-profile.model';
+import { StripeFactoryService } from 'src/app/components/stripe/stripe-factory.service';
+import { StripeService } from 'src/app/services/stripe.service';
+import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+import { ClientAccessService } from 'src/app/services/client-access.service';
 
 @Component({
   standalone: true,
@@ -66,7 +72,7 @@ import { DiscProfile } from 'src/app/models/disc-profile.model';
     ])
   ]
 })
-export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
+export class AppTalentMatchClientComponent implements OnInit, AfterViewInit, OnDestroy {
   userRole = localStorage.getItem('role');
   resumesUrl: string = 'https://inimble-app.s3.us-east-1.amazonaws.com/resumes';
   positions: any[] = [];
@@ -107,7 +113,20 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   private hasRestoredStoredSearch = false;
   discProfiles: DiscProfile[] = [];
   selectedDiscProfiles: number[] = [];
-  hasTeam = localStorage.getItem('clientHasTeam') === 'true';
+  get hasTeam(): boolean {
+    return this.clientAccessService.hasAccess();
+  }
+
+  private subscriptionStripe: Stripe | null = null;
+  private subscriptionElements: StripeElements | null = null;
+  private subscriptionPaymentElement: StripePaymentElement | null = null;
+  subscriptionSetupClientSecret: string | null = null;
+  showPaymentForm = false;
+  isPaymentFormReady = false;
+  isSubscriptionPaymentLoading = false;
+  isSubscriptionProcessing = false;
+  subscriptionPaymentError: string | null = null;
+
   practiceAreas: string[] = [
     'Personal Injury',
     'Immigration Law',
@@ -132,6 +151,9 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   actionsCellTemplate!: TemplateRef<any>;
   @ViewChild('expandedDetailTemplate')
   expandedDetailTemplate!: TemplateRef<any>;
+
+  @ViewChildren('subscriptionPaymentContainer')
+  subscriptionPaymentContainers!: QueryList<ElementRef<HTMLElement>>;
 
   displayedColumns: string[] = [
     'select',
@@ -167,6 +189,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   constructor(
     private applicationsService: ApplicationsService,
     private positionsService: PositionsService,
+    private authService: AuthService,
     public dialog: MatDialog,
     private companiesService: CompaniesService,
     private usersService: UsersService,
@@ -176,7 +199,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     private discProfilesService: DiscProfilesService,
     private cdr: ChangeDetectorRef,
     private notificationsService: NotificationsService,
-    public snackBar: MatSnackBar
+    public snackBar: MatSnackBar,
+    private stripeFactory: StripeFactoryService,
+    private stripeService: StripeService,
+    private clientAccessService: ClientAccessService,
   ) {}
 
   ngOnInit(): void {
@@ -190,6 +216,94 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    if (this.subscriptionPaymentElement) {
+      this.subscriptionPaymentElement.destroy();
+    }
+  }
+
+  startTrial(): void {
+    this.showPaymentForm = true;
+    this.initSubscriptionPayment();
+  }
+
+  async initSubscriptionPayment() {
+    if (this.subscriptionSetupClientSecret) return;
+    this.isSubscriptionPaymentLoading = true;
+    this.subscriptionPaymentError = null;
+    try {
+      const email = localStorage.getItem('email') ?? '';
+      const name = localStorage.getItem('username') ?? '';
+      const response = await firstValueFrom(
+        this.stripeService.createSubscriptionSetupIntent({ email, name }),
+      );
+      this.subscriptionSetupClientSecret = response.clientSecret;
+      if (!this.subscriptionStripe) {
+        this.subscriptionStripe = await this.stripeFactory.getStripe();
+      }
+      if (!this.subscriptionStripe) {
+        this.subscriptionPaymentError = 'Failed to load payment processor. Please try again.';
+        this.isSubscriptionPaymentLoading = false;
+        return;
+      }
+      this.subscriptionElements = this.subscriptionStripe.elements({
+        clientSecret: this.subscriptionSetupClientSecret,
+        appearance: { theme: 'stripe' as const },
+      });
+      this.subscriptionPaymentElement = (this.subscriptionElements as any).create('payment', {
+        layout: { type: 'accordion', defaultCollapsed: false },
+      });
+      this.subscriptionPaymentElement!.on('change', () => {
+        if (this.subscriptionPaymentError) {
+          this.subscriptionPaymentError = null;
+          this.cdr.detectChanges();
+        }
+      });
+      this.isSubscriptionPaymentLoading = false;
+      this.isPaymentFormReady = true;
+      this.cdr.detectChanges();
+      this.mountToExpandedRow();
+    } catch (error: any) {
+      console.error('Error initializing subscription payment:', error);
+      this.subscriptionPaymentError = 'Failed to initialize payment. Please try again.';
+      this.isSubscriptionPaymentLoading = false;
+      this.isPaymentFormReady = false;
+    }
+  }
+
+  async subscribe() {
+    if (!this.subscriptionElements || !this.subscriptionStripe) return;
+    this.isSubscriptionProcessing = true;
+    this.subscriptionPaymentError = null;
+    try {
+      const { error, setupIntent } = await this.subscriptionStripe.confirmSetup({
+        elements: this.subscriptionElements,
+        confirmParams: { return_url: `${window.location.origin}/apps/talent-match` },
+        redirect: 'if_required',
+      });
+      if (error) {
+        this.isSubscriptionProcessing = false;
+        this.subscriptionPaymentError = error.message ?? 'Payment setup failed.';
+        return;
+      }
+      const paymentMethodId = (setupIntent?.payment_method as string) ?? null;
+      if (!paymentMethodId) {
+        this.isSubscriptionProcessing = false;
+        this.subscriptionPaymentError = 'Payment setup failed. Please try again.';
+        return;
+      }
+      await firstValueFrom(this.stripeService.activateClientSubscription({ payment_method_id: paymentMethodId }));
+      await this.clientAccessService.refresh();
+      this.showPaymentForm = false;
+      this.isPaymentFormReady = false;
+      this.snackBar.open('Subscription activated! Welcome to Inimble.', 'Close', { duration: 4000 });
+      this.isSubscriptionProcessing = false;
+    } catch (err: any) {
+      this.isSubscriptionProcessing = false;
+      this.subscriptionPaymentError = err?.error?.message ?? 'Subscription failed. Please try again.';
+    }
   }
 
   searchCandidatesWithAI(question: string) {
@@ -621,11 +735,27 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     this.expandedElement = this.expandedElement === row ? null : row;
     this.selection.toggle(row);
     this.onRowSelectionChange();
+    if (!this.hasTeam && this.expandedElement) {
+      setTimeout(() => this.mountToExpandedRow(), 50);
+    }
+  }
+
+  private mountToExpandedRow(): void {
+    if (!this.subscriptionPaymentElement || !this.expandedElement) return;
+    const index = this.rows.indexOf(this.expandedElement);
+    if (index === -1) return;
+    const container = this.subscriptionPaymentContainers?.toArray()[index];
+    if (container?.nativeElement) {
+      this.subscriptionPaymentElement.mount(container.nativeElement);
+    }
   }
 
   onExpandToggle(row: any, event: MouseEvent): void {
     event.stopPropagation();
     this.expandedElement = this.expandedElement === row ? null : row;
+    if (!this.hasTeam && this.expandedElement) {
+      setTimeout(() => this.mountToExpandedRow(), 50);
+    }
   }
 
   onPageChange(event: PageEvent): void {
