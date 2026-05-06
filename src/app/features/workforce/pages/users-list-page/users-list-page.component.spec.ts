@@ -2,283 +2,297 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 
-import { User } from '@features/workforce/models/user.model';
-import { DEFAULT_USERS_FILTER } from '@features/workforce/models/users-filter.model';
-import {
-  DEFAULT_USERS_LIST_COLUMNS,
-  UserListResponse,
-} from '@features/workforce/models/users-list.model';
-import * as UsersActions from '@features/workforce/store/users.actions';
-import * as UsersSelectors from '@features/workforce/store/users.selectors';
-import { Action, Store } from '@ngrx/store';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { DEFAULT_USERS_LIST_COLUMNS } from '@features/workforce/models/users-list.model';
+import * as fileSaver from 'file-saver';
+import { of } from 'rxjs';
+import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
+import { AppDateRangeDialogComponent } from 'src/app/legacy/components/date-range-dialog/date-range-dialog.component';
+import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
+import { CompaniesService } from 'src/app/legacy/services/companies.service';
+import { ReportsService } from 'src/app/legacy/services/reports.service';
+import { SchedulesService } from 'src/app/legacy/services/schedules.service';
+import { UsersService } from 'src/app/legacy/services/users.service';
 
 import { UsersListPageComponent } from './users-list-page.component';
 
-class FakeStore {
-  private readonly subjects = new Map<unknown, BehaviorSubject<unknown>>();
-  readonly dispatch = jasmine.createSpy('dispatch');
-
-  setSelectorValue<T>(selector: unknown, value: T): void {
-    const existing = this.subjects.get(selector);
-    if (existing) {
-      existing.next(value);
-      return;
-    }
-
-    this.subjects.set(selector, new BehaviorSubject<unknown>(value));
-  }
-
-  select<T>(selector: unknown): Observable<T> {
-    const subject = this.subjects.get(selector);
-    if (!subject) {
-      throw new Error('No mock value configured for selector');
-    }
-
-    return subject.asObservable() as Observable<T>;
-  }
-}
-
-class FakeMatDialog {
-  readonly open = jasmine.createSpy('open');
-}
-
-const buildUser = (overrides: Partial<User> = {}): User => ({
-  id: 1,
-  name: 'Jane',
-  last_name: 'Doe',
-  email: 'jane@example.com',
-  role: 2,
-  active: 1,
+const createUser = (
+  id: number,
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  id,
+  name: `User ${id}`,
+  last_name: `Last ${id}`,
+  email: `user${id}@example.com`,
+  role: id % 4 === 0 ? 4 : id % 3 === 0 ? 3 : id % 2 === 0 ? 2 : 1,
+  picture: null,
+  company_id: 1,
+  company: { id: 1, name: 'Inimble' },
+  employee: { position: `Position ${id}` },
+  activeEntry:
+    id % 2 === 0
+      ? { start_time: '2026-05-05T08:00:00.000Z', end_time: null }
+      : null,
   ...overrides,
 });
 
-const buildList = (items: User[] = [buildUser()]): UserListResponse => ({
-  items,
-  meta: {
-    total: items.length,
-    totalPages: 1,
-    currentPage: 1,
-    limit: 10,
-    sortBy: 'name',
-    sortOrder: 'asc',
-  },
-});
+const SAMPLE_USERS: Record<string, unknown>[] = [
+  createUser(1),
+  createUser(2),
+  createUser(3),
+  createUser(4),
+  createUser(5),
+  createUser(6),
+  createUser(7),
+];
 
-const createDialogRef = (result: boolean) =>
-  ({
-    afterClosed: () => of(result),
-  }) as never;
+const SAMPLE_SCHEDULES = {
+  schedules: [
+    {
+      employee_id: 1,
+      days: [
+        { name: 'Monday' },
+        { name: 'Tuesday' },
+        { name: 'Wednesday' },
+        { name: 'Thursday' },
+        { name: 'Friday' },
+      ],
+    },
+    {
+      employee_id: 2,
+      days: [
+        { name: 'Monday' },
+        { name: 'Wednesday' },
+        { name: 'Friday' },
+        { name: 'Sunday' },
+      ],
+    },
+  ],
+};
 
 describe('UsersListPageComponent', () => {
   let fixture: ComponentFixture<UsersListPageComponent>;
   let component: UsersListPageComponent;
-  let store: FakeStore;
-  let dialog: FakeMatDialog;
+  let usersServiceSpy: jasmine.SpyObj<UsersService>;
+  let companiesServiceSpy: jasmine.SpyObj<CompaniesService>;
+  let reportsServiceSpy: jasmine.SpyObj<ReportsService>;
+  let schedulesServiceSpy: jasmine.SpyObj<SchedulesService>;
+  let dialogOpenSpy: jasmine.Spy;
+  let dialogResult: unknown;
 
-  const dispatchedActions = (): Action[] =>
-    store.dispatch.calls.allArgs().map((args) => args[0] as Action);
+  const render = (
+    role: number,
+    users: Record<string, unknown>[] = SAMPLE_USERS,
+    schedules = SAMPLE_SCHEDULES,
+  ): void => {
+    localStorage.setItem('role', String(role));
+    usersServiceSpy.getUsers.and.returnValue(of(users) as never);
+    schedulesServiceSpy.get.and.returnValue(of(schedules) as never);
+    fixture = TestBed.createComponent(UsersListPageComponent);
+    component = fixture.componentInstance;
+    (component as unknown).dialog = { open: dialogOpenSpy };
+    fixture.detectChanges();
+  };
 
   beforeEach(async () => {
-    store = new FakeStore();
-    dialog = new FakeMatDialog();
-
-    store.setSelectorValue(UsersSelectors.selectUsersList, buildList());
-    store.setSelectorValue(UsersSelectors.selectLoading, false);
-    store.setSelectorValue(UsersSelectors.selectError, null);
-    store.setSelectorValue(UsersSelectors.selectFilter, DEFAULT_USERS_FILTER);
-
-    dialog.open.and.returnValue(createDialogRef(true));
+    localStorage.clear();
+    dialogResult = null;
+    usersServiceSpy = jasmine.createSpyObj<UsersService>('UsersService', [
+      'getUsers',
+      'delete',
+    ]);
+    usersServiceSpy.delete.and.returnValue(of(null) as never);
+    companiesServiceSpy = jasmine.createSpyObj<CompaniesService>(
+      'CompaniesService',
+      ['getByOwner', 'getEmployees'],
+    );
+    companiesServiceSpy.getByOwner.and.returnValue(
+      of({ company: { id: 1 } }) as never,
+    );
+    companiesServiceSpy.getEmployees.and.returnValue(of(SAMPLE_USERS) as never);
+    reportsServiceSpy = jasmine.createSpyObj<ReportsService>('ReportsService', [
+      'getReport',
+    ]);
+    reportsServiceSpy.getReport.and.returnValue(
+      of(new Blob(['report'])) as never,
+    );
+    schedulesServiceSpy = jasmine.createSpyObj<SchedulesService>(
+      'SchedulesService',
+      ['get'],
+    );
+    dialogOpenSpy = jasmine.createSpy('open').and.callFake(
+      () =>
+        ({
+          afterClosed: () => of(dialogResult),
+        }) as never,
+    );
 
     await TestBed.configureTestingModule({
       imports: [UsersListPageComponent],
       providers: [
-        { provide: Store, useValue: store },
-        { provide: MatDialog, useValue: dialog },
+        { provide: UsersService, useValue: usersServiceSpy },
+        { provide: CompaniesService, useValue: companiesServiceSpy },
+        { provide: ReportsService, useValue: reportsServiceSpy },
+        { provide: SchedulesService, useValue: schedulesServiceSpy },
+        { provide: MatDialog, useValue: { open: dialogOpenSpy } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
-
-    fixture = TestBed.createComponent(UsersListPageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('dispatches loadUsers with the default filter on init', () => {
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({ filter: DEFAULT_USERS_FILTER }),
-    );
+  afterEach(() => {
+    localStorage.clear();
   });
 
-  it('exposes computed flags from current state', () => {
+  it('requests all users for admins and support roles', () => {
+    render(1);
+
+    expect(usersServiceSpy.getUsers).toHaveBeenCalledWith({
+      searchField: '',
+      filter: {},
+    });
+    expect(schedulesServiceSpy.get).toHaveBeenCalled();
     expect(component.hasUsers()).toBe(true);
-    expect(component.showSpinner()).toBe(false);
-  });
-
-  it('exposes the default columns input', () => {
-    expect(component.columns()).toEqual(DEFAULT_USERS_LIST_COLUMNS);
-  });
-
-  it('honors a columns input override', () => {
-    fixture.componentRef.setInput('columns', ['name', 'email', 'actions']);
-    fixture.detectChanges();
-
-    expect(component.columns()).toEqual(['name', 'email', 'actions']);
-  });
-
-  it('hides the header when title input is empty', () => {
-    expect(component.title()).toBe('');
+    expect(component.totalPages()).toBe(2);
+    expect(component.pagedUsers().length).toBe(5);
+    expect(component.backendMessage()).toBe('');
+    expect(component.pagedUsers()[0].scheduleLabel).toBe('Monday to Friday');
     expect(
-      fixture.nativeElement.querySelector('.users-list-page__header'),
-    ).toBeNull();
+      component.pagedUsers().some((row) => row.statusLabel === 'Online'),
+    ).toBe(true);
   });
 
-  it('renders a header when title input is set', () => {
-    fixture.componentRef.setInput('title', 'Team Members');
-    fixture.detectChanges();
+  it('requests employees for client roles', () => {
+    render(3);
 
-    const header = fixture.nativeElement.querySelector(
-      '.users-list-page__title',
-    );
-    expect(header?.textContent?.trim()).toBe('Team Members');
+    expect(companiesServiceSpy.getEmployees).toHaveBeenCalledWith(1);
   });
 
-  it('shows the spinner when loading and the list is empty', () => {
-    store.setSelectorValue(UsersSelectors.selectLoading, true);
-    store.setSelectorValue(UsersSelectors.selectUsersList, buildList([]));
+  it('requests the current user for team members', () => {
+    render(2);
+
+    expect(usersServiceSpy.getUsers).toHaveBeenCalledWith({
+      searchField: '',
+      filter: { currentUser: true },
+    });
+  });
+
+  it('supports external filters from parent components', () => {
+    render(1);
+
+    fixture.componentRef.setInput('filters', { searchTerm: 'user 7' });
     fixture.detectChanges();
+
+    expect(component.filteredUsers().length).toBe(1);
+    expect(component.filteredUsers()[0].displayName).toBe('User 7 Last 7');
+  });
+
+  it('supports local pagination and sorting', () => {
+    render(1);
+
+    component.onPageChange({
+      page: 2,
+      pageSize: 5,
+      sortBy: 'displayName',
+      sortOrder: 'asc',
+    });
+
+    expect(component.currentPage()).toBe(2);
+    expect(component.pagedUsers().length).toBe(2);
+
+    component.onSortChange({
+      sortBy: 'email',
+      sortOrder: 'desc',
+      page: 1,
+      pageSize: 5,
+    });
+
+    expect(component.sortBy()).toBe('email');
+    expect(component.sortOrder()).toBe('desc');
+    expect(component.currentPage()).toBe(1);
+    expect(component.pagedUsers()[0].email).toBe('user7@example.com');
+  });
+
+  it('allows column overrides for the dynamic table', () => {
+    render(1);
+
+    fixture.componentRef.setInput('columns', ['name', 'email', 'reports']);
+    fixture.detectChanges();
+
+    expect(component.visibleColumns().map((column) => column.id)).toEqual([
+      'name',
+      'email',
+      'reports',
+    ]);
+  });
+
+  it('shows the full default column set for the page route', () => {
+    render(1);
+
+    expect(component.columns()).toEqual(DEFAULT_USERS_LIST_COLUMNS);
+    expect(component.visibleColumns().map((column) => column.id)).toEqual([
+      'name',
+      'role',
+      'email',
+      'status',
+      'schedule',
+      'reports',
+      'actions',
+    ]);
+  });
+
+  it('shows an empty-state message when no users are returned', () => {
+    render(1, []);
 
     expect(component.hasUsers()).toBe(false);
-    expect(component.showSpinner()).toBe(true);
+    expect(component.backendMessage()).toBe('No users available.');
   });
 
-  it('onSearch dispatches setFilter then loadUsers with merged filter', () => {
-    store.dispatch.calls.reset();
+  it('downloads the report from the date range modal', () => {
+    render(1);
+    spyOn(fileSaver, 'saveAs');
+    dialogResult = {
+      firstSelect: new Date('2026-05-03T00:00:00.000Z'),
+      lastSelect: new Date('2026-05-09T00:00:00.000Z'),
+    };
 
-    component.onSearch('foo');
+    component.downloadReport(component.pagedUsers()[0]);
 
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.setFilter({
-        filter: { searchField: 'foo', currentPage: 1 },
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      AppDateRangeDialogComponent,
+      jasmine.objectContaining({ autoFocus: false }),
+    );
+    expect(reportsServiceSpy.getReport).toHaveBeenCalled();
+    expect(fileSaver.saveAs).toHaveBeenCalled();
+  });
+
+  it('opens the employee dialog for edit actions', () => {
+    render(1);
+    dialogResult = true;
+
+    component.editUser(component.pagedUsers()[0]);
+
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      AppEmployeeDialogContentComponent,
+      jasmine.objectContaining({ autoFocus: false }),
+    );
+    expect(usersServiceSpy.getUsers.calls.count()).toBeGreaterThan(1);
+  });
+
+  it('opens the confirmation modal before deleting a user', () => {
+    render(1);
+    dialogResult = true;
+
+    component.confirmDeleteUser(component.pagedUsers()[0]);
+
+    expect(dialogOpenSpy).toHaveBeenCalledWith(
+      ModalComponent,
+      jasmine.objectContaining({
+        data: jasmine.objectContaining({
+          action: 'delete',
+          subject: 'user',
+        }),
       }),
     );
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({
-        filter: { ...DEFAULT_USERS_FILTER, searchField: 'foo', currentPage: 1 },
-      }),
-    );
-  });
-
-  it('onFilterByRole resets currentPage to 1', () => {
-    store.dispatch.calls.reset();
-
-    component.onFilterByRole(2);
-
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.setFilter({ filter: { role: 2, currentPage: 1 } }),
-    );
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({
-        filter: { ...DEFAULT_USERS_FILTER, role: 2, currentPage: 1 },
-      }),
-    );
-  });
-
-  it('onPageChange preserves the rest of the filter', () => {
-    store.dispatch.calls.reset();
-
-    component.onPageChange(3);
-
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({
-        filter: { ...DEFAULT_USERS_FILTER, currentPage: 3 },
-      }),
-    );
-  });
-
-  it('onSortChange dispatches with merged sort and resets the page', () => {
-    store.dispatch.calls.reset();
-
-    component.onSortChange({ field: 'email', direction: 'desc' });
-
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({
-        filter: {
-          ...DEFAULT_USERS_FILTER,
-          sortField: 'email',
-          sortDirection: 'desc',
-          currentPage: 1,
-        },
-      }),
-    );
-  });
-
-  it('openForm opens the invite dialog and refreshes the list on close', () => {
-    store.dispatch.calls.reset();
-
-    component.openForm();
-
-    expect(dialog.open).toHaveBeenCalled();
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.loadUsers({ filter: DEFAULT_USERS_FILTER }),
-    );
-  });
-
-  it('openForm opens the update dialog with the mapped employee payload', () => {
-    const user = buildUser({
-      id: 5,
-      picture: 'avatar.png',
-      company: { id: 9, name: 'Acme' },
-      employee: { id: 11, position: 'Paralegal', hourly_rate: 25 },
-    });
-
-    component.openForm(user);
-
-    expect(dialog.open).toHaveBeenCalled();
-    const [, config] = dialog.open.calls.mostRecent().args;
-    expect(config.data.action).toBe('Update');
-    expect(config.data.employee.profile).toEqual({
-      id: 5,
-      name: 'Jane',
-      last_name: 'Doe',
-      email: 'jane@example.com',
-      company_id: 9,
-      position: 'Paralegal',
-      projects: [],
-      hourly_rate: 25,
-      imagePath: 'avatar.png',
-    });
-  });
-
-  it('onDelete opens the confirmation dialog and dispatches deleteUser when confirmed', () => {
-    store.dispatch.calls.reset();
-
-    component.onDelete(7);
-
-    expect(dialog.open).toHaveBeenCalled();
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.deleteUser({ id: 7 }),
-    );
-  });
-
-  it('onDelete does not dispatch deleteUser when the confirmation is canceled', () => {
-    dialog.open.and.returnValue(createDialogRef(false));
-    store.dispatch.calls.reset();
-
-    component.onDelete(7);
-
-    expect(dispatchedActions()).not.toContain(
-      UsersActions.deleteUser({ id: 7 }),
-    );
-  });
-
-  it('onToggleActive dispatches toggleActive', () => {
-    store.dispatch.calls.reset();
-
-    component.onToggleActive(9);
-
-    expect(store.dispatch).toHaveBeenCalledWith(
-      UsersActions.toggleActive({ id: 9 }),
-    );
+    expect(usersServiceSpy.delete).toHaveBeenCalledWith(1);
   });
 });

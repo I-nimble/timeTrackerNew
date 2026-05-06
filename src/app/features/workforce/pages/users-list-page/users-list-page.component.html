@@ -1,35 +1,32 @@
 <section class="users-list-page">
-  @if (title(); as headingText) {
-    <header class="users-list-page__header">
-      <h1 class="users-list-page__title">{{ headingText }}</h1>
-    </header>
-  }
+  <div class="users-list-page__table-shell">
+    <ng-template #reportCell let-row="row">
+      <button
+        mat-icon-button
+        type="button"
+        class="users-list-page__report-button"
+        aria-label="Download report"
+        title="Download report"
+        (click)="downloadReport(row)"
+      >
+        <mat-icon>download</mat-icon>
+      </button>
+    </ng-template>
 
-  @if (error(); as errorMessage) {
-    <div class="users-list-page__error" role="alert">{{ errorMessage }}</div>
-  }
-
-  <app-users-controls
-    [filter]="filter()"
-    (searchChange)="onSearch($event)"
-    (filterByRole)="onFilterByRole($event)"
-    (newUser)="openForm()"
-  />
-
-  @if (showSpinner()) {
-    <div class="users-list-page__spinner">
-      <mat-progress-spinner mode="indeterminate" diameter="48" />
-    </div>
-  }
-
-  <app-user-list
-    [items]="usersList().items"
-    [meta]="usersList().meta"
-    [columns]="columns()"
-    (delete)="onDelete($event)"
-    (edit)="openForm($event)"
-    (toggleActive)="onToggleActive($event)"
-    (pageChange)="onPageChange($event)"
-    (sortChange)="onSortChange($event)"
-  />
+    <app-dynamic-table
+      [columns]="visibleColumns()"
+      [rows]="pagedUsers()"
+      [loading]="loading()"
+      [backendMessage]="backendMessage()"
+      [emptyMessage]="backendMessage() || 'No users available.'"
+      [pageSize]="pageSize()"
+      [currentPage]="displayedPage()"
+      [totalPages]="totalPages()"
+      [sortBy]="sortBy()"
+      [sortOrder]="sortOrder()"
+      (sortChange)="onSortChange($event)"
+      (pageChange)="onPageChange($event)"
+      (rowAction)="onRowAction($event)"
+    />
+  </div>
 </section>

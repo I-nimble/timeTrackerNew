@@ -14,8 +14,10 @@ export type UsersListColumn =
 
 export const DEFAULT_USERS_LIST_COLUMNS: UsersListColumn[] = [
   'name',
-  'role',
   'email',
+  'status',
+  'schedule',
+  'reports',
   'actions',
 ];
 
