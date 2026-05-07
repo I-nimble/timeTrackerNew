@@ -34,7 +34,7 @@ import { ApplicationListResponse, ApplicationMatchScoreSummary } from 'src/app/m
 import { NotificationsService } from 'src/app/services/notifications.service';
 import { PageEvent } from '@angular/material/paginator';
 import { of, forkJoin, firstValueFrom } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 import { TalentMatchIntakeComponent, IntakeInitialValues } from 'src/app/components/talent-match-intake/talent-match-intake.component';
 import { environment } from 'src/environments/environment';
 import { sortByNegotiatorProfileOrder } from 'src/app/utils/negotiator-profile-order';
@@ -262,7 +262,6 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit, OnD
         }
       });
       this.isSubscriptionPaymentLoading = false;
-      this.isPaymentFormReady = true;
       this.cdr.detectChanges();
       this.mountToExpandedRow();
     } catch (error: any) {
@@ -747,6 +746,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit, OnD
     const container = this.subscriptionPaymentContainers?.toArray()[index];
     if (container?.nativeElement) {
       this.subscriptionPaymentElement.mount(container.nativeElement);
+      this.isPaymentFormReady = true;
+      this.cdr.detectChanges();
     }
   }
 
@@ -754,7 +755,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit, OnD
     event.stopPropagation();
     this.expandedElement = this.expandedElement === row ? null : row;
     if (!this.hasTeam && this.expandedElement) {
-      setTimeout(() => this.mountToExpandedRow(), 50);
+      this.subscriptionPaymentContainers.changes.pipe(take(1)).subscribe(() => this.mountToExpandedRow());
     }
   }
 

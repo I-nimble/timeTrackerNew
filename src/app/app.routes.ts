@@ -55,7 +55,7 @@ export const routes: Routes = [
         path: 'apps',
         loadChildren: () =>
           import('./pages/apps/apps.routes').then((m) => m.AppsRoutes),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ClientNoTMGuard],
       },
       {
         path: 'widgets',

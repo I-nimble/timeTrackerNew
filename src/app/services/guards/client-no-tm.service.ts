@@ -8,7 +8,7 @@ import {
 } from '@angular/router';
 import { ClientAccessService } from '../client-access.service';
 
-const ALLOWED_RESTRICTED_PATHS = ['/apps/talent-match', '/apps/account-settings'];
+const ALLOWED_RESTRICTED_PATHS = ['/apps/talent-match', '/apps/account-settings', '/dashboards/notifications'];
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,8 @@ export class ClientNoTMGuard implements CanActivate {
     if (this.clientAccessService.hasAccess()) {
       return true;
     }
-    if (ALLOWED_RESTRICTED_PATHS.some((p) => state.url.startsWith(p))) {
+    const urlPath = state.url.split('?')[0];
+    if (ALLOWED_RESTRICTED_PATHS.includes(urlPath)) {
       return true;
     }
     return this.router.createUrlTree(['/apps/talent-match']);
