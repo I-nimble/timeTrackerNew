@@ -226,11 +226,16 @@ export class AppPricingComponent implements OnInit {
     if (planId) {
       this.subscriptionService.createPlanSubscription(planId).subscribe({
         next: (response) => {
-          window.location.href = response.url; // Redirect to Stripe Checkout
+          if (response.url) {
+            window.location.href = response.url;
+          } else if (response.updated) {
+            this.router.navigate(['/apps/account-settings'], {
+              queryParams: { tab: 0, subscription: 'updated' }
+            });
+          }
         },
         error: (error) => {
           console.error('Error creating subscription:', error);
-          // Handle error, maybe show toast
         }
       });
     }

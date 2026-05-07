@@ -39,8 +39,8 @@ export class SubscriptionService {
     return this.http.post<{ url: string }>(`${this.apiUrl}/create`, {});
   }
 
-  createPlanSubscription(planId: number): Observable<{ url: string }> {
-    return this.http.post<{ url: string }>(`${this.apiUrl}/create`, {
+  createPlanSubscription(planId: number): Observable<{ url?: string; updated?: boolean }> {
+    return this.http.post<{ url?: string; updated?: boolean }>(`${this.apiUrl}/create`, {
       plan_id: planId
     });
   }
