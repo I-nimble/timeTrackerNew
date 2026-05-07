@@ -220,7 +220,7 @@ export class AppAccountSettingComponent implements OnInit {
   logo = 'assets/images/default-logo.jpg';
   picture: string =
     this.role === '3'
-      ? 'assets/images/default-user-profile-pic.png'
+      ? 'assets/images/default-user-profile-pic.webp'
       : 'assets/images/default-logo.jpg';
   originalLogo = '';
   submitted = false;
@@ -1103,7 +1103,7 @@ export class AppAccountSettingComponent implements OnInit {
     // else {
     this.picture =
       this.role === '3'
-        ? 'assets/images/default-user-profile-pic.png'
+        ? 'assets/images/default-user-profile-pic.webp'
         : 'assets/images/default-logo.jpg';
     this.personalForm.patchValue({ profile: null });
     this.resetFileInput();

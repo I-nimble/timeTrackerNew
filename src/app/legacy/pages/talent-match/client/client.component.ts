@@ -121,7 +121,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   interviews: any[] = [];
-  assetsPath = 'assets/images/default-user-profile-pic.png';
+  assetsPath = 'assets/images/default-user-profile-pic.webp';
   aiLoading = false;
   aiAnswer = '';
   hasSearchResults = false;

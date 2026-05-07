@@ -105,7 +105,7 @@ export class FullComponent implements OnInit, OnDestroy {
   company: unknown;
   userName: string | null = null;
   userId: string | null = null;
-  profilePicture = 'assets/images/default-user-profile-pic.png';
+  profilePicture = 'assets/images/default-user-profile-pic.webp';
   assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
@@ -379,7 +379,7 @@ export class FullComponent implements OnInit, OnDestroy {
         if (image != null) {
           this.profilePicture = image;
         } else {
-          this.profilePicture = 'assets/images/default-user-profile-pic.png';
+          this.profilePicture = 'assets/images/default-user-profile-pic.webp';
         }
       },
     });

@@ -156,7 +156,7 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
 
     if (!this.local_data.profile.imagePath) {
       this.local_data.profile.imagePath =
-        'assets/images/default-user-profile-pic.png';
+        'assets/images/default-user-profile-pic.webp';
     }
   }
 
@@ -203,7 +203,7 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
 
     if (!this.local_data.profile.imagePath) {
       this.local_data.profile.imagePath =
-        'assets/images/default-user-profile-pic.png';
+        'assets/images/default-user-profile-pic.webp';
     }
   }
 

@@ -15,15 +15,15 @@ import {
   signal,
 } from '@angular/core';
 
-import { User } from '@features/workforce/models/user.model';
+import { User } from '@features/users/models/user.model';
 import {
   UsersSortDirection,
   UsersSortField,
-} from '@features/workforce/models/users-filter.model';
+} from '@features/users/models/users-filter.model';
 import {
   UserListMeta,
   UsersListColumn,
-} from '@features/workforce/models/users-list.model';
+} from '@features/users/models/users-list.model';
 import { AppEmployeeTableComponent } from 'src/app/legacy/pages/apps/employee/employee-table/employee-table.component';
 
 const ROLE_LABELS: Record<number, string> = {
@@ -76,8 +76,8 @@ const adaptUser = (user: User): EmployeeTableRow => ({
     name: user.name,
     last_name: user.last_name,
     email: user.email,
-    imagePath: user.picture ?? 'assets/images/default-user-profile-pic.png',
-    image: user.picture ?? 'assets/images/default-user-profile-pic.png',
+    imagePath: user.picture ?? 'assets/images/default-user-profile-pic.webp',
+    image: user.picture ?? 'assets/images/default-user-profile-pic.webp',
     company_id: user.company?.id ?? null,
     position: user.employee?.position ?? null,
     projects: [],

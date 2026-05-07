@@ -340,7 +340,7 @@ export class HeaderComponent implements OnInit {
       if (pic) {
         this.profilePicture = pic;
       } else {
-        this.profilePicture = 'assets/images/default-user-profile-pic.png';
+        this.profilePicture = 'assets/images/default-user-profile-pic.webp';
       }
     });
   }
