@@ -1,0 +1,66 @@
+<div class="pricing-card" [class.popular]="plan.isPopular">
+  @if (plan.isPopular) {
+    <div class="popular-badge">Most Popular</div>
+  }
+  @if (isCurrentPlan) {
+    <div class="current-plan-badge">Current Plan</div>
+  }
+
+  <h5 class="plan-title">{{ plan.title }}</h5>
+  <p class="plan-description">{{ plan.description }}</p>
+
+  <div class="plan-price">
+    <span class="price-amount">${{ plan.price | number }}</span>
+    <span class="price-suffix">{{ plan.priceSuffix ?? '/month' }}</span>
+  </div>
+
+  <button class="plan-btn" (click)="onSelectPlan()" [disabled]="isCurrentPlan">
+    {{ isCurrentPlan ? 'Current Plan' : plan.buttonText }}
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <g clip-path="url(#btn-arrow)">
+        <path d="M6.667 4.168V15.835L15.833 10.001L6.667 4.168Z" fill="#454545" />
+      </g>
+      <defs>
+        <clipPath id="btn-arrow"><rect width="20" height="20" fill="white" /></clipPath>
+      </defs>
+    </svg>
+  </button>
+
+  <p class="features-label">
+    {{ plan.featuresLabel.prefix
+    }}@if (plan.featuresLabel.highlight) {<span class="highlight">{{ plan.featuresLabel.highlight }}</span>}{{ plan.featuresLabel.suffix }}
+  </p>
+
+  <div class="features-list">
+    @for (feature of plan.features; track feature.label; let i = $index) {
+      <div
+        class="feature-item"
+        [class.open]="openFeatureIndex() === i"
+        (click)="toggleFeature(i)"
+        (keydown.enter)="toggleFeature(i)"
+        (keydown.space)="toggleFeature(i)"
+        role="button"
+        tabindex="0"
+        [attr.aria-expanded]="openFeatureIndex() === i"
+      >
+        <div class="feature-header">
+          <span class="feature-label">{{ feature.label }}</span>
+          <span class="feature-icon">
+            @if (openFeatureIndex() === i) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 25 25" fill="none" aria-hidden="true">
+                <path d="M7.106 14.073L12.158 9.126L17.105 14.179" stroke="#282322" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M17 10L12 15L7 10" stroke="#282322" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            }
+          </span>
+        </div>
+        @if (openFeatureIndex() === i) {
+          <p class="feature-description">{{ feature.description }}</p>
+        }
+      </div>
+    }
+  </div>
+</div>

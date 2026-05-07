@@ -126,6 +126,9 @@
         <span class="point bg-primary"></span>
       </div>
     </a>
+    <a mat-button [routerLink]="['/apps/pricing']" *ngIf="role == '3'">
+      Pricing
+    </a>
     <a mat-button [routerLink]="['/apps/permission']" *ngIf="role == '1'">
       Permissions
     </a>
