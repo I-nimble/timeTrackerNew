@@ -1,10 +1,14 @@
 import { Routes } from '@angular/router';
 
+import { provideState } from '@ngrx/store';
+
+import { UsersListPageComponent } from './pages/users-list-page/users-list-page.component';
+import { usersReducer } from './store/users.reducer';
 import { EmployeeDetailsComponent } from '../../legacy/pages/apps/employee/employee-details/employee-details.component';
 import { AppEmployeeComponent } from '../../legacy/pages/apps/employee/employee.component';
 import { TeamComponent } from '../../legacy/pages/apps/team/team.component';
 
-export const WorkforceRoutes: Routes = [
+export const UsersRoutes: Routes = [
   {
     path: '',
     redirectTo: 'team',
@@ -46,7 +50,14 @@ export const WorkforceRoutes: Routes = [
   },
   {
     path: 'users-list-preview',
-    redirectTo: '/refactor/users/users-list-preview',
-    pathMatch: 'full',
+    component: UsersListPageComponent,
+    providers: [provideState('users', usersReducer)],
+    data: {
+      title: 'Users list preview',
+      urls: [
+        { title: 'Dashboard', url: '/dashboards/dashboard2' },
+        { title: 'Users list preview' },
+      ],
+    },
   },
 ];

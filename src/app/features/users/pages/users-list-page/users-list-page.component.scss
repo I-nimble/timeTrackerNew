@@ -1,10 +1,11 @@
 .users-list-page {
   padding: 1.5rem;
+  background: var(--mat-sys-surface-container, var(--mat-sys-surface, #ffffff));
+  color: var(--mat-sys-on-surface);
 
   &__table-shell {
-    background: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    box-shadow: var(--mat-sys-level1, 0 10px 30px rgba(15, 23, 42, 0.08));
     overflow: hidden;
     padding: 1.25rem 1.5rem 0.75rem;
     min-height: 480px;
@@ -20,6 +21,6 @@
   }
 
   &__report-button {
-    color: #1f2937;
+    color: var(--mat-sys-on-surface);
   }
 }

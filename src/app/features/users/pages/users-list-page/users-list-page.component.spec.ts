@@ -2,7 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 
-import { DEFAULT_USERS_LIST_COLUMNS } from '@features/workforce/models/users-list.model';
+import { DEFAULT_USERS_LIST_COLUMNS } from '@features/users/models/users-list.model';
 import * as fileSaver from 'file-saver';
 import { of } from 'rxjs';
 import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';

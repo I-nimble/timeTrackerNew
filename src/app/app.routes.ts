@@ -219,6 +219,21 @@ export const routes: Routes = [
       },
 
       /**
+       * Users Feature Preview (NEW)
+       * Full path: /refactor/users/users-list-preview
+       * Ownership: FEATURE (src/app/features/users/)
+       * Purpose: Preview route for the refactored users list component
+       * Feature flag: None (direct routing)
+       * Migration status: New feature route
+       */
+      {
+        path: 'refactor/users',
+        loadChildren: () =>
+          import('@features/users/users.routes').then((m) => m.UsersRoutes),
+        canActivate: [AuthGuard],
+      },
+
+      /**
        * Time-Tracking Feature (FULL CUTOVER)
        * Full paths: /refactor/time-tracking, /refactor/time-tracking/history, /refactor/time-tracking/todo
        * Ownership: FEATURE (src/app/features/time-tracking/)
