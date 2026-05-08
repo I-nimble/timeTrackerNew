@@ -176,7 +176,7 @@
                 <mat-icon>send</mat-icon>
                 <span>Send to client</span>
               </button>
-              <button mat-menu-item [routerLink]="['/apps/pricing']" [queryParams]="{ invoiceId: element.id }"
+              <button mat-menu-item [routerLink]="['/apps/payment-method']" [queryParams]="{ invoiceId: element.id }"
                 class="d-flex align-items-center justify-content-center"
                 *ngIf="role == '3' && element.status.name != 'Paid'">
                 <mat-icon>credit_card</mat-icon>

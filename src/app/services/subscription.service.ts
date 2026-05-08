@@ -7,6 +7,7 @@ export interface SubscriptionStatus {
   status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'inactive' | 'trialing';
   current_period_end?: string;
   cancel_at_period_end: boolean;
+  canResubscribe?: boolean;
 }
 
 export interface SubscriptionReceipt {
@@ -39,9 +40,16 @@ export class SubscriptionService {
     return this.http.post<{ url: string }>(`${this.apiUrl}/create`, {});
   }
 
-  createPlanSubscription(planId: number): Observable<{ url: string }> {
-    return this.http.post<{ url: string }>(`${this.apiUrl}/create`, {
+  createPlanSubscription(planId: number): Observable<{ url?: string; updated?: boolean }> {
+    return this.http.post<{ url?: string; updated?: boolean }>(`${this.apiUrl}/create`, {
       plan_id: planId
+    });
+  }
+
+  createCustomerPortal(returnUrl?: string): Observable<{ url: string }> {
+    const defaultReturnUrl = returnUrl || `${window.location.origin}/apps/account-settings`;
+    return this.http.post<{ url: string }>(`${this.apiUrl}/portal`, {
+      return_url: defaultReturnUrl
     });
   }
 

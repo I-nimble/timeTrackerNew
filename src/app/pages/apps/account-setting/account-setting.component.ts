@@ -316,7 +316,7 @@ export class AppAccountSettingComponent implements OnInit {
       if (tab !== undefined) {
         this.pendingTabParam = tab;
       }
-      this.checkSubscriptionSuccess();
+      this.handleSubscriptionQueryParams(params);
     }); 
     this.loadSubscriptionStatus();
 
@@ -1520,19 +1520,48 @@ export class AppAccountSettingComponent implements OnInit {
     });
   }
 
-  checkSubscriptionSuccess(): void {
-    this.route.queryParams.subscribe(params => {
-      if (params['subscription'] === 'success') {
-        this.openSnackBar('Sentinel subscription activated successfully!', 'Close');
-        this.loadSubscriptionStatus();
-        this.router.navigate(['/apps/account-settings']);
+  private getCompanyId(): number | null {
+    return this.user?.company?.company_id ?? this.user?.employee?.company_id ?? null;
+  }
 
-      } else if (params['subscription'] === 'canceled') {
-        this.openSnackBar('Subscription process was canceled.', 'Close');
-
-        this.router.navigate(['/apps/account-settings']);
+  private refreshCurrentPlan(companyId: number): void {
+    this.plansService.getCurrentPlan(companyId).subscribe({
+      next: (plan: any) => {
+        this.currentPlan.id = plan?.plan?.id ?? this.currentPlan.id;
+        this.currentPlan.name = plan?.plan?.name ?? this.currentPlan.name;
+      },
+      error: (err) => {
+        console.error('Unable to refresh current plan', err);
       }
     });
+  }
+
+  private refreshCurrentPlanForCurrentUser(): void {
+    const companyId = this.getCompanyId();
+    if (companyId) {
+      this.refreshCurrentPlan(companyId);
+    }
+  }
+
+  private handleSubscriptionQueryParams(params: any): void {
+    const subscriptionParam = params['subscription'];
+    if (subscriptionParam === 'success') {
+      this.openSnackBar('Subscription activated successfully!', 'Close');
+      this.loadSubscriptionStatus();
+      this.refreshCurrentPlanForCurrentUser();
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { subscription: null },
+        queryParamsHandling: 'merge'
+      });
+    } else if (subscriptionParam === 'canceled') {
+      this.openSnackBar('Subscription process was canceled.', 'Close');
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { subscription: null },
+        queryParamsHandling: 'merge'
+      });
+    }
   }
 
   restrictPhoneInput(event: KeyboardEvent) {
