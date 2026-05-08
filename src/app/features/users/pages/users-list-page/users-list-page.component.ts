@@ -22,6 +22,7 @@ import {
   UsersListPageFilters,
   UsersListRow,
 } from '@features/users/models/users-list.types';
+import { UsersApiService } from '@features/users/services/users-api.service';
 import * as UsersListService from '@features/users/services/users-list.service';
 import { DynamicTableComponent } from '@shared/components/dynamic-table/dynamic-table.component';
 import {
@@ -35,11 +36,8 @@ import { saveAs } from 'file-saver';
 import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
 import { AppDateRangeDialogComponent } from 'src/app/legacy/components/date-range-dialog/date-range-dialog.component';
 import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
-import { CompaniesService } from 'src/app/legacy/services/companies.service';
-import { EmployeesService } from 'src/app/legacy/services/employees.service';
 import { EntriesService } from 'src/app/legacy/services/entries.service';
 import { ReportsService } from 'src/app/legacy/services/reports.service';
-import { SchedulesService } from 'src/app/legacy/services/schedules.service';
 import { UsersService } from 'src/app/legacy/services/users.service';
 import { MaterialModule } from 'src/app/material.module';
 
@@ -63,9 +61,7 @@ export class UsersListPageComponent implements OnInit {
   }
 
   private readonly usersService = inject(UsersService);
-  private readonly employeesService = inject(EmployeesService);
-  private readonly companiesService = inject(CompaniesService);
-  private readonly schedulesService = inject(SchedulesService);
+  private readonly usersApi = inject(UsersApiService);
   private readonly reportsService = inject(ReportsService);
   private readonly entriesService = inject(EntriesService);
   private readonly dialog = inject(MatDialog);
@@ -75,9 +71,7 @@ export class UsersListPageComponent implements OnInit {
   readonly filters = input<UsersListPageFilters>({});
 
   private readonly rawUsers = signal<LegacyUserRecord[]>([]);
-  private readonly scheduleLookup = signal<Record<number, string>>({});
   private readonly onlineUserIds = signal<Set<number>>(new Set<number>());
-  private readonly pictureLookup = signal<Record<number, string>>({});
   private readonly reportCellTemplateRef = signal<TemplateRef<
     DynamicTableCellContext<UsersListRow>
   > | null>(null);
@@ -92,12 +86,7 @@ export class UsersListPageComponent implements OnInit {
 
   readonly allUsers = computed(() =>
     this.rawUsers().map((user) =>
-      UsersListService.mapUser(
-        user,
-        this.scheduleLookup(),
-        this.onlineUserIds(),
-        this.pictureLookup(),
-      ),
+      UsersListService.mapUser(user, {}, this.onlineUserIds()),
     ),
   );
 
@@ -151,7 +140,6 @@ export class UsersListPageComponent implements OnInit {
 
   private reloadAll(): void {
     this.loadUsers();
-    this.loadSchedules();
     this.loadActiveEntries();
   }
 
@@ -249,51 +237,20 @@ export class UsersListPageComponent implements OnInit {
     this.loaded.set(new Set());
     this.loading.set(true);
     this.error.set(null);
-    const role = Number(localStorage.getItem('role') ?? 0);
     const fail = () => {
       this.rawUsers.set([]);
       this.error.set('Unable to load users.');
       this.mark('users');
     };
 
-    UsersListService.fetchUsersForRole(
-      role,
-      this.employeesService,
-      this.companiesService,
-    )
+    UsersListService.fetchUsers(this.usersApi)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (users: LegacyUserRecord[]) => {
           this.rawUsers.set(users);
           this.mark('users');
-          this.loadProfilePics(users);
         },
         error: fail,
-      });
-  }
-
-  private loadProfilePics(users: LegacyUserRecord[]): void {
-    UsersListService.fetchProfilePics(users, this.usersService)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (lookup: Record<number, string>) =>
-          this.pictureLookup.set(lookup),
-        error: () => this.pictureLookup.set({}),
-      });
-  }
-
-  private loadSchedules(): void {
-    UsersListService.fetchScheduleLookup(this.schedulesService)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (lookup: Record<number, string>) => {
-          this.scheduleLookup.set(lookup);
-          this.mark('schedules');
-        },
-        error: () => {
-          this.scheduleLookup.set({});
-          this.mark('schedules');
-        },
       });
   }
 
@@ -318,9 +275,9 @@ export class UsersListPageComponent implements OnInit {
       });
   }
 
-  private mark(key: 'users' | 'schedules' | 'entries'): void {
+  private mark(key: 'users' | 'entries'): void {
     this.loaded.update((state) => new Set([...state, key]));
-    if (this.loaded().size >= 3) {
+    if (this.loaded().size >= 2) {
       this.currentPage.set(1);
       this.loading.set(false);
     }

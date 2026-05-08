@@ -13,8 +13,8 @@ import {
   DynamicTableColumn,
 } from '@shared/models/dynamic-table.model';
 import { ROLES } from '@shared/services/role.service';
-import { Observable, from, of } from 'rxjs';
-import { catchError, mergeMap, switchMap, toArray } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 export const normalizeUserList = (users: unknown): LegacyUserRecord[] => {
@@ -184,6 +184,22 @@ export const getUserId = (record: LegacyUserRecord): number => {
   return 0;
 };
 
+export const resolvePositionLabel = (record: LegacyUserRecord): string => {
+  const rec = record as Record<string, unknown>;
+  const empBlock =
+    (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
+  const pos = empBlock['position'];
+  if (typeof pos === 'string') return pos.trim() || 'N/A';
+  if (pos && typeof pos === 'object') {
+    const title = (pos as { title?: string }).title;
+    if (typeof title === 'string' && title.trim()) return title.trim();
+  }
+  const positionName = empBlock['position_name'];
+  if (typeof positionName === 'string' && positionName.trim())
+    return positionName.trim();
+  return 'N/A';
+};
+
 export const getEmployeeId = (record: LegacyUserRecord): number => {
   const candidates = [record.id, record.profile?.id];
   for (const c of candidates) {
@@ -224,12 +240,7 @@ export const mapUser = (
     statusLabel: onlineUserIds.has(id) ? 'Online' : 'Offline',
     scheduleLabel: resolveScheduleLabel(user, employeeId, scheduleLookup),
     reportsLabel: 'Download',
-    positionLabel: resolveText(
-      (user as Record<string, unknown>)['position'] &&
-        ((user as Record<string, { title?: string }>)['position']?.title ??
-          (user as Record<string, unknown>)['position']),
-      'N/A',
-    ),
+    positionLabel: resolvePositionLabel(user),
     companyName: resolveText(resolvedUser.company?.name, 'N/A'),
     companyId:
       Number(resolvedUser.company_id ?? resolvedUser.company?.id ?? null) ||
@@ -316,15 +327,26 @@ export const buildDialogEmployeeData = (
   const userId = getUserId(user);
   const employeeId = getEmployeeId(user);
   const rec = user as Record<string, unknown>;
-  const positionId =
-    Number(rec['position_id'] ?? 0) ||
-    Number((rec['position'] as { id?: number })?.id ?? 0) ||
-    null;
-  const projects = Array.isArray(rec['projects'])
-    ? (rec['projects'] as { id?: number }[])
-        .map((p) => Number(p?.id ?? 0))
-        .filter((id) => id > 0)
-    : [];
+  const empBlock =
+    (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
+  const readNum = (key: string): number | null => {
+    const direct = Number(empBlock[key] ?? 0);
+    if (direct > 0) return direct;
+    const nested = (
+      empBlock[key.replace('_id', '')] as { id?: number } | undefined
+    )?.id;
+    return Number(nested ?? 0) || null;
+  };
+  const positionId = readNum('position_id');
+  const projectsRaw = Array.isArray(empBlock['projects'])
+    ? (empBlock['projects'] as { id?: number }[])
+    : Array.isArray(rec['projects'])
+      ? (rec['projects'] as { id?: number }[])
+      : [];
+  const projects = projectsRaw
+    .map((p) => Number(p?.id ?? 0))
+    .filter((id) => id > 0);
+  const hourlyRate = Number(empBlock['hourly_rate'] ?? rec['hourly_rate'] ?? 0);
 
   return {
     id: userId,
@@ -337,7 +359,7 @@ export const buildDialogEmployeeData = (
       last_name: resolved.last_name,
       email: resolved.email,
       position: positionId,
-      hourly_rate: Number(rec['hourly_rate'] ?? 0),
+      hourly_rate: hourlyRate,
       projects,
       imagePath:
         resolveText(resolved.picture ?? resolved.imagePath, '') ||
@@ -574,45 +596,20 @@ export const buildTableColumns = ({
   );
 };
 
-export const fetchUsersForRole = (
-  role: number,
-  employeesService: { get: () => Observable<unknown> },
-  companiesService: {
-    getByOwner: () => Observable<unknown>;
-    getEmployees: (companyId: number) => Observable<unknown>;
-  },
-): Observable<LegacyUserRecord[]> => {
-  if (role === 1 || role === 2 || role === 4) {
-    return employeesService.get().pipe(
-      switchMap((employees) =>
+export const fetchUsers = (usersService: {
+  getUserList: () => Observable<unknown>;
+}): Observable<LegacyUserRecord[]> =>
+  usersService
+    .getUserList()
+    .pipe(
+      switchMap((users) =>
         of(
-          normalizeUserList(employees).filter((u) => {
-            const active = (u.user?.active ?? u.active) as
-              | number
-              | string
-              | boolean
-              | undefined;
-            return Number(active ?? 0) === 1;
-          }),
+          normalizeUserList(users).filter(
+            (u) => Number(u.active ?? u.user?.active ?? 0) === 1,
+          ),
         ),
       ),
     );
-  }
-
-  if (role === 3) {
-    return companiesService.getByOwner().pipe(
-      switchMap((response) => {
-        const companyId = resolveCompanyId(response);
-        if (!companyId) return of([]);
-        return companiesService
-          .getEmployees(companyId)
-          .pipe(switchMap((users) => of(normalizeUserList(users))));
-      }),
-    );
-  }
-
-  return of([]);
-};
 
 export const fetchScheduleLookup = (schedulesService: {
   get: () => Observable<unknown>;
@@ -638,32 +635,3 @@ export const fetchOnlineUserIds = (
   entriesService
     .getAllEntries({ start_time: start, end_time: end })
     .pipe(switchMap((response) => of(extractOnlineIds(response))));
-
-export const fetchProfilePics = (
-  users: LegacyUserRecord[],
-  usersService: { getProfilePic: (id?: number) => Observable<string | null> },
-  concurrency = 3,
-): Observable<Record<number, string>> => {
-  const ids = users.map((u) => getUserId(u)).filter((id) => id > 0);
-
-  if (ids.length === 0) return of({});
-
-  return from(ids).pipe(
-    mergeMap(
-      (id) =>
-        usersService.getProfilePic(id).pipe(
-          switchMap((url) => of({ id, url: url ?? '' })),
-          catchError(() => of({ id, url: '' })),
-        ),
-      concurrency,
-    ),
-    toArray(),
-    switchMap((pairs) => {
-      const lookup: Record<number, string> = {};
-      pairs.forEach(({ id, url }) => {
-        if (url) lookup[id] = url;
-      });
-      return of(lookup);
-    }),
-  );
-};
