@@ -237,7 +237,7 @@ export const mapUser = (
       DEFAULT_PROFILE_PIC,
     role: roleNumber,
     roleLabel,
-    statusLabel: onlineUserIds.has(id) ? 'Online' : 'Offline',
+    statusLabel: resolveOnline(user, id, onlineUserIds) ? 'Online' : 'Offline',
     scheduleLabel: resolveScheduleLabel(user, employeeId, scheduleLookup),
     reportsLabel: 'Download',
     positionLabel: resolvePositionLabel(user),
@@ -246,6 +246,18 @@ export const mapUser = (
       Number(resolvedUser.company_id ?? resolvedUser.company?.id ?? null) ||
       null,
   };
+};
+
+export const resolveOnline = (
+  user: LegacyUserRecord,
+  id: number,
+  onlineUserIds: Set<number>,
+): boolean => {
+  const rec = user as Record<string, unknown>;
+  if (rec['online'] === true) return true;
+  if (rec['active_entry'] && typeof rec['active_entry'] === 'object')
+    return true;
+  return onlineUserIds.has(id);
 };
 
 export const resolveScheduleLabel = (

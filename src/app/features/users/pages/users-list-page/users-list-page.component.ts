@@ -36,7 +36,6 @@ import { saveAs } from 'file-saver';
 import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
 import { AppDateRangeDialogComponent } from 'src/app/legacy/components/date-range-dialog/date-range-dialog.component';
 import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
-import { EntriesService } from 'src/app/legacy/services/entries.service';
 import { ReportsService } from 'src/app/legacy/services/reports.service';
 import { UsersService } from 'src/app/legacy/services/users.service';
 import { MaterialModule } from 'src/app/material.module';
@@ -63,7 +62,6 @@ export class UsersListPageComponent implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly usersApi = inject(UsersApiService);
   private readonly reportsService = inject(ReportsService);
-  private readonly entriesService = inject(EntriesService);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -71,7 +69,6 @@ export class UsersListPageComponent implements OnInit {
   readonly filters = input<UsersListPageFilters>({});
 
   private readonly rawUsers = signal<LegacyUserRecord[]>([]);
-  private readonly onlineUserIds = signal<Set<number>>(new Set<number>());
   private readonly reportCellTemplateRef = signal<TemplateRef<
     DynamicTableCellContext<UsersListRow>
   > | null>(null);
@@ -86,7 +83,7 @@ export class UsersListPageComponent implements OnInit {
 
   readonly allUsers = computed(() =>
     this.rawUsers().map((user) =>
-      UsersListService.mapUser(user, {}, this.onlineUserIds()),
+      UsersListService.mapUser(user, {}, new Set<number>()),
     ),
   );
 
@@ -140,7 +137,6 @@ export class UsersListPageComponent implements OnInit {
 
   private reloadAll(): void {
     this.loadUsers();
-    this.loadActiveEntries();
   }
 
   onPageChange(change: DynamicTablePageChange): void {
@@ -254,30 +250,9 @@ export class UsersListPageComponent implements OnInit {
       });
   }
 
-  private loadActiveEntries(): void {
-    const today = new Date();
-    const start = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    UsersListService.fetchOnlineUserIds(this.entriesService, start, start)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (ids: Set<number>) => {
-          this.onlineUserIds.set(ids);
-          this.mark('entries');
-        },
-        error: () => {
-          this.onlineUserIds.set(new Set<number>());
-          this.mark('entries');
-        },
-      });
-  }
-
-  private mark(key: 'users' | 'entries'): void {
+  private mark(key: 'users'): void {
     this.loaded.update((state) => new Set([...state, key]));
-    if (this.loaded().size >= 2) {
+    if (this.loaded().size >= 1) {
       this.currentPage.set(1);
       this.loading.set(false);
     }
