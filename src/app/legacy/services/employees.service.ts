@@ -1,10 +1,21 @@
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 import { Company } from '../models/Company.model';
+
+interface EmployeeUpdatePayload {
+  name: string;
+  last_name: string;
+  password?: string;
+  company_id?: number | string | null;
+  position?: number | string | null;
+  projects?: unknown;
+  schedules?: unknown;
+  hourly_rate?: number | string | null;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -34,7 +45,7 @@ export class EmployeesService {
     return this.http.get<Company[]>(this.API_URI);
   }
 
-  public getById(id: unknown | string): Observable<unknown[]> {
+  public getById(id: unknown | string): Observable<unknown> {
     return this.http.get<unknown>(`${this.API_URI}/${id}`);
   }
 
@@ -42,30 +53,24 @@ export class EmployeesService {
     return this.http.post<unknown[]>(`${this.API_URI}`, {});
   }
 
-  public inviteEmployee(data: unknown): Observable<HttpResponse<unknown>> {
-    return this.http.post<HttpResponse<unknown>>(
-      `${this.API_URI}/invite`,
-      data,
-    );
+  public inviteEmployee(data: unknown): Observable<unknown> {
+    return this.http.post<unknown>(`${this.API_URI}/invite`, data);
   }
 
   public deleteEmployee(id: number) {
     return this.http.delete(`${this.API_URI}/${id}`);
   }
 
-  public registerEmployee(data: unknown): Observable<HttpResponse<unknown>> {
-    return this.http.post<HttpResponse<unknown>>(
-      `${this.API_URI}/register`,
-      data,
-    );
+  public registerEmployee(data: unknown): Observable<unknown> {
+    return this.http.post<unknown>(`${this.API_URI}/register`, data);
   }
 
   public updateEmployee(
     id: number,
-    employee: unknown,
+    employee: EmployeeUpdatePayload,
     companyId: number,
     file: File | null,
-  ): Observable<HttpResponse<unknown>> {
+  ): Observable<unknown> {
     const formData = new FormData();
     const normalizedCompanyId = this.normalizeCompanyId(
       employee?.company_id,
@@ -80,7 +85,7 @@ export class EmployeesService {
       formData.append('company_id', String(normalizedCompanyId));
     }
 
-    formData.append('position', employee.position);
+    formData.append('position', String(employee.position ?? ''));
     formData.append('projects', JSON.stringify(employee.projects));
     formData.append(
       'employee',
@@ -90,7 +95,7 @@ export class EmployeesService {
       }),
     );
     formData.append('schedules', JSON.stringify(employee.schedules));
-    formData.append('hourly_rate', employee.hourly_rate);
+    formData.append('hourly_rate', String(employee.hourly_rate ?? 0));
     if (file) formData.append('profile', file);
     return this.http.patch<unknown>(`${this.USERS_API_URI}/${id}`, formData);
   }
