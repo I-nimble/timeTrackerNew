@@ -7,7 +7,7 @@ import {
   Output,
 } from '@angular/core';
 
-import { UsersFilter } from '@features/workforce/models/users-filter.model';
+import { UsersFilter } from '@features/users/models/users-filter.model';
 
 @Component({
   selector: 'app-users-controls',
