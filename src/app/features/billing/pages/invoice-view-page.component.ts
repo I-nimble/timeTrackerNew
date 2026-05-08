@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AppInvoiceViewComponent } from 'src/app/pages/apps/invoice/invoice-view/invoice-view.component';
+
+import { AppInvoiceViewComponent } from 'src/app/legacy/pages/apps/invoice/invoice-view/invoice-view.component';
 
 @Component({
   selector: 'app-billing-invoice-view-page',

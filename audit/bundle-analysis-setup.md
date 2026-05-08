@@ -12,19 +12,19 @@ Establish a reproducible bundle analysis workflow before the standalone componen
 
 **Two devDependencies added:**
 
-| Package | Version | Role |
-|---|---|---|
-| `source-map-explorer` | `^2.5.3` | Primary visualizer — reads source maps to show which source files contribute to each bundle byte |
-| `webpack-bundle-analyzer` | `^4.10.2` | Secondary visualizer — renders an interactive treemap from a webpack-stats JSON file |
+| Package                   | Version   | Role                                                                                             |
+| ------------------------- | --------- | ------------------------------------------------------------------------------------------------ |
+| `source-map-explorer`     | `^2.5.3`  | Primary visualizer — reads source maps to show which source files contribute to each bundle byte |
+| `webpack-bundle-analyzer` | `^4.10.2` | Secondary visualizer — renders an interactive treemap from a webpack-stats JSON file             |
 
 **Four scripts added:**
 
-| Script | What it does |
-|---|---|
+| Script                  | What it does                                                                                                               |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `analyze:baseline:prod` | Production build (with source maps) → source-map-explorer HTML report + copies `stats.json` to `bundle-analysis/baseline/` |
-| `analyze:baseline:dev` | Development build (no tree-shaking) → same outputs for the unoptimized state |
-| `analyze:wb:prod` | Opens `baseline-stats-prod.json` in webpack-bundle-analyzer (run after `analyze:baseline:prod`) |
-| `analyze:wb:dev` | Opens `baseline-stats-dev.json` in webpack-bundle-analyzer (run after `analyze:baseline:dev`) |
+| `analyze:baseline:dev`  | Development build (no tree-shaking) → same outputs for the unoptimized state                                               |
+| `analyze:wb:prod`       | Opens `baseline-stats-prod.json` in webpack-bundle-analyzer (run after `analyze:baseline:prod`)                            |
+| `analyze:wb:dev`        | Opens `baseline-stats-dev.json` in webpack-bundle-analyzer (run after `analyze:baseline:dev`)                              |
 
 ### `angular.json`
 
@@ -82,11 +82,11 @@ webpack-bundle-analyzer reads a `stats.json` file produced by the build tool and
 
 The tool offers three views toggled in the top-left corner of the UI:
 
-| Mode | What it shows | When to use |
-|---|---|---|
-| **Stat** | Raw file size before any optimization | Understanding what the bundler started with |
-| **Parsed** | Size after minification and dead-code elimination | What actually lands in the user's browser |
-| **Gzipped** | Estimated size after gzip compression | Closest to real network transfer cost |
+| Mode        | What it shows                                     | When to use                                 |
+| ----------- | ------------------------------------------------- | ------------------------------------------- |
+| **Stat**    | Raw file size before any optimization             | Understanding what the bundler started with |
+| **Parsed**  | Size after minification and dead-code elimination | What actually lands in the user's browser   |
+| **Gzipped** | Estimated size after gzip compression             | Closest to real network transfer cost       |
 
 Always compare **parsed** sizes across migration phases for an apples-to-apples comparison.
 
@@ -101,12 +101,12 @@ Always compare **parsed** sizes across migration phases for an apples-to-apples 
 
 Both tools answer "what is in my bundle?" but differently:
 
-| | webpack-bundle-analyzer | source-map-explorer |
-|---|---|---|
-| Input | `stats.json` from build | Source map files (`.js.map`) |
-| Accuracy | Based on bundler metadata | Based on actual byte ranges in source maps |
-| Angular 19 compatibility | Depends on stats format | Works with any builder that emits source maps |
-| Best for | Chunk structure, lazy split points | Precise per-file byte attribution |
+|                          | webpack-bundle-analyzer            | source-map-explorer                           |
+| ------------------------ | ---------------------------------- | --------------------------------------------- |
+| Input                    | `stats.json` from build            | Source map files (`.js.map`)                  |
+| Accuracy                 | Based on bundler metadata          | Based on actual byte ranges in source maps    |
+| Angular 19 compatibility | Depends on stats format            | Works with any builder that emits source maps |
+| Best for                 | Chunk structure, lazy split points | Precise per-file byte attribution             |
 
 Because this project uses `@angular-devkit/build-angular:application` (esbuild-based), source-map-explorer is the more reliable primary tool. The `stats.json` generated by Angular 19's application builder uses esbuild's metafile format rather than webpack's stats format, so webpack-bundle-analyzer may or may not parse it depending on CLI version. If `analyze:wb:*` scripts fail, the source-map-explorer HTML reports contain equivalent information.
 
@@ -116,13 +116,13 @@ Because this project uses `@angular-devkit/build-angular:application` (esbuild-b
 
 Before starting Phase 1 of the migration, open `baseline-report-prod.html` and note the following:
 
-| Metric | Notes |
-|---|---|
-| **Total initial JS size (parsed)** | Sum of `main` + `polyfills` chunks |
-| **`main.js` size** | The primary application chunk — expected to decrease post-migration |
-| **Number of lazy chunks** | Count distinct JS files in `dist/browser/` excluding `main` and `polyfills` |
-| **Top 5 heaviest modules** | Hover the largest rectangles — note any `@NgModule`-heavy libraries |
-| **`node_modules` share** | What percentage of `main.js` is third-party code vs app code |
-| **Moment / Firebase / amCharts sizes** | These are historically the largest deps in this app |
+| Metric                                 | Notes                                                                       |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| **Total initial JS size (parsed)**     | Sum of `main` + `polyfills` chunks                                          |
+| **`main.js` size**                     | The primary application chunk — expected to decrease post-migration         |
+| **Number of lazy chunks**              | Count distinct JS files in `dist/browser/` excluding `main` and `polyfills` |
+| **Top 5 heaviest modules**             | Hover the largest rectangles — note any `@NgModule`-heavy libraries         |
+| **`node_modules` share**               | What percentage of `main.js` is third-party code vs app code                |
+| **Moment / Firebase / amCharts sizes** | These are historically the largest deps in this app                         |
 
 Repeat this analysis after each migration phase using the same `analyze:baseline:prod` script (rename or archive the previous reports before re-running).

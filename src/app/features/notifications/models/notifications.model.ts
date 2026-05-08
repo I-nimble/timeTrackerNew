@@ -9,4 +9,4 @@ export type {
   notificationCategory,
   Notification,
   usersNotification,
-} from '../../../models/Notifications';
+} from '../../../legacy/models/Notifications';

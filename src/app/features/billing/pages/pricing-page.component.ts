@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AppPricingStripeComponent } from 'src/app/pages/apps/invoice/pricing/pricing.component';
+
+import { AppPricingStripeComponent } from 'src/app/legacy/pages/apps/invoice/pricing/pricing.component';
 
 @Component({
   selector: 'app-billing-pricing-page',

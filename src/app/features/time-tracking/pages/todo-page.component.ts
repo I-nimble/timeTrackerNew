@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AppTodoComponent } from 'src/app/pages/apps/todo/todo.component';
+
+import { AppTodoComponent } from 'src/app/legacy/pages/apps/todo/todo.component';
 
 @Component({
   selector: 'app-time-tracking-todo-page',

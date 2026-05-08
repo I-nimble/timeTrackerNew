@@ -1,1 +1,1 @@
-﻿export * from '../../services/custom-date.pipe';
+﻿export * from '../../legacy/services/custom-date.pipe';

@@ -36,10 +36,10 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 import { routes } from './app.routes';
 import { dialogProviders } from './dialog.config';
+import { ReportsService } from './legacy/services/reports.service';
+import { WebSocketService } from './legacy/services/socket/web-socket.service';
 import { MaterialModule } from './material.module';
 import { environment } from '../environments/environment';
-import { ReportsService } from './services/reports.service';
-import { WebSocketService } from './services/socket/web-socket.service';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');

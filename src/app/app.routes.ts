@@ -6,14 +6,14 @@ import { Routes } from '@angular/router';
 
 import { environment } from 'src/environments/environment';
 
-import { BlankComponent } from './layouts/blank/blank.component';
-import { FullComponent } from './layouts/full/full.component';
-import { AppDiscoveryFormComponent } from './pages/discovery/discovery-form.component';
-import { LandingPageRedirectComponent } from './pages/theme-pages/landingpage/landingpage-redirect.component';
-import { AuthGuard } from './services/guards/auth-guard.service';
-import { featureFlagGuard } from './services/guards/feature-flag.guard';
-import { notAuthGuard } from './services/guards/notAuth-guard.service';
-import { roleGuard } from './services/guards/role.guard';
+import { BlankComponent } from './legacy/layouts/blank/blank.component';
+import { FullComponent } from './legacy/layouts/full/full.component';
+import { AppDiscoveryFormComponent } from './legacy/pages/discovery/discovery-form.component';
+import { LandingPageRedirectComponent } from './legacy/pages/theme-pages/landingpage/landingpage-redirect.component';
+import { AuthGuard } from './legacy/services/guards/auth-guard.service';
+import { featureFlagGuard } from './legacy/services/guards/feature-flag.guard';
+import { notAuthGuard } from './legacy/services/guards/notAuth-guard.service';
+import { roleGuard } from './legacy/services/guards/role.guard';
 
 export const routes: Routes = [
   /**
@@ -73,7 +73,7 @@ export const routes: Routes = [
       {
         path: 'apps',
         loadChildren: () =>
-          import('./pages/apps/apps.routes').then((m) => m.AppsRoutes),
+          import('./legacy/pages/apps/apps.routes').then((m) => m.AppsRoutes),
         canActivate: [AuthGuard],
       },
 
