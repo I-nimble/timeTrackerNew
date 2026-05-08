@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 export interface SubscriptionStatus {
-  status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'inactive';
+  status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'inactive' | 'trialing';
   current_period_end?: string;
   cancel_at_period_end: boolean;
 }
@@ -51,6 +51,10 @@ export class SubscriptionService {
 
   getSentinelStatus(): Observable<SubscriptionStatus> {
     return this.http.get<SubscriptionStatus>(`${this.apiUrl}/sentinel/status`);
+  }
+
+  getClientStatus(): Observable<SubscriptionStatus> {
+    return this.http.get<SubscriptionStatus>(`${this.apiUrl}/client/status`);
   }
 
   getSubscriptionReceipt(): Observable<SubscriptionReceipt> {

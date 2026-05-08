@@ -1,10 +1,13 @@
 import { NavItem } from './nav-item/nav-item';
 import { environment } from 'src/environments/environment';
 
-export function getNavItems(role: number): NavItem[] {
+export function getNavItems(role: number, clientHasTeam = false): NavItem[] {
   const isOrphan = localStorage.getItem('isOrphan') == 'true';
-  const email = localStorage.getItem('email');
-  const allowedReportEmails = environment.allowedReportEmails;
+
+  if (Number(role) === 3 && !clientHasTeam) {
+    return [];
+  }
+
   return [
     {
       navCap: 'Home',
