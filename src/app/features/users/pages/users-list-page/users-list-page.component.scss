@@ -8,8 +8,13 @@
     color: var(--mat-sys-on-surface);
     border-radius: 20px;
     box-shadow: var(--mat-sys-level1, 0 10px 30px rgba(15, 23, 42, 0.08));
-    overflow: hidden;
     min-height: 480px;
+
+    ::ng-deep .table-responsive {
+      overflow-x: auto;
+      overflow-y: visible;
+      border-radius: inherit;
+    }
 
     --mat-table-background-color: transparent;
 
