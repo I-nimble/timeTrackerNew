@@ -6,19 +6,14 @@ export interface UsersListPageFilters {
   predicate?: (row: UsersListRow) => boolean;
 }
 
-export interface LegacyEmployeeSchedule {
-  employee_id?: number | string | null;
-  days?: { name?: string | null }[] | null;
-}
-
-export interface LegacyEmployee {
+export interface UserEmployee {
   id?: number | string | null;
   position?: string | number | null;
   hourly_rate?: number | null;
-  schedule?: LegacyEmployeeSchedule[] | null;
+  schedule?: { days?: { name?: string | null }[] | null }[] | null;
 }
 
-export interface LegacyUserRecord extends Record<string, unknown> {
+export interface UserRecord extends Record<string, unknown> {
   id?: number | string;
   name?: string;
   last_name?: string;
@@ -27,33 +22,16 @@ export interface LegacyUserRecord extends Record<string, unknown> {
   active?: number | boolean | string;
   picture?: string | null;
   imagePath?: string | null;
-  company_id?: number | string | null;
-  company?: {
-    id?: number | string | null;
-    name?: string | null;
-  } | null;
-  employee?: LegacyEmployee | null;
-  activeEntry?: {
+  online?: boolean;
+  active_entry?: {
     start_time?: string | null;
     end_time?: string | null;
   } | null;
-  entries?:
-    | {
-        start_time?: string | null;
-        end_time?: string | null;
-      }[]
-    | null;
-  profile?: LegacyUserRecord | null;
-  user?: LegacyUserRecord | null;
-}
-
-export interface ScheduleRecord {
-  employee_id?: number | string | null;
-  days?:
-    | {
-        name?: string | null;
-      }[]
-    | null;
+  company_id?: number | string | null;
+  company?: { id?: number | string | null; name?: string | null } | null;
+  employee?: UserEmployee | null;
+  profile?: UserRecord | null;
+  user?: UserRecord | null;
 }
 
 export interface UsersListRow {

@@ -1,5 +1,5 @@
-import {
-  LegacyUserRecord,
+﻿import {
+  UserRecord,
   UsersListRow,
 } from '@features/users/models/users-list.types';
 import { of } from 'rxjs';
@@ -9,7 +9,7 @@ import * as svc from './users-list.service';
 const buildRecord = (
   id: number,
   overrides: Record<string, unknown> = {},
-): LegacyUserRecord =>
+): UserRecord =>
   ({
     id,
     name: `User ${id}`,
@@ -41,7 +41,7 @@ const buildRecord = (
       ],
     },
     ...overrides,
-  }) as unknown as LegacyUserRecord;
+  }) as unknown as UserRecord;
 
 describe('users-list.service', () => {
   afterEach(() => localStorage.clear());
@@ -62,56 +62,6 @@ describe('users-list.service', () => {
       expect(svc.normalizeUserList(null).length).toBe(0);
       expect(svc.normalizeUserList(42).length).toBe(0);
       expect(svc.normalizeUserList({ noop: true }).length).toBe(0);
-    });
-  });
-
-  describe('normalizeScheduleList', () => {
-    it('handles array payloads', () => {
-      const list = svc.normalizeScheduleList([{ employee_id: 1 }]);
-      expect(list.length).toBe(1);
-    });
-
-    it('handles wrapped payloads', () => {
-      expect(
-        svc.normalizeScheduleList({ schedules: [{ employee_id: 2 }] }).length,
-      ).toBe(1);
-      expect(
-        svc.normalizeScheduleList({ data: [{ employee_id: 3 }] }).length,
-      ).toBe(1);
-    });
-
-    it('returns empty for unknown shapes', () => {
-      expect(svc.normalizeScheduleList(null).length).toBe(0);
-    });
-  });
-
-  describe('buildScheduleLookup', () => {
-    it('groups days per employee and formats as a range', () => {
-      const lookup = svc.buildScheduleLookup([
-        {
-          employee_id: 1,
-          days: [
-            { name: 'Monday' },
-            { name: 'Tuesday' },
-            { name: 'Wednesday' },
-          ],
-        },
-      ] as never);
-      expect(lookup[1]).toBe('Monday to Wednesday');
-    });
-
-    it('falls back to comma list when not consecutive', () => {
-      const lookup = svc.buildScheduleLookup([
-        { employee_id: 2, days: [{ name: 'Monday' }, { name: 'Friday' }] },
-      ] as never);
-      expect(lookup[2]).toBe('Monday, Friday');
-    });
-
-    it('marks empty schedules', () => {
-      const lookup = svc.buildScheduleLookup([
-        { employee_id: 3, days: [] },
-      ] as never);
-      expect(lookup[3]).toBe('No registered schedule');
     });
   });
 
@@ -286,23 +236,6 @@ describe('users-list.service', () => {
     });
   });
 
-  describe('extractOnlineIds', () => {
-    it('reads entries from array', () => {
-      const set = svc.extractOnlineIds([{ status: 0, user_id: 1 }]);
-      expect(set.has(1)).toBeTrue();
-    });
-    it('reads entries from wrapped response', () => {
-      const set = svc.extractOnlineIds({
-        entries: [{ status: 0, user_id: 2 }],
-      });
-      expect(set.has(2)).toBeTrue();
-    });
-    it('skips non status-0 entries', () => {
-      const set = svc.extractOnlineIds([{ status: 1, user_id: 3 }]);
-      expect(set.size).toBe(0);
-    });
-  });
-
   describe('resolveCompanyId', () => {
     it('reads company.id from response', () => {
       expect(svc.resolveCompanyId({ company: { id: 4 } })).toBe(4);
@@ -405,43 +338,6 @@ describe('users-list.service', () => {
         expect(rows.map((r) => r.id)).toEqual([1]);
         done();
       });
-    });
-
-    it('fetchScheduleLookup maps backend payload to label dictionary', (done) => {
-      const schedules = {
-        get: () =>
-          of({
-            schedules: [
-              {
-                employee_id: 7,
-                days: [{ name: 'Monday' }, { name: 'Friday' }],
-              },
-            ],
-          }),
-      };
-      svc.fetchScheduleLookup(schedules).subscribe((lookup) => {
-        expect(lookup[7]).toBe('Monday, Friday');
-        done();
-      });
-    });
-
-    it('fetchOnlineUserIds reduces entries to a Set', (done) => {
-      const entries = {
-        getAllEntries: () =>
-          of({
-            entries: [
-              { status: 0, user_id: 11 },
-              { status: 1, user_id: 22 },
-            ],
-          }),
-      };
-      svc
-        .fetchOnlineUserIds(entries, new Date(), new Date())
-        .subscribe((set) => {
-          expect(set.has(11)).toBeTrue();
-          expect(set.has(22)).toBeFalse();
-          done();
-        });
     });
   });
 });

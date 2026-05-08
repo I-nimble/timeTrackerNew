@@ -1,11 +1,10 @@
-import { TemplateRef } from '@angular/core';
+﻿import { TemplateRef } from '@angular/core';
 
 import { UsersListColumn } from '@features/users/models/users-list.model';
 import {
   UsersListPageFilters,
-  ScheduleRecord,
   UsersListRow,
-  LegacyUserRecord,
+  UserRecord,
 } from '@features/users/models/users-list.types';
 import {
   DynamicSortOrder,
@@ -17,15 +16,13 @@ import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
-export const normalizeUserList = (users: unknown): LegacyUserRecord[] => {
+export const normalizeUserList = (users: unknown): UserRecord[] => {
   if (Array.isArray(users)) {
     return users
       .map((item) =>
-        typeof item === 'object' && item !== null
-          ? (item as LegacyUserRecord)
-          : null,
+        typeof item === 'object' && item !== null ? (item as UserRecord) : null,
       )
-      .filter((item): item is LegacyUserRecord => item !== null);
+      .filter((item): item is UserRecord => item !== null);
   }
 
   if (typeof users === 'object' && users !== null) {
@@ -36,73 +33,14 @@ export const normalizeUserList = (users: unknown): LegacyUserRecord[] => {
       return possibleList
         .map((item) =>
           typeof item === 'object' && item !== null
-            ? (item as LegacyUserRecord)
+            ? (item as UserRecord)
             : null,
         )
-        .filter((item): item is LegacyUserRecord => item !== null);
+        .filter((item): item is UserRecord => item !== null);
     }
   }
 
   return [];
-};
-
-export const normalizeScheduleList = (response: unknown): ScheduleRecord[] => {
-  if (Array.isArray(response)) {
-    return response
-      .map((item) =>
-        typeof item === 'object' && item !== null
-          ? (item as ScheduleRecord)
-          : null,
-      )
-      .filter((item): item is ScheduleRecord => item !== null);
-  }
-
-  if (typeof response === 'object' && response !== null) {
-    const rec = response as Record<string, unknown>;
-    const possibleList = rec['schedules'] ?? rec['data'];
-    if (Array.isArray(possibleList)) {
-      return possibleList
-        .map((item) =>
-          typeof item === 'object' && item !== null
-            ? (item as ScheduleRecord)
-            : null,
-        )
-        .filter((item): item is ScheduleRecord => item !== null);
-    }
-  }
-
-  return [];
-};
-
-export const buildScheduleLookup = (schedules: ScheduleRecord[]) => {
-  const groupedDays = new Map<number, Set<string>>();
-
-  schedules.forEach((schedule) => {
-    const employeeId = Number(schedule.employee_id ?? 0);
-    if (!employeeId) return;
-
-    if (!groupedDays.has(employeeId))
-      groupedDays.set(employeeId, new Set<string>());
-
-    const dayNames = Array.isArray(schedule.days)
-      ? schedule.days
-          .map((d) => String(d?.name ?? '').trim())
-          .filter((n) => n.length > 0)
-      : [];
-
-    const current = groupedDays.get(employeeId);
-    dayNames.forEach((d) => current?.add(d));
-  });
-
-  const lookup: Record<number, string> = {};
-  groupedDays.forEach((days, employeeId) => {
-    const ordered = sortDays(Array.from(days));
-    lookup[employeeId] = ordered.length
-      ? formatDaysRange(ordered)
-      : 'No registered schedule';
-  });
-
-  return lookup;
 };
 
 const WEEK_DAYS = [
@@ -169,13 +107,13 @@ export const resolveText = (value: unknown, fallback: string): string => {
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-export const resolveUser = (user: LegacyUserRecord): LegacyUserRecord => {
+export const resolveUser = (user: UserRecord): UserRecord => {
   if (isRecord(user.profile)) return { ...user, ...user.profile };
   if (isRecord(user.user)) return { ...user, ...user.user };
   return user;
 };
 
-export const getUserId = (record: LegacyUserRecord): number => {
+export const getUserId = (record: UserRecord): number => {
   const candidates = [record.user?.id, record.profile?.id, record.id];
   for (const c of candidates) {
     const n = Number(c ?? 0);
@@ -184,7 +122,7 @@ export const getUserId = (record: LegacyUserRecord): number => {
   return 0;
 };
 
-export const resolvePositionLabel = (record: LegacyUserRecord): string => {
+export const resolvePositionLabel = (record: UserRecord): string => {
   const rec = record as Record<string, unknown>;
   const empBlock =
     (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
@@ -200,7 +138,7 @@ export const resolvePositionLabel = (record: LegacyUserRecord): string => {
   return 'N/A';
 };
 
-export const getEmployeeId = (record: LegacyUserRecord): number => {
+export const getEmployeeId = (record: UserRecord): number => {
   const candidates = [record.id, record.profile?.id];
   for (const c of candidates) {
     const n = Number(c ?? 0);
@@ -210,7 +148,7 @@ export const getEmployeeId = (record: LegacyUserRecord): number => {
 };
 
 export const mapUser = (
-  user: LegacyUserRecord,
+  user: UserRecord,
   scheduleLookup: Record<number, string>,
   onlineUserIds: Set<number>,
   pictureLookup: Record<number, string> = {},
@@ -249,7 +187,7 @@ export const mapUser = (
 };
 
 export const resolveOnline = (
-  user: LegacyUserRecord,
+  user: UserRecord,
   id: number,
   onlineUserIds: Set<number>,
 ): boolean => {
@@ -261,7 +199,7 @@ export const resolveOnline = (
 };
 
 export const resolveScheduleLabel = (
-  user: LegacyUserRecord,
+  user: UserRecord,
   id: number,
   scheduleLookup: Record<number, string>,
 ): string => {
@@ -333,7 +271,7 @@ export const applyFilters = (
 };
 
 export const buildDialogEmployeeData = (
-  user: LegacyUserRecord,
+  user: UserRecord,
 ): Record<string, unknown> => {
   const resolved = resolveUser(user);
   const userId = getUserId(user);
@@ -439,24 +377,6 @@ export const sortRows = (
 export const paginateRows = <T>(rows: T[], page: number, size: number): T[] => {
   const start = (page - 1) * size;
   return rows.slice(start, start + size);
-};
-
-export const extractOnlineIds = (response: unknown): Set<number> => {
-  const entries = Array.isArray(response)
-    ? response
-    : isRecord(response)
-      ? ((response['entries'] as unknown[]) ?? [])
-      : [];
-  const ids = new Set<number>();
-  if (Array.isArray(entries)) {
-    entries.forEach((entry) => {
-      if (isRecord(entry) && Number(entry['status']) === 0) {
-        const uid = Number(entry['user_id']);
-        if (uid) ids.add(uid);
-      }
-    });
-  }
-  return ids;
 };
 
 export const resolveCompanyId = (response: unknown): number | null => {
@@ -610,7 +530,7 @@ export const buildTableColumns = ({
 
 export const fetchUsers = (usersService: {
   getUserList: () => Observable<unknown>;
-}): Observable<LegacyUserRecord[]> =>
+}): Observable<UserRecord[]> =>
   usersService
     .getUserList()
     .pipe(
@@ -622,28 +542,3 @@ export const fetchUsers = (usersService: {
         ),
       ),
     );
-
-export const fetchScheduleLookup = (schedulesService: {
-  get: () => Observable<unknown>;
-}): Observable<Record<number, string>> =>
-  schedulesService
-    .get()
-    .pipe(
-      switchMap((response) =>
-        of(buildScheduleLookup(normalizeScheduleList(response))),
-      ),
-    );
-
-export const fetchOnlineUserIds = (
-  entriesService: {
-    getAllEntries: (query: {
-      start_time: Date;
-      end_time: Date;
-    }) => Observable<unknown>;
-  },
-  start: Date,
-  end: Date,
-): Observable<Set<number>> =>
-  entriesService
-    .getAllEntries({ start_time: start, end_time: end })
-    .pipe(switchMap((response) => of(extractOnlineIds(response))));

@@ -1,4 +1,4 @@
-import {
+﻿import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -18,7 +18,7 @@ import {
   UsersListColumn,
 } from '@features/users/models/users-list.model';
 import {
-  LegacyUserRecord,
+  UserRecord,
   UsersListPageFilters,
   UsersListRow,
 } from '@features/users/models/users-list.types';
@@ -68,7 +68,7 @@ export class UsersListPageComponent implements OnInit {
   readonly columns = input<UsersListColumn[]>(DEFAULT_USERS_LIST_COLUMNS);
   readonly filters = input<UsersListPageFilters>({});
 
-  private readonly rawUsers = signal<LegacyUserRecord[]>([]);
+  private readonly rawUsers = signal<UserRecord[]>([]);
   private readonly reportCellTemplateRef = signal<TemplateRef<
     DynamicTableCellContext<UsersListRow>
   > | null>(null);
@@ -242,7 +242,7 @@ export class UsersListPageComponent implements OnInit {
     UsersListService.fetchUsers(this.usersApi)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (users: LegacyUserRecord[]) => {
+        next: (users: UserRecord[]) => {
           this.rawUsers.set(users);
           this.mark('users');
         },
