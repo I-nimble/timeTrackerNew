@@ -11,21 +11,29 @@ export interface TimeTrackerEntryReview {
 }
 
 export interface UserScheduleDay {
-  id: number;
-  name: string;
+  id?: number;
+  name?: string | null;
 }
 
 export interface UserSchedule {
-  days: UserScheduleDay[];
-  start_time: string;
-  end_time: string;
+  id?: number;
+  employee_id?: number | null;
+  days?: UserScheduleDay[] | null;
+  start_time?: string | null;
+  end_time?: string | null;
 }
 
 export interface UserEmployee {
-  id: number;
-  position?: string | null;
+  id?: number | null;
+  user_id?: number | null;
+  company_id?: number | null;
+  company?: UserCompany | null;
+  position_id?: number | null;
+  position?: string | { id?: number; title?: string | null } | null;
+  position_name?: string | null;
   hourly_rate?: number | null;
-  schedule?: UserSchedule[];
+  schedule?: UserSchedule[] | null;
+  projects?: { id?: number | null; name?: string | null }[] | null;
 }
 
 export interface UserCompany {
@@ -35,18 +43,38 @@ export interface UserCompany {
 
 export interface User {
   id: number;
-  name: string;
-  last_name: string;
-  email: string;
-  role: number;
-  active: UserStatus;
+  name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  role?: number | null;
+  active?: UserStatus | number | boolean | string | null;
   phone?: string | null;
   picture?: string | null;
+  imagePath?: string | null;
   address?: string | null;
-  profile?: File | string | null;
+  profile?: User | File | string | null;
   availability?: boolean;
+  online?: boolean;
+  active_entry?: {
+    start_time?: string | null;
+    end_time?: string | null;
+    status?: number | null;
+    user_id?: number | null;
+  } | null;
+  user?: User | null;
+  user_id?: number | string | null;
+  company_id?: number | string | null;
   company?: UserCompany | null;
   employee?: UserEmployee | null;
+  employee_id?: number | string | null;
+  displayName?: string | null;
+  pictureUrl?: string | null;
+  roleLabel?: string | null;
+  statusLabel?: string | null;
+  scheduleLabel?: string | null;
+  reportsLabel?: string | null;
+  positionLabel?: string | null;
+  companyName?: string | null;
   entriesForReview?: TimeTrackerEntryReview[];
   review?: TimeTrackerEntryReview[];
 }

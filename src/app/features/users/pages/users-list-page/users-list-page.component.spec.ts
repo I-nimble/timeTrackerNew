@@ -2,6 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 
+import { User } from '@features/users/models/user.model';
 import { DEFAULT_USERS_LIST_COLUMNS } from '@features/users/models/users-list.model';
 import { UsersApiService } from '@features/users/services/users-api.service';
 import * as fileSaver from 'file-saver';
@@ -17,7 +18,7 @@ import { UsersListPageComponent } from './users-list-page.component';
 const buildUser = (
   id: number,
   overrides: Record<string, unknown> = {},
-): Record<string, unknown> => ({
+): User => ({
   id,
   name: `User ${id}`,
   last_name: `Last ${id}`,
@@ -64,7 +65,7 @@ const buildUser = (
   ...overrides,
 });
 
-const SAMPLE_USERS = [
+const SAMPLE_USERS: User[] = [
   buildUser(1),
   buildUser(2),
   buildUser(3),
@@ -83,10 +84,7 @@ describe('UsersListPageComponent', () => {
   let dialogOpenSpy: jasmine.Spy;
   let dialogResult: unknown;
 
-  const render = (
-    role: number,
-    users: Record<string, unknown>[] = SAMPLE_USERS,
-  ): void => {
+  const render = (role: number, users: User[] = SAMPLE_USERS): void => {
     localStorage.setItem('role', String(role));
     usersApiSpy.getUserList.and.returnValue(of(users) as never);
     fixture = TestBed.createComponent(UsersListPageComponent);
@@ -191,7 +189,8 @@ describe('UsersListPageComponent', () => {
     fixture.detectChanges();
 
     expect(component.filteredUsers().length).toBe(1);
-    expect(component.filteredUsers()[0].displayName).toBe('User 7 Last 7');
+    expect(component.filteredUsers()[0].name).toBe('User 7');
+    expect(component.filteredUsers()[0].last_name).toBe('Last 7');
   });
 
   it('paginates and sorts the rows locally', () => {
@@ -200,7 +199,7 @@ describe('UsersListPageComponent', () => {
     component.onPageChange({
       page: 2,
       pageSize: 5,
-      sortBy: 'displayName',
+      sortBy: 'name',
       sortOrder: 'asc',
     });
     expect(component.currentPage()).toBe(2);

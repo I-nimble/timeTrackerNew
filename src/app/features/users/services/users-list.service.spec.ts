@@ -1,7 +1,4 @@
-﻿import {
-  UserRecord,
-  UsersListRow,
-} from '@features/users/models/users-list.types';
+﻿import { User } from '@features/users/models/user.model';
 import { of } from 'rxjs';
 
 import * as svc from './users-list.service';
@@ -9,7 +6,7 @@ import * as svc from './users-list.service';
 const buildRecord = (
   id: number,
   overrides: Record<string, unknown> = {},
-): UserRecord =>
+): User =>
   ({
     id,
     name: `User ${id}`,
@@ -41,7 +38,7 @@ const buildRecord = (
       ],
     },
     ...overrides,
-  }) as unknown as UserRecord;
+  }) as unknown as User;
 
 describe('users-list.service', () => {
   afterEach(() => localStorage.clear());
@@ -89,7 +86,7 @@ describe('users-list.service', () => {
       const row = {
         name: 'Sofia',
         last_name: 'Bracho',
-      } as unknown as UsersListRow;
+      } as unknown as User;
       const start = new Date(2026, 4, 5);
       const end = new Date(2026, 4, 9);
       expect(svc.buildReportFileName(row, start, end)).toBe(
@@ -229,9 +226,11 @@ describe('users-list.service', () => {
 
     it('produces sortable value for known fields', () => {
       const row = rows[0];
-      expect(svc.getSortableValue(row, 'email')).toBe(row.email.toLowerCase());
+      expect(svc.getSortableValue(row, 'email')).toBe(
+        String(row.email ?? '').toLowerCase(),
+      );
       expect(svc.getSortableValue(row, 'unknown')).toBe(
-        row.displayName.toLowerCase(),
+        `${row.name} ${row.last_name}`.trim().toLowerCase(),
       );
     });
   });

@@ -1,11 +1,8 @@
 ﻿import { TemplateRef } from '@angular/core';
 
+import { User } from '@features/users/models/user.model';
 import { UsersListColumn } from '@features/users/models/users-list.model';
-import {
-  UsersListPageFilters,
-  UsersListRow,
-  UserRecord,
-} from '@features/users/models/users-list.types';
+import { UsersListPageFilters } from '@features/users/models/users-list.types';
 import {
   DynamicSortOrder,
   DynamicTableCellContext,
@@ -16,13 +13,13 @@ import { Observable, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
-export const normalizeUserList = (users: unknown): UserRecord[] => {
+export const normalizeUserList = (users: unknown): User[] => {
   if (Array.isArray(users)) {
     return users
       .map((item) =>
-        typeof item === 'object' && item !== null ? (item as UserRecord) : null,
+        typeof item === 'object' && item !== null ? (item as User) : null,
       )
-      .filter((item): item is UserRecord => item !== null);
+      .filter((item): item is User => item !== null);
   }
 
   if (typeof users === 'object' && users !== null) {
@@ -32,11 +29,9 @@ export const normalizeUserList = (users: unknown): UserRecord[] => {
     if (Array.isArray(possibleList)) {
       return possibleList
         .map((item) =>
-          typeof item === 'object' && item !== null
-            ? (item as UserRecord)
-            : null,
+          typeof item === 'object' && item !== null ? (item as User) : null,
         )
-        .filter((item): item is UserRecord => item !== null);
+        .filter((item): item is User => item !== null);
     }
   }
 
@@ -52,6 +47,15 @@ const WEEK_DAYS = [
   'Saturday',
   'Sunday',
 ];
+
+const ROLE_LABELS: Record<number, string> = {
+  1: ROLES.ADMIN,
+  2: ROLES.USER,
+  3: ROLES.CLIENT,
+  4: ROLES.SUPPORT,
+};
+
+export const DEFAULT_PROFILE_PIC = `${environment.assets}/default-user-profile-pic.webp`;
 
 export const formatDaysRange = (days: string[]): string => {
   const indices = days
@@ -79,25 +83,6 @@ export const formatDaysRange = (days: string[]): string => {
 export const sortDays = (days: string[]): string[] =>
   days.sort((l, r) => WEEK_DAYS.indexOf(l) - WEEK_DAYS.indexOf(r));
 
-export const buildReportFileName = (
-  row: UsersListRow,
-  firstSelect: Date,
-  lastSelect: Date,
-): string => {
-  const displayName = `${row.name}_${row.last_name}`.replace(/\s+/g, '_');
-  const f = (d: Date) =>
-    `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
-  return `I-nimble_Report_${displayName}_${f(firstSelect)}_${f(lastSelect)}.xlsx`;
-};
-
-const ROLE_LABELS: Record<number, string> = {
-  1: ROLES.ADMIN,
-  2: ROLES.USER,
-  3: ROLES.CLIENT,
-  4: ROLES.SUPPORT,
-};
-export const DEFAULT_PROFILE_PIC = `${environment.assets}/default-user-profile-pic.webp`;
-
 export const resolveText = (value: unknown, fallback: string): string => {
   if (typeof value === 'string') return value.trim() || fallback;
   if (typeof value === 'number') return String(value);
@@ -107,91 +92,157 @@ export const resolveText = (value: unknown, fallback: string): string => {
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-export const resolveUser = (user: UserRecord): UserRecord => {
-  if (isRecord(user.profile)) return { ...user, ...user.profile };
-  if (isRecord(user.user)) return { ...user, ...user.user };
-  return user;
+export const getDisplayName = (user: User): string => {
+  const name = resolveText(user.name, 'User');
+  const lastName = resolveText(user.last_name, '');
+  return `${name} ${lastName}`.trim();
 };
 
-export const getUserId = (record: UserRecord): number => {
-  const candidates = [record.user?.id, record.profile?.id, record.id];
-  for (const c of candidates) {
-    const n = Number(c ?? 0);
-    if (n > 0) return n;
-  }
-  return 0;
+export const getRoleLabel = (user: User): string => {
+  const roleNumber = Number(user.role ?? 0);
+  return ROLE_LABELS[roleNumber] ?? `Role ${roleNumber || 'N/A'}`;
 };
 
-export const resolvePositionLabel = (record: UserRecord): string => {
-  const rec = record as Record<string, unknown>;
-  const empBlock =
-    (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
-  const pos = empBlock['position'];
-  if (typeof pos === 'string') return pos.trim() || 'N/A';
-  if (pos && typeof pos === 'object') {
-    const title = (pos as { title?: string }).title;
-    if (typeof title === 'string' && title.trim()) return title.trim();
-  }
-  const positionName = empBlock['position_name'];
-  if (typeof positionName === 'string' && positionName.trim())
-    return positionName.trim();
-  return 'N/A';
-};
-
-export const getEmployeeId = (record: UserRecord): number => {
-  const candidates = [record.id, record.profile?.id];
-  for (const c of candidates) {
-    const n = Number(c ?? 0);
-    if (n > 0) return n;
-  }
-  return 0;
-};
+export const getPictureUrl = (
+  user: User,
+  pictureLookup: Record<number, string>,
+  id: number,
+): string =>
+  pictureLookup[id] ||
+  resolveText(user.picture, '') ||
+  resolveText(user.imagePath, '') ||
+  DEFAULT_PROFILE_PIC;
 
 export const mapUser = (
-  user: UserRecord,
+  user: User,
   scheduleLookup: Record<number, string>,
   onlineUserIds: Set<number>,
   pictureLookup: Record<number, string> = {},
-): UsersListRow => {
+): User => {
   const resolvedUser = resolveUser(user);
-  const id = getUserId(user);
-  const employeeId = getEmployeeId(user);
+  const id = getUserId(resolvedUser);
+  const employeeId = getEmployeeId(resolvedUser);
   const name = resolveText(resolvedUser.name, 'User');
   const lastName = resolveText(resolvedUser.last_name, '');
   const roleNumber = Number(resolvedUser.role ?? 0);
-  const roleLabel = ROLE_LABELS[roleNumber] ?? `Role ${roleNumber || 'N/A'}`;
 
   return {
+    ...resolvedUser,
     id,
     employee_id: employeeId,
     name,
     last_name: lastName,
     displayName: `${name} ${lastName}`.trim(),
     email: resolveText(resolvedUser.email, 'N/A'),
-    pictureUrl:
-      pictureLookup[id] ||
-      resolveText(resolvedUser.picture, '') ||
-      resolveText(resolvedUser.imagePath, '') ||
-      DEFAULT_PROFILE_PIC,
+    picture: resolvedUser.picture ?? null,
+    imagePath: resolvedUser.imagePath ?? null,
+    pictureUrl: getPictureUrl(resolvedUser, pictureLookup, id),
     role: roleNumber,
-    roleLabel,
-    statusLabel: resolveOnline(user, id, onlineUserIds) ? 'Online' : 'Offline',
-    scheduleLabel: resolveScheduleLabel(user, employeeId, scheduleLookup),
+    roleLabel: getRoleLabel(resolvedUser),
+    online: resolveOnline(resolvedUser, id, onlineUserIds),
+    statusLabel: getStatusLabel(resolvedUser, id, onlineUserIds),
+    scheduleLabel: resolveScheduleLabel(
+      resolvedUser,
+      employeeId,
+      scheduleLookup,
+    ),
     reportsLabel: 'Download',
-    positionLabel: resolvePositionLabel(user),
-    companyName: resolveText(resolvedUser.company?.name, 'N/A'),
-    companyId:
-      Number(resolvedUser.company_id ?? resolvedUser.company?.id ?? null) ||
-      null,
+    positionLabel: resolvePositionLabel(resolvedUser),
+    companyName: getCompanyName(resolvedUser),
+    company_id: normalizeCompanyId(
+      resolvedUser.company_id ?? resolvedUser.company?.id,
+    ),
+    active: resolvedUser.active ?? 0,
   };
 };
 
+export const resolveUser = (user: User): User => {
+  if (isRecord(user.profile)) return { ...user, ...(user.profile as User) };
+  if (isRecord(user.user)) return { ...user, ...(user.user as User) };
+  return user;
+};
+
+export const getUserId = (record: User): number => {
+  const profile = isRecord(record.profile) ? (record.profile as User) : null;
+  const candidates = [record.user?.id, profile?.id, record.id];
+
+  for (const candidate of candidates) {
+    const n = Number(candidate ?? 0);
+    if (n > 0) return n;
+  }
+
+  return 0;
+};
+
+export const getEmployeeId = (record: User): number => {
+  const profile = isRecord(record.profile) ? (record.profile as User) : null;
+  const candidates = [
+    record.employee_id,
+    profile?.employee_id,
+    profile?.id,
+    record.id,
+  ];
+
+  for (const candidate of candidates) {
+    const n = Number(candidate ?? 0);
+    if (n > 0) return n;
+  }
+
+  return 0;
+};
+
+export const resolvePositionLabel = (record: User): string => {
+  const rec = record as unknown as Record<string, unknown>;
+  const empBlock =
+    (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
+  const pos = empBlock['position'];
+
+  if (typeof pos === 'string') return pos.trim() || 'N/A';
+
+  if (pos && typeof pos === 'object') {
+    const title = (pos as { title?: string | null }).title;
+    if (typeof title === 'string' && title.trim()) return title.trim();
+  }
+
+  const positionName = empBlock['position_name'];
+  if (typeof positionName === 'string' && positionName.trim()) {
+    return positionName.trim();
+  }
+
+  return 'N/A';
+};
+
+export const getStatusLabel = (
+  user: User,
+  id: number,
+  onlineUserIds: Set<number>,
+): string => (resolveOnline(user, id, onlineUserIds) ? 'Online' : 'Offline');
+
+export const getCompanyName = (user: User): string =>
+  resolveText(user.company?.name, 'N/A');
+
+export const normalizeCompanyId = (value: unknown): number | null => {
+  const id = Number(value ?? 0);
+  return id > 0 ? id : null;
+};
+
+export const buildReportFileName = (
+  row: User,
+  firstSelect: Date,
+  lastSelect: Date,
+): string => {
+  const displayName = getDisplayName(row).replace(/\s+/g, '_');
+  const f = (d: Date) =>
+    `${d.getDate().toString().padStart(2, '0')}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getFullYear()}`;
+  return `I-nimble_Report_${displayName}_${f(firstSelect)}_${f(lastSelect)}.xlsx`;
+};
+
 export const resolveOnline = (
-  user: UserRecord,
+  user: User,
   id: number,
   onlineUserIds: Set<number>,
 ): boolean => {
-  const rec = user as Record<string, unknown>;
+  const rec = user as unknown as Record<string, unknown>;
   if (rec['online'] === true) return true;
   if (rec['active_entry'] && typeof rec['active_entry'] === 'object')
     return true;
@@ -199,34 +250,38 @@ export const resolveOnline = (
 };
 
 export const resolveScheduleLabel = (
-  user: UserRecord,
+  user: User,
   id: number,
   scheduleLookup: Record<number, string>,
 ): string => {
-  const rec = user as Record<string, unknown>;
+  const rec = user as unknown as Record<string, unknown>;
   const embedded =
     (rec['schedule'] as
       | { days?: { name?: string | null }[] | null }[]
       | null
       | undefined) ?? user.employee?.schedule;
+
   if (Array.isArray(embedded) && embedded.length > 0) {
     const allDays = new Set<string>();
+
     embedded.forEach((s) => {
       (s?.days ?? []).forEach((d) => {
         const name = resolveText(d?.name, '');
         if (name) allDays.add(name);
       });
     });
+
     const ordered = sortDays(Array.from(allDays));
     return ordered.length ? formatDaysRange(ordered) : 'No registered schedule';
   }
+
   return scheduleLookup[id] ?? 'No registered schedule';
 };
 
 export const applyFilters = (
-  users: UsersListRow[],
+  users: User[],
   filters: UsersListPageFilters,
-): UsersListRow[] => {
+): User[] => {
   const f = filters ?? {};
   const searchTerm = (f.searchTerm ?? '').trim().toLowerCase();
 
@@ -234,29 +289,33 @@ export const applyFilters = (
     const matchesSearch =
       !searchTerm ||
       [
-        user.displayName,
-        user.email,
-        user.roleLabel,
-        user.scheduleLabel,
-        user.reportsLabel,
+        getDisplayName(user),
+        resolveText(user.email, ''),
+        getRoleLabel(user),
+        user.scheduleLabel ??
+          resolveScheduleLabel(user, getEmployeeId(user), {}),
+        user.reportsLabel ?? 'Download',
+        resolvePositionLabel(user),
+        getCompanyName(user),
       ].some((value) => value.toLowerCase().includes(searchTerm));
 
     const matchesCompany =
       f.companyId === undefined ||
       f.companyId === null ||
-      String(user.companyId ?? '') === String(f.companyId);
+      String(user.company_id ?? user.company?.id ?? '') === String(f.companyId);
 
     const matchesRole =
       f.role === undefined ||
       f.role === null ||
-      String(user.role) === String(f.role);
+      String(user.role ?? 0) === String(f.role);
 
+    const statusLabel = getStatusLabel(user, getUserId(user), new Set());
     const matchesStatus =
       !f.status ||
       f.status === 'all' ||
       (f.status === 'online'
-        ? user.statusLabel === 'Online'
-        : user.statusLabel === 'Offline');
+        ? statusLabel === 'Online'
+        : statusLabel === 'Offline');
 
     const matchesPredicate = f.predicate ? f.predicate(user) : true;
 
@@ -271,22 +330,25 @@ export const applyFilters = (
 };
 
 export const buildDialogEmployeeData = (
-  user: UserRecord,
+  user: User,
 ): Record<string, unknown> => {
   const resolved = resolveUser(user);
   const userId = getUserId(user);
   const employeeId = getEmployeeId(user);
-  const rec = user as Record<string, unknown>;
+  const rec = user as unknown as Record<string, unknown>;
   const empBlock =
     (rec['employee'] as Record<string, unknown> | undefined) ?? rec;
+
   const readNum = (key: string): number | null => {
     const direct = Number(empBlock[key] ?? 0);
     if (direct > 0) return direct;
+
     const nested = (
       empBlock[key.replace('_id', '')] as { id?: number } | undefined
     )?.id;
     return Number(nested ?? 0) || null;
   };
+
   const positionId = readNum('position_id');
   const projectsRaw = Array.isArray(empBlock['projects'])
     ? (empBlock['projects'] as { id?: number }[])
@@ -295,16 +357,18 @@ export const buildDialogEmployeeData = (
       : [];
   const projects = projectsRaw
     .map((p) => Number(p?.id ?? 0))
-    .filter((id) => id > 0);
+    .filter((projectId) => projectId > 0);
   const hourlyRate = Number(empBlock['hourly_rate'] ?? rec['hourly_rate'] ?? 0);
 
   return {
     id: userId,
-    company_id: resolved.company_id ?? resolved.company?.id,
+    company_id: normalizeCompanyId(resolved.company_id ?? resolved.company?.id),
     profile: {
       id: userId,
       employee_id: employeeId,
-      company_id: resolved.company_id ?? resolved.company?.id,
+      company_id: normalizeCompanyId(
+        resolved.company_id ?? resolved.company?.id,
+      ),
       name: resolved.name,
       last_name: resolved.last_name,
       email: resolved.email,
@@ -325,10 +389,8 @@ export const buildDialogEmployeeData = (
   };
 };
 
-export const buildReportFilters = (
-  row: UsersListRow,
-): Record<string, unknown> => ({
-  company: row.companyId ?? 'all',
+export const buildReportFilters = (row: User): Record<string, unknown> => ({
+  company: normalizeCompanyId(row.company_id ?? row.company?.id) ?? 'all',
   project: 'all',
   byClient: false,
   useTimezone: false,
@@ -338,6 +400,7 @@ export const buildReportFilters = (
 export const buildPermissions = () => {
   const role = Number(localStorage.getItem('role') ?? 0);
   const canManage = new Set([1, 2, 3, 4]).has(role);
+
   return {
     canView: true,
     canEdit: canManage,
@@ -346,26 +409,33 @@ export const buildPermissions = () => {
   };
 };
 
-export const getSortableValue = (
-  user: UsersListRow,
-  sortBy: string,
-): string => {
+export const getSortableValue = (user: User, sortBy: string): string => {
   const valueMap: Record<string, string> = {
-    displayName: user.displayName,
-    roleLabel: user.roleLabel,
-    email: user.email,
-    statusLabel: user.statusLabel,
-    scheduleLabel: user.scheduleLabel,
-    reportsLabel: user.reportsLabel,
+    name: getDisplayName(user),
+    displayName: getDisplayName(user),
+    role: getRoleLabel(user),
+    roleLabel: user.roleLabel ?? getRoleLabel(user),
+    email: resolveText(user.email, 'N/A'),
+    status:
+      user.statusLabel ?? getStatusLabel(user, getUserId(user), new Set()),
+    statusLabel:
+      user.statusLabel ?? getStatusLabel(user, getUserId(user), new Set()),
+    schedule:
+      user.scheduleLabel ?? resolveScheduleLabel(user, getEmployeeId(user), {}),
+    scheduleLabel:
+      user.scheduleLabel ?? resolveScheduleLabel(user, getEmployeeId(user), {}),
+    reports: user.reportsLabel ?? 'Download',
+    reportsLabel: user.reportsLabel ?? 'Download',
   };
-  return (valueMap[sortBy] ?? user.displayName).toLowerCase();
+
+  return (valueMap[sortBy] ?? getDisplayName(user)).toLowerCase();
 };
 
 export const sortRows = (
-  rows: UsersListRow[],
+  rows: User[],
   sortBy: string,
   sortOrder: DynamicSortOrder,
-): UsersListRow[] =>
+): User[] =>
   [...rows].sort((left, right) => {
     const l = getSortableValue(left, sortBy);
     const r = getSortableValue(right, sortBy);
@@ -381,30 +451,31 @@ export const paginateRows = <T>(rows: T[], page: number, size: number): T[] => {
 
 export const resolveCompanyId = (response: unknown): number | null => {
   if (!isRecord(response)) return null;
+
   const company = response['company'];
   if (isRecord(company)) {
     const id = Number(company['id'] ?? 0);
     return id > 0 ? id : null;
   }
+
   const direct = Number(response['id'] ?? 0);
   return direct > 0 ? direct : null;
 };
 
-export const buildDialogFromRow = (
-  row: UsersListRow,
-): Record<string, unknown> => ({
+export const buildDialogFromRow = (row: User): Record<string, unknown> => ({
   id: row.id,
-  company_id: row.companyId,
+  company_id: normalizeCompanyId(row.company_id ?? row.company?.id),
   profile: {
-    id: row.employee_id,
-    company_id: row.companyId,
+    id: row.employee_id ?? row.id,
+    company_id: normalizeCompanyId(row.company_id ?? row.company?.id),
     name: row.name,
     last_name: row.last_name,
     email: row.email,
     position: null,
     hourly_rate: 0,
     projects: [],
-    imagePath: row.pictureUrl,
+    imagePath:
+      row.pictureUrl ?? row.picture ?? row.imagePath ?? DEFAULT_PROFILE_PIC,
   },
   user: {
     id: row.id,
@@ -416,7 +487,7 @@ export const buildDialogFromRow = (
 });
 
 export const buildDownloadPayload = (
-  row: UsersListRow,
+  row: User,
   firstSelect: Date,
   lastSelect: Date,
 ) => ({
@@ -429,7 +500,7 @@ export const canManageUsers = (): boolean =>
   new Set([1, 2, 3, 4]).has(Number(localStorage.getItem('role') ?? 0));
 
 interface BuildTableColumnsArgs {
-  reportTemplate: TemplateRef<DynamicTableCellContext<UsersListRow>> | null;
+  reportTemplate: TemplateRef<DynamicTableCellContext<User>> | null;
   canManage: boolean;
   allowedColumns?: UsersListColumn[];
 }
@@ -438,21 +509,23 @@ export const buildTableColumns = ({
   reportTemplate,
   canManage,
   allowedColumns,
-}: BuildTableColumnsArgs): DynamicTableColumn<UsersListRow>[] => {
+}: BuildTableColumnsArgs): DynamicTableColumn<User>[] => {
   const allowedColumnsInput = Array.isArray(allowedColumns)
     ? allowedColumns
     : undefined;
-  const columns: DynamicTableColumn<UsersListRow>[] = [
+
+  const columns: DynamicTableColumn<User>[] = [
     {
       id: 'name',
       header: 'User',
-      accessor: 'displayName',
+      accessor: (row) => getDisplayName(row),
       sortable: true,
-      sortKey: 'displayName',
+      sortKey: 'name',
       renderer: {
         type: 'avatar-name',
-        imageAccessor: 'pictureUrl',
-        titleAccessor: 'displayName',
+        imageAccessor: (row) =>
+          row.pictureUrl ?? row.picture ?? row.imagePath ?? DEFAULT_PROFILE_PIC,
+        titleAccessor: (row) => getDisplayName(row),
         subtitleAccessor: 'email',
         imageFallback: DEFAULT_PROFILE_PIC,
       },
@@ -467,12 +540,13 @@ export const buildTableColumns = ({
     {
       id: 'status',
       header: 'Status',
-      accessor: 'statusLabel',
+      accessor: (row) => getStatusLabel(row, getUserId(row), new Set<number>()),
       sortable: true,
-      sortKey: 'statusLabel',
+      sortKey: 'status',
       renderer: {
         type: 'status-pill',
-        valueAccessor: 'statusLabel',
+        valueAccessor: (row) =>
+          getStatusLabel(row, getUserId(row), new Set<number>()),
         palettes: {
           online: {
             backgroundColor: '#E8F5E9',
@@ -492,14 +566,15 @@ export const buildTableColumns = ({
     {
       id: 'schedule',
       header: 'Schedule',
-      accessor: 'scheduleLabel',
+      accessor: (row) =>
+        row.scheduleLabel ?? resolveScheduleLabel(row, getEmployeeId(row), {}),
       sortable: true,
-      sortKey: 'scheduleLabel',
+      sortKey: 'schedule',
     },
     {
       id: 'reports',
       header: 'Reports',
-      accessor: 'reportsLabel',
+      accessor: (row) => row.reportsLabel ?? 'Download',
       cellTemplate: reportTemplate ?? undefined,
     },
   ];
@@ -530,7 +605,7 @@ export const buildTableColumns = ({
 
 export const fetchUsers = (usersService: {
   getUserList: () => Observable<unknown>;
-}): Observable<UserRecord[]> =>
+}): Observable<User[]> =>
   usersService
     .getUserList()
     .pipe(

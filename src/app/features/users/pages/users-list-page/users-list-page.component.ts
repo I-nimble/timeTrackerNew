@@ -13,15 +13,12 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 
+import { User } from '@features/users/models/user.model';
 import {
   DEFAULT_USERS_LIST_COLUMNS,
   UsersListColumn,
 } from '@features/users/models/users-list.model';
-import {
-  UserRecord,
-  UsersListPageFilters,
-  UsersListRow,
-} from '@features/users/models/users-list.types';
+import { UsersListPageFilters } from '@features/users/models/users-list.types';
 import { UsersApiService } from '@features/users/services/users-api.service';
 import * as UsersListService from '@features/users/services/users-list.service';
 import { DynamicTableComponent } from '@shared/components/dynamic-table/dynamic-table.component';
@@ -54,7 +51,7 @@ const DEFAULT_EMPTY_MESSAGE = 'No users available.';
 export class UsersListPageComponent implements OnInit {
   @ViewChild('reportCell', { static: true })
   set reportCellTemplate(
-    template: TemplateRef<DynamicTableCellContext<UsersListRow>> | undefined,
+    template: TemplateRef<DynamicTableCellContext<User>> | undefined,
   ) {
     this.reportCellTemplateRef.set(template ?? null);
   }
@@ -68,9 +65,9 @@ export class UsersListPageComponent implements OnInit {
   readonly columns = input<UsersListColumn[]>(DEFAULT_USERS_LIST_COLUMNS);
   readonly filters = input<UsersListPageFilters>({});
 
-  private readonly rawUsers = signal<UserRecord[]>([]);
+  private readonly rawUsers = signal<User[]>([]);
   private readonly reportCellTemplateRef = signal<TemplateRef<
-    DynamicTableCellContext<UsersListRow>
+    DynamicTableCellContext<User>
   > | null>(null);
   private readonly loaded = signal<Set<string>>(new Set<string>());
 
@@ -78,7 +75,7 @@ export class UsersListPageComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly currentPage = signal<number>(1);
   readonly pageSize = signal<number>(DEFAULT_PAGE_SIZE);
-  readonly sortBy = signal<string>('displayName');
+  readonly sortBy = signal<string>('name');
   readonly sortOrder = signal<DynamicSortOrder>('asc');
 
   readonly allUsers = computed(() =>
@@ -157,12 +154,12 @@ export class UsersListPageComponent implements OnInit {
     if (change.pageSize > 0) this.pageSize.set(change.pageSize);
   }
 
-  onRowAction(event: DynamicTableRowActionEvent<UsersListRow>): void {
+  onRowAction(event: DynamicTableRowActionEvent<User>): void {
     if (event.action.id === 'edit') return this.editUser(event.row);
     if (event.action.id === 'delete') this.confirmDeleteUser(event.row);
   }
 
-  downloadReport(row: UsersListRow): void {
+  downloadReport(row: User): void {
     this.dialog
       .open(AppDateRangeDialogComponent, { autoFocus: false, width: '420px' })
       .afterClosed()
@@ -182,7 +179,7 @@ export class UsersListPageComponent implements OnInit {
       });
   }
 
-  editUser(row: UsersListRow): void {
+  editUser(row: User): void {
     const rawUser = this.rawUsers().find(
       (user) => UsersListService.getUserId(user) === row.id,
     );
@@ -209,14 +206,14 @@ export class UsersListPageComponent implements OnInit {
       .subscribe(() => this.reloadAll());
   }
 
-  confirmDeleteUser(row: UsersListRow): void {
+  confirmDeleteUser(row: User): void {
     this.dialog
       .open(ModalComponent, {
         autoFocus: false,
         data: {
           action: 'delete',
           subject: 'user',
-          message: `Delete ${row.displayName}?`,
+          message: `Delete ${UsersListService.getDisplayName(row)}?`,
         },
       })
       .afterClosed()
@@ -242,7 +239,7 @@ export class UsersListPageComponent implements OnInit {
     UsersListService.fetchUsers(this.usersApi)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (users: UserRecord[]) => {
+        next: (users: User[]) => {
           this.rawUsers.set(users);
           this.mark('users');
         },

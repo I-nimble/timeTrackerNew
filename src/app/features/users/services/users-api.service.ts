@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+﻿import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 
-import { LegacyUserRecord } from '@features/users/models/users-list.types';
+import { User } from '@features/users/models/user.model';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -10,7 +10,7 @@ export class UsersApiService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.apiUrl}/users`;
 
-  getUserList(): Observable<LegacyUserRecord[]> {
-    return this.http.get<LegacyUserRecord[]>(this.url);
+  getUserList(): Observable<User[]> {
+    return this.http.get<User[]>(this.url);
   }
 }
