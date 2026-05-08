@@ -2,6 +2,8 @@ import {
   ApplicationConfig,
   provideZoneChangeDetection,
   importProvidersFrom,
+  inject,
+  provideAppInitializer
 } from '@angular/core';
 import {
   HttpClient,
@@ -43,6 +45,7 @@ import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { dialogProviders } from './dialog.config';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { ClientAccessService } from './services/client-access.service';
 
 // code view
 import { provideHighlightOptions } from 'ngx-highlightjs';
@@ -97,6 +100,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideAnimationsAsync(),
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAppInitializer(() => inject(ClientAccessService).refresh()),
     provideAuth(() => getAuth()),
     importProvidersFrom(
       FormsModule,

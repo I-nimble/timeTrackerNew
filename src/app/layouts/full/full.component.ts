@@ -1,5 +1,5 @@
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation, effect, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { CoreService } from 'src/app/services/core.service';
@@ -7,6 +7,7 @@ import { AppSettings } from 'src/app/config';
 import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router } from '@angular/router';
 import { getNavItems } from './vertical/sidebar/sidebar-data';
+import { ClientAccessService } from 'src/app/services/client-access.service';
 import { AppNavItemComponent } from './vertical/sidebar/nav-item/nav-item.component';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
@@ -87,8 +88,9 @@ interface quicklinks {
   encapsulation: ViewEncapsulation.None,
 })
 export class FullComponent implements OnInit {
+  private readonly clientAccessService = inject(ClientAccessService);
   role: any = localStorage.getItem('role');
-  navItems = getNavItems(this.role);
+  navItems = getNavItems(this.role, this.clientAccessService.hasAccess());
   company: any;
   userName:any;
   userId:any;
@@ -234,6 +236,9 @@ export class FullComponent implements OnInit {
     private chatService: RocketChatService,
     private themeService: ThemeService,
   ) {
+    effect(() => {
+      this.navItems = getNavItems(this.role, this.clientAccessService.hasAccess());
+    });
     this.layoutChangesSubscription = this.breakpointObserver
       .observe([MOBILE_VIEW, TABLET_VIEW, MONITOR_VIEW, BELOWMONITOR])
       .subscribe((state) => {

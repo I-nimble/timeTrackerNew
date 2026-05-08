@@ -326,6 +326,9 @@ export class AppKanbanDialogComponent implements OnInit {
     this.isSaving = true;
 
     this.local_data.task_attachments = this.attachments;
+    this.local_data.comments = this.comments
+      .filter(c => c.isPending && c.comment && String(c.comment).trim())
+      .map(c => ({ comment: c.comment, user_id: c.user_id }));
 
     if (this.dueDateTime) {
       this.local_data.due_date = this.dueDateTime;

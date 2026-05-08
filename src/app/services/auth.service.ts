@@ -12,6 +12,7 @@ import { Auth, authState, AuthProvider, signInWithPopup, GoogleAuthProvider, use
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { from } from 'rxjs';
 import { EmployeesService } from 'src/app/services/employees.service';
+import { ClientAccessService } from './client-access.service';
 import { RoleTourService } from './role-tour.service';
 import { filter, take } from 'rxjs/operators';
 import { THEME_STORAGE_KEY } from './theme.service';
@@ -36,7 +37,7 @@ export class AuthService {
     private jwtHelper: JwtHelperService,
     private routes: Router,
     private notificationsService: NotificationsService,
-    private employeesService: EmployeesService,
+    private clientAccessService: ClientAccessService,
     private roleTourService: RoleTourService,
     private webSocketService: WebSocketService,
     private rocketChatService: RocketChatService
@@ -152,11 +153,10 @@ export class AuthService {
       await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
       return;
     } else if (rol == '3') {
-      const hasTeam = await this.hasTeamMembers();
-      localStorage.setItem('clientHasTeam', hasTeam ? 'true' : 'false');
-      if(hasTeam){
+      await this.clientAccessService.refresh();
+      if (this.clientAccessService.hasEmployees()) {
         await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
-      }else{
+      } else {
         await this.navigateAndMaybeStart('/apps/talent-match', rol);
       }
       return;
@@ -177,15 +177,6 @@ export class AuthService {
     while (!localStorage.getItem('jwt')) {
       if (Date.now() - start > timeoutMs) return;
       await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-  }
-
-  async hasTeamMembers(): Promise<boolean> {
-    try {
-      const employees = await lastValueFrom(this.employeesService.get());
-      return employees && employees.length > 0;
-    } catch (err) {
-      return false;
     }
   }
 

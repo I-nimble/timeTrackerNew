@@ -32,12 +32,6 @@ import { ApplicationsService } from 'src/app/services/applications.service';
 import { DepartmentsService } from 'src/app/services/departments.service';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { RocketChatService } from 'src/app/services/rocket-chat.service';
-import { StripeFactoryService } from 'src/app/components/stripe/stripe-factory.service';
-import { StripeService } from 'src/app/services/stripe.service';
-import { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
-import { firstValueFrom } from 'rxjs';
-import { StepperSelectionEvent } from '@angular/cdk/stepper';
-import { MatStepper } from '@angular/material/stepper';
 
 @Component({
   selector: 'app-side-register',
@@ -58,7 +52,7 @@ import { MatStepper } from '@angular/material/stepper';
   templateUrl: './side-register.component.html',
   styleUrls: ['./side-register.component.scss']
 })
-export class AppSideRegisterComponent implements OnInit, OnDestroy {
+export class AppSideRegisterComponent {
   options = this.settings.getOptions();
   assetPath = 'assets/images/login.png';
   registerClientForm = this.fb.group({
@@ -114,17 +108,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
   otherDepartment: string = '';
   signedWithGoogleClicked: boolean = false;
 
-  @ViewChild('clientStepper') clientStepper?: MatStepper;
-  @ViewChild('registrationPaymentContainer') registrationPaymentContainer?: ElementRef<HTMLElement>;
-  private registrationStripe: Stripe | null = null;
-  private registrationElements: StripeElements | null = null;
-  private registrationPaymentElement: StripePaymentElement | null = null;
-  registrationSetupClientSecret: string | null = null;
-  registrationPaymentMethodId: string | null = null;
-  isPaymentStepLoading = false;
-  isPaymentProcessing = false;
-  paymentStepError: string | null = null;
-
   constructor(
     private settings: CoreService,
     private router: Router,
@@ -143,8 +126,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
     private departmentsService: DepartmentsService,
     private cdr: ChangeDetectorRef,
     private rocketChatService: RocketChatService,
-    private stripeFactory: StripeFactoryService,
-    private stripeService: StripeService,
   ) {
     this.getCompanies();
     this.getPositions();
@@ -182,20 +163,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
 
     this.setupNameTrimming(this.registerTeamMemberForm, 'name');
     this.setupNameTrimming(this.registerTeamMemberForm, 'last_name');
-  }
-
-  ngOnInit(): void {
-    this.route.queryParams.subscribe(async (params) => {
-      const clientSecret = params['setup_intent_client_secret'];
-      const redirectStatus = params['redirect_status'];
-      if (!clientSecret) return;
-      if (redirectStatus === 'succeeded') {
-        await this.handleStripeReturn(clientSecret);
-      } else {
-        sessionStorage.removeItem('reg_pending');
-        this.openSnackBar('Payment authentication failed. Please try again.', 'error');
-      }
-    });
   }
 
   emailTakenValidator(): ValidatorFn {
@@ -345,45 +312,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
         this.openSnackBar('Please fill all the fields correctly', 'error');
         return;
       }
-      if (this.registrationElements && this.registrationStripe) {
-        sessionStorage.setItem('reg_pending', JSON.stringify({
-          firstName: this.registerClientForm.value.name,
-          lastName: this.registerClientForm.value.last_name,
-          company: this.registerClientForm.value.company_name,
-          departments: this.registerClientForm.value.departments,
-          otherDepartment: this.registerClientForm.value.otherDepartment,
-          email: this.registerClientForm.value.email,
-          phone: this.registerClientForm.value.phone,
-          password: this.registerClientForm.value.password,
-          google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
-        }));
-        this.isPaymentProcessing = true;
-        this.paymentStepError = null;
-        try {
-          const { error, setupIntent } = await this.registrationStripe.confirmSetup({
-            elements: this.registrationElements,
-            confirmParams: {
-              return_url: `${window.location.origin}/authentication/register`,
-            },
-            redirect: 'if_required',
-          });
-          if (error) {
-            sessionStorage.removeItem('reg_pending');
-            this.isPaymentProcessing = false;
-            this.paymentStepError = error.message ?? 'Payment setup failed.';
-            this.openSnackBar(this.paymentStepError ?? 'Payment setup failed.', 'error');
-            return;
-          }
-          sessionStorage.removeItem('reg_pending');
-          this.registrationPaymentMethodId = (setupIntent?.payment_method as string) ?? null;
-        } catch (err: any) {
-          sessionStorage.removeItem('reg_pending');
-          this.isPaymentProcessing = false;
-          this.paymentStepError = err.message ?? 'Payment setup failed.';
-          this.openSnackBar(this.paymentStepError ?? 'Payment setup failed.', 'error');
-          return;
-        }
-      }
       const clientData = {
         firstName: this.registerClientForm.value.name,
         lastName: this.registerClientForm.value.last_name,
@@ -394,7 +322,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
         phone: this.registerClientForm.value.phone,
         password: this.registerClientForm.value.password,
         google_user_id: this.registerClientForm.value.google_user_id === '' ? null : this.registerClientForm.value.google_user_id,
-        payment_method_id: this.registrationPaymentMethodId,
       };
       await this.registerAndLogin(clientData);
     }
@@ -544,30 +471,6 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
     };
   }
 
-  private async handleStripeReturn(clientSecret: string): Promise<void> {
-    const raw = sessionStorage.getItem('reg_pending');
-    sessionStorage.removeItem('reg_pending');
-    if (!raw) {
-      this.openSnackBar('Registration session expired. Please start again.', 'error');
-      return;
-    }
-    try {
-      const stripe = await this.stripeFactory.getStripe();
-      if (!stripe) throw new Error('Failed to load payment processor.');
-      const { setupIntent, error } = await stripe.retrieveSetupIntent(clientSecret);
-      if (error || !setupIntent || setupIntent.status !== 'succeeded') {
-        throw new Error(error?.message ?? 'Payment authentication failed.');
-      }
-      const clientData = {
-        ...JSON.parse(raw),
-        payment_method_id: setupIntent.payment_method as string,
-      };
-      await this.registerAndLogin(clientData);
-    } catch (err: any) {
-      this.openSnackBar(err.message ?? 'Registration failed. Please try again.', 'error');
-    }
-  }
-
   private registerAndLogin(clientData: any): Promise<void> {
     return new Promise((resolve, reject) => {
       this.companiesService.createPossible(clientData).subscribe({
@@ -609,63 +512,12 @@ export class AppSideRegisterComponent implements OnInit, OnDestroy {
             });
         },
         error: (e) => {
-          this.isPaymentProcessing = false;
           console.error(e);
           this.openSnackBar(e.error.message, 'error');
           reject(e);
         },
       });
     });
-  }
-
-  ngOnDestroy() {
-    if (this.registrationPaymentElement) {
-      this.registrationPaymentElement.destroy();
-    }
-  }
-
-  async onClientStepChange(event: StepperSelectionEvent) {
-    if (this.clientStepper && event.selectedStep === this.clientStepper.steps.last) {
-      await this.initPaymentStep();
-    }
-  }
-
-  async initPaymentStep() {
-    if (this.registrationSetupClientSecret) return;
-    this.isPaymentStepLoading = true;
-    this.paymentStepError = null;
-    try {
-      const email = this.registerClientForm.value.email ?? '';
-      const name = `${this.registerClientForm.value.name ?? ''} ${this.registerClientForm.value.last_name ?? ''}`.trim();
-      const response = await firstValueFrom(
-        this.stripeService.createRegistrationSetupIntent({ email, name }),
-      );
-      this.registrationSetupClientSecret = response.clientSecret;
-      if (!this.registrationStripe) {
-        this.registrationStripe = await this.stripeFactory.getStripe();
-      }
-      if (!this.registrationStripe) {
-        this.paymentStepError = 'Failed to load payment processor. Please try again.';
-        this.isPaymentStepLoading = false;
-        return;
-      }
-      this.registrationElements = this.registrationStripe.elements({
-        clientSecret: this.registrationSetupClientSecret,
-        appearance: { theme: 'stripe' as const },
-      });
-      this.registrationPaymentElement = (this.registrationElements as any).create('payment', {
-        layout: { type: 'accordion', defaultCollapsed: false },
-      });
-      this.cdr.detectChanges();
-      if (this.registrationPaymentContainer?.nativeElement) {
-        this.registrationPaymentElement?.mount(this.registrationPaymentContainer.nativeElement);
-      }
-      this.isPaymentStepLoading = false;
-    } catch (error: any) {
-      console.error('Error initializing payment step:', error);
-      this.paymentStepError = 'Failed to initialize payment. Please check your information.';
-      this.isPaymentStepLoading = false;
-    }
   }
 
   restrictPhoneInput(event: KeyboardEvent) {

@@ -172,6 +172,7 @@
     mat-icon-button
     (click)="toggleMobileFilterNav.emit()"
     class="d-flex d-lg-none justify-content-center"
+    *ngIf="!isRestrictedClient"
   >
     <i-tabler name="grid-dots" class="icon-20 d-flex"></i-tabler>
   </button>
