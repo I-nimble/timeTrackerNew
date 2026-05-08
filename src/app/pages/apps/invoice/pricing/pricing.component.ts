@@ -2,16 +2,19 @@ import { Component, Output, EventEmitter, Input, inject, OnInit } from '@angular
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from 'src/app/components/button/button.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { PricingCardComponent } from './pricing-card/pricing-card.component';
 import { PricingPlan } from './pricing.model';
-import { SubscriptionService } from 'src/app/services/subscription.service';
+import { SubscriptionService, SubscriptionStatus } from 'src/app/services/subscription.service';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
 interface apps {
   id: number;
@@ -62,6 +65,7 @@ interface features {
     MatSlideToggleModule,
     MatButtonModule,
     PricingCardComponent,
+    ModalComponent,
   ],
   templateUrl: './pricing.component.html',
 })
@@ -74,9 +78,13 @@ export class AppPricingComponent implements OnInit {
   private scroller = inject(ViewportScroller);
   private subscriptionService = inject(SubscriptionService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   options = this.settings.getOptions();
   currentPlanTitle: string | null = null;
+  subscriptionStatus: SubscriptionStatus | null = null;
+  canResubscribe = true;
+  isSubscriptionLoading = false;
 
   plans: PricingPlan[] = [
     {
@@ -212,19 +220,47 @@ export class AppPricingComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.loadCurrentPlan();
+    this.loadSubscriptionStatus();
   }
 
-  private loadCurrentPlan() {
-    // For now, assume no current plan. In real implementation, check subscription status
-    // This would need to be implemented based on user's subscription
-    this.currentPlanTitle = null; // Set to plan title if user has active subscription
+  private loadSubscriptionStatus() {
+    this.subscriptionService.getClientStatus().subscribe({
+      next: (status) => {
+        this.subscriptionStatus = status;
+        this.canResubscribe = status.canResubscribe ?? true;
+      },
+      error: (error) => {
+        console.error('Error loading subscription status:', error);
+        this.subscriptionStatus = null;
+        this.canResubscribe = true;
+      }
+    });
   }
 
   onPlanSelected(plan: PricingPlan) {
     const planId = this.getPlanId(plan.title);
-    if (planId) {
-      this.subscriptionService.createPlanSubscription(planId).subscribe({
+    if (!planId || this.isSubscriptionLoading) {
+      return;
+    }
+
+    if (!this.canResubscribe) {
+      this.dialog.open(ModalComponent, {
+        width: '400px',
+        data: {
+          action: 'wait',
+          subject: 'subscription',
+          message: 'Your current subscription is still in a blocked state. Please manage the existing plan in the Stripe portal or wait until cancellation completes.'
+        }
+      });
+      return;
+    }
+
+    this.isSubscriptionLoading = true;
+    this.subscriptionService.createPlanSubscription(planId)
+      .pipe(finalize(() => {
+        this.isSubscriptionLoading = false;
+      }))
+      .subscribe({
         next: (response) => {
           if (response.url) {
             window.location.href = response.url;
@@ -235,10 +271,26 @@ export class AppPricingComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error('Error creating subscription:', error);
+          if (error.status === 409) {
+            const dialogRef = this.dialog.open(ModalComponent, {
+              width: '400px',
+              data: {
+                action: 'update',
+                subject: 'Plan',
+                message: error.error?.error || 'You already have an active subscription. Open the Stripe customer portal to manage it?'
+              }
+            });
+
+            dialogRef.afterClosed().subscribe((result) => {
+              if (result && error.error?.portalUrl) {
+                window.location.href = error.error.portalUrl;
+              }
+            });
+          } else {
+            console.error('Error creating subscription:', error);
+          }
         }
       });
-    }
   }
 
   private getPlanId(planTitle: string): number | null {
