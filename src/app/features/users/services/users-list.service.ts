@@ -442,10 +442,10 @@ export const paginateRows = <T>(rows: T[], page: number, size: number): T[] => {
 };
 
 export const extractOnlineIds = (response: unknown): Set<number> => {
-  const entries = isRecord(response)
-    ? (response['entries'] as unknown[])
-    : Array.isArray(response)
-      ? response
+  const entries = Array.isArray(response)
+    ? response
+    : isRecord(response)
+      ? ((response['entries'] as unknown[]) ?? [])
       : [];
   const ids = new Set<number>();
   if (Array.isArray(entries)) {
