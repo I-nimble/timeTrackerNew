@@ -1523,7 +1523,7 @@ export class AppAccountSettingComponent implements OnInit {
   checkSubscriptionSuccess(): void {
     this.route.queryParams.subscribe(params => {
       if (params['subscription'] === 'success') {
-        this.openSnackBar('Sentinel subscription activated successfully!', 'Close');
+        this.openSnackBar('Subscription activated successfully!', 'Close');
         this.loadSubscriptionStatus();
         this.router.navigate(['/apps/account-settings']);
 

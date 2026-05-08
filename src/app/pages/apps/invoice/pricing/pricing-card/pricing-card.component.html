@@ -46,20 +46,23 @@
         <div class="feature-header">
           <span class="feature-label">{{ feature.label }}</span>
           <span class="feature-icon">
-            @if (openFeatureIndex() === i) {
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 25 25" fill="none" aria-hidden="true">
-                <path d="M7.106 14.073L12.158 9.126L17.105 14.179" stroke="#282322" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M17 10L12 15L7 10" stroke="#282322" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            }
+            <svg
+              class="chevron-icon"
+              [class.rotated]="openFeatureIndex() === i"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M17 10L12 15L7 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
           </span>
         </div>
-        @if (openFeatureIndex() === i) {
+        <div class="feature-body">
           <p class="feature-description">{{ feature.description }}</p>
-        }
+        </div>
       </div>
     }
   </div>
