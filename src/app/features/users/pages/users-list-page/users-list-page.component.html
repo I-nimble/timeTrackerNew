@@ -7,7 +7,7 @@
         class="users-list-page__report-button"
         aria-label="Download report"
         title="Download report"
-        (click)="downloadReport(row)"
+        (click)="downloadReport(row); $event.stopPropagation()"
       >
         <mat-icon>download</mat-icon>
       </button>

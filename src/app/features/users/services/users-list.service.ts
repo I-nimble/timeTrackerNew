@@ -387,7 +387,7 @@ export const buildReportFilters = (
 
 export const buildPermissions = () => {
   const role = Number(localStorage.getItem('role') ?? 0);
-  const canManage = new Set([1, 3, 4]).has(role);
+  const canManage = new Set([1, 2, 3, 4]).has(role);
   return {
     canView: true,
     canEdit: canManage,
@@ -494,7 +494,7 @@ export const buildDownloadPayload = (
 });
 
 export const canManageUsers = (): boolean =>
-  new Set([1, 3, 4]).has(Number(localStorage.getItem('role') ?? 0));
+  new Set([1, 2, 3, 4]).has(Number(localStorage.getItem('role') ?? 0));
 
 interface BuildTableColumnsArgs {
   reportTemplate: TemplateRef<DynamicTableCellContext<UsersListRow>> | null;
