@@ -5,7 +5,7 @@ export const environment = {
     intakeRefactor: false,
     dashboardRefactor: false,
     billingRefactor: false,
-    workforceRefactor: true,
+    usersRefactor: true,
     timeTrackingRefactor: false,
     talentMatchRefactor: false,
     authenticationRefactor: false,

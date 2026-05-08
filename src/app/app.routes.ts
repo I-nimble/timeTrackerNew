@@ -181,40 +181,38 @@ export const routes: Routes = [
       },
 
       /**
-       * Workforce Feature (FULL CUTOVER)
-       * Full paths: /refactor/workforce, /refactor/workforce/team, /refactor/workforce/time-tracker, /refactor/workforce/employee
-       * Ownership: FEATURE (src/app/features/workforce/)
+       * Users Feature (FULL CUTOVER)
+       * Full paths: /refactor/users, /refactor/users/team, /refactor/users/time-tracker, /refactor/users/employee
+       * Ownership: FEATURE (src/app/features/users/)
        * Also served at: /apps/team, /apps/time-tracker, /apps/employee (production paths)
-       * Feature flag: featureFlags.workforceRefactor
+       * Feature flag: featureFlags.usersRefactor
        * Migration status: Production cutover + lazy route cutover completed (deprecation-log.md: 2026-04-01)
        */
       {
-        path: 'refactor/workforce',
+        path: 'refactor/users',
         loadChildren: () =>
-          import('@features/workforce/workforce.routes').then(
-            (m) => m.WorkforceRoutes,
-          ),
+          import('@features/users/users.routes').then((m) => m.UsersRoutes),
         canActivate: [AuthGuard, featureFlagGuard],
         data: {
-          featureFlag: 'workforceRefactor',
-          enabled: environment.featureFlags?.workforceRefactor,
+          featureFlag: 'usersRefactor',
+          enabled: environment.featureFlags?.usersRefactor,
         },
       },
 
-      // Workforce route aliases (for convenience; redirect to feature workforce paths)
+      // Users route aliases (for convenience; redirect to feature users paths)
       {
         path: 'refactor/team',
-        redirectTo: 'refactor/workforce/team',
+        redirectTo: 'refactor/users/team',
         pathMatch: 'full',
       },
       {
         path: 'refactor/time-tracker',
-        redirectTo: 'refactor/workforce/time-tracker',
+        redirectTo: 'refactor/users/time-tracker',
         pathMatch: 'full',
       },
       {
         path: 'refactor/employee',
-        redirectTo: 'refactor/workforce/employee',
+        redirectTo: 'refactor/users/employee',
         pathMatch: 'full',
       },
 
