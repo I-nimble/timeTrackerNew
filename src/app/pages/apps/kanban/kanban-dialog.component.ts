@@ -81,8 +81,8 @@ export class AppKanbanDialogComponent implements OnInit {
   firstAttachmentImage: any = null;
   pastedAttachments: any[] = [];
   @ViewChild('commentTextarea') commentTextarea?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
   @ViewChild('commentEditor') commentEditor?: ElementRef<HTMLDivElement>;
+  @ViewChild('descriptionEditor') descriptionEditor!: ElementRef;
   formTouched: boolean = false;
   isSaving: boolean = false;
   isOrphan: boolean = false;
@@ -394,6 +394,79 @@ export class AppKanbanDialogComponent implements OnInit {
     }
   }
 
+  selectMention(user: any) {
+    const textarea = this.commentTextarea?.nativeElement;
+    if (!textarea) return;
+
+    const value = this.commentText || '';
+    const before = value.substring(0, this.mentionStartPos);
+    const after = value.substring(textarea.selectionStart);
+
+    const mentionHtml = `<span class="mention" data-user-id="${user.id}" contenteditable="false">@${user.name} ${user.last_name}</span>`;
+    this.commentText = before + mentionHtml + ' ' + after;
+
+    this.showMentionList = false;
+
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = before.length + mentionHtml.length + 1;
+      textarea.selectionStart = newPosition;
+      textarea.selectionEnd = newPosition;
+    });
+  }
+
+  getMentionMarkup(user: any): string {
+    return `@${user.name}${user.last_name}`;
+  }
+
+  submitComment() {
+    if (this.commentEditor?.nativeElement) {
+      this.commentText = (this.commentEditor.nativeElement.innerHTML || '').trim();
+    }
+
+    if (!this.commentText.trim()) return;
+
+    const mentioned_user_ids = this.extractMentionIds(this.commentText);
+
+    if (this.selectedComment) {
+      this.editComment(this.selectedComment, this.commentText, mentioned_user_ids);
+      this.selectedComment = null;
+      this.clearCommentEditor();
+      this.showSnackbar('Comment updated!');
+      return;
+    }
+
+    if (!this.local_data.id) {
+      const currentUser = this.users.find(u => u.id == this.userId) || {
+        name: localStorage.getItem('name') || 'Unknown',
+        last_name: localStorage.getItem('last_name') || 'User',
+      };
+      const localComment = {
+        comment: this.commentText,
+        user_id: this.userId,
+        createdAt: new Date(),
+        user: { name: currentUser.name, last_name: currentUser.last_name },
+        isPending: true,
+      };
+      this.comments.push(localComment);
+      this.local_data.comments = this.comments.filter(c => c.isPending);
+      this.clearCommentEditor();
+      this.showSnackbar('Comment added!');
+      return;
+    }
+
+    const payload = {
+      rating_id: this.local_data.id,
+      comment: this.commentText,
+      mentioned_user_ids,
+    };
+    this.ratingsService.addComment(payload).subscribe(newComment => {
+      this.comments.push(newComment);
+      this.clearCommentEditor();
+      this.showSnackbar('Comment added!');
+    });
+  }
+
   onDialogScroll() {
     this.updateMentionPopupPosition();
   }
@@ -434,6 +507,10 @@ export class AppKanbanDialogComponent implements OnInit {
   }
 
   detectMention(target: 'description' | 'comment') {
+    if (target === 'comment' && this.commentEditor?.nativeElement) {
+      this.commentText = (this.commentEditor.nativeElement.innerHTML || '').trim();
+    }
+
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) {
       this.closeMentionPopup();
@@ -554,6 +631,8 @@ export class AppKanbanDialogComponent implements OnInit {
 
     if (this.mentionTarget === 'description') {
       this.updateRecommendationsValue();
+    } else if (this.mentionTarget === 'comment' && this.commentEditor?.nativeElement) {
+      this.commentText = (this.commentEditor.nativeElement.innerHTML || '').trim();
     }
     this.closeMentionPopup();
   }
@@ -573,59 +652,6 @@ export class AppKanbanDialogComponent implements OnInit {
       .map(el => parseInt(el.getAttribute('data-user-id') || '0', 10))
       .filter(id => Number.isFinite(id) && id > 0);
     return Array.from(new Set(ids));
-  }
-
-  submitComment() {
-    const html = (this.commentEditor?.nativeElement.innerHTML || '').trim();
-    const text = (this.commentEditor?.nativeElement.innerText || '').trim();
-    if (!text) return;
-
-    const mentioned_user_ids = this.extractMentionIds(html);
-
-    if (this.selectedComment) {
-      this.editComment(this.selectedComment, html, mentioned_user_ids);
-      this.selectedComment = null;
-      this.clearCommentEditor();
-      this.showSnackbar('Comment updated!');
-      return;
-    }
-
-    if (!this.local_data.id) {
-      const currentUser = this.users.find(u => u.id == this.userId) || {
-        name: localStorage.getItem('name') || 'Unknown',
-        last_name: localStorage.getItem('last_name') || 'User',
-      };
-      const localComment = {
-        comment: this.commentText,
-        user_id: this.userId,
-        createdAt: new Date(),
-        user: { name: currentUser.name, last_name: currentUser.last_name },
-        isPending: true,
-      };
-      this.comments.push(localComment);
-      this.local_data.comments = this.comments.filter(c => c.isPending);
-      this.commentText = '';
-      this.showSnackbar('Comment added!');
-      return;
-    }
-
-    const payload = {
-      rating_id: this.local_data.id,
-      comment: html,
-        mentioned_user_ids,
-    };
-    this.ratingsService.addComment(payload).subscribe(newComment => {
-      this.comments.push(newComment);
-      this.clearCommentEditor();
-      this.showSnackbar('Comment added!');
-    });
-  }
-
-  private clearCommentEditor() {
-    this.commentText = '';
-    if (this.commentEditor?.nativeElement) {
-      this.commentEditor.nativeElement.innerHTML = '';
-    }
   }
 
   hasCommentText(): boolean {
@@ -668,6 +694,18 @@ export class AppKanbanDialogComponent implements OnInit {
       this.comments = this.comments.filter(c => c.id !== comment.id);
       this.showSnackbar('Comment deleted!');
     });
+  }
+
+  private clearCommentEditor(): void {
+    this.commentText = '';
+    if (this.commentEditor?.nativeElement) {
+      this.commentEditor.nativeElement.innerHTML = '';
+    }
+    if (this.commentTextarea?.nativeElement) {
+      try {
+        this.commentTextarea.nativeElement.value = '';
+      } catch {}
+    }
   }
 
   async onPaste(event: ClipboardEvent) {
