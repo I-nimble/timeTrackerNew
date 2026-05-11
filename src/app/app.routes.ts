@@ -8,6 +8,7 @@ import { AuthGuard } from './services/guards/auth-guard.service';
 import { notAuthGuard } from './services/guards/notAuth-guard.service';
 import { UserTypeGuardService } from './services/guards/user-type-guard.service';
 import { externalRedirectGuard } from './services/guards/external-redirect-guard.service';
+import { ClientNoTMGuard } from './services/guards/client-no-tm.service';
 
 const ADMIN_TYPE_ROLE = '1';
 const USER_TYPE_ROLE = '2';
@@ -35,7 +36,7 @@ export const routes: Routes = [
           import('./pages/dashboards/dashboards.routes').then(
             (m) => m.DashboardsRoutes
           ),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ClientNoTMGuard],
         data: { allowedUserTypes: [USER_TYPE_ROLE, CLIENT_TYPE_ROLE, ADMIN_TYPE_ROLE, SUPPORT_TYPE_ROLE] },
       },
       {
@@ -54,7 +55,7 @@ export const routes: Routes = [
         path: 'apps',
         loadChildren: () =>
           import('./pages/apps/apps.routes').then((m) => m.AppsRoutes),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ClientNoTMGuard],
       },
       {
         path: 'widgets',

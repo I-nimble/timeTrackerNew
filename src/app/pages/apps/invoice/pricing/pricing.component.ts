@@ -1,104 +1,313 @@
-import { ViewportScroller, CommonModule } from "@angular/common"
-import { Component, ViewChild, ElementRef } from "@angular/core"
-import { FormsModule } from "@angular/forms"
-import { MatButtonModule } from "@angular/material/button"
-import { MatCardModule } from "@angular/material/card"
-import { MatRadioModule } from "@angular/material/radio"
-import { TablerIconsModule } from "angular-tabler-icons"
-import { MaterialModule } from "src/app/material.module"
-import { CoreService } from "src/app/services/core.service"
-import { StripeComponent } from 'src/app/components/stripe/stripe.component';
-import { ActivatedRoute } from '@angular/router';
-import { BankTransferComponent } from "src/app/components/stripe/bank-transfer/bank-transfer.component"
-import { PaymentModalComponent } from "src/app/components/payment-modal/payment-modal.component"
+import { Component, Output, EventEmitter, Input, inject, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
-import { CheckComponent } from "src/app/components/stripe/check/check.component"
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { CoreService } from 'src/app/services/core.service';
+import { ViewportScroller } from '@angular/common';
+import { MaterialModule } from 'src/app/material.module';
+import { RouterLink } from '@angular/router';
+import { ButtonComponent } from 'src/app/components/button/button.component';
+import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
+import { PricingCardComponent } from './pricing-card/pricing-card.component';
+import { PricingPlan } from './pricing.model';
+import { SubscriptionService, SubscriptionStatus } from 'src/app/services/subscription.service';
+import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 
-interface pricecards {
-  id: number
-  plan: string
-  btnText: string
-  popular?: boolean
+interface apps {
+  id: number;
+  img: string;
+  title: string;
+  subtitle: string;
+  link: string;
+}
+
+interface quicklinks {
+  id: number;
+  title: string;
+  link: string;
+}
+
+interface demos {
+  id: number;
+  name: string;
+  subtext?: string;
+  url: string;
+  imgSrc: string;
+}
+
+interface testimonials {
+  id: number;
+  name: string;
+  subtext: string;
+  imgSrc: string;
+}
+
+interface features {
+  id: number;
+  icon: string;
+  title: string;
+  subtext: string;
+  color: string;
 }
 
 @Component({
-  selector: "app-pricing-stripe",
-  imports: [TablerIconsModule, MatCardModule, MatButtonModule, MatRadioModule, MaterialModule, FormsModule, StripeComponent, CommonModule, BankTransferComponent, CheckComponent],
-  templateUrl: "./pricing.component.html",
-  styleUrl: './pricing.component.scss'
+  selector: 'app-pricing',
+  styleUrl: './pricing.component.scss',
+  imports: [
+    MaterialModule,
+    ButtonComponent,
+    RouterLink,
+    TablerIconsModule,
+    MatCardModule,
+    MatSlideToggleModule,
+    MatButtonModule,
+    PricingCardComponent,
+    ModalComponent,
+  ],
+  templateUrl: './pricing.component.html',
 })
-export class AppPricingStripeComponent {
-  public selectedPaymentMethod = ""
-  selectedInvoiceId: string | null = null;
-  @ViewChild('paymentForm') paymentForm!: ElementRef;
+export class AppPricingComponent implements OnInit {
+  @Input() showToggle = true;
+  @Output() toggleMobileNav = new EventEmitter<void>();
+  @Output() toggleMobileFilterNav = new EventEmitter<void>();
+  @Output() toggleCollapsed = new EventEmitter<void>();
+  private settings = inject(CoreService);
+  private scroller = inject(ViewportScroller);
+  private subscriptionService = inject(SubscriptionService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
 
-  onPaymentMethodChange(method: string) {
-    this.selectedPaymentMethod = method
+  options = this.settings.getOptions();
+  currentPlanTitle: string | null = null;
+  subscriptionStatus: SubscriptionStatus | null = null;
+  canResubscribe = true;
+  isSubscriptionLoading = false;
 
-    if (this.selectedPaymentMethod == 'card'){
-      setTimeout(() => {
-      if (this.paymentForm) {
-        this.paymentForm.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  plans: PricingPlan[] = [
+    {
+      title: 'Essential',
+      description: 'The foundation of operational success.',
+      price: 750,
+      priceSuffix: '/month',
+      featuresLabel: { prefix: 'Services included when working with inimble' },
+      features: [
+        {
+          label: 'Talent Acquisition',
+          description:
+            'Elite recruitment with specialized vetting (personality, English proficiency, and skill assessments).',
+        },
+        {
+          label: 'HR Infrastructure',
+          description:
+            'Full HR management, including biweekly payroll, local tax handling, and legal compliance (Employer of Record).',
+        },
+        {
+          label: 'Inimble Platform Access',
+          description:
+            'Full use of the app for time tracking, activity monitoring (screenshots and alerts), and productivity management.',
+        },
+        {
+          label: 'Training',
+          description:
+            'Basic training in legal tools (Filevine, Clio, CRM platforms) and specific roles.',
+        },
+      ],
+      buttonText: 'Start today for free',
+      buttonLink: 'https://inimbleapp.com/authentication/login',
+    },
+    {
+      title: 'Professional',
+      description: 'Total continuity and support.',
+      price: 980,
+      priceSuffix: '/month',
+      featuresLabel: { prefix: 'Everything included in Essential ', highlight: 'Plus', suffix: ':' },
+      features: [
+        {
+          label: 'Premium Infrastructure',
+          description:
+            'Physical office space with ergonomic furniture, conference room access, and break room amenities.',
+        },
+        {
+          label: 'Reliability Guarantee',
+          description:
+            'Full electrical power backup with a generator and triple-redundant high-speed internet to eliminate downtime.',
+        },
+        {
+          label: '24/7 IT Support',
+          description:
+            'Secure account setup, software installation, system maintenance, and direct IT helpdesk support.',
+        },
+        {
+          label: 'Equipment',
+          description: 'Provision of a dedicated laptop and professional headset for the team member.',
+        },
+        {
+          label: 'Retention & Culture',
+          description:
+            'Employee motivation programs, community-building initiatives, and sentiment tracking to ensure long-term talent retention.',
+        },
+      ],
+      buttonText: 'Start today for free',
+      buttonLink: 'https://inimbleapp.com/authentication/login',
+      isPopular: true,
+    },
+    {
+      title: 'Executive',
+      description: 'Elite and customization.',
+      price: 1250,
+      priceSuffix: '/month',
+      featuresLabel: {
+        prefix: 'Everything included in Professional ',
+        highlight: 'Plus',
+        suffix: ':',
+      },
+      features: [
+        {
+          label: 'Specialized Headhunting',
+          description:
+            'Active search for high-complexity roles that require very specific professional profiles.',
+        },
+        {
+          label: 'Onsite Logistics',
+          description:
+            'Onsite HR coordinator and IT logistics manager, plus daily transportation benefits for the team.',
+        },
+        {
+          label: 'Direct Supervision',
+          description:
+            'Includes a Success Manager for direct oversight, ensuring that KPIs and firm standards are consistently met.',
+        },
+      ],
+      buttonText: 'Start today for free',
+      buttonLink: 'https://inimbleapp.com/authentication/login',
+    },
+    {
+      title: 'AI Legal Agent',
+      description: '24/7 Intelligence.',
+      price: 500,
+      priceSuffix: '/month',
+      featuresLabel: {
+        prefix: 'An AI agent trained in ',
+        highlight: 'basic',
+        suffix: ' legal procedures:',
+      },
+      features: [
+        {
+          label: 'Intelligent Intake',
+          description: '24/7 intake and consultation services with no wait times for clients.',
+        },
+        {
+          label: 'Real-time Scoring',
+          description:
+            'Automatic data scoring to immediately prioritize cases or relevant information.',
+        },
+        {
+          label: 'Data Processing',
+          description: 'Automatic classification and organization of legal documents and files.',
+        },
+        {
+          label: 'Monitoring & Productivity',
+          description:
+            'Constant activity tracking and real-time interaction alerts (as per the remote monitoring protocol).',
+        },
+      ],
+      buttonText: 'Start today for free',
+      buttonLink: 'https://inimbleapp.com/authentication/login',
+    },
+  ];
+
+  ngOnInit() {
+    this.loadSubscriptionStatus();
+  }
+
+  private loadSubscriptionStatus() {
+    this.subscriptionService.getClientStatus().subscribe({
+      next: (status) => {
+        this.subscriptionStatus = status;
+        this.canResubscribe = status.canResubscribe ?? true;
+      },
+      error: (error) => {
+        console.error('Error loading subscription status:', error);
+        this.subscriptionStatus = null;
+        this.canResubscribe = true;
       }
-    }, 1000);
-    } else {
-      console.log(this.selectedPaymentMethod)
-      this.dialog.open(PaymentModalComponent, {
-      width: '350px'
-    });
-    }
-  }
-
-  getPaymentMethod(cardId: number): string {
-    switch (cardId) {
-      case 1:
-        return "card"
-      case 2:
-        return "transfer"
-      case 3:
-        return "check"
-      default:
-        return "card"
-    }
-  }
-
-  pricecards: pricecards[] = [
-    {
-      id: 1,
-      plan: "Card",
-      btnText: "Choose Card Payment",
-    },
-    {
-      id: 2,
-      plan: "Transfer",
-      btnText: "Choose Transfer Payment",
-      popular: true,
-    },
-    {
-      id: 3,
-      plan: "Check",
-      btnText: "Choose Check Payment",
-    },
-  ]
-
-  constructor(
-    private settings: CoreService,
-    private scroller: ViewportScroller,
-    private route: ActivatedRoute,
-    private dialog: MatDialog
-  ) {
-    this.route.queryParams.subscribe(params => {
-      if (params['invoiceId']) {
-        this.selectedInvoiceId = params['invoiceId'];
-      }
     });
   }
 
-  gotoDemos() {
-    this.scroller.scrollToAnchor('demos');
+  onPlanSelected(plan: PricingPlan) {
+    const planId = this.getPlanId(plan.title);
+    if (!planId || this.isSubscriptionLoading) {
+      return;
+    }
+
+    if (!this.canResubscribe) {
+      this.dialog.open(ModalComponent, {
+        width: '400px',
+        data: {
+          action: 'wait',
+          subject: 'subscription',
+          message: 'Your current subscription is still in a blocked state. Please manage the existing plan in the Stripe portal or wait until cancellation completes.'
+        }
+      });
+      return;
+    }
+
+    this.isSubscriptionLoading = true;
+    this.subscriptionService.createPlanSubscription(planId)
+      .pipe(finalize(() => {
+        this.isSubscriptionLoading = false;
+      }))
+      .subscribe({
+        next: (response) => {
+          if (response.url) {
+            window.location.href = response.url;
+          } else if (response.updated) {
+            this.router.navigate(['/apps/account-settings'], {
+              queryParams: { tab: 0, subscription: 'updated' }
+            });
+          }
+        },
+        error: (error) => {
+          if (error.status === 409) {
+            const dialogRef = this.dialog.open(ModalComponent, {
+              width: '400px',
+              data: {
+                action: 'update',
+                subject: 'Plan',
+                message: error.error?.error || 'You already have an active subscription. Open the Stripe customer portal to manage it?'
+              }
+            });
+
+            dialogRef.afterClosed().subscribe((result) => {
+              if (result && error.error?.portalUrl) {
+                window.location.href = error.error.portalUrl;
+              }
+            });
+          } else {
+            console.error('Error creating subscription:', error);
+          }
+        }
+      });
   }
 
-  apps: any[] = [
+  private getPlanId(planTitle: string): number | null {
+    const planMap: { [key: string]: number } = {
+      'Essential': 2,
+      'Professional': 3,
+      'Executive': 4,
+      'AI Legal Agent': 5
+    };
+    return planMap[planTitle] || null;
+  }
+
+  isCurrentPlan(plan: PricingPlan): boolean {
+    return this.currentPlanTitle === plan.title;
+  }
+
+  apps: apps[] = [
     {
       id: 1,
       img: '/assets/images/svgs/icon-dd-chat.svg',
@@ -157,7 +366,11 @@ export class AppPricingStripeComponent {
     },
   ];
 
-  testimonials: any[] = [
+  demos: demos[] = [];
+
+  appdemos: demos[] = [];
+
+  testimonials: testimonials[] = [
     {
       id: 1,
       imgSrc: '/assets/images/profile/user-1.jpg',
@@ -178,7 +391,7 @@ export class AppPricingStripeComponent {
     },
   ];
 
-  features: any[] = [
+  features: features[] = [
     {
       id: 1,
       icon: 'wand',
@@ -209,80 +422,9 @@ export class AppPricingStripeComponent {
       color: 'primary',
       subtext: 'At inimble we have custom-made all-in-one management tools specifically made for remote team management, including communication, project tracking, and culture building.',
     },
-    // {
-    //   id: 5,
-    //   icon: 'tag',
-    //   title: 'Material ',
-    //   color: 'success',
-    //   subtext: 'Its been made with Material and full responsive layout.',
-    // },
-    // {
-    //   id: 9,
-    //   icon: 'adjustments',
-    //   title: 'Lots of Chart Options',
-    //   color: 'error',
-    //   subtext: 'You name it and we have it, Yes lots of variations for Charts.',
-    // },
-    // {
-    //   id: 7,
-    //   icon: 'language-katakana',
-    //   title: 'i18 Angular',
-    //   color: 'secondary',
-    //   subtext: 'i18 is a powerful internationalization framework.',
-    // },
-    // {
-    //   id: 13,
-    //   icon: 'calendar',
-    //   title: 'Calendar Design',
-    //   color: 'warning',
-    //   subtext: 'Calendar is available with our package & in nice design.',
-    // },
-
-    // {
-    //   id: 6,
-    //   icon: 'diamond',
-    //   title: '3400+ Font Icons',
-    //   color: 'primary',
-    //   subtext: 'Lots of Icon Fonts are included here in the package of Admin.',
-    // },
-    // {
-    //   id: 11,
-    //   icon: 'refresh',
-    //   title: 'Regular Updates',
-    //   color: 'primary',
-    //   subtext: 'We are constantly updating our pack with new features..',
-    // },
-    // {
-    //   id: 8,
-    //   icon: 'arrows-shuffle',
-    //   title: 'Easy to Customize',
-    //   color: 'secondary',
-    //   subtext: 'Customization will be easy as we understand your pain.',
-    // },
-    // {
-    //   id: 10,
-    //   icon: 'layers-intersect',
-    //   title: 'Lots of Table Examples',
-    //   color: 'success',
-    //   subtext: 'Tables are initial requirement and we added them.',
-    // },
-    // {
-    //   id: 14,
-    //   icon: 'messages',
-    //   title: 'Dedicated Support',
-    //   color: 'error',
-    //   subtext: 'We believe in supreme support is key and we offer that.',
-    // },
-    // {
-    //   id: 12,
-    //   icon: 'book',
-    //   title: 'Detailed Documentation',
-    //   color: 'warning',
-    //   subtext: 'Our Detailed Documentation Ensures Ease of Use',
-    // },
   ];
 
-  quicklinks: any[] = [
+  quicklinks: quicklinks[] = [
     {
       id: 1,
       title: 'Pricing Page',

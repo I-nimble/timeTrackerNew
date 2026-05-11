@@ -7,7 +7,7 @@ import { ReportsComponent } from './reports/reports.component';
 import { ProductivityComponent } from './productivity/productivity.component';
 import { NotificationsComponent } from './notifications/notifications.component';
 import { AppMaintenanceComponent } from '../authentication/maintenance/maintenance.component';
-
+import { ClientNoTMGuard } from 'src/app/services/guards/client-no-tm.service';
 import { AppDashboardTMComponent } from './dashboard-tm/dashboard-tm.component';
 import { AppDashboardAdminComponent } from './dashboard-admin/dashboard-admin.component';
 import { UserTypeGuardService } from 'src/app/services/guards/user-type-guard.service';
@@ -25,7 +25,7 @@ export const DashboardsRoutes: Routes = [
         path: 'dashboard2',
         component: AppDashboard2Component,
         data: { title: 'Dashboard', allowedUserTypes: [CLIENT_TYPE_ROLE] },
-        canActivate: [UserTypeGuardService],
+        canActivate: [UserTypeGuardService, ClientNoTMGuard],
       },
       {
         path: 'tm',

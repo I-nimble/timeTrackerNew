@@ -29,7 +29,7 @@ import { NotificationsComponent } from '../dashboards/notifications/notification
 import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { TeamComponent } from './team/team.component';
 import { AppHistoryComponent } from './history/history.component';
-import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
+import { AppPaymentMethodComponent } from './invoice/payment-method/payment-method.component';
 import { AppExpertComponent } from './expert/expert.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
@@ -44,6 +44,7 @@ import { R3Component } from './r3/r3.component';
 import { R3ActionComponent } from './r3/action/r3.action.component';
 import { R3TractionComponent } from './r3/traction/r3.traction.component';
 import { R3VisionComponent } from './r3/vision/r3.vision.component';
+import { AppPricingComponent } from './invoice/pricing/pricing.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -535,9 +536,21 @@ export const AppsRoutes: Routes = [
       },
       {
         path: 'pricing',
-        component: AppPricingStripeComponent,
+        component: AppPricingComponent,
         data: {
           title: 'Pricing',
+          showGoBack: true,
+          urls: [
+            { title: 'Dashboard', url: '/dashboards/dashboard1' },
+            { title: 'Pricing' },
+          ],
+        },
+      },
+      {
+        path: 'payment-method',
+        component: AppPaymentMethodComponent,
+        data: {
+          title: 'Payment Method',
           showGoBack: true,
           urls: [
             { title: 'Dashboard', url: '/dashboards/dashboard1' },
