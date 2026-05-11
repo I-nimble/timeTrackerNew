@@ -232,13 +232,6 @@ export class NotificationsService {
     );
   }
 
-  markInterested(userId: number, candidateId: number, candidatePosition: string, candidateArea: string) {
-    return this.http.post(
-      `${this.API_URI}/interested`,
-      { userId, candidateId, candidatePosition, candidateArea },
-    );
-  }
-
   submitTalentMatch(payload: {
     searchParams: any;
     intakeInfo: any;

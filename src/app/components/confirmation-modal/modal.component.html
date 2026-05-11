@@ -1,21 +1,47 @@
-<h2 mat-dialog-title>Confirmation</h2>
-<mat-dialog-content>
-  Are you sure you want to {{data.action ? data.action : 'Delete'}} this {{data.subject}}?
-  <mat-error>{{ data.message ? data.message : '' }}</mat-error>
-</mat-dialog-content>
-<mat-dialog-actions class="d-flex flex-end">
+<div class="modal-header d-flex align-items-center justify-content-between">
+  <h2 mat-dialog-title class="m-0">{{ data.title || 'Confirmation' }}</h2>
   <button
+    *ngIf="data.showCloseIcon"
+    mat-icon-button
+    [mat-dialog-close]="false"
+    aria-label="Close"
+    type="button"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+<mat-dialog-content>
+  <ng-container *ngIf="data.body; else legacyBody">
+    <p class="m-0">{{ data.body }}</p>
+  </ng-container>
+  <ng-template #legacyBody>
+    Are you sure you want to {{ data.action ? data.action : 'Delete' }} this {{ data.subject }}?
+  </ng-template>
+  <mat-error *ngIf="data.message">{{ data.message }}</mat-error>
+</mat-dialog-content>
+<mat-dialog-actions class="d-flex flex-end gap-2 flex-wrap">
+  <button
+    *ngIf="data.cta"
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="onCtaClick()"
+  >
+    {{ data.cta.label }}
+  </button>
+  <button
+    *ngIf="!data.hideConfirm"
     mat-flat-button
     [mat-dialog-close]="true"
   >
-    Yes
+    {{ data.confirmText || 'Yes' }}
   </button>
   <button
+    *ngIf="!data.hideCancel"
     mat-flat-button
     class="bg-error text-white"
     [mat-dialog-close]="false"
-    class="bg-error text-white"
   >
-    No
+    {{ data.cancelText || 'No' }}
   </button>
 </mat-dialog-actions>

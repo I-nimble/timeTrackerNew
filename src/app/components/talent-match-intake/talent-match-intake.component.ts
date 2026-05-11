@@ -35,7 +35,7 @@ export class TalentMatchIntakeComponent implements OnInit {
     this.intakeForm = this.fb.group({
       name: [this.initialValues.name ?? '', req],
       email: [this.initialValues.email ?? '', [...req, Validators.email]],
-      phone: [this.initialValues.phone ?? '', [...req, Validators.pattern(/^\d{7,15}$/)]],
+      phone: [this.initialValues.phone ?? '', [...req, Validators.pattern(/^[\d\s\+\-\(\)\.]{7,20}$/)]],
       company: [this.initialValues.company ?? '', req]
     });
     this.formReady.emit(this.intakeForm);

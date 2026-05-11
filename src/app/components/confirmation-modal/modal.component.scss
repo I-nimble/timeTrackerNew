@@ -1,0 +1,17 @@
+.modal-header {
+  padding: 0 24px;
+  margin-top: 16px;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  button[mat-icon-button] {
+    margin-right: -8px;
+  }
+}
+
+mat-dialog-actions {
+  gap: 8px;
+}
