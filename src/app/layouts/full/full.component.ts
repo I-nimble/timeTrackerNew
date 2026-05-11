@@ -278,6 +278,10 @@ export class FullComponent implements OnInit {
         this.jitsiMinimized = false;
       });
     } catch (e) {}
+
+    if (!this.clientHasTeam) {
+      this.toggleCollapsed();
+    }
   }
 
   ngOnDestroy() {
@@ -342,5 +346,9 @@ export class FullComponent implements OnInit {
         }
       },
     });
+  }
+
+  public get clientHasTeam(): boolean {
+    return this.clientAccessService.hasAccess();
   }
 }
