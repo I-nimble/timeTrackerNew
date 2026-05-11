@@ -189,11 +189,16 @@
           <div *ngFor="let c of comments.slice().reverse()" class="comment-item bg-secondary">
             <div class="comment-header d-flex justify-between align-center">
               <div class="user-info">
-                <span class="user-name">{{ c.user.name }} {{ c.user.last_name }}</span>
-                <span class="comment-date">{{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+                <div>
+                  <span class="user-name m-r-4">{{ c.user.name }} {{ c.user.last_name }}</span>
+                  <small class="text-muted">{{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}</small>
+                </div>
+                <small class="text-muted" *ngIf="getCommentEditedAt(c)">
+                  Edited: {{ getCommentEditedAt(c) | date:'dd MMM yyyy, hh:mm a' }}
+                </small>
               </div>
 
-              <div *ngIf="c.user_id === userId">
+              <div *ngIf="c.user_id == userId || isAdmin">
                 <button mat-icon-button [matMenuTriggerFor]="menu">
                   <mat-icon>more_vert</mat-icon>
                 </button>
