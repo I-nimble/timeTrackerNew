@@ -1,7 +1,7 @@
 export interface Note {
   id: number;
   user_id: number;
-  color: string;
+  color: NoteColor;
   content: string;
   date_time: Date | string;
 }
@@ -13,15 +13,6 @@ export type NoteColor =
   | 'error'
   | 'success';
 
-export interface CreateNoteDto {
-  user_id: number;
-  date_time: string;
-  content: string;
-  color: string;
-}
+export type CreateNoteDto = Omit<Note, 'id'>;
 
-export interface UpdateNoteDto {
-  date_time: string;
-  content: string;
-  color: string;
-}
+export type UpdateNoteDto = Pick<Note, 'date_time' | 'content' | 'color'>;
