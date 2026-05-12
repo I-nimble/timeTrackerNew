@@ -89,6 +89,7 @@ export class AppKanbanDialogComponent implements OnInit {
   userId: number | null = null;
   selectedEmployeeId: number | null = null;
   imageUrls: { [key: string]: string } = {};
+  isAdmin: boolean = localStorage.getItem('role') == '1';
 
   constructor(
     public dialogRef: MatDialogRef<AppKanbanDialogComponent>,
@@ -310,8 +311,57 @@ export class AppKanbanDialogComponent implements OnInit {
 
   loadComments() {
     this.ratingsService.getComments(this.local_data.id).subscribe(res => {
-      this.comments = res.map(c => ({ ...c, isEditing: false, editText: c.comment }));
+      this.comments = res.map(c => ({
+        ...c,
+        isEditing: false,
+        editText: c.comment,
+        editedAt: c.editedAt || this.extractEditedAtFromHtml(c.comment),
+      }));
     });
+  }
+
+  getCommentEditedAt(comment: any): Date | null {
+    if (comment?.editedAt) {
+      const editedAt = new Date(comment.editedAt);
+      return Number.isNaN(editedAt.getTime()) ? null : editedAt;
+    }
+
+    return this.extractEditedAtFromHtml(comment?.comment);
+  }
+
+  private extractEditedAtFromHtml(html: string | null | undefined): Date | null {
+    if (!html) return null;
+
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    const marker = div.querySelector('span.comment-edited-at[data-edited-at]');
+    const editedAtValue = marker?.getAttribute('data-edited-at');
+    if (!editedAtValue) return null;
+
+    const editedAt = new Date(editedAtValue);
+    return Number.isNaN(editedAt.getTime()) ? null : editedAt;
+  }
+
+  private stripEditedAtMarker(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html || '';
+    div.querySelectorAll('span.comment-edited-at[data-edited-at]').forEach(marker => marker.remove());
+    return div.innerHTML;
+  }
+
+  private appendEditedAtMarker(html: string, editedAt: Date): string {
+    const sanitizedHtml = this.stripEditedAtMarker(html);
+    const div = document.createElement('div');
+    div.innerHTML = sanitizedHtml;
+
+    const marker = document.createElement('span');
+    marker.className = 'comment-edited-at';
+    marker.setAttribute('data-edited-at', editedAt.toISOString());
+    marker.setAttribute('aria-hidden', 'true');
+    marker.style.display = 'none';
+    div.appendChild(marker);
+
+    return div.innerHTML;
   }
 
   doAction(): void {
@@ -328,7 +378,11 @@ export class AppKanbanDialogComponent implements OnInit {
     this.local_data.task_attachments = this.attachments;
     this.local_data.comments = this.comments
       .filter(c => c.isPending && c.comment && String(c.comment).trim())
-      .map(c => ({ comment: c.comment, user_id: c.user_id }));
+      .map(c => ({
+        comment: c.comment,
+        user_id: c.user_id,
+        editedAt: c.editedAt || null,
+      }));
 
     if (this.dueDateTime) {
       this.local_data.due_date = this.dueDateTime;
@@ -662,7 +716,9 @@ export class AppKanbanDialogComponent implements OnInit {
     this.selectedComment = comment;
     setTimeout(() => {
       if (this.commentEditor?.nativeElement) {
-        this.commentEditor.nativeElement.innerHTML = comment.comment || '';
+        const editHtml = this.stripEditedAtMarker(comment.comment || '');
+        this.commentEditor.nativeElement.innerHTML = editHtml;
+        this.commentText = editHtml;
         this.commentEditor.nativeElement.focus();
       }
     });
@@ -671,11 +727,16 @@ export class AppKanbanDialogComponent implements OnInit {
   editComment(comment: any, newHtml: string, mentioned_user_ids: number[] = []) {
     if (!newHtml.trim()) return;
     if (comment.isPending) {
-      comment.comment = newHtml;
+      const editedAt = new Date();
+      comment.comment = this.appendEditedAtMarker(newHtml, editedAt);
+      comment.editedAt = editedAt;
       return;
     }
-    this.ratingsService.updateComment(comment.id, newHtml, mentioned_user_ids).subscribe(updated => {
+    const editedAt = new Date();
+    const commentHtml = this.appendEditedAtMarker(newHtml, editedAt);
+    this.ratingsService.updateComment(comment.id, commentHtml, mentioned_user_ids).subscribe(updated => {
       comment.comment = updated.comment;
+      comment.editedAt = this.extractEditedAtFromHtml(updated.comment) || editedAt;
       comment.isEditing = false;
     });
   }
@@ -683,16 +744,28 @@ export class AppKanbanDialogComponent implements OnInit {
   deleteComment(comment: any) {
     if (!comment) return;
 
-    if (comment.isPending) {
-      this.comments = this.comments.filter(c => c !== comment);
-      this.local_data.comments = this.comments.filter(c => c.isPending);
-      this.showSnackbar('Comment deleted!');
-      return;
-    }
+    const del = this.dialog.open(ModalComponent, {
+      data: {
+        action: 'delete',
+        subject: 'comment',
+        message: 'This comment will be permanently deleted.',
+      },
+    });
 
-    this.ratingsService.deleteComment(comment.id).subscribe(() => {
-      this.comments = this.comments.filter(c => c.id !== comment.id);
-      this.showSnackbar('Comment deleted!');
+    del.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      if (comment.isPending) {
+        this.comments = this.comments.filter(c => c !== comment);
+        this.local_data.comments = this.comments.filter(c => c.isPending);
+        this.showSnackbar('Comment deleted!');
+        return;
+      }
+
+      this.ratingsService.deleteComment(comment.id).subscribe(() => {
+        this.comments = this.comments.filter(c => c.id !== comment.id);
+        this.showSnackbar('Comment deleted!');
+      });
     });
   }
 
