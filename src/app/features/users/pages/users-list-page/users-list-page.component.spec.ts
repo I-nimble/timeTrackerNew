@@ -89,9 +89,6 @@ describe('UsersListPageComponent', () => {
     usersApiSpy.getUserList.and.returnValue(of(users) as never);
     fixture = TestBed.createComponent(UsersListPageComponent);
     component = fixture.componentInstance;
-    (component as unknown as { dialog: { open: jasmine.Spy } }).dialog = {
-      open: dialogOpenSpy,
-    };
     fixture.detectChanges();
   };
 
@@ -166,6 +163,17 @@ describe('UsersListPageComponent', () => {
       'schedule',
       'reports',
       'actions',
+    ]);
+  });
+
+  it('hides report and action columns for non-managers', () => {
+    render(5);
+
+    expect(component.visibleColumns().map((column) => column.id)).toEqual([
+      'name',
+      'email',
+      'status',
+      'schedule',
     ]);
   });
 

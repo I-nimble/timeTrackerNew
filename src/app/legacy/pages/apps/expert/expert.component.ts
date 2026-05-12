@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -48,13 +48,11 @@ export class AppExpertComponent implements OnInit {
   searchResults: any[] = [];
   selectedDepartmentId: number | null = null;
 
-  constructor(
-    private usersService: UsersService,
-    private aiService: AIService,
-    private companiesService: CompaniesService,
-    private plansService: PlansService,
-    private departmentsService: DepartmentsService,
-  ) {}
+  private usersService = Inject(UsersService);
+  private aiService = Inject(AIService);
+  private companiesService = Inject(CompaniesService);
+  private plansService = Inject(PlansService);
+  private departmentsService = Inject(DepartmentsService);
 
   ngOnInit(): void {
     this.usersService.getUsers({}).subscribe((users) => {
@@ -67,12 +65,17 @@ export class AppExpertComponent implements OnInit {
       this.departments = deps;
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.plansService
-        .getCurrentPlan(company.company.id)
-        .subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan;
-          this.plansService.setCurrentPlan(this.plan);
-        });
+      if (company) {
+        const companyId = company?.company?.id ?? company?.id ?? null;
+        if (companyId !== null) {
+          this.plansService
+            .getCurrentPlan(companyId)
+            .subscribe((companyPlan: any) => {
+              this.plan = companyPlan.plan;
+              this.plansService.setCurrentPlan(this.plan);
+            });
+        }
+      }
     });
   }
 

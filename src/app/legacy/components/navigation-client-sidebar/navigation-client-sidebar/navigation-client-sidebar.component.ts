@@ -1,3 +1,4 @@
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { NgClass, NgIf, NgFor } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
@@ -16,7 +17,6 @@ import { PlansService } from 'src/app/legacy/services/plans.service';
   styleUrls: ['./navigation-client-sidebar.component.scss'],
 })
 export class ClientSidebarComponent implements OnInit {
-  constructor(private router: Router) {}
   dropdownOpen = false;
   sidebarOpen = false;
   isSidebarItemHovered = false;
@@ -25,18 +25,29 @@ export class ClientSidebarComponent implements OnInit {
   authService = inject(AuthService);
   plansService = inject(PlansService);
   companiesService = inject(CompaniesService);
+  private breakpointObserver = inject(BreakpointObserver);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.plansService
-        .getCurrentPlan(company.company.id)
-        .subscribe((companyPlan: any) => {
-          this.plan = companyPlan.plan;
-        });
+      if (company) {
+        const companyId = company?.company?.id ?? company?.id ?? null;
+        if (companyId !== null) {
+          this.plansService
+            .getCurrentPlan(companyId)
+            .subscribe((companyPlan: any) => {
+              this.plan = companyPlan.plan;
+            });
+        }
+      }
     });
 
-    window.innerWidth < 750 ? (this.isMobile = true) : (this.isMobile = false);
-    this.isMobile ? (this.sidebarOpen = false) : (this.sidebarOpen = true); // in mobile mode, sidebar is closed by default
+    this.breakpointObserver
+      .observe(['(max-width: 767px)'])
+      .subscribe((result) => {
+        this.isMobile = result.matches;
+        this.sidebarOpen = !this.isMobile;
+      });
 
     // if user clicks outside of sidebar, close sidebar
     document.addEventListener('click', (event) => {

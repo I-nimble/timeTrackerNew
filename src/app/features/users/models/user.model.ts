@@ -23,11 +23,7 @@ export interface UserSchedule {
   end_time?: string | null;
 }
 
-export interface UserEmployee {
-  id?: number | null;
-  user_id?: number | null;
-  company_id?: number | null;
-  company?: UserCompany | null;
+export interface UserEmployee extends User {
   position_id?: number | null;
   position?: string | { id?: number; title?: string | null } | null;
   position_name?: string | null;

@@ -159,19 +159,15 @@ export const mapUser = (
 export const resolveUser = (user: User): User => {
   if (isRecord(user.profile)) return { ...user, ...(user.profile as User) };
   if (isRecord(user.user)) return { ...user, ...(user.user as User) };
+  if (isRecord(user.employee)) return { ...user, ...(user.employee as User) };
   return user;
 };
 
 export const getUserId = (record: User): number => {
-  const profile = isRecord(record.profile) ? (record.profile as User) : null;
-  const candidates = [record.user?.id, profile?.id, record.id];
-
-  for (const candidate of candidates) {
-    const n = Number(candidate ?? 0);
-    if (n > 0) return n;
-  }
-
-  return 0;
+  const id = (
+    isRecord(record.employee) ? record?.employee?.user_id : record?.id
+  ) as number | undefined;
+  return Number(id ?? 0) || 0;
 };
 
 export const getEmployeeId = (record: User): number => {
@@ -359,16 +355,23 @@ export const buildDialogEmployeeData = (
     .map((p) => Number(p?.id ?? 0))
     .filter((projectId) => projectId > 0);
   const hourlyRate = Number(empBlock['hourly_rate'] ?? rec['hourly_rate'] ?? 0);
+  const companyId = normalizeCompanyId(
+    resolved.company_id ??
+      resolved.company?.id ??
+      empBlock['company_id'] ??
+      (isRecord(empBlock['company']) ? empBlock['company']?.id : null) ??
+      (isRecord(rec['company']) ? rec['company']?.id : null),
+  );
 
   return {
-    id: userId,
-    company_id: normalizeCompanyId(resolved.company_id ?? resolved.company?.id),
+    id: employeeId,
+    user_id: userId,
+    company_id: companyId,
     profile: {
-      id: userId,
+      id: employeeId,
+      user_id: userId,
       employee_id: employeeId,
-      company_id: normalizeCompanyId(
-        resolved.company_id ?? resolved.company?.id,
-      ),
+      company_id: companyId,
       name: resolved.name,
       last_name: resolved.last_name,
       email: resolved.email,

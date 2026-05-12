@@ -30,6 +30,7 @@ import {
   DynamicSortOrder,
 } from '@shared/models/dynamic-table.model';
 import { saveAs } from 'file-saver';
+import { EMPTY, Subject, catchError, finalize, switchMap, tap } from 'rxjs';
 import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
 import { AppDateRangeDialogComponent } from 'src/app/legacy/components/date-range-dialog/date-range-dialog.component';
 import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
@@ -61,6 +62,7 @@ export class UsersListPageComponent implements OnInit {
   private readonly reportsService = inject(ReportsService);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly reloadUsersTrigger = new Subject<void>();
 
   readonly columns = input<UsersListColumn[]>(DEFAULT_USERS_LIST_COLUMNS);
   readonly filters = input<UsersListPageFilters>({});
@@ -69,7 +71,6 @@ export class UsersListPageComponent implements OnInit {
   private readonly reportCellTemplateRef = signal<TemplateRef<
     DynamicTableCellContext<User>
   > | null>(null);
-  private readonly loaded = signal<Set<string>>(new Set<string>());
 
   readonly loading = signal<boolean>(true);
   readonly error = signal<string | null>(null);
@@ -129,11 +130,47 @@ export class UsersListPageComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    this.reloadUsersTrigger
+      .pipe(
+        switchMap(() => {
+          this.loading.set(true);
+          this.error.set(null);
+
+          return UsersListService.fetchUsers(this.usersApi).pipe(
+            tap((users: User[]) => {
+              this.rawUsers.set(users);
+            }),
+            catchError((err: unknown) => {
+              this.rawUsers.set([]);
+              const httpErr = err as {
+                status?: number;
+                message?: string;
+                error?: any;
+              };
+              const serverMsg =
+                httpErr?.error?.message ||
+                httpErr?.message ||
+                (typeof httpErr?.status === 'number'
+                  ? `Server returned ${httpErr.status}`
+                  : 'Unable to load users.');
+              this.error.set(String(serverMsg));
+              console.error('Failed fetching users', err);
+              return EMPTY;
+            }),
+            finalize(() => {
+              this.loading.set(false);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
     this.reloadAll();
   }
 
   private reloadAll(): void {
-    this.loadUsers();
+    this.reloadUsersTrigger.next();
   }
 
   onPageChange(change: DynamicTablePageChange): void {
@@ -180,8 +217,9 @@ export class UsersListPageComponent implements OnInit {
   }
 
   editUser(row: User): void {
+    const rowId: number = UsersListService.getUserId(row);
     const rawUser = this.rawUsers().find(
-      (user) => UsersListService.getUserId(user) === row.id,
+      (user) => UsersListService.getUserId(user) === rowId,
     );
     this.dialog
       .open(AppEmployeeDialogContentComponent, {
@@ -224,34 +262,5 @@ export class UsersListPageComponent implements OnInit {
           error: () => this.error.set('Unable to delete user.'),
         });
       });
-  }
-
-  private loadUsers(): void {
-    this.loaded.set(new Set());
-    this.loading.set(true);
-    this.error.set(null);
-    const fail = () => {
-      this.rawUsers.set([]);
-      this.error.set('Unable to load users.');
-      this.mark('users');
-    };
-
-    UsersListService.fetchUsers(this.usersApi)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (users: User[]) => {
-          this.rawUsers.set(users);
-          this.mark('users');
-        },
-        error: fail,
-      });
-  }
-
-  private mark(key: 'users'): void {
-    this.loaded.update((state) => new Set([...state, key]));
-    if (this.loaded().size >= 1) {
-      this.currentPage.set(1);
-      this.loading.set(false);
-    }
   }
 }

@@ -304,6 +304,7 @@ describe('users-list.service', () => {
         canManage: false,
       });
       expect(cols.find((c) => c.id === 'actions')).toBeUndefined();
+      expect(cols.find((c) => c.id === 'reports')).toBeUndefined();
     });
 
     it('includes actions when canManage is true', () => {
@@ -311,6 +312,7 @@ describe('users-list.service', () => {
         reportTemplate: null,
         canManage: true,
       });
+      expect(cols.some((c) => c.id === 'reports')).toBeTrue();
       expect(cols.some((c) => c.id === 'actions')).toBeTrue();
     });
 
@@ -321,6 +323,19 @@ describe('users-list.service', () => {
         allowedColumns: ['name', 'email'],
       });
       expect(cols.map((c) => c.id)).toEqual(['name', 'email']);
+    });
+
+    it('uses the status pill renderer value accessor', () => {
+      const cols = svc.buildTableColumns({
+        reportTemplate: null,
+        canManage: true,
+      });
+      const statusColumn = cols.find((column) => column.id === 'status');
+
+      expect(statusColumn?.renderer?.type).toBe('status-pill');
+      const renderer = statusColumn?.renderer as any;
+      expect(renderer?.valueAccessor?.(buildRecord(1))).toBe('Offline');
+      expect(renderer?.valueAccessor?.(buildRecord(2))).toBe('Online');
     });
   });
 

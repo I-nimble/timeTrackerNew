@@ -1,4 +1,3 @@
-// Scaffolded for SD-2214; full implementation in sibling ticket.
 import { User } from './user.model';
 import { UsersSortDirection, UsersSortField } from './users-filter.model';
 

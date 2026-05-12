@@ -1153,18 +1153,24 @@ export class AppAccountSettingComponent implements OnInit {
         return;
       }
 
+      const companyId = this.user?.company?.id ?? null;
+      if (!companyId) {
+        this.openSnackBar('Company information is missing', 'Close');
+        this.isSubmitting = false;
+        return;
+      }
       const userData = {
         ...this.user,
         ...this.profileForm.value,
         role: this.role,
         company: {
-          id: this.user.company.id,
+          id: companyId,
         },
         profile: this.personalForm.get('profile')?.value,
       };
 
       const companyData = {
-        id: this.user.company.id,
+        id: companyId,
         name: this.profileForm.value.companyName,
         logo:
           this.logo !== this.originalLogo

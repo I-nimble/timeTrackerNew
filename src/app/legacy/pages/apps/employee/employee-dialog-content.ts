@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit, Optional, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnInit,
+  Optional,
+  OnDestroy,
+  NgZone,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -12,11 +21,9 @@ import {
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { TablerIconsModule } from 'angular-tabler-icons';
-import moment from 'moment-timezone';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { Employee } from 'src/app/legacy/pages/apps/employee/employee';
 import { CompaniesService } from 'src/app/legacy/services/companies.service';
 import { EmployeesService } from 'src/app/legacy/services/employees.service';
@@ -24,8 +31,8 @@ import { PositionsService } from 'src/app/legacy/services/positions.service';
 import { ProjectsService } from 'src/app/legacy/services/projects.service';
 import { SchedulesService } from 'src/app/legacy/services/schedules.service';
 import { TimezoneService } from 'src/app/legacy/services/timezone.service';
-import { UsersService } from 'src/app/legacy/services/users.service';
 import { MaterialModule } from 'src/app/material.module';
+import { LoggerService } from 'src/app/shared/services/logger.service';
 
 interface DialogData {
   action: string;
@@ -48,6 +55,7 @@ interface DialogData {
     TablerIconsModule,
   ],
   templateUrl: './employee-dialog-content.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
   action: string | any;
@@ -66,6 +74,8 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
   userTimezone = 'UTC';
   timezoneOffset = '';
   maxFileSize: number = 1 * 1024 * 1024;
+  readonly compareCompany = (left: unknown, right: unknown): boolean =>
+    Number(left ?? 0) === Number(right ?? 0);
   permissions!: {
     canView: false;
     canEdit: false;
@@ -74,24 +84,26 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
   };
 
   private timezoneSubscription!: Subscription;
+  private destroy$ = new Subject<void>();
+  private log = Inject(LoggerService);
 
-  constructor(
-    public dialog: MatDialog,
-    public dialogRef: MatDialogRef<AppEmployeeDialogContentComponent>,
-    private employeesService: EmployeesService,
-    private usersService: UsersService,
-    private snackBar: MatSnackBar,
-    private positionsService: PositionsService,
-    private projectsService: ProjectsService,
-    private fb: FormBuilder,
-    private companiesService: CompaniesService,
-    private schedulesService: SchedulesService,
-    private timezoneService: TimezoneService,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData,
-  ) {
-    this.action = data.action;
-    this.local_data = { ...data.employee };
-    this.permissions = data.permissions;
+  public dialog = Inject(MatDialog);
+  public dialogRef = Inject(MatDialogRef<AppEmployeeDialogContentComponent>);
+  private employeesService = Inject(EmployeesService);
+  private positionsService = Inject(PositionsService);
+  private projectsService = Inject(ProjectsService);
+  private companiesService = Inject(CompaniesService);
+  private schedulesService = Inject(SchedulesService);
+  private timezoneService = Inject(TimezoneService);
+  private ngZone = Inject(NgZone);
+  private cdr = Inject(ChangeDetectorRef);
+  @Optional() @Inject(MAT_DIALOG_DATA) public data: DialogData;
+  private fb = Inject(FormBuilder);
+
+  constructor() {
+    this.action = this.data.action;
+    this.local_data = { ...this.data.employee };
+    this.permissions = this.data.permissions;
     this.editEmployeeForm = this.fb.group({
       name: ['', Validators.required],
       last_name: ['', Validators.required],
@@ -117,40 +129,10 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
         last_name: this.local_data.profile.last_name,
         password: null,
         email: this.local_data.profile.email,
-        company_id: this.local_data.profile.company_id || '',
+        company_id: this.normalizeCompanyId(this.local_data.profile.company_id),
         position: this.local_data.profile.position,
         projects: this.local_data.profile.projects || [],
         hourly_rate: this.local_data.profile.hourly_rate || 0,
-      });
-      this.loadEmployeeSchedules();
-    }
-
-    this.positionsService.get().subscribe((positions: any) => {
-      this.positions = positions;
-    });
-
-    this.companiesService.getCompanies().subscribe((companies: any) => {
-      this.companies = companies;
-    });
-
-    this.projectsService.get().subscribe((projects: any) => {
-      this.projects = projects;
-    });
-
-    if (this.action === 'Invite') {
-      this.companiesService.getCompanies().subscribe((companies: any) => {
-        this.companies = companies;
-        if (this.userRole === '3') {
-          this.companiesService.getByOwner().subscribe((company: any) => {
-            this.inviteEmployeeForm.patchValue({
-              company_id: company.company.id,
-            });
-          });
-        } else if (this.userRole === '1' || this.userRole === '4') {
-          this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.profile.company_id || '',
-          });
-        }
       });
     }
 
@@ -161,53 +143,143 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.timezoneSubscription = this.timezoneService.userTimezone$.subscribe(
-      (timezone) => {
-        this.userTimezone = timezone;
-        this.timezoneOffset = this.timezoneService.getCurrentTimezoneOffset();
+    this.ngZone.runOutsideAngular(() => {
+      this.timezoneSubscription = this.timezoneService.userTimezone$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((timezone) => {
+          Promise.resolve().then(() => {
+            this.ngZone.run(() => {
+              this.userTimezone = timezone;
+              this.timezoneOffset =
+                this.timezoneService.getCurrentTimezoneOffset();
 
-        if (this.action === 'Update' && this.local_data.profile.id) {
-          this.loadEmployeeSchedules();
-        }
-      },
-    );
-
-    this.positionsService.get().subscribe((positions: any) => {
-      this.positions = positions;
-    });
-
-    this.companiesService.getCompanies().subscribe((companies: any) => {
-      this.companies = companies;
-    });
-
-    this.projectsService.get().subscribe((projects: any) => {
-      this.projects = projects;
-    });
-
-    if (this.action === 'Invite') {
-      this.companiesService.getCompanies().subscribe((companies: any) => {
-        this.companies = companies;
-        if (this.userRole === '3') {
-          this.companiesService.getByOwner().subscribe((company: any) => {
-            this.inviteEmployeeForm.patchValue({
-              company_id: company.company.id,
+              if (this.action === 'Update' && this.getProfileId() !== null) {
+                this.loadEmployeeSchedules();
+              }
             });
           });
-        } else if (this.userRole === '1' || this.userRole === '4') {
-          this.inviteEmployeeForm.patchValue({
-            company_id: this.local_data.profile.company_id || '',
-          });
-        }
-      });
-    }
+        });
 
-    if (!this.local_data.profile.imagePath) {
-      this.local_data.profile.imagePath =
-        'assets/images/default-user-profile-pic.webp';
+      this.positionsService
+        .get()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((positions: any) => {
+          Promise.resolve().then(() => {
+            this.ngZone.run(() => {
+              this.positions = positions;
+            });
+          });
+        });
+
+      this.companiesService
+        .getCompanies()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((companies: any) => {
+          Promise.resolve().then(() => {
+            this.ngZone.run(() => {
+              this.companies = companies;
+              if (this.action === 'Update') {
+                this.syncEditCompanySelection();
+                this.editEmployeeForm.markAllAsTouched();
+                this.cdr.markForCheck();
+              }
+            });
+          });
+        });
+
+      this.projectsService
+        .get()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((projects: any) => {
+          Promise.resolve().then(() => {
+            this.ngZone.run(() => {
+              this.projects = projects;
+            });
+          });
+        });
+
+      if (this.action === 'Invite') {
+        this.companiesService
+          .getCompanies()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((companies: any) => {
+            Promise.resolve().then(() => {
+              this.ngZone.run(() => {
+                this.companies = companies;
+
+                if (this.userRole === '3') {
+                  this.companiesService
+                    .getByOwner()
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe((company: any) => {
+                      Promise.resolve().then(() => {
+                        this.ngZone.run(() => {
+                          if (company) {
+                            const companyId = this.normalizeCompanyId(
+                              company?.company?.id ?? company?.id,
+                            );
+                            if (companyId !== null) {
+                              this.inviteEmployeeForm.patchValue({
+                                company_id: companyId,
+                              });
+                            }
+                          }
+                        });
+                      });
+                    });
+                } else if (this.userRole === '1' || this.userRole === '4') {
+                  this.inviteEmployeeForm.patchValue({
+                    company_id: this.normalizeCompanyId(
+                      this.local_data?.profile?.company_id,
+                    ),
+                  });
+                }
+              });
+            });
+          });
+      }
+    });
+  }
+
+  private normalizeCompanyId(value: unknown): number | null {
+    const companyId = Number(value ?? 0);
+    return companyId > 0 ? companyId : null;
+  }
+
+  private syncEditCompanySelection(): void {
+    const companyId = this.normalizeCompanyId(
+      this.local_data?.profile?.company_id,
+    );
+
+    if (companyId !== null) {
+      this.editEmployeeForm.patchValue({ company_id: companyId });
     }
   }
 
+  private getProfileId(): number | null {
+    const candidate =
+      this.local_data?.profile?.user_id ??
+      this.local_data?.user_id ??
+      this.local_data?.profile?.id ??
+      this.local_data?.id ??
+      null;
+    const profileId = Number(candidate ?? 0);
+    return profileId > 0 ? profileId : null;
+  }
+
+  private getEmployeeId(): number | null {
+    const candidate =
+      this.local_data?.profile?.employee_id ??
+      this.local_data?.profile?.id ??
+      this.local_data?.id ??
+      null;
+    const employeeId = Number(candidate ?? 0);
+    return employeeId > 0 ? employeeId : null;
+  }
+
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.timezoneSubscription) {
       this.timezoneSubscription.unsubscribe();
     }
@@ -319,26 +391,42 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
   }
 
   loadEmployeeSchedules(): void {
-    this.schedulesService.getByUserId(this.local_data.profile.id).subscribe({
-      next: (schedules: any) => {
-        this.existingSchedules = schedules.schedules || [];
+    const profileId = this.getProfileId();
+    if (!profileId) {
+      this.log.warn('User ID missing, skipping schedule load');
+      return;
+    }
+    this.schedulesService
+      .getByUserId(profileId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (schedules: any) => {
+          this.ngZone.run(() => {
+            this.existingSchedules = schedules.schedules || [];
 
-        while (this.scheduleGroups.length !== 0) {
-          this.scheduleGroups.removeAt(0);
-        }
+            while (this.scheduleGroups.length !== 0) {
+              this.scheduleGroups.removeAt(0);
+            }
 
-        const groupedSchedules = this.groupSchedulesByTime(
-          this.existingSchedules,
-        );
+            const groupedSchedules = this.groupSchedulesByTime(
+              this.existingSchedules,
+            );
 
-        groupedSchedules.forEach((group) => {
-          this.addScheduleGroup(group.days, group.start_time, group.end_time);
-        });
-      },
-      error: (error) => {
-        console.error('Error loading schedules:', error);
-      },
-    });
+            groupedSchedules.forEach((group) => {
+              this.addScheduleGroup(
+                group.days,
+                group.start_time,
+                group.end_time,
+              );
+            });
+
+            this.cdr.markForCheck();
+          });
+        },
+        error: (error) => {
+          this.log.error('Error loading schedules:', error);
+        },
+      });
   }
 
   isDaySelected(day: string): boolean {
@@ -401,7 +489,7 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
           this.inviteEmployeeForm.reset();
         },
         error: (err: any) => {
-          console.error('Error adding Team Member:', err);
+          this.log.error('Error adding Team Member:', err);
           const errorMsg = err?.error?.message || 'Error inviting Team Member';
           this.openSnackBar(errorMsg, 'Close');
           this.sendingData = false;
@@ -425,13 +513,24 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
         user_timezone: this.userTimezone,
       };
 
+      const profileId = this.getProfileId();
+      if (profileId === null) {
+        this.openSnackBar('Missing employee id', 'Close');
+        this.sendingData = false;
+        return;
+      }
+
+      const companyId = this.normalizeCompanyId(
+        this.local_data?.profile?.company_id,
+      );
+      if (companyId === null) {
+        this.openSnackBar('Missing company id', 'Close');
+        this.sendingData = false;
+        return;
+      }
+
       this.employeesService
-        .updateEmployee(
-          this.local_data.profile.id,
-          employeeData,
-          this.local_data.profile.company_id,
-          this.selectedFile,
-        )
+        .updateEmployee(profileId, employeeData, companyId, this.selectedFile)
         .subscribe({
           next: () => {
             this.dialogRef.close({ event: 'Update' });
@@ -439,27 +538,31 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
             this.sendingData = false;
           },
           error: (err: any) => {
-            console.error('Error updating Team Member:', err);
+            this.log.error('Error updating Team Member:', err);
             this.openSnackBar('Error updating Team Member', 'Close');
             this.sendingData = false;
           },
         });
     } else if (this.action === 'Delete') {
-      this.employeesService
-        .deleteEmployee(this.local_data.profile.id)
-        .subscribe({
-          next: () => {
-            this.dialogRef.close({
-              event: 'Delete',
-              id: this.local_data.profile.id,
-            });
-            this.openSnackBar('Team Member Deleted successfully!', 'Close');
-          },
-          error: (err: any) => {
-            console.error('Error deleting Team Member:', err);
-            this.openSnackBar('Error deleting Team Member', 'Close');
-          },
-        });
+      const profileId = this.getProfileId();
+      if (profileId === null) {
+        this.openSnackBar('Missing employee id', 'Close');
+        return;
+      }
+
+      this.employeesService.deleteEmployee(profileId).subscribe({
+        next: () => {
+          this.dialogRef.close({
+            event: 'Delete',
+            id: profileId,
+          });
+          this.openSnackBar('Team Member Deleted successfully!', 'Close');
+        },
+        error: (err: any) => {
+          this.log.error('Error deleting Team Member:', err);
+          this.openSnackBar('Error deleting Team Member', 'Close');
+        },
+      });
     }
   }
 
@@ -524,7 +627,7 @@ export class AppEmployeeDialogContentComponent implements OnInit, OnDestroy {
     if (this.selectedFile) {
       const reader = new FileReader();
       reader.readAsDataURL(this.selectedFile);
-      reader.onload = (_event) => {
+      reader.onload = () => {
         this.local_data.profile.imagePath = reader.result;
       };
     }

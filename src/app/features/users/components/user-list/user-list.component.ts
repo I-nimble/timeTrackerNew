@@ -1,10 +1,3 @@
-// Scaffolded for SD-2214; full implementation in sibling ticket.
-// Wraps the legacy AppEmployeeTableComponent so the preview route can render
-// using the same table that team.component / etc. already use elsewhere. The
-// adapter normalises `User` into the `{ profile, role }` shape the legacy table
-// reads from, and column tokens are mapped 1:1 to the legacy displayedColumns
-// vocabulary. Edit/Delete clicks are handled by the embedded table's own
-// MatDialog flow for now; sibling tickets can route them through these outputs.
 import {
   ChangeDetectionStrategy,
   Component,
