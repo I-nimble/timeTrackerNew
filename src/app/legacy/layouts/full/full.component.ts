@@ -13,6 +13,7 @@ import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
 import { NavigationEnd, Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 
+import { AuthService } from '@app/shared/services/auth.service';
 import { JwtHelperService, JWT_OPTIONS } from '@auth0/angular-jwt';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -20,7 +21,6 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AppSettings } from 'src/app/config';
 import { JitsiMeetComponent } from 'src/app/legacy/components/jitsi-meet/jitsi-meet.component';
-import { AuthService } from 'src/app/legacy/services/auth.service';
 import { CoreService } from 'src/app/legacy/services/core.service';
 import { RocketChatService } from 'src/app/legacy/services/rocket-chat.service';
 import { WebSocketService } from 'src/app/legacy/services/socket/web-socket.service';
@@ -105,7 +105,7 @@ export class FullComponent implements OnInit, OnDestroy {
   company: unknown;
   userName: string | null = null;
   userId: string | null = null;
-  profilePicture = 'assets/images/default-user-profile-pic.png';
+  profilePicture = 'assets/images/default-user-profile-pic.webp';
   assetsPath: string = environment.assets;
 
   @ViewChild('leftsidenav')
@@ -379,7 +379,7 @@ export class FullComponent implements OnInit, OnDestroy {
         if (image != null) {
           this.profilePicture = image;
         } else {
-          this.profilePicture = 'assets/images/default-user-profile-pic.png';
+          this.profilePicture = 'assets/images/default-user-profile-pic.webp';
         }
       },
     });

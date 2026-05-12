@@ -16,35 +16,21 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  FormsModule,
-  NgModel,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSliderModule } from '@angular/material/slider';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatTabBody, MatTabHeader } from '@angular/material/tabs';
+import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 
-import { NgxSliderModule, Options } from '@angular-slider/ngx-slider';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import moment from 'moment';
-import { Highlight, HighlightAuto } from 'ngx-highlightjs';
-import { HighlightLineNumbers } from 'ngx-highlightjs/line-numbers';
 import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
 import { MatchComponent } from 'src/app/legacy/components/match-search/match.component';
@@ -121,7 +107,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
   selection = new SelectionModel<any>(true, []);
   companyId: number | null = null;
   interviews: any[] = [];
-  assetsPath = 'assets/images/default-user-profile-pic.png';
+  assetsPath = 'assets/images/default-user-profile-pic.webp';
   aiLoading = false;
   aiAnswer = '';
   hasSearchResults = false;
@@ -195,18 +181,16 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     return getEnglishLevelPercent(value);
   }
 
-  constructor(
-    private applicationsService: ApplicationsService,
-    private positionsService: PositionsService,
-    public dialog: MatDialog,
-    private companiesService: CompaniesService,
-    private interviewsService: InterviewsService,
-    private aiService: AIService,
-    private router: Router,
-    private matchScoresService: ApplicationMatchScoresService,
-    private discProfilesService: DiscProfilesService,
-    private cdr: ChangeDetectorRef,
-  ) {}
+  private applicationsService = Inject(ApplicationsService);
+  private positionsService = Inject(PositionsService);
+  private dialog = Inject(MatDialog);
+  private companiesService = Inject(CompaniesService);
+  private interviewsService = Inject(InterviewsService);
+  private aiService = Inject(AIService);
+  private router = Inject(Router);
+  private matchScoresService = Inject(ApplicationMatchScoresService);
+  private discProfilesService = Inject(DiscProfilesService);
+  private cdr = Inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.getApplications();
@@ -311,7 +295,10 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
 
   getCompany() {
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.companyId = company.company.id;
+      if (company) {
+        const id = company?.company?.id ?? company?.id ?? null;
+        if (id !== null) this.companyId = id;
+      }
     });
   }
 
@@ -336,7 +323,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       autoFocus: false,
     });
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe(() => {
       this.getInterviews();
       this.selection.clear();
     });
@@ -347,7 +334,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
       (interview) => interview.application_id === applicationId,
     );
     this.interviewsService.cancel(interview.id).subscribe({
-      next: (response: any) => {
+      next: () => {
         this.getInterviews();
       },
       error: (err: any) => {
@@ -363,7 +350,7 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit {
     dialog.afterClosed().subscribe((option: boolean) => {
       if (option) {
         this.applicationsService.delete(applicationId).subscribe({
-          next: (response: any) => {
+          next: () => {
             if (this.isAISearchActive()) {
               this.fetchAICandidates();
               return;
@@ -1080,16 +1067,15 @@ export class AppInterviewDialogContentComponent {
     return isWedOrThu && isFromNextWeekOnward;
   };
 
-  constructor(
-    public dialog: MatDialog,
-    public dialogRef: MatDialogRef<AppInterviewDialogContentComponent>,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder,
-    private interviewsService: InterviewsService,
-    private applicationsService: ApplicationsService,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-  ) {
-    this.local_data = data;
+  public dialog = Inject(MatDialog);
+  public dialogRef = Inject(MatDialogRef<AppInterviewDialogContentComponent>);
+  private snackBar = Inject(MatSnackBar);
+  private fb = FormBuilder;
+  private interviewsService = Inject(InterviewsService);
+  public data = Inject(MAT_DIALOG_DATA);
+
+  constructor() {
+    this.local_data = this.data;
     const m = moment(this.local_data.date_time).local();
     if (this.local_data.action === 'Reeschedule' && this.local_data.date_time) {
       this.dateTime = m.toDate();
@@ -1123,7 +1109,7 @@ export class AppInterviewDialogContentComponent {
       });
     } else if (this.local_data.action === 'Reeschedule') {
       this.interviewsService.put(data, this.local_data.interviewId).subscribe({
-        next: (response: any) => {
+        next: () => {
           this.interviewScheduled = true;
         },
         error: (err: any) => {

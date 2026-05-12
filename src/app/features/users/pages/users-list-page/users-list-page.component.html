@@ -1,0 +1,32 @@
+<section class="users-list-page">
+  <div class="users-list-page__table-shell">
+    <ng-template #reportCell let-row="row">
+      <button
+        mat-icon-button
+        type="button"
+        class="users-list-page__report-button"
+        aria-label="Download report"
+        title="Download report"
+        (click)="downloadReport(row); $event.stopPropagation()"
+      >
+        <mat-icon>download</mat-icon>
+      </button>
+    </ng-template>
+
+    <app-dynamic-table
+      [columns]="visibleColumns()"
+      [rows]="pagedUsers()"
+      [loading]="loading()"
+      [backendMessage]="backendMessage()"
+      [emptyMessage]="backendMessage()"
+      [pageSize]="pageSize()"
+      [currentPage]="displayedPage()"
+      [totalPages]="totalPages()"
+      [sortBy]="sortBy()"
+      [sortOrder]="sortOrder()"
+      (sortChange)="onSortChange($event)"
+      (pageChange)="onPageChange($event)"
+      (rowAction)="onRowAction($event)"
+    />
+  </div>
+</section>

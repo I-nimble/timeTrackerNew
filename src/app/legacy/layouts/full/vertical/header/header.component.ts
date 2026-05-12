@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 import { Router, NavigationEnd } from '@angular/router';
 
+import { AuthService } from '@app/shared/services/auth.service';
 import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -20,7 +21,6 @@ import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 import { filter } from 'rxjs/operators';
 import { AppSettings } from 'src/app/config';
 import { ApplicationsService } from 'src/app/legacy/services/applications.service';
-import { AuthService } from 'src/app/legacy/services/auth.service';
 import { CompaniesService } from 'src/app/legacy/services/companies.service';
 import { CoreService } from 'src/app/legacy/services/core.service';
 import { NotificationsService } from 'src/app/legacy/services/notifications.service';
@@ -340,7 +340,7 @@ export class HeaderComponent implements OnInit {
       if (pic) {
         this.profilePicture = pic;
       } else {
-        this.profilePicture = 'assets/images/default-user-profile-pic.png';
+        this.profilePicture = 'assets/images/default-user-profile-pic.webp';
       }
     });
   }

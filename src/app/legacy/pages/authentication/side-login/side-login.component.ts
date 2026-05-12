@@ -23,8 +23,8 @@ import { UsersService } from 'src/app/legacy/services/users.service';
 import { NotificationStore } from 'src/app/legacy/stores/notification.store';
 
 import { MaterialModule } from '../../../../material.module';
+import { AuthService } from '../../../../shared/services/auth.service';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AuthService } from '../../../services/auth.service';
 
 export function jwtOptionsFactory() {
   return {

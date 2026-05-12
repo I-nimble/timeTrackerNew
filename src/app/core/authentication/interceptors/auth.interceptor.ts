@@ -31,7 +31,9 @@ export const AuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> => {
-  if (request.url.toLowerCase().includes('amazonaws.com')) {
+  const requestUrl = request.url ?? '';
+
+  if (requestUrl.toLowerCase().includes('amazonaws.com')) {
     return next(request);
   }
 

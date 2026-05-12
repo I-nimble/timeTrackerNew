@@ -1,1 +1,1 @@
-﻿export { AuthService } from '../../../legacy/services/auth.service';
+﻿export { AuthService } from '../../../shared/services/auth.service';

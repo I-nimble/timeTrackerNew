@@ -69,7 +69,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
       bussiness_segment: '',
     },
   };
-  picture = 'assets/images/default-user-profile-pic.png';
+  picture = 'assets/images/default-user-profile-pic.webp';
 
   // timer
   entriesAlert = '';
@@ -385,7 +385,7 @@ export class AppDashboardTMComponent implements OnInit, AfterViewInit {
 
   checkPictureUploaded() {
     const defaultImages = [
-      'assets/images/default-user-profile-pic.png',
+      'assets/images/default-user-profile-pic.webp',
       'assets/images/default-logo.jpg',
     ];
     this.pictureUploaded =

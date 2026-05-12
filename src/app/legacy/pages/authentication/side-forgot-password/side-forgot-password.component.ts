@@ -10,7 +10,7 @@ import {
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router, RouterModule } from '@angular/router';
 
-import { AuthService } from 'src/app/legacy/services/auth.service';
+import { AuthService } from '@app/shared/services/auth.service';
 import { CoreService } from 'src/app/legacy/services/core.service';
 
 import { MaterialModule } from '../../../../material.module';

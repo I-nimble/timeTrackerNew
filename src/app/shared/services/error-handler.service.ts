@@ -50,11 +50,19 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
 
   /** Angular `ErrorHandler` contract — invoked for uncaught errors when registered globally. */
   handleError(error: unknown): void {
-    if (error instanceof HttpErrorResponse) {
-      const appError = this.fromHttp(error, 'unknown');
-      this.handle(appError);
-    } else {
-      this.report(error);
+    try {
+      if (error instanceof HttpErrorResponse) {
+        const appError = this.fromHttp(error, 'unknown');
+        this.handle(appError);
+      } else {
+        this.report(error);
+      }
+    } catch (handlerError) {
+      console.error(
+        'ErrorHandlerService.handleError failed',
+        handlerError,
+        error,
+      );
     }
   }
 
@@ -102,15 +110,16 @@ export class ErrorHandlerService implements ErrorHandler, OnDestroy {
    * Transform raw HttpErrorResponse into structured AppError.
    * Extracts message, validation errors, and technical details.
    */
-  fromHttp(error: HttpErrorResponse, url: string): AppError {
-    const body = this.extractBody(error);
+  fromHttp(error: HttpErrorResponse | null | undefined, url: string): AppError {
+    const body = error ? this.extractBody(error) : null;
+    const status = error?.status ?? 0;
 
     return {
-      status: error.status,
+      status,
       url,
       timestamp: new Date(),
-      message: this.resolveBodyMessage(error.status, body),
-      technical: error.message,
+      message: this.resolveBodyMessage(status, body),
+      technical: error?.message,
       validation: this.extractValidation(body),
       original: error,
     };

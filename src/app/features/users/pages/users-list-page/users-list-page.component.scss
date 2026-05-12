@@ -1,0 +1,41 @@
+.users-list-page {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+
+  &__table-shell {
+    background: var(--bs-card-body-bg, #ffffff);
+    color: var(--mat-sys-on-surface);
+    border-radius: 20px;
+    box-shadow: var(--mat-sys-level1, 0 10px 30px rgba(15, 23, 42, 0.08));
+    overflow: hidden;
+    min-height: 480px;
+
+    --mat-table-background-color: transparent;
+
+    :host ::ng-deep .mat-mdc-table,
+    :host ::ng-deep .mat-mdc-header-row,
+    :host ::ng-deep .mat-mdc-row {
+      background: transparent;
+    }
+
+    :host ::ng-deep .mat-mdc-cell,
+    :host ::ng-deep .mat-mdc-header-cell {
+      padding: 12px 16px;
+      background: transparent;
+    }
+
+    :host ::ng-deep .mat-mdc-row {
+      height: 68px;
+    }
+
+    :host ::ng-deep app-dynamic-paginator {
+      display: block;
+      padding: 0.75rem 1.5rem;
+    }
+  }
+
+  &__report-button {
+    color: var(--mat-sys-on-surface);
+  }
+}

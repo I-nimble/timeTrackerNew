@@ -3,11 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 
+import { AuthService } from '@app/shared/services/auth.service';
 import { TranslateService } from '@ngx-translate/core';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { AppSettings } from 'src/app/config';
-import { AuthService } from 'src/app/legacy/services/auth.service';
 import { CompaniesService } from 'src/app/legacy/services/companies.service';
 import { CoreService } from 'src/app/legacy/services/core.service';
 import { MaterialModule } from 'src/app/material.module';

@@ -8,7 +8,6 @@ import { BillingPaymentsReportsPageComponent } from '@features/billing/pages/pay
 import { BillingPricingPageComponent } from '@features/billing/pages/pricing-page.component';
 import { NotificationsPageComponent } from '@features/notifications/pages/notifications-page.component';
 import { TimeTrackingTodoPageComponent } from '@features/time-tracking/pages/todo-page.component';
-import { WorkforceEmployeeDetailsPageComponent } from '@features/workforce/pages/employee-details-page.component';
 
 import { AppAccountSettingComponent } from './account-setting/account-setting.component';
 import { AppBlogsComponent } from './blogs/blogs.component';
@@ -22,24 +21,17 @@ import { AppCourseDetailComponent } from './courses/course-detail/course-detail.
 import { AppCoursesComponent } from './courses/courses.component';
 import { DetailComponent } from './email/detail/detail.component';
 import { AppEmailComponent } from './email/email.component';
-import { AppAddInvoiceComponent } from './invoice/add-invoice/add-invoice.component';
-import { AppEditInvoiceComponent } from './invoice/edit-invoice/edit-invoice.component';
-import { PaymentsReportsComponent } from './invoice/payments-reports/payments-reports.component';
 import { AppNotesComponent } from './notes/notes.component';
 import { AppPermissionComponent } from './permission/permission.component';
 import { R3Component } from './r3/r3.component';
 import { AppStorageComponent } from './storage/storage.component';
 import { CandidateDetailsComponent } from '../candidates/candidate-details/candidate-details.component';
 import { RejectedComponent } from '../rejected/rejected.component';
-import { AppTalentMatchAdminComponent } from '../talent-match-admin/talent-match-admin.component';
 import { EmployeeDetailsComponent } from './employee/employee-details/employee-details.component';
 import { AppEventsComponent } from './events/events.component';
 import { ClientDetailsComponent } from './expert/client-detail/client-details.component';
 import { AppExpertComponent } from './expert/expert.component';
 import { AppFullcalendarComponent } from './fullcalendar/fullcalendar.component';
-import { AppInvoiceListComponent } from './invoice/invoice-list/invoice-list.component';
-import { AppInvoiceViewComponent } from './invoice/invoice-view/invoice-view.component';
-import { AppPricingStripeComponent } from './invoice/pricing/pricing.component';
 import { AppBoardsComponent } from './kanban/boards/boards.component';
 import { AppKanbanComponent } from './kanban/kanban.component';
 import { R3ActionComponent } from './r3/action/r3.action.component';
@@ -47,7 +39,6 @@ import { R3TractionComponent } from './r3/traction/r3.traction.component';
 import { R3VisionComponent } from './r3/vision/r3.vision.component';
 import { ScrapperComponent } from './scrapper/scrapper.component';
 import { AppTicketlistComponent } from './tickets/tickets.component';
-import { AppTodoComponent } from './todo/todo.component';
 
 export const AppsRoutes: Routes = [
   {
@@ -56,9 +47,7 @@ export const AppsRoutes: Routes = [
       {
         path: 'team',
         loadChildren: () =>
-          import('@features/workforce/team.routes').then(
-            (m) => m.WorkforceTeamRoutes,
-          ),
+          import('@features/users/users.routes').then((m) => m.UsersRoutes),
       },
       {
         path: 'chat',
@@ -383,13 +372,11 @@ export const AppsRoutes: Routes = [
       {
         path: 'time-tracker',
         loadChildren: () =>
-          import('@features/workforce/time-tracker.routes').then(
-            (m) => m.WorkforceTimeTrackerRoutes,
-          ),
+          import('@features/users/users.routes').then((m) => m.UsersRoutes),
       },
       {
         path: 'employee',
-        component: WorkforceEmployeeDetailsPageComponent,
+        component: EmployeeDetailsComponent,
         data: {
           title: 'Employee Details',
           showGoBack: true,

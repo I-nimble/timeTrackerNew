@@ -178,7 +178,7 @@ export class TeamComponent implements OnInit {
               projects: user.projects
                 ? user.projects.map((project: any) => project.id)
                 : [],
-              imagePath: '/assets/images/default-user-profile-pic.png',
+              imagePath: '/assets/images/default-user-profile-pic.webp',
             },
             role: user.position?.title || 'Other',
           };

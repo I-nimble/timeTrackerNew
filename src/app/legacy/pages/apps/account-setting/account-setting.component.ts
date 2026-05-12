@@ -220,7 +220,7 @@ export class AppAccountSettingComponent implements OnInit {
   logo = 'assets/images/default-logo.jpg';
   picture: string =
     this.role === '3'
-      ? 'assets/images/default-user-profile-pic.png'
+      ? 'assets/images/default-user-profile-pic.webp'
       : 'assets/images/default-logo.jpg';
   originalLogo = '';
   submitted = false;
@@ -1103,7 +1103,7 @@ export class AppAccountSettingComponent implements OnInit {
     // else {
     this.picture =
       this.role === '3'
-        ? 'assets/images/default-user-profile-pic.png'
+        ? 'assets/images/default-user-profile-pic.webp'
         : 'assets/images/default-logo.jpg';
     this.personalForm.patchValue({ profile: null });
     this.resetFileInput();
@@ -1153,18 +1153,24 @@ export class AppAccountSettingComponent implements OnInit {
         return;
       }
 
+      const companyId = this.user?.company?.id ?? null;
+      if (!companyId) {
+        this.openSnackBar('Company information is missing', 'Close');
+        this.isSubmitting = false;
+        return;
+      }
       const userData = {
         ...this.user,
         ...this.profileForm.value,
         role: this.role,
         company: {
-          id: this.user.company.id,
+          id: companyId,
         },
         profile: this.personalForm.get('profile')?.value,
       };
 
       const companyData = {
-        id: this.user.company.id,
+        id: companyId,
         name: this.profileForm.value.companyName,
         logo:
           this.logo !== this.originalLogo

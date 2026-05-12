@@ -32,8 +32,8 @@ import { WebSocketService } from 'src/app/legacy/services/socket/web-socket.serv
 import { UsersService } from 'src/app/legacy/services/users.service';
 
 import { MaterialModule } from '../../../../material.module';
+import { AuthService } from '../../../../shared/services/auth.service';
 import { BrandingComponent } from '../../../layouts/full/vertical/sidebar/branding.component';
-import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-side-register',

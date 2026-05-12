@@ -10,8 +10,8 @@ import { EmployeesService } from 'src/app/legacy/services/employees.service';
 import { NotificationStore } from 'src/app/legacy/stores/notification.store';
 import { environment } from 'src/environments/environment';
 
-import { NotificationsService } from './notifications.service';
-import { RoleTourService } from './role-tour.service';
+import { NotificationsService } from '../../legacy/services/notifications.service';
+import { RoleTourService } from '../../legacy/services/role-tour.service';
 
 type ApiResponse = Record<string, unknown>;
 
@@ -158,8 +158,15 @@ export class AuthService {
     } else if (rol === ROLES.CLIENT || rol === '3') {
       const hasTeam = await this.hasTeamMembers();
       localStorage.setItem('clientHasTeam', hasTeam ? 'true' : 'false');
+      const useUsersListPreview =
+        localStorage.getItem('previewUsersListRoute') === 'true';
       if (hasTeam) {
-        await this.navigateAndMaybeStart('/dashboards/dashboard2', rol);
+        await this.navigateAndMaybeStart(
+          useUsersListPreview
+            ? '/refactor/workforce/users-list-preview'
+            : '/dashboards/dashboard2',
+          rol,
+        );
       } else {
         await this.navigateAndMaybeStart('/apps/talent-match', rol);
       }

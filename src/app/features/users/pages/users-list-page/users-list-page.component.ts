@@ -1,0 +1,266 @@
+﻿import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
+
+import { User } from '@features/users/models/user.model';
+import {
+  DEFAULT_USERS_LIST_COLUMNS,
+  UsersListColumn,
+} from '@features/users/models/users-list.model';
+import { UsersListPageFilters } from '@features/users/models/users-list.types';
+import { UsersApiService } from '@features/users/services/users-api.service';
+import * as UsersListService from '@features/users/services/users-list.service';
+import { DynamicTableComponent } from '@shared/components/dynamic-table/dynamic-table.component';
+import {
+  DynamicTableCellContext,
+  DynamicTablePageChange,
+  DynamicTableRowActionEvent,
+  DynamicTableSortChange,
+  DynamicSortOrder,
+} from '@shared/models/dynamic-table.model';
+import { saveAs } from 'file-saver';
+import { EMPTY, Subject, catchError, finalize, switchMap, tap } from 'rxjs';
+import { ModalComponent } from 'src/app/legacy/components/confirmation-modal/modal.component';
+import { AppDateRangeDialogComponent } from 'src/app/legacy/components/date-range-dialog/date-range-dialog.component';
+import { AppEmployeeDialogContentComponent } from 'src/app/legacy/pages/apps/employee/employee-dialog-content';
+import { ReportsService } from 'src/app/legacy/services/reports.service';
+import { UsersService } from 'src/app/legacy/services/users.service';
+import { MaterialModule } from 'src/app/material.module';
+
+const DEFAULT_PAGE_SIZE = 5;
+const DEFAULT_EMPTY_MESSAGE = 'No users available.';
+
+@Component({
+  selector: 'app-users-list-page',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DynamicTableComponent, MaterialModule],
+  templateUrl: './users-list-page.component.html',
+  styleUrl: './users-list-page.component.scss',
+})
+export class UsersListPageComponent implements OnInit {
+  @ViewChild('reportCell', { static: true })
+  set reportCellTemplate(
+    template: TemplateRef<DynamicTableCellContext<User>> | undefined,
+  ) {
+    this.reportCellTemplateRef.set(template ?? null);
+  }
+
+  private readonly usersService = inject(UsersService);
+  private readonly usersApi = inject(UsersApiService);
+  private readonly reportsService = inject(ReportsService);
+  private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly reloadUsersTrigger = new Subject<void>();
+
+  readonly columns = input<UsersListColumn[]>(DEFAULT_USERS_LIST_COLUMNS);
+  readonly filters = input<UsersListPageFilters>({});
+
+  private readonly rawUsers = signal<User[]>([]);
+  private readonly reportCellTemplateRef = signal<TemplateRef<
+    DynamicTableCellContext<User>
+  > | null>(null);
+
+  readonly loading = signal<boolean>(true);
+  readonly error = signal<string | null>(null);
+  readonly currentPage = signal<number>(1);
+  readonly pageSize = signal<number>(DEFAULT_PAGE_SIZE);
+  readonly sortBy = signal<string>('name');
+  readonly sortOrder = signal<DynamicSortOrder>('asc');
+
+  readonly allUsers = computed(() =>
+    this.rawUsers().map((user) =>
+      UsersListService.mapUser(user, {}, new Set<number>()),
+    ),
+  );
+
+  readonly filteredUsers = computed(() =>
+    UsersListService.applyFilters(this.allUsers(), this.filters()),
+  );
+
+  readonly hasUsers = computed(() => this.filteredUsers().length > 0);
+
+  readonly backendMessage = computed(() => {
+    if (this.error()) return this.error() ?? DEFAULT_EMPTY_MESSAGE;
+    if (!this.loading() && !this.hasUsers()) return DEFAULT_EMPTY_MESSAGE;
+    return '';
+  });
+
+  readonly visibleColumns = computed(() =>
+    UsersListService.buildTableColumns({
+      reportTemplate: this.reportCellTemplateRef(),
+      canManage: UsersListService.buildPermissions().canManage,
+      allowedColumns: this.columns(),
+    }),
+  );
+
+  readonly sortedUsers = computed(() =>
+    UsersListService.sortRows(
+      this.filteredUsers(),
+      this.sortBy(),
+      this.sortOrder(),
+    ),
+  );
+
+  readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.sortedUsers().length / this.pageSize())),
+  );
+
+  readonly displayedPage = computed(() =>
+    Math.min(this.currentPage(), this.totalPages()),
+  );
+
+  readonly pagedUsers = computed(() =>
+    UsersListService.paginateRows(
+      this.sortedUsers(),
+      this.displayedPage(),
+      this.pageSize(),
+    ),
+  );
+
+  ngOnInit(): void {
+    this.reloadUsersTrigger
+      .pipe(
+        switchMap(() => {
+          this.loading.set(true);
+          this.error.set(null);
+
+          return UsersListService.fetchUsers(this.usersApi).pipe(
+            tap((users: User[]) => {
+              this.rawUsers.set(users);
+            }),
+            catchError((err: unknown) => {
+              this.rawUsers.set([]);
+              const httpErr = err as {
+                status?: number;
+                message?: string;
+                error?: any;
+              };
+              const serverMsg =
+                httpErr?.error?.message ||
+                httpErr?.message ||
+                (typeof httpErr?.status === 'number'
+                  ? `Server returned ${httpErr.status}`
+                  : 'Unable to load users.');
+              this.error.set(String(serverMsg));
+              console.error('Failed fetching users', err);
+              return EMPTY;
+            }),
+            finalize(() => {
+              this.loading.set(false);
+            }),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+
+    this.reloadAll();
+  }
+
+  private reloadAll(): void {
+    this.reloadUsersTrigger.next();
+  }
+
+  onPageChange(change: DynamicTablePageChange): void {
+    if (typeof change.pageSize === 'number' && change.pageSize > 0) {
+      this.pageSize.set(change.pageSize);
+    }
+    if (typeof change.sortBy === 'string' && change.sortBy) {
+      this.sortBy.set(change.sortBy);
+    }
+    if (change.sortOrder) this.sortOrder.set(change.sortOrder);
+    this.currentPage.set(change.page);
+  }
+
+  onSortChange(change: DynamicTableSortChange): void {
+    this.sortBy.set(change.sortBy);
+    this.sortOrder.set(change.sortOrder);
+    this.currentPage.set(change.page);
+    if (change.pageSize > 0) this.pageSize.set(change.pageSize);
+  }
+
+  onRowAction(event: DynamicTableRowActionEvent<User>): void {
+    if (event.action.id === 'edit') return this.editUser(event.row);
+    if (event.action.id === 'delete') this.confirmDeleteUser(event.row);
+  }
+
+  downloadReport(row: User): void {
+    this.dialog
+      .open(AppDateRangeDialogComponent, { autoFocus: false, width: '420px' })
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result?.firstSelect || !result?.lastSelect) return;
+        const payload = UsersListService.buildDownloadPayload(
+          row,
+          result.firstSelect,
+          result.lastSelect,
+        );
+        this.reportsService
+          .getReport(payload.reportParams, { id: row.id }, payload.filters)
+          .subscribe({
+            next: (blob: Blob) => saveAs(blob, payload.fileName),
+            error: () => this.error.set('Unable to download report.'),
+          });
+      });
+  }
+
+  editUser(row: User): void {
+    const rowId: number = UsersListService.getUserId(row);
+    const rawUser = this.rawUsers().find(
+      (user) => UsersListService.getUserId(user) === rowId,
+    );
+    this.dialog
+      .open(AppEmployeeDialogContentComponent, {
+        autoFocus: false,
+        width: '720px',
+        data: {
+          action: 'Update',
+          employee: rawUser
+            ? UsersListService.buildDialogEmployeeData(rawUser)
+            : UsersListService.buildDialogFromRow(row),
+          permissions: UsersListService.canManageUsers()
+            ? { canView: true, canEdit: true, canManage: true, canDelete: true }
+            : {
+                canView: true,
+                canEdit: false,
+                canManage: false,
+                canDelete: false,
+              },
+        },
+      })
+      .afterClosed()
+      .subscribe(() => this.reloadAll());
+  }
+
+  confirmDeleteUser(row: User): void {
+    this.dialog
+      .open(ModalComponent, {
+        autoFocus: false,
+        data: {
+          action: 'delete',
+          subject: 'user',
+          message: `Delete ${UsersListService.getDisplayName(row)}?`,
+        },
+      })
+      .afterClosed()
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+        this.usersService.delete(row.id).subscribe({
+          next: () => this.reloadAll(),
+          error: () => this.error.set('Unable to delete user.'),
+        });
+      });
+  }
+}
