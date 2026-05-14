@@ -11,7 +11,7 @@ import { MarkdownPipe, LinebreakPipe } from 'src/app/pipe/markdown.pipe';
 import { MatchComponent } from 'src/app/components/match-search/match.component';
 import { CompaniesService } from 'src/app/services/companies.service';
 import { PlansService } from 'src/app/services/plans.service';
-import { Plan } from 'src/app/models/Plan.model';
+import { Plan, CompanyPlan } from 'src/app/models/Plan.model';
 import { DepartmentsService } from 'src/app/services/departments.service';
 import { Department } from 'src/app/models/Department.model';
 
@@ -59,9 +59,9 @@ export class AppExpertComponent implements OnInit {
       this.departments = deps;
     });
     this.companiesService.getByOwner().subscribe((company: any) => {
-      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: any) => {
+      this.plansService.getCurrentPlan(company.company.id).subscribe((companyPlan: CompanyPlan) => {
         this.plan = companyPlan.plan;
-        this.plansService.setCurrentPlan(this.plan);
+        this.plansService.setCurrentPlan(companyPlan);
       });
     });
   }

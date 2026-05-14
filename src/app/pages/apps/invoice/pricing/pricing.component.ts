@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { CoreService } from 'src/app/services/core.service';
 import { ViewportScroller } from '@angular/common';
@@ -12,8 +13,10 @@ import { ButtonComponent } from 'src/app/components/button/button.component';
 import { ModalComponent } from 'src/app/components/confirmation-modal/modal.component';
 import { PricingCardComponent } from './pricing-card/pricing-card.component';
 import { PricingPlan } from './pricing.model';
-import { SubscriptionService, SubscriptionStatus } from 'src/app/services/subscription.service';
-import { Router } from '@angular/router';
+import { SubscriptionService } from 'src/app/services/subscription.service';
+import { CompaniesService } from 'src/app/services/companies.service';
+import { PlansService } from 'src/app/services/plans.service';
+import { CompanyPlan } from 'src/app/models/Plan.model';
 import { finalize } from 'rxjs/operators';
 
 interface apps {
@@ -77,13 +80,14 @@ export class AppPricingComponent implements OnInit {
   private settings = inject(CoreService);
   private scroller = inject(ViewportScroller);
   private subscriptionService = inject(SubscriptionService);
-  private router = inject(Router);
   private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private companiesService = inject(CompaniesService);
+  private plansService = inject(PlansService);
 
   options = this.settings.getOptions();
   currentPlanTitle: string | null = null;
-  subscriptionStatus: SubscriptionStatus | null = null;
-  canResubscribe = true;
+  currentPlanData: CompanyPlan | null = null;
   isSubscriptionLoading = false;
 
   plans: PricingPlan[] = [
@@ -220,20 +224,28 @@ export class AppPricingComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.loadSubscriptionStatus();
+    this.loadCurrentPlan();
   }
 
-  private loadSubscriptionStatus() {
-    this.subscriptionService.getClientStatus().subscribe({
-      next: (status) => {
-        this.subscriptionStatus = status;
-        this.canResubscribe = status.canResubscribe ?? true;
+  private loadCurrentPlan() {
+    const cached = this.plansService.getCurrentPlanValue();
+    if (cached?.plan?.name) {
+      this.currentPlanData = cached;
+      this.currentPlanTitle = cached.plan.name;
+      return;
+    }
+    this.companiesService.getByOwner().subscribe({
+      next: (company: any) => {
+        this.plansService.getCurrentPlan(company.company_id).subscribe({
+          next: (planData: CompanyPlan) => {
+            this.plansService.setCurrentPlan(planData);
+            this.currentPlanData = planData;
+            this.currentPlanTitle = planData.plan.name ?? null;
+          },
+          error: (err) => console.error('Error loading current plan:', err),
+        });
       },
-      error: (error) => {
-        console.error('Error loading subscription status:', error);
-        this.subscriptionStatus = null;
-        this.canResubscribe = true;
-      }
+      error: (err) => console.error('Error loading company:', err),
     });
   }
 
@@ -243,14 +255,14 @@ export class AppPricingComponent implements OnInit {
       return;
     }
 
-    if (!this.canResubscribe) {
+    if (this.isCurrentPlan(plan)) {
       this.dialog.open(ModalComponent, {
         width: '400px',
         data: {
-          action: 'wait',
-          subject: 'subscription',
-          message: 'Your current subscription is still in a blocked state. Please manage the existing plan in the Stripe portal or wait until cancellation completes.'
-        }
+          action: 'update',
+          subject: 'Plan',
+          message: 'You already have an active subscription on this plan.',
+        },
       });
       return;
     }
@@ -264,10 +276,6 @@ export class AppPricingComponent implements OnInit {
         next: (response) => {
           if (response.url) {
             window.location.href = response.url;
-          } else if (response.updated) {
-            this.router.navigate(['/apps/account-settings'], {
-              queryParams: { tab: 0, subscription: 'updated' }
-            });
           }
         },
         error: (error) => {
@@ -288,6 +296,11 @@ export class AppPricingComponent implements OnInit {
             });
           } else {
             console.error('Error creating subscription:', error);
+            this.snackBar.open('Something went wrong. Please try again.', 'Close', {
+              duration: 4000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+            });
           }
         }
       });
@@ -304,7 +317,8 @@ export class AppPricingComponent implements OnInit {
   }
 
   isCurrentPlan(plan: PricingPlan): boolean {
-    return this.currentPlanTitle === plan.title;
+    if (this.currentPlanTitle !== plan.title) return false;
+    return this.currentPlanData?.subscription?.status !== 'canceled';
   }
 
   apps: apps[] = [

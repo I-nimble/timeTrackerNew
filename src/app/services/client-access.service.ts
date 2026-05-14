@@ -1,12 +1,17 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { EmployeesService } from './employees.service';
-import { SubscriptionService } from './subscription.service';
+import { CompaniesService } from './companies.service';
+import { PlansService } from './plans.service';
+import { CompanyPlan } from '../models/Plan.model';
+
+const ACTIVE_STATUSES = ['active', 'trialing'] as const;
 
 @Injectable({ providedIn: 'root' })
 export class ClientAccessService {
   private readonly employeesService = inject(EmployeesService);
-  private readonly subscriptionService = inject(SubscriptionService);
+  private readonly companiesService = inject(CompaniesService);
+  private readonly plansService = inject(PlansService);
 
   private readonly _hasAccess = signal<boolean>(localStorage.getItem('clientHasTeam') === 'true');
   private readonly _hasEmployees = signal<boolean>(false);
@@ -22,12 +27,31 @@ export class ClientAccessService {
       return true;
     }
     try {
-      const [employees, clientStatus] = await Promise.all([
+      const [employees, company] = await Promise.all([
         lastValueFrom(this.employeesService.get()).catch(() => [] as any[]),
-        lastValueFrom(this.subscriptionService.getClientStatus()).catch(() => ({ status: 'inactive' })),
+        lastValueFrom(this.companiesService.getByOwner()).catch(() => null),
       ]);
+
       const employeesExist = Array.isArray(employees) && employees.length > 0;
-      const hasSubscription = ['active', 'trialing'].includes((clientStatus as any).status);
+
+      let hasSubscription = false;
+      if (company?.company_id) {
+        const planData: CompanyPlan | null = await lastValueFrom(
+          this.plansService.getCurrentPlan(company.company_id),
+        ).catch(() => null);
+
+        if (planData) {
+          this.plansService.setCurrentPlan(planData);
+          const paidPlanActive =
+            planData.plan.id > 1 &&
+            ACTIVE_STATUSES.includes(planData.status as any);
+          const clientPlanActive = ACTIVE_STATUSES.includes(
+            planData.client_plan?.status as any,
+          );
+          hasSubscription = paidPlanActive || clientPlanActive;
+        }
+      }
+
       const hasAccess = employeesExist || hasSubscription;
       this._hasEmployees.set(employeesExist);
       this._hasAccess.set(hasAccess);

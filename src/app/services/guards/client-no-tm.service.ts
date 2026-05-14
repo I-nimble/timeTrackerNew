@@ -8,7 +8,7 @@ import {
 } from '@angular/router';
 import { ClientAccessService } from '../client-access.service';
 
-const ALLOWED_RESTRICTED_PATHS = ['/apps/talent-match', '/apps/account-settings', '/dashboards/notifications'];
+const ALLOWED_RESTRICTED_PATHS = ['/apps/talent-match', '/apps/pricing', '/apps/account-settings', '/dashboards/notifications'];
 
 @Injectable({
   providedIn: 'root',
