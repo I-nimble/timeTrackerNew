@@ -5,9 +5,8 @@ import { environment } from 'src/environments/environment';
 
 export interface SubscriptionStatus {
   status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'inactive' | 'trialing';
-  current_period_end?: string;
+  current_period_end?: string | null;
   cancel_at_period_end: boolean;
-  canResubscribe?: boolean;
 }
 
 export interface SubscriptionReceipt {
@@ -53,16 +52,12 @@ export class SubscriptionService {
     });
   }
 
-  cancelSubscription(): Observable<{ message: string; current_period_end: number }> {
-    return this.http.post<{ message: string; current_period_end: number }>(`${this.apiUrl}/cancel`, {});
+  cancelSubscription(payload?: any): Observable<{ message: string; current_period_end: number }> {
+    return this.http.post<{ message: string; current_period_end: number }>(`${this.apiUrl}/cancel`, payload || {});
   }
 
   getSentinelStatus(): Observable<SubscriptionStatus> {
     return this.http.get<SubscriptionStatus>(`${this.apiUrl}/sentinel/status`);
-  }
-
-  getClientStatus(): Observable<SubscriptionStatus> {
-    return this.http.get<SubscriptionStatus>(`${this.apiUrl}/client/status`);
   }
 
   getSubscriptionReceipt(): Observable<SubscriptionReceipt> {

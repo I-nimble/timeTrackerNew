@@ -71,7 +71,7 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
       if (!id) return;
 
       const currentPlan = this.plansService.getCurrentPlanValue();
-      this.plan = currentPlan?.name || this.plan;
+      this.plan = currentPlan?.plan?.name || this.plan;
 
       const preselected = this.usersService.getSelectedUser();
       if (preselected && Number(preselected.id) === id) {

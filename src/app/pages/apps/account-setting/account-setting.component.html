@@ -23,10 +23,53 @@
             <div class="col-12">
               <mat-card class="cardWithShadow">
                 <mat-card-content class="p-y-24">
-                  <mat-card-title
-                    >Current Plan:
+                  <mat-card-title>Current Plan:
                     <span class="text-success">{{ currentPlan?.name }}</span>
                   </mat-card-title>
+                  <div class="f-s-14 m-t-8" *ngIf="currentPlan?.id !== 1 && currentPlanData?.status && currentPlanData?.status !== 'inactive'">
+                    <div class="m-b-8">
+                      <span class="status-badge"
+                        [class.badge-success]="effectivePlanStatus === 'active'"
+                        [class.badge-primary]="effectivePlanStatus === 'trialing'"
+                        [class.badge-warning]="effectivePlanStatus === 'past_due' || effectivePlanStatus === 'incomplete'"
+                        [class.badge-error]="effectivePlanStatus === 'canceled'">
+                        {{ formatPlanStatus(effectivePlanStatus) }}
+                      </span>
+                    </div>
+                    <div *ngIf="currentPlanData?.start_date"><strong>Member since:</strong> {{ currentPlanData?.start_date | date:'mediumDate' }}</div>
+                    <div *ngIf="effectivePlanStatus === 'trialing' && currentPlanData?.subscription?.current_period_end">
+                      <strong>Trialing until:</strong> {{ currentPlanData?.subscription?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="currentPlanData?.subscription?.cancel_at_period_end && currentPlanData?.subscription?.current_period_end">
+                      <strong>Ends on:</strong> {{ currentPlanData?.subscription?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="effectivePlanStatus === 'active' && !currentPlanData?.subscription?.cancel_at_period_end && currentPlanData?.subscription?.current_period_end">
+                      <strong>Renews on:</strong> {{ currentPlanData?.subscription?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="planSubscriptionReceipt?.plan_amount"><strong>Billing amount:</strong> {{ planSubscriptionReceipt?.plan_amount | currency:'USD' }}</div>
+                  </div>
+                  <div class="f-s-14 m-t-8" *ngIf="currentPlan?.id === 1 && currentPlanData?.client_plan?.status && currentPlanData?.client_plan?.status !== 'inactive'">
+                    <div class="m-b-4"><strong>Client Plan</strong></div>
+                    <div class="m-b-8">
+                      <span class="status-badge"
+                        [class.badge-success]="effectiveClientPlanStatus === 'active'"
+                        [class.badge-primary]="effectiveClientPlanStatus === 'trialing'"
+                        [class.badge-warning]="effectiveClientPlanStatus === 'past_due' || effectiveClientPlanStatus === 'incomplete'"
+                        [class.badge-error]="effectiveClientPlanStatus === 'canceled'">
+                        {{ formatPlanStatus(effectiveClientPlanStatus) }}
+                      </span>
+                    </div>
+                    <div *ngIf="effectiveClientPlanStatus === 'trialing' && currentPlanData?.client_plan?.current_period_end">
+                      <strong>Trialing until:</strong> {{ currentPlanData?.client_plan?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="currentPlanData?.client_plan?.cancel_at_period_end && currentPlanData?.client_plan?.current_period_end">
+                      <strong>Ends on:</strong> {{ currentPlanData?.client_plan?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="effectiveClientPlanStatus === 'active' && !currentPlanData?.client_plan?.cancel_at_period_end && currentPlanData?.client_plan?.current_period_end">
+                      <strong>Renews on:</strong> {{ currentPlanData?.client_plan?.current_period_end | date:'mediumDate' }}
+                    </div>
+                    <div *ngIf="clientSubscriptionReceipt?.plan_amount"><strong>Billing amount:</strong> {{ clientSubscriptionReceipt?.plan_amount | currency:'USD' }}</div>
+                  </div>
                   <mat-card-subtitle
                     class="f-s-14"
                     *ngIf="currentPlan?.id !== 1"
@@ -38,21 +81,31 @@
                     <button
                       mat-flat-button
                       color="primary"
-                      *ngIf="currentPlan?.id === 1"
+                      (click)="router.navigate(['/apps/pricing'])"
                     >
-                      <span> Go Premium </span>
-                      <i-tabler
-                        name="diamond"
-                        class="icon-20 f-w-600 f-s-5 m-l-8"
-                      ></i-tabler>
+                      <span class="d-flex align-items-center">
+                        Update Plan
+                        <i-tabler name="diamond" class="icon-18 m-l-4 d-flex"></i-tabler>
+                      </span>
                     </button>
                     <button
                       mat-stroked-button
                       class="m-l-8"
                       color="warn"
-                      *ngIf="currentPlan?.id !== 1"
+                      *ngIf="currentPlan?.id !== 1 && effectivePlanStatus !== 'canceled'"
+                      [disabled]="isLoadingPlanReset"
+                      (click)="resetPlan()"
                     >
-                      Reset Plan
+                      {{ isLoadingPlanReset ? 'Canceling...' : 'Reset Plan' }}
+                    </button>
+                    <button
+                      mat-stroked-button
+                      class="m-l-8"
+                      color="primary"
+                      *ngIf="currentPlan?.id !== 1"
+                      (click)="editPaymentMethod()"
+                    >
+                      Edit Payment Method
                     </button>
                   </div>
                 </mat-card-content>
