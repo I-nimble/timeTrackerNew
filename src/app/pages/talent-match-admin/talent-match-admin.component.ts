@@ -94,8 +94,8 @@ export class AppTalentMatchAdminComponent implements OnInit {
   backendMessage = '';
   tableLoading = false;
   searchTerm = '';
-  sortBy = 'match_percentage';
-  sortOrder: 'asc' | 'desc' = 'desc';
+  sortBy = 'name';
+  sortOrder: 'asc' | 'desc' = 'asc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
   aiAnswer: string = '';
