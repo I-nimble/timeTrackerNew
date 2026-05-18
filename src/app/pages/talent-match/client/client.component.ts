@@ -107,8 +107,8 @@ export class AppTalentMatchClientComponent implements OnInit, AfterViewInit, OnD
   totalRecords = 0;
   backendMessage = '';
   searchTerm = '';
-  sortBy = 'match_percentage';
-  sortOrder: 'asc' | 'desc' = 'desc';
+  sortBy = 'name';
+  sortOrder: 'asc' | 'desc' = 'asc';
   activeAISearchSessionId = '';
   private hasRestoredStoredSearch = false;
   discProfiles: DiscProfile[] = [];
