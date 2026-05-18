@@ -3,7 +3,7 @@
   autosize
   autoFocus
   [ngClass]="{
-  'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' &&  !resView,  
+  'sidebarNav-mini': options.sidenavCollapsed && options.navPos !== 'top' && !resView,  
   'sidebarNav-horizontal': options.horizontal,
   cardBorder: options.cardBorder,  
 }"
@@ -12,7 +12,7 @@
   <!-- ============================================================== -->
   <!-- Vertical Sidebar -->
   <!-- ============================================================== -->
-  @if (!options.horizontal) {
+  @if (!options.horizontal && clientHasTeam) {
   <mat-sidenav
     #leftsidenav
     [mode]="isOver ? 'over' : 'side'"
@@ -132,8 +132,7 @@
   <!-- ============================================================== -->
   <mat-sidenav-content
     id="app-main-content"
-    class="contentWrapper"
-    [ngClass]="{ 'p-l-24 p-r-24': !options.horizontal }"
+    [ngClass]="{ 'p-l-24 p-r-24': !options.horizontal, 'contentWrapper': options.horizontal && clientHasTeam}"
     #content
   >
     <!-- horizontal header -->
