@@ -32,9 +32,9 @@ export class DiscProfilesService {
 
   getDiscProfileColor(profileName: string): string {
     const colors: { [key: string]: string } = {
-      'Dominance': 'rgb(195, 227, 202)',
-      'Influence': 'rgb(251, 205, 192)',
-      'Steadiness': 'rgb(253, 229, 175)',
+      'Dominance': 'rgb(251, 205, 192)',
+      'Influence': 'rgb(253, 229, 175)',
+      'Steadiness': 'rgb(195, 227, 202)',
       'Conscientiousness': 'rgb(181, 218, 240)'
     };
     return colors[profileName] || '#ccc';
